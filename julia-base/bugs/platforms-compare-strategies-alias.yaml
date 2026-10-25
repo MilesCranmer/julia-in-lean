@@ -1,0 +1,66 @@
+id: platforms-compare-strategies-alias
+title: "Platform constructor mutates the caller's compare_strategies Dict and shares it between platforms"
+priority: P3
+kind: wrong-result
+area: Platforms
+files: [base/binaryplatforms.jl]
+functions: ["Platform(arch, os, tags; compare_strategies)", "==(::Platform, ::Platform)"]
+summary: |
+  When a platform has a julia_version tag, the constructor inserts the julia_version
+  strategy into the compare_strategies Dict passed by the caller and stores that same
+  Dict. A second platform built with the same Dict and no julia_version tag then carries
+  that strategy, so it is != a platform with identical tags. With a concretely typed Dict
+  (Dict("foo" => compare_version_cap)), the insertion throws MethodError instead.
+likelihood: |
+  Low: requires passing compare_strategies explicitly and reusing the Dict, which is a
+  natural way to apply one strategy set to several platforms.
+maybe_intended: ""
+reproducer: |
+  using Base.BinaryPlatforms
+  cs = Dict{String,Function}()
+  p1 = Platform("x86_64", "linux"; julia_version = "1.6.0", compare_strategies = cs)
+  println("caller's compare_strategies after constructing p1: ", collect(keys(cs)))
+  p2 = Platform("x86_64", "linux"; compare_strategies = cs)
+  p3 = Platform("x86_64", "linux")
+  println("tags(p2) == tags(p3): ", tags(p2) == tags(p3), "; p2 == p3: ", p2 == p3)
+  r = try
+      Platform("x86_64", "linux"; julia_version = "1.6.0",
+               compare_strategies = Dict("foo" => Base.BinaryPlatforms.compare_version_cap))
+  catch e
+      e
+  end
+  println("concretely typed compare_strategies => ", r isa Exception ? typeof(r) : repr(r))
+  if !isempty(cs) && p2 != p3
+      println("REPRODUCED platforms-compare-strategies-alias")
+  end
+output:
+  release: |
+    caller's compare_strategies after constructing p1: ["julia_version"]
+    tags(p2) == tags(p3): true; p2 == p3: false
+    concretely typed compare_strategies => MethodError
+    REPRODUCED platforms-compare-strategies-alias
+  nightly: |
+    caller's compare_strategies after constructing p1: ["julia_version"]
+    tags(p2) == tags(p3): true; p2 == p3: false
+    concretely typed compare_strategies => MethodError
+    REPRODUCED platforms-compare-strategies-alias
+reproduced: {release: true, nightly: true}
+expected: |
+  cs stays empty; p2 == p3; the typed Dict is accepted (its signature allows
+  Dict{String,<:Function}).
+promised_by: |
+  Invariant: constructing a value does not modify its arguments, and platforms with the
+  same tags built with the same requested strategies compare equal. The constructor
+  signature (base/binaryplatforms.jl:45-47) accepts any Dict{String,<:Function}.
+cause: |
+  base/binaryplatforms.jl:91-99 write into the caller's compare_strategies
+  (`compare_strategies["julia_version"] = ...`) and pass the same Dict to `new` (which
+  only copies it when its type is not Dict{String,Function}).
+possible_fix: |
+  Copy into a fresh Dict{String,Function}(compare_strategies) before inserting.
+duplicates:
+  issues: []
+  queries: ["compare_strategies", "Platform compare_strategies", "platforms_match"]
+lean:
+  property: JuliaLean.Platforms.CtorKeepsStrategies
+  theorem: JuliaLean.Platforms.ctorKeepsStrategies_refuted

@@ -1,0 +1,53 @@
+id: dicts-issubset-vector-threshold
+title: "issubset(a, b::Vector) switches from == to isequal when length(b) > 70"
+priority: P2
+kind: wrong-result
+area: Dicts
+files: [base/abstractset.jl]
+functions: ["issubset(a, b)"]
+summary: |
+  issubset(a, b) for a vector b tests `elt in b` (==) when length(b) <= 70,
+  but converts b to a Set (isequal) when length(b) > 70. The answer for
+  0.0 vs -0.0, or NaN, therefore depends on the length of b:
+  issubset([0.0], [-0.0; ones(69)]) is true, issubset([0.0], [-0.0; ones(70)])
+  is false.
+likelihood: |
+  Any vector of floats containing signed zeros or NaNs; the threshold makes
+  the result change silently as data grows. Already reported upstream.
+maybe_intended: |
+  Triage in #61893 leaned towards giving all set functions isequal semantics;
+  under that reading the short-vector path is the wrong one. Either way the
+  result should not depend on length(b).
+reproducer: |
+  issubset([0.0], [-0.0; ones(69)])   # true
+  issubset([0.0], [-0.0; ones(70)])   # false
+output:
+  release: |
+    length(b) = 70: issubset([0.0], b) = true
+    length(b) = 71: issubset([0.0], b) = false; all(x -> x in b, [0.0]) = true
+    issubset([NaN], [NaN; ones(70)]) = true; NaN in [NaN; ones(70)] = false
+    REPRODUCED dicts-issubset-vector-threshold
+  nightly: |
+    length(b) = 70: issubset([0.0], b) = true
+    length(b) = 71: issubset([0.0], b) = false; all(x -> x in b, [0.0]) = true
+    issubset([NaN], [NaN; ones(70)]) = true; NaN in [NaN; ones(70)] = false
+    REPRODUCED dicts-issubset-vector-threshold
+reproduced: {release: true, nightly: true}
+expected: |
+  The same answer for both lengths: true under the documented `in`
+  semantics (0.0 == -0.0).
+promised_by: |
+  issubset docstring, base/abstractset.jl:315: "Determine whether every
+  element of `a` is also in `b`, using [`in`](@ref)."
+cause: |
+  base/abstractset.jl:344-345: `!hasfastin(b) && blen > FASTIN_SET_THRESHOLD`
+  returns issubset(a, Set(b)), and Set membership uses isequal.
+possible_fix: |
+  Decide on one semantics (#61893) and use it on both paths.
+duplicates:
+  issues:
+    - {number: 61893, state: open, relation: duplicate}
+  queries: ["issubset NaN", "issubset isequal", "issubset -0.0", "issubset FASTIN_SET_THRESHOLD", "isdisjoint NaN", "issetequal NaN"]
+lean:
+  property: JuliaLean.Dicts.IssubsetVecUsesIn
+  theorem: JuliaLean.Dicts.issubsetVecUsesIn_refuted

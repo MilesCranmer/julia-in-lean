@@ -1,0 +1,49 @@
+id: logging-disable-typemax
+title: "disable_logging throws for the largest valid LogLevel"
+priority: P2
+kind: wrong-exception
+area: Logging
+files: [base/logging/logging.jl]
+functions: ["disable_logging", "+(::LogLevel, ::Integer)"]
+summary: |
+  LogLevel stores every Int32 value, including typemax(Int32). Calling
+  disable_logging on that valid maximum tries to construct LogLevel(2147483648)
+  and throws InexactError instead of disabling all possible log levels.
+likelihood: |
+  The input is an extreme custom level. It is plausible in generic code that uses
+  typemax as an all-messages cutoff, but ordinary Debug through Error levels work.
+maybe_intended: |
+  The global filter stores its threshold in Int32, so the current representation
+  has no value one greater than the maximum level. The public function documents no
+  excluded LogLevel value.
+reproducer: |
+  level = Logging.LogLevel(typemax(Int32))
+  Logging.disable_logging(level)
+output:
+  release: |
+    level = LogLevel(2147483647)
+    disable_logging = InexactError: trunc(Int32, 2147483648)
+    REPRODUCED logging-disable-typemax
+  nightly: |
+    level = LogLevel(2147483647)
+    disable_logging = InexactError: trunc(Int32, 2147483648)
+    REPRODUCED logging-disable-typemax
+reproduced: {release: true, nightly: true}
+expected: |
+  disable_logging should return normally and suppress every message whose LogLevel
+  fits the documented Int32 representation.
+promised_by: |
+  base/logging/logging.jl:552-558 says disable_logging(level) disables all messages
+  at levels equal to or less than level, with no excluded LogLevel value.
+cause: |
+  base/logging/logging.jl:565-567 stores `level + 1`. The LogLevel addition at
+  lines 134-135 computes 2147483648 as Int64, then its Int32 field conversion fails.
+possible_fix: |
+  Store the greatest disabled level and compare with `>`, or represent the threshold
+  with a wider integer so typemax(Int32) plus one is available.
+duplicates:
+  issues: []
+  queries: ["disable_logging", "LogLevel typemax", "disable_logging overflow"]
+lean:
+  property: JuliaLean.Logging.DisableLoggingTotal
+  theorem: JuliaLean.Logging.disableLoggingTotal_refuted

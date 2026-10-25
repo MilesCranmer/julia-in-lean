@@ -1,0 +1,46 @@
+id: mathfuncs-copysign-typemin
+title: "copysign(typemin(Int), 1) returns a negative number"
+priority: P3
+kind: wrong-result
+area: MathFuncs
+files: [base/int.jl, base/number.jl]
+functions: ["copysign(::Signed, ::Signed)", "copysign(::Signed, ::Float64)"]
+summary: |
+  copysign(x, y) for signed integers negates x when the signs differ; for
+  x = typemin(T) the negation wraps, so copysign(typemin(Int), 1) is
+  typemin(Int), negative although y is positive.
+likelihood: |
+  Needs x == typemin of its type; the same class as abs(typemin(Int)).
+maybe_intended: |
+  Integer negation wraps in Julia and abs documents the analogous overflow
+  (abs(typemin(Int)) == typemin(Int)); copysign's docstring has no such note.
+reproducer: |
+  copysign(typemin(Int64), 1)   # -9223372036854775808
+output:
+  release: |
+    copysign(typemin(Int64), 1) = -9223372036854775808
+    copysign(typemin(Int8), Int8(1)) = -128
+    copysign(typemin(Int64), 1.0) = -9223372036854775808
+    REPRODUCED mathfuncs-copysign-typemin
+  nightly: |
+    copysign(typemin(Int64), 1) = -9223372036854775808
+    copysign(typemin(Int8), Int8(1)) = -128
+    copysign(typemin(Int64), 1.0) = -9223372036854775808
+    REPRODUCED mathfuncs-copysign-typemin
+reproduced: {release: true, nightly: true}
+expected: |
+  Either an OverflowError or a documented exception like abs's.
+promised_by: |
+  base/number.jl:260 (copysign docstring): "Return `z` which has the magnitude
+  of `x` and the same sign as `y`."
+cause: |
+  base/int.jl:196 copysign(x::Signed, y::Signed) = flipsign(x, x ⊻ y), and
+  flipsign_int negates typemin, which wraps to itself.
+possible_fix: |
+  Document the wraparound at typemin as abs does.
+duplicates:
+  issues: []
+  queries: ["copysign typemin", "flipsign typemin", "copysign overflow", "flipsign overflow", "copysign", "flipsign"]
+lean:
+  property: JuliaLean.MathFuncs.copysignMagnitudeSign
+  theorem: JuliaLean.MathFuncs.copysignMagnitudeSign_refuted

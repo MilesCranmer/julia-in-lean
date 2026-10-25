@@ -1,0 +1,64 @@
+id: dicts-persistentdict-eq-asymmetric
+title: "== and isequal between PersistentDict and Dict are asymmetric (or throw MethodError)"
+priority: P3
+kind: wrong-result
+area: Dicts
+files: [base/abstractdict.jl, base/dict.jl]
+functions: ["==(::AbstractDict, ::AbstractDict)", "isequal(::AbstractDict, ::AbstractDict)"]
+summary: |
+  PersistentDict compares keys with === (it "behaves like an IdDict"), Dict
+  with isequal. The generic AbstractDict == and isequal test each pair of the
+  left argument with the right argument's lookup, so
+  PersistentDict{Any,Int}(1 => 1) == Dict{Any,Int}(1.0 => 1) is true and the
+  reverse is false. With concrete key types the reverse throws MethodError
+  because PersistentDict's get only accepts keys of its key type.
+likelihood: |
+  PersistentDict is not exported or public (it backs ScopedValues);
+  comparing one with a Dict is rare.
+maybe_intended: |
+  IdDict has the same mismatch and the generic == avoids it by returning
+  false whenever exactly one argument is an IdDict; PersistentDict was
+  probably just not added to that check.
+reproducer: |
+  p = Base.PersistentDict{Any,Int}(1 => 1)
+  d = Dict{Any,Int}(1.0 => 1)
+  p == d, d == p                                          # (true, false)
+  Dict(1.0 => 1) == Base.PersistentDict(1 => 1)           # MethodError
+output:
+  release: |
+    PersistentDict{Any,Int}(1 => 1) == Dict{Any,Int}(1.0 => 1): true
+    Dict{Any,Int}(1.0 => 1) == PersistentDict{Any,Int}(1 => 1): false
+    isequal both ways: true false
+    Dict(1.0 => 1) == PersistentDict(1 => 1): MethodError; reverse: true
+    IdDict(1 => 1) == Dict(1.0 => 1): false; reverse: false
+    REPRODUCED dicts-persistentdict-eq-asymmetric
+  nightly: |
+    PersistentDict{Any,Int}(1 => 1) == Dict{Any,Int}(1.0 => 1): true
+    Dict{Any,Int}(1.0 => 1) == PersistentDict{Any,Int}(1 => 1): false
+    isequal both ways: true false
+    Dict(1.0 => 1) == PersistentDict(1 => 1): MethodError; reverse: true
+    IdDict(1 => 1) == Dict(1.0 => 1): false; reverse: false
+    REPRODUCED dicts-persistentdict-eq-asymmetric
+reproduced: {release: true, nightly: true}
+expected: |
+  The same Bool in both orders (false, as for IdDict vs Dict), and no
+  MethodError.
+promised_by: |
+  base/operators.jl:152: "`isequal` is an equivalence relation - it is
+  reflexive (`===` implies `isequal`), symmetric and transitive"; == of
+  collections compares key sets and values (base/operators.jl:116).
+cause: |
+  base/abstractdict.jl:504-533 check `isa(l, IdDict) != isa(r, IdDict)` only
+  for IdDict and otherwise test `in(pair, r)` with r's own key comparison;
+  PersistentDict's in/get (base/dict.jl:1010-1031) use === and accept only
+  keys of type K.
+possible_fix: |
+  Treat PersistentDict like IdDict in the generic comparisons (or give it its
+  own ==/isequal), and add a get(::PersistentDict, key, default) method for
+  arbitrary keys.
+duplicates:
+  issues: []
+  queries: ["PersistentDict ==", "PersistentDict isequal", "PersistentDict MethodError get", "PersistentDict IdDict equality"]
+lean:
+  property: JuliaLean.Dicts.PersistentDictEqSymmetric
+  theorem: JuliaLean.Dicts.persistentDictEqSymmetric_refuted

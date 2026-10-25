@@ -1,0 +1,72 @@
+id: iterators-take-huge-count
+title: first(itr, n), last(itr, n) and take(itr, n) throw InexactError for n > typemax(Int)
+priority: P3
+kind: wrong-exception
+area: Iterators
+files:
+- base/iterators.jl
+- base/abstractarray.jl
+functions:
+- take(xs, n)
+- drop(xs, n)
+- first(itr, n)
+- last(itr, n)
+summary: |
+  take(xs, n::Integer) = Take(xs, Int(n)) converts the count, so counts beyond
+  typemax(Int) (typemax(UInt), big integers) throw InexactError. The generic
+  first(itr, n) and last(itr, n) inherit this, while the vector methods return
+  the whole vector: first((1,2,3), typemax(UInt)) throws but
+  first([1,2,3], typemax(UInt)) == [1, 2, 3].
+likelihood: |
+  Needs a count above typemax(Int), e.g. typemax(UInt) as "all". Rare; loud.
+maybe_intended: |
+  The Take and Drop structs store an Int count; one can consider counts above
+  typemax(Int) out of scope.
+reproducer: |
+  # take/first/last convert the count with Int(n), so counts above typemax(Int) throw
+  show_r(x) = x isa Exception ? sprint(showerror, x) : repr(x)
+  a = try first((1, 2, 3), typemax(UInt)) catch e; e end
+  b = try last((1, 2, 3), typemax(UInt)) catch e; e end
+  c = try collect(Iterators.take(1:3, typemax(UInt))) catch e; e end
+  d = first([1, 2, 3], typemax(UInt))
+  println("first((1,2,3), typemax(UInt)) = ", show_r(a))
+  println("last((1,2,3), typemax(UInt)) = ", show_r(b))
+  println("collect(take(1:3, typemax(UInt))) = ", show_r(c))
+  println("first([1,2,3], typemax(UInt)) = ", show_r(d))
+  a isa InexactError && b isa InexactError && d == [1, 2, 3] && println("REPRODUCED iterators-take-huge-count")
+output:
+  release: |
+    first((1,2,3), typemax(UInt)) = InexactError: convert(Int64, 0xffffffffffffffff)
+    last((1,2,3), typemax(UInt)) = InexactError: convert(Int64, 0xffffffffffffffff)
+    collect(take(1:3, typemax(UInt))) = InexactError: convert(Int64, 0xffffffffffffffff)
+    first([1,2,3], typemax(UInt)) = [1, 2, 3]
+    REPRODUCED iterators-take-huge-count
+  nightly: |
+    first((1,2,3), typemax(UInt)) = InexactError: convert(Int64, 0xffffffffffffffff)
+    last((1,2,3), typemax(UInt)) = InexactError: convert(Int64, 0xffffffffffffffff)
+    collect(take(1:3, typemax(UInt))) = InexactError: convert(Int64, 0xffffffffffffffff)
+    first([1,2,3], typemax(UInt)) = [1, 2, 3]
+    REPRODUCED iterators-take-huge-count
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  The whole collection: first((1,2,3), typemax(UInt)) == [1, 2, 3].
+promised_by: |
+  first(itr, n) docstring, base/abstractarray.jl:481-484: "Get the first n
+  elements of the iterable collection itr, or fewer elements if itr is not long
+  enough"; take docstring, base/iterators.jl:788-790.
+cause: |
+  base/iterators.jl:815 (and 871 for drop), Int(n); base/abstractarray.jl:505
+  and 555 call take.
+possible_fix: |
+  Clamp the count: Take(xs, n > typemax(Int) ? typemax(Int) : Int(n)).
+duplicates:
+  issues: []
+  queries:
+  - take typemax UInt
+  - first InexactError
+  - take InexactError
+lean:
+  property: JuliaLean.Iterators.FirstNAnyInteger
+  theorem: JuliaLean.Iterators.firstNAnyInteger_refuted

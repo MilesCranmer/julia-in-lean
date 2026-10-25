@@ -1,0 +1,54 @@
+id: toml-array-table-in-inline-table
+title: "TOML parser lets an array-of-tables header add a key to an inline table"
+priority: P2
+kind: missing-error
+area: Toml
+files: [base/toml/parser.jl]
+functions: ["Base.TOML.recurse_dict!", "Base.TOML.parse_array_table", "TOML.parse"]
+summary: |
+  Inline tables are closed once their braces end, and a `[a.b]` header that adds to one
+  is rejected. A `[[a.b]]` header is not checked: `TOML.parse("a = {}\n[[a.b]]")`
+  returns `Dict("a" => Dict("b" => [Dict()]))`, inserting a new key into the inline
+  table `a`. The same happens when the parent is the last inline table of a static
+  array, as in `a = [{}]\n[[a.b]]`.
+likelihood: |
+  Needs an invalid document that mixes an inline table with a later array-of-tables
+  header under it. Such files are rejected by other TOML parsers, so the main effect is
+  that Julia accepts and silently merges files that other tools refuse.
+maybe_intended: ""
+reproducer: |
+  import TOML
+  TOML.parse("a = {}\n[[a.b]]")   # Dict("a" => Dict("b" => [Dict()])), no error
+output:
+  release: |
+    Dict{String, Any}("a" => Dict{String, Any}("b" => Any[Dict{String, Any}()]))
+    Dict{String, Any}("a" => Any[Dict{String, Any}("b" => Any[Dict{String, Any}()])])
+    Base.TOML.ParserError
+    REPRODUCED toml-array-table-in-inline-table
+  nightly: |
+    Dict{String, Any}("a" => Dict{String, Any}("b" => Any[Dict{String, Any}()]))
+    Dict{String, Any}("a" => Any[Dict{String, Any}("b" => Any[Dict{String, Any}()])])
+    Base.TOML.ParserError
+    REPRODUCED toml-array-table-in-inline-table
+reproduced: {release: true, nightly: true}
+expected: |
+  A `ParserError` (`ErrAddKeyToInlineTable`), as for `a = {}\n[a.b]`.
+promised_by: |
+  TOML v1.1.0, "Inline Table": "Inline tables are fully self-contained and define all
+  keys and sub-tables within them. Keys and sub-tables cannot be added outside the
+  braces." The TOML stdlib (stdlib/TOML/src/TOML.jl:4) describes itself as a parser of
+  TOML v1.1 files.
+cause: |
+  base/toml/parser.jl:717 calls `recurse_dict!` with `check=false`, which skips
+  `check_allowed_add_key` (base/toml/parser.jl:655-661), the only place that rejects
+  inline tables (base/toml/parser.jl:672-673). base/toml/parser.jl:719 then inserts the
+  new array into the inline table with `get!`.
+possible_fix: |
+  Check `d in l.inline_tables` for every intermediate table in `parse_array_table`, and
+  for the parent `d` before the `get!` at base/toml/parser.jl:719.
+duplicates:
+  issues: []
+  queries: ["TOML inline table immutable", "TOML inline table array of tables", "TOML inline", "TOML array of tables"]
+lean:
+  property: JuliaLean.Toml.InlineTableClosed
+  theorem: JuliaLean.Toml.inlineTableClosed_refuted

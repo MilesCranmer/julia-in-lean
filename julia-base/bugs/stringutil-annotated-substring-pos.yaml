@@ -1,0 +1,64 @@
+id: stringutil-annotated-substring-pos
+title: "annotations(::SubString{<:AnnotatedString}, pos) returns regions relative to the parent string"
+priority: P2
+kind: wrong-result
+area: StringUtil
+files: [base/strings/annotated.jl]
+functions: ["annotations(::SubString{<:AnnotatedString}, ::Integer)", "annotations(::SubString{<:AnnotatedString}, ::UnitRange)"]
+summary: |
+  annotations(ss) for a SubString of an AnnotatedString returns regions relative to
+  the SubString, but annotations(ss, pos) returns them relative to the parent. For
+  s = AnnotatedString("abcdef", [(1:6, :A, 1)]) and ss = SubString(s, 3, 4),
+  annotations(ss) has region 1:2 while annotations(ss, 1:2) has region 3:4 and
+  annotations(ss, 1) has region 3:3, outside ss.
+likelihood: |
+  Code that queries annotations at a position of a SubString (for example a
+  styled-text renderer working on a slice) and uses the returned regions to index
+  the SubString gets offsets shifted by ss.offset. Silent.
+maybe_intended: |
+  The docstring does not say which coordinates the regions use, but the
+  position argument is taken relative to the SubString, and annotations(ss)
+  without a position shifts the regions.
+reproducer: |
+  using Base: AnnotatedString, annotations
+  s = AnnotatedString("abcdef", [(1:6, :A, 1)])
+  ss = SubString(s, 3, 4)   # "cd"
+  println("annotations(ss)      regions = ", [a.region for a in annotations(ss)])
+  println("annotations(ss, 1)   regions = ", [a.region for a in annotations(ss, 1)])
+  println("annotations(ss, 1:2) regions = ", [a.region for a in annotations(ss, 1:2)])
+  if [a.region for a in annotations(ss)] == [1:2] && [a.region for a in annotations(ss, 1:2)] == [3:4]
+      println("REPRODUCED stringutil-annotated-substring-pos")
+  end
+output:
+  release: |
+    annotations(ss)      regions = UnitRange{Int64}[1:2]
+    annotations(ss, 1)   regions = UnitRange{Int64}[3:3]
+    annotations(ss, 1:2) regions = UnitRange{Int64}[3:4]
+    REPRODUCED stringutil-annotated-substring-pos
+  nightly: |
+    annotations(ss)      regions = UnitRange{Int64}[1:2]
+    annotations(ss, 1)   regions = UnitRange{Int64}[3:3]
+    annotations(ss, 1:2) regions = UnitRange{Int64}[3:4]
+    REPRODUCED stringutil-annotated-substring-pos
+reproduced: {release: true, nightly: true}
+expected: |
+  annotations(ss, 1:2) has region 1:2 and annotations(ss, 1) has region 1:1,
+  consistent with annotations(ss).
+promised_by: |
+  Invariant: annotations(ss) returns SubString-relative regions
+  (base/strings/annotated.jl:420-430); filtering by a position (docstring
+  base/strings/annotated.jl:402-417: "Should `position` be provided, only
+  annotations that overlap with `position` will be returned") should not change
+  the coordinate system.
+cause: |
+  base/strings/annotated.jl:447-451 forward to annotations(s.string, pos .+ s.offset)
+  and return the parent's clamped regions without subtracting s.offset, unlike
+  base/strings/annotated.jl:420-430.
+possible_fix: |
+  Shift the returned regions by -s.offset, as annotations(s::SubString) does.
+duplicates:
+  issues: []
+  queries: ["issues: annotations SubString position", "issues: annotations SubString offset", "issues: annotations SubString", "prs: annotations SubString", "issues: AnnotatedString (30 most relevant titles read)"]
+lean:
+  property: JuliaLean.StringUtil.SubAnnotationsPosRelative
+  theorem: JuliaLean.StringUtil.subAnnotationsPosRelative_refuted

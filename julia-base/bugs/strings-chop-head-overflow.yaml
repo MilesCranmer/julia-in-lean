@@ -1,0 +1,52 @@
+id: strings-chop-head-overflow
+title: "chop(s, head=typemax(Int)) throws BoundsError instead of returning \"\""
+priority: P2
+kind: wrong-exception
+area: Strings
+files: [base/strings/util.jl, base/strings/basic.jl]
+functions: ["chop(::AbstractString)"]
+summary: |
+  chop("ab", head=typemax(Int), tail=0) throws BoundsError with index
+  typemin(Int):2, while chop("ab", head=3, tail=0) returns "". nextind(s, 1,
+  head) wraps negative.
+likelihood: |
+  Needs a head count near typemax(Int); contrived.
+maybe_intended: ""
+reproducer: |
+  println("chop(\"ab\", head=3, tail=0) = ", repr(chop("ab", head=3, tail=0)))
+  r = try
+      repr(chop("ab", head=typemax(Int), tail=0))
+  catch e
+      e
+  end
+  println("chop(\"ab\", head=typemax(Int), tail=0) = ", r isa Exception ? sprint(showerror, r) : r)
+  r isa BoundsError && println("REPRODUCED strings-chop-head-overflow")
+output:
+  release: |
+    chop("ab", head=3, tail=0) = ""
+    chop("ab", head=typemax(Int), tail=0) = BoundsError: attempt to access 2-codeunit String at index [-9223372036854775808:2]
+    REPRODUCED strings-chop-head-overflow
+  nightly: |
+    chop("ab", head=3, tail=0) = ""
+    chop("ab", head=typemax(Int), tail=0) = BoundsError: attempt to access 2-codeunit String at index [-9223372036854775808:2]
+    REPRODUCED strings-chop-head-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  An empty SubString, as for any head >= length(s).
+promised_by: |
+  The chop docstring: "If it is requested to remove more characters than
+  `length(s)` then an empty string is returned." (base/strings/util.jl:214-217).
+cause: |
+  chop (base/strings/util.jl:236-241) builds SubString(s, nextind(s,
+  firstindex(s), head), ...); nextind wraps (base/strings/basic.jl:573).
+possible_fix: |
+  Fix the overflow in nextind(s, i, n).
+duplicates:
+  issues: []
+  queries:
+    - "issues: chop head overflow"
+    - "issues: chop typemax"
+    - "issues: chop"
+lean:
+  property: JuliaLean.Strings.ChopTooMany
+  theorem: JuliaLean.Strings.chopTooMany_refuted

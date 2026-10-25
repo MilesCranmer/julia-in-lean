@@ -1,0 +1,64 @@
+id: reduce-prod-init-mixed-sign
+title: "prod(Int8[-1]; init=0x01) === 0xff: mul_prod does not widen mixed-sign small integers"
+priority: P2
+kind: wrong-result
+area: Reduce
+files: [base/reduce.jl]
+functions: ["prod(A; init)", "prod(f, A; init)", "Base.mul_prod"]
+summary: |
+  sum and prod widen small integers to Int/UInt. add_sum widens any mix of small
+  integer types, but mul_prod only widens two signed or two unsigned small
+  integers. With an init of the other signedness the first product is computed
+  in the narrow promoted type: prod(Int8[-1]; init=0x01) === 0xff (255) and
+  prod(Int8[16, 16]; init=0x01) === 0x00, while prod(Int8[16, 16]) == 256 and
+  sum(Int8[-1]; init=0x00) == -1.
+likelihood: |
+  Low: needs a small integer init of the opposite signedness, e.g. one(UInt8)
+  for an Int8 array. The result is silently wrong when it happens.
+maybe_intended: |
+  The docstring promises widening for "signed integers" and "unsigned integers"
+  of less than word size and a common type otherwise; for a mixed init one could
+  argue the common type UInt8 applies. sum handles the same mix by widening.
+reproducer: |
+  prod(Int8[-1]; init=0x01)       # 0xff
+  prod(Int8[16, 16]; init=0x01)   # 0x00
+  sum(Int8[-1]; init=0x00)        # -1
+output:
+  release: |
+    0xff 0x00 256 -1
+    REPRODUCED reduce-prod-init-mixed-sign
+    prod(Int8[16, 16]; init = 0x01)                              => 0x00
+    prod(Int8[-1]; init = 0x01)                                  => 0xff
+    sum(Int8[-1]; init = 0x00)                                   => -1
+    prod(UInt8[16, 16]; init = Int8(1))                          => 0x0000000000000100
+    prod(Int8[16, 16])                                           => 256
+  nightly: |
+    0xff 0x00 256 -1
+    REPRODUCED reduce-prod-init-mixed-sign
+    prod(Int8[16, 16]; init = 0x01)                              => 0x00
+    prod(Int8[-1]; init = 0x01)                                  => 0xff
+    sum(Int8[-1]; init = 0x00)                                   => -1
+    prod(UInt8[16, 16]; init = Int8(1))                          => 0x0000000000000100
+    prod(Int8[16, 16])                                           => 256
+reproduced: {release: true, nightly: true}
+expected: |
+  -1 and 256 (as Int), like prod without init and like sum with a mixed init.
+promised_by: |
+  base/reduce.jl:578-584 (prod docstring): "The return type is Int for signed
+  integers of less than system word size, and UInt for unsigned integers of
+  less than system word size."
+cause: |
+  base/reduce.jl:27-30: mul_prod has methods for (BitSignedSmall, BitSignedSmall)
+  and (BitUnsignedSmall, BitUnsignedSmall) only; (UInt8, Int8) falls to
+  x * y in UInt8. add_sum (base/reduce.jl:17) covers Union{Bool,BitIntegerSmall}
+  on both sides.
+possible_fix: |
+  Add mul_prod(x::BitIntegerSmall, y::BitIntegerSmall) = Int(x) * Int(y) as add_sum
+  does.
+duplicates:
+  issues:
+    - {number: 58374, state: merged, relation: related}
+  queries: ["mul_prod", "mul_prod mixed", "prod init mixed", "prod small integer init", "prod init UInt8"]
+lean:
+  property: JuliaLean.Reduce.ProdInitWidened
+  theorem: JuliaLean.Reduce.prodInitWidened_refuted

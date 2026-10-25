@@ -1,0 +1,74 @@
+id: show-escape-above-unicode
+title: "escape_string emits \\U escapes above U+10FFFF that unescape_string and the parser reject"
+priority: P2
+kind: wrong-result
+area: Show
+files: [base/strings/io.jl]
+functions: ["escape_string(::AbstractString)", "unescape_string(::AbstractString)", "show(::IO, ::String)"]
+summary: |
+  For the invalid UTF-8 string s = "\xf4\x90\x80\x80", iteration yields one Char that is
+  neither malformed nor overlong but decodes to the code point 0x110000. escape_string
+  treats it as a well-formed non-printable character and writes "\U110000".
+  unescape_string(escape_string(s)) then throws ArgumentError, and repr(s) ==
+  "\"\\U110000\"" does not parse. Every 4-byte sequence with lead byte F4 and
+  second byte >= 0x90, or lead byte F5-F7, behaves the same way.
+likelihood: |
+  Only invalid UTF-8 input, but escape_string and repr are exactly the tools used to
+  display or serialize arbitrary bytes (logs, test output, generated code).
+maybe_intended: |
+  The escape_string docstring does not state that unescape_string inverts it; it
+  only says "See also unescape_string for the reverse operation" (base/strings/io.jl:427).
+  show(::Char) has the same problem for these chars (bugs/missingchar-show-char-roundtrip.yaml,
+  issue #54396).
+reproducer: |
+  s = "\xf4\x90\x80\x80"   # one Char whose decoded code point is 0x110000
+  e = escape_string(s)
+  println("escape_string(s) = ", repr(e))
+  r = try unescape_string(e) catch err; err end
+  println("unescape_string(escape_string(s)) = ", repr(r))
+  p = try Meta.parse(repr(s)) catch err; err end
+  println("Meta.parse(repr(s)) = ", p isa Exception ? typeof(p) : repr(p))
+  !(r isa String && r == s) && println("REPRODUCED show-escape-above-unicode")
+output:
+  release: |
+    escape_string(s) = "\\U110000"
+    unescape_string(escape_string(s)) = ArgumentError("invalid unicode (\\U) escape sequence")
+    Meta.parse(repr(s)) = Base.Meta.ParseError
+    REPRODUCED show-escape-above-unicode
+  nightly: |
+    escape_string(s) = "\\U110000"
+    unescape_string(escape_string(s)) = ArgumentError("invalid unicode (\\U) escape sequence")
+    Meta.parse(repr(s)) = Base.Meta.ParseError
+    REPRODUCED show-escape-above-unicode
+reproduced: {release: true, nightly: true}
+expected: |
+  escape_string(s) == "\\xf4\\x90\\x80\\x80" (the same \x byte escapes used for other
+  invalid sequences), so that unescape_string(escape_string(s)) == s and repr(s) parses.
+promised_by: |
+  escape_string docstring (base/strings/io.jl:400-427): non-printable characters
+  are escaped with "\u"/"\U" code points or "\x" hex, and unescape_string is "the
+  reverse operation"; the invalid-UTF-8 example escape_string("\xfe\xff") ==
+  "\\xfe\\xff" shows invalid data is meant to round-trip.
+cause: |
+  base/strings/io.jl:473-477: the branch `!isoverlong(c) && !ismalformed(c)` prints
+  "\U" * string(UInt32(c), base=16) for every such char above '\uffff', including code
+  points above 0x10ffff. unescape_string (base/strings/io.jl:554-557) and the parser
+  (JuliaSyntax/src/julia/literal_parsing.jl:269-273) reject \U values above 0x10ffff.
+possible_fix: |
+  Treat chars with codepoint > 0x10ffff like malformed ones in escape_string (print their
+  bytes as \x escapes), e.g. by testing `c <= '\U10ffff'` before the \U branch.
+duplicates:
+  issues:
+    - {number: 54396, state: open, relation: related}
+  queries:
+    - "issues: escape_string unescape_string"
+    - "issues: escape_string invalid"
+    - "issues: \\U escape invalid UTF-8"
+    - "issues: repr string invalid UTF-8"
+    - "issues: unescape_string escape_string roundtrip"
+    - "issues: escape_string \\U110000"
+    - "prs: escape_string unescape_string"
+    - "prs: escape_string invalid"
+lean:
+  property: JuliaLean.Show.EscapeRoundTrip
+  theorem: JuliaLean.Show.escapeRoundTrip_refuted

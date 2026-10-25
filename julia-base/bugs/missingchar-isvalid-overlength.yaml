@@ -1,0 +1,82 @@
+id: missingchar-isvalid-overlength
+title: "isvalid(c) is true for Chars holding more bytes than their lead byte announces"
+priority: P2
+kind: wrong-result
+area: MissingChar
+files: [base/char.jl, base/strings/unicode.jl]
+functions: ["ismalformed(::Char)", "isvalid(::Char)", "codepoint(::Char)"]
+summary: |
+  Base.ismalformed only checks that the bytes after the lead byte are
+  continuation bytes and that there are not too few of them; it accepts a Char
+  with more bytes than the lead byte announces. Such Chars count as valid:
+  reinterpret(Char, 0xe9a9a5bf) (a 3-byte lead followed by 3 continuation
+  bytes) has isvalid true and codepoint 0x26997f, beyond Unicode and beyond
+  what Char(::UInt32) accepts; reinterpret(Char, 0x00800000) (bytes 00 80) is
+  valid with codepoint 0 yet differs from '\0'. The same bytes as a String are
+  invalid.
+likelihood: |
+  Low: String iteration and read(io, Char) never build these Chars; they come
+  from reinterpret, unsafe_load or other bit-level construction of Chars from
+  untrusted data, exactly where isvalid is used as the check.
+maybe_intended: ""
+reproducer: |
+  f(g) = try repr(g()) catch e; "THROWS " * first(split(sprint(showerror, e), '\n')) end
+  for u in (0xe9a9a5bf, 0xc2808080, 0x00800000, 0x41800000)
+      c = reinterpret(Char, u)
+      println(repr(u), ": ismalformed = ", Base.ismalformed(c), ", isoverlong = ", Base.isoverlong(c),
+              ", isvalid = ", isvalid(c), ", codepoint = ", f(() -> codepoint(c)),
+              ", Char(codepoint(c)) == c: ", f(() -> Char(codepoint(c)) == c))
+  end
+  println("isvalid(String(UInt8[0xe9, 0xa9, 0xa5, 0xbf])) = ", isvalid(String(UInt8[0xe9, 0xa9, 0xa5, 0xbf])))
+  c = reinterpret(Char, 0xe9a9a5bf)
+  d = reinterpret(Char, 0x00800000)
+  isvalid(c) && codepoint(c) > 0x10ffff && isvalid(d) && d != '\0' && codepoint(d) == 0 &&
+      println("REPRODUCED missingchar-isvalid-overlength")
+output:
+  release: |
+    0xe9a9a5bf: ismalformed = false, isoverlong = false, isvalid = true, codepoint = 0x0026997f, Char(codepoint(c)) == c: THROWS Base.CodePointError{UInt32}(0x0026997f)
+    0xc2808080: ismalformed = false, isoverlong = false, isvalid = true, codepoint = 0x00080000, Char(codepoint(c)) == c: false
+    0x00800000: ismalformed = false, isoverlong = false, isvalid = true, codepoint = 0x00000000, Char(codepoint(c)) == c: false
+    0x41800000: ismalformed = false, isoverlong = false, isvalid = true, codepoint = 0x00000041, Char(codepoint(c)) == c: false
+    isvalid(String(UInt8[0xe9, 0xa9, 0xa5, 0xbf])) = false
+    REPRODUCED missingchar-isvalid-overlength
+  nightly: |
+    0xe9a9a5bf: ismalformed = false, isoverlong = false, isvalid = true, codepoint = 0x0026997f, Char(codepoint(c)) == c: THROWS Base.CodePointError{UInt32}(0x0026997f)
+    0xc2808080: ismalformed = false, isoverlong = false, isvalid = true, codepoint = 0x00080000, Char(codepoint(c)) == c: false
+    0x00800000: ismalformed = false, isoverlong = false, isvalid = true, codepoint = 0x00000000, Char(codepoint(c)) == c: false
+    0x41800000: ismalformed = false, isoverlong = false, isvalid = true, codepoint = 0x00000041, Char(codepoint(c)) == c: false
+    isvalid(String(UInt8[0xe9, 0xa9, 0xa5, 0xbf])) = false
+    REPRODUCED missingchar-isvalid-overlength
+reproduced: {release: true, nightly: true}
+expected: |
+  ismalformed(c) is true, so isvalid(c) is false, for every Char whose byte
+  count differs from the count its lead byte announces; every valid Char is the
+  UTF-8 encoding of its codepoint, Char(codepoint(c)) == c.
+promised_by: |
+  The isvalid docstring (base/strings/unicode.jl:14-29) and the Char docstring
+  (base/char.jl:46-50): "The isvalid(c::Char) function can be used to query
+  whether c represents a valid Unicode character". The AbstractChar docstring
+  (base/char.jl:10-12): for valid characters the codepoints "determine how
+  characters are compared with < and ==", but 0x00800000 and '\0' are both
+  valid with codepoint 0 and compare unequal.
+cause: |
+  base/char.jl:111-117: ismalformed tests l1 == 8 (lone continuation byte),
+  l1 + t0 > 32 (too few bytes for the lead) and the continuation-byte pattern of
+  the trailing bytes, but never that l1 + t0 == 32 for a multi-byte lead, nor
+  that an ASCII lead (l1 == 0) has no trailing bytes. isvalid
+  (base/strings/unicode.jl:58) then compares bit patterns with '\ud7ff', which
+  accepts any such pattern below 0xed9fbf00.
+possible_fix: |
+  In ismalformed, also require l1 + t0 == 32 when l1 > 0 and t0 == 24 when
+  l1 == 0 (a single byte), i.e. the byte count must match the lead byte.
+duplicates:
+  issues: []
+  queries:
+    - "issues: ismalformed"
+    - "issues: isvalid Char reinterpret"
+    - "issues: isvalid char codepoint 0x10ffff"
+    - "issues: ismalformed continuation bytes"
+    - "prs: ismalformed"
+lean:
+  property: JuliaLean.MissingChar.IsvalidCanonical
+  theorem: JuliaLean.MissingChar.isvalidCanonical_refuted

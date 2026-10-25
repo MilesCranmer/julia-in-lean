@@ -1,0 +1,59 @@
+id: regexunicode-match-offset-inside-char
+title: "match(r, s, i) with i inside a character returns a match starting at that invalid index"
+priority: P3
+kind: missing-error
+area: RegexUnicode
+files: [base/regex.jl]
+functions: ["match(::Regex, ::AbstractString, ::Integer)", "findnext(::Regex, ::AbstractString, ::Integer)"]
+summary: |
+  match and findnext pass the start index straight to PCRE with NO_UTF_CHECK. When
+  the index is inside a multi-byte character, a pattern that can match the empty
+  string matches there: match(r"", "éa", 2).offset == 2 and findnext(r"", "éa", 2)
+  == 2:1, although 2 is not a valid index of "éa".
+likelihood: |
+  Needs a start index that is not a valid index, which usually indicates a caller
+  bug; the result then propagates an invalid index instead of an error.
+maybe_intended: |
+  findnext("", "éa", 2) also returns 2:1, so the Regex method matches the String
+  method; Julia's string search functions do not consistently reject invalid start
+  indices.
+reproducer: |
+  s = "éa"
+  match(r"", s, 2).offset   # 2, isvalid(s, 2) == false
+  findnext(r"", s, 2)       # 2:1
+output:
+  release: |
+    isvalid(s, 2) = false
+    match(r"", s, 2).offset = 2
+    findnext(r"", s, 2) = 2:1
+    findnext("", s, 2) -> 2:1
+    REPRODUCED regexunicode-match-offset-inside-char
+  nightly: |
+    isvalid(s, 2) = false
+    match(r"", s, 2).offset = 2
+    findnext(r"", s, 2) = 2:1
+    findnext("", s, 2) -> 2:1
+    REPRODUCED regexunicode-match-offset-inside-char
+reproduced: {release: true, nightly: true}
+expected: |
+  StringIndexError for a start index inside a character, or a match whose offset is a
+  valid index.
+promised_by: |
+  RegexMatch docstring: "The location of the start of the match is stored in the
+  offset field" (base/regex.jl:177); string indices returned by search functions are
+  valid indices (invariant of the AbstractString index API, base/strings/basic.jl).
+cause: |
+  match (base/regex.jl:430-454) and _findnext_re (base/regex.jl:491-512) never check
+  isvalid(str, idx) and pass idx-1 to pcre2_match with PCRE.NO_UTF_CHECK
+  (DEFAULT_MATCH_OPTS, base/regex.jl:8), so PCRE starts inside the character.
+possible_fix: |
+  Throw StringIndexError (or round up with nextind) when idx is not a valid index.
+duplicates:
+  issues: []
+  queries:
+    - "issues: match offset inside character"
+    - "issues: match regex offset bounds"
+    - "issues: findnext regex InexactError"
+lean:
+  property: JuliaLean.RegexUnicode.Core.MatchOffsetValid
+  theorem: JuliaLean.RegexUnicode.Core.matchOffsetValid_refuted

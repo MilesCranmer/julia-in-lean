@@ -1,0 +1,54 @@
+id: iobuffers-view-grow
+title: "Writable IOBuffer over a view throws MethodError when it needs to grow or after take!"
+priority: P2
+kind: wrong-exception
+area: IOBuffers
+files: [base/iobuffer.jl]
+functions: ["ensureroom_slowpath(::GenericIOBuffer, ...)", "get_used_span(::IOBuffer)", "_similar_data(::GenericIOBuffer, ::Int)", "truncate(::GenericIOBuffer, ::Integer)"]
+summary: |
+  IOBuffer(data; write=true) accepts any AbstractVector{UInt8}. For data that is not a
+  Memory or Vector (e.g. a view), the result is a GenericIOBuffer{SubArray}. When a
+  write needs more room, ensureroom_slowpath calls get_used_span, which is defined only
+  for IOBuffer, so write throws MethodError; truncate to a larger size does the same.
+  After take!, the next write allocates a Vector via similar and fails to store it in
+  the SubArray-typed field (MethodError from convert).
+likelihood: |
+  IOBuffer(view(...); write=true) is uncommon; writes that fit in the view work.
+maybe_intended: |
+  The docstring warns that data may be reallocated; a fixed-size view cannot be, so an
+  error is reasonable, but it should be the documented maxsize truncation or a clear
+  ArgumentError, not a MethodError from an internal function.
+reproducer: |
+  io = IOBuffer(view(zeros(UInt8, 4), 1:4); write=true)
+  write(io, "hello")   # MethodError: no method matching get_used_span(::GenericIOBuffer{SubArray...})
+output:
+  release: |
+    write(io, "hello") = MethodError: no method matching get_used_span(::Base.Generic
+    write after take! = MethodError
+    REPRODUCED iobuffers-view-grow
+  nightly: |
+    write(io, "hello") = MethodError: no method matching get_used_span(::Base.Generic
+    write after take! = MethodError
+    REPRODUCED iobuffers-view-grow
+reproduced: {release: true, nightly: true}
+expected: |
+  Five bytes written (the buffer reallocates its storage, as the docstring warning
+  describes) or a documented error.
+promised_by: |
+  IOBuffer docstring, base/iobuffer.jl:173-193: "IOBuffer([data::AbstractVector{UInt8}];
+  keywords...) ... If maxsize > length(data), the IOBuffer might re-allocate the data
+  entirely".
+cause: |
+  base/iobuffer.jl:662 defines get_used_span(io::IOBuffer) only, but ensureroom_slowpath
+  (628), compact! (679) and _resize! (542) are defined for any GenericIOBuffer;
+  _similar_data (296) returns similar(b.data, len), a Vector, which cannot be stored in
+  data::SubArray (ensureroom_reallocate, 620).
+possible_fix: |
+  Define get_used_span for GenericIOBuffer, and make writable non-resizable data throw an
+  ArgumentError at construction, or wrap such data in a Memory copy.
+duplicates:
+  issues: []
+  queries: ["get_used_span", "IOBuffer view write MethodError", "IOBuffer SubArray", "IOBuffer view"]
+lean:
+  property: JuliaLean.IOBuffers.WriteNoMethodError
+  theorem: JuliaLean.IOBuffers.writeNoMethodError_refuted

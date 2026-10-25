@@ -1,0 +1,70 @@
+id: base64uuid-decodepipe-eof-buffered
+title: "Base64DecodePipe: eof ignores buffered input, so a read after a partial read loses data"
+priority: P1
+kind: wrong-result
+area: Base64Uuid
+files: [stdlib/Base64/src/decode.jl]
+functions: ["eof(::Base64DecodePipe)", "readbytes!(::Base64DecodePipe, ::AbstractVector{UInt8}, ::Integer)", "read(::Base64DecodePipe)"]
+summary: |
+  eof(pipe) only checks pipe.rest and the source stream, not the up to 512 characters
+  the pipe has already copied from the source into pipe.buffer. After a partial read
+  such as read(pipe, 6) has pulled the whole (short) source into the buffer, eof(pipe)
+  returns true and read(pipe) returns an empty vector although undecoded data remains.
+  The same defect makes the one-shot base64decode drop data when the decoded length
+  reaches a read boundary exactly at a group end, which happens after a padded group
+  in the middle of the input (see #44619).
+likelihood: |
+  Any code that reads a Base64DecodePipe in several pieces (a fixed-size header, then
+  the rest) on a source shorter than about 512 characters, or whose last refill
+  emptied the source, loses the tail silently. No unusual input is needed; the
+  23-byte message in the reproducer suffices. Single-shot read(pipe) and base64decode
+  on valid input are not affected, because 1024 * 2^k bytes is never a multiple of 3,
+  so a read boundary always leaves bytes in pipe.rest.
+maybe_intended: ""
+reproducer: |
+  using Base64
+  msg = "Hello, world! more text"
+  pipe = Base64DecodePipe(IOBuffer(base64encode(msg)))
+  head = String(read(pipe, 6))
+  at_end = eof(pipe)
+  tail = String(read(pipe))
+  println("read(pipe, 6) = ", repr(head))
+  println("eof(pipe)     = ", at_end)
+  println("read(pipe)    = ", repr(tail))
+output:
+  release: |
+    encoded = "SGVsbG8sIHdvcmxkISBtb3JlIHRleHQ="
+    read(pipe, 6) = "Hello,"
+    eof(pipe)     = true
+    read(pipe)    = ""
+    REPRODUCED base64uuid-decodepipe-eof-buffered
+  nightly: |
+    encoded = "SGVsbG8sIHdvcmxkISBtb3JlIHRleHQ="
+    read(pipe, 6) = "Hello,"
+    eof(pipe)     = true
+    read(pipe)    = ""
+    REPRODUCED base64uuid-decodepipe-eof-buffered
+reproduced: {release: true, nightly: true}
+expected: |
+  eof(pipe) == false after the first read, and read(pipe) == codeunits(" world! more text"),
+  so that head * tail == msg, the same bytes as base64decode(enc).
+promised_by: |
+  base/io.jl:211-214 (eof docstring): "eof will return false as long as buffered data is
+  still available". Invariant: reading a stream in pieces yields the same bytes as
+  reading it at once.
+cause: |
+  stdlib/Base64/src/decode.jl:131: Base.eof(pipe::Base64DecodePipe) = isempty(pipe.rest) &&
+  eof(pipe.io). read_until_end (decode.jl:60-104) refills pipe.buffer from pipe.io
+  (buffer.jl:29-39) and leaves the unconsumed characters there when the caller's
+  buffer is full. readbytes! (decode.jl:119) stops as soon as eof(pipe) is true.
+possible_fix: |
+  Make eof decode ahead: return false if pipe.rest is nonempty; otherwise decode one
+  group into pipe.rest (read_until_end(pipe, ptr, 0) as read(pipe, UInt8) does) and
+  return isempty(pipe.rest).
+duplicates:
+  issues:
+    - {number: 44619, state: closed, relation: related}
+  queries: ["Base64DecodePipe eof", "Base64DecodePipe readbytes", "base64decode", "Base64DecodePipe", "base64decode truncated", "Base64 eof", "Base64DecodePipe EOFError", "base64 concatenated", "base64 in:title", "Base64"]
+lean:
+  property: JuliaLean.Base64Uuid.DecodeStreamSplit
+  theorem: JuliaLean.Base64Uuid.decodeStreamSplit_refuted

@@ -1,0 +1,64 @@
+id: markdown-rst-printer-throws
+title: "Markdown.rst throws MethodError on images, strikethrough, raw HTML and interpolated values"
+priority: P2
+kind: crash
+area: Markdown
+files: [stdlib/Markdown/src/render/rst.jl]
+functions: ["Markdown.rst(::IO, ::Any)", "Markdown.rstinline(::IO, ::Any)"]
+summary: |
+  `Markdown.rst(Markdown.parse("![alt text](image.png)"))` throws `MethodError: no method
+  matching show(::IOBuffer, ::MIME{Symbol("text/rst")}, ::Markdown.Image)`. The same happens for
+  interpolated values (1.13.2 and master) and, on master, for `Strikethrough` (`~~x~~`) and raw HTML
+  nodes.
+likelihood: |
+  Images and strikethrough are documented, ordinary constructs; `Markdown.rst` is internal
+  (not exported) but reachable through `show(io, "text/rst", md)`.
+maybe_intended: |
+  `rst` is not exported or documented in the manual's API list.
+reproducer: |
+  using Markdown
+  md = Markdown.parse("![alt text](image.png)")
+  ok = try
+      print(Markdown.rst(md)); true
+  catch e
+      println("rst throws ", sprint(showerror, e)[1:80]); false
+  end
+  for s in ["~~struck~~", "a <span>b</span>"]
+      try
+          print(Markdown.rst(Markdown.parse(s)))
+      catch e
+          println("rst of ", repr(s), " throws ", sprint(showerror, e)[1:80])
+      end
+  end
+  ok || println("REPRODUCED markdown-rst-printer-throws")
+output:
+  release: |
+    rst throws MethodError: no method matching show(::IOBuffer, ::MIME{Symbol("text/rst")}, ::M
+    ~~struck~~
+    a <span>b</span>
+    REPRODUCED markdown-rst-printer-throws
+  nightly: |
+    rst throws MethodError: no method matching show(::IOBuffer, ::MIME{Symbol("text/rst")}, ::M
+    rst of "~~struck~~" throws MethodError: no method matching show(::IOBuffer, ::MIME{Symbol("text/rst")}, ::M
+    rst of "a <span>b</span>" throws MethodError: no method matching show(::IOBuffer, ::MIME{Symbol("text/rst")}, ::M
+    REPRODUCED markdown-rst-printer-throws
+reproduced: {release: true, nightly: true}
+expected: |
+  reStructuredText output, e.g. `.. image:: image.png` for images.
+promised_by: |
+  Invariant: every printer handles every node type the parser produces (`html`, `plain`
+  handle all of them); `show(io, ::MIME"text/rst", md::MD)` (stdlib/Markdown/src/render/rst.jl:151).
+cause: |
+  stdlib/Markdown/src/render/rst.jl:104 and 147: the fallbacks call `show(io, "text/rst", x)`, which has no method for
+  these types; the `Image` method is commented out (line 121) and there is no `Strikethrough`,
+  `HTMLBlock` or `HTMLInline` method.
+  Separately, on master `rst` drops the `"\\ "` separator after inline code, links and math
+  (rst.jl:110-117) because inference miscompiles that loop; see compiler-isa-flag-loop.
+possible_fix: |
+  Add rst methods for Image, Strikethrough and raw HTML, and a text/plain fallback.
+duplicates:
+  issues: []
+  queries: ["Markdown rst", "Markdown.rst", "rst Image", "text/rst", "rstinline"]
+lean:
+  property: JuliaLean.Markdown.RstTotal
+  theorem: JuliaLean.Markdown.rstTotal_refuted

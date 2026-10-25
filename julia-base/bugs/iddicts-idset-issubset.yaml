@@ -1,0 +1,56 @@
+id: iddicts-idset-issubset
+title: "issubset(::IdSet, b) returns false when the IdSet is longer than b, although every element is in b"
+priority: P2
+kind: wrong-result
+area: IdDicts
+files: [base/abstractset.jl]
+functions: ["issubset(a, b)", "⊆(::IdSet, ::Set)", "⊆(::IdSet, ::Vector)"]
+summary: |
+  issubset(a, b) returns false without looking at the elements when a is an
+  AbstractSet with more elements than b (base/abstractset.jl:339-341). That
+  shortcut is valid only when a and b use the same element equality. An
+  IdSet separates objects that are == or isequal, so
+  IdSet{Any}(Any[1, 1.0]) ⊆ Set([1]) and IdSet{Any}(Any[1, 1.0]) ⊆ [1] are
+  false although 1 in b and 1.0 in b are both true. Two equal but distinct
+  arrays x, y give IdSet{Any}([x, y]) ⊆ [x] == false the same way.
+likelihood: |
+  Any IdSet holding == but not === objects, tested against a Set or a
+  vector; the answer is silently false.
+maybe_intended: |
+  Under the isequal reading discussed in #61893 the answer is still true
+  (Set(a) == Set([1])), so the shortcut is wrong under both readings.
+reproducer: |
+  a = IdSet{Any}(Any[1, 1.0])
+  a ⊆ Set([1])                    # false
+  all(x -> x in Set([1]), a)      # true
+output:
+  release: |
+    a ⊆ Set([1]) = false; all(x -> x in Set([1]), a) = true
+    a ⊆ [1] = false; all(x -> x in [1], a) = true
+    IdSet{Any}([x, y]) ⊆ [x] = false; all in = true with x == y, x !== y
+    REPRODUCED iddicts-idset-issubset
+  nightly: |
+    a ⊆ Set([1]) = false; all(x -> x in Set([1]), a) = true
+    a ⊆ [1] = false; all(x -> x in [1], a) = true
+    IdSet{Any}([x, y]) ⊆ [x] = false; all in = true with x == y, x !== y
+    REPRODUCED iddicts-idset-issubset
+reproduced: {release: true, nightly: true}
+expected: |
+  true: issubset(a, b) == all(x -> x in b, a).
+promised_by: |
+  issubset docstring, base/abstractset.jl:315: "Determine whether every
+  element of a is also in b, using in."
+cause: |
+  base/abstractset.jl:339-341: `isa(a, AbstractSet) && length(a) > blen &&
+  return false` assumes the elements of a are pairwise distinct under b's
+  membership test.
+possible_fix: |
+  Restrict the shortcut to sets known to share b's equality (e.g. a and b
+  both Set), or drop it for IdSet by giving IdSet its own issubset.
+duplicates:
+  issues:
+    - {number: 61893, state: open, relation: related}
+  queries: ["issubset IdSet", "IdSet issubset", "issubset AbstractSet length", "issubset length shortcut", "issubset"]
+lean:
+  property: JuliaLean.IdDicts.IdSetIssubsetIn
+  theorem: JuliaLean.IdDicts.idSetIssubsetIn_refuted

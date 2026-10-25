@@ -1,0 +1,63 @@
+id: broadcastviews-range-singleton
+title: "(1:3) .+ (5:5) throws DimensionMismatch instead of broadcasting the length-1 range"
+priority: P2
+kind: wrong-exception
+area: BroadcastViews
+files: [base/broadcast.jl, base/range.jl]
+functions: ["broadcasted(::DefaultArrayStyle{1}, ::typeof(+), ::AbstractRange, ::AbstractRange)", "broadcasted(::DefaultArrayStyle{1}, ::typeof(-), ::AbstractRange, ::AbstractRange)", "+(::OrdinalRange, ::OrdinalRange)"]
+summary: |
+  Broadcasting `+` or `-` over two ranges forwards to the non-broadcasting `r1 + r2`,
+  which requires equal lengths. A range of length 1 is therefore not expanded:
+  `(1:3) .+ (5:5)` throws DimensionMismatch, while `collect(1:3) .+ collect(5:5)`
+  and `(1:3) .+ [5]` give [6, 7, 8]. The same happens for `.-`, for StepRange,
+  OneTo, LinRange and floating-point ranges, and with the singleton on either side.
+likelihood: |
+  Needs two range arguments of `.+`/`.-` where exactly one has length 1, for example
+  `r .- (k:k)` or `a:a` built from data with a == b. Other operators such as `.*`
+  are not affected.
+maybe_intended: |
+  The range specializations exist to return ranges instead of vectors; returning a
+  range is still possible here (the other range shifted by the singleton's value).
+  Nothing documents an exception for length-1 ranges.
+reproducer: |
+  r = 1:3
+  s = 5:5
+  v = try r .+ s catch e; e end
+  w = collect(r) .+ collect(s)
+  println("(1:3) .+ (5:5) = ", v)
+  println("collect(1:3) .+ collect(5:5) = ", w)
+  if v isa DimensionMismatch
+      println("REPRODUCED broadcastviews-range-singleton")
+  end
+output:
+  release: |
+    (1:3) .+ (5:5) = DimensionMismatch("argument dimensions must match: length of r1 is 3, length of r2 is 1")
+    collect(1:3) .+ collect(5:5) = [6, 7, 8]
+    REPRODUCED broadcastviews-range-singleton
+  nightly: |
+    (1:3) .+ (5:5) = DimensionMismatch("argument dimensions must match: length of r1 is 3, length of r2 is 1")
+    collect(1:3) .+ collect(5:5) = [6, 7, 8]
+    REPRODUCED broadcastviews-range-singleton
+reproduced: {release: true, nightly: true}
+expected: |
+  [6, 7, 8] (as a range 6:8 or a vector), the same as broadcasting over the collected
+  ranges.
+promised_by: |
+  doc/src/manual/arrays.md:1133-1135: "Julia provides broadcast, which expands
+  singleton dimensions in array arguments to match the corresponding dimension in
+  the other array"; base/broadcast.jl:531 (_bcs1) accepts a length-1 extent against
+  any other extent.
+cause: |
+  base/broadcast.jl:1198 and 1212 define
+  broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r1::AbstractRange, r2::AbstractRange) = r1 + r2
+  (and the same for -); base/range.jl:1493-1498 (+(r1::OrdinalRange, r2::OrdinalRange))
+  throws DimensionMismatch when the lengths differ, without considering a singleton.
+possible_fix: |
+  In the two range-range broadcasted methods, fall back to the generic broadcast (or
+  shift the other range by the singleton's element) when the lengths differ and one is 1.
+duplicates:
+  issues: []
+  queries: ["range broadcast DimensionMismatch length 1", "broadcast two ranges singleton", "argument dimensions must match broadcast range", "broadcast ranges length one", "range plus range broadcast", "ranges broadcasting singleton dimension", "range broadcast", "broadcast_shape"]
+lean:
+  property: JuliaLean.BroadcastViews.RangeBroadcastPair
+  theorem: JuliaLean.BroadcastViews.rangeBroadcastPair_refuted

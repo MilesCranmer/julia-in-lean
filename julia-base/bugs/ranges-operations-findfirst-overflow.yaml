@@ -1,0 +1,47 @@
+id: ranges-operations-findfirst-overflow
+title: "findfirst on narrow integer ranges can return zero or negative indices"
+priority: P1
+kind: wrong-result
+area: Ranges
+files: [base/array.jl]
+functions: ["findfirst(==(::Integer), ::StepRange)", "findfirst(==(::Integer), ::AbstractUnitRange)"]
+summary: |
+  Searching an Int8 step range for an existing value returns -27 instead of 101.
+  The corresponding search on the collected vector returns the correct index.
+  The unit-range specialization also fails: querying Int8(0) in Int8(-128):Int8(127)
+  returns -127 instead of 129; querying Int8(127) returns 0 instead of 256.
+likelihood: |
+  Plausible for compact integer coordinates spanning the signed midpoint.
+  The range and all its elements fit Int8; only an internal difference overflows.
+maybe_intended: ""
+reproducer: |
+  r = Int8(-100):Int8(2):Int8(120)
+  i = findfirst(==(Int8(100)), r)
+  @assert i == -27
+  @assert findfirst(==(Int8(100)), collect(r)) == 101
+  println("REPRODUCED ranges-operations-findfirst-overflow")
+output:
+  release: |
+    REPRODUCED ranges-operations-findfirst-overflow
+  nightly: |
+    REPRODUCED ranges-operations-findfirst-overflow
+reproduced: {release: true, nightly: true}
+expected: "Return 101, the position of Int8(100), rather than an invalid negative index."
+promised_by: |
+  "Return the index or key of the first element of A for which predicate returns true"
+  (base/array.jl:2489-2494). Array indices begin at 1.
+cause: |
+  base/array.jl:2549 computes p.x - first(r) in Int8. The difference 200 wraps
+  to -56 before division by 2, so lines 2550-2551 return -27 after adding 1.
+  The unit method at lines 2540-2544 has the same wrapped subtraction before
+  conversion to the index type. Its additional witness is Lean theorem
+  JuliaLean.Ranges.findfirstUnitOverflow.
+possible_fix: |
+  Compute the difference and quotient in a widened or unsigned overflow-safe type,
+  then convert the final index to keytype(r).
+duplicates:
+  issues: [{number: 54578, state: closed, relation: related}]
+  queries: ["issues: findfirst StepRange overflow", "issues: findfirst Int8", "PRs: findfirst overflow range"]
+lean:
+  property: JuliaLean.Ranges.findfirstPositiveProp
+  theorem: JuliaLean.Ranges.findfirstPositiveRefuted

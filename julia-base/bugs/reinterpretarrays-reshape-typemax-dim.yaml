@@ -1,0 +1,55 @@
+id: reinterpretarrays-reshape-typemax-dim
+title: "reshape(1:typemax(Int), typemax(Int), 1) throws \"invalid Array dimensions\" (regression)"
+priority: P2
+kind: wrong-exception
+area: ReinterpretArrays
+files: [base/reshapedarray.jl, base/boot.jl]
+functions: ["reshape(::AbstractArray, ::Dims)", "_reshape(::AbstractArray, ::Dims)", "Core.checked_dims"]
+summary: |
+  On master, the size check of the generic reshape uses Core.checked_dims, which
+  rejects any dimension equal to typemax(Int) (it flags typemax as "negative" with
+  an unsigned comparison). Lazy arrays can have typemax(Int) elements, so
+  reshape(1:typemax(Int), typemax(Int), 1), reshape(1:typemax(Int), :, 1) and
+  reshape(Base.OneTo(typemax(Int)), 1, :) now throw ArgumentError although the
+  dimensions multiply exactly to the length. Julia 1.13.2 accepts them.
+likelihood: |
+  Low: ranges of length typemax(Int) appear as "unbounded" ranges, but reshaping
+  them is rare.
+maybe_intended: |
+  checked_dims was written for allocating Arrays, where a typemax(Int) dimension can
+  never be allocated; applying it to lazy parents may have been accepted as harmless.
+reproducer: |
+  reshape(1:typemax(Int), typemax(Int), 1)
+  reshape(1:typemax(Int), :, 1)
+  reshape(Base.OneTo(typemax(Int)), 1, :)
+output:
+  release: |
+    reshape(1:typemax(Int), typemax(Int), 1) -> (9223372036854775807, 1)
+    reshape(1:typemax(Int), :, 1) -> (9223372036854775807, 1)
+    reshape(Base.OneTo(typemax(Int)), 1, :) -> (1, 9223372036854775807)
+  nightly: |
+    reshape(1:typemax(Int), typemax(Int), 1) -> ArgumentError("invalid Array dimensions")
+    reshape(1:typemax(Int), :, 1) -> ArgumentError("invalid Array dimensions")
+    reshape(Base.OneTo(typemax(Int)), 1, :) -> ArgumentError("invalid Array dimensions")
+    REPRODUCED reinterpretarrays-reshape-typemax-dim
+reproduced: {release: false, nightly: true}
+expected: |
+  A typemax(Int)×1 (or 1×typemax(Int)) ReshapedArray, as in Julia 1.13.2.
+promised_by: |
+  reshape docstring, base/reshapedarray.jl:66-80: the new dimensions may be any
+  whose product equals the length; "The total number of elements must not change."
+cause: |
+  base/reshapedarray.jl:223 calls Core.checked_dims(dims...) (base/boot.jl:811-818),
+  whose _checked_mul_dims (base/boot.jl:783-808) sets the error flag for
+  ule_int(typemax_Int, di), i.e. for di < 0 or di == typemax(Int). Introduced by
+  merged PR #62797, which replaced prod(dims) (that one wrapped silently).
+possible_fix: |
+  Use a checked product that only rejects negative dimensions and overflow, e.g.
+  all(>=(0), dims) && checked_mul fold, for the non-allocating reshape path.
+duplicates:
+  issues:
+    - {number: 62797, state: merged, relation: related}
+  queries: ["reshape typemax", "invalid Array dimensions reshape", "checked_dims", "reshape overflow", "reshape range typemax", "reshape ArgumentError invalid", "reshape 1:typemax"]
+lean:
+  property: JuliaLean.ReinterpretArrays.ReshapeCheckComplete
+  theorem: JuliaLean.ReinterpretArrays.reshapeCheckComplete_refuted

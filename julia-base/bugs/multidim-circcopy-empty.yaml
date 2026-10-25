@@ -1,0 +1,51 @@
+id: multidim-circcopy-empty
+title: "circcopy! throws DivideError for empty arrays with different axes"
+priority: P2
+kind: wrong-exception
+area: Multidim
+files: [base/multidimensional.jl]
+functions: ["circcopy!(dest, src)", "_circcopy!"]
+summary: |
+  circcopy!(dest, src) throws DivideError when the arrays have a zero-length
+  dimension and their axes start at different indices in any dimension, for example
+  a 2x0 src and a 2x0 dest with axes (2:3, 1:0). The copy is a no-op and should
+  return dest. circshift! returns empty arrays unchanged.
+likelihood: |
+  Needs offset axes (OffsetArrays, views with IdentityUnitRange) and an empty array,
+  for example a circular copy of an empty batch. Rare.
+maybe_intended: ""
+reproducer: |
+  src = zeros(Int, 2, 0)
+  dest = view(zeros(Int, 3, 0), Base.IdentityUnitRange(2:3), :)   # 2x0, axes (2:3, 1:0)
+  circcopy!(dest, src)                                             # DivideError
+  circcopy!(view(zeros(Int, 3), Base.IdentityUnitRange(3:2)), zeros(Int, 0))  # DivideError
+output:
+  release: |
+    DivideError() DivideError() "ok" "ok"
+    REPRODUCED multidim-circcopy-empty
+  nightly: |
+    DivideError() DivideError() "ok" "ok"
+    REPRODUCED multidim-circcopy-empty
+reproduced: {release: true, nightly: true}
+expected: |
+  dest returned unchanged (there is nothing to copy).
+promised_by: |
+  circcopy! docstring, base/multidimensional.jl:1302-1309: "Copy src to dest,
+  indexing each dimension modulo its length. src and dest must have the same size,
+  but can be offset in their indices". Only a size mismatch is documented as an
+  error (DimensionMismatch).
+cause: |
+  base/multidimensional.jl:1343-1345 returns early only when every axis offset is
+  zero; otherwise _circcopy! (line 1352-1353) computes mod(first(inds1) -
+  first(indd1), l) with l = length(indd1) = 0 for the empty dimension, which throws
+  DivideError. circshift! has an isempty(src) early return (line 1261); circcopy! has
+  none.
+possible_fix: |
+  Add `isempty(src) && return dest` after the size check in circcopy!.
+duplicates:
+  issues:
+    - {number: 41402, state: closed, relation: related}
+  queries: ["issues: circcopy!", "issues: circcopy empty", "issues: circcopy DivideError", "prs: circcopy"]
+lean:
+  property: JuliaLean.Multidim.CirccopyCorrect
+  theorem: JuliaLean.Multidim.circcopyCorrect_refuted

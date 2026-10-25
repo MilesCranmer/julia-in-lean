@@ -1,0 +1,58 @@
+id: floatranges-start-step-overflow-nan
+title: range(1.0; step=1e308, length=3) has NaN as its last element instead of Inf
+priority: P2
+kind: wrong-result
+area: FloatRanges
+files:
+- base/twiceprecision.jl
+functions:
+- range(::Float64; step, length)
+- unsafe_getindex(::StepRangeLen{T,<:TwicePrecision,<:TwicePrecision}, ::Integer)
+summary: |
+  When an element of a Float64 range overflows, unsafe_getindex returns NaN rather than
+  ±Inf, because add12 computes the low word as Inf - Inf.
+likelihood: |
+  Needs elements beyond floatmax; rare.
+maybe_intended: ''
+reproducer: |
+  r = range(1.0; step=1.0e308, length=3)
+  println("collect(range(1.0; step=1.0e308, length=3)) = ", collect(r))
+  println("1.0 + 2 * 1.0e308 = ", 1.0 + 2 * 1.0e308)
+  isnan(r[3]) && println("REPRODUCED floatranges-start-step-overflow-nan")
+output:
+  release: |
+    collect(range(1.0; step=1.0e308, length=3)) = [1.0, 1.0e308, NaN]
+    1.0 + 2 * 1.0e308 = Inf
+    REPRODUCED floatranges-start-step-overflow-nan
+  nightly: |
+    collect(range(1.0; step=1.0e308, length=3)) = [1.0, 1.0e308, NaN]
+    1.0 + 2 * 1.0e308 = Inf
+    REPRODUCED floatranges-start-step-overflow-nan
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  collect(range(1.0; step=1e308, length=3)) == [1.0, 1.0e308, Inf], matching 1.0 +
+  2*1e308.
+promised_by: |
+  invariant: the element a + 2s overflows to Inf under IEEE rounding; a NaN element has no
+  mathematical counterpart.
+cause: |
+  base/twiceprecision.jl:483-485: add12(ref.hi, 2*step.hi) swaps to canonicalize2(Inf,
+  1.0), which gives (Inf, (Inf - Inf) + 1.0) = (Inf, NaN), and the final sum Inf + NaN is
+  NaN.
+possible_fix: |
+  In unsafe_getindex return x_hi when it is not finite.
+duplicates:
+  issues:
+  - number: 45446
+    state: open
+    relation: related
+  queries:
+  - range NaN
+  - StepRangeLen NaN overflow
+  - range overflow float
+  - range NaN element
+lean:
+  property: JuliaLean.FloatRanges.StartStepNoNaN
+  theorem: JuliaLean.FloatRanges.startStepNoNaN_refuted

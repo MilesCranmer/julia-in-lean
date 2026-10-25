@@ -1,0 +1,60 @@
+id: dates-daynumber-roundtrip
+title: "Date calendar accessors overflow and break constructor and string round-trips"
+priority: P2
+kind: wrong-result
+area: Dates
+files: [stdlib/Dates/src/accessors.jl, stdlib/Dates/src/types.jl, stdlib/Dates/src/io.jl]
+functions: ["yearmonthday", "Date", "print(::IO, ::Date)"]
+summary: |
+  A Date constructed from year 252527349277666 stores a valid Int64 day count,
+  but its calendar accessor intermediates overflow. The returned year, month
+  and day build a different Date. Date(string(d)) also silently changes it.
+likelihood: |
+  This requires an enormous calendar year, beyond the advertised typemax(Date).
+  It is nevertheless reachable through the public constructor without an error.
+maybe_intended: |
+  The existing typemin and typemax were chosen to avoid some accessor overflow,
+  but constructors and day arithmetic do not enforce those limits. PR #63714
+  proposes fixing accessors across the entire Int64 day range.
+reproducer: |
+  using Dates
+  d = Date(Int64(252527349277666), 1, 1)
+  Date(yearmonthday(d)...) == d
+output:
+  release: |
+    input day value = 92233720368547560
+    yearmonthday = (252516978544636, 2, 14)
+    rebuilt day value = 92229932536088893
+    Date(yearmonthday(d)...) == d = false
+    Date(string(d)) == d = false
+    REPRODUCED dates-daynumber-roundtrip
+  nightly: |
+    input day value = 92233720368547560
+    yearmonthday = (252516978544636, 2, 14)
+    rebuilt day value = 92229932536088893
+    Date(yearmonthday(d)...) == d = false
+    Date(string(d)) == d = false
+    REPRODUCED dates-daynumber-roundtrip
+reproduced: {release: true, nightly: true}
+expected: |
+  Calendar accessors should return parts that reconstruct the original day,
+  or the constructor must reject dates outside the supported calendar range.
+promised_by: |
+  stdlib/Dates/src/accessors.jl:235-249 documents yearmonthday as returning the
+  year, month and day parts. stdlib/Dates/src/io.jl:847-852 calls the Date
+  representation parsable. Both imply reconstruction of the same Date.
+cause: |
+  stdlib/Dates/src/accessors.jl:6-8 computes h = 100z - 25 and then
+  100b + h using wrapping Int64. A valid Int64 day count is not enough to
+  keep those larger intermediates in range.
+possible_fix: |
+  Split off complete 400-year cycles before the multiplied intermediates,
+  or use a wider integer for the accessor computation. PR #63714 does this.
+duplicates:
+  issues:
+    - {number: 63714, state: open, relation: duplicate}
+    - {number: 50981, state: open, relation: related}
+  queries: ["Dates yearmonthday overflow", "repo:JuliaLang/julia yearmonthday overflow", "DateTime", "Dates in:title"]
+lean:
+  property: JuliaLean.Dates.DayNumberRoundtrip
+  theorem: JuliaLean.Dates.dayNumberRoundtrip_refuted

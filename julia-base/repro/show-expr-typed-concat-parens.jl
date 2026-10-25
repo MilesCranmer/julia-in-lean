@@ -1,0 +1,6 @@
+ex = Meta.parse("(a + b)[1 2]")     # Expr(:typed_hcat, :(a + b), 1, 2)
+s = string(ex)
+println("string(ex) = ", repr(s))
+back = Meta.parse(s)
+println("Meta.parse(string(ex)) = ", repr(back))
+back != ex && println("REPRODUCED show-expr-typed-concat-parens")

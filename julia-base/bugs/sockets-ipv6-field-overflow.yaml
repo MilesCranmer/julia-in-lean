@@ -1,0 +1,55 @@
+id: sockets-ipv6-field-overflow
+title: "parse(IPv6, \"::10000\") silently bleeds an oversized group into its neighbours"
+priority: P2
+kind: missing-error
+area: Sockets
+files: [stdlib/Sockets/src/IPAddr.jl]
+functions: ["parse(::Type{IPv6}, ::AbstractString)", "parseipv6fields"]
+summary: |
+  RFC 4291 IPv6 groups hold at most four hex digits (value <= 0xFFFF),
+  and the IPv6(::Integer...) constructor checks that range. parse does not:
+  parse(IPv6, "::10000") returns ip"::1:0" (0x10000 shifted into the two
+  lowest groups) and parse(IPv6, "::12345") returns ip"::1:2345".
+  A five-digit group with leading zeros, such as "::00001", is accepted too.
+likelihood: |
+  Hex strings pasted or concatenated programmatically (a 40-bit interface
+  identifier, a mistyped group) parse to a different valid address without any
+  error - the same ambiguity class as the leading-zero IPv4 issue that
+  issue #40255 was opened for.
+maybe_intended: ""
+reproducer: |
+  using Sockets
+  println(string(parse(IPv6, "::10000")))
+  println(string(parse(IPv6, "::12345")))
+output:
+  release: |
+    parse(IPv6, "::10000") = ::1:0
+    parse(IPv6, "::12345") = ::1:2345
+    REPRODUCED sockets-ipv6-field-overflow
+  nightly: |
+    parse(IPv6, "::10000") = ::1:0
+    parse(IPv6, "::12345") = ::1:2345
+    REPRODUCED sockets-ipv6-field-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError, as from IPv6(65536, ...) ("IPv6 field out of range (must be
+  0-65535)"); inet_pton rejects groups longer than four hex digits.
+promised_by: |
+  IPv6 field range check in the constructor at
+  stdlib/Sockets/src/IPAddr.jl:85-88 ("IPv6 field out of range (must be
+  0-65535)"); RFC 4291 section 2.2 ("each group ... 1 to 4 hexadecimal
+  digits"); issue #40255 (ambiguous formats should error).
+cause: |
+  stdlib/Sockets/src/IPAddr.jl:236 shifts the raw parse result without any
+  range check: `ret |= UInt128(parse(Int, f, base = 16))<<(cf*16)`.
+possible_fix: |
+  After parsing a field, check 0 <= r <= 0xFFFF and throw ArgumentError
+  otherwise (mirrors the constructor and fixes the InexactError of
+  sockets-ipv6-signed-field-error as well).
+duplicates:
+  issues:
+    - {number: 40255, state: open, relation: related}
+  queries: ["IPv6 parse", "parse IPv6", "IPv6 field out of range", "IPv6 10000", "IPv6 shorthand"]
+lean:
+  property: JuliaLean.Sockets.IPv6FieldRange
+  theorem: JuliaLean.Sockets.ipv6FieldRange_refuted

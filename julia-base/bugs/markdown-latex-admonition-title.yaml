@@ -1,0 +1,58 @@
+id: markdown-latex-admonition-title
+title: "Markdown.latex inserts admonition titles without LaTeX escaping"
+priority: P3
+kind: wrong-result
+area: Markdown
+files: [stdlib/Markdown/src/render/latex.jl]
+functions: ["Markdown.latex(::IO, ::Markdown.Admonition)"]
+summary: |
+  `Markdown.latex` prints admonition titles raw, so `!!! note "50% of x_1"` yields `50% of x_1`
+  in the LaTeX output: `%` comments out the rest of the line and `_` is a math-mode error. Paragraph
+  text goes through `latexesc` and would print `50\% of x\_1`.
+likelihood: |
+  Titles with `%`, `_`, `#`, `&`, `$`, `{`, `}`, `~`, `^` or `\`; plausible in technical docs.
+maybe_intended: ""
+reproducer: |
+  using Markdown
+  md = Markdown.parse("!!! note \"50% of x_1\"\n    Body.")
+  t = Markdown.latex(md)
+  print(t)
+  occursin("50% of x_1", t) && println("REPRODUCED markdown-latex-admonition-title")
+output:
+  release: |
+    \begin{quote}
+    \textbf{note}
+
+    50% of x_1
+
+    Body.
+
+    \end{quote}
+    REPRODUCED markdown-latex-admonition-title
+  nightly: |
+    \begin{quote}
+    \textbf{note}
+
+    50% of x_1
+
+    Body.
+
+    \end{quote}
+    REPRODUCED markdown-latex-admonition-title
+reproduced: {release: true, nightly: true}
+expected: |
+  `50\% of x\_1`.
+promised_by: |
+  Manual: admonition titles are plain strings (stdlib/Markdown/docs/src/index.md:418); plain
+  text is escaped with `latexesc` everywhere else (stdlib/Markdown/src/render/latex.jl:120-122).
+cause: |
+  stdlib/Markdown/src/render/latex.jl:78: `println(io, "\n\n", md.title, "\n")` without `latexesc`.
+possible_fix: |
+  `latexesc(io, md.title)`.
+duplicates:
+  issues:
+    - {number: 62122, state: open, relation: related}
+  queries: ["Markdown latex escape admonition", "Markdown admonition", "Markdown latex", "admonition title escape"]
+lean:
+  property: JuliaLean.Markdown.LatexTextEscaped
+  theorem: JuliaLean.Markdown.latexTextEscaped_refuted

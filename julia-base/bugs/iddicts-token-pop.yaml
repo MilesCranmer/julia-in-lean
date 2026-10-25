@@ -1,0 +1,56 @@
+id: iddicts-token-pop
+title: "IdDict pop!(d, k) throws KeyError for a present key but still removes the entry, when the stored value is Base.secret_table_token"
+priority: P2
+kind: wrong-result
+area: IdDicts
+files: [base/iddict.jl, base/abstractdict.jl]
+functions: ["pop!(::IdDict, key)"]
+summary: |
+  pop!(d, k) (base/iddict.jl:117-121) calls the three-argument pop! with
+  secret_table_token as default, then tests the result against the same
+  symbol. When the stored value *is* that symbol, the three-argument pop!
+  has already removed the entry (count decremented, ndel incremented), and
+  the two-argument pop! then throws KeyError for a key that was present:
+  the caller gets an exception and the mutation anyway. pop!(d, k, default)
+  and delete! are not affected, because they use the found flag.
+likelihood: |
+  Same magic-symbol collision as iddicts-token-lookup; contrived value.
+maybe_intended: |
+  None; the removal-then-throw combination serves no purpose.
+reproducer: |
+  const T = Symbol("__c782dbf1cf4d6a2e5e3865d7e95634f2e09b5902__")
+  d = IdDict{Any,Any}()
+  d["k"] = T
+  pop!(d, "k")   # KeyError, and length(d) becomes 0
+output:
+  release: |
+    pop!(d, "k") threw KeyError while the key was present
+    length(d) after the throw: 0 (entry was removed)
+    REPRODUCED iddicts-token-pop
+  nightly: |
+    pop!(d, "k") threw KeyError while the key was present
+    length(d) after the throw: 0 (entry was removed)
+    REPRODUCED iddicts-token-pop
+reproduced: {release: true, nightly: true}
+expected: |
+  pop!(d, "k") returns the stored symbol and removes the entry without
+  throwing.
+promised_by: |
+  pop! docstring, base/dict.jl:594-595: "Delete and return the mapping for
+  key if it exists in collection, otherwise return default, or throw an
+  error if default is not specified." The mapping exists, so it must be
+  returned without an error.
+cause: |
+  base/iddict.jl:118-119: the sentinel default collides with a legitimately
+  stored value; the three-argument pop! at base/iddict.jl:105-115 has
+  already mutated the table, d.count and d.ndel before the outer method
+  throws.
+possible_fix: |
+  Use a found flag (jl_eqtable_pop already reports one) instead of comparing
+  the returned value against the sentinel.
+duplicates:
+  issues: []
+  queries: ["secret_table_token", "IdDict pop! KeyError", "IdDict sentinel", "pop! removes throws"]
+lean:
+  property: JuliaLean.IdDicts.PopReturnsPresent
+  theorem: JuliaLean.IdDicts.popReturnsPresent_refuted

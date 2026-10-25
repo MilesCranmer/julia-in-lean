@@ -1,0 +1,60 @@
+id: dates-range-month-stop
+title: "Month-stepped Date ranges can include a date beyond their requested stop"
+priority: P1
+kind: wrong-result
+area: Dates
+files: [stdlib/Dates/src/ranges.jl]
+functions: ["len", "Base.steprange_last", "length(::StepRange{Date,Month})", "in(::Date, ::StepRange{Date,Month})"]
+summary: |
+  Date(2019, 1, 31):Month(1):Date(2019, 3, 29) has three elements and ends
+  on March 31, past the requested March 29 stop. Membership also includes March 31.
+  Year-stepped ranges starting on February 29 have the same counting problem.
+likelihood: |
+  Monthly schedules starting at month end are common. A stop between the
+  repeatedly clamped date and the original-day calendar step exposes the error.
+maybe_intended: ""
+reproducer: |
+  using Dates
+  r = Date(2019, 1, 31):Month(1):Date(2019, 3, 29)
+  collect(r)
+output:
+  release: |
+    requested stop = 2019-03-29
+    length = 3
+    last = 2019-03-31
+    elements = 2019-01-31, 2019-02-28, 2019-03-31
+    overshooting element is in range = true
+    REPRODUCED dates-range-month-stop
+  nightly: |
+    requested stop = 2019-03-29
+    length = 3
+    last = 2019-03-31
+    elements = 2019-01-31, 2019-02-28, 2019-03-31
+    overshooting element is in range = true
+    REPRODUCED dates-range-month-stop
+reproduced: {release: true, nightly: true}
+expected: |
+  Two elements, 2019-01-31 and 2019-02-28. March 31 exceeds the requested
+  stop, so it must not be counted or included.
+promised_by: |
+  Range invariant: start:step:stop includes steps from start without passing stop.
+  stdlib/Dates/src/ranges.jl:39-63 normalizes the final endpoint for variable
+  calendar steps; lines 71-72 iterate using start + step * i.
+cause: |
+  stdlib/Dates/src/ranges.jl:19-30 estimates the count, then corrects it with
+  v += st. From February 28, that correction reaches March 28 and counts it.
+  Indexing and iteration instead compute January 31 + Month(2), which is
+  March 31. Calendar addition is not associative when a day is clamped.
+possible_fix: |
+  Test each candidate as start + step * i, matching indexing and iteration,
+  rather than repeatedly adding the calendar step to the previous candidate.
+duplicates:
+  issues:
+    - {number: 63714, state: open, relation: related}
+  queries: ["Dates range Month last", "range Month", "Dates length", "StepRange Month", "repo:JuliaLang/julia Month range"]
+  notes: |
+    No exact report found. PR #63714 proposes exact Month/Year step counts as
+    part of a broader accessor and range overhaul.
+lean:
+  property: JuliaLean.Dates.MonthRangeBound
+  theorem: JuliaLean.Dates.monthRangeBound_refuted

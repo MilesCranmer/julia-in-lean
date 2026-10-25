@@ -1,0 +1,64 @@
+id: transcode-utf32-out-of-range
+title: "transcode(String, ::Vector{UInt32}) throws CodePointError for values at or above 0x200000, contradicting its docstring"
+priority: P3
+kind: documentation
+area: Transcode
+files: [base/strings/cstring.jl]
+functions: ["transcode(::Type{UInt8}, ::Vector{UInt32})", "transcode(::Type{String}, ::Vector{UInt32})", "unsafe_string(::Ptr{UInt32}, ::Integer)"]
+summary: |
+  transcode(String, UInt32[0x61, 0x00200000]) throws CodePointError, and the
+  Int32 (Cwchar_t) variant throws InexactError for negative values. Values
+  from 0x110000 to 0x1fffff, which are equally invalid Unicode, are encoded
+  without error. unsafe_string(::Ptr{UInt32}) inherits the exception.
+likelihood: |
+  Only UTF-32 data with values beyond the 21-bit range, for example corrupted
+  wchar_t buffers from C.
+maybe_intended: |
+  Values of 0x200000 and above cannot be written even in the extended 4-byte
+  UTF-8 form, so the first clause of the docstring ("as long as the input data
+  can be reasonably represented") may be meant to cover them. The second
+  clause says the conversion always succeeds.
+reproducer: |
+  threw = false
+  for v in (Int32[0x61, -1], UInt32[0x61, 0x00200000])
+      try
+          println("transcode(String, ", repr(v), ") = ", repr(transcode(String, v)))
+      catch e
+          println("transcode(String, ", repr(v), ") threw ", typeof(e), ": ", sprint(showerror, e))
+          v isa Vector{UInt32} && (global threw = true)
+      end
+  end
+  threw && println("REPRODUCED transcode-utf32-out-of-range")
+output:
+  release: |
+    transcode(String, Int32[97, -1]) threw InexactError: InexactError: convert(UInt32, -1)
+    transcode(String, UInt32[0x00000061, 0x00200000]) threw Base.CodePointError{UInt32}: Base.CodePointError{UInt32}(0x00200000)
+    REPRODUCED transcode-utf32-out-of-range
+  nightly: |
+    transcode(String, Int32[97, -1]) threw InexactError: InexactError: convert(UInt32, -1)
+    transcode(String, UInt32[0x00000061, 0x00200000]) threw Base.CodePointError{UInt32}: Base.CodePointError{UInt32}(0x00200000)
+    REPRODUCED transcode-utf32-out-of-range
+reproduced: {release: true, nightly: true}
+expected: |
+  Either a String (for example with U+FFFD or a byte pass-through for the
+  out-of-range values), or a docstring that states which UTF-32 inputs throw.
+promised_by: |
+  base/strings/cstring.jl:140-142: "it always succeeds for conversions between
+  UTF-XX encodings, even for invalid Unicode data."
+cause: |
+  transcode(::Type{UInt8}, src::Vector{<:Union{Int32,UInt32}})
+  (base/strings/cstring.jl:170-176) prints Char(c) for each element;
+  Char(::UInt32) throws CodePointError for u >= 0x200000 and Char(::Int32)
+  throws InexactError for negative values (base/char.jl).
+possible_fix: |
+  Document the exception, or map unrepresentable values to a replacement.
+duplicates:
+  issues: []
+  queries:
+    - "issues: transcode"
+    - "issues: transcode CodePointError"
+    - "issues: transcode always succeeds"
+    - "prs: transcode"
+lean:
+  property: JuliaLean.Transcode.Utf32ToUtf8Total
+  theorem: JuliaLean.Transcode.utf32ToUtf8Total_refuted

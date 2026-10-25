@@ -1,0 +1,55 @@
+id: strings-cmp-malformed
+title: "cmp on Strings disagrees with the generic character comparison for invalid UTF-8"
+priority: P3
+kind: documentation
+area: Strings
+files: [base/strings/string.jl, base/strings/basic.jl]
+functions: ["cmp(::String, ::String)", "cmp(::AbstractString, ::AbstractString)"]
+summary: |
+  cmp("\xe2\xc0", "\xe2\x82") == 1 (byte order), but the generic AbstractString
+  method returns -1, because '\xe2' < '\xe2\x82' as Chars. isless(collect(a),
+  collect(b)) is true.
+likelihood: |
+  Only invalid UTF-8; sorting arbitrary byte strings.
+maybe_intended: |
+  Byte order for String is a deliberate fast path and agrees on valid UTF-8;
+  then the docstring should say so for invalid data.
+reproducer: |
+  a = "\xe2\xc0"
+  b = "\xe2\x82"
+  x = cmp(a, b)
+  y = invoke(cmp, Tuple{AbstractString, AbstractString}, a, b)
+  println("cmp(a, b) = ", x, ", generic AbstractString cmp = ", y)
+  println("collect(a) = ", repr(collect(a)), ", collect(b) = ", repr(collect(b)))
+  println("isless(collect(a), collect(b)) = ", isless(collect(a), collect(b)))
+  x == 1 && y == -1 && println("REPRODUCED strings-cmp-malformed")
+output:
+  release: |
+    cmp(a, b) = 1, generic AbstractString cmp = -1
+    collect(a) = ['\xe2', '\xc0'], collect(b) = ['\xe2\x82']
+    isless(collect(a), collect(b)) = true
+    REPRODUCED strings-cmp-malformed
+  nightly: |
+    cmp(a, b) = 1, generic AbstractString cmp = -1
+    collect(a) = ['\xe2', '\xc0'], collect(b) = ['\xe2\x82']
+    isless(collect(a), collect(b)) = true
+    REPRODUCED strings-cmp-malformed
+reproduced: {release: true, nightly: true}
+expected: |
+  Either the same result from both methods, or documented byte order for invalid
+  data.
+promised_by: |
+  The cmp docstring: "lexicographical order by Unicode code points"
+  (base/strings/basic.jl:276-282).
+cause: |
+  cmp(::String, ::String) uses memcmp (base/strings/string.jl:232-236); the
+  generic method compares Chars (base/strings/basic.jl:308-318).
+possible_fix: ""
+duplicates:
+  issues: []
+  queries:
+    - "issues: cmp invalid UTF-8"
+    - "issues: isless string invalid UTF-8 codeunit"
+lean:
+  property: JuliaLean.Strings.CmpAgreesGeneric
+  theorem: JuliaLean.Strings.cmpAgreesGeneric_refuted

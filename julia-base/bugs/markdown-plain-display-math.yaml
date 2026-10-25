@@ -1,0 +1,56 @@
+id: markdown-plain-display-math
+title: "Markdown.plain prints display math in a $$ form that Markdown.parse does not accept"
+priority: P2
+kind: wrong-result
+area: Markdown
+files: [stdlib/Markdown/src/render/plain.jl]
+functions: ["Markdown.plain(::IO, ::Markdown.LaTeX)"]
+summary: |
+  A display equation (from a ```` ```math ```` fence or `$$x$$`) is printed by `Markdown.plain`
+  as `$$`, newline, formula, newline, `$$`. The parser only accepts `$$` math on a single line, so
+  `Markdown.parse(Markdown.plain(md))` gives interpolation `:$` nodes and a paragraph instead of the
+  equation.
+likelihood: |
+  Every docstring with a display equation, whenever it is shown as text/markdown or
+  re-parsed from `plain` output.
+maybe_intended: ""
+reproducer: |
+  using Markdown
+  md = Markdown.parse("```math\nx^2\n```")
+  p = Markdown.plain(md)
+  md2 = Markdown.parse(p)
+  println("content = ", repr(md.content))
+  println("plain   = ", repr(p))
+  println("reparse = ", repr(md2.content))
+  md2 != md && println("REPRODUCED markdown-plain-display-math")
+output:
+  release: |
+    content = Any[$x^2$]
+    plain   = "\$\$\nx^2\n\$\$\n"
+    reparse = Any[:$, Markdown.Paragraph(Any["x^2 ", :$])]
+    REPRODUCED markdown-plain-display-math
+  nightly: |
+    content = Any[$x^2$]
+    plain   = "\$\$\nx^2\n\$\$\n"
+    reparse = Any[:$, Markdown.Paragraph(Any["x^2\n", :$])]
+    REPRODUCED markdown-plain-display-math
+reproduced: {release: true, nightly: true}
+expected: |
+  `Markdown.parse(Markdown.plain(md)) == md`; printing ```` ```math ```` fences would round trip.
+promised_by: |
+  `show(io, ::MIME"text/markdown", md::MD) = plain(io, md)` (stdlib/Markdown/src/render/plain.jl:170); the
+  manual calls the `$$` form deprecated and documents ```` ```math ```` fences
+  (stdlib/Markdown/docs/src/index.md:298-313).
+cause: |
+  stdlib/Markdown/src/render/plain.jl:105-109 prints `$$` on its own lines; `blocktex` (stdlib/Markdown/src/IPython/IPython.jl:13)
+  uses `parse_inline_wrapper`, which rejects a `$` run followed by whitespace (stdlib/Markdown/src/parse/util.jl:232).
+possible_fix: |
+  Print ```` ```math ```` fences in `plain(io, ::LaTeX)`.
+duplicates:
+  issues:
+    - {number: 37334, state: open, relation: related}
+    - {number: 35917, state: open, relation: related}
+  queries: ["Markdown math", "Markdown math plain", "display math plain", "Markdown roundtripability", "Markdown $$"]
+lean:
+  property: JuliaLean.Markdown.PlainDisplayMath
+  theorem: JuliaLean.Markdown.plainDisplayMath_refuted

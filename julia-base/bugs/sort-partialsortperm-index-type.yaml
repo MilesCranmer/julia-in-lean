@@ -1,0 +1,58 @@
+id: sort-partialsortperm-index-type
+title: "partialsortperm(v, k) throws InexactError when k is a narrow integer type and v is long"
+priority: P2
+kind: wrong-exception
+area: Sort
+files: [base/sort.jl]
+functions: ["partialsortperm(v, k)"]
+summary: |
+  partialsortperm allocates its index vector with the element type of k, so
+  partialsortperm(zeros(128), Int8(3)) throws InexactError while storing index
+  128. For shorter vectors it succeeds but returns an index of type Int8. The
+  same happens for ranges such as Int8(1):Int8(3) and for UInt8 k with 256 or
+  more elements.
+likelihood: |
+  Moderate-low: k usually is an Int, but small integer types appear when k is
+  computed from narrow-typed data (for example a UInt8 rank or count).
+maybe_intended: ""
+reproducer: |
+  println(repr(partialsortperm(zeros(127), Int8(3))))
+  err = try
+      partialsortperm(zeros(128), Int8(3))
+      nothing
+  catch e
+      e
+  end
+  println(err)
+  if err isa InexactError
+      println("REPRODUCED sort-partialsortperm-index-type")
+  end
+output:
+  release: |
+    3
+    InexactError(:trunc, (Int8, 128))
+    REPRODUCED sort-partialsortperm-index-type
+  nightly: |
+    3
+    InexactError(:trunc, (Int8, 128))
+    REPRODUCED sort-partialsortperm-index-type
+reproduced: {release: true, nightly: true}
+expected: |
+  The index 1 (an Int), the same as sortperm(zeros(128))[3].
+promised_by: |
+  partialsortperm docstring, base/sort.jl:1825-1831: "Return a partial permutation
+  I of the vector v, so that v[I] returns values of a fully sorted version of v
+  at index k ... This function is equivalent to, but more efficient than,
+  calling sortperm(...)[k]."
+cause: |
+  base/sort.jl:1854 allocates similar(Vector{eltype(k)}, axes(v,1)), and
+  base/sort.jl:1907-1909 stores ix[i] = i for every index of v, which converts
+  i to eltype(k) and throws once i exceeds typemax(eltype(k)).
+possible_fix: |
+  Allocate the index vector with eltype(keys(v)) (or Int) instead of eltype(k).
+duplicates:
+  issues: []
+  queries: ["issues/prs: partialsortperm", "issues: partialsortperm Int8", "issues: partialsortperm InexactError", "issues: partialsortperm eltype"]
+lean:
+  property: JuliaLean.Sort.PartialsortpermIndexType
+  theorem: JuliaLean.Sort.partialsortpermIndexType_refuted

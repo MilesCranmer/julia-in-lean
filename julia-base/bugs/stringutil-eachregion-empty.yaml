@@ -1,0 +1,54 @@
+id: stringutil-eachregion-empty
+title: "eachregion(AnnotatedString(\"\")) yields one empty region because of an operator-precedence slip"
+priority: P3
+kind: wrong-result
+area: StringUtil
+files: [base/strings/annotated.jl]
+functions: ["eachregion(::AnnotatedString)"]
+summary: |
+  eachregion(AnnotatedString("")) yields one region ("", []), while eachregion of an
+  empty SubString of an AnnotatedString yields nothing. The guard
+  `isempty(s) || isempty(subregion) && return ...` parses as
+  `isempty(s) || (isempty(subregion) && return ...)`, so an empty string skips the
+  early return.
+likelihood: |
+  Every empty AnnotatedString passed to eachregion (for example when printing an
+  empty styled string). The extra region is empty, so printed output is unchanged;
+  code that counts or indexes regions sees one region.
+maybe_intended: ""
+reproducer: |
+  using Base: AnnotatedString, eachregion
+  e = AnnotatedString("")
+  sub = SubString(AnnotatedString("x"), 1, 0)
+  a = collect(eachregion(e))
+  b = collect(eachregion(sub))
+  println("length(eachregion(AnnotatedString(\"\"))) = ", length(a), ", first piece = ", repr(String(first(a)[1])))
+  println("length(eachregion(empty SubString of an AnnotatedString)) = ", length(b))
+  length(a) == 1 && isempty(b) && println("REPRODUCED stringutil-eachregion-empty")
+output:
+  release: |
+    length(eachregion(AnnotatedString(""))) = 1, first piece = ""
+    length(eachregion(empty SubString of an AnnotatedString)) = 0
+    REPRODUCED stringutil-eachregion-empty
+  nightly: |
+    length(eachregion(AnnotatedString(""))) = 1, first piece = ""
+    length(eachregion(empty SubString of an AnnotatedString)) = 0
+    REPRODUCED stringutil-eachregion-empty
+reproduced: {release: true, nightly: true}
+expected: |
+  No regions, as for the empty SubString method (base/strings/annotated.jl:575-578)
+  and as the guard intends.
+promised_by: |
+  Invariant/intent of base/strings/annotated.jl:542-543 (return an empty
+  RegionIterator for an empty string) and consistency with the SubString method.
+cause: |
+  base/strings/annotated.jl:542: `&&` binds tighter than `||`, so the return only
+  happens when the string is nonempty and subregion is empty.
+possible_fix: |
+  Write `(isempty(s) || isempty(subregion)) && return ...`.
+duplicates:
+  issues: []
+  queries: ["issues: eachregion empty", "prs: eachregion empty", "issues: eachregion", "prs: eachregion"]
+lean:
+  property: JuliaLean.StringUtil.EachregionEmpty
+  theorem: JuliaLean.StringUtil.eachregionEmpty_refuted

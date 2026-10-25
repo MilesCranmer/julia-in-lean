@@ -1,0 +1,72 @@
+id: markdown-list-trailing-blank-loose
+title: "Markdown: a tight list followed by a blank line is parsed as a loose list"
+priority: P2
+kind: wrong-result
+area: Markdown
+files: [stdlib/Markdown/src/Common/block.jl]
+functions: ["Markdown.list"]
+summary: |
+  On master, `Markdown.parse("- a\n- b\n\nText")` returns a list with `loose == true`, so
+  `Markdown.html` wraps every item in `<p>`. The blank line that ends the list is counted as a
+  blank line inside the list. The same happens for every tight list followed by more text, and for
+  a list at the end of an admonition, footnote or block quote body.
+likelihood: |
+  Very common input: almost every list in a docstring is followed by a blank line and
+  more text. The visible effect is extra paragraph spacing in HTML output (tight lists render
+  loose). Regression from #60676, which started rendering the `loose` flag.
+maybe_intended: ""
+reproducer: |
+  using Markdown
+  md = Markdown.parse("- a\n- b\n\nText")
+  list = md.content[1]
+  println("loose = ", list.loose)
+  print(Markdown.html(md))
+  tight = Markdown.parse("- a\n- b\n")
+  println("without the trailing blank line: loose = ", tight.content[1].loose)
+  list.loose && !tight.content[1].loose && println("REPRODUCED markdown-list-trailing-blank-loose")
+output:
+  release: |
+    loose = false
+    <ul>
+    <li><p>a</p>
+    </li>
+    <li><p>b</p>
+    </li>
+    </ul>
+    <p>Text</p>
+    without the trailing blank line: loose = false
+  nightly: |
+    loose = true
+    <ul>
+    <li>
+    <p>a</p>
+    </li>
+    <li>
+    <p>b</p>
+    </li>
+    </ul>
+    <p>Text</p>
+    without the trailing blank line: loose = false
+    REPRODUCED markdown-list-trailing-blank-loose
+reproduced: {release: false, nightly: true}
+expected: |
+  `loose == false`, and HTML `<ul>\n<li>a</li>\n<li>b</li>\n</ul>\n<p>Text</p>\n`.
+  CommonMark: a list is loose only if a blank line separates two of its items or two blocks inside
+  an item; the blank line after the last item does not count.
+promised_by: |
+  `List.loose` field (stdlib/Markdown/src/Common/block.jl:303-307); CommonMark 0.31 section 5.3
+  (tight and loose lists), which #60676 implements ("Fixes #22076").
+cause: |
+  stdlib/Markdown/src/Common/block.jl:350-352: every blank line read while scanning the list sets
+  `list.loose = true`, including blank lines after the last item that end the list (the loop then
+  sees the unindented `Text` line and breaks at line 360).
+possible_fix: |
+  Set `loose` only when a blank line is followed by more content of the same list (a further item or an indented continuation line).
+duplicates:
+  issues:
+    - {number: 60676, state: merged, relation: related}
+    - {number: 22076, state: closed, relation: related}
+  queries: ["loose list", "tight list", "Markdown loose", "Markdown tight"]
+lean:
+  property: JuliaLean.Markdown.ListTrailingBlankTight
+  theorem: JuliaLean.Markdown.listTrailingBlankTight_refuted

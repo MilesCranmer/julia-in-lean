@@ -1,0 +1,43 @@
+id: ranges-operations-intersect-empty
+title: "Intersecting an Int8 StepRange with an empty UnitRange returns elements"
+priority: P2
+kind: wrong-result
+area: Ranges
+files: [base/range.jl]
+functions: ["intersect(::StepRange, ::AbstractUnitRange)"]
+summary: |
+  Intersecting Int8(-128):Int8(127):Int8(126) with the empty range Int8(5):Int8(4)
+  returns Int8[-128,-1]. Neither element can belong to the empty second input.
+likelihood: |
+  Uncommon: a near-full-width signed byte step meets an empty filter interval.
+  The empty interval itself is ordinary; the extreme step makes this P2.
+maybe_intended: ""
+reproducer: |
+  r = Int8(-128):Int8(127):Int8(126)
+  s = Int8(5):Int8(4)
+  @assert isempty(s) && collect(intersect(r,s)) == Int8[-128,-1]
+  println("REPRODUCED ranges-operations-intersect-empty")
+output:
+  release: |
+    REPRODUCED ranges-operations-intersect-empty
+  nightly: |
+    REPRODUCED ranges-operations-intersect-empty
+reproduced: {release: true, nightly: true}
+expected: "Return an empty intersection."
+promised_by: |
+  Intersection invariant: every result element belongs to both input collections.
+  No element belongs to an empty collection.
+cause: |
+  base/range.jl:1227-1233 routes the positive-step first input into the unit/step
+  method. Lines 1205-1217 check only whether the step range is empty. Wrapped
+  differences in the endpoint congruences can turn the empty unit interval into
+  the nonempty output -128:127:-1.
+possible_fix: |
+  Handle an empty unit input before modular endpoint arithmetic, and compute
+  endpoint differences without losing the congruence information to overflow.
+duplicates:
+  issues: []
+  queries: ["issues: intersect empty StepRange", "issues: intersect empty Int8", "PRs: intersect empty range overflow"]
+lean:
+  property: JuliaLean.Ranges.intersectEmptyProp
+  theorem: JuliaLean.Ranges.intersectEmptyRefuted

@@ -1,0 +1,103 @@
+id: floatfuncs-sigdigits-hidigit
+title: "floor(99.99999999999999; sigdigits=1) == 0.0: hidigit overcounts digits just below a power of ten"
+priority: P1
+kind: wrong-result
+area: FloatFuncs
+files: [base/floatfuncs.jl]
+functions: ["round(::Float64, ::RoundingMode; sigdigits)", "floor(::Float64; sigdigits)", "trunc(::Float64; sigdigits)", "Base.hidigit"]
+summary: |
+  round/floor/trunc/ceil with sigdigits locate the leading digit with
+  1 + floor(Int, log10(abs(x))). For x slightly below a power of ten, log10(x) rounds up
+  to the integer, so hidigit is one too large and the value is rounded to one significant
+  digit fewer than requested. With sigdigits=1, floor and trunc then return 0.0:
+  floor(prevfloat(1000.0); sigdigits=1) == 0.0 and floor(prevfloat(100.0); sigdigits=1)
+  == 0.0, where 900.0 and 90.0 are expected. round(prevfloat(1000.0); sigdigits=16) is
+  1000.0 instead of 999.9999999999999. Float16 and Float32 are hit much more widely,
+  because their log10 rounds coarsely: floor(Float16(99.94); sigdigits=1) == 0.0 and
+  floor(999.9999f0; sigdigits=1) == 0.0.
+likelihood: |
+  Any value within about one unit in the last place below 10^k with k >= 2 or k <= -1
+  (999.9999999999999, 99.99999999999999, 9.999999999999999e-301, ...). Such values come out
+  of ordinary floating-point accumulation, and rounding to a few significant digits for
+  display or binning is common. The random sample found hidigit wrong for 1463 of 5404
+  Float64 inputs drawn around powers of ten. For Float16 the band is about 0.05% wide
+  (20 positive Float16 values, e.g. 99.94 and 999.5, give floor(x; sigdigits=1) == 0).
+maybe_intended: |
+  The docstring notes that rounding to digits in base 10 "can be inexact" because of binary
+  representation (base/rounding.jl:389-407), but that note concerns the last digit, not
+  losing a whole significant digit or returning zero.
+reproducer: |
+  x = prevfloat(1000.0)                # 999.9999999999999
+  println("x = ", x, ",  log10(x) = ", log10(x), ",  Base.hidigit(x, 10) = ", Base.hidigit(x, 10))
+  a = floor(x; sigdigits=1)
+  b = trunc(x; sigdigits=1)
+  c = round(x; sigdigits=16)
+  d = round(x; sigdigits=17)
+  println("floor(x; sigdigits=1)  = ", a)
+  println("trunc(x; sigdigits=1)  = ", b)
+  println("round(x; sigdigits=16) = ", c)
+  println("round(x; sigdigits=17) = ", d)
+  println("floor(prevfloat(100.0); sigdigits=1) = ", floor(prevfloat(100.0); sigdigits=1))
+  println("floor(Float16(99.94); sigdigits=1) = ", floor(Float16(99.94); sigdigits=1))
+  println("floor(999.9999f0; sigdigits=1) = ", floor(999.9999f0; sigdigits=1))
+  if a == 0 && b == 0
+      println("REPRODUCED floatfuncs-sigdigits-hidigit")
+  end
+output:
+  release: |
+    x = 999.9999999999999,  log10(x) = 3.0,  Base.hidigit(x, 10) = 4
+    floor(x; sigdigits=1)  = 0.0
+    trunc(x; sigdigits=1)  = 0.0
+    round(x; sigdigits=16) = 1000.0
+    round(x; sigdigits=17) = 999.9999999999998
+    floor(prevfloat(100.0); sigdigits=1) = 0.0
+    floor(Float16(99.94); sigdigits=1) = 0.0
+    floor(999.9999f0; sigdigits=1) = 0.0
+    REPRODUCED floatfuncs-sigdigits-hidigit
+  nightly: |
+    x = 999.9999999999999,  log10(x) = 3.0,  Base.hidigit(x, 10) = 4
+    floor(x; sigdigits=1)  = 0.0
+    trunc(x; sigdigits=1)  = 0.0
+    round(x; sigdigits=16) = 1000.0
+    round(x; sigdigits=17) = 999.9999999999998
+    floor(prevfloat(100.0); sigdigits=1) = 0.0
+    floor(Float16(99.94); sigdigits=1) = 0.0
+    floor(999.9999f0; sigdigits=1) = 0.0
+    REPRODUCED floatfuncs-sigdigits-hidigit
+reproduced: {release: true, nightly: true}
+expected: |
+  hidigit(999.9999999999999, 10) == 3, floor(x; sigdigits=1) == trunc(x; sigdigits=1) == 900.0,
+  floor(prevfloat(100.0); sigdigits=1) == 90.0, round(x; sigdigits=16) == 999.9999999999999,
+  floor(Float16(99.94); sigdigits=1) == 90.0, floor(999.9999f0; sigdigits=1) == 900.0.
+promised_by: |
+  base/rounding.jl:344-345: "If the sigdigits keyword argument is provided, it rounds to
+  the specified number of significant digits, in base base." base/rounding.jl:451-452:
+  "floor(x) returns the nearest integral value of the same type as x that is less than or
+  equal to x", with sigdigits working "as for round": rounding a positive number down to one
+  significant digit cannot give zero.
+cause: |
+  base/floatfuncs.jl:133-136: hidigit(x::AbstractFloat, 10) = 1 + floor(Int, log10(abs(x))).
+  log10(999.9999999999999) is 3 - 4.9e-17, which rounds to 3.0, so hidigit returns 4.
+  base/floatfuncs.jl:145-148 then calls _round_digits(x, r, sigdigits - 4, 10), i.e.
+  _round_step(x, 1000.0, RoundDown) = floor(0.9999999999999999) * 1000 = 0.0.
+possible_fix: |
+  After computing h from log10, correct it with an exact comparison: if abs(x) < 10.0^(h-1)
+  (or the exact power, for large h) then decrement h; or compute the decimal exponent with
+  the Ryu digit-count machinery.
+duplicates:
+  issues:
+    - {number: 46596, state: open, relation: related}
+    - {number: 33428, state: open, relation: related}
+  queries:
+    - "issues: sigdigits"
+    - "issues: hidigit"
+    - "issues: sigdigits log10"
+    - "issues: floor sigdigits"
+    - "issues: floor sigdigits zero"
+    - "issues: sigdigits power of 10"
+    - "issues: round sigdigits wrong number of digits"
+    - "pull requests: hidigit (found closed #61798, BigFloat fallback for inexact powers, keeps hidigit)"
+    - "pull requests: sigdigits (open #63105 rewrites digits rounding, does not touch hidigit)"
+lean:
+  property: JuliaLean.FloatFuncs.FloorSigdigitsNonzero
+  theorem: JuliaLean.FloatFuncs.floorSigdigitsNonzero_refuted

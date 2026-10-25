@@ -1,0 +1,48 @@
+id: logging-maxlog-bigint
+title: "ConsoleLogger and SimpleLogger ignore maxlog when its documented integer is a BigInt"
+priority: P2
+kind: wrong-result
+area: Logging
+files: [base/logging/logging.jl, base/logging/ConsoleLogger.jl]
+functions: ["handle_message(::ConsoleLogger, ...)", "handle_message(::SimpleLogger, ...)"]
+summary: |
+  The maxlog contract accepts an integer, but both built-in loggers apply the limit
+  only to Core.BuiltinInts. With maxlog=big(1), three records with the same id are
+  all emitted instead of only the first.
+likelihood: |
+  Literal limits use Int and work. BigInt can arise in generic numeric code, but it
+  is unusual for a small logging limit, so the practical reach is low.
+maybe_intended: |
+  The limit dictionary stores Int counters and cannot represent arbitrary BigInt
+  limits. Small BigInt values convert exactly and match the documented contract.
+reproducer: |
+  for _ in 1:3
+      @warn "limited" _id=:bigint_limit maxlog=big(1)
+  end
+output:
+  release: |
+    emissions with maxlog=big(1) = 3
+    output = "┌ Warning: limited\n└ @ Main fake.jl:7\n┌ Warning: limited\n└ @ Main fake.jl:7\n┌ Warning: limited\n└ @ Main fake.jl:7\n"
+    REPRODUCED logging-maxlog-bigint
+  nightly: |
+    emissions with maxlog=big(1) = 3
+    output = "┌ Warning: limited\n└ @ Main fake.jl:7\n┌ Warning: limited\n└ @ Main fake.jl:7\n┌ Warning: limited\n└ @ Main fake.jl:7\n"
+    REPRODUCED logging-maxlog-bigint
+reproduced: {release: true, nightly: true}
+expected: |
+  Exactly one record with id :bigint_limit should be emitted, matching maxlog=1.
+promised_by: |
+  base/logging/logging.jl:233-236 says maxlog=integer hints that the message should
+  be displayed no more than maxlog times. It does not restrict the integer subtype.
+cause: |
+  base/logging/logging.jl:698-708 and ConsoleLogger.jl:114-121 enter the limiting
+  path only when maxlog isa Core.BuiltinInts, so BigInt skips the counter entirely.
+possible_fix: |
+  Accept Integer values that convert exactly to Int, with defined saturation or
+  error behavior for values outside the counter's range.
+duplicates:
+  issues: []
+  queries: ["maxlog BigInt", "maxlog Integer logging", "Core.BuiltinInts maxlog"]
+lean:
+  property: JuliaLean.Logging.MaxlogIntegerBound
+  theorem: JuliaLean.Logging.maxlogIntegerBound_refuted

@@ -1,0 +1,66 @@
+id: dicts-range-allunique-subulp
+title: "allunique/allequal/unique of float ranges with a step below one ulp give wrong results"
+priority: P2
+kind: wrong-result
+area: Dicts
+files: [base/set.jl]
+functions: ["allunique(::AbstractRange)", "allequal(::AbstractRange)", "unique(::AbstractRange)"]
+summary: |
+  allunique(r::AbstractRange) returns !iszero(step(r)) || length(r) <= 1 and
+  allequal(r::AbstractRange) returns iszero(step(r)) || length(r) <= 1. For a
+  float range whose step is nonzero but smaller than the spacing of the
+  floats it produces, elements repeat: StepRangeLen(1.0, 1e-17, 3) collects
+  to [1.0, 1.0, 1.0] while allunique says true and allequal says false, and
+  unique(r) returns all 3 elements. LinRange(1.0, nextfloat(1.0), 5) has the
+  same problem.
+likelihood: |
+  Needs a float range over an interval narrower than (length - 1) ulps, e.g.
+  a LinRange between two adjacent floats or a tiny step relative to the
+  start. Uncommon but possible in numeric code that builds grids from data.
+maybe_intended: ""
+reproducer: |
+  r = StepRangeLen(1.0, 1e-17, 3)    # collect(r) == [1.0, 1.0, 1.0]
+  allunique(r), allequal(r)          # (true, false)
+  length(unique(r))                  # 3
+output:
+  release: |
+    collect(StepRangeLen(1.0, 1e-17, 3)) = [1.0, 1.0, 1.0]
+    allunique(r) = true, allunique(collect(r)) = false
+    allequal(r) = false, allequal(collect(r)) = true
+    length(unique(r)) = 3, length(unique(collect(r))) = 1
+    collect(LinRange(1.0, nextfloat(1.0), 5)) = [1.0, 1.0, 1.0, 1.0000000000000002, 1.0000000000000002]
+    allunique(l) = true, allunique(collect(l)) = false
+    REPRODUCED dicts-range-allunique-subulp
+  nightly: |
+    collect(StepRangeLen(1.0, 1e-17, 3)) = [1.0, 1.0, 1.0]
+    allunique(r) = true, allunique(collect(r)) = false
+    allequal(r) = false, allequal(collect(r)) = true
+    length(unique(r)) = 3, length(unique(collect(r))) = 1
+    collect(LinRange(1.0, nextfloat(1.0), 5)) = [1.0, 1.0, 1.0, 1.0000000000000002, 1.0000000000000002]
+    allunique(l) = true, allunique(collect(l)) = false
+    REPRODUCED dicts-range-allunique-subulp
+reproduced: {release: true, nightly: true}
+expected: |
+  allunique(r) == false, allequal(r) == true and unique(r) == [1.0] for
+  StepRangeLen(1.0, 1e-17, 3); allunique(LinRange(1.0, nextfloat(1.0), 5)) == false.
+promised_by: |
+  allunique docstring, base/set.jl:484: "Return `true` if all values from
+  `itr` are distinct when compared with [`isequal`](@ref)." allequal
+  docstring, base/set.jl:613: "Return `true` if all values from `itr` are
+  equal when compared with [`isequal`](@ref)."
+cause: |
+  base/set.jl:546 and base/set.jl:660 use step(r) alone. A nonzero step
+  implies distinct elements only for exact (e.g. integer) ranges; float
+  elements are rounded (base/range.jl:986-989 for StepRangeLen).
+possible_fix: |
+  Keep the shortcut for ranges with integer (or otherwise exact) elements and
+  fall back to the generic methods, or compare adjacent elements, for
+  floating-point ranges.
+duplicates:
+  issues:
+    - {number: 34997, state: closed, relation: related}
+    - {number: 36849, state: closed, relation: related}
+  queries: ["allunique range float", "allunique LinRange", "allunique StepRangeLen", "unique range float step", "allequal range"]
+lean:
+  property: JuliaLean.Dicts.RangeAlluniqueElements
+  theorem: JuliaLean.Dicts.rangeAlluniqueElements_refuted

@@ -1,0 +1,81 @@
+id: versionnumbers-ident-trailing-newline
+title: VersionNumber accepts identifiers ending in a newline, so parse(string(v)) != v
+priority: P2
+kind: missing-error
+area: VersionNumbers
+files:
+- base/version.jl
+functions:
+- VersionNumber(major, minor, patch, pre, bld)
+- tryparse(::Type{VersionNumber}, ::AbstractString)
+- print(::IO, ::VersionNumber)
+summary: |
+  The identifier check of the VersionNumber constructor uses
+  r"^(?:|[0-9a-z-]*[a-z-][0-9a-z-]*)$"i, and PCRE's `$` also matches before a final
+  newline. So VersionNumber(1, 0, 0, ("a\n",)) and even ("\n", "b") are accepted;
+  string(v) then contains a raw newline and parse(VersionNumber, string(v)) drops it,
+  giving a different version. VERSION_REGEX has the same `$`, so
+  parse(VersionNumber, "1.2.3\n") succeeds.
+likelihood: |
+  Low. Version strings read from files often end in a newline; parse silently accepts
+  them, which is harmless. An identifier with a trailing newline passed to the
+  constructor is rare, but the resulting version prints across two lines and is not
+  equal to its own reparse.
+maybe_intended: |
+  Accepting a trailing newline in parse could be seen as convenient leniency; accepting
+  "a\n" as an identifier cannot be, since semver identifiers are [0-9A-Za-z-].
+reproducer: |
+  # VersionNumber accepts identifiers ending in "\n", and string/parse do not round-trip
+  v = VersionNumber(1, 0, 0, ("a\n",))
+  s = string(v)
+  w = parse(VersionNumber, s)
+  println("v = VersionNumber(1, 0, 0, (\"a\\n\",)): prerelease = ", repr(v.prerelease))
+  println("string(v) = ", repr(s))
+  println("parse(VersionNumber, string(v)).prerelease = ", repr(w.prerelease), ", equal to v: ", w == v)
+  u = VersionNumber(1, 0, 0, ("\n", "b"))
+  println("VersionNumber(1, 0, 0, (\"\\n\", \"b\")) = ", repr(string(u)))
+  x = parse(VersionNumber, "1.2.3\n")
+  println("parse(VersionNumber, \"1.2.3\\n\") = ", repr(x))
+  if w != v && v.prerelease == ("a\n",) && x == v"1.2.3"
+      println("REPRODUCED versionnumbers-ident-trailing-newline")
+  end
+output:
+  release: |
+    v = VersionNumber(1, 0, 0, ("a\n",)): prerelease = ("a\n",)
+    string(v) = "1.0.0-a\n"
+    parse(VersionNumber, string(v)).prerelease = ("a",), equal to v: false
+    VersionNumber(1, 0, 0, ("\n", "b")) = "1.0.0-\n.b"
+    parse(VersionNumber, "1.2.3\n") = v"1.2.3"
+    REPRODUCED versionnumbers-ident-trailing-newline
+  nightly: |
+    v = VersionNumber(1, 0, 0, ("a\n",)): prerelease = ("a\n",)
+    string(v) = "1.0.0-a\n"
+    parse(VersionNumber, string(v)).prerelease = ("a",), equal to v: false
+    VersionNumber(1, 0, 0, ("\n", "b")) = "1.0.0-\n.b"
+    parse(VersionNumber, "1.2.3\n") = v"1.2.3"
+    REPRODUCED versionnumbers-ident-trailing-newline
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  VersionNumber(1, 0, 0, ("a\n",)) throws ArgumentError("invalid pre-release identifier: \"a\\n\""),
+  and parse(VersionNumber, string(v)) == v for every v.
+promised_by: |
+  VersionNumber docstring, base/version.jl:11-16: follows semver 2.0.0-rc.2 (identifiers
+  are [0-9A-Za-z-]); the constructor checks at base/version.jl:65 and 75 intend to reject
+  anything else. string/parse round trip: invariant.
+cause: |
+  `$` at the end of the patterns at base/version.jl:65, 75 and 125 matches before a
+  trailing "\n" (PCRE without DOLLAR_ENDONLY).
+possible_fix: |
+  End the patterns with `\z` instead of `$`.
+duplicates:
+  issues: []
+  queries:
+  - VersionNumber newline
+  - VersionNumber prerelease identifier
+  - version.jl regex
+  - VersionNumber
+lean:
+  property: JuliaLean.VersionNumbers.PrintParseRoundtrip
+  theorem: JuliaLean.VersionNumbers.printParseRoundtrip_refuted

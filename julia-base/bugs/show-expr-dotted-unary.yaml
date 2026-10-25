@@ -1,0 +1,64 @@
+id: show-expr-dotted-unary
+title: "Expr printing of .-x gives (.-)(x), which parses to a different Expr"
+priority: P3
+kind: wrong-result
+area: Show
+files: [base/show.jl]
+functions: ["show_unquoted(::IO, ::Expr, ::Int, ::Int)"]
+summary: |
+  Meta.parse(".-x") == Expr(:call, :.-, :x), but string of it is "(.-)(x)", which parses to
+  Expr(:call, Expr(:., :-), :x). The same happens for .+x and .~x, and inside larger
+  expressions (f(.-x), y .* .-x). .!x, .√x and .¬x print correctly as .!(x) etc.
+likelihood: |
+  Common: broadcast negation .-x appears in ordinary array code, and such code is
+  printed by @show, error messages and code generators.
+maybe_intended: |
+  (.-)(x) evaluates to the same value as .-x (Base.BroadcastFunction(-) applied to x);
+  only the AST shape differs.
+reproducer: |
+  ex = Meta.parse(".-x")              # Expr(:call, :.-, :x): broadcast unary minus
+  s = string(ex)
+  println("string(ex) = ", repr(s))
+  back = Meta.parse(s)
+  println("Meta.parse(string(ex)) = ", sprint(Meta.show_sexpr, back), "   original = ", sprint(Meta.show_sexpr, ex))
+  back != ex && println("REPRODUCED show-expr-dotted-unary")
+output:
+  release: |
+    string(ex) = "(.-)(x)"
+    Meta.parse(string(ex)) = (:call, (:., :-), :x)   original = (:call, :.-, :x)
+    REPRODUCED show-expr-dotted-unary
+  nightly: |
+    string(ex) = "(.-)(x)"
+    Meta.parse(string(ex)) = (:call, (:., :-), :x)   original = (:call, :.-, :x)
+    REPRODUCED show-expr-dotted-unary
+reproduced: {release: true, nightly: true}
+expected: |
+  ".-x" (or ".-(x)"), which reparses to Expr(:call, :.-, :x).
+promised_by: |
+  base/show.jl:1636-1640: "AST printing should follow two rules: 1. Meta.parse(string(ex))
+  == ex ...".
+cause: |
+  .- has operator_precedence 11 but is not in uni_ops (base/show.jl:1678), so a one-argument
+  call takes the "1-argument call to normally-binary operator" path (base/show.jl:2216-2223),
+  which prints "(" op ")" before the argument list; the parser reads "(.-)" as Expr(:., :-).
+possible_fix: |
+  Treat dotted versions of uni_ops (.-, .+, .~ ...) like their undotted forms in the unary-operator branch.
+duplicates:
+  issues: []
+  queries:
+    - "issues: dotted unary operator printing"
+    - "issues: (.-)"
+    - "issues: broadcast unary minus show"
+    - "issues: dotted operator show Expr"
+    - "prs: dotted unary operator printing"
+    - "prs: (.-)"
+    - "prs: broadcast unary minus show"
+    - "prs: dotted operator show Expr"
+    - "issues: show_unquoted"
+    - "issues: deparse"
+    - "issues: printing Expr precedence"
+    - "issues: string Meta.parse roundtrip"
+    - "issues: Expr printing"
+lean:
+  property: JuliaLean.Show.DottedUnaryReparses
+  theorem: JuliaLean.Show.dottedUnaryReparses_refuted

@@ -1,0 +1,46 @@
+id: printf-zero-flag-zero-precision
+title: "Printf keeps the 0 flag for integer conversions with precision zero"
+priority: P2
+kind: wrong-result
+area: Printf
+files: [stdlib/Printf/src/Printf.jl]
+functions: ["Printf.Format(::AbstractString)", "Printf.rmdynamic"]
+summary: |
+  @sprintf("%05.0d", Int32(3)) and @sprintf("%05.*d", 0, Int32(3)) print "00003"; with any precision the 0 flag
+  must be ignored for integer conversions, giving "    3". Positive precisions are handled.
+likelihood: |
+  Dynamic precision 0 is a natural value for integer columns.
+maybe_intended: ""
+reproducer: |
+  using Printf
+  literal = @sprintf("%05.0d", Int32(3))
+  dynamic = @sprintf("%05.*d", 0, Int32(3))
+  println("%05.0d three = ", repr(literal), "; C99 expected ", repr("    3"))
+  println("%05.*d precision 0 = ", repr(dynamic), "; C99 expected ", repr("    3"))
+  literal == "00003" && dynamic == "00003" && println("REPRODUCED printf-zero-flag-zero-precision")
+output:
+  release: |
+    %05.0d three = "00003"; C99 expected "    3"
+    %05.*d precision 0 = "00003"; C99 expected "    3"
+    REPRODUCED printf-zero-flag-zero-precision
+  nightly: |
+    %05.0d three = "00003"; C99 expected "    3"
+    %05.*d precision 0 = "00003"; C99 expected "    3"
+    REPRODUCED printf-zero-flag-zero-precision
+reproduced: {release: true, nightly: true}
+expected: |
+  "    3" for both.
+promised_by: |
+  ISO/IEC 9899:1999 7.19.6.1 (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf) paragraph 6, 0: "For d, i, o, u, x, and X conversions, if a precision is specified, the 0 flag is
+  ignored." stdlib/Printf/src/Printf.jl:68 (Printf.Format docstring): "Create a C printf-compatible format object that can be used for formatting values."
+cause: |
+  stdlib/Printf/src/Printf.jl:243 (literal precision) and 305 (dynamic precision) clear zero only when
+  precision > 0.
+possible_fix: |
+  Clear zero whenever a precision is given (parsedprecdigits, or dynamic precision >= 0).
+duplicates:
+  issues: []
+  queries: ["issues: printf", "issues: Printf precision", "issues/prs: printf BigFloat", "issues/prs: sprintf BigFloat", "issues/prs: Printf mpfr", "issues/prs: printf precision negative", "issues/prs: printf negative width", "issues/prs: printf dynamic width", "issues/prs: printf %g exponent", "issues/prs: printf %g style", "issues/prs: printf %.0d", "issues/prs: printf zero precision", "issues/prs: printf #x", "issues/prs: printf alternate form", "issues/prs: printf octal", "issues/prs: printf %+x", "issues/prs: printf plus unsigned", "issues/prs: printf BoundsError", "issues/prs: Printf.Format BoundsError", "issues/prs: printf %D", "issues/prs: printf textwidth", "issues/prs: printf precision unicode", "issues/prs: printf round away from zero", "issues/prs: printf ties even", "issues/prs: printf %a zero", "issues/prs: printf hex float", "issues/prs: printf InvalidFormatStringError", "issues/prs: printf C compatible"]
+lean:
+  property: JuliaLean.Printf.ZeroFlagPrecision
+  theorem: JuliaLean.Printf.zeroFlagPrecision_refuted

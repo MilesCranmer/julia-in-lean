@@ -1,0 +1,47 @@
+id: mathfuncs-exp2-int128-wrap
+title: "exp2(::Int128) returns nonzero results, even floatmin, for exponents below -2^64"
+priority: P2
+kind: wrong-result
+area: MathFuncs
+files: [base/special/exp.jl]
+functions: ["exp2(::Base.BitInteger)"]
+summary: |
+  exp2(x::Int128) for x below -2^64 truncates x + 1074 to 64 bits before
+  shifting. When the low 64 bits land in 0..63 the result is a nonzero power
+  of two instead of 0.0: exp2(-2^64 - 1069) is 1.6e-322, exp2(-2^70 - 1022)
+  is floatmin(Float64), and exp2(-2^64 + ... ) can even return -0.0.
+likelihood: |
+  Low: it needs an Int128 exponent below -2^64. exp2(Float64(x)) gives the
+  correct 0.0 for the same values.
+maybe_intended: ""
+reproducer: |
+  exp2(-(Int128(2)^64) - 1069)   # 1.6e-322, expected 0.0
+  exp2(-(Int128(2)^70) - 1022)   # 2.2250738585072014e-308, expected 0.0
+output:
+  release: |
+    exp2(-18446744073709552685) = 1.6e-322   exp2(Float64(x)) = 0.0
+    exp2(-1180591620717411304446) = 2.2250738585072014e-308
+    REPRODUCED mathfuncs-exp2-int128-wrap
+  nightly: |
+    exp2(-18446744073709552685) = 1.6e-322   exp2(Float64(x)) = 0.0
+    exp2(-1180591620717411304446) = 2.2250738585072014e-308
+    REPRODUCED mathfuncs-exp2-int128-wrap
+reproduced: {release: true, nightly: true}
+expected: |
+  0.0 for every x < -1074 (2^x rounds to zero).
+promised_by: |
+  exp2 docstring, base/special/exp.jl:354: "Compute the base 2 exponential
+  of x, in other words 2^x." The comment at base/special/exp.jl:399-400 claims
+  Int128 values outside Int64 range are handled.
+cause: |
+  base/special/exp.jl:397 computes (x + 1074) % UInt, which keeps only the low
+  64 bits of an Int128. For x < -2^64 these bits can be 0..63, so the shift
+  produces a nonzero subnormal or normal bit pattern (bit 63 gives -0.0).
+possible_fix: |
+  Return 0.0 when x < -1074 before the shift, e.g. x < -1074 ? 0.0 : reinterpret(...).
+duplicates:
+  issues: []
+  queries: ["exp2 Int128", "exp2 integer overflow", "exp2"]
+lean:
+  property: JuliaLean.MathFuncs.exp2Int128Underflow
+  theorem: JuliaLean.MathFuncs.exp2Int128Underflow_refuted

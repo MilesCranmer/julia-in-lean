@@ -1,0 +1,43 @@
+id: ranges-operations-slice-unsigned-step
+title: "Reverse indexing a small unsigned StepRange silently returns an empty range"
+priority: P1
+kind: wrong-result
+area: Ranges
+files: [base/range.jl]
+functions: ["getindex(::StepRange, ::AbstractRange)"]
+summary: |
+  (UInt(1):UInt(1):UInt(4))[4:-1:1] is empty. Scalar selection of the same
+  positions returns UInt[4,3,2,1]. No input values are near integer limits.
+likelihood: |
+  Plausible when integer coordinates or counts use UInt and a range is reversed
+  through an index range. It needs an unsigned step, a less common integer choice.
+maybe_intended: ""
+reproducer: |
+  r = UInt(1):UInt(1):UInt(4)
+  s = 4:-1:1
+  @assert isempty(r[s]) && [r[i] for i in s] == UInt[4,3,2,1]
+  println("REPRODUCED ranges-operations-slice-unsigned-step")
+output:
+  release: |
+    REPRODUCED ranges-operations-slice-unsigned-step
+  nightly: |
+    REPRODUCED ranges-operations-slice-unsigned-step
+reproduced: {release: true, nightly: true}
+expected: "Return the four selected elements UInt[4,3,2,1], in that order."
+promised_by: |
+  Array indexing invariant: selecting valid integer indices by a range agrees
+  with selecting those positions individually and preserves the selected length.
+cause: |
+  base/range.jl:1062 multiplies the unsigned range step by the signed negative
+  index step. Mixed promotion yields UInt64, so -1 becomes typemax(UInt64).
+  Lines 1066-1067 reconstruct the selected range with a positive step despite
+  its descending endpoints, and the constructor normalizes it to empty.
+possible_fix: |
+  Choose a signed step type capable of representing the product's direction
+  before multiplying range and index steps.
+duplicates:
+  issues: []
+  queries: ["issues: range indexing unsigned negative step", "issues: StepRange UInt reverse indexing", "PRs: StepRange getindex unsigned"]
+lean:
+  property: JuliaLean.Ranges.stepSliceAgreementProp
+  theorem: JuliaLean.Ranges.stepSliceAgreementRefuted

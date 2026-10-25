@@ -1,0 +1,49 @@
+id: printf-dynamic-negative-width
+title: "Printf ignores a negative dynamic field width instead of left-justifying"
+priority: P2
+kind: wrong-result
+area: Printf
+files: [stdlib/Printf/src/Printf.jl]
+functions: ["Printf.format(::Printf.Format, args...)", "Printf.rmdynamic"]
+summary: |
+  A negative dynamic width produces no padding instead of left adjustment with the positive width:
+  @sprintf("%*d", -5, 42) is "42" rather than "42   ", and the same holds for %*s and %*.1f.
+likelihood: |
+  The sign of a run-time width is the C idiom for choosing alignment.
+maybe_intended: ""
+reproducer: |
+  using Printf
+  for (fmt, value) in [("%*d", 42), ("%*s", "hi"), ("%*.1f", 1.5)]
+      actual = Printf.format(Printf.Format(fmt), -5, value)
+      local literal = Printf.format(Printf.Format(replace(fmt, "*" => "-5")), value)
+      println(fmt, " width -5 = ", repr(actual), "; literal = ", repr(literal))
+  end
+  @sprintf("%*d", -5, 42) == "42" && println("REPRODUCED printf-dynamic-negative-width")
+output:
+  release: |
+    %*d width -5 = "42"; literal = "42   "
+    %*s width -5 = "hi"; literal = "hi   "
+    %*.1f width -5 = "1.5"; literal = "1.5  "
+    REPRODUCED printf-dynamic-negative-width
+  nightly: |
+    %*d width -5 = "42"; literal = "42   "
+    %*s width -5 = "hi"; literal = "hi   "
+    %*.1f width -5 = "1.5"; literal = "1.5  "
+    REPRODUCED printf-dynamic-negative-width
+reproduced: {release: true, nightly: true}
+expected: |
+  "42   " (the same as %-5d).
+promised_by: |
+  ISO/IEC 9899:1999 7.19.6.1 (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf) paragraph 5: "A negative field width argument is taken as a - flag followed by a positive
+  field width." stdlib/Printf/src/Printf.jl:68 (Printf.Format docstring): "Create a C printf-compatible format object that can be used for formatting values."
+cause: |
+  rmdynamic (stdlib/Printf/src/Printf.jl:299-302) copies the signed width unchanged and does not set
+  leftalign; every formatter compares width with the output length, so a negative width never pads.
+possible_fix: |
+  In rmdynamic, map a negative width w to leftalign = true, zero = false and width = -w.
+duplicates:
+  issues: []
+  queries: ["issues: printf", "issues: Printf precision", "issues/prs: printf BigFloat", "issues/prs: sprintf BigFloat", "issues/prs: Printf mpfr", "issues/prs: printf precision negative", "issues/prs: printf negative width", "issues/prs: printf dynamic width", "issues/prs: printf %g exponent", "issues/prs: printf %g style", "issues/prs: printf %.0d", "issues/prs: printf zero precision", "issues/prs: printf #x", "issues/prs: printf alternate form", "issues/prs: printf octal", "issues/prs: printf %+x", "issues/prs: printf plus unsigned", "issues/prs: printf BoundsError", "issues/prs: Printf.Format BoundsError", "issues/prs: printf %D", "issues/prs: printf textwidth", "issues/prs: printf precision unicode", "issues/prs: printf round away from zero", "issues/prs: printf ties even", "issues/prs: printf %a zero", "issues/prs: printf hex float", "issues/prs: printf InvalidFormatStringError", "issues/prs: printf C compatible"]
+lean:
+  property: JuliaLean.Printf.NegativeWidth
+  theorem: JuliaLean.Printf.negativeWidth_refuted

@@ -1,0 +1,65 @@
+id: iddicts-weakvalue-eltype
+title: "WeakValueIdDict{K,V} stores values of any type; every read then throws TypeError on the ::V cast"
+priority: P2
+kind: missing-error
+area: IdDicts
+files: [base/weakdict.jl]
+functions: ["setindex!(::WeakValueIdDict, v, key)", "get!(::WeakValueIdDict, key, default)", "getindex(::WeakValueIdDict, key)", "get(::WeakValueIdDict, key, default)", "pop!(::WeakValueIdDict, key)", "iterate(::WeakValueIdDict)"]
+summary: |
+  setindex! (base/weakdict.jl:302-315) wraps the value in a WeakRef and
+  stores it in the inner IdDict{K,WeakRef}; V is never consulted, so a
+  WeakValueIdDict{Any,Vector{Int}} accepts w[:k] = [1.0]. Every read of that
+  entry then throws TypeError at a ::V cast: getindex, get, get!, collect,
+  and pop!, which deletes the entry before throwing. get!(w, k, default) on
+  a missing key stores the wrong-typed default and then throws. haskey and
+  length still work, so the bad entry is invisible until read. The type
+  exists only on master (added by #62831, after 1.13.2) and is not exported.
+likelihood: |
+  Low while the type is new and unexported; any user with a concrete V and
+  a value of a different (mutable) type hits it at once.
+maybe_intended: |
+  Nothing documents an exemption from the value-type contract that IdDict
+  (convert, base/iddict.jl:81-83) and WeakKeyDict (through its inner Dict)
+  enforce.
+reproducer: |
+  w = Base.WeakValueIdDict{Any,Vector{Int}}()
+  v = [1.0]
+  w[:k] = v            # accepted
+  w[:k]                # TypeError
+output:
+  release: |
+    WeakValueIdDict does not exist in this version
+  nightly: |
+    w[:k] = [1.0] accepted: haskey = true, length = 1
+    w[:k] threw: TypeError
+    get(w, :k, nothing) threw: TypeError
+    get!(w, :k, [0]) threw: TypeError
+    collect(w) threw: TypeError
+    pop!(w, :k) threw: TypeError
+    haskey(w, :k) after pop!: false
+    get!(empty, :k, [1.0]) threw: TypeError; stored anyway: true
+    REPRODUCED iddicts-weakvalue-eltype
+reproduced: {release: false, nightly: true}
+expected: |
+  setindex! converts the value to V or throws at insertion time, as IdDict
+  does, so the values of a WeakValueIdDict{K,V} are always V and reads never
+  throw TypeError.
+promised_by: |
+  WeakValueIdDict docstring, base/weakdict.jl:227: "an identity-keyed
+  dictionary like IdDict"; IdDict setindex! converts its value
+  (base/iddict.jl:81-83), and the reads return v::V.
+cause: |
+  base/weakdict.jl:311-312 registers the finalizer and stores WeakRef(v)
+  into h.ht::IdDict{K,WeakRef} without touching V; the casts at
+  base/weakdict.jl:328, 335, 341, 343, 369, 394, 402 and 435 then fail.
+possible_fix: |
+  Convert or check before wrapping: `v isa V || (v = convert(V, v)::V)`
+  ahead of the finalizer call (conversion may create a new object, which is
+  then the one held weakly).
+duplicates:
+  issues:
+    - {number: 62831, state: merged, relation: related}
+  queries: ["WeakValueIdDict", "WeakValueIdDict TypeError", "weak value dict convert"]
+lean:
+  property: JuliaLean.IdDicts.WeakValueReadsTyped
+  theorem: JuliaLean.IdDicts.weakValueReadsTyped_refuted

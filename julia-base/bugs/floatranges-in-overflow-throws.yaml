@@ -1,0 +1,63 @@
+id: floatranges-in-overflow-throws
+title: 1.0e308 in range(-1.0e308, 1.0e308; length=3) throws InexactError
+priority: P2
+kind: wrong-exception
+area: FloatRanges
+files:
+- base/range.jl
+functions:
+- in(::Real, ::AbstractRange{<:Real})
+- _in_range
+summary: |
+  x in r throws InexactError when x - first(r) overflows to Inf, which happens for any
+  range spanning more than floatmax. The NaN/Inf guard checks f <= x <= l but not the
+  difference.
+likelihood: |
+  Needs ranges spanning more than 1.8e308; rare.
+maybe_intended: ''
+reproducer: |
+  r = range(-1.0e308, 1.0e308; length=3)
+  println("collect(r) = ", collect(r))
+  for x in (0.0, 1.0e308)
+      try
+          println("$x in r = ", x in r)
+      catch e
+          println("$x in r throws ", sprint(showerror, e))
+          e isa InexactError && x == 1.0e308 && println("REPRODUCED floatranges-in-overflow-throws")
+      end
+  end
+output:
+  release: |
+    collect(r) = [-1.0e308, 0.0, 1.0e308]
+    0.0 in r = true
+    1.0e308 in r throws InexactError: Int64(Inf)
+    REPRODUCED floatranges-in-overflow-throws
+  nightly: |
+    collect(r) = [-1.0e308, 0.0, 1.0e308]
+    0.0 in r = true
+    1.0e308 in r throws InexactError: Int64(Inf)
+    REPRODUCED floatranges-in-overflow-throws
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  1.0e308 in range(-1.0e308, 1.0e308; length=3) == true.
+promised_by: |
+  in docstring, base/operators.jl:1503-1506: in(item, collection)::Bool determines whether
+  an item is in the collection.
+cause: |
+  base/range.jl:1468-1472: (x - f) / step(r) is Inf / 1e308 = Inf and round(Integer, Inf)
+  throws InexactError.
+possible_fix: |
+  Compute (x - f) as x/step - f/step (or in TwicePrecision) when x - f is not finite, or
+  catch the overflow and compare against the two candidate indices.
+duplicates:
+  issues: []
+  queries:
+  - in range InexactError
+  - in StepRangeLen
+  - range contains
+  - LinRange in
+lean:
+  property: JuliaLean.FloatRanges.InRangeSucceeds
+  theorem: JuliaLean.FloatRanges.inRangeSucceeds_refuted

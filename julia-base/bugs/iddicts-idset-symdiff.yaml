@@ -1,0 +1,70 @@
+id: iddicts-idset-symdiff
+title: "symdiff!(::IdSet, itr) collapses isequal but distinct elements of itr because it converts itr to a Set"
+priority: P2
+kind: wrong-result
+area: IdDicts
+files: [base/abstractset.jl, base/idset.jl]
+functions: ["symdiff!(::AbstractSet, itr)", "symdiff(::IdSet, itr)"]
+summary: |
+  symdiff!(s::AbstractSet, itr) is defined as symdiff!(s, Set(itr))
+  (base/abstractset.jl:297). Set merges elements that are isequal, so when s
+  is an IdSet, which compares elements by ===, distinct objects of itr that
+  happen to be isequal are toggled as one. With a = [1] and b = [1],
+  symdiff!(IdSet{Any}(), [a, b]) holds only b, although union!(IdSet{Any}(),
+  [a, b]) and symdiff!(IdSet{Any}(), IdSet{Any}([a, b])) both hold a and b.
+  symdiff(IdSet{Any}(), Any[1, 1.0]) returns a set with only 1.0.
+likelihood: |
+  Needs an IdSet updated with symdiff!/symdiff from a vector or other
+  non-set iterable that holds equal but distinct objects (equal arrays,
+  numbers of different types such as 1 and 1.0, mutable structs with a
+  custom ==). IdSet exists precisely to keep such objects apart, so the
+  inputs are ordinary for it; symdiff on an IdSet is rarer.
+maybe_intended: |
+  Triage in #61893 leaned towards giving the set functions isequal (Set)
+  semantics for non-set arguments. Under that reading the conversion is
+  intended, but the result is then inconsistent with union!, setdiff! and
+  intersect!, which all treat the elements of itr by the IdSet's own ===
+  membership.
+reproducer: |
+  a = [1]; b = [1]                     # a == b, a !== b
+  length(symdiff!(IdSet{Any}(), Any[a, b]))                 # 1
+  length(union!(IdSet{Any}(), Any[a, b]))                   # 2
+  length(symdiff!(IdSet{Any}(), IdSet{Any}(Any[a, b])))     # 2
+output:
+  release: |
+    symdiff!(IdSet{Any}(), [a, b]): length = 1, a in = false, b in = true
+    union!(IdSet{Any}(), [a, b]): length = 2
+    symdiff!(IdSet{Any}(), IdSet{Any}([a, b])): length = 2
+    symdiff(IdSet{Any}(), Any[1, 1.0]) = Any[1.0]
+    REPRODUCED iddicts-idset-symdiff
+  nightly: |
+    symdiff!(IdSet{Any}(), [a, b]): length = 1, a in = false, b in = true
+    union!(IdSet{Any}(), [a, b]): length = 2
+    symdiff!(IdSet{Any}(), IdSet{Any}([a, b])): length = 2
+    symdiff(IdSet{Any}(), Any[1, 1.0]) = Any[1.0]
+    REPRODUCED iddicts-idset-symdiff
+reproduced: {release: true, nightly: true}
+expected: |
+  symdiff!(IdSet{Any}(), [a, b]) contains both a and b, the same as
+  symdiff!(IdSet{Any}(), IdSet{Any}([a, b])): each element x of itr is in
+  the result exactly when x in s differs from x being in itr under ===.
+promised_by: |
+  symdiff! docstring, base/abstractset.jl:284: "Construct the symmetric
+  difference of the passed in sets, and overwrite s with the result." IdSet
+  docstring, base/idset.jl:7-8: the set uses "=== as equality"; its
+  example keeps true, 1 and 1.0 apart.
+cause: |
+  base/abstractset.jl:297 builds Set(itr) (isequal and hash) instead of a set
+  of the receiver's kind; base/abstractset.jl:299-304 then toggles one
+  representative per isequal class.
+possible_fix: |
+  Use emptymutable(s) to collect itr (symdiff!(s, union!(emptymutable(s,
+  eltype(itr)), itr))), as intersect!(s, itr) already does at
+  base/abstractset.jl:199-200.
+duplicates:
+  issues:
+    - {number: 61893, state: open, relation: related}
+  queries: ["IdSet symdiff", "symdiff Set itr", "symdiff IdSet", "symdiff", "IdSet"]
+lean:
+  property: JuliaLean.IdDicts.IdSetSymdiffIdentity
+  theorem: JuliaLean.IdDicts.idSetSymdiffIdentity_refuted

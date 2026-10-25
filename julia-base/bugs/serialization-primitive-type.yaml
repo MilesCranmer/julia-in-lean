@@ -1,0 +1,66 @@
+id: serialization-primitive-type
+title: "serialize throws MethodError for values of user-defined primitive types"
+priority: P2
+kind: wrong-exception
+area: Serialization
+files: [stdlib/Serialization/src/Serialization.jl, base/io.jl]
+functions: ["serialize_any", "deserialize(::AbstractSerializer, ::DataType)"]
+summary: |
+  serialize_any has a branch for primitive types that writes the value with
+  write(s.io, x), and the default deserializer reads it back with read(s.io, t). Base
+  defines write and read only for its own bit types, so for any other primitive type
+  (for example `primitive type Bits32 32 end`) serialize throws
+  MethodError: no method matching write(::IOBuffer, ::Bits32). An array of the same
+  values serializes and round-trips, because arrays of bits types are written as raw
+  memory.
+likelihood: |
+  Any program that serializes (directly, through Distributed, or by saving a file) a
+  scalar value of a primitive type defined outside Base without hand-written write and
+  read methods, including such a value inside a struct field or tuple. Primitive types
+  are uncommon outside low-level packages, and the failure is an exception, not a
+  wrong result.
+maybe_intended: |
+  Base's write(io, x) fallback (base/io.jl:897) deliberately throws so that each type
+  chooses its own byte encoding; a package defining a primitive type may be expected to
+  add write/read methods. The Serialization code, however, has an explicit
+  isprimitivetype branch for this case, and it serializes arrays of such values
+  without any methods.
+reproducer: |
+  using Serialization
+  primitive type Bits32 32 end
+  x = reinterpret(Bits32, 0x01020304)
+  serialize(IOBuffer(), x)       # MethodError
+  io = IOBuffer(); serialize(io, [x, x]); seekstart(io)
+  deserialize(io)                # works
+output:
+  release: |
+    serialize(io, x):          throws MethodError: no method matching write(::IOBuffer, ::Bits32)
+    serialize(io, [x, x]):     ok
+    REPRODUCED serialization-primitive-type
+  nightly: |
+    serialize(io, x):          throws MethodError: no method matching write(::IOBuffer, ::Bits32)
+    serialize(io, [x, x]):     ok
+    REPRODUCED serialization-primitive-type
+reproduced: {release: true, nightly: true}
+expected: |
+  serialize succeeds and deserialize returns a value === x.
+promised_by: |
+  serialize docstring, stdlib/Serialization/src/Serialization.jl:959-961: "Write an
+  arbitrary value to a stream in an opaque format, such that it can be read back by
+  deserialize."
+cause: |
+  stdlib/Serialization/src/Serialization.jl:869-871: `if isprimitivetype(t);
+  serialize_type(s, t); write(s.io, x)`. write(io::IO, x) for a non-Base primitive type
+  hits the fallback base/io.jl:897 `write(io::IO, x) = throw(MethodError(write, (io, x)))`.
+  The reader at :1853-1854 (`read(s.io, t)`) would likewise hit base/io.jl:1345
+  "The IO stream does not support reading objects of type".
+possible_fix: |
+  Write and read the bits generically: write(s.io, Ref(x)) in serialize_any and
+  read!(s.io, Ref{t}())[] in the primitive branch of deserialize(s, t::DataType).
+duplicates:
+  issues:
+    - {number: 53544, state: closed, relation: related}
+  queries: ["serialize primitive type write MethodError", "serialize custom primitive type", "Serialization primitive type", "serialize primitive", "Serializer primitive type", "write primitive type IO", "serialize primitive type no method matching write", "primitive type serialize", "isprimitivetype serialize"]
+lean:
+  property: JuliaLean.Serialization.PrimitiveRoundTrip
+  theorem: JuliaLean.Serialization.primitiveRoundTrip_refuted

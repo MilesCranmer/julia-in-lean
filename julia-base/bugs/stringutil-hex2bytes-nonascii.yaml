@@ -1,0 +1,60 @@
+id: stringutil-hex2bytes-nonascii
+title: "hex2bytes on a SubString with non-ASCII characters throws InexactError or InvalidCharError instead of ArgumentError"
+priority: P2
+kind: wrong-exception
+area: StringUtil
+files: [base/strings/util.jl]
+functions: ["hex2bytes(::AbstractString)", "hex2bytes!(::AbstractArray{UInt8}, ::Any)", "number_from_hex(::Char)"]
+summary: |
+  hex2bytes("ĀĀ") and hex2bytes("\xff\xff") throw ArgumentError, but the same text as a
+  SubString throws InexactError (characters above U+00FF) or InvalidCharError (malformed
+  characters). The generic path converts each Char with UInt8(c) before checking that it is a
+  hex digit.
+likelihood: |
+  Parsing hex from a slice of user input (SubString from split or a regex match) that contains
+  non-Latin-1 or invalid bytes. Code that catches ArgumentError to report bad input misses
+  these errors.
+maybe_intended: ""
+reproducer: |
+  show_result(x) = try repr(hex2bytes(x)) catch e sprint(showerror, e) end
+  println("hex2bytes(\"ĀĀ\")                = ", show_result("ĀĀ"))
+  println("hex2bytes(SubString(\"ĀĀ\"))     = ", show_result(SubString("ĀĀ")))
+  println("hex2bytes(\"\\xff\\xff\")            = ", show_result("\xff\xff"))
+  println("hex2bytes(SubString(\"\\xff\\xff\")) = ", show_result(SubString("\xff\xff")))
+  println("hex2bytes(SubString(\"éé\"))     = ", show_result(SubString("éé")))
+  a = try hex2bytes(SubString("ĀĀ")) catch e e end
+  b = try hex2bytes(SubString("\xff\xff")) catch e e end
+  a isa InexactError && b isa Base.InvalidCharError && println("REPRODUCED stringutil-hex2bytes-nonascii")
+output:
+  release: |
+    hex2bytes("ĀĀ")                = ArgumentError: input string must consist of hexadecimal characters only
+    hex2bytes(SubString("ĀĀ"))     = InexactError: trunc(UInt8, 0x00000100)
+    hex2bytes("\xff\xff")            = ArgumentError: byte is not an ASCII hexadecimal digit
+    hex2bytes(SubString("\xff\xff")) = Base.InvalidCharError{Char}('\xff')
+    hex2bytes(SubString("éé"))     = ArgumentError: byte is not an ASCII hexadecimal digit
+    REPRODUCED stringutil-hex2bytes-nonascii
+  nightly: |
+    hex2bytes("ĀĀ")                = ArgumentError: input string must consist of hexadecimal characters only
+    hex2bytes(SubString("ĀĀ"))     = InexactError: trunc(UInt8, 0x00000100)
+    hex2bytes("\xff\xff")            = ArgumentError: byte is not an ASCII hexadecimal digit
+    hex2bytes(SubString("\xff\xff")) = Base.InvalidCharError{Char}('\xff')
+    hex2bytes(SubString("éé"))     = ArgumentError: byte is not an ASCII hexadecimal digit
+    REPRODUCED stringutil-hex2bytes-nonascii
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError for every input that is not a sequence of ASCII hex digits, as for String.
+promised_by: |
+  The String method (base/strings/util.jl:1240-1244) and number_from_hex(::UInt8)
+  (:1278-1283) throw ArgumentError for non-hex input; the hex2bytes docstring (:1195-1201) asks
+  for ASCII hexadecimal digits. The SubString path should be consistent.
+cause: |
+  number_from_hex(c::Char) = number_from_hex(UInt8(c)) (base/strings/util.jl:1277): UInt8(c)
+  throws InexactError for c > '\xff' and InvalidCharError for malformed c before the digit check.
+possible_fix: |
+  Return the ArgumentError when !isascii(c) (or codepoint(c) > 0x7f) before converting to UInt8.
+duplicates:
+  issues: []
+  queries: ["issues: hex2bytes", "prs: hex2bytes", "issues: hex2bytes InexactError", "issues: hex2bytes SubString", "issues: hex2bytes InvalidCharError"]
+lean:
+  property: JuliaLean.StringUtil.Hex2bytesArgError
+  theorem: JuliaLean.StringUtil.hex2bytesArgError_refuted

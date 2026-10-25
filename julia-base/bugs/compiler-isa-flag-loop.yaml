@@ -1,0 +1,79 @@
+id: compiler-isa-flag-loop
+title: "Inference folds `w && el isa String` to false when `w = el isa C` was set in the previous loop iteration"
+priority: P0
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/abstractinterpretation.jl, Compiler/src/typelattice.jl]
+functions: ["abstract interpretation of Conditional slot refinements (ssadef staleness check)"]
+summary: |
+  On master, a Bool flag computed from an `isa` test on the loop variable in one iteration is
+  used by inference to refine the loop variable in the next iteration. In
+  `for el in (a, b); r = w && el isa String; w = el isa C; end` with `(C(), "y")`, inference treats
+  `w == true` as proof that the current `el` is a `C`, folds `el isa String` to `false`, and the
+  function returns `false` instead of `true`. It reproduces at -O0 through -O3 and with
+  `--inline=no`, for tuples and for `Vector{Any}`, inside functions and in `let` blocks; it does not
+  reproduce at global scope or with `--compile=min` (no inference). Julia 1.13.2 is correct.
+likelihood: |
+  Ordinary code: "was the previous element of kind X" flags over heterogeneous
+  collections. It silently changes results; it already breaks `Markdown.rst`, which uses this exact
+  pattern to insert `"\\ "` after inline code (stdlib/Markdown/src/render/rst.jl:110-117) and drops
+  the separator on master.
+maybe_intended: ""
+reproducer: |
+  struct C end
+  # `w` records whether the previous element was a C; the result should be true when a C is
+  # followed by a String.
+  function f(a, b)
+      w = false
+      r = false
+      for el in (a, b)
+          r = w && el isa String
+          w = el isa C
+      end
+      r
+  end
+  println("f(C(), \"y\") = ", f(C(), "y"), "   (expected true)")
+  println("Base.return_types(f, (C, String)) = ", Base.return_types(f, (C, String)))
+  f(C(), "y") || println("REPRODUCED compiler-isa-flag-loop")
+output:
+  release: |
+    f(C(), "y") = true   (expected true)
+    Base.return_types(f, (C, String)) = Any[Bool]
+  nightly: |
+    f(C(), "y") = false   (expected true)
+    Base.return_types(f, (C, String)) = Any[Bool]
+    REPRODUCED compiler-isa-flag-loop
+reproduced: {release: false, nightly: true}
+expected: |
+  `f(C(), "y") == true`, as on 1.13.2 and under `--compile=min`.
+promised_by: |
+  Language semantics: optimization must not change results.
+cause: |
+  Inference, not codegen: the unoptimized `code_typed(f, (C, String); optimize = false)` on
+  master already has
+
+      3 ─ %14 = Main.isa::Core.Const(isa)
+      │   %15 = Main.String::Core.Const(String)
+      │         (@_8 = (%14)(el, %15))::Core.Const(false)
+      ...
+      7 ┄ %30 = r::Core.Const(false)
+      └──       return %30
+
+  whereas 1.13.2 infers `(@_8 = (%14)(%15, %16))::Bool` with `%15 = el::Union{C, String}`. The
+  optimized code then has `%8 = φ (#3 => false, #4 => false)::Bool` and `return %8`.
+  [INFERENCE] `w` holds a `Conditional` on slot `el` created in the previous iteration. Since #55601
+  (749bc618c5, "remove old Conditional invalidation logic") staleness is detected through the
+  `ssadef` recorded in the `Conditional`; across the loop back edge `el` is redefined by the same
+  statement, so the stale `Conditional` appears current and refines the new `el` to `C`.
+possible_fix: |
+  Treat a `Conditional`/`MustAlias` as stale when the slot's reaching definition at the
+  use is a merge (loop header) of the recorded definition, or invalidate on back edges.
+duplicates:
+  issues:
+    - {number: 55601, state: merged, relation: related}
+    - {number: 63750, state: merged, relation: related}
+    - {number: 64101, state: open, relation: related}
+  queries: ["Conditional loop isa wrong", "miscompile isa loop", "wrong result loop isa", "reaching defs Conditional", "ssadef Conditional", "ssadef (PRs)", "stale Conditional", "conditional_valid (PRs)", "inference Conditional loop", "track reaching defs", "isa Const false loop", "Conditional slot reassigned loop (PRs)"]
+lean:
+  property: ""
+  theorem: ""

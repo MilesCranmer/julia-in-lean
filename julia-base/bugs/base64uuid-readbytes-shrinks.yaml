@@ -1,0 +1,50 @@
+id: base64uuid-readbytes-shrinks
+title: "readbytes!(::Base64DecodePipe, b) shrinks b, although readbytes! promises never to decrease it"
+priority: P2
+kind: wrong-result
+area: Base64Uuid
+files: [stdlib/Base64/src/decode.jl]
+functions: ["readbytes!(::Base64DecodePipe, ::AbstractVector{UInt8}, ::Integer)"]
+summary: |
+  readbytes! on a Base64DecodePipe ends with resize!(data, filled), so a preallocated
+  buffer is truncated to the number of bytes read. The generic readbytes! contract, and
+  the IOBuffer and IOStream methods, never decrease the buffer.
+likelihood: |
+  Code that reuses one buffer across readbytes! calls (a common pattern for chunked
+  reading) gets a smaller buffer after a short read; a later call reads at most that
+  many bytes, or, if the buffer became empty, hangs (base64uuid-readbytes-empty-hang).
+maybe_intended: |
+  Returning the bytes in a vector of exactly the right length is convenient for
+  read(pipe, nb), which resizes afterwards anyway; but the docstring is explicit.
+reproducer: |
+  using Base64
+  data = zeros(UInt8, 100)
+  readbytes!(Base64DecodePipe(IOBuffer("SGVsbG8h")), data)   # 6
+  length(data)                                               # 6, not 100
+output:
+  release: |
+    Base64DecodePipe: readbytes! = 6, length(data) after = 6
+    IOBuffer:         readbytes! = 6, length(data) after = 100
+    REPRODUCED base64uuid-readbytes-shrinks
+  nightly: |
+    Base64DecodePipe: readbytes! = 6, length(data) after = 6
+    IOBuffer:         readbytes! = 6, length(data) after = 100
+    REPRODUCED base64uuid-readbytes-shrinks
+reproduced: {release: true, nightly: true}
+expected: |
+  length(data) == 100 after the call, with the 6 decoded bytes in data[1:6].
+promised_by: |
+  base/io.jl:1298-1299 (readbytes! docstring): "The size of b will be increased if needed
+  (i.e. if nb is greater than length(b) and enough bytes could be read), but it will never
+  be decreased."
+cause: |
+  stdlib/Base64/src/decode.jl:127: resize!(data, filled) runs unconditionally.
+possible_fix: |
+  Only grow data inside the loop and replace the final resize! by
+  `filled > length0 && resize!(data, filled)` (shrinking back only what the loop added).
+duplicates:
+  issues: []
+  queries: ["Base64DecodePipe readbytes", "Base64 readbytes!", "readbytes! decreased", "readbytes! resize shrink", "Base64DecodePipe", "Base64"]
+lean:
+  property: JuliaLean.Base64Uuid.ReadbytesNoShrink
+  theorem: JuliaLean.Base64Uuid.readbytesNoShrink_refuted

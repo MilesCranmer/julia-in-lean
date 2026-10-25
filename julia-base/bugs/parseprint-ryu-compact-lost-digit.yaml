@@ -1,0 +1,80 @@
+id: parseprint-ryu-compact-lost-digit
+title: "Compact display of some Float64 values between 2^53 and ~2^60 drops the sixth significant digit"
+priority: P2
+kind: wrong-result
+area: ParsePrint
+files: [base/ryu/shortest.jl]
+functions: ["Ryu.reduce_shortest", "Ryu.writeshortest", "show(::IO, ::Float64)"]
+summary: |
+  With :compact => true (array and matrix display, the REPL), show(1.7562091489257724e16)
+  prints 1.7562e16 instead of 1.75621e16: five digits, off by 9.1e10, almost twice the
+  half unit in the sixth digit (5e10). It happens when the lower bound of the rounding
+  interval has a zero in the sixth significant digit, for values whose exact digits
+  Ryu reaches through its slow "a_allzero" loop. The examples found are
+  integer-valued floats between 2^53 and 2^59; an exploratory run found 8 compact
+  outputs that differ from %.6g among 299,825 random values (this issue and the
+  related tie issue together).
+likelihood: |
+  Every matrix or vector of such values displayed in the REPL uses the compact form,
+  so large integer-valued floats (counts, sizes, timestamps in ns near 1e16-1e18)
+  hit it. Plain show/print/string are unaffected.
+maybe_intended: ""
+reproducer: |
+  x = 1.7562091489257724e16
+  s = sprint(show, x; context=:compact => true)
+  println("compact = ", s, "    (expected 1.75621e16)")
+  println("matrix display: ", repr("text/plain", [x 1.0]))
+  err = abs(big(parse(Float64, s)) - big(x))
+  println("error = ", err, "    half a unit in the sixth digit = 5.0e10")
+  err > big(5) * big(10)^10 && println("REPRODUCED parseprint-ryu-compact-lost-digit")
+output:
+  release: |
+    compact = 1.7562e16    (expected 1.75621e16)
+    matrix display: 1×2 Matrix{Float64}:
+     1.7562e16  1.0
+    error = 9.1489257724e10    half a unit in the sixth digit = 5.0e10
+    REPRODUCED parseprint-ryu-compact-lost-digit
+  nightly: |
+    compact = 1.7562e16    (expected 1.75621e16)
+    matrix display: 1×2 Matrix{Float64}:
+     1.7562e16  1.0
+    error = 9.1489257724e10    half a unit in the sixth digit = 5.0e10
+    REPRODUCED parseprint-ryu-compact-lost-digit
+reproduced: {release: true, nightly: true}
+expected: |
+  1.75621e16, the value rounded to six significant digits (also what
+  @sprintf("%.6g", x) gives).
+promised_by: |
+  "compact: output will be limited to 6 significant digits" (docstring of
+  Ryu.writeshortest, base/ryu/Ryu.jl:46); show with :compact => true calls it
+  (base/ryu/Ryu.jl:128-136). Rounding to 6 digits must keep the error within half a
+  unit in the sixth digit.
+cause: |
+  base/ryu/shortest.jl:113-130. With maxsignif set, the a_allzero loop keeps removing
+  digits while b >= maxsignif even when a's removed digit is nonzero (line 117), but
+  never clears a_allzero. Once b is below maxsignif it still removes any further
+  digit whose a-digit is 0, treating it as an exact trailing zero: for
+  x = 1.7562091489257724e16 it removes the sixth digit 0 of 175620 and overwrites
+  the rounding digit 9 in b_lastdigit, so line 134 does not round up and the
+  maxsignif reduction at line 165 is skipped.
+possible_fix: |
+  In the loop at line 114, update a_allzero &= a_mod10 == 0 and break on
+  (a_mod10 != 0 || !a_allzero) && (maxsignif === nothing || b < maxsignif).
+duplicates:
+  issues:
+    - {number: 33185, state: closed, relation: related}
+  queries:
+    - "issues: compact show float digits"
+    - "issues: compact float printing"
+    - "issues: compact 1e16"
+    - "issues: compact show Float64"
+    - "issues: compact digits lost"
+    - "issues: Ryu compact"
+    - "issues: maxsignif"
+    - "issues: reduce_shortest"
+    - "pull requests: compact float (found merged #36819, a different 6-digit fix)"
+    - "pull requests: Ryu shortest"
+    - "pull requests: writeshortest"
+lean:
+  property: JuliaLean.ParsePrint.Ryu.CompactSixDigits
+  theorem: JuliaLean.ParsePrint.Ryu.compactSixDigits_refuted

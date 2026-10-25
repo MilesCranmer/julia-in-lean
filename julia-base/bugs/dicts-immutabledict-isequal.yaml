@@ -1,0 +1,74 @@
+id: dicts-immutabledict-isequal
+title: "isequal/== on ImmutableDicts with repeated keys are asymmetric and disagree with hash"
+priority: P2
+kind: wrong-result
+area: Dicts
+files: [base/abstractdict.jl, base/dict.jl]
+functions: ["isequal(::AbstractDict, ::AbstractDict)", "==(::AbstractDict, ::AbstractDict)", "hash(::AbstractDict, ::UInt)"]
+summary: |
+  The generic AbstractDict isequal and == check that the lengths agree and
+  that every pair of the left argument is in the right one. That is only a
+  correct test when iteration yields each key once. An ImmutableDict yields
+  shadowed pairs as well, so ImmutableDict(:a => 1, :a => 1) == and isequal to
+  ImmutableDict(:a => 1, :b => 2), but not the other way round. The generic
+  hash xors the pair hashes, so repeated pairs cancel and isequal
+  ImmutableDicts can hash differently. For the same reason
+  allunique(::AbstractDict) = true and allequal(c) = length(c) <= 1
+  (base/set.jl:544,658) are wrong for ImmutableDict(:a => 1, :a => 1), whose
+  iteration yields the same pair twice.
+likelihood: |
+  ImmutableDicts with repeated keys arise naturally, e.g. from nested
+  IOContext(io, :compact => true) calls; comparing or hashing them is rare.
+maybe_intended: |
+  The ImmutableDict docstring (base/dict.jl:794-799) says `in` and iteration
+  see all pairs, including shadowed ones, so comparisons on all pairs might
+  be intended. Even then, == and isequal must be symmetric and isequal must
+  imply equal hashes.
+reproducer: |
+  X = Base.ImmutableDict(:a => 1, :a => 1)
+  Y = Base.ImmutableDict(:a => 1, :b => 2)
+  X == Y, Y == X            # (true, false)
+  A = Base.ImmutableDict(:b => 2, :a => 1, :a => 1)
+  B = Base.ImmutableDict(:a => 1, :b => 2, :b => 2)
+  isequal(A, B), hash(A) == hash(B)   # (true, false)
+output:
+  release: |
+    X == Y: true; Y == X: false
+    isequal(X, Y): true; isequal(Y, X): false
+    haskey(X, :b) = false, haskey(Y, :b) = true
+    isequal(A, B): true; hash(A) == hash(B): false
+    length(Set{Any}([A, B])) = 2
+    allunique(X) = true, allunique(collect(X)) = false; allequal(X) = false, allequal(collect(X)) = true
+    REPRODUCED dicts-immutabledict-isequal
+  nightly: |
+    X == Y: true; Y == X: false
+    isequal(X, Y): true; isequal(Y, X): false
+    haskey(X, :b) = false, haskey(Y, :b) = true
+    isequal(A, B): true; hash(A) == hash(B): false
+    length(Set{Any}([A, B])) = 2
+    allunique(X) = true, allunique(collect(X)) = false; allequal(X) = false, allequal(collect(X)) = true
+    REPRODUCED dicts-immutabledict-isequal
+reproduced: {release: true, nightly: true}
+expected: |
+  X == Y and isequal(X, Y) are false (Y has key :b, X does not), in both
+  orders; isequal(A, B) is false or hash(A) == hash(B).
+promised_by: |
+  base/operators.jl:152: "`isequal` is an equivalence relation - it is
+  reflexive (`===` implies `isequal`), symmetric and transitive";
+  base/operators.jl:116: collections "compare their key sets, and if those are
+  `==`, then compare the values for each of those keys"; base/hashing.jl:14:
+  "`isequal(x,y)` implies `isequal(hash(x), hash(y))`".
+cause: |
+  base/abstractdict.jl:504-533 compare length(l) == length(r) and
+  `in(pair, r)` for each pair of l; base/dict.jl:864 counts shadowed pairs in
+  length and base/dict.jl:860-863 iterates them; base/abstractdict.jl:541-543
+  xors the pair hashes, so a repeated pair cancels.
+possible_fix: |
+  Give ImmutableDict its own ==, isequal and hash that walk only the visible
+  (most recent) pair of each key.
+duplicates:
+  issues: []
+  queries: ["ImmutableDict ==", "ImmutableDict isequal", "ImmutableDict hash", "ImmutableDict equality", "ImmutableDict duplicate keys", "AbstractDict == asymmetric"]
+lean:
+  property: JuliaLean.Dicts.ImmutableDictEqSymmetric
+  theorem: JuliaLean.Dicts.immutableDictEqSymmetric_refuted

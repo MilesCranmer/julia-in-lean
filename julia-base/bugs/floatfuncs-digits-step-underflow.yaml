@@ -1,0 +1,85 @@
+id: floatfuncs-digits-step-underflow
+title: "ceil(5.0e-324; digits=-1) == 0.0: x / step underflows to zero before RoundUp is applied"
+priority: P2
+kind: wrong-result
+area: FloatFuncs
+files: [base/floatfuncs.jl]
+functions: ["round(::Float64, ::RoundingMode; digits)", "ceil(::Float64; digits)", "floor(::Float64; digits)", "Base._round_step"]
+summary: |
+  With a negative digits argument, _round_step computes round(x / step, r) * step. When
+  x / step is below the smallest subnormal, the division rounds to zero and the directed
+  modes never see that x was nonzero: ceil(5.0e-324; digits=-1) == 0.0 (expected 10.0),
+  floor(-5.0e-324; digits=-1) == -0.0 (expected -10.0), and RoundFromZero gives 0.0. The
+  same happens for normal x with a large step: ceil(1.0e-30; digits=-300) == 0.0. The
+  result is then below x for ceil and above x for floor. Base 2 is affected as well
+  (round(5.0e-324, RoundUp; digits=-1, base=2) == 0.0).
+likelihood: |
+  Low: x must be smaller than step * 2^-1075, so either x is subnormal or the requested
+  step is enormous compared with x.
+maybe_intended: |
+  The docstring warns that decimal rounding can be inexact, but here the result is off by
+  the whole step and lies on the wrong side of x, also for base 2 where no decimal
+  representation issue arises. ceil(5.0e-324; digits=0) correctly returns 1.0.
+reproducer: |
+  x = nextfloat(0.0)                   # 5.0e-324
+  a = ceil(x; digits=-1)
+  b = floor(-x; digits=-1)
+  c = round(x, RoundFromZero; digits=-1)
+  println("ceil(5.0e-324; digits=-1) = ", a)
+  println("floor(-5.0e-324; digits=-1) = ", b)
+  println("round(5.0e-324, RoundFromZero; digits=-1) = ", c)
+  println("ceil(1.0e-310; digits=-1) = ", ceil(1.0e-310; digits=-1))
+  println("ceil(1.0e-30; digits=-300) = ", ceil(1.0e-30; digits=-300))
+  println("ceil(5.0e-324; digits=0) = ", ceil(x; digits=0))
+  if a == 0 && b == 0 && c == 0
+      println("REPRODUCED floatfuncs-digits-step-underflow")
+  end
+output:
+  release: |
+    ceil(5.0e-324; digits=-1) = 0.0
+    floor(-5.0e-324; digits=-1) = -0.0
+    round(5.0e-324, RoundFromZero; digits=-1) = 0.0
+    ceil(1.0e-310; digits=-1) = 10.0
+    ceil(1.0e-30; digits=-300) = 0.0
+    ceil(5.0e-324; digits=0) = 1.0
+    REPRODUCED floatfuncs-digits-step-underflow
+  nightly: |
+    ceil(5.0e-324; digits=-1) = 0.0
+    floor(-5.0e-324; digits=-1) = -0.0
+    round(5.0e-324, RoundFromZero; digits=-1) = 0.0
+    ceil(1.0e-310; digits=-1) = 10.0
+    ceil(1.0e-30; digits=-300) = 0.0
+    ceil(5.0e-324; digits=0) = 1.0
+    REPRODUCED floatfuncs-digits-step-underflow
+reproduced: {release: true, nightly: true}
+expected: |
+  ceil(5.0e-324; digits=-1) == 10.0, floor(-5.0e-324; digits=-1) == -10.0,
+  round(5.0e-324, RoundFromZero; digits=-1) == 10.0, ceil(1.0e-30; digits=-300) == 1.0e300.
+promised_by: |
+  base/rounding.jl:468-474: "ceil(x) returns the nearest integral value of the same type as
+  x that is greater than or equal to x" and "Keywords digits, sigdigits and base work as for
+  round"; base/rounding.jl:341-342: digits rounds "to the specified number of digits after
+  the decimal place (or before if digits is negative)". The smallest multiple of 10 that is
+  at least 5.0e-324 is 10.
+cause: |
+  base/floatfuncs.jl:103: y = round(x / step, r) * step. For x = 5.0e-324 and step = 10.0,
+  x / step rounds to 0.0, and round(0.0, RoundUp) is 0.0, so y = 0.0 is returned as a finite
+  result.
+possible_fix: |
+  Apply the mode to the exact quotient, e.g. when x / step == 0 but x != 0 return step (or
+  -step) for the modes that round away from zero. Open PR #63105 computes the quotient with
+  an fma-based remainder and a sticky rounding step, which would also cover this case.
+duplicates:
+  issues:
+    - {number: 64142, state: open, relation: related}
+    - {number: 63040, state: open, relation: related}
+  queries:
+    - "issues: ceil digits"
+    - "issues: round digits subnormal"
+    - "issues: _round_step (found #64142, overflow to zero, a different branch)"
+    - "issues: round digits overflow zero"
+    - "pull requests: _round_step"
+    - "pull requests: round digits (open #63105 would fix this as a side effect; not merged)"
+lean:
+  property: JuliaLean.FloatFuncs.CeilDigitsAbove
+  theorem: JuliaLean.FloatFuncs.ceilDigitsAbove_refuted

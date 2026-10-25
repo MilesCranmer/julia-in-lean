@@ -1,0 +1,62 @@
+id: regexunicode-uppercase-malformed
+title: "uppercase/lowercase/uppercasefirst throw InvalidCharError on strings with invalid UTF-8; titlecase does not"
+priority: P2
+kind: wrong-exception
+area: RegexUnicode
+files: [base/strings/unicode.jl]
+functions: ["uppercase(::AbstractString)", "lowercase(::AbstractString)", "uppercase(::Char)", "lowercase(::Char)", "titlecase(::Char)", "uppercasefirst(::AbstractString)"]
+summary: |
+  uppercase("a\xffb") and lowercase("a\xffb") throw Base.InvalidCharError('\xff'),
+  because the Char methods convert every non-ASCII Char to UInt32 for the utf8proc
+  call. titlecase("a\xffb") works and returns "A\xffB", since it passes the malformed
+  Char through unchanged. uppercasefirst("\xffab") also throws.
+likelihood: |
+  Case conversion of text read from files or the network that contains a stray invalid
+  byte; Julia strings are designed to carry invalid UTF-8.
+maybe_intended: |
+  Throwing on malformed characters is consistent with UInt32(c); the inconsistency is
+  with titlecase and with predicates such as isuppercase, which return false for
+  malformed characters (issue #54343 fixed the similar failure of isuppercase).
+reproducer: |
+  uppercase("a\xffb")        # InvalidCharError
+  lowercase("a\xffb")        # InvalidCharError
+  titlecase("a\xffb")        # "A\xffB"
+  uppercasefirst("\xffab")   # InvalidCharError
+output:
+  release: |
+    uppercase("a\xffb") -> Base.InvalidCharError{Char}: Base.InvalidCharError{Char}('\xff')
+    lowercase("a\xffb") -> Base.InvalidCharError{Char}: Base.InvalidCharError{Char}('\xff')
+    titlecase("a\xffb") -> "A\xffB"
+    uppercasefirst("\xffab") -> Base.InvalidCharError{Char}: Base.InvalidCharError{Char}('\xff')
+    REPRODUCED regexunicode-uppercase-malformed
+  nightly: |
+    uppercase("a\xffb") -> Base.InvalidCharError{Char}: Base.InvalidCharError{Char}('\xff')
+    lowercase("a\xffb") -> Base.InvalidCharError{Char}: Base.InvalidCharError{Char}('\xff')
+    titlecase("a\xffb") -> "A\xffB"
+    uppercasefirst("\xffab") -> Base.InvalidCharError{Char}: Base.InvalidCharError{Char}('\xff')
+    REPRODUCED regexunicode-uppercase-malformed
+reproduced: {release: true, nightly: true}
+expected: |
+  "A\xffB" and "a\xffb": malformed characters left unchanged, as titlecase does.
+promised_by: |
+  uppercase(s) docstring: "Return s with all characters converted to uppercase"
+  (base/strings/unicode.jl:663-676); lowercase likewise (lines 680-693).
+cause: |
+  uppercase(c)/lowercase(c)/titlecase(c) for non-ASCII c (base/strings/unicode.jl:
+  318-319, 339-340, 364-365) call utf8proc with c::UInt32, which throws InvalidCharError for
+  malformed (and on 1.13.2 overlong) Chars; titlecase(s) only reaches titlecase(c) for
+  letters, and malformed Chars are word separators.
+possible_fix: |
+  Return c unchanged when ismalformed(c) (and when isoverlong(c)) in the Char methods.
+duplicates:
+  issues:
+    - {number: 54343, state: closed, relation: related}
+  queries:
+    - "issues: uppercase invalid UTF-8"
+    - "issues: uppercase invalid string"
+    - "issues: uppercase malformed"
+    - "issues: lowercase InvalidCharError"
+    - "issues: lowercase invalid UTF-8"
+lean:
+  property: JuliaLean.RegexUnicode.Uni.CaseMapNoThrow
+  theorem: JuliaLean.RegexUnicode.Uni.caseMapNoThrow_refuted

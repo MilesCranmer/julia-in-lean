@@ -1,0 +1,51 @@
+id: combinatorics-swap-equal-bounds
+title: "swapcols! and swaprows! skip bounds checks when the two indices are equal"
+priority: P2
+kind: missing-error
+area: Combinatorics
+files: [base/combinatorics.jl]
+functions: ["Base.swapcols!", "Base.swaprows!"]
+summary: |
+  swapcols!(A, i, i) and swaprows!(A, i, i) return normally before checking whether i
+  belongs to the corresponding axis. The same invalid index throws BoundsError when the
+  other index differs.
+likelihood: |
+  This requires an invalid index to appear twice. The helpers are unexported, so ordinary
+  user code is unlikely to depend on the missing exception.
+maybe_intended: |
+  Swapping a position with itself is an identity operation and performs no memory access.
+  However, both functions contain explicit bounds checks for their index arguments, and
+  the early return makes those checks depend on whether the two invalid values are equal.
+reproducer: |
+  A = zeros(2, 2)
+  Base.swapcols!(A, 3, 3)
+  Base.swaprows!(A, 3, 3)
+output:
+  release: |
+    swapcols!(A, 3, 3): nothing
+    swaprows!(A, 3, 3): nothing
+    axes(A):             (Base.OneTo(2), Base.OneTo(2))
+    REPRODUCED combinatorics-swap-equal-bounds
+  nightly: |
+    swapcols!(A, 3, 3): nothing
+    swaprows!(A, 3, 3): nothing
+    axes(A):             (Base.OneTo(2), Base.OneTo(2))
+    REPRODUCED combinatorics-swap-equal-bounds
+reproduced: {release: true, nightly: true}
+expected: |
+  Both calls should throw BoundsError because 3 is outside axes(A, 2) and axes(A, 1),
+  respectively, just as calls with two distinct indices do.
+promised_by: |
+  Invariant: the explicit bounds checks at base/combinatorics.jl:107-108 and 118-119
+  require both supplied indices to belong to the matrix axis.
+cause: |
+  base/combinatorics.jl:105 and 116 return when i == j before reading the axis or running
+  either @boundscheck block.
+possible_fix: |
+  Move the i == j early return after the two bounds checks.
+duplicates:
+  issues: []
+  queries: ["swapcols BoundsError", "swaprows BoundsError"]
+lean:
+  property: JuliaLean.Combinatorics.SwapBoundsChecked
+  theorem: JuliaLean.Combinatorics.swapBoundsChecked_refuted

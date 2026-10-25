@@ -1,0 +1,50 @@
+id: regexunicode-regex-pow-negative
+title: "r^n with negative n returns a regex that matches the literal text \"{n}\""
+priority: P2
+kind: missing-error
+area: RegexUnicode
+files: [base/regex.jl]
+functions: ["^(::Regex, ::Integer)"]
+summary: |
+  ^(r::Regex, n) builds "(?:pattern){n}". For negative n PCRE does not read "{-1}" as
+  a quantifier but as literal characters, so r"a"^-1 (with n in a variable) is
+  r"(?:a){-1}" and matches the text "a{-1}" instead of throwing. String repetition
+  "a"^-1 throws ArgumentError.
+likelihood: |
+  Needs a negative repetition count computed at run time; the regex is then silently
+  wrong rather than an error.
+maybe_intended: ""
+reproducer: |
+  n = -1
+  r = r"a"^n          # r"(?:a){-1}"
+  match(r, "a{-1}")   # RegexMatch("a{-1}")
+output:
+  release: |
+    r"a"^-1 = r"(?:a){-1}"
+    match(r, "a{-1}") = RegexMatch("a{-1}")
+    "a"^-1 throws: ArgumentError
+    REPRODUCED regexunicode-regex-pow-negative
+  nightly: |
+    r"a"^-1 = r"(?:a){-1}"
+    match(r, "a{-1}") = RegexMatch("a{-1}")
+    "a"^-1 throws: ArgumentError
+    REPRODUCED regexunicode-regex-pow-negative
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError (as for "a"^-1), since a regex cannot repeat a negative number of times.
+promised_by: |
+  ^(s::Regex, n::Integer) docstring: "Repeat a regex n times" (base/regex.jl:912-928).
+cause: |
+  base/regex.jl:929 interpolates n into "{$i}" without checking n >= 0; PCRE2 treats a
+  brace that is not a valid quantifier as literal text.
+possible_fix: |
+  Throw ArgumentError for n < 0 in ^(r::Regex, n).
+duplicates:
+  issues: []
+  queries:
+    - "issues: regex repeat negative"
+    - "issues: Regex ^ negative"
+    - "issues: regex multiplication"
+lean:
+  property: JuliaLean.RegexUnicode.Subst.RegexPowQuant
+  theorem: JuliaLean.RegexUnicode.Subst.regexPowQuant_refuted

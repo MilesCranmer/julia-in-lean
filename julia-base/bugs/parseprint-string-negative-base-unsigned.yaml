@@ -1,0 +1,72 @@
+id: parseprint-string-negative-base-unsigned
+title: "string(n; base=-b) throws InexactError for unsigned n above typemax of its signed type"
+priority: P2
+kind: wrong-exception
+area: ParsePrint
+files: [base/intfuncs.jl]
+functions: ["string(::Integer; base, pad)", "Base._base"]
+summary: |
+  string(UInt8(200); base=-2) throws InexactError: convert(Int8, 0xc8), while
+  digits(UInt8(200); base=-2) returns [0, 0, 0, 1, 1, 0, 1, 1, 1], whose value in
+  base -2 is 200. For a negative base, string converts n to the signed type of
+  the same width before writing it, so every unsigned n with the top bit set
+  throws.
+likelihood: |
+  Low: negative bases are rare, and the input must be an unsigned value with its
+  top bit set (for example any UInt64 at least 2^63).
+maybe_intended: |
+  The string docstring (base/intfuncs.jl:1076-1099) does not mention negative
+  bases; only `_base` (base/intfuncs.jl:1048) refers to them. But string accepts
+  negative bases for every signed and for small unsigned n, and digits handles
+  these exact values, so the failure depends only on the top bit.
+reproducer: |
+  n = UInt8(200)
+  d = digits(n; base=-2)
+  println("digits(n; base=-2) = ", d, ", value ", sum(d[k] * (-2)^(k-1) for k in eachindex(d)))
+  threw = try
+      println("string(n; base=-2) = ", string(n; base=-2))
+      false
+  catch e
+      println("string(n; base=-2) threw ", typeof(e), ": ", sprint(showerror, e))
+      e isa InexactError
+  end
+  threw && println("REPRODUCED parseprint-string-negative-base-unsigned")
+output:
+  release: |
+    digits(n; base=-2) = [0, 0, 0, 1, 1, 0, 1, 1, 1], value 200
+    string(n; base=-2) threw InexactError: InexactError: convert(Int8, 0xc8)
+    REPRODUCED parseprint-string-negative-base-unsigned
+  nightly: |
+    digits(n; base=-2) = [0, 0, 0, 1, 1, 0, 1, 1, 1], value 200
+    string(n; base=-2) threw InexactError: InexactError: convert(Int8, 0xc8)
+    REPRODUCED parseprint-string-negative-base-unsigned
+reproduced: {release: true, nightly: true}
+expected: |
+  "111011000", the base -2 digits that digits returns, most significant first.
+promised_by: |
+  Consistency between string and digits: `_base` accepts negative bases
+  (base/intfuncs.jl:1048-1049) and digits documents
+  `n == sum(digits[k]*base^(k-1))` for any base with |base| >= 2
+  (base/intfuncs.jl:1172-1174).
+cause: |
+  base/intfuncs.jl:1117 passes `convert(Signed, n)` to `_base` when base < 0;
+  for an unsigned n above typemax(signed(typeof(n))) the conversion throws.
+  `_base` itself already handles nonnegative x with negative bases via mod/cld.
+possible_fix: |
+  Pass n unchanged (or widen it, e.g. `n isa Unsigned ? widen(n) : n`) when base < 0;
+  `_base` only needs a signed x for negative values.
+duplicates:
+  issues:
+    - {number: 29183, state: closed, relation: related}
+  queries:
+    - "issues: string negative base"
+    - "issues: negative base unsigned"
+    - "issues: string base InexactError"
+    - "issues: string base -2 UInt8"
+    - "issues: convert Signed string base"
+    - "issues: negative base"
+    - "pull requests: negative base"
+    - "pull requests: negative base string"
+lean:
+  property: JuliaLean.ParsePrint.IntPrint.StringNegativeBase
+  theorem: JuliaLean.ParsePrint.IntPrint.stringNegativeBase_refuted

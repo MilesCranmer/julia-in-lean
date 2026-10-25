@@ -1,0 +1,74 @@
+id: ranges-ordinal-unsigned-step-last
+title: "A StepRange with negative signed endpoints and an unsigned step cannot reach its last element"
+priority: P2
+kind: wrong-exception
+area: Ranges
+files: [base/range.jl]
+functions:
+  - "StepRange"
+  - "unsafe_getindex(::AbstractRange, ::Integer)"
+  - "iterate(::OrdinalRange, state)"
+summary: |
+  StepRange(Int64(-2), UInt64(1), Int64(-1)) constructs a two-element range,
+  but its final scalar index, second iteration and collect all throw
+  InexactError. Its first and last endpoints and length are correct.
+likelihood: |
+  This needs the direct StepRange constructor with signed endpoints and an
+  unsigned step at least as wide as the endpoints. Generic code preserving
+  separately typed steps could hit it, but ordinary colon syntax widens
+  endpoints and usually rejects negative-to-unsigned conversion earlier.
+maybe_intended: ""
+reproducer: |
+  r = StepRange(Int64(-2), UInt64(1), Int64(-1))
+  function showcall(label, f)
+      try
+          println(label, " = ", repr(f()))
+      catch e
+          println(label, " throws ", sprint(showerror, e))
+      end
+  end
+  showcall("length(r)", () -> length(r))
+  showcall("r[length(r)]", () -> r[length(r)])
+  showcall("iterate(r, first(r))", () -> iterate(r, first(r)))
+  showcall("collect(r)", () -> collect(r))
+output:
+  release: |
+    length(r) = 2
+    r[length(r)] throws InexactError: convert(Int64, 0xffffffffffffffff)
+    iterate(r, first(r)) throws InexactError: convert(Int64, 0xffffffffffffffff)
+    collect(r) throws InexactError: convert(Int64, 0xffffffffffffffff)
+  nightly: |
+    length(r) = 2
+    r[length(r)] throws InexactError: convert(Int64, 0xffffffffffffffff)
+    iterate(r, first(r)) throws InexactError: convert(Int64, 0xffffffffffffffff)
+    collect(r) throws InexactError: convert(Int64, 0xffffffffffffffff)
+reproduced: {release: true, nightly: true}
+expected: |
+  The final scalar index and second iteration should return Int64(-1),
+  and collect should return [-2, -1].
+promised_by: |
+  base/range.jl:316-318: "Ranges with elements of type `T` with spacing of
+  type `S`. The step between each element is constant, and the range is
+  defined in terms of a `start` and `stop` of type `T` and a `step` of type
+  `S`." The example at base/range.jl:323-334 uses different T and S.
+  The invariant is that final indexing and iteration reach the stored last.
+cause: |
+  base/range.jl:937-942 calculates i + step(r) before exact conversion to
+  the element type. base/range.jl:985 similarly forms first + (i-1)*step.
+  Promoting Int64(-2) and UInt64(1) produces UInt64(typemax(UInt64)),
+  rather than a signed -1 intermediate. Converting that unsigned result
+  to Int64 throws InexactError.
+possible_fix: |
+  Preserve the declared element representation across mixed-signedness
+  step arithmetic, using checked positional bounds and a justified wrapping
+  conversion where the mathematical result is already known to fit.
+duplicates:
+  issues:
+    - {number: 63679, state: open, relation: related}
+  queries:
+    - "issues: StepRange unsigned InexactError"
+    - "issues: StepRange UInt64 collect"
+    - "prs: StepRange unsigned"
+lean:
+  property: JuliaLean.Ranges.OrdinalLastAgreement
+  theorem: JuliaLean.Ranges.ordinalLastAgreement_refuted

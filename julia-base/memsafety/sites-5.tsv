@@ -1,0 +1,193 @@
+site	file	line	kind	group	status	entry	note	code
+accumulate:9	base/accumulate.jl	9	@inbounds	5	todo		v1 proof rejected by review (memsafety-accumulate-indexing)	@inbounds s_ = v[i1]
+accumulate:11	base/accumulate.jl	11	@inbounds	5	todo		v1 proof rejected by review (memsafety-accumulate-indexing)	@inbounds c[i1] = ci1
+accumulate:13	base/accumulate.jl	13	@inbounds	5	todo		v1 proof rejected by review (memsafety-accumulate-indexing)	s_ = op(s_, @inbounds(v[i]))
+accumulate:15	base/accumulate.jl	15	@inbounds	5	todo		v1 proof rejected by review (memsafety-accumulate-indexing)	@inbounds c[i] = ci
+accumulate:31	base/accumulate.jl	31	@inbounds	5	todo		v1 proof rejected by review (memsafety-accumulate-indexing)	v1 = reduce_first(op, @inbounds(v[i1]))
+accumulate:32	base/accumulate.jl	32	@inbounds	5	todo		v1 proof rejected by review (memsafety-accumulate-indexing)	@inbounds result[i1] = v1
+accumulate:386	base/accumulate.jl	386	@inbounds	5	todo		v1 proof rejected by review (memsafety-accumulate-indexing)	tmp = reduce_first(op, @inbounds(A[first(ind1), I]))
+accumulate:388	base/accumulate.jl	388	@inbounds	5	todo		v1 proof rejected by review (memsafety-accumulate-indexing)	tmp = op(something(init), @inbounds(A[first(ind1), I]))
+accumulate:390	base/accumulate.jl	390	@inbounds	5	todo		v1 proof rejected by review (memsafety-accumulate-indexing)	@inbounds B[first(ind1), I] = tmp
+accumulate:392	base/accumulate.jl	392	@inbounds	5	todo		v1 proof rejected by review (memsafety-accumulate-indexing)	tmp = op(tmp, @inbounds(A[i_1, I]))
+accumulate:393	base/accumulate.jl	393	@inbounds	5	todo		v1 proof rejected by review (memsafety-accumulate-indexing)	@inbounds B[i_1, I] = tmp
+accumulate:408	base/accumulate.jl	408	@inbounds	5	todo		v1 proof rejected by review (memsafety-accumulate-indexing)	tmp = reduce_first(op, @inbounds(A[I, ii, J]))
+accumulate:409	base/accumulate.jl	409	@inbounds	5	todo		v1 proof rejected by review (memsafety-accumulate-indexing)	@inbounds B[I, ii, J] = tmp
+accumulate:413	base/accumulate.jl	413	@inbounds	5	todo		v1 proof rejected by review (memsafety-accumulate-indexing)	@inbounds Bv, Av = B[I, i-1, J], A[I, i, J]
+accumulate:415	base/accumulate.jl	415	@inbounds	5	todo		v1 proof rejected by review (memsafety-accumulate-indexing)	@inbounds B[I, i, J] = tmp
+accumulate:424	base/accumulate.jl	424	@inbounds	5	todo		v1 proof rejected by review (memsafety-accumulate-indexing)	tmp = op(something(init), @inbounds(A[I, ii, J]))
+accumulate:425	base/accumulate.jl	425	@inbounds	5	todo		v1 proof rejected by review (memsafety-accumulate-indexing)	@inbounds B[I, ii, J] = tmp
+accumulate:429	base/accumulate.jl	429	@inbounds	5	todo		v1 proof rejected by review (memsafety-accumulate-indexing)	@inbounds Bv, Av = B[I, i-1, J], A[I, i, J]
+accumulate:431	base/accumulate.jl	431	@inbounds	5	todo		v1 proof rejected by review (memsafety-accumulate-indexing)	@inbounds B[I, i, J] = tmp
+accumulate:447	base/accumulate.jl	447	@inbounds	5	todo		v1 proof rejected by review (memsafety-accumulate-indexing)	cur_val = op(cur_val, @inbounds(A[i]))
+accumulate:448	base/accumulate.jl	448	@inbounds	5	todo		v1 proof rejected by review (memsafety-accumulate-indexing)	@inbounds B[i] = cur_val
+bitset:66	base/bitset.jl	66	@inbounds	5	todo		v1 proof rejected by review (memsafety-bitset-indexing)	@inbounds r = (b[ci] & (one(UInt64) << _mod64(n))) != 0
+bitset:120	base/bitset.jl	120	@inbounds	5	todo		v1 proof rejected by review (memsafety-bitset-indexing)	@inbounds b[i] = CHK0 # resize! gives dirty memory
+bitset:127	base/bitset.jl	127	@inbounds	5	todo		v1 proof rejected by review (memsafety-bitset-indexing)	@inbounds b[i] = CHK0
+bitset:157	base/bitset.jl	157	@inbounds	5	todo		v1 proof rejected by review (memsafety-bitset-indexing)	@inbounds if diffa == diffb
+bitset:197	base/bitset.jl	197	@inbounds	5	todo		v1 proof rejected by review (memsafety-bitset-indexing)	@inbounds for i = max(1, 1+bdiff):min(l1, l2+bdiff)
+bitset:208	base/bitset.jl	208	@inbounds	5	todo		v1 proof rejected by review (memsafety-bitset-indexing)	@inbounds a1[l1] = CHK0
+bitset:213	base/bitset.jl	213	unsafe_copyto!	5	todo		v1 proof rejected by review (memsafety-bitset-indexing)	unsafe_copyto!(a1, l1+1, a2, l2+1-ediff, ediff)
+bitset:235	base/bitset.jl	235	@inbounds	5	todo		v1 proof rejected by review (memsafety-bitset-indexing)	@inbounds a1[i] = CHK0
+bitset:240	base/bitset.jl	240	unsafe_copyto!	5	todo		v1 proof rejected by review (memsafety-bitset-indexing)	unsafe_copyto!(a1, 1, a2, 1, min(-bdiff, l2))
+bitset:337	base/bitset.jl	337	@inbounds	5	todo		v1 proof rejected by review (memsafety-bitset-indexing)	word = @inbounds s.bits[idx]
+bitset:369	base/bitset.jl	369	@inbounds	5	todo		v1 proof rejected by review (memsafety-bitset-indexing)	@inbounds for i in b:e
+bitset:416	base/bitset.jl	416	@inbounds	5	todo		v1 proof rejected by review (memsafety-bitset-indexing)	all(@inbounds iszero(a.bits[i]) for i in 1:min(n, i)) &&
+bitset:417	base/bitset.jl	417	@inbounds	5	todo		v1 proof rejected by review (memsafety-bitset-indexing)	all(@inbounds f(a.bits[i], b.bits[i - shift]) for i in max(1, i+1):min(n, j)) &&
+bitset:418	base/bitset.jl	418	@inbounds	5	todo		v1 proof rejected by review (memsafety-bitset-indexing)	all(@inbounds iszero(a.bits[i]) for i in max(1, j+1):n))
+essentials:3	base/essentials.jl	3	memoryref	5	not-unchecked		using/import list mentions memoryref; it performs no access	using Core: CodeInfo, SimpleVector, donotdelete, compilerbarrier, memoryref, memoryrefnew, memoryrefget, memoryrefset!
+essentials:403	base/essentials.jl	403	memoryref	5	user-contract		getindex/setindex! checks bounds normally; essentials.jl:930-969 assigns responsibility to an @inbounds caller when that check is elided	memoryrefget(memoryrefnew(A, i, false), default_access_order(A), false)
+essentials:406	base/essentials.jl	406	memoryref	5	user-contract		getindex/setindex! checks bounds normally; essentials.jl:930-969 assigns responsibility to an @inbounds caller when that check is elided	getindex(A::GenericMemoryRef) = memoryrefget(A, default_access_order(A), @_boundscheck)
+essentials:896	base/essentials.jl	896	@boundscheck	5	not-unchecked		@boundscheck/@inbounds documentation or example, not an implementation access	@boundscheck(blk)
+essentials:898	base/essentials.jl	898	@inbounds	5	not-unchecked		@boundscheck/@inbounds documentation or example, not an implementation access	Annotates the expression `blk` as a bounds checking block, allowing it to be elided by [`@inbounds`](@ref).
+essentials:901	base/essentials.jl	901	@boundscheck	5	not-unchecked		@boundscheck/@inbounds documentation or example, not an implementation access	The function in which `@boundscheck` is written must be inlined into
+essentials:902	base/essentials.jl	902	@inbounds	5	not-unchecked		@boundscheck/@inbounds documentation or example, not an implementation access	its caller in order for `@inbounds` to have effect.
+essentials:907	base/essentials.jl	907	@boundscheck	5	not-unchecked		@boundscheck/@inbounds documentation or example, not an implementation access	@boundscheck checkbounds(A, i)
+essentials:913	base/essentials.jl	913	@inbounds	5	not-unchecked		@boundscheck/@inbounds documentation or example, not an implementation access	julia> f2() = @inbounds return g(1:2, -1);
+essentials:930	base/essentials.jl	930	@boundscheck	5	not-unchecked		@boundscheck/@inbounds documentation or example, not an implementation access	The `@boundscheck` annotation allows you, as a library writer, to opt-in to
+essentials:931	base/essentials.jl	931	@inbounds	5	not-unchecked		@boundscheck/@inbounds documentation or example, not an implementation access	allowing *other code* to remove your bounds checks with [`@inbounds`](@ref).
+essentials:933	base/essentials.jl	933	@inbounds	5	not-unchecked		@boundscheck/@inbounds documentation or example, not an implementation access	their accesses are valid before using `@inbounds`. For indexing into your
+essentials:935	base/essentials.jl	935	@boundscheck	5	not-unchecked		@boundscheck/@inbounds documentation or example, not an implementation access	indices against its [`axes`](@ref). Therefore, `@boundscheck` annotations
+essentials:944	base/essentials.jl	944	@inbounds	5	not-unchecked		@boundscheck/@inbounds documentation or example, not an implementation access	@inbounds(blk)
+essentials:955	base/essentials.jl	955	@inbounds	5	not-unchecked		@boundscheck/@inbounds documentation or example, not an implementation access	@inbounds r += A[i]
+essentials:963	base/essentials.jl	963	@inbounds	5	not-unchecked		@boundscheck/@inbounds documentation or example, not an implementation access	Using `@inbounds` may return incorrect results/crashes/corruption
+essentials:965	base/essentials.jl	965	@inbounds	5	not-unchecked		@boundscheck/@inbounds documentation or example, not an implementation access	Only use `@inbounds` when you are certain that all accesses are in bounds (as
+essentials:1065	base/essentials.jl	1065	@boundscheck	5	not-unchecked		@boundscheck condition/check itself, not an unchecked access	@boundscheck checkbounds(A, i)
+essentials:1066	base/essentials.jl	1066	memoryref	5	user-contract		getindex/setindex! checks bounds normally; essentials.jl:930-969 assigns responsibility to an @inbounds caller when that check is elided	memoryrefget(memoryrefnew(getfield(A, :ref), i, false), :not_atomic, false)
+essentials:1071	base/essentials.jl	1071	@boundscheck	5	not-unchecked		@boundscheck condition/check itself, not an unchecked access	@boundscheck checkbounds(A, i)
+essentials:1072	base/essentials.jl	1072	memoryref	5	user-contract		getindex/setindex! checks bounds normally; essentials.jl:930-969 assigns responsibility to an @inbounds caller when that check is elided	memoryrefset!(memoryrefnew(getfield(A, :ref), i, false), x, :not_atomic, false)
+essentials:1078	base/essentials.jl	1078	memoryref	5	user-contract		getindex/setindex! checks bounds normally; essentials.jl:930-969 assigns responsibility to an @inbounds caller when that check is elided	memoryrefset!(memoryrefnew(A, i, false), x, :not_atomic, false)
+essentials:1081	base/essentials.jl	1081	memoryref	5	user-contract		getindex/setindex! checks bounds normally; essentials.jl:930-969 assigns responsibility to an @inbounds caller when that check is elided	setindex!(A::MemoryRef{T}, x) where {T} = (memoryrefset!(A, convert(T, x), :not_atomic, @_boundscheck); A)
+essentials:1082	base/essentials.jl	1082	memoryref	5	user-contract		getindex/setindex! checks bounds normally; essentials.jl:930-969 assigns responsibility to an @inbounds caller when that check is elided	setindex!(A::MemoryRef{Any}, @nospecialize(x)) = (memoryrefset!(A, x, :not_atomic, @_boundscheck); A)
+essentials:1142	base/essentials.jl	1142	@boundscheck	5	not-unchecked		@boundscheck condition/check itself, not an unchecked access	@boundscheck 1 <= i <= length(v) || return false
+essentials:1297	base/essentials.jl	1297	@inbounds	5	todo		v1 proof rejected by review (memsafety-essentials-defaultctors)	@inbounds tv = tvars[i]::TypeVar
+essentials:1312	base/essentials.jl	1312	@inbounds	5	todo		v1 proof rejected by review (memsafety-essentials-defaultctors)	@inbounds tv2 = tvars[j]::TypeVar
+essentials:1344	base/essentials.jl	1344	@inbounds	5	todo		v1 proof rejected by review (memsafety-essentials-defaultctors)	@inbounds tvars[i] = (ua::UnionAll).var
+essentials:1375	base/essentials.jl	1375	@inbounds	5	todo		v1 proof rejected by review (memsafety-essentials-defaultctors)	@inbounds argnames[1] = self
+essentials:1379	base/essentials.jl	1379	@inbounds	5	todo		v1 proof rejected by review (memsafety-essentials-defaultctors)	@inbounds argnames[i + 1] = names[i]::Symbol
+essentials:1392	base/essentials.jl	1392	@inbounds	5	todo		v1 proof rejected by review (memsafety-essentials-defaultctors)	@inbounds curly_args[1] = ty
+essentials:1395	base/essentials.jl	1395	@inbounds	5	todo		v1 proof rejected by review (memsafety-essentials-defaultctors)	@inbounds curly_args[i + 1] = Expr(:static_parameter, i)
+essentials:1403	base/essentials.jl	1403	@inbounds	5	todo		v1 proof rejected by review (memsafety-essentials-defaultctors)	@inbounds new_args[1] = new_target
+essentials:1406	base/essentials.jl	1406	@inbounds	5	todo		v1 proof rejected by review (memsafety-essentials-defaultctors)	@inbounds new_args[i + 1] = Core.Argument(i + 1)
+essentials:1417	base/essentials.jl	1417	@inbounds	5	todo		v1 proof rejected by review (memsafety-essentials-defaultctors)	@inbounds atypes_arr[1] = Core.apply_type(Type, ty)
+essentials:1420	base/essentials.jl	1420	@inbounds	5	todo		v1 proof rejected by review (memsafety-essentials-defaultctors)	@inbounds atypes_arr[i + 1] = fts[i]
+essentials:1456	base/essentials.jl	1456	@inbounds	5	todo		v1 proof rejected by review (memsafety-essentials-defaultctors)	@inbounds new_args[i] = Core.Argument(i + 1)
+essentials:1470	base/essentials.jl	1470	@inbounds	5	todo		v1 proof rejected by review (memsafety-essentials-defaultctors)	@inbounds body_args[bidx] = Expr(:(=), ft_ssa, ft_expr)
+essentials:1471	base/essentials.jl	1471	@inbounds	5	todo		v1 proof rejected by review (memsafety-essentials-defaultctors)	@inbounds body_args[bidx + 1] = Expr(:(=), cnvt_ssa, Expr(:if, isa_check,
+essentials:1473	base/essentials.jl	1473	@inbounds	5	todo		v1 proof rejected by review (memsafety-essentials-defaultctors)	@inbounds new_args[i] = cnvt_ssa
+essentials:1489	base/essentials.jl	1489	@inbounds	5	todo		v1 proof rejected by review (memsafety-essentials-defaultctors)	@inbounds typedt = UnionAll(tvars[i], typedt)
+essentials:1492	base/essentials.jl	1492	@inbounds	5	todo		v1 proof rejected by review (memsafety-essentials-defaultctors)	@inbounds inner_atypes_arr[1] = typedt
+essentials:1495	base/essentials.jl	1495	@inbounds	5	todo		v1 proof rejected by review (memsafety-essentials-defaultctors)	@inbounds inner_atypes_arr[i + 1] = Any
+iterators:14	base/iterators.jl	14	@inbounds+@boundscheck	5	not-unchecked		using/import list mentions the macros; it performs no access	@propagate_inbounds, @boundscheck, @inbounds, Generator, IdDict,
+iterators:1473	base/iterators.jl	1473	@inbounds	5	refuted	iterators-partition-range-overflow		return @inbounds itr.c[state:r], r + 1
+iterators:1479	base/iterators.jl	1479	@inbounds	5	refuted	iterators-partition-range-overflow		return @inbounds Base.view(itr.c, state:r), r + 1
+iterators:1663	base/iterators.jl	1663	@boundscheck	5	not-unchecked		@boundscheck validation block, not an unchecked access	@boundscheck if i === nothing
+iterators:1667	base/iterators.jl	1667	@boundscheck	5	not-unchecked		@boundscheck validation block, not an unchecked access	@boundscheck if iterate(x, state) !== nothing
+iterators:1674	base/iterators.jl	1674	@boundscheck	5	not-unchecked		@boundscheck validation block, not an unchecked access	@boundscheck if length(x) != 1
+iterators:1677	base/iterators.jl	1677	@inbounds	5	user-contract		only(::IdDict) propagates @inbounds; essentials.jl:930-969 makes a caller that elides its length check responsible	@inbounds first(x)
+options:85	base/options.jl	85	unsafe_load	5	todo		v1 proof rejected by review (memsafety-options-commands)	JLOptions() = unsafe_load(cglobal(:jl_options, JLOptions))
+options:114	base/options.jl	114	unsafe_load	5	not-unchecked		call or definition of unsafe_load_commands; the primitive loads are separately listed at lines 126 and 128	v = unsafe_load_commands(v)
+options:121	base/options.jl	121	unsafe_load	5	not-unchecked		call or definition of unsafe_load_commands; the primitive loads are separately listed at lines 126 and 128	function unsafe_load_commands(v::Ptr{Ptr{UInt8}})
+options:126	base/options.jl	126	unsafe_load	5	todo		v1 proof rejected by review (memsafety-options-commands)	s = unsafe_load(v, i)
+options:128	base/options.jl	128	unsafe_load	5	todo		v1 proof rejected by review (memsafety-options-commands)	e = Char(unsafe_load(s))
+pointer:92	base/pointer.jl	92	unsafe_wrap	5	not-unchecked		docstring signature, prose, or pseudocode; it performs no access	unsafe_wrap(Array, pointer::Ptr{T}, dims; own = false)
+pointer:101	base/pointer.jl	101	unsafe_load	5	not-unchecked		docstring signature, prose, or pseudocode; it performs no access	a valid memory address to data of the requested length. Unlike [`unsafe_load`](@ref)
+pointer:102	base/pointer.jl	102	unsafe_store!	5	not-unchecked		docstring signature, prose, or pseudocode; it performs no access	and [`unsafe_store!`](@ref), the programmer is responsible also for ensuring that the
+pointer:106	base/pointer.jl	106	unsafe_wrap	5	user-contract		unsafe_wrap docstring at pointer.jl:92-104 makes the caller responsible for a valid address and requested length	function unsafe_wrap(::Union{Type{Array},Type{Array{T}},Type{Array{T,N}}},
+pointer:111	base/pointer.jl	111	unsafe_wrap	5	user-contract		unsafe_wrap docstring at pointer.jl:92-104 makes the caller responsible for a valid address and requested length	function unsafe_wrap(::Union{Type{Array},Type{Array{T}},Type{Array{T,1}}},
+pointer:116	base/pointer.jl	116	unsafe_wrap	5	user-contract		unsafe_wrap docstring at pointer.jl:92-104 makes the caller responsible for a valid address and requested length	function unsafe_wrap(::Union{Type{GenericMemory{kind,<:Any,Core.CPU}},Type{GenericMemory{kind,T,Core.CPU}}},
+pointer:121	base/pointer.jl	121	unsafe_wrap	5	user-contract		unsafe_wrap docstring at pointer.jl:92-104 makes the caller responsible for a valid address and requested length	function unsafe_wrap(::Union{Type{GenericMemory{kind,<:Any,Core.CPU}},Type{GenericMemory{kind,T,Core.CPU}}},
+pointer:126	base/pointer.jl	126	unsafe_wrap	5	user-contract		unsafe_wrap docstring at pointer.jl:92-104 makes the caller responsible for a valid address and requested length	unsafe_wrap(Atype::Union{Type{Array},Type{Array{T}},Type{Array{T,N}},Type{GenericMemory{kind,<:Any,Core.CPU}},Type{GenericMemory{kind,T,Core.CPU}}} where {kind},
+pointer:128	base/pointer.jl	128	unsafe_wrap	5	user-contract		unsafe_wrap docstring at pointer.jl:92-104 makes the caller responsible for a valid address and requested length	unsafe_wrap(Atype, p, convert(Tuple{Vararg{Int}}, dims), own = own)
+pointer:132	base/pointer.jl	132	unsafe_load	5	not-unchecked		docstring signature, prose, or pseudocode; it performs no access	unsafe_load(p::Ptr{T}, i::Integer=1)
+pointer:133	base/pointer.jl	133	unsafe_load	5	not-unchecked		docstring signature, prose, or pseudocode; it performs no access	unsafe_load(p::Ptr{T}, order::Symbol)
+pointer:134	base/pointer.jl	134	unsafe_load	5	not-unchecked		docstring signature, prose, or pseudocode; it performs no access	unsafe_load(p::Ptr{T}, i::Integer, order::Symbol)
+pointer:151	base/pointer.jl	151	unsafe_load	5	user-contract		unsafe_load docstring at pointer.jl:131-144 makes the caller responsible for valid live memory	unsafe_load(p::Ptr, i::Integer=1) = pointerref(p, Int(i), 1)
+pointer:152	base/pointer.jl	152	unsafe_load	5	user-contract		unsafe_load docstring at pointer.jl:131-144 makes the caller responsible for valid live memory	unsafe_load(p::Ptr, order::Symbol) = atomic_pointerref(p, order)
+pointer:153	base/pointer.jl	153	unsafe_load	5	user-contract		unsafe_load docstring at pointer.jl:131-144 makes the caller responsible for valid live memory	function unsafe_load(p::Ptr, i::Integer, order::Symbol)
+pointer:154	base/pointer.jl	154	unsafe_load	5	user-contract		unsafe_load docstring at pointer.jl:131-144 makes the caller responsible for valid live memory	unsafe_load(p + (elsize(typeof(p)) * (Int(i) - 1)), order)
+pointer:158	base/pointer.jl	158	unsafe_store!	5	not-unchecked		docstring signature, prose, or pseudocode; it performs no access	unsafe_store!(p::Ptr{T}, x, i::Integer=1)
+pointer:159	base/pointer.jl	159	unsafe_store!	5	not-unchecked		docstring signature, prose, or pseudocode; it performs no access	unsafe_store!(p::Ptr{T}, x, order::Symbol)
+pointer:160	base/pointer.jl	160	unsafe_store!	5	not-unchecked		docstring signature, prose, or pseudocode; it performs no access	unsafe_store!(p::Ptr{T}, x, i::Integer, order::Symbol)
+pointer:177	base/pointer.jl	177	unsafe_store!	5	user-contract		unsafe_store! docstring at pointer.jl:157-170 makes the caller responsible for valid live memory	unsafe_store!(p::Ptr{Any}, @nospecialize(x), i::Integer=1) = pointerset(p, x, Int(i), 1)
+pointer:178	base/pointer.jl	178	unsafe_store!	5	user-contract		unsafe_store! docstring at pointer.jl:157-170 makes the caller responsible for valid live memory	unsafe_store!(p::Ptr{T}, x, i::Integer=1) where {T} = pointerset(p, convert(T,x), Int(i), 1)
+pointer:179	base/pointer.jl	179	unsafe_store!	5	user-contract		unsafe_store! docstring at pointer.jl:157-170 makes the caller responsible for valid live memory	unsafe_store!(p::Ptr{T}, x, order::Symbol) where {T} = atomic_pointerset(p, x isa T ? x : convert(T,x), order)
+pointer:180	base/pointer.jl	180	unsafe_store!	5	user-contract		unsafe_store! docstring at pointer.jl:157-170 makes the caller responsible for valid live memory	function unsafe_store!(p::Ptr, x, i::Integer, order::Symbol)
+pointer:181	base/pointer.jl	181	unsafe_store!	5	user-contract		unsafe_store! docstring at pointer.jl:157-170 makes the caller responsible for valid live memory	unsafe_store!(p + (elsize(typeof(p)) * (Int(i) - 1)), x, order)
+pointer:192	base/pointer.jl	192	unsafe_load	5	not-unchecked		docstring signature, prose, or pseudocode; it performs no access	y = unsafe_load(p)
+pointer:194	base/pointer.jl	194	unsafe_store!	5	not-unchecked		docstring signature, prose, or pseudocode; it performs no access	unsafe_store!(p, z)
+pointer:219	base/pointer.jl	219	unsafe_load	5	not-unchecked		docstring signature, prose, or pseudocode; it performs no access	y = unsafe_load(p, fail_order)
+pointer:222	base/pointer.jl	222	unsafe_store!	5	not-unchecked		docstring signature, prose, or pseudocode; it performs no access	unsafe_store!(p, desired, success_order)
+pointer:252	base/pointer.jl	252	unsafe_load	5	not-unchecked		docstring signature, prose, or pseudocode; it performs no access	y = unsafe_load(p)
+pointer:253	base/pointer.jl	253	unsafe_store!	5	not-unchecked		docstring signature, prose, or pseudocode; it performs no access	unsafe_store!(p, x)
+range:953	base/range.jl	953	@boundscheck	5	not-unchecked		@boundscheck validation itself, not an unchecked access	@boundscheck checkbounds(v, i)
+range:961	base/range.jl	961	@boundscheck	5	not-unchecked		@boundscheck validation itself, not an unchecked access	@boundscheck _in_unit_range(v, val, i) || throw_boundserror(v, i)
+range:970	base/range.jl	970	@boundscheck	5	not-unchecked		@boundscheck validation itself, not an unchecked access	@boundscheck _in_unit_range(v, val, i) || throw_boundserror(v, i)
+range:1004	base/range.jl	1004	@boundscheck	5	not-unchecked		@boundscheck validation itself, not an unchecked access	@boundscheck checkbounds(r, s)
+range:1019	base/range.jl	1019	@boundscheck	5	not-unchecked		@boundscheck validation itself, not an unchecked access	@boundscheck checkbounds(r, s)
+range:1025	base/range.jl	1025	@boundscheck	5	not-unchecked		@boundscheck validation itself, not an unchecked access	@boundscheck checkbounds(r, s)
+range:1042	base/range.jl	1042	@boundscheck	5	not-unchecked		@boundscheck validation itself, not an unchecked access	@boundscheck checkbounds(r, s)
+range:1067	base/range.jl	1067	@boundscheck	5	not-unchecked		@boundscheck validation itself, not an unchecked access	@boundscheck checkbounds(r, s)
+range:1102	base/range.jl	1102	@boundscheck	5	not-unchecked		@boundscheck validation itself, not an unchecked access	@boundscheck checkbounds(r, s)
+range:1413	base/range.jl	1413	@inbounds	5	refuted	ranges-collect-full-width-crash		@inbounds a[i] = x
+range:1428	base/range.jl	1428	@inbounds	5	refuted	ranges-collect-full-width-crash		@inbounds a[i] = x
+range:1706	base/range.jl	1706	@boundscheck	5	not-unchecked		@boundscheck validation itself, not an unchecked access	@boundscheck checkbounds(r, i)
+rawbigfloats:18	base/rawbigfloats.jl	18	@inbounds	5	todo		v1 proof rejected by review (memsafety-rawbigfloats-get-elem)	@inbounds return x[i + 1]::T
+ryu.exp:14	base/ryu/exp.jl	14	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos] = UInt8('0')
+ryu.exp:17	base/ryu/exp.jl	17	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos] = decchar
+ryu.exp:20	base/ryu/exp.jl	20	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos] = UInt8('0')
+ryu.exp:24	base/ryu/exp.jl	24	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos] = decchar
+ryu.exp:27	base/ryu/exp.jl	27	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos] = expchar
+ryu.exp:28	base/ryu/exp.jl	28	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos + 1] = UInt8('+')
+ryu.exp:29	base/ryu/exp.jl	29	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos + 2] = UInt8('0')
+ryu.exp:30	base/ryu/exp.jl	30	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos + 3] = UInt8('0')
+ryu.exp:33	base/ryu/exp.jl	33	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos] = UInt8('N')
+ryu.exp:34	base/ryu/exp.jl	34	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos + 1] = UInt8('a')
+ryu.exp:35	base/ryu/exp.jl	35	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos + 2] = UInt8('N')
+ryu.exp:38	base/ryu/exp.jl	38	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos] = UInt8('I')
+ryu.exp:39	base/ryu/exp.jl	39	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos + 1] = UInt8('n')
+ryu.exp:40	base/ryu/exp.jl	40	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos + 2] = UInt8('f')
+ryu.exp:85	base/ryu/exp.jl	85	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos] = UInt8('0') + digits
+ryu.exp:88	base/ryu/exp.jl	88	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos] = decchar
+ryu.exp:126	base/ryu/exp.jl	126	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos] = UInt8('0') + digits
+ryu.exp:129	base/ryu/exp.jl	129	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos] = decchar
+ryu.exp:166	base/ryu/exp.jl	166	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos] = UInt8('0')
+ryu.exp:176	base/ryu/exp.jl	176	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos] = UInt8('0') + digits
+ryu.exp:179	base/ryu/exp.jl	179	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos] = decchar
+ryu.exp:188	base/ryu/exp.jl	188	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	if roundPos == (startpos - 1) || (@inbounds buf[roundPos]) == UInt8('-') || (plus && (@inbounds buf[roundPos]) == UInt8('+')) || (space && (@inbounds buf[roundPos]) == UInt8(' '))
+ryu.exp:189	base/ryu/exp.jl	189	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[roundPos + 1] = UInt8('1')
+ryu.exp:193	base/ryu/exp.jl	193	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	c = roundPos > 0 ? (@inbounds buf[roundPos]) : 0x00
+ryu.exp:197	base/ryu/exp.jl	197	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[roundPos] = UInt8('0')
+ryu.exp:204	base/ryu/exp.jl	204	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[roundPos] = c + 1
+ryu.exp:210	base/ryu/exp.jl	210	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	while @inbounds buf[pos - 1] == UInt8('0')
+ryu.exp:213	base/ryu/exp.jl	213	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	if @inbounds buf[pos - 1] == decchar && !hash
+ryu.exp:220	base/ryu/exp.jl	220	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos] = UInt8('-')
+ryu.exp:224	base/ryu/exp.jl	224	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos] = UInt8('+')
+ryu.exp:229	base/ryu/exp.jl	229	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds d100 = DIGIT_TABLE16[div(e, 10) + 1]
+ryu.exp:230	base/ryu/exp.jl	230	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos] = d100 % UInt8
+ryu.exp:231	base/ryu/exp.jl	231	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos + 1] = (d100 >> 0x8) % UInt8
+ryu.exp:232	base/ryu/exp.jl	232	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos + 2] = UInt8('0') + c
+ryu.exp:235	base/ryu/exp.jl	235	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds d100 = DIGIT_TABLE16[e + 1]
+ryu.exp:236	base/ryu/exp.jl	236	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos] = d100 % UInt8
+ryu.exp:237	base/ryu/exp.jl	237	@inbounds	5	user-contract		Ryu.writeexp buffer overload docstring at base/ryu/Ryu.jl:97-103 requires the caller to provide room for the entire decimal string	@inbounds buf[pos + 1] = (d100 >> 0x8) % UInt8
+show:287	base/show.jl	287	unsafe_load	5	not-unchecked		call to unsafe_load_commands; the primitive loads are listed in base/options.jl	v = unsafe_load_commands(v)
+show:557	base/show.jl	557	unsafe_load	5	todo		v1 proof rejected by review (memsafety-show-bits)	byte = unsafe_load(convert(Ptr{UInt8}, p + i))
+show:3280	base/show.jl	3280	memoryref	5	not-unchecked		memoryrefoffset queries metadata; it does not read referenced memory	offset = Core.memoryrefoffset(mref)
+slicearray:241	base/slicearray.jl	241	@boundscheck	5	not-unchecked		@boundscheck validation itself, not an unchecked access	@boundscheck checkbounds(s, I...)
+slicearray:242	base/slicearray.jl	242	@inbounds	5	todo			@inbounds view(s.parent, _slice_index(s, I...)...)
+slicearray:245	base/slicearray.jl	245	@boundscheck	5	not-unchecked		@boundscheck validation itself, not an unchecked access	@boundscheck checkbounds(s, I...)
+slicearray:246	base/slicearray.jl	246	@inbounds	5	todo			@inbounds s.parent[_slice_index(s, I...)...] = val
+stream:1264	base/stream.jl	1264	unsafe_wrap	5	user-contract		unsafe_read(io, ref, nbytes) at base/io.jl:366-379 requires ref to designate nbytes of writable memory	newbuf = _truncated_pipebuffer(unsafe_wrap(Array, p, nb); maxsize=Int(nb))
+stream:1954	base/stream.jl	1954	unsafe_store!	5	todo		v1 proof rejected by review (memsafety-stream-redirect-global)	c_sym == C_NULL || unsafe_store!(c_sym, handle === nothing ? Ptr{Cvoid}(unix_fd) : handle.handle)
+threadingconstructs:47	base/threadingconstructs.jl	47	unsafe_load	5	todo		v1 proof rejected by review (memsafety-thread-runtime-globals)	maxthreadid() = Int(unsafe_load(cglobal(:jl_n_threads, Cint), :acquire))
+threadingconstructs:63	base/threadingconstructs.jl	63	unsafe_load	5	todo		v1 proof rejected by review (memsafety-thread-runtime-globals)	p = unsafe_load(cglobal(:jl_n_threads_per_pool, Ptr{Cint}))
+threadingconstructs:64	base/threadingconstructs.jl	64	unsafe_load	5	todo		v1 proof rejected by review (memsafety-thread-runtime-globals)	return Int(unsafe_load(p, tpid + 1))
+threadingconstructs:124	base/threadingconstructs.jl	124	unsafe_load	5	todo		v1 proof rejected by review (memsafety-thread-runtime-globals)	nthreadpools() = Int(unsafe_load(cglobal(:jl_n_threadpools, Cint)))
+threadingconstructs:169	base/threadingconstructs.jl	169	unsafe_load	5	todo		v1 proof rejected by review (memsafety-thread-runtime-globals)	ngcthreads() = Int(unsafe_load(cglobal(:jl_n_gcthreads, Cint))) + 1
+threadingconstructs:370	base/threadingconstructs.jl	370	@inbounds	5	todo		v1 proof rejected by review (memsafety-comprehension-widen)	el = @inbounds result[j]
+threadingconstructs:414	base/threadingconstructs.jl	414	@inbounds	5	todo		v1 proof rejected by review (channels-threads-partition)	local $esc_lidx = @inbounds r[i]
+threadingconstructs:415	base/threadingconstructs.jl	415	@inbounds	5	todo		v1 proof rejected by review (channels-threads-partition)	@inbounds result[i] = $esc_body
+threadingconstructs:521	base/threadingconstructs.jl	521	@inbounds	5	todo		v1 proof rejected by review (channels-threads-partition)	local $(esc(lidx)) = @inbounds r[i]
+threadingconstructs:552	base/threadingconstructs.jl	552	@inbounds	5	todo		v1 proof rejected by review (channels-threads-partition)	local item = @inbounds r[i]
+toml.parser:1456	base/toml/parser.jl	1456	unsafe_copyto!	5	todo		v1 proof rejected by review (memsafety-toml-take-chunks)	unsafe_copyto!(pointer(str, offset), pointer(l.str, first(chunk)), n)
+version:545	base/version.jl	545	@inbounds	5	todo		v1 proof rejected by review (memsafety-version-matches)	@inbounds for range in spec.ranges
+version:574	base/version.jl	574	@inbounds	5	todo		v1 proof rejected by review (memsafety-version-intersect)	@inbounds for a in A.ranges, b in B.ranges

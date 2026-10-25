@@ -1,0 +1,54 @@
+id: sockets-ipv6-double-elision
+title: "parse(IPv6, ..) accepts two '::' elisions, silently dropping groups"
+priority: P2
+kind: missing-error
+area: Sockets
+files: [stdlib/Sockets/src/IPAddr.jl]
+functions: ["parse(::Type{IPv6}, ::AbstractString)", "parseipv6fields"]
+summary: |
+  A string with two '::' elisions is invalid IPv6 text (at most one run of
+  groups may be elided), but parse(IPv6, "1::2::3") silently returns
+  ip"1::2:0:0" and parse(IPv6, "::1:2::") returns ip"::1:2:0:0". When the
+  second empty field drives the group counter cf negative, the remaining
+  groups are shifted by cf*16 < 0, and Julia's reverse shift (x << n == x >> -n)
+  discards them.
+likelihood: |
+  Malformed user input; the result is a valid-looking, different address, so
+  nothing surfaces the error.
+maybe_intended: ""
+reproducer: |
+  using Sockets
+  println(string(parse(IPv6, "1::2::3")))
+  println(string(parse(IPv6, "::1:2::")))
+output:
+  release: |
+    parse(IPv6, "1::2::3") = 1::2:0:0
+    parse(IPv6, "::1:2::") = ::1:2:0:0
+    REPRODUCED sockets-ipv6-double-elision
+  nightly: |
+    parse(IPv6, "1::2::3") = 1::2:0:0
+    parse(IPv6, "::1:2::") = ::1:2:0:0
+    REPRODUCED sockets-ipv6-double-elision
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError, like inet_pton ("1::2::3" is invalid because only one
+  '::'-compressed run is allowed).
+promised_by: |
+  IPv6(str) docstring (stdlib/Sockets/src/IPAddr.jl:117-127); RFC 4291
+  section 2.2 ("The use of '::' indicates one or more groups of 16 bits of
+  zeros" - once); issue #40255's goal of erroring on unsupported formats.
+cause: |
+  parseipv6fields (stdlib/Sockets/src/IPAddr.jl:228-236): after the first
+  elision the counter cf can be driven below zero by the second empty field,
+  and line 236 `ret |= UInt128(parse(Int, f, base=16))<<(cf*16)` then shifts by
+  a negative amount, which in Julia shifts the other way and drops the value.
+possible_fix: |
+  Reject a second elision when scanning fields (count empty-field pairs), as
+  inet_pton does.
+duplicates:
+  issues:
+    - {number: 40255, state: open, relation: related}
+  queries: ["IPv6 parse", "parse IPv6", "IPv6 colon", "IPv6 shorthand", "parse IP address invalid"]
+lean:
+  property: JuliaLean.Sockets.IPv6OneElision
+  theorem: JuliaLean.Sockets.ipv6OneElision_refuted

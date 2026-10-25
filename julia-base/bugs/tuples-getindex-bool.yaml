@@ -1,0 +1,56 @@
+id: tuples-getindex-bool
+title: "Tuples accept `Bool` scalar indices (`t[true]`, `get`, `Base.setindex`, `isassigned`) that arrays and ranges reject"
+priority: P3
+kind: missing-error
+area: Tuples
+files: [base/tuple.jl]
+functions: ["getindex(t::Tuple, i::Integer)", "setindex(x::Tuple, v, i::Integer)", "get(t::Tuple, i::Integer, default)", "isassigned(v::Tuple, i::Integer)"]
+summary: |
+  Arrays, ranges and their isassigned methods throw ArgumentError("invalid
+  index: true of type Bool") for a Bool scalar index. The tuple methods take
+  i::Integer and treat true as 1 and false as 0: (10, 20)[true] == 10,
+  get((1, 2), true, 0) == 1, Base.setindex((1, 2), 0, true) == (0, 2) and
+  isassigned((1, 2), true) == true. The isassigned(::Tuple, ::Integer) method
+  was added in 1.13 while the range method explicitly rejects Bool.
+likelihood: |
+  Low: Bool indices are usually a mistake (a mask element used as an index);
+  arrays catch it, tuples silently return the first element.
+maybe_intended: |
+  Bool <: Integer and tuples are not AbstractArrays, so tuple indexing may never
+  have been meant to follow to_index. The deliberate rejection of Bool in
+  base/indices.jl:259 and base/range.jl:947 suggests consistency was intended.
+reproducer: |
+  (10, 20)[true]                 # 10
+  [10, 20][true]                 # ArgumentError
+  get((1, 2), true, 0)           # 1
+  Base.setindex((1, 2), 0, true) # (0, 2)
+  isassigned((1, 2), true)       # true
+output:
+  release: |
+    10 ArgumentError("invalid index: true of type Bool")
+    1 (0, 2) true
+    REPRODUCED tuples-getindex-bool
+  nightly: |
+    10 ArgumentError("invalid index: true of type Bool")
+    1 (0, 2) true
+    REPRODUCED tuples-getindex-bool
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError("invalid index: true of type Bool"), as for Vectors and ranges.
+promised_by: |
+  base/indices.jl:259: to_index(i::Bool) = throw(ArgumentError("invalid index:
+  $i of type Bool")); base/range.jl:946-949: isassigned(r::AbstractRange,
+  i::Integer) rejects Bool. Invariant: scalar indexing behaves alike across
+  indexable collections.
+cause: |
+  base/tuple.jl:34 getindex(t, i::Integer) = getfield(t, convert(Int, i));
+  base/tuple.jl:40-41, 55-59 and 681-684 compare i with 1 and length(t)
+  directly. None special-cases Bool.
+possible_fix: |
+  Add Bool methods that throw ArgumentError, as the range methods do.
+duplicates:
+  issues: []
+  queries: ["issues: tuple index Bool", "issues: getindex tuple Bool", "issues: invalid index Bool tuple", "issues: indexing with Bool", "issues: Bool as index", "prs: invalid index Bool"]
+lean:
+  property: JuliaLean.Tuples.BoolIndexAgrees
+  theorem: JuliaLean.Tuples.boolIndexAgrees_refuted

@@ -1,0 +1,56 @@
+id: multidim-cartesianindices-length-overflow
+title: "length(CartesianIndices((2^32, 2^32))) == 0: isempty is true and linear indexing fails for a nonempty CartesianIndices"
+priority: P3
+kind: wrong-result
+area: Multidim
+files: [base/essentials.jl, base/abstractarray.jl, base/multidimensional.jl]
+functions: ["length(t::AbstractArray)", "isempty(a::AbstractArray)", "size(iter::CartesianIndices)", "getindex(::CartesianIndices, ::Int)"]
+summary: |
+  The generic length(A) = prod(size(A)) multiplies the component lengths in wrapping
+  Int arithmetic. CartesianIndices is lazy, so its size can be arbitrarily large:
+  length(CartesianIndices((2^32, 2^32))) == 0 and isempty is true although iterate
+  returns CartesianIndex(1, 1); linear indexing R[2] throws BoundsError (it is checked
+  against 1:length) while R[2, 1] works; length(CartesianIndices((typemax(Int), 2))) == -2.
+likelihood: |
+  Needs index spaces with more than typemax(Int) points, for example CartesianIndices
+  of a lazy grid or of large ranges. Uncommon; the result is silent when it happens.
+maybe_intended: |
+  Base does not check overflow in prod(size(A)) for any lazy array; an index space with
+  more than typemax(Int) elements cannot be enumerated anyway.
+reproducer: |
+  R = CartesianIndices((2^32, 2^32))
+  length(R), isempty(R)                     # (0, true)
+  first(iterate(R))                         # CartesianIndex(1, 1)
+  R[2]                                      # BoundsError, although R[2, 1] works
+  length(CartesianIndices((typemax(Int), 2)))   # -2
+output:
+  release: |
+    length = 0, isempty = true, first iterate = CartesianIndex(1, 1), R[2, 1] = CartesianIndex(2, 1), R[2] = BoundsError(CartesianIndices((4294967296, 4294967296)), (2,))
+    length(CartesianIndices((typemax(Int), 2))) = -2
+    REPRODUCED multidim-cartesianindices-length-overflow
+  nightly: |
+    length = 0, isempty = true, first iterate = CartesianIndex(1, 1), R[2, 1] = CartesianIndex(2, 1), R[2] = BoundsError(CartesianIndices((4294967296, 4294967296)), (2,))
+    length(CartesianIndices((typemax(Int), 2))) = -2
+    REPRODUCED multidim-cartesianindices-length-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  An OverflowError from length (as Base.checked_length does for ranges), and
+  isempty(R) == false; or a length check when the CartesianIndices is constructed.
+promised_by: |
+  length docstring (base/abstractarray.jl:305-308): "Return the number of elements in
+  the array"; isempty docstring: "Determine whether a collection is empty (has no
+  elements)".
+cause: |
+  base/essentials.jl:13 `length(t::AbstractArray) = prod(size(t))` with
+  size(iter::CartesianIndices) = map(length, iter.indices)
+  (base/multidimensional.jl:488); prod of Int wraps. isempty(a::AbstractArray) =
+  (length(a) == 0) (base/abstractarray.jl:1262).
+possible_fix: |
+  Define length(iter::CartesianIndices) with Base.checked_mul (or define isempty as
+  any(isempty, iter.indices)).
+duplicates:
+  issues: []
+  queries: ["issues: CartesianIndices (titles scanned)", "issues: CartesianIndices length overflow", "issues: CartesianIndices overflow", "issues: isempty CartesianIndices", "issues: length overflow prod size", "issues: length of array overflows"]
+lean:
+  property: JuliaLean.Multidim.CartesianIsEmpty
+  theorem: JuliaLean.Multidim.cartesianIsEmpty_refuted

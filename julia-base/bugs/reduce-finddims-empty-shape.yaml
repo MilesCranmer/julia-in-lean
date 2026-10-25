@@ -1,0 +1,59 @@
+id: reduce-finddims-empty-shape
+title: "findmax(zeros(0, 0); dims=1) returns 0x0 arrays instead of the reduced 1x0 shape"
+priority: P3
+kind: wrong-result
+area: Reduce
+files: [base/reducedim.jl]
+functions: ["findmax(A; dims)", "findmin(A; dims)", "argmax(A; dims)", "argmin(A; dims)"]
+summary: |
+  For an array that is empty along the reduced dimension and has no slices,
+  findmax/findmin/argmax/argmin with dims return arrays that keep the empty
+  dimension (0x0 for zeros(0, 0) with dims=1), while sum(A; dims=1) returns the
+  reduced 1x0 shape and maximum(A; dims=1) throws. The three dims reductions
+  disagree on the same input.
+likelihood: |
+  Low: needs an array with zero slices; shape-dependent code (dropdims, size
+  checks) can then break.
+maybe_intended: |
+  reduced_indices0 is used deliberately so empty reductions keep 0 dimensions;
+  open PR #55628 proposes making empty dims reductions behave like their
+  whole-array counterparts.
+reproducer: |
+  A = zeros(0, 0)
+  size(sum(A; dims=1))       # (1, 0)
+  size(findmax(A; dims=1)[1])   # (0, 0)
+output:
+  release: |
+    (1, 0) (0, 0) (0, 0)
+    REPRODUCED reduce-finddims-empty-shape
+    findmax(zeros(0, 0); dims = 1)                               => (Matrix{Float64}(undef, 0, 0), Matrix{CartesianIndex{2}}(undef, 0, 0))
+    maximum(zeros(0, 0); dims = 1)                               => THROWS ArgumentError: reducing over an empty collection is not allowed; consider supplying `init` to the reducer
+    sum(zeros(0, 0); dims = 1)                                   => Matrix{Float64}(undef, 1, 0)
+    argmax(zeros(0, 0); dims = 1)                                => Matrix{CartesianIndex{2}}(undef, 0, 0)
+  nightly: |
+    (1, 0) (0, 0) (0, 0)
+    REPRODUCED reduce-finddims-empty-shape
+    findmax(zeros(0, 0); dims = 1)                               => (Matrix{Float64}(undef, 0, 0), Matrix{CartesianIndex{2}}(undef, 0, 0))
+    maximum(zeros(0, 0); dims = 1)                               => THROWS ArgumentError: reducing over an empty collection is not allowed; consider supplying `init` to the reducer
+    sum(zeros(0, 0); dims = 1)                                   => Matrix{Float64}(undef, 1, 0)
+    argmax(zeros(0, 0); dims = 1)                                => Matrix{CartesianIndex{2}}(undef, 0, 0)
+reproduced: {release: true, nightly: true}
+expected: |
+  Arrays of size (1, 0), the shape of sum(A; dims=1) (or an error, like maximum).
+promised_by: |
+  Invariant: a reduction over dims has size 1 along dims (reduced_indices,
+  base/reducedim.jl:20-23); findmax(A; dims) "returns the value and index of the
+  maximum over the given dimensions" (base/reducedim.jl:1169-1173).
+cause: |
+  base/reducedim.jl:1214-1220: _findmax uses ri = reduced_indices0(A, region), which
+  keeps an empty dimension at length 0 (base/reducedim.jl:25-28); the emptiness
+  check only throws when the reduced_indices shape is nonempty.
+possible_fix: |
+  Use reduced_indices for the returned empty arrays, or throw like maximum.
+duplicates:
+  issues:
+    - {number: 55628, state: open, relation: related}
+  queries: ["findmax dims empty", "findmax empty dims shape", "findmax zeros(0", "reduced_indices0"]
+lean:
+  property: JuliaLean.Reduce.FindDimsShape
+  theorem: JuliaLean.Reduce.findDimsShape_refuted

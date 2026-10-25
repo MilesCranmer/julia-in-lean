@@ -1,0 +1,68 @@
+id: regexunicode-findnext-start-below
+title: "findnext(::Regex, s, i) and match(::Regex, s, i) throw InexactError for i < 1 and ErrorException for i past the end"
+priority: P2
+kind: wrong-exception
+area: RegexUnicode
+files: [base/regex.jl, base/pcre.jl]
+functions: ["findnext(::Regex, ::AbstractString, ::Integer)", "match(::Regex, ::AbstractString, ::Integer)", "occursin(::Regex, ::AbstractString; offset)"]
+summary: |
+  findnext(r"a", "abc", 0) and match(r"a", "abc", 0) throw InexactError from
+  converting idx-1 = -1 to Csize_t, while findnext("a", "abc", 0) throws BoundsError.
+  match(r"a", "abc", 5) throws ErrorException("PCRE.exec error: bad offset value"),
+  while findnext(r"a", "abc", 5) throws BoundsError. occursin(r, s; offset) behaves
+  like match (InexactError for offset -1, ErrorException for offset 10).
+likelihood: |
+  Only out-of-range start indices are affected; code that catches BoundsError around
+  these calls misses the error.
+maybe_intended: ""
+reproducer: |
+  findnext(r"a", "abc", 0)   # InexactError
+  findnext("a", "abc", 0)    # BoundsError
+  match(r"a", "abc", 0)      # InexactError
+  match(r"a", "abc", 5)      # ErrorException: PCRE.exec error: bad offset value
+output:
+  release: |
+    findnext(r"a", "abc", 0) -> InexactError: InexactError: convert(UInt64, -1)
+    findnext("a", "abc", 0)  -> BoundsError: BoundsError: attempt to access 3-codeunit String at index [0
+    findnext(r"a", "abc", 5) -> BoundsError: BoundsError
+    match(r"a", "abc", 0)    -> InexactError: InexactError: convert(UInt64, -1)
+    match(r"a", "abc", 5)    -> ErrorException: PCRE.exec error: bad offset value
+    occursin(r"a", "abc"; offset=-1) -> InexactError: InexactError: convert(UInt64, -1)
+    occursin(r"a", "abc"; offset=10) -> ErrorException: PCRE.exec error: bad offset value
+    REPRODUCED regexunicode-findnext-start-below
+  nightly: |
+    findnext(r"a", "abc", 0) -> InexactError: InexactError: convert(UInt64, -1)
+    findnext("a", "abc", 0)  -> BoundsError: BoundsError: attempt to access 3-codeunit String at index [0
+    findnext(r"a", "abc", 5) -> BoundsError: BoundsError
+    match(r"a", "abc", 0)    -> InexactError: InexactError: convert(UInt64, -1)
+    match(r"a", "abc", 5)    -> ErrorException: PCRE.exec error: bad offset value
+    occursin(r"a", "abc"; offset=-1) -> InexactError: InexactError: convert(UInt64, -1)
+    occursin(r"a", "abc"; offset=10) -> ErrorException: PCRE.exec error: bad offset value
+    REPRODUCED regexunicode-findnext-start-below
+reproduced: {release: true, nightly: true}
+expected: |
+  BoundsError for every start index outside 1:ncodeunits(s)+1, as findnext with a
+  String pattern and findnext(r, s, 5) already do.
+promised_by: |
+  Invariant: findnext(pattern, string, start) for strings checks start against the
+  string's bounds and throws BoundsError (base/strings/search.jl); the Regex method
+  checks only the upper bound (base/regex.jl:492-494).
+cause: |
+  _findnext_re (base/regex.jl:491-512) checks only idx > nextind(str, lastindex(str));
+  match (base/regex.jl:430-434) checks nothing. Both pass idx-1 to PCRE.exec_r_data,
+  whose ccall converts it to Csize_t (InexactError when negative); pcre2_match rejects
+  an offset beyond the subject and PCRE._exec turns that into error(...)
+  (base/pcre.jl:210-217).
+possible_fix: |
+  Add `1 <= idx <= ncodeunits(str) + 1 || throw(BoundsError(str, idx))` to match and
+  to _findnext_re.
+duplicates:
+  issues: []
+  queries:
+    - "issues: findnext regex InexactError"
+    - "issues: match regex bad offset value"
+    - "issues: findnext regex bounds"
+    - "issues: match regex offset bounds"
+lean:
+  property: JuliaLean.RegexUnicode.Core.FindnextBelowBoundsError
+  theorem: JuliaLean.RegexUnicode.Core.findnextBelowBoundsError_refuted

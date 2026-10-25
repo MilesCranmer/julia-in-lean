@@ -1,0 +1,79 @@
+id: floatranges-colon-nonfinite-error
+title: '0.0:1.0:Inf throws InexactError: Int64(Inf) instead of an ArgumentError'
+priority: P3
+kind: wrong-exception
+area: FloatRanges
+files:
+- base/twiceprecision.jl
+functions:
+- (:)(::Float64, ::Float64, ::Float64)
+summary: |
+  a:s:b with an infinite or NaN endpoint fails inside round(Int, (stop-start)/step) with
+  InexactError, while range(a, b; length) rejects the same endpoints with
+  ArgumentError("start and stop must be finite").
+likelihood: |
+  Common enough as a user mistake; only the error type and message are affected.
+maybe_intended: |
+  An error is correct; only its type and message differ between the two constructors.
+reproducer: |
+  for (a, s, b) in ((0.0, 1.0, Inf), (0.0, 1.0, NaN), (NaN, 1.0, 2.0))
+      try
+          println("$a:$s:$b = ", a:s:b)
+      catch e
+          println("$a:$s:$b throws ", sprint(showerror, e))
+      end
+  end
+  try
+      range(0.0, Inf; length=3)
+  catch e
+      println("range(0.0, Inf; length=3) throws ", sprint(showerror, e))
+  end
+  try
+      0.0:1.0:Inf
+  catch e
+      e isa InexactError && println("REPRODUCED floatranges-colon-nonfinite-error")
+  end
+output:
+  release: |
+    0.0:1.0:Inf throws InexactError: Int64(Inf)
+    0.0:1.0:NaN throws InexactError: Int64(NaN)
+    NaN:1.0:2.0 throws InexactError: Int64(NaN)
+    range(0.0, Inf; length=3) throws ArgumentError: start and stop must be finite, got 0.0 and Inf
+    REPRODUCED floatranges-colon-nonfinite-error
+  nightly: |
+    0.0:1.0:Inf throws InexactError: Int64(Inf)
+    0.0:1.0:NaN throws InexactError: Int64(NaN)
+    NaN:1.0:2.0 throws InexactError: Int64(NaN)
+    range(0.0, Inf; length=3) throws ArgumentError: start and stop must be finite, got 0.0 and Inf
+    REPRODUCED floatranges-colon-nonfinite-error
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  ArgumentError stating that the endpoints must be finite, as from range(0.0, Inf;
+  length=3).
+promised_by: |
+  base/twiceprecision.jl:672: range(a, b; length) throws ArgumentError("start and stop
+  must be finite") for the same inputs.
+cause: |
+  base/twiceprecision.jl:430: round(Int, lf) with lf = Inf or NaN throws InexactError.
+possible_fix: |
+  Check isfinite(start) && isfinite(stop) at the top of (:) for floats and throw
+  ArgumentError.
+duplicates:
+  issues:
+  - number: 58138
+    state: open
+    relation: related
+  - number: 58975
+    state: open
+    relation: related
+  queries:
+  - range Inf InexactError
+  - colon InexactError
+  - range NaN InexactError
+  - range infinite
+  - InexactError Inf range
+lean:
+  property: JuliaLean.FloatRanges.ColonNonfiniteArgument
+  theorem: JuliaLean.FloatRanges.colonNonfiniteArgument_refuted

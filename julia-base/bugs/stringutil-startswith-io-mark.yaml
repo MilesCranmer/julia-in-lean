@@ -1,0 +1,59 @@
+id: stringutil-startswith-io-mark
+title: "startswith(io, prefix) removes the stream's existing mark"
+priority: P2
+kind: wrong-result
+area: StringUtil
+files: [base/strings/util.jl]
+functions: ["startswith(::IO, ::AbstractString)", "startswith(::IO, ::Base.Chars)"]
+summary: |
+  startswith(io, prefix) is implemented as mark(io); read; reset(io). It overwrites a mark the
+  caller had set, and reset then unmarks the stream, so after startswith the stream is no longer
+  marked and the caller's reset(io) throws ArgumentError("IOBuffer not marked").
+likelihood: |
+  Parsers that mark a position, test a few prefixes with startswith(io, ...) and then reset to
+  backtrack. The failure is loud (reset throws) when no other mark is set, silent when the code
+  marks again later.
+maybe_intended: ""
+reproducer: |
+  io = IOBuffer("abc")
+  read(io, Char)           # consume 'a'
+  mark(io)                 # the caller marks position 1
+  r = startswith(io, "b")
+  println("startswith(io, \"b\") = ", r, ", ismarked(io) = ", ismarked(io))
+  io2 = IOBuffer("abc"); read(io2, Char); mark(io2)
+  startswith(io2, 'b')
+  println("after startswith(io, 'b'): ismarked(io) = ", ismarked(io2))
+  e = try reset(io); nothing catch err err end
+  println("reset(io) = ", e === nothing ? "ok" : sprint(showerror, e))
+  !ismarked(io) && !ismarked(io2) && e isa ArgumentError && println("REPRODUCED stringutil-startswith-io-mark")
+output:
+  release: |
+    startswith(io, "b") = true, ismarked(io) = false
+    after startswith(io, 'b'): ismarked(io) = false
+    reset(io) = ArgumentError: IOBuffer not marked
+    REPRODUCED stringutil-startswith-io-mark
+  nightly: |
+    startswith(io, "b") = true, ismarked(io) = false
+    after startswith(io, 'b'): ismarked(io) = false
+    reset(io) = ArgumentError: IOBuffer not marked
+    REPRODUCED stringutil-startswith-io-mark
+reproduced: {release: true, nightly: true}
+expected: |
+  startswith only peeks: io keeps its position and its mark (still at position 1), and reset(io)
+  succeeds.
+promised_by: |
+  startswith(io::IO, prefix) docstring (base/strings/util.jl:87-92) refers to `peek`: "Check if
+  an `IO` object starts with a prefix ... See also `peek`." A check should not change stream
+  state.
+cause: |
+  base/strings/util.jl:93-104: mark(io) replaces the caller's mark and reset(io) unmarks.
+possible_fix: |
+  Save and restore the previous mark, or use position/seek for seekable streams. peek(io, T) has
+  the same mark/read/reset pattern (bugs/iobuffers-peek-clears-mark.yaml).
+duplicates:
+  issues: 
+    - {number: 40616, state: closed, relation: related}
+  queries: ["issues: startswith IO", "prs: startswith IO", "issues: startswith IOBuffer", "issues: startswith mark reset"]
+lean:
+  property: JuliaLean.StringUtil.StartswithIoKeepsMark
+  theorem: JuliaLean.StringUtil.startswithIoKeepsMark_refuted

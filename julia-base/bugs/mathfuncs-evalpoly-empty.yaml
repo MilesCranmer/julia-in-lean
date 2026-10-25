@@ -1,0 +1,48 @@
+id: mathfuncs-evalpoly-empty
+title: "evalpoly(x, ()) throws BoundsError instead of returning the empty sum"
+priority: P3
+kind: wrong-exception
+area: MathFuncs
+files: [base/math.jl]
+functions: ["evalpoly(x, ::Tuple)", "evalpoly(x, ::AbstractVector)", "@evalpoly"]
+summary: |
+  evalpoly with an empty coefficient tuple or vector reads p[end] and throws a
+  BoundsError. The docstring defines the result as the sum over the
+  coefficients, which is zero when there are none.
+likelihood: |
+  Polynomials built programmatically can have zero coefficients (e.g. after
+  trimming); callers then get an unhelpful BoundsError.
+maybe_intended: |
+  Returning a zero of the right type is awkward for an empty tuple, and an
+  error may be preferred, but then a clear ArgumentError would match the docs
+  better. Already reported as #56699 (open, labelled bug).
+reproducer: |
+  evalpoly(2.0, ())        # BoundsError
+  evalpoly(2.0, Float64[]) # BoundsError
+output:
+  release: |
+    evalpoly(2.0, ()) = BoundsError((), 0)
+    evalpoly(2.0, Float64[]) = BoundsError(Float64[], (0,))
+    REPRODUCED mathfuncs-evalpoly-empty
+  nightly: |
+    evalpoly(2.0, ()) = BoundsError((), 0)
+    evalpoly(2.0, Float64[]) = BoundsError(Float64[], (0,))
+    REPRODUCED mathfuncs-evalpoly-empty
+reproduced: {release: true, nightly: true}
+expected: |
+  0.0 (the empty sum), or a descriptive ArgumentError.
+promised_by: |
+  base/math.jl:55 (evalpoly docstring): "Evaluate the polynomial
+  sum_k x^{k-1} p[k] for the coefficients p[1], p[2], ..."
+cause: |
+  base/math.jl:78 and :93 start Horner's rule from p[end] without checking
+  for an empty p.
+possible_fix: |
+  Add evalpoly(x, ::Tuple{}) = zero(x) and an isempty check in _evalpoly.
+duplicates:
+  issues:
+    - {number: 56699, state: open, relation: duplicate}
+  queries: ["evalpoly empty", "evalpoly empty tuple", "evalpoly"]
+lean:
+  property: JuliaLean.MathFuncs.evalpolyEmptyZero
+  theorem: JuliaLean.MathFuncs.evalpolyEmptyZero_refuted

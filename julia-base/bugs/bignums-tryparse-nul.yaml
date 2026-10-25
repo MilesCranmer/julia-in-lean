@@ -1,0 +1,58 @@
+id: bignums-tryparse-nul
+title: "tryparse(BigFloat, \"1\\0\") throws ArgumentError instead of returning nothing"
+priority: P2
+kind: wrong-exception
+area: BigNums
+files: [base/mpfr.jl]
+functions: ["tryparse(::Type{BigFloat}, ::AbstractString)"]
+summary: |
+  tryparse(BigFloat, s) converts s to a Cstring for mpfr_set_str. When s contains a
+  NUL byte, the Cstring conversion throws ArgumentError("embedded NULs are not allowed
+  in C strings"), so tryparse throws instead of returning nothing. tryparse(Float64, s)
+  and tryparse(BigInt, s) return nothing for the same string.
+likelihood: |
+  Needs untrusted text containing a NUL byte, e.g. from binary files or network input,
+  in code that relies on tryparse not throwing.
+maybe_intended: ""
+reproducer: |
+  s = "1\0"
+  f = try repr(tryparse(Float64, s)) catch e; "throws " * string(typeof(e)) end
+  i = try repr(tryparse(BigInt, s)) catch e; "throws " * string(typeof(e)) end
+  b = try repr(tryparse(BigFloat, s)) catch e; "throws " * string(typeof(e)) end
+  println("tryparse(Float64, \"1\\0\")  -> ", f)
+  println("tryparse(BigInt, \"1\\0\")   -> ", i)
+  println("tryparse(BigFloat, \"1\\0\") -> ", b)
+  if f == "nothing" && b == "throws ArgumentError"
+      println("REPRODUCED bignums-tryparse-nul")
+  end
+output:
+  release: |
+    tryparse(Float64, "1\0")  -> nothing
+    tryparse(BigInt, "1\0")   -> nothing
+    tryparse(BigFloat, "1\0") -> throws ArgumentError
+    REPRODUCED bignums-tryparse-nul
+  nightly: |
+    tryparse(Float64, "1\0")  -> nothing
+    tryparse(BigInt, "1\0")   -> nothing
+    tryparse(BigFloat, "1\0") -> throws ArgumentError
+    REPRODUCED bignums-tryparse-nul
+reproduced: {release: true, nightly: true}
+expected: |
+  nothing, as for Float64 and BigInt.
+promised_by: |
+  base/parse.jl:241-246 (tryparse docstring): "Like parse, but returns either a value
+  of the requested type, or nothing if the string does not contain a valid number."
+cause: |
+  base/mpfr.jl:410 passes s as a Cstring argument to mpfr_set_str; Base.cconvert/
+  unsafe_convert for Cstring (base/strings/cstring.jl:85) throws on embedded NULs.
+  tryparse_internal(::Type{BigInt}) checks Base.containsnul first
+  (base/gmp.jl:321-323). Line 411 on 1.13.2.
+possible_fix: |
+  Return nothing when Base.containsnul(s), before the ccall.
+duplicates:
+  issues:
+    - {number: 16499, state: closed, relation: related}
+  queries: ["tryparse BigFloat", "BigFloat embedded NUL", "parse BigFloat", "BigFloat parse"]
+lean:
+  property: JuliaLean.BigNums.TryparseBigFloatNoThrow
+  theorem: JuliaLean.BigNums.tryparseBigFloatNoThrow_refuted

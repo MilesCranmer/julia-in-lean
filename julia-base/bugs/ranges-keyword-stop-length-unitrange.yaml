@@ -1,0 +1,54 @@
+id: ranges-keyword-stop-length-unitrange
+title: "range docstring says integer stop+length gives a UnitRange, but unsigned stop gives a StepRangeLen"
+priority: P3
+kind: documentation
+area: Ranges
+files: [base/range.jl]
+functions: ["range(; stop, length)"]
+summary: |
+  The range docstring promises a UnitRange when the arguments are integers and
+  only `length` and `stop` are given. With an unsigned stop,
+  range(stop=UInt(10), length=5) returns a StepRangeLen{UInt64}.
+likelihood: |
+  Only matters to code that dispatches on the returned type; the elements are
+  correct.
+maybe_intended: |
+  The unsigned StepRangeLen path is deliberate (it avoids wrapped stops); the
+  docstring just does not mention it. Same for range(UInt(0); length=3).
+reproducer: |
+  r = range(stop=UInt(10), length=5)
+  println("range(stop=UInt(10), length=5) = ", repr(r))
+  println("typeof = ", typeof(r))
+  println("expected a UnitRange (range docstring: Integers, only `length` and `stop` provided)")
+  !(r isa UnitRange) && r isa StepRangeLen && println("REPRODUCED ranges-keyword-stop-length-unitrange")
+output:
+  release: |
+    range(stop=UInt(10), length=5) = 0x0000000000000006:0x0000000000000001:0x000000000000000a
+    typeof = StepRangeLen{UInt64, UInt64, UInt64, Int64}
+    expected a UnitRange (range docstring: Integers, only `length` and `stop` provided)
+    REPRODUCED ranges-keyword-stop-length-unitrange
+  nightly: |
+    range(stop=UInt(10), length=5) = 0x0000000000000006:0x0000000000000001:0x000000000000000a
+    typeof = StepRangeLen{UInt64, UInt64, UInt64, Int64}
+    expected a UnitRange (range docstring: Integers, only `length` and `stop` provided)
+    REPRODUCED ranges-keyword-stop-length-unitrange
+reproduced: {release: true, nightly: true}
+expected: |
+  UnitRange{UInt64}(6, 10) per the docstring, or a docstring that excludes
+  unsigned arguments.
+promised_by: |
+  range docstring, base/range.jl:159-161: "`range` will produce a `UnitRange`
+  when the arguments are Integers and ... Only `length` and `stop` are provided".
+cause: |
+  range_stop_length (base/range.jl:209-218) returns a UnitRange only when the
+  computed start isa Signed (base/range.jl:212); otherwise it builds a
+  StepRangeLen.
+possible_fix: |
+  Amend the docstring: a UnitRange is produced for signed integers; unsigned
+  arguments give a StepRangeLen.
+duplicates:
+  issues: []
+  queries: ["range stop length UnitRange unsigned", "range docstring UnitRange StepRangeLen"]
+lean:
+  property: JuliaLean.Ranges.StopLengthGivesUnitRange
+  theorem: JuliaLean.Ranges.stopLengthGivesUnitRange_refuted

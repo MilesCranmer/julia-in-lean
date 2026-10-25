@@ -1,0 +1,75 @@
+id: floatranges-linspace-imin-overflow
+title: range(a, b; length=n) throws InexactError when zero lies far outside [a, b]
+priority: P2
+kind: wrong-exception
+area: FloatRanges
+files:
+- base/twiceprecision.jl
+functions:
+- range(::Float64, ::Float64; length)
+- _linspace(::Float64, ::Float64, ::Int)
+summary: |
+  For finite endpoints whose ratio a/(b-a) times the length exceeds 2^63, range(a, b;
+  length=n) throws InexactError instead of returning a range. _linspace rounds the
+  estimated index of the smallest-magnitude element to Int before clamping it to 1:n.
+likelihood: |
+  Needs a narrow interval far from zero with many points, e.g. 10^4 points between 1e15
+  and 1e15+1 or 4096 points between 1.0 and nextfloat(1.0). Uncommon, but it is a hard
+  failure on valid finite inputs.
+maybe_intended: |
+  Such ranges cannot have distinct elements, but the length docstring promises a range for
+  any start, stop and length, and the same call works with Int128 lengths (see #58138).
+reproducer: |
+  bug = false
+  for (a, b, n) in ((1.0, nextfloat(1.0), 4096), (1.0e15, 1.0e15 + 1, 10_000))
+      try
+          r = range(a, b; length=n)
+          println("range($a, $b; length=$n) = ", r)
+      catch e
+          println("range($a, $b; length=$n) throws ", sprint(showerror, e))
+          global bug = e isa InexactError && a == 1.0e15
+      end
+  end
+  bug && println("REPRODUCED floatranges-linspace-imin-overflow")
+output:
+  release: |
+    range(1.0, 1.0000000000000002; length=4096) throws InexactError: Int64(-1.8442240474082181e19)
+    range(1.0e15, 1.000000000000001e15; length=10000) throws InexactError: Int64(-9.999e18)
+    REPRODUCED floatranges-linspace-imin-overflow
+  nightly: |
+    range(1.0, 1.0000000000000002; length=4096) throws InexactError: Int64(-1.8442240474082181e19)
+    range(1.0e15, 1.000000000000001e15; length=10000) throws InexactError: Int64(-9.999e18)
+    REPRODUCED floatranges-linspace-imin-overflow
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  A StepRangeLen with 10000 elements from 1.0e15 to 1.000000000000001e15 (index of the
+  smallest element clamped to 1).
+promised_by: |
+  range docstring, base/range.jl:80: "Mathematically a range is uniquely determined by any
+  three of start, step, stop and length."
+cause: |
+  base/twiceprecision.jl:678-681: tmin = -(start/Δ)/Δfac is about -1e15, and imin =
+  round(L, tmin*lenn1 + 1) converts -9.999e18 to Int64 before the comparisons 1 < imin <
+  len that would clamp it.
+possible_fix: |
+  Clamp tmin*lenn1 + 1 to [1, len] in floating point before round(L, ...); the same
+  applies to the rational _linspace at base/twiceprecision.jl:723-725.
+duplicates:
+  issues:
+  - number: 58138
+    state: open
+    relation: duplicate
+  - number: 58975
+    state: open
+    relation: related
+  queries:
+  - range InexactError
+  - _linspace
+  - range(start, stop, length) InexactError
+  - StepRangeLen InexactError
+  - range length InexactError
+lean:
+  property: JuliaLean.FloatRanges.LinspaceSucceeds
+  theorem: JuliaLean.FloatRanges.linspaceSucceeds_refuted

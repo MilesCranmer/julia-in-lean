@@ -1,0 +1,64 @@
+id: floatranges-colon-infinite-step
+title: 0.0:Inf:1.0 is a one-element range whose element is NaN
+priority: P2
+kind: wrong-result
+area: FloatRanges
+files:
+- base/twiceprecision.jl
+functions:
+- (:)(::Float64, ::Float64, ::Float64)
+- twiceprecision(::TwicePrecision, ::Integer)
+summary: |
+  a:s:b with an infinite step has length 1 but its single element is NaN instead of a. The
+  literal branch stores the step as TwicePrecision(Inf, NaN), and indexing multiplies the
+  NaN low word by zero.
+likelihood: |
+  Needs a computed step that overflowed to Inf; unusual but silent.
+maybe_intended: |
+  Infinite steps are not meaningful for ranges (see #45446), so an ArgumentError could be
+  preferable to [a]; NaN is neither.
+reproducer: |
+  r = 0.0:Inf:1.0
+  println("length(0.0:Inf:1.0) = ", length(r))
+  println("first(0.0:Inf:1.0) = ", first(r))
+  println("collect(0.0:Inf:1.0) = ", collect(r))
+  length(r) == 1 && isnan(first(r)) && println("REPRODUCED floatranges-colon-infinite-step")
+output:
+  release: |
+    length(0.0:Inf:1.0) = 1
+    first(0.0:Inf:1.0) = NaN
+    collect(0.0:Inf:1.0) = [NaN]
+    REPRODUCED floatranges-colon-infinite-step
+  nightly: |
+    length(0.0:Inf:1.0) = 1
+    first(0.0:Inf:1.0) = NaN
+    collect(0.0:Inf:1.0) = [NaN]
+    REPRODUCED floatranges-colon-infinite-step
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  collect(0.0:Inf:1.0) == [0.0] (or an ArgumentError).
+promised_by: |
+  (:) docstring, base/range.jl:42-52: a:s:b is a range from a with step s, so a nonempty
+  one starts at a.
+cause: |
+  base/twiceprecision.jl:246-249 via 435: twiceprecision(TwicePrecision(Inf, 0.0), 0)
+  computes lo = (Inf - Inf) + 0.0 = NaN; unsafe_getindex (base/twiceprecision.jl:480-486)
+  adds 0*NaN.
+possible_fix: |
+  Reject nonfinite steps in (:) with ArgumentError, or keep lo = 0 when hi is not finite.
+duplicates:
+  issues:
+  - number: 45446
+    state: open
+    relation: related
+  queries:
+  - range Inf step
+  - range Inf
+  - StepRangeLen NaN
+  - range NaN
+  - range infinite
+lean:
+  property: JuliaLean.FloatRanges.ColonFirst
+  theorem: JuliaLean.FloatRanges.colonFirst_refuted

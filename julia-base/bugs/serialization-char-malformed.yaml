@@ -1,0 +1,74 @@
+id: serialization-char-malformed
+title: "deserialize misreads a malformed Char followed by a value whose tag byte looks like a UTF-8 continuation byte"
+priority: P2
+kind: wrong-result
+area: Serialization
+files: [stdlib/Serialization/src/Serialization.jl, base/io.jl]
+functions: ["serialize(::AbstractSerializer, ::Char)", "handle_deserialize", "write(::IO, ::Char)", "read(::IO, ::Type{Char})"]
+summary: |
+  A Char is serialized as its tag byte followed by write(io, c), which emits only the
+  Char's own bytes (one byte for '\xc0'), and is read back with read(io, Char), which
+  keeps consuming following bytes of the form 0b10xxxxxx while the lead byte announces
+  more. For a malformed Char such as "\xc0"[1] the next value's tag byte is swallowed
+  when it lies in 0x80-0xbf (Int32(0), Int32(1), and the tags of :getindex, :Base, :Core
+  and other common symbols). The stream is then misaligned: (c, Int32(1)) deserializes
+  as ('\xc0\xbf', <next value in the stream>), and Dict{Char,Int32}('\xc0' => 0) throws
+  EOFError.
+likelihood: |
+  Needs a malformed Char stored as a separate value (in a tuple, struct field, Dict key
+  or Vector{Any}; a Vector{Char} is written as raw 4-byte words and is fine) and the
+  next serialized value starting with one of about forty tag bytes. Malformed Chars come
+  from iterating Strings that hold invalid UTF-8, for example Latin-1 text read as a
+  String. Rare, but the result can be silently wrong rather than an error.
+maybe_intended: ""
+reproducer: |
+  using Serialization
+  c = "\xc0"[1]
+  io = IOBuffer()
+  serialize(io, (c, Int32(1)))
+  serialize(io, 42)
+  seekstart(io)
+  deserialize(io)   # ('\xc0\xbf', 42)
+  deserialize(io)   # EOFError
+  io2 = IOBuffer(); serialize(io2, Dict{Char,Int32}(c => 0)); seekstart(io2)
+  deserialize(io2)  # EOFError
+output:
+  release: |
+    first deserialize: ('\xc0\xbf', 42)  (expected ('\xc0', 1))
+    second deserialize: throws EOFError: read end of file  (expected 42)
+    Dict round trip: throws EOFError: read end of file  (expected Dict{Char, Int32}('\xc0' => 0))
+    REPRODUCED serialization-char-malformed
+  nightly: |
+    first deserialize: ('\xc0\xbf', 42)  (expected ('\xc0', 1))
+    second deserialize: throws EOFError: read end of file  (expected 42)
+    Dict round trip: throws EOFError: read end of file  (expected Dict{Char, Int32}('\xc0' => 0))
+    REPRODUCED serialization-char-malformed
+reproduced: {release: true, nightly: true}
+expected: |
+  ('\xc0', Int32(1)), then 42 from the second deserialize; Dict{Char,Int32}('\xc0' => 0)
+  for the Dict.
+promised_by: |
+  serialize docstring, stdlib/Serialization/src/Serialization.jl:959-961: "Write an
+  arbitrary value to a stream in an opaque format, such that it can be read back by
+  deserialize. The read-back value will be as identical as possible to the original".
+  base/char.jl:18-19: the built-in Char type "represents a *superset* of Unicode (in
+  order to losslessly encode invalid byte streams)".
+cause: |
+  stdlib/Serialization/src/Serialization.jl:824-829 defines serialize(s, n::Char) as
+  writetag(s.io, CHAR_TAG); write(s.io, n), and :1145-1146 reads it with
+  read(s.io, Char). write(io, ::Char) (base/io.jl:973-979) writes the bytes of the Char up
+  to its last nonzero byte, so the length is not recorded. read(io, ::Type{Char})
+  (base/io.jl:1091-1106) decides the length from the lead byte and the following bytes:
+  after a lead byte with two to four leading ones it reads further bytes while they are
+  continuation bytes. For a truncated sequence the Char's own bytes stop early and the
+  loop reads the next tag byte instead.
+possible_fix: |
+  Serialize a Char as its fixed 4-byte UInt32 bit pattern (write(s.io, reinterpret(UInt32, n))
+  and reinterpret(Char, read(s.io, UInt32))), bumping ser_version and keeping the old
+  reader for older streams.
+duplicates:
+  issues: []
+  queries: ["serialize Char invalid", "serialize malformed Char", "deserialize Char EOFError", "Serialization invalid Char", "read(io, Char) continuation", "Serialization Char", "serialize Char", "deserialize Char", "serialize string invalid UTF-8 Char", "invalid Char read write IO"]
+lean:
+  property: JuliaLean.Serialization.CharRoundTrip
+  theorem: JuliaLean.Serialization.charRoundTrip_refuted

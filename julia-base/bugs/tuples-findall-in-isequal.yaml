@@ -1,0 +1,58 @@
+id: tuples-findall-in-isequal
+title: "`findall(in(b), x)` matches with isequal, disagreeing with `x[i] in b` for -0.0, NaN and missing"
+priority: P2
+kind: wrong-result
+area: Tuples
+files: [base/array.jl]
+functions: ["findall(pred::Fix2{typeof(in)}, x::Tuple)", "findall(pred::Fix2{typeof(in)}, x::AbstractArray)", "_findin", "_sortedfindin"]
+summary: |
+  The specialised methods findall(in(b), x) for tuples and arrays convert b to a
+  Set (or, for sorted real arrays, merge with isless), so membership is tested
+  with isequal. in itself compares with ==. The results differ for signed zeros,
+  NaN and missing: findall(in([0.0]), (-0.0,)) == Int[] although -0.0 in [0.0],
+  and findall(in([NaN]), (NaN,)) == [1] although NaN in [NaN] is false.
+likelihood: |
+  Moderate for floating-point data: -0.0 is produced by ordinary arithmetic
+  (rounding, negation, products with negative numbers), and findall(in(b), x) is
+  the idiomatic way to look up a set of values. The result silently depends on
+  whether the predicate is written in(b) or x -> x in b.
+maybe_intended: |
+  Set-based matching with isequal could be deliberate for performance, and
+  isequal semantics are arguably better for NaN; but neither the findall nor the
+  in docstring mentions it, and the generic findall(f, x) gives the == result.
+reproducer: |
+  findall(in([0.0]), (-0.0,))        # Int64[]
+  findall(x -> x in [0.0], (-0.0,))  # [1]
+  findall(in([NaN]), (NaN,))         # [1]
+  findall(x -> x in [NaN], (NaN,))   # Int64[]
+output:
+  release: |
+    Int64[] [1] [1] Int64[] true false
+    REPRODUCED tuples-findall-in-isequal
+  nightly: |
+    Int64[] [1] [1] Int64[] true false
+    REPRODUCED tuples-findall-in-isequal
+reproduced: {release: true, nightly: true}
+expected: |
+  findall(in(b), x) == findall(y -> y in b, x): [1] for the -0.0 case and
+  Int64[] for the NaN case.
+promised_by: |
+  in(x) docstring (base/operators.jl): "Create a function that checks whether
+  its argument is in x, i.e. a function equivalent to y -> y in x"; in uses ==.
+  findall(f, A) docstring (base/array.jl): the indices i where f(A[i]) is true.
+cause: |
+  base/array.jl:2964-2967 dispatch findall(pred::Fix2{typeof(in)}, x) to
+  _findin(x, pred.x); _findin converts b with Set(b) (base/array.jl:2910) and
+  tests ai in Set, which uses hash and isequal. The sorted path
+  (base/array.jl:2954-2960, _sortedfindin) compares with isless.
+possible_fix: |
+  Use the specialised paths only when isequal and == agree on the element types
+  (e.g. not for AbstractFloat or Missing), or document the isequal semantics.
+duplicates:
+  issues:
+    - {number: 29124, state: open, relation: related}
+    - {number: 52639, state: closed, relation: related}
+  queries: ["issues: _findin", "issues: findall in", "issues: findall in isequal", "issues: findall in Set isequal", "issues: findall in NaN", "issues: findall in -0.0", "issues: findall in signed zero", "prs: _findin", "prs: findall in"]
+lean:
+  property: JuliaLean.Tuples.FindallInAgrees
+  theorem: JuliaLean.Tuples.findallInAgrees_refuted

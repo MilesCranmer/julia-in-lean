@@ -1,0 +1,59 @@
+id: broadcastviews-range-ldiv
+title: "x .\\ r throws MethodError (adjoint(::TwicePrecision)) for Float64 ranges such as 0.0:0.5:2.0"
+priority: P2
+kind: wrong-exception
+area: BroadcastViews
+files: [base/broadcast.jl]
+functions: ["broadcasted(::DefaultArrayStyle{1}, ::typeof(\\), ::Number, ::StepRangeLen)"]
+summary: |
+  Left division broadcast over a Float64 range built with the colon operator or
+  `range` throws: `2.0 .\ (0.0:0.5:2.0)` raises
+  `MethodError: no method matching adjoint(::Base.TwicePrecision{Float64})`.
+  The range method applies `\` to the `ref` and `step` fields, which are
+  TwicePrecision values, and the generic `\` calls `adjoint` on them.
+  `r ./ 2.0` and `2.0 .\ collect(r)` work.
+likelihood: |
+  Every Float64 StepRangeLen created by `a:s:b` or `range(...)` is affected, so any
+  `x .\ r` with such a range fails. The operator is rarely broadcast over ranges.
+maybe_intended: ""
+reproducer: |
+  r = 0.0:0.5:2.0
+  v = try 2.0 .\ r catch e; e end
+  println("2.0 .\\ (0.0:0.5:2.0) = ", v isa Exception ? first(split(sprint(showerror, v), '\n')) : v)
+  println("2.0 .\\ collect(0.0:0.5:2.0) = ", 2.0 .\ collect(r))
+  println("(0.0:0.5:2.0) ./ 2.0 = ", r ./ 2.0)
+  if v isa MethodError
+      println("REPRODUCED broadcastviews-range-ldiv")
+  end
+output:
+  release: |
+    2.0 .\ (0.0:0.5:2.0) = MethodError: no method matching adjoint(::Base.TwicePrecision{Float64})
+    2.0 .\ collect(0.0:0.5:2.0) = [0.0, 0.25, 0.5, 0.75, 1.0]
+    (0.0:0.5:2.0) ./ 2.0 = 0.0:0.25:1.0
+    REPRODUCED broadcastviews-range-ldiv
+  nightly: |
+    2.0 .\ (0.0:0.5:2.0) = MethodError: no method matching adjoint(::Base.TwicePrecision{Float64})
+    2.0 .\ collect(0.0:0.5:2.0) = [0.0, 0.25, 0.5, 0.75, 1.0]
+    (0.0:0.5:2.0) ./ 2.0 = 0.0:0.25:1.0
+    REPRODUCED broadcastviews-range-ldiv
+reproduced: {release: true, nightly: true}
+expected: |
+  0.0:0.25:1.0 (elements [0.0, 0.25, 0.5, 0.75, 1.0]), like `(0.0:0.5:2.0) ./ 2.0`.
+promised_by: |
+  Invariant: `x .\ r` computes `x \ r[i]` for every element; base/operators.jl:683-685
+  (`\` docstring: "multiplication of y by the inverse of x on the left").
+cause: |
+  base/broadcast.jl:1236:
+  broadcasted(::DefaultArrayStyle{1}, ::typeof(\), x::Number, r::StepRangeLen) = StepRangeLen(x\r.ref, x\r.step, length(r), r.offset).
+  For Float64 ranges r.ref and r.step are TwicePrecision{Float64} (base/twiceprecision.jl:342-347,
+  360-365); `\(x, y) = adjoint(adjoint(y)/adjoint(x))` (base/operators.jl:709) has no
+  adjoint method for TwicePrecision. The `/` method (line 1232) uses `r.ref/x` instead.
+possible_fix: |
+  Use `StepRangeLen{typeof(x\T(r.ref))}(r.ref/x, r.step/x, length(r), r.offset)` for
+  commutative number types, mirroring the `/` method at line 1231-1232.
+duplicates:
+  issues: []
+  queries: ["TwicePrecision adjoint", "range ldiv broadcast", "ldiv StepRangeLen", "TwicePrecision MethodError broadcast", "range broadcast"]
+lean:
+  property: JuliaLean.BroadcastViews.RangeLdivTotal
+  theorem: JuliaLean.BroadcastViews.rangeLdivTotal_refuted

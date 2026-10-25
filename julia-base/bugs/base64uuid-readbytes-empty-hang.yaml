@@ -1,0 +1,48 @@
+id: base64uuid-readbytes-empty-hang
+title: "readbytes!(::Base64DecodePipe, UInt8[], nb) with nb > 0 never returns"
+priority: P1
+kind: hang
+area: Base64Uuid
+files: [stdlib/Base64/src/decode.jl]
+functions: ["readbytes!(::Base64DecodePipe, ::AbstractVector{UInt8}, ::Integer)"]
+summary: |
+  When the destination vector is empty and nb > 0, readbytes! grows it with
+  resize!(data, min(length(data) * 2, nb)), which keeps the length at 0. Every
+  iteration then asks read_until_end for 0 bytes; the decoded bytes collect in
+  pipe.rest, so eof(pipe) stays false and the loop spins forever.
+likelihood: |
+  Passing an empty buffer and a byte count is a common way to call readbytes!
+  ("the size of b will be increased if needed"). No Base function reaches it, since
+  read(io, nb) allocates nb bytes first, but user code that does
+  `buf = UInt8[]; readbytes!(pipe, buf, n)` hangs on any nonempty input.
+maybe_intended: ""
+reproducer: |
+  using Base64
+  pipe = Base64DecodePipe(IOBuffer("SGVsbG8h"))
+  readbytes!(pipe, UInt8[], 3)   # never returns
+output:
+  release: |
+    readbytes!(Base64DecodePipe(IOBuffer("SGVsbG8h")), UInt8[], 3) still running after 60 s
+    REPRODUCED base64uuid-readbytes-empty-hang
+  nightly: |
+    readbytes!(Base64DecodePipe(IOBuffer("SGVsbG8h")), UInt8[], 3) still running after 60 s
+    REPRODUCED base64uuid-readbytes-empty-hang
+reproduced: {release: true, nightly: true}
+expected: |
+  Returns 3 with data == codeunits("Hel"), as readbytes!(IOBuffer("Hello!"), UInt8[], 3) does.
+promised_by: |
+  base/io.jl:1295-1300 (readbytes! docstring): "Read at most nb bytes from stream into b,
+  returning the number of bytes read. The size of b will be increased if needed (i.e. if
+  nb is greater than length(b) and enough bytes could be read)".
+cause: |
+  stdlib/Base64/src/decode.jl:120-121: `if length(data) == filled; resize!(data,
+  min(length(data) * 2, nb))` doubles 0 to 0, so line 124 calls read_until_end with
+  n = 0 forever; line 119's eof(pipe) never becomes true because pipe.rest only grows.
+possible_fix: |
+  Grow to at least one byte, e.g. resize!(data, min(max(2 * length(data), 1024), nb)).
+duplicates:
+  issues: []
+  queries: ["Base64DecodePipe readbytes", "Base64DecodePipe hang", "Base64 readbytes!", "Base64DecodePipe", "base64 in:title", "Base64"]
+lean:
+  property: JuliaLean.Base64Uuid.ReadbytesTerminates
+  theorem: JuliaLean.Base64Uuid.readbytesTerminates_refuted

@@ -1,0 +1,65 @@
+id: randomsampling-steprange-full-width
+title: "rand(typemin(Int):1:typemax(Int)) throws \"collection must be non-empty\" for a non-empty StepRange"
+priority: P2
+kind: wrong-exception
+area: RandomSampling
+files: [stdlib/Random/src/generation.jl, base/range.jl]
+functions: ["rand(::AbstractRNG, ::StepRange)", "Sampler(::Type, ::AbstractArray, ::Repetition)"]
+summary: |
+  rand on a StepRange samples an index from firstindex(r):lastindex(r). For a
+  StepRange with 2^64 elements, such as typemin(Int):1:typemax(Int), length(r)
+  wraps to 0, so the index range is empty and rand throws
+  ArgumentError("collection must be non-empty") although isempty(r) is false.
+  The UnitRange typemin(Int):typemax(Int) works, because its sampler handles
+  the full width. The same happens for typemin(Int):2:typemax(Int),
+  typemax(Int):-1:typemin(Int), 0x0:0x1:typemax(UInt64) and full Int128 StepRanges.
+likelihood: |
+  Needs a StepRange covering at least 2^63 values of a 64-bit or 128-bit type,
+  for example a range written with an explicit step. Rare in practice.
+maybe_intended: |
+  The root cause is the wrapped length of full-width ranges, which Base
+  documents as unchecked for performance (see the Ranges report on
+  length(typemin(Int):typemax(Int))). rand cannot index such a range with Int
+  indices, so an error may be considered acceptable, but the message claims
+  the collection is empty.
+reproducer: |
+  using Random
+  r = typemin(Int):1:typemax(Int)
+  isempty(r)            # false
+  rand(Xoshiro(1), r)   # ArgumentError: collection must be non-empty
+output:
+  release: |
+    typeof = StepRange{Int64, Int64}; isempty = false; length = 0
+    UnitRange: rand(Xoshiro(1), typemin(Int):typemax(Int)) = -7870001672338672178
+    ArgumentError: ArgumentError: collection must be non-empty
+    REPRODUCED randomsampling-steprange-full-width
+  nightly: |
+    typeof = StepRange{Int64, Int64}; isempty = false; length = 0
+    UnitRange: rand(Xoshiro(1), typemin(Int):typemax(Int)) = -7870001672338672178
+    ArgumentError: ArgumentError: collection must be non-empty
+    REPRODUCED randomsampling-steprange-full-width
+reproduced: {release: true, nightly: true}
+expected: |
+  A uniformly chosen element of r, as for the equivalent UnitRange
+  typemin(Int):typemax(Int); at least not an error saying the collection is empty.
+promised_by: |
+  stdlib/Random/src/Random.jl:328-330: "Pick a random element ... from the set
+  of values specified by S; S can be an indexable collection (for example 1:9 ...)".
+  The empty-collection ArgumentError is documented only for empty collections.
+cause: |
+  stdlib/Random/src/generation.jl:469-470 builds the sampler over
+  firstindex(r):lastindex(r). lastindex(r) is length(r), which
+  base/range.jl:820-829 computes in Int and wraps to 0 (or to a negative value)
+  for ranges with at least 2^63 elements. SamplerRangeNDL
+  (generation.jl:379-380) then sees the empty range 1:0 and calls
+  empty_collection_error().
+possible_fix: |
+  Add an OrdinalRange sampler that draws an offset k from
+  0:(unsigned(last(r) - first(r)) ÷ step) with the full-width unit-range
+  samplers and returns first(r) + k*step, like the UnitRange path.
+duplicates:
+  issues: []
+  queries: ["rand StepRange typemin typemax", "rand full range StepRange", "rand collection must be non-empty range", "rand range overflow", "Random StepRange", "PR rand StepRange"]
+lean:
+  property: JuliaLean.RandomSampling.StepRangeSamplerNonempty
+  theorem: JuliaLean.RandomSampling.stepRangeSamplerNonempty_refuted

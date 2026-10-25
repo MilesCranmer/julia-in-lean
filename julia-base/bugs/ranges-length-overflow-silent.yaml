@@ -1,0 +1,55 @@
+id: ranges-length-overflow-silent
+title: "length(typemin(Int):typemax(Int)) returns 0 instead of throwing"
+priority: P2
+kind: wrong-result
+area: Ranges
+files: [base/range.jl]
+functions: ["length(::AbstractUnitRange)", "length(::OrdinalRange)"]
+summary: |
+  A range with 2^64 elements reports length 0 while isempty is false. The
+  count is not representable as Int64, and length silently wraps instead of
+  throwing. The same holds for UInt64(0):typemax(UInt64) and the 128-bit types.
+likelihood: |
+  Needs a full-width 64- or 128-bit range; rare. The wrong length is the root
+  cause of ranges-collect-full-width-crash and ranges-eq-wrapped-length.
+maybe_intended: |
+  Base.checked_length exists and its docstring (base/checked.jl:373-374,
+  "Calculates `length(r)`, but may check for overflow errors") implies that
+  length itself is unchecked for speed. Under that reading only the downstream
+  consequences are bugs.
+reproducer: |
+  r = typemin(Int):typemax(Int)
+  println("length(typemin(Int):typemax(Int)) = ", length(r))
+  println("isempty = ", isempty(r), ", count = ", big(last(r)) - big(first(r)) + 1)
+  println("expected = 18446744073709551616 or an OverflowError")
+  length(r) == 0 && !isempty(r) && println("REPRODUCED ranges-length-overflow-silent")
+output:
+  release: |
+    length(typemin(Int):typemax(Int)) = 0
+    isempty = false, count = 18446744073709551616
+    expected = 18446744073709551616 or an OverflowError
+    REPRODUCED ranges-length-overflow-silent
+  nightly: |
+    length(typemin(Int):typemax(Int)) = 0
+    isempty = false, count = 18446744073709551616
+    expected = 18446744073709551616 or an OverflowError
+    REPRODUCED ranges-length-overflow-silent
+reproduced: {release: true, nightly: true}
+expected: "OverflowError (the count 2^64 does not fit in Int64)."
+promised_by: |
+  length returns "the number of elements in the collection"; the invariant
+  isempty(r) == (length(r) == 0) fails here.
+cause: |
+  base/range.jl:797-799: a = oneunit(...); a += stop - start wraps
+  1 + (typemax - typemin) = 2^64 to 0.
+possible_fix: |
+  Use checked arithmetic in length for 64- and 128-bit element types, or at
+  least in the callers that allocate or compare by length.
+duplicates:
+  issues:
+    - {number: 45389, state: open, relation: related}
+    - {number: 58245, state: open, relation: related}
+  queries: ["length typemin typemax range", "range length wraps zero", "length overflow UnitRange", "checked_length", "typemax range length"]
+lean:
+  property: JuliaLean.Ranges.LengthIsCount
+  theorem: JuliaLean.Ranges.lengthIsCount_refuted

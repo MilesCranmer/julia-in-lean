@@ -1,0 +1,64 @@
+id: platforms-show-tag-names
+title: "show(::Platform) prints tag names such as \"cuda.version\" as keyword arguments, so repr(p) is not valid Julia"
+priority: P3
+kind: wrong-result
+area: Platforms
+files: [base/binaryplatforms.jl]
+functions: ["show(::IO, ::Platform)"]
+summary: |
+  show(io, p::Platform) prints every tag other than arch and os as a keyword argument
+  `k = repr(v)`. Tag names need not be Julia identifiers: the Platform docstring allows
+  periods, and the constructor also accepts names starting with a digit or equal to a
+  keyword. For Platform("x86_64", "linux", Dict("cuda.version" => "11.8")),
+  repr(p) is `Platform("x86_64", "linux"; cuda.version = "11.8", libc = "glibc")`,
+  which does not parse ("invalid keyword argument name").
+likelihood: |
+  Low: tag names with periods are rare in practice, though the docstring presents them as
+  valid. repr output is used when platforms are printed into generated code or logs meant
+  to be pasted back.
+maybe_intended: |
+  show may only be meant as a readable display; the comment above it says "Allow us to
+  easily serialize Platform objects", which suggests round-tripping was intended.
+reproducer: |
+  using Base.BinaryPlatforms
+  p = Platform("x86_64", "linux", Dict{String,Any}("cuda.version" => "11.8"); validate_strict = true)
+  s = repr(p)
+  println("repr(p) = ", s)
+  r = try
+      eval(Meta.parse(s))
+  catch e
+      e
+  end
+  println("eval(Meta.parse(repr(p))) => ", r isa Exception ? sprint(showerror, r) : repr(r))
+  if !(r isa Platform && r == p)
+      println("REPRODUCED platforms-show-tag-names")
+  end
+output:
+  release: |
+    repr(p) = Platform("x86_64", "linux"; libc = "glibc", cuda.version = "11.8")
+    eval(Meta.parse(repr(p))) => syntax: invalid keyword argument name "cuda.version"
+    REPRODUCED platforms-show-tag-names
+  nightly: |
+    repr(p) = Platform("x86_64", "linux"; cuda.version = "11.8", libc = "glibc")
+    eval(Meta.parse(repr(p))) => syntax: invalid keyword argument name "cuda.version"
+    REPRODUCED platforms-show-tag-names
+reproduced: {release: true, nightly: true}
+expected: |
+  repr(p) is valid Julia that rebuilds p, e.g. by printing names that are not identifiers
+  through the Dict form: Platform("x86_64", "linux", Dict("cuda.version" => "11.8", ...)).
+promised_by: |
+  base/binaryplatforms.jl:198-209: "# Allow us to easily serialize Platform objects" above
+  show(io, p::Platform); base/binaryplatforms.jl:32-33 (Platform docstring): "Valid tags
+  and values are composed of alphanumeric and period characters."
+cause: |
+  base/binaryplatforms.jl:207 prints `$(k) = $(repr(v))` for every tag name k without
+  checking Base.isidentifier(k).
+possible_fix: |
+  Print the Dict-based constructor (or `var"k"` names) when some tag name is not an
+  identifier.
+duplicates:
+  issues: []
+  queries: ["Platform show", "Platform repr", "BinaryPlatforms show"]
+lean:
+  property: JuliaLean.Platforms.ShowKeysAreNames
+  theorem: JuliaLean.Platforms.showKeysAreNames_refuted

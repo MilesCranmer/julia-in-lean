@@ -1,0 +1,70 @@
+id: arrayops-deleteat-error-partial
+title: "deleteat!(a, inds) and keepat!(a, inds) modify a before throwing for unsorted or out-of-bounds inds"
+priority: P2
+kind: wrong-result
+area: ArrayOps
+files: [base/array.jl, base/abstractarray.jl]
+functions: ["deleteat!(::Vector, inds)", "keepat!(::Vector, inds)", "splice!(::Vector, inds)"]
+summary: |
+  deleteat!(a, inds) validates each index only when it reaches it, after it has
+  already shifted earlier elements. When a later index is out of bounds, repeated or
+  out of order, it throws but leaves a corrupted: deleteat!([10,20,30,40], [1,3,5])
+  throws BoundsError and leaves [20, 20, 30, 40] (10 is lost, 20 duplicated).
+  keepat! and splice!(a, inds) behave the same way.
+likelihood: |
+  Only matters when the error is caught and a is used afterwards (for example
+  a try/catch around user-supplied indices). Then the data are silently wrong.
+maybe_intended: |
+  A maintainer comment on #7642 says the state of an object after a failed mutating
+  operation is not well defined. Under that reading only atomicity is missing; the
+  docstring does not promise it.
+reproducer: |
+  a = [10, 20, 30, 40]
+  err = try
+      deleteat!(a, [1, 3, 5])
+      nothing
+  catch e
+      e
+  end
+  println(repr(err))
+  println(a)
+  b = [10, 20, 30, 40]
+  try keepat!(b, [2, 4, 3]) catch end
+  println(b)
+  if err isa BoundsError && a == [20, 20, 30, 40]
+      println("REPRODUCED arrayops-deleteat-error-partial")
+  end
+output:
+  release: |
+    BoundsError(#undef, #undef)
+    [20, 20, 30, 40]
+    [20, 40, 30, 40]
+    REPRODUCED arrayops-deleteat-error-partial
+  nightly: |
+    BoundsError(#undef, #undef)
+    [20, 20, 30, 40]
+    [20, 40, 30, 40]
+    REPRODUCED arrayops-deleteat-error-partial
+reproduced: {release: true, nightly: true}
+expected: |
+  BoundsError with a == [10, 20, 30, 40] unchanged (and [10, 20, 30, 40] for the keepat! call).
+promised_by: |
+  deleteat! docstring, base/array.jl:1916-1944: inds must be sorted and unique, and
+  the example deleteat!([6, 5, 4, 3, 2, 1], (2, 2)) shows the ArgumentError as a
+  rejection of the arguments. Invariant: argument validation errors leave the
+  argument unchanged, as push!/insert! take care to do (base/array.jl:1361, 1873).
+cause: |
+  base/array.jl:1978-1995 interleaves the checks `q <= i <= n` with the compaction
+  loop that copies a[q] to a[p]; the error is thrown after some copies have been
+  made. _keepat! (base/abstractarray.jl:3699-3715) writes a[i] = a[k] before it
+  checks the next index.
+possible_fix: |
+  Validate the whole index collection first (one pass for sortedness and bounds) when it is an AbstractVector, then compact.
+duplicates:
+  issues:
+    - {number: 7642, state: closed, relation: related}
+    - {number: 54401, state: open, relation: related}
+  queries: ["deleteat unsorted", "deleteat error state", "deleteat partially modified", "keepat error", "deleteat"]
+lean:
+  property: JuliaLean.ArrayOps.DeleteatErrorUnchanged
+  theorem: JuliaLean.ArrayOps.deleteatErrorUnchanged_refuted

@@ -1,0 +1,57 @@
+id: artifacts-override-cycle
+title: "Cyclic artifact hash overrides hang during path resolution"
+priority: P1
+kind: hang
+area: Artifacts
+files: [stdlib/Artifacts/src/Artifacts.jl]
+functions: ["load_overrides", "query_override(::SHA1)", "map_override_path(::SHA1)", "artifact_path", "artifact_paths"]
+summary: |
+  `load_overrides` accepts two valid hash-to-hash mappings that point to each other.
+  Querying either override then recurses indefinitely instead of returning a path or
+  rejecting the cyclic configuration.
+likelihood: |
+  Hash-to-hash redirects are documented, and a cycle can arise from two individually valid
+  entries or layered depot overrides. Any artifact lookup for a hash in the cycle hangs.
+maybe_intended: |
+  Following chains of hash redirects is intentional. Accepting a redirect cycle without an
+  error cannot produce the path promised by the query and path APIs.
+reproducer: |
+  first_hash = "1"^40
+  second_hash = "2"^40
+  write(joinpath(artifacts_dir, "Overrides.toml"),
+        "$(first_hash) = \"$(second_hash)\"\n$(second_hash) = \"$(first_hash)\"\n")
+  process = run(pipeline(ignorestatus(`$(Base.julia_cmd()) --startup-file=no
+      --history-file=no $(@__FILE__) child $depot $first_hash`),
+      stdout=devnull, stderr=devnull); wait=false)
+  status = timedwait(() -> Base.process_exited(process), 5.0; pollint=0.05)
+output:
+  release: |
+    resolution status after 5 seconds = timed_out
+    cyclic override hangs = true
+    REPRODUCED artifacts-override-cycle
+  nightly: |
+    resolution status after 5 seconds = timed_out
+    cyclic override hangs = true
+    REPRODUCED artifacts-override-cycle
+reproduced: {release: true, nightly: true}
+expected: |
+  Loading or resolving cyclic overrides should report an error. It should not recurse
+  indefinitely.
+promised_by: |
+  The `ARTIFACT_OVERRIDES` docstring at `stdlib/Artifacts/src/Artifacts.jl:91-109` permits
+  redirects to other artifact hashes. The `query_override` and `artifact_path` docstrings at
+  lines 200-205 and 236-240 promise path-returning queries, which must terminate.
+cause: |
+  `query_override` at lines 206-208 maps a SHA1 target through `map_override_path`. The SHA1
+  method at line 197 calls `artifact_path`, which calls `artifact_paths` at lines 245-247;
+  `artifact_paths` calls `query_override` again at lines 224-229. No visited-hash check breaks
+  a cycle.
+possible_fix: |
+  Resolve hash redirects while tracking visited hashes, and throw an informative error when
+  a hash repeats.
+duplicates:
+  issues: []
+  queries: ["Artifacts override cycle", "Overrides.toml cycle", "artifact hash override recursion", "query_override stack overflow"]
+lean:
+  property: JuliaLean.Artifacts.AcceptedOverridesResolve
+  theorem: JuliaLean.Artifacts.acceptedOverridesResolve_refuted

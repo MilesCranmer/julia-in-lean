@@ -1,0 +1,58 @@
+id: dicts-set-in-bang-convert
+title: "in!(x, ::Set) converts x lossily instead of throwing like push!"
+priority: P2
+kind: wrong-result
+area: Dicts
+files: [base/set.jl]
+functions: ["in!(x, ::Set)"]
+summary: |
+  in!(x, s::Set{T}) converts x to T and inserts the converted value without
+  checking isequal(convert(T, x), x), which push! (via setindex!) checks and
+  answers with a TypeError. So in!(0.1, Set{Float32}()) returns false and
+  stores 0.1f0 where push! throws, and in!(0.1, Set{Float32}([0.1f0]))
+  returns true although 0.1 in s is false.
+likelihood: |
+  Needs an element of a wider type than the set's element type, e.g. Float64
+  values into a Set{Float32}, or unique(f, C; seen = Set{T}()) with a seen
+  set narrower than f's results (base/set.jl:305). Plausible in numeric code.
+maybe_intended: |
+  in! is documented as an optimization of in plus push!, so the lossy
+  conversion is more likely an oversight than a design choice.
+reproducer: |
+  in!(0.1, Set{Float32}())                 # false, stores 0.1f0
+  push!(Set{Float32}(), 0.1)               # TypeError
+  in!(0.1, Set{Float32}([0.1f0]))          # true, but 0.1 in s is false
+output:
+  release: |
+    in!(0.1, Set{Float32}()) = false; set afterwards: Set(Float32[0.1])
+    push!(Set{Float32}(), 0.1) throws: TypeError: 0.1 is not a valid key for type Float32
+    in(0.1, Set{Float32}([0.1f0])) = false, in!(0.1, same set) = true
+    REPRODUCED dicts-set-in-bang-convert
+  nightly: |
+    in!(0.1, Set{Float32}()) = false; set afterwards: Set(Float32[0.1])
+    push!(Set{Float32}(), 0.1) throws: TypeError: 0.1 is not a valid key for type Float32
+    in(0.1, Set{Float32}([0.1f0])) = false, in!(0.1, same set) = true
+    REPRODUCED dicts-set-in-bang-convert
+reproduced: {release: true, nightly: true}
+expected: |
+  in!(0.1, Set{Float32}()) throws the same TypeError as push!, and
+  in!(0.1, Set{Float32}([0.1f0])) does too (0.1 is not in the set, so the
+  documented equivalent pushes 0.1 and throws).
+promised_by: |
+  in! docstring, base/set.jl:97-99: "If `x` is in `s`, return `true`. If not,
+  push `x` into `s` and return `false`. This is equivalent to
+  `in(x, s) ? true : (push!(s, x); false)`, but may have a more efficient
+  implementation."
+cause: |
+  base/set.jl:130: xT = convert(eltype(s), x) without the
+  isequal(key, key0) check that setindex!(::Dict, v, key0) performs
+  (base/dict.jl:351-353); the probe and insert then use xT.
+possible_fix: |
+  After converting, throw KeyTypeError(eltype(s), x) unless isequal(xT, x),
+  as setindex! does.
+duplicates:
+  issues: []
+  queries: ["in! convert", "in! KeyTypeError", "in! Set convert isequal", "in! Float32", "in! isequal"]
+lean:
+  property: JuliaLean.Dicts.InBangEquiv
+  theorem: JuliaLean.Dicts.inBangEquiv_refuted

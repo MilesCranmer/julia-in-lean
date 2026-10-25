@@ -1,0 +1,55 @@
+id: reduce-cumsum-dims-nonpositive
+title: "cumsum(v::AbstractVector; dims=0) silently returns a copy instead of throwing"
+priority: P3
+kind: missing-error
+area: Reduce
+files: [base/accumulate.jl]
+functions: ["cumsum(v::AbstractVector; dims)", "cumsum!(out, v::AbstractVector; dims)", "_cumsum!"]
+summary: |
+  For a vector, cumsum(v; dims=d) returns a copy of v for every d != 1, including
+  d = 0 and negative d. accumulate(+, v; dims=0), cumprod(v; dims=0) and
+  cumsum(A::Matrix; dims=0) throw ArgumentError("dims must be a positive
+  integer"), as does sum(v; dims=0).
+likelihood: |
+  Low: needs an invalid dims value; it then goes unnoticed.
+maybe_intended: |
+  No; the other methods check dims.
+reproducer: |
+  cumsum([1, 2, 3]; dims=0)           # [1, 2, 3]
+  accumulate(+, [1, 2, 3]; dims=0)    # ArgumentError
+output:
+  release: |
+    [1, 2, 3] ArgumentError ArgumentError
+    REPRODUCED reduce-cumsum-dims-nonpositive
+    cumsum([1, 2, 3]; dims = 0)                                  => [1, 2, 3]
+    cumsum([1, 2, 3]; dims = -1)                                 => [1, 2, 3]
+    cumsum([1 2]; dims = 0)                                      => THROWS ArgumentError: dims must be a positive integer
+    cumprod([1, 2, 3]; dims = 0)                                 => THROWS ArgumentError: dims must be a positive integer
+    accumulate(+, [1, 2, 3]; dims = 0)                           => THROWS ArgumentError: dims must be a positive integer
+  nightly: |
+    [1, 2, 3] ArgumentError ArgumentError
+    REPRODUCED reduce-cumsum-dims-nonpositive
+    cumsum([1, 2, 3]; dims = 0)                                  => [1, 2, 3]
+    cumsum([1, 2, 3]; dims = -1)                                 => [1, 2, 3]
+    cumsum([1 2]; dims = 0)                                      => THROWS ArgumentError: dims must be a positive integer
+    cumprod([1, 2, 3]; dims = 0)                                 => THROWS ArgumentError: dims must be a positive integer
+    accumulate(+, [1, 2, 3]; dims = 0)                           => THROWS ArgumentError: dims must be a positive integer
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError: dims must be a positive integer.
+promised_by: |
+  base/accumulate.jl:70-72 (cumsum docstring: cumulative sum along the dimension
+  dims); base/accumulate.jl:375 rejects dims <= 0 for accumulate and cumprod.
+cause: |
+  base/accumulate.jl:54-67: cumsum!(out, v::AbstractVector; dims) calls
+  _cumsum!(out, v, dims, ...), which does `dim == 1 ? accumulate... : copyto!(out, v)`
+  without checking dim > 0.
+possible_fix: |
+  Add `dims > 0 || throw(ArgumentError("dims must be a positive integer"))` to
+  cumsum!(out, v::AbstractVector; dims).
+duplicates:
+  issues: []
+  queries: ["cumsum dims=0", "cumsum dims positive", "cumsum dims negative", "cumsum dims vector", "_cumsum! dims"]
+lean:
+  property: JuliaLean.Reduce.CumsumAccumulate
+  theorem: JuliaLean.Reduce.cumsumAccumulate_refuted

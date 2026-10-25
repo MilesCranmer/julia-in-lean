@@ -1,0 +1,47 @@
+id: bitarrays-circshift-empty
+title: "circshift!(::BitVector, k) throws DivideError for an empty BitVector"
+priority: P2
+kind: wrong-exception
+area: BitArrays
+files: [base/bitarray.jl]
+functions: ["circshift!(::BitVector, ::Integer)", "circshift!(::BitVector, ::BitVector, ::Integer)"]
+summary: |
+  circshift!(falses(0), 1) and circshift!(falses(0), falses(0), 1) throw
+  DivideError. circshift!(Bool[], 1) and circshift!(Bool[], Bool[], 1) return the
+  empty vector, as the generic methods were fixed to do in #41402.
+likelihood: |
+  Generic code rotating a BitVector that happens to be empty (for example a
+  filtered or freshly allocated mask) hits it. Throws instead of a silent wrong
+  result.
+maybe_intended: ""
+reproducer: |
+  circshift!(falses(0), 1)    # DivideError
+  circshift!(Bool[], 1)       # Bool[]
+output:
+  release: |
+    DivideError() Bool[]
+    REPRODUCED bitarrays-circshift-empty
+  nightly: |
+    DivideError() Bool[]
+    REPRODUCED bitarrays-circshift-empty
+reproduced: {release: true, nightly: true}
+expected: |
+  The empty BitVector, unchanged.
+promised_by: |
+  circshift! on AbstractVector returns empty vectors unchanged
+  (base/abstractarray.jl:3756-3758: "n == 0 && return a"), and #41402 fixed the
+  same DivideError for the generic methods; a BitVector should behave like
+  Vector{Bool}.
+cause: |
+  _circshift_int! (base/bitarray.jl:1417-1433) computes i %= n at line 1421
+  with n = length(dest) = 0, i.e. rem(i, 0), before any emptiness check.
+possible_fix: |
+  Return dest (after the length check) when n == 0, before i %= n.
+duplicates:
+  issues:
+    - {number: 41402, state: closed, relation: related}
+    - {number: 54294, state: closed, relation: related}
+  queries: ["issues: circshift", "issues: circshift DivideError", "issues: circshift BitVector", "issues: circshift! BitVector", "prs: BitVector circshift", "prs: circshift empty"]
+lean:
+  property: JuliaLean.BitArrays.CircshiftAgrees
+  theorem: JuliaLean.BitArrays.circshiftAgrees_refuted

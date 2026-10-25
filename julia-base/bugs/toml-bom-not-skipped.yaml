@@ -1,0 +1,51 @@
+id: toml-bom-not-skipped
+title: "TOML parser never skips a leading byte order mark: the BOM check in startup tests the wrong character"
+priority: P3
+kind: wrong-result
+area: Toml
+files: [base/toml/parser.jl]
+functions: ["Base.TOML.startup", "TOML.parse", "TOML.parsefile"]
+summary: |
+  `startup` is meant to skip a UTF-8 byte order mark at the start of the document, but
+  it compares the character returned by the first `eat_char`, which is the initial
+  placeholder `EOF_CHAR`, not the first character of the input. The BOM is never
+  skipped, so `TOML.tryparse("\ufeffa = 1")` and any file saved with a BOM give
+  `ParserError(ErrInvalidBareKeyCharacter)`.
+likelihood: |
+  Some Windows editors save UTF-8 files with a BOM; such Project.toml or config files
+  fail to parse with an error that points at an invisible character.
+maybe_intended: |
+  The TOML specification does not mention a byte order mark, so rejecting it is
+  arguably allowed; but the parser's own code (base/toml/parser.jl:170-174) is written to
+  skip it, and that code is dead.
+reproducer: |
+  import TOML
+  TOML.tryparse("\ufeffa = 1")   # ParserError(ErrInvalidBareKeyCharacter)
+output:
+  release: |
+    ParserError: ErrInvalidBareKeyCharacter
+    Dict{String, Any}("a" => 1)
+    REPRODUCED toml-bom-not-skipped
+  nightly: |
+    ParserError: ErrInvalidBareKeyCharacter
+    Dict{String, Any}("a" => 1)
+    REPRODUCED toml-bom-not-skipped
+reproduced: {release: true, nightly: true}
+expected: |
+  `Dict("a" => 1)`, with the BOM skipped as `startup` intends.
+promised_by: |
+  Invariant stated by the code: base/toml/parser.jl:168-174, "Populate our one character
+  look-ahead ... # Skip BOM".
+cause: |
+  base/toml/parser.jl:169 `c = eat_char(l)` returns the previous look-ahead
+  `l.current_char`, which the constructor set to `EOF_CHAR` (base/toml/parser.jl:141),
+  and loads the first input character into `l.current_char`. The test
+  `c === '\ufeff'` (base/toml/parser.jl:171) therefore never succeeds.
+possible_fix: |
+  Test `peek(l) === '\ufeff'` after the first `eat_char` and eat it if so.
+duplicates:
+  issues: []
+  queries: ["TOML BOM", "TOML byte order mark", "TOML parser", "TOML UTF-8"]
+lean:
+  property: JuliaLean.Toml.BomSkipped
+  theorem: JuliaLean.Toml.bomSkipped_refuted

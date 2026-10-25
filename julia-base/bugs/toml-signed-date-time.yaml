@@ -1,0 +1,67 @@
+id: toml-signed-date-time
+title: "TOML parser accepts signed dates and times such as -200-01-01 and +1:30:00"
+priority: P2
+kind: missing-error
+area: Toml
+files: [base/toml/parser.jl]
+functions: ["Base.TOML.parse_datetime", "Base.TOML.parse_local_time", "TOML.parse"]
+summary: |
+  The width checks for the year (4 digits) and the hour (2 digits) count the characters
+  from the start of the number, including a leading `+` or `-`. A sign plus three year
+  digits or a sign plus one hour digit therefore passes: `TOML.parse("a = -200-01-01")`
+  returns `Date(-200, 1, 1)`, `"a = +999-01-01"` returns `Date(999, 1, 1)`,
+  `"a = +1:30:00"` returns `Time(1, 30)` and `"a = -0:30:00"` returns `Time(0, 30)`.
+  A correct four-digit year with a sign, `+2000-01-01`, is rejected.
+likelihood: |
+  Needs a sign before a date or time, which is invalid TOML; a negative year such as
+  `-200-01-01` is the most plausible source. Julia then returns a date or time that the
+  file did not contain in valid form.
+maybe_intended: ""
+reproducer: |
+  import TOML
+  TOML.parse("a = -200-01-01")   # Dict("a" => Date("-0200-01-01"))
+  TOML.parse("a = +1:30:00")     # Dict("a" => Time(1, 30))
+output:
+  release: |
+    "a = -200-01-01" => Dict{String, Any}("a" => Dates.Date("-0200-01-01"))
+    "a = +999-01-01" => Dict{String, Any}("a" => Dates.Date("0999-01-01"))
+    "a = +1:30:00" => Dict{String, Any}("a" => Dates.Time(1, 30))
+    "a = -0:30:00" => Dict{String, Any}("a" => Dates.Time(0, 30))
+    "a = +2000-01-01" => Base.TOML.ParserError(Base.TOML.ErrParsingDateTime, nothing, "a = +2000-01-01", nothing, 1, 9, 9, Dict{String, Any}())
+    REPRODUCED toml-signed-date-time
+  nightly: |
+    "a = -200-01-01" => Dict{String, Any}("a" => Dates.Date("-0200-01-01"))
+    "a = +999-01-01" => Dict{String, Any}("a" => Dates.Date("0999-01-01"))
+    "a = +1:30:00" => Dict{String, Any}("a" => Dates.Time(1, 30))
+    "a = -0:30:00" => Dict{String, Any}("a" => Dates.Time(0, 30))
+    "a = +2000-01-01" => Base.TOML.ParserError(Base.TOML.ErrParsingDateTime, nothing, "a = +2000-01-01", nothing, 1, 9, 9, Dict{String, Any}())
+    REPRODUCED toml-signed-date-time
+reproduced: {release: true, nightly: true}
+expected: |
+  A `ParserError` (`ErrParsingDateTime`) for every signed date or time.
+promised_by: |
+  TOML v1.1.0, "Local Date" and "Local Time" use RFC 3339 `full-date` and
+  `partial-time`: `date-fullyear = 4DIGIT`, `time-hour = 2DIGIT`; there is no sign.
+  The parser's own comments state the rule: base/toml/parser.jl:1202
+  "SPEC: date-fullyear = 4DIGIT (exactly 4 digits required)" and base/toml/parser.jl:1279
+  "SPEC: partial-time = time-hour ":" ... where time-hour = 2DIGIT".
+cause: |
+  `parse_number_or_date_start` sets the marker before the sign (base/toml/parser.jl:1017-1025)
+  and dispatches to `parse_datetime`/`parse_local_time` without rejecting a sign
+  (base/toml/parser.jl:1084-1091, 1058-1061). The width checks
+  `(l.prevpos - year_start) == 4` (base/toml/parser.jl:1203) and
+  `(l.prevpos - l.marker) == 2` (base/toml/parser.jl:1280) then count the sign as a digit,
+  and `parse_int` accepts the signed text.
+possible_fix: |
+  Return `ParserError(ErrParsingDateTime)` before dispatching to the date and time
+  parsers when `parsed_sign` is true.
+duplicates:
+  issues:
+    - {number: 50030, state: closed, relation: related}
+  queries: ["TOML negative year", "TOML sign date", "TOML date year", "TOML date"]
+  notes: |
+    #50030 ("Year leading zeros not supported in TOML date/time parser") added the
+    zero-padded year path; it does not mention signs.
+lean:
+  property: JuliaLean.Toml.DateTimeUnsigned
+  theorem: JuliaLean.Toml.dateTimeUnsigned_refuted

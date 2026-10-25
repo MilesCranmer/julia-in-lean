@@ -1,0 +1,59 @@
+id: iterators-product-length-zero
+title: length(Iterators.product(...)) throws OverflowError for an empty product
+priority: P3
+kind: wrong-exception
+area: Iterators
+files:
+- base/iterators.jl
+functions:
+- length(::ProductIterator)
+summary: |
+  length(P) = reduce(checked_mul, size(P); init=1) multiplies the dimensions from
+  the left, so product(1:2^32, 1:2^32, 1:0) throws OverflowError although the
+  product has 0 elements; isempty and collect work, and the same factors in the
+  order (1:0, 1:2^32, 1:2^32) give length 0.
+likelihood: |
+  Needs a product of huge factors with an empty one. Rare.
+maybe_intended: |
+  OverflowError is the documented reaction to an unrepresentable product; one
+  can argue that the product of the sizes is computed before looking at zeros.
+reproducer: |
+  # length(product(...)) throws OverflowError for an empty product whose earlier factors overflow
+  p = Iterators.product(1:2^32, 1:2^32, 1:0)
+  l = try length(p) catch e; e end
+  println("length(product(1:2^32, 1:2^32, 1:0)) = ", l isa Exception ? sprint(showerror, l) : repr(l))
+  println("isempty = ", isempty(p), ", size = ", size(p), ", length(collect) = ", length(collect(p)))
+  println("length(product(1:0, 1:2^32, 1:2^32)) = ", length(Iterators.product(1:0, 1:2^32, 1:2^32)))
+  l isa OverflowError && isempty(p) && println("REPRODUCED iterators-product-length-zero")
+output:
+  release: |
+    length(product(1:2^32, 1:2^32, 1:0)) = OverflowError: 4294967296 * 4294967296 overflowed for type Int64
+    isempty = true, size = (4294967296, 4294967296, 0), length(collect) = 0
+    length(product(1:0, 1:2^32, 1:2^32)) = 0
+    REPRODUCED iterators-product-length-zero
+  nightly: |
+    length(product(1:2^32, 1:2^32, 1:0)) = OverflowError: 4294967296 * 4294967296 overflowed for type Int64
+    isempty = true, size = (4294967296, 4294967296, 0), length(collect) = 0
+    length(product(1:0, 1:2^32, 1:2^32)) = 0
+    REPRODUCED iterators-product-length-zero
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  length(product(1:2^32, 1:2^32, 1:0)) == 0.
+promised_by: |
+  Invariant: length(itr) is the number of elements (IteratorSize docstring,
+  base/generator.jl:70-90); the count 0 is representable.
+cause: |
+  base/iterators.jl:1186, a left fold of checked_mul that overflows before it
+  reaches the zero dimension.
+possible_fix: |
+  Return 0 if any dimension is 0 before the checked fold.
+duplicates:
+  issues: []
+  queries:
+  - product length overflow
+  - product length checked_mul
+lean:
+  property: JuliaLean.Iterators.ProductLengthExact
+  theorem: JuliaLean.Iterators.productLengthExact_refuted

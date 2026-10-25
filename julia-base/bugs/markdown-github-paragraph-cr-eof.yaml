@@ -1,0 +1,55 @@
+id: markdown-github-paragraph-cr-eof
+title: "Markdown.parse(s, flavor = :github) throws EOFError when s ends with a lone carriage return"
+priority: P1
+kind: crash
+area: Markdown
+files: [stdlib/Markdown/src/GitHub/GitHub.jl]
+functions: ["Markdown.github_paragraph"]
+summary: |
+  On master, with the github flavor, any paragraph whose last character is a bare `\r`
+  makes `Markdown.parse` throw `EOFError`, e.g. `Markdown.parse("a\r", flavor = :github)`.
+  `"a\r\n"` and `"a\n"` parse to a paragraph `"a"`.
+likelihood: |
+  Any text ending in a CR (CR-only line endings, or a string trimmed between `\r` and `\n`)
+  parsed with the github flavor. The flavor is selectable through the documented `flavor`
+  keyword. Regression from #60708; 1.13.2 returns a paragraph.
+maybe_intended: ""
+reproducer: |
+  using Markdown
+  # A paragraph whose last line ends in a lone carriage return, github flavor.
+  for s in ["a\r\n", "a\n", "a\r"]
+      try
+          println(repr(s), " -> ", repr(Markdown.parse(s, flavor = :github).content))
+      catch e
+          println(repr(s), " -> throws ", typeof(e))
+          s == "a\r" && e isa EOFError && println("REPRODUCED markdown-github-paragraph-cr-eof")
+      end
+  end
+output:
+  release: |
+    "a\r\n" -> Any[Markdown.Paragraph(Any["a\r"])]
+    "a\n" -> Any[Markdown.Paragraph(Any["a"])]
+    "a\r" -> Any[Markdown.Paragraph(Any["a\r"])]
+  nightly: |
+    "a\r\n" -> Any[Markdown.Paragraph(Any["a"])]
+    "a\n" -> Any[Markdown.Paragraph(Any["a"])]
+    "a\r" -> throws EOFError
+    REPRODUCED markdown-github-paragraph-cr-eof
+reproduced: {release: false, nightly: true}
+expected: |
+  `Markdown.parse("a\r", flavor = :github).content == [Markdown.Paragraph(["a"])]`.
+promised_by: |
+  Invariant: the parser accepts every string; `Markdown.parse` documents no exception
+  (stdlib/Markdown/src/Markdown.jl:63-70). The julia-flavor `paragraph` performs the same check with an
+  `!eof(stream)` guard (stdlib/Markdown/src/Common/block.jl:21).
+cause: |
+  stdlib/Markdown/src/GitHub/GitHub.jl:12-13: on `char == '\r'` the loop calls `peek(stream, Char)` without
+  checking `eof(stream)`, which throws at the end of the buffer.
+possible_fix: |
+  Add the `!eof(stream) &&` guard before the peek.
+duplicates:
+  issues: []
+  queries: ["Markdown EOFError", "github_paragraph", "Markdown carriage return", "Markdown CRLF"]
+lean:
+  property: JuliaLean.Markdown.GithubParagraphTotal
+  theorem: JuliaLean.Markdown.githubParagraphTotal_refuted

@@ -1,0 +1,59 @@
+id: markdown-list-unicode-digit
+title: "Markdown.parse throws ArgumentError when a line starts with a non-ASCII digit followed by \". \""
+priority: P1
+kind: crash
+area: Markdown
+files: [stdlib/Markdown/src/Common/block.jl]
+functions: ["Markdown.list"]
+summary: |
+  `Markdown.parse("۱. item")` (Persian digit one) or `Markdown.parse("１. item")` (fullwidth
+  digit one) throws `ArgumentError: invalid base 10 digit`. Julia compiles regexes with PCRE's UCP
+  option, so `\d` in the list-marker regex matches every Unicode decimal digit (770 code points on master),
+  but the matched digits are then converted with `Base.parse(Int, ...)`, which accepts only ASCII
+  digits. Any line starting with such a digit run and `.` or `)` plus a space throws, in the julia,
+  common and github flavors, on 1.13.2 and master.
+likelihood: |
+  Text written with native digits (Arabic, Persian, Devanagari, Bengali, Thai, ...) or
+  fullwidth CJK digits that numbers items as `۱. ` or `１. `. Ordinary for those writers; any such
+  docstring or Markdown string makes `Markdown.parse`, `@md_str` and `@doc` fail.
+maybe_intended: ""
+reproducer: |
+  using Markdown
+  # Fullwidth digit one (U+FF11) and Persian digit one (U+06F1) used as list numbers.
+  for s in ["１. item", "۱. item"]
+      try
+          println(repr(s), " -> ", repr(Markdown.parse(s).content))
+      catch e
+          println(repr(s), " -> throws ", sprint(showerror, e))
+          s == "۱. item" && e isa ArgumentError && println("REPRODUCED markdown-list-unicode-digit")
+      end
+  end
+output:
+  release: |
+    "１. item" -> throws ArgumentError: invalid base 10 digit '１' in "１"
+    "۱. item" -> throws ArgumentError: invalid base 10 digit '۱' in "۱"
+    REPRODUCED markdown-list-unicode-digit
+  nightly: |
+    "１. item" -> throws ArgumentError: invalid base 10 digit '１' in "１"
+    "۱. item" -> throws ArgumentError: invalid base 10 digit '۱' in "۱"
+    REPRODUCED markdown-list-unicode-digit
+reproduced: {release: true, nightly: true}
+expected: |
+  No exception: the line is a paragraph (CommonMark list markers use ASCII digits 0-9 only),
+  or a list whose start number is the digit value.
+promised_by: |
+  Invariant: the parser accepts every string; `Markdown.parse` documents no exception
+  (stdlib/Markdown/src/Markdown.jl:63-70). CommonMark 0.31 section 5.2: an ordered list marker is a sequence
+  of 1-9 arabic digits (0-9).
+cause: |
+  stdlib/Markdown/src/Common/block.jl:316 `NUM_OR_BULLETS` uses `\d+` (Unicode digits under Julia's default
+  UCP flag) and lines 331/334 pass the capture to `Base.parse(Int, ...)`, which throws on non-ASCII
+  digits (base/parse.jl, `throw_parseint_error`).
+possible_fix: |
+  Use `[0-9]{1,9}` instead of `\d+` in `NUM_OR_BULLETS` and the two item regexes; this also fixes markdown-list-number-overflow.
+duplicates:
+  issues: []
+  queries: ["Markdown list", "Markdown ordered list", "Markdown ArgumentError", "invalid base 10 digit", "Markdown unicode", "Markdown Persian", "Markdown digit"]
+lean:
+  property: JuliaLean.Markdown.ListUnicodeDigit
+  theorem: JuliaLean.Markdown.listUnicodeDigit_refuted

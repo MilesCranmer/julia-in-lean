@@ -1,0 +1,60 @@
+id: abstractarrays-require-one-based-large-axis
+title: "require_one_based_indexing throws InexactError instead of ArgumentError for large UInt axes"
+priority: P3
+kind: wrong-exception
+area: AbstractArrays
+files: [base/abstractarray.jl, base/indices.jl]
+functions: ["has_offset_axes(::AbstractVector)", "has_offset_axes(A)", "require_one_based_indexing"]
+summary: |
+  A custom AbstractVector whose IdentityUnitRange axis starts at typemax(UInt)
+  makes has_offset_axes throw InexactError instead of returning true.
+  require_one_based_indexing propagates that InexactError instead of throwing
+  the ArgumentError promised by its docstring.
+likelihood: |
+  Very low. Offset arrays normally use Int axes near zero. The case requires a
+  custom array with an integer axis whose first value is not representable as
+  Int.
+maybe_intended: |
+  Base may rely in practice on AbstractArray axes being Int-valued, despite the
+  axes docstring permitting AbstractUnitRange{<:Integer}. IdentityUnitRange
+  itself has Int element type even when it wraps a UInt range.
+reproducer: |
+  struct HugeAxisVector <: AbstractVector{Int} end
+  Base.size(::HugeAxisVector) = (1,)
+  Base.axes(::HugeAxisVector) =
+      (Base.IdentityUnitRange(typemax(UInt):typemax(UInt)),)
+  Base.getindex(::HugeAxisVector, ::Int) = 1
+  A = HugeAxisVector()
+  Base.has_offset_axes(A)            # InexactError
+  Base.require_one_based_indexing(A) # InexactError
+output:
+  release: |
+    has_offset_axes=InexactError
+    require_one_based_indexing=InexactError
+    REPRODUCED abstractarrays-require-one-based-large-axis
+  nightly: |
+    has_offset_axes=InexactError
+    require_one_based_indexing=InexactError
+    REPRODUCED abstractarrays-require-one-based-large-axis
+reproduced: {release: true, nightly: true}
+expected: |
+  has_offset_axes(A) should return true, and require_one_based_indexing(A)
+  should throw ArgumentError because the axis does not begin at one.
+promised_by: |
+  base/abstractarray.jl:109-110 says has_offset_axes returns true when any axis
+  starts with something other than 1. Lines 125-130 say
+  require_one_based_indexing throws ArgumentError in that case. The axes
+  docstring at lines 69-70 permits AbstractUnitRange{<:Integer} axes.
+cause: |
+  base/abstractarray.jl:115-116 converts each first axis value to Int before
+  comparing it with 1. Conversion throws for UInt values above typemax(Int), so
+  line 135 never reaches its explicit ArgumentError.
+possible_fix: |
+  Compare first(x) directly with one(first(x)) or with 1, without converting it
+  to Int solely for the equality test.
+duplicates:
+  issues: []
+  queries: ["require_one_based_indexing InexactError", "has_offset_axes UInt", "offset axes typemax UInt", "require one based indexing ArgumentError", "prs: require_one_based_indexing InexactError", "prs: has_offset_axes UInt"]
+lean:
+  property: JuliaLean.AbstractArrays.RequireOneBasedAllIntegerAxes
+  theorem: JuliaLean.AbstractArrays.requireOneBasedAllIntegerAxes_refuted

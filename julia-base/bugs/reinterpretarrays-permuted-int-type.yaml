@@ -1,0 +1,53 @@
+id: reinterpretarrays-permuted-int-type
+title: "PermutedDimsArray(A, Int32[2, 1]) throws ErrorException although permutedims(A, Int32[2, 1]) works"
+priority: P2
+kind: wrong-exception
+area: ReinterpretArrays
+files: [base/permuteddimsarray.jl]
+functions: ["PermutedDimsArray(::AbstractArray, perm)"]
+summary: |
+  The outer constructor PermutedDimsArray(data, perm) splats perm into a tuple that
+  keeps its element type, and the inner constructor then requires
+  NTuple{N,Int}. A valid permutation given as Int32, UInt8 or UInt values (tuple or
+  vector) therefore throws ErrorException("perm and iperm must both be NTuple{2,Int}"),
+  while permutedims(A, perm) and permutedims!(dest, A, perm) accept the same perm.
+likelihood: |
+  Permutations computed with non-Int integer types (e.g. from sortperm on Int32 data
+  or stored compactly as UInt8) are plausible; the failure is loud.
+maybe_intended: |
+  The type parameters perm and iperm of PermutedDimsArray must be tuples of Int; the
+  docstring does not say which integer types perm may have.
+reproducer: |
+  A = reshape(collect(1:6), 2, 3)
+  permutedims(A, Int32[2, 1])        # works
+  PermutedDimsArray(A, Int32[2, 1])  # ErrorException
+output:
+  release: |
+    (2, 1): permutedims -> size (3, 2); PermutedDimsArray -> ErrorException("perm and iperm must both be NTuple{2,Int}")
+    UInt8[0x02, 0x01]: permutedims -> size (3, 2); PermutedDimsArray -> ErrorException("perm and iperm must both be NTuple{2,Int}")
+    (0x0000000000000002, 0x0000000000000001): permutedims -> size (3, 2); PermutedDimsArray -> ErrorException("perm and iperm must both be NTuple{2,Int}")
+    REPRODUCED reinterpretarrays-permuted-int-type
+  nightly: |
+    (2, 1): permutedims -> size (3, 2); PermutedDimsArray -> ErrorException("perm and iperm must both be NTuple{2,Int}")
+    UInt8[0x02, 0x01]: permutedims -> size (3, 2); PermutedDimsArray -> ErrorException("perm and iperm must both be NTuple{2,Int}")
+    (0x0000000000000002, 0x0000000000000001): permutedims -> size (3, 2); PermutedDimsArray -> ErrorException("perm and iperm must both be NTuple{2,Int}")
+    REPRODUCED reinterpretarrays-permuted-int-type
+reproduced: {release: true, nightly: true}
+expected: |
+  A 3×2 PermutedDimsArray, as for PermutedDimsArray(A, [2, 1]); or an ArgumentError
+  documenting that perm must contain Ints.
+promised_by: |
+  PermutedDimsArray docstring, base/permuteddimsarray.jl:20-27: "Similar to
+  permutedims, except that no copying occurs"; permutedims docstring,
+  base/permuteddimsarray.jl:94-95: "perm is a tuple or vector of ndims(A) integers".
+cause: |
+  base/permuteddimsarray.jl:45 passes (perm...,) and (iperm...,) without converting to
+  Int; line 13 then calls error(...) because they are not NTuple{N,Int}.
+possible_fix: |
+  Convert in the outer constructor: PermutedDimsArray{T,N,map(Int, (perm...,)),map(Int, (iperm...,)),typeof(data)}(data).
+duplicates:
+  issues: []
+  queries: ["perm and iperm must both be NTuple", "PermutedDimsArray Int32", "PermutedDimsArray perm type", "PermutedDimsArray non-Int", "PermutedDimsArray integer permutation", "PermutedDimsArray"]
+lean:
+  property: JuliaLean.ReinterpretArrays.PermutedAnyIntType
+  theorem: JuliaLean.ReinterpretArrays.permutedAnyIntType_refuted

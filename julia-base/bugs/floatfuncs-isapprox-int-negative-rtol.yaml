@@ -1,0 +1,76 @@
+id: floatfuncs-isapprox-int-negative-rtol
+title: "isapprox(1, 2; rtol=-1) throws InexactError on master (regression from #63022)"
+priority: P3
+kind: wrong-exception
+area: FloatFuncs
+files: [base/floatfuncs.jl]
+functions: ["isapprox(::Integer, ::Integer; atol, rtol)", "Base._scaled_rtol"]
+summary: |
+  The exact-integer isapprox on master computes the relative bound with
+  _scaled_rtol(rtol, max(uabs(x), uabs(y))) = mul_with_overflow(promote(rtol, scale)...).
+  For a BitInteger rtol, promote converts it to the unsigned type of the scale, so a
+  negative integer rtol throws InexactError: isapprox(1, 2; rtol=-1),
+  isapprox(1, 3; atol=2, rtol=-1) and isapprox(UInt(1), UInt(3); rtol=-1) all throw.
+  Julia 1.13.2 returns false, false-or-true per the formula, and a Float64 rtol=-1.0 still
+  returns false on master.
+likelihood: |
+  Low: a negative relative tolerance is meaningless, but it is accepted by the rtol::Real
+  signature and the docstring formula gives a well-defined answer (the bound is atol).
+maybe_intended: |
+  Negative tolerances could be considered invalid input, but then the error should be an
+  ArgumentError raised for every argument type, not an InexactError from an internal
+  promotion that only occurs for integer rtol.
+reproducer: |
+  r = try
+      isapprox(1, 2; rtol=-1)
+  catch err
+      err
+  end
+  println("isapprox(1, 2; rtol=-1) = ", r)
+  println("isapprox(1, 2; rtol=-1.0) = ", isapprox(1, 2; rtol=-1.0))
+  s = try
+      isapprox(Int8(1), Int8(2); rtol=Int8(-2))
+  catch err
+      err
+  end
+  println("isapprox(Int8(1), Int8(2); rtol=Int8(-2)) = ", s)
+  if r isa InexactError
+      println("REPRODUCED floatfuncs-isapprox-int-negative-rtol")
+  end
+output:
+  release: |
+    isapprox(1, 2; rtol=-1) = false
+    isapprox(1, 2; rtol=-1.0) = false
+    isapprox(Int8(1), Int8(2); rtol=Int8(-2)) = false
+  nightly: |
+    isapprox(1, 2; rtol=-1) = InexactError(:convert, (UInt64, -1))
+    isapprox(1, 2; rtol=-1.0) = false
+    isapprox(Int8(1), Int8(2); rtol=Int8(-2)) = InexactError(:convert, (UInt8, -2))
+    REPRODUCED floatfuncs-isapprox-int-negative-rtol
+reproduced: {release: false, nightly: true}
+expected: |
+  false, as on Julia 1.13.2 and as for rtol=-1.0: |1 - 2| = 1 > max(0, -1 * 2).
+promised_by: |
+  base/floatfuncs.jl:166-170: isapprox(x, y; atol::Number=0, rtol::Real=...) "returns true
+  if norm(x-y) <= max(atol, rtol*max(norm(x), norm(y)))".
+cause: |
+  base/floatfuncs.jl:287: _scaled_rtol(rtol::BitInteger, scale::BitInteger) =
+  mul_with_overflow(promote(rtol, scale)...). scale = max(uabs(x), uabs(y)) is unsigned,
+  so promote(rtol, scale) calls convert(UInt64, -1). The comment at line 298 ("Overflow
+  implies rtol >= 2") also assumes rtol >= 0. Introduced by #63022.
+possible_fix: |
+  Return x == y || abs-difference <= atol when rtol <= 0 before calling _scaled_rtol (the
+  relative term then cannot exceed zero), or only take the BitInteger path for rtol >= 0.
+duplicates:
+  issues:
+    - {number: 55814, state: closed, relation: related}
+    - {number: 50380, state: closed, relation: related}
+  queries:
+    - "issues: isapprox (found closed #55814 and #50380 on integer overflow, fixed by #63022)"
+    - "issues: isapprox rtol"
+    - "issues: isapprox InexactError"
+    - "issues: isapprox integer"
+    - "pull requests: isapprox integer"
+lean:
+  property: JuliaLean.FloatFuncs.IntIsapproxFormula
+  theorem: JuliaLean.FloatFuncs.intIsapproxFormula_refuted

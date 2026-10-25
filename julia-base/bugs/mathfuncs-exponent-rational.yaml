@@ -1,0 +1,54 @@
+id: mathfuncs-exponent-rational
+title: "exponent(::Rational) is off by one for values just below a power of two"
+priority: P2
+kind: wrong-result
+area: MathFuncs
+files: [base/math.jl, base/rational.jl]
+functions: ["exponent(::Real)", "exponent(::Rational)"]
+summary: |
+  exponent(x::Real) converts x with float(x) and takes the exponent of the
+  rounded value. For a Rational just below a power of two the conversion rounds
+  up to that power, so exponent returns one too many: exponent(typemax(Int)//2^62)
+  is 1 although the value is below 2, and exponent((2^60-1)//2^60) is 0 although
+  the value is below 1.
+likelihood: |
+  Needs a rational within about 2^-53 relative distance below a power of two,
+  e.g. a ratio of large Int64 values. Such values arise with exact rational
+  arithmetic, which is when callers expect exact answers.
+maybe_intended: |
+  The docstring's definition is exact ("largest integer y such that 2^y <= abs(x)")
+  and its example uses a Rational; Float conversion is an implementation shortcut.
+reproducer: |
+  q = typemax(Int64) // 2^62    # 1.99999999999999999989...
+  exponent(q)                   # 1, expected 0
+output:
+  release: |
+    q = 9223372036854775807//4611686018427387904 < 2: true
+    exponent(q) = 1
+    2^e <= abs(q): false
+    REPRODUCED mathfuncs-exponent-rational
+  nightly: |
+    q = 9223372036854775807//4611686018427387904 < 2: true
+    exponent(q) = 1
+    2^e <= abs(q): false
+    REPRODUCED mathfuncs-exponent-rational
+reproduced: {release: true, nightly: true}
+expected: |
+  exponent(typemax(Int64)//2^62) == 0 and exponent((2^60-1)//2^60) == -1.
+promised_by: |
+  base/math.jl:903 (exponent docstring): "Return the largest integer `y` such
+  that `2^y ≤ abs(x)`." with the example exponent(-1//4) == -2.
+cause: |
+  base/math.jl:1322-1331 defines exponent(x::Real) as exponent(float(x)), and
+  base/rational.jl:204 computes float(x) as float(x.num)/float(x.den), which
+  rounds (twice) before the exponent is read.
+possible_fix: |
+  Add exponent(x::Rational) using integer bit lengths: e = top_set_bit(abs(num)) -
+  top_set_bit(den), minus one if abs(num) < den*2^e (with shifts for e < 0).
+duplicates:
+  issues:
+    - {number: 53887, state: closed, relation: related}
+  queries: ["exponent Rational", "exponent rational rounding", "exponent of Rational", "exponent"]
+lean:
+  property: JuliaLean.MathFuncs.exponentRationalDefinition
+  theorem: JuliaLean.MathFuncs.exponentRationalDefinition_refuted

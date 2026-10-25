@@ -1,0 +1,56 @@
+id: show-symbol-invalid-utf8
+title: "repr(Symbol(\"\\x80\")) throws InvalidCharError"
+priority: P2
+kind: wrong-exception
+area: Show
+files: [base/show.jl, base/meta.jl]
+functions: ["show(::IO, ::Symbol)", "Base.isidentifier(::Symbol)"]
+summary: |
+  show/repr of a Symbol whose name is invalid UTF-8 throws InvalidCharError instead of
+  printing Symbol("\x80"). Base.isidentifier passes the first Char to the
+  is_id_start_char ccall, whose UInt32 conversion throws for malformed chars. The same
+  throw happens for Val{Symbol("\x80")}, for any Expr containing such a symbol, and for
+  names whose later characters are invalid (string(Expr(:call, :f, Symbol("a\xffb")))
+  throws from is_id_char).
+likelihood: |
+  Symbols are built from arbitrary strings (Symbol(s), keys of NamedTuples from data,
+  column names); showing one that contains invalid UTF-8 crashes printing.
+maybe_intended: ""
+reproducer: |
+  sym = Symbol("\x80")
+  r = try repr(sym) catch err; err end
+  println("repr(Symbol(\"\\x80\")) = ", r isa Exception ? r : repr(r))
+  r isa Exception && println("REPRODUCED show-symbol-invalid-utf8")
+output:
+  release: |
+    repr(Symbol("\x80")) = Base.InvalidCharError{Char}('\x80')
+    REPRODUCED show-symbol-invalid-utf8
+  nightly: |
+    repr(Symbol("\x80")) = Base.InvalidCharError{Char}('\x80')
+    REPRODUCED show-symbol-invalid-utf8
+reproduced: {release: true, nightly: true}
+expected: |
+  repr(Symbol("\x80")) == "Symbol(\"\\x80\")", and Base.isidentifier("\x80") == false.
+promised_by: |
+  Base.isidentifier docstring (base/meta.jl:28-46) says it returns whether the symbol
+  or string is a valid identifier and notes that Julia allows any sequence of characters
+  in a Symbol (except \0); show methods are expected not to throw on valid values.
+cause: |
+  base/meta.jl:48-55: `is_id_start_char(c)` is `ccall(:jl_id_start_char, Cint, (UInt32,),
+  c)`, and the conversion UInt32(c) throws InvalidCharError for a malformed Char.
+  show(::Symbol) calls isidentifier first (base/show.jl:1943).
+possible_fix: |
+  In isidentifier, return false when isvalid(c) is false before calling the ccalls.
+duplicates:
+  issues: []
+  queries:
+    - "issues: isidentifier"
+    - "issues: show Symbol invalid UTF-8"
+    - "issues: InvalidCharError Symbol"
+    - "issues: Symbol invalid UTF-8 show"
+    - "issues: isidentifier malformed"
+    - "prs: isidentifier"
+    - "prs: show Symbol invalid UTF-8"
+lean:
+  property: JuliaLean.Show.SymbolReprTotal
+  theorem: JuliaLean.Show.symbolReprTotal_refuted

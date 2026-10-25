@@ -1,0 +1,11 @@
+ex = Meta.parse("-(1)")             # Expr(:call, :-, 1)
+s = string(ex)
+println("string(Meta.parse(\"-(1)\")) = ", repr(s))
+back = Meta.parse(s)
+println("Meta.parse of that = ", repr(back), " :: ", typeof(back))
+ex2 = Meta.parse("-(-1)")           # Expr(:call, :-, -1)
+s2 = string(ex2)
+println("string(Meta.parse(\"-(-1)\")) = ", repr(s2))
+back2 = try Meta.parse(s2) catch err; err end
+println("Meta.parse of that = ", back2 isa Exception ? typeof(back2) : repr(back2))
+(back != ex || back2 != ex2) && println("REPRODUCED show-expr-unary-literal")

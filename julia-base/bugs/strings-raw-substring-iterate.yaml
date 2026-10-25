@@ -1,0 +1,69 @@
+id: strings-raw-substring-iterate
+title: "Iterating a raw_substring with a truncated character throws BoundsError"
+priority: P2
+kind: wrong-exception
+area: Strings
+files: [base/strings/substring.jl]
+functions: ["raw_substring(::AbstractString, ::Int, ::Int)", "iterate(::SubString, ::Integer)"]
+summary: |
+  ss = Base.raw_substring("é", 1, 1) has one code unit, but iterate(ss) returns
+  ('é', 3), reading past the SubString, and iterate(ss, 3) then throws
+  BoundsError, so collect(ss) fails while length(ss) == 1. Julia 1.13.2 shows
+  the same with SubString("é", 0, 1, Val(:noshift)).
+likelihood: |
+  raw_substring is new public API whose docstring invites truncated characters;
+  any byte-offset slicing of non-ASCII text hits it.
+maybe_intended: ""
+reproducer: |
+  s = "é"   # bytes c3 a9
+  # raw_substring is new in Julia 1.14; 1.13 builds the same SubString with Val(:noshift).
+  ss = isdefined(Base, :raw_substring) ? Base.raw_substring(s, 1, 1) : SubString(s, 0, 1, Val(:noshift))
+  println("ncodeunits(ss) = ", ncodeunits(ss), ", length(ss) = ", length(ss))
+  println("iterate(ss) = ", repr(iterate(ss)))
+  r = try
+      collect(ss)
+  catch e
+      e
+  end
+  println("collect(ss) = ", r isa Exception ? sprint(showerror, r) : repr(r))
+  r isa BoundsError && println("REPRODUCED strings-raw-substring-iterate")
+output:
+  release: |
+    ncodeunits(ss) = 1, length(ss) = 1
+    iterate(ss) = ('é', 3)
+    collect(ss) = BoundsError: attempt to access 1-codeunit SubString{String} at index [3]
+    REPRODUCED strings-raw-substring-iterate
+  nightly: |
+    ncodeunits(ss) = 1, length(ss) = 1
+    iterate(ss) = ('é', 3)
+    collect(ss) = BoundsError: attempt to access 1-codeunit SubString{String} at index [3]
+    REPRODUCED strings-raw-substring-iterate
+reproduced: {release: true, nightly: true}
+expected: |
+  Iteration yields '\xc3' (the truncated byte as a malformed Char) and stops,
+  giving length(ss) characters.
+promised_by: |
+  The raw_substring docstring: "The presence of truncated characters is safe and
+  well-defined for `String`, `StringView`, and substrings of these"
+  (base/strings/substring.jl:11-14).
+cause: |
+  iterate(::SubString, i) (base/strings/substring.jl:151-158) calls iterate on
+  the parent String, which decodes a character extending past s.offset +
+  s.ncodeunits.
+possible_fix: |
+  Bound decoding by the SubString's end (as _thisind/_nextind do with
+  ncodeunits(s)), or clamp the returned index.
+duplicates:
+  issues:
+    - {number: 59663, state: merged, relation: related}
+    - {number: 59610, state: closed, relation: related}
+  queries:
+    - "issues: raw_substring"
+    - "issues: truncated SubString"
+    - "issues: SubString truncated character"
+    - "issues: SubString iterate BoundsError"
+    - "issues: noshift SubString"
+    - "prs: raw_substring"
+lean:
+  property: JuliaLean.Strings.RawSubstringIterates
+  theorem: JuliaLean.Strings.rawSubstringIterates_refuted

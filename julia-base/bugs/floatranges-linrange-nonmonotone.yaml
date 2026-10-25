@@ -1,0 +1,65 @@
+id: floatranges-linrange-nonmonotone
+title: 'An increasing LinRange is not sorted: LinRange(62.1443, 62.14430000000095, 283)[8] > r[9]'
+priority: P2
+kind: wrong-result
+area: FloatRanges
+files:
+- base/range.jl
+functions:
+- getindex(::LinRange, ::Integer)
+- lerpi
+- issorted(::AbstractRange)
+summary: |
+  Consecutive LinRange elements can decrease although stop > start, because lerpi rounds
+  each element independently. issorted(r) still returns true (it only checks the step
+  sign), so sort(r) and searchsorted give wrong answers.
+likelihood: |
+  Needs endpoints a few hundred ulps apart relative to the length; occasional with nearly
+  equal endpoints.
+maybe_intended: |
+  The LinRange docstring disclaims floating-point correction (base/range.jl:569-587), but
+  sorted-ness is relied on by issorted and searchsorted.
+reproducer: |
+  r = LinRange(62.1443, 62.14430000000095, 283)
+  println("r[8] = ", repr(r[8]))
+  println("r[9] = ", repr(r[9]))
+  println("issorted(r) = ", issorted(collect(r)))
+  r[9] < r[8] && println("REPRODUCED floatranges-linrange-nonmonotone")
+output:
+  release: |
+    r[8] = 62.14430000000003
+    r[9] = 62.14430000000002
+    issorted(r) = false
+    REPRODUCED floatranges-linrange-nonmonotone
+  nightly: |
+    r[8] = 62.14430000000003
+    r[9] = 62.14430000000002
+    issorted(r) = false
+    REPRODUCED floatranges-linrange-nonmonotone
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  LinRange(62.1443, 62.14430000000095, 283)[8] <= LinRange(62.1443, 62.14430000000095,
+  283)[9].
+promised_by: |
+  LinRange docstring, base/range.jl:558 (linearly spaced elements);
+  issorted(r::AbstractRange) = length(r) <= 1 || step(r) >= 0, base/range.jl:1448.
+cause: |
+  base/range.jl:992-996: lerpi's three roundings are not monotone in j.
+possible_fix: |
+  Compute elements monotonically, e.g. start + j*step with a twice-precision step, or an
+  fma-based lerp that is monotone.
+duplicates:
+  issues:
+  - number: 37276
+    state: open
+    relation: related
+  queries:
+  - LinRange monotonic
+  - LinRange issorted
+  - LinRange precision
+  - LinRange not monotonic
+lean:
+  property: JuliaLean.FloatRanges.LinMonotone
+  theorem: JuliaLean.FloatRanges.linMonotone_refuted

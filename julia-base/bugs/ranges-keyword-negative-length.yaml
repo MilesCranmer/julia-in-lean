@@ -1,0 +1,63 @@
+id: ranges-keyword-negative-length
+title: "range(start; length=-1) returns an empty range for signed start but throws for UInt start"
+priority: P2
+kind: missing-error
+area: Ranges
+files: [base/range.jl]
+functions: ["range(start; length)"]
+summary: |
+  A negative `length` is silently accepted by range(1; length=-1), which returns
+  1:0, while range(UInt(1); length=-1) throws "length cannot be negative". The
+  outcome depends only on whether the computed stop is Signed.
+likelihood: |
+  Reachable when a computed length goes negative (an off-by-one in caller
+  code); the signed case then hides the bug by producing an empty range.
+maybe_intended: |
+  Clipping negative counts to an empty range matches OneTo(-1) == OneTo(0)
+  and a:b with b < a, so the signed behaviour may be intended; then the unsigned
+  path is the inconsistent one. Either way the two paths disagree.
+reproducer: |
+  r = range(1; length=-1)
+  println("range(1; length=-1) = ", repr(r), ", length = ", length(r))
+  unsigned_rejects = try
+      range(UInt(1); length=-1)
+      false
+  catch e
+      println("range(UInt(1); length=-1) throws ", sprint(showerror, e))
+      e isa ArgumentError
+  end
+  println("expected = ArgumentError for a negative element count in both calls")
+  length(r) == 0 && unsigned_rejects && println("REPRODUCED ranges-keyword-negative-length")
+output:
+  release: |
+    range(1; length=-1) = 1:0, length = 0
+    range(UInt(1); length=-1) throws ArgumentError: length cannot be negative, got -1
+    expected = ArgumentError for a negative element count in both calls
+    REPRODUCED ranges-keyword-negative-length
+  nightly: |
+    range(1; length=-1) = 1:0, length = 0
+    range(UInt(1); length=-1) throws ArgumentError: length cannot be negative, got -1
+    expected = ArgumentError for a negative element count in both calls
+    REPRODUCED ranges-keyword-negative-length
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError("length cannot be negative, got -1") for both calls (or an
+  empty range for both, if clipping is the intended semantics).
+promised_by: |
+  StepRangeLen constructor, base/range.jl:538: `len >= zero(len) ||
+  throw(ArgumentError("length cannot be negative, got $len"))`; range's length
+  argument is the element count (base/range.jl:80).
+cause: |
+  range_start_length (base/range.jl:220-229) validates the length only on the
+  unsigned path, through the StepRangeLen constructor. On the Signed path
+  (base/range.jl:223-226) it builds UnitRange(a, a + len - 1), which normalizes
+  any stop below start to an empty range. range(1; step=2, length=-1) and
+  range(stop=1, length=-1) behave the same way (1:2:0 and 3:2).
+possible_fix: |
+  Check `len >= 0` at the start of the range_*_length helpers.
+duplicates:
+  issues: []
+  queries: ["range negative length", "range length overflow"]
+lean:
+  property: JuliaLean.Ranges.NegativeKeywordLengthRejected
+  theorem: JuliaLean.Ranges.negativeKeywordLength_refuted

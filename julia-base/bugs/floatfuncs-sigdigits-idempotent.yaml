@@ -1,0 +1,68 @@
+id: floatfuncs-sigdigits-idempotent
+title: "round(x; sigdigits) is not idempotent: round(1.0e-144; sigdigits=1) == 1.0000000000000001e-144"
+priority: P2
+kind: wrong-result
+area: FloatFuncs
+files: [base/floatfuncs.jl]
+functions: ["round(::Float64; sigdigits)", "Base._round_digits", "Base._round_invstep"]
+summary: |
+  Rounding an already rounded value again to the same number of significant digits can
+  change it: round(9.526624812270413e-145; sigdigits=1) == 1.0e-144, but
+  round(1.0e-144; sigdigits=1) == 1.0000000000000001e-144. The random sample found 142
+  non-idempotent cases in 200000 (all with a decimal exponent beyond 10^22).
+likelihood: |
+  Values with magnitude outside about 1e-22..1e22, rounded to a few significant digits,
+  for example for display or deduplication.
+maybe_intended: |
+  The round docstring warns that decimal rounding of binary floats can be inexact
+  (base/rounding.jl:389-407). This is the same cause as the open issue #46596 (rounding to
+  3 sigdigits produces 17 sigdigits); listed here because idempotence is a separate
+  property that fails.
+reproducer: |
+  x = 9.526624812270413e-145
+  y = round(x; sigdigits=1)
+  z = round(y; sigdigits=1)
+  println("round(9.526624812270413e-145; sigdigits=1) = ", y)
+  println("round(", y, "; sigdigits=1) = ", z)
+  println("round(1.0e-144; sigdigits=1) = ", round(1.0e-144; sigdigits=1))
+  println("10.0^144 == big(10)^144: ", 10.0^144 == big(10)^144)
+  if y == 1.0e-144 && z != y
+      println("REPRODUCED floatfuncs-sigdigits-idempotent")
+  end
+output:
+  release: |
+    round(9.526624812270413e-145; sigdigits=1) = 1.0e-144
+    round(1.0e-144; sigdigits=1) = 1.0000000000000001e-144
+    round(1.0e-144; sigdigits=1) = 1.0000000000000001e-144
+    10.0^144 == big(10)^144: false
+    REPRODUCED floatfuncs-sigdigits-idempotent
+  nightly: |
+    round(9.526624812270413e-145; sigdigits=1) = 1.0e-144
+    round(1.0e-144; sigdigits=1) = 1.0000000000000001e-144
+    round(1.0e-144; sigdigits=1) = 1.0000000000000001e-144
+    10.0^144 == big(10)^144: false
+    REPRODUCED floatfuncs-sigdigits-idempotent
+reproduced: {release: true, nightly: true}
+expected: |
+  round(1.0e-144; sigdigits=1) == 1.0e-144 (the Float64 nearest to 10^-144).
+promised_by: |
+  base/rounding.jl:344-345: "it rounds to the specified number of significant digits";
+  a value already having one significant digit (as printed and as the nearest Float64 to
+  10^-144) is a fixed point.
+cause: |
+  base/floatfuncs.jl:82-83 and 119: _round_invstep computes round(x * invstep) / invstep with
+  invstep = 10.0^144, which is not exactly 10^144; the division by the inexact power moves
+  the result one ulp away from the nearest Float64 to 10^-144.
+possible_fix: |
+  Divide by an exactly represented power (BigFloat or a double-double 10^k) when 10.0^k is
+  inexact, as attempted in closed PR #61798.
+duplicates:
+  issues:
+    - {number: 46596, state: open, relation: duplicate}
+  queries:
+    - "issues: sigdigits (found #46596 open, #33428 open, #64142 open)"
+    - "issues: Rounding to 3 sigdigits"
+    - "pull requests: sigdigits (found closed #61798 with a BigFloat fallback)"
+lean:
+  property: JuliaLean.FloatFuncs.SigdigitsIdempotent
+  theorem: JuliaLean.FloatFuncs.sigdigitsIdempotent_refuted

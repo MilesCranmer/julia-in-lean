@@ -1,0 +1,59 @@
+id: toml-octal-overflow-length
+title: "TOML parser rejects 22-digit octal integers above typemax(UInt64) but accepts larger 23-digit ones"
+priority: P3
+kind: wrong-result
+area: Toml
+files: [base/toml/parser.jl]
+functions: ["Base.TOML.parse_oct", "TOML.parse"]
+summary: |
+  Prefixed integers are parsed as `UInt64`, `UInt128` or `BigInt` depending on the
+  length of their text. The octal limits assume 22 octal digits fit in a `UInt64`, but
+  22 digits hold up to 66 bits. `0o2000000000000000000000` (2^64) therefore gives
+  `ParserError(ErrOverflowError)`, while the larger `0o20000000000000000000000` (2^67)
+  parses to a `UInt128`. Hexadecimal and binary literals of the same magnitude parse.
+  The same happens at 43 octal digits (129 bits) for `UInt128`.
+likelihood: |
+  Needs an octal literal of exactly 22 (or 43) digits above the type's range; rare.
+maybe_intended: |
+  TOML only requires 64-bit signed integers and allows rejecting larger values, so
+  rejecting 2^64 is allowed; accepting 2^67 at the same time is the inconsistency.
+reproducer: |
+  import TOML
+  TOML.tryparse("a = 0o2000000000000000000000")    # ParserError(ErrOverflowError)
+  TOML.tryparse("a = 0o20000000000000000000000")   # Dict("a" => 0x...80000000000000000)
+output:
+  release: |
+    ParserError: ErrOverflowError
+    Dict{String, Any}("a" => 0x00000000000000080000000000000000)
+    Dict{String, Any}("a" => 0x00000000000000010000000000000000)
+    true BigInt
+    REPRODUCED toml-octal-overflow-length
+  nightly: |
+    ParserError: ErrOverflowError
+    Dict{String, Any}("a" => 0x00000000000000080000000000000000)
+    Dict{String, Any}("a" => 0x00000000000000010000000000000000)
+    true BigInt
+    REPRODUCED toml-octal-overflow-length
+reproduced: {release: true, nightly: true}
+expected: |
+  Either both values parse (as for hexadecimal, where `0x10000000000000000` gives a
+  `UInt128`) or both are rejected.
+promised_by: |
+  Invariant: acceptance of an integer literal should not depend on its value
+  non-monotonically; the parser deliberately widens to `UInt128` and `BigInt`
+  (base/toml/parser.jl:1140-1162, PR #47903 "support UInt & BigInt in TOML").
+cause: |
+  base/toml/parser.jl:1142: `("oct", UInt64, UInt128, 24, 45)` uses `UInt64` up to 24
+  characters ("0o" plus 22 digits = 66 bits) and `UInt128` up to 45 characters (43
+  digits = 129 bits); the correct limits are 23 (21 digits) and 44 (42 digits).
+possible_fix: |
+  Use the limits 23 and 44 for octal.
+duplicates:
+  issues:
+    - {number: 47903, state: merged, relation: related}
+  queries: ["TOML octal", "TOML overflow", "TOML integer", "TOML binary integer"]
+  notes: |
+    PR #47903 introduced the length table; no issue reports the octal limits.
+lean:
+  property: JuliaLean.Toml.OctalAcceptanceMonotone
+  theorem: JuliaLean.Toml.octalAcceptanceMonotone_refuted

@@ -1,0 +1,62 @@
+id: show-expr-quoted-symbol
+title: "Expr printing of :var\"a b\" inside an expression gives Symbol(\"a b\"), a call"
+priority: P3
+kind: wrong-result
+area: Show
+files: [base/show.jl]
+functions: ["Base.show_unquoted_quote_expr"]
+summary: |
+  string(Meta.parse("f(:var\"a b\")")) == "f(Symbol(\"a b\"))", which reparses to
+  f(Symbol("a b")): a call instead of a QuoteNode. The Symbol(...) form is right for
+  show(::Symbol) at top level but wrong for a quoted symbol inside printed code, where
+  :var"a b" is available.
+likelihood: |
+  Plausible in generated code that quotes column or field names with spaces.
+maybe_intended: |
+  The evaluated value is the same Symbol; only the AST shape (and macros that see it)
+  changes.
+reproducer: |
+  ex = Meta.parse("f(:var\"a b\")")   # Expr(:call, :f, QuoteNode(Symbol("a b")))
+  s = string(ex)
+  println("string(ex) = ", repr(s))
+  back = Meta.parse(s)
+  println("Meta.parse(string(ex)) = ", repr(back))
+  back != ex && println("REPRODUCED show-expr-quoted-symbol")
+output:
+  release: |
+    string(ex) = "f(Symbol(\"a b\"))"
+    Meta.parse(string(ex)) = :(f(Symbol("a b")))
+    REPRODUCED show-expr-quoted-symbol
+  nightly: |
+    string(ex) = "f(Symbol(\"a b\"))"
+    Meta.parse(string(ex)) = :(f(Symbol("a b")))
+    REPRODUCED show-expr-quoted-symbol
+reproduced: {release: true, nightly: true}
+expected: |
+  "f(:var\"a b\")".
+promised_by: |
+  base/show.jl:1636-1640: "AST printing should follow two rules: 1. Meta.parse(string(ex))
+  == ex ...".
+cause: |
+  base/show.jl:1924-1926 forwards QuoteNode symbols to show_unquoted_quote_expr, whose
+  non-identifier branch prints Symbol(repr(String(sym))) (base/show.jl:1943-1947).
+possible_fix: |
+  Print :var"..." (via show_sym) inside expressions.
+duplicates:
+  issues:
+    - {number: 57412, state: open, relation: related}
+  queries:
+    - "issues: show QuoteNode symbol"
+    - "issues: show quoted Symbol expression var"
+    - "issues: Symbol show in Expr"
+    - "issues: QuoteNode printing Symbol"
+    - "issues: printing quoted symbol var"
+    - "prs: show QuoteNode symbol"
+    - "issues: show_unquoted"
+    - "issues: deparse"
+    - "issues: printing Expr precedence"
+    - "issues: string Meta.parse roundtrip"
+    - "issues: Expr printing"
+lean:
+  property: JuliaLean.Show.QuotedSymbolReparses
+  theorem: JuliaLean.Show.quotedSymbolReparses_refuted

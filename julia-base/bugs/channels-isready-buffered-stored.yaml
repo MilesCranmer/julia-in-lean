@@ -1,0 +1,61 @@
+id: channels-isready-buffered-stored
+title: "isready(::Channel) is true for an empty buffered channel while a woken put! has not run"
+priority: P3
+kind: documentation
+area: Channels
+files: [base/channels.jl]
+functions: ["isready(::Channel)", "n_avail(::Channel)", "put_buffered", "show(::IO, ::MIME\"text/plain\", ::Channel)"]
+summary: |
+  For a buffered channel, isready(c) counts put! calls that have incremented
+  n_avail_items but not yet pushed their value. After take! empties a full
+  Channel(1) and wakes a blocked put!, isready(c) is true and show prints
+  "(1 item available)" although nothing is stored. If the channel is closed
+  before the woken put! runs, that put! throws and no value ever appears, so
+  the next take! throws.
+likelihood: |
+  Needs a full buffered channel of size 1 with a blocked producer, a take!, and
+  a check of isready (or a close) before the producer runs again. take! after
+  such an isready only blocks briefly unless the channel is closed meanwhile.
+maybe_intended: |
+  The counting is deliberate: put_buffered increments n_avail "eagerly (before
+  push!) to count data in the buffer as well as offers from tasks which are
+  blocked in wait()" (base/channels.jl:422-423), and for unbuffered channels the
+  docstring says isready counts waiting put! calls. The buffered half of the
+  docstring ("has a value stored in it") does not say so.
+reproducer: |
+  c = Channel{Int}(1); put!(c, 1)
+  p = @async put!(c, 2); yield()   # p blocks: buffer full
+  take!(c)                         # 1; wakes p, which has not run
+  isready(c)                       # true, nothing stored
+  close(c); yield()                # p's put! throws
+  take!(c)                         # InvalidStateException
+output:
+  release: |
+    took 1; isready = true; show: Channel{Int64}(1) (1 item available); put!(c, 2) failed: true; next take!: InvalidStateException("Channel is closed.", :closed)
+    REPRODUCED channels-isready-buffered-stored
+  nightly: |
+    took 1; isready = true; show: Channel{Int64}(1) (1 item available); put!(c, 2) failed: true; next take!: InvalidStateException("Channel is closed.", :closed)
+    REPRODUCED channels-isready-buffered-stored
+reproduced: {release: true, nightly: true}
+expected: |
+  Either isready(c) is false while the buffer is empty, or the docstring says
+  that for buffered channels isready also counts put! calls in progress.
+promised_by: |
+  isready docstring (base/channels.jl:610-615): "Determine whether a Channel has
+  a value stored in it. Returns immediately, does not block. For unbuffered
+  channels, return true if there are tasks waiting on a put!."
+cause: |
+  isready(c) = n_avail(c) > 0 (base/channels.jl:647); put_buffered increments
+  n_avail_items before waiting for a free slot (base/channels.jl:424) and only
+  decrements it if the put! fails (base/channels.jl:445).
+possible_fix: |
+  Document that isready (and the "items available" count in show) includes
+  put! calls in progress for buffered channels too.
+duplicates:
+  issues:
+    - {number: 41833, state: merged, relation: related}
+    - {number: 31520, state: open, relation: related}
+  queries: ["issues: isready Channel", "issues: isready buffered channel", "issues: n_avail", "issues: Channel items available show", "issues: isready true take blocks", "prs: isready Channel", "prs: n_avail", "prs: isready buffered channel"]
+lean:
+  property: JuliaLean.Channels.IsreadyBufferedStored
+  theorem: JuliaLean.Channels.isreadyBufferedStored_refuted

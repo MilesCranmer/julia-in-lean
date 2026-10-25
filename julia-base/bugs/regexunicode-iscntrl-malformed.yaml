@@ -1,0 +1,62 @@
+id: regexunicode-iscntrl-malformed
+title: "iscntrl returns true for some malformed Chars such as '\\x80' and '\\xc2'"
+priority: P3
+kind: wrong-result
+area: RegexUnicode
+files: [base/strings/unicode.jl]
+functions: ["iscntrl(::AbstractChar)"]
+summary: |
+  iscntrl compares the Char's bit pattern with '\x7f' <= c <= '\u9f'. Malformed Chars
+  whose bit patterns fall in that interval (a bare continuation byte '\x80'-'\xbf',
+  the truncated lead bytes '\xc0', '\xc1', '\xc2') are classified as control
+  characters, while other malformed Chars ('\xe0', '\xff') are not, and every other
+  category predicate (isprint, isletter, ...) returns false for malformed Chars.
+likelihood: |
+  Only strings with invalid UTF-8; the classification of such bytes is then
+  inconsistent (e.g. when filtering control characters from input).
+maybe_intended: |
+  Bit-pattern comparison is a fast path, and some users may want stray bytes treated
+  as control characters; but the choice depends on the byte value rather than on a
+  rule.
+reproducer: |
+  iscntrl('\x80'), iscntrl('\xc2')   # true, true (both ismalformed)
+  iscntrl('\xe0'), iscntrl('\xff')   # false, false (both ismalformed)
+output:
+  release: |
+    '\x80': ismalformed=true iscntrl=true isprint=false category=Ma
+    '\xbf': ismalformed=true iscntrl=true isprint=false category=Ma
+    '\xc2': ismalformed=true iscntrl=true isprint=false category=Ma
+    '\xc0': ismalformed=true iscntrl=true isprint=false category=Ma
+    '\xe0': ismalformed=true iscntrl=false isprint=false category=Ma
+    '\xff': ismalformed=true iscntrl=false isprint=false category=Ma
+    REPRODUCED regexunicode-iscntrl-malformed
+  nightly: |
+    '\x80': ismalformed=true iscntrl=true isprint=false category=Ma
+    '\xbf': ismalformed=true iscntrl=true isprint=false category=Ma
+    '\xc2': ismalformed=true iscntrl=true isprint=false category=Ma
+    '\xc0': ismalformed=true iscntrl=true isprint=false category=Ma
+    '\xe0': ismalformed=true iscntrl=false isprint=false category=Ma
+    '\xff': ismalformed=true iscntrl=false isprint=false category=Ma
+    REPRODUCED regexunicode-iscntrl-malformed
+reproduced: {release: true, nightly: true}
+expected: |
+  false for every malformed Char (it is not a character of the Latin-1 subset), as
+  for '\xe0' and '\xff'.
+promised_by: |
+  iscntrl docstring: "Tests whether a character is a control character. Control
+  characters are the non-printing characters of the Latin-1 subset of Unicode"
+  (base/strings/unicode.jl:553-568).
+cause: |
+  base/strings/unicode.jl:568: iscntrl(c) = c <= '\x1f' || '\x7f' <= c <= '\u9f'
+  compares 32-bit encodings; '\x80' has bits 0x80000000 and '\xc2' 0xc2000000, both
+  between '\x7f' (0x7f000000) and '\u9f' (0xc29f0000).
+possible_fix: |
+  Add !ismalformed(c) to the second interval test, or compare code points.
+duplicates:
+  issues: []
+  queries:
+    - "issues: iscntrl"
+    - "issues: iscntrl malformed"
+lean:
+  property: JuliaLean.RegexUnicode.Uni.IscntrlValid
+  theorem: JuliaLean.RegexUnicode.Uni.iscntrlValid_refuted

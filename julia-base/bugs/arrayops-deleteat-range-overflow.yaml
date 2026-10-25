@@ -1,0 +1,71 @@
+id: arrayops-deleteat-range-overflow
+title: "deleteat!(a, 1:typemax(Int)) throws an internal ArgumentError instead of BoundsError: i + delta wraps"
+priority: P2
+kind: wrong-exception
+area: ArrayOps
+files: [base/array.jl]
+functions: ["deleteat!(::Vector, r::AbstractUnitRange{<:Integer})", "_deleteat!(a, i, delta)"]
+summary: |
+  deleteat!(a, lo:hi) with hi near typemax(Int) passes the end-of-vector check
+  because _deleteat! computes i + delta in wrapping Int arithmetic. For
+  1:typemax(Int) it then throws the internal message
+  ArgumentError("_deletebeg! requires delta in 0:length(a)"); for k:typemax(Int)
+  (k >= 2) it throws a BoundsError about a MemoryRef at an index near typemax,
+  and for UInt ranges ending at typemax(UInt) an InexactError. The vector is
+  left unchanged.
+likelihood: |
+  Needs a range ending at (or very near) typemax, e.g. deleteat!(v, k:typemax(Int))
+  written to mean "everything from k on". Rare; the call still fails, only with the
+  wrong exception and message.
+maybe_intended: |
+  The call is invalid either way and still throws. The internal message names a
+  private helper, which suggests the wrap was not intended.
+reproducer: |
+  a = [1, 2, 3]
+  err = try
+      deleteat!(a, 1:typemax(Int))
+      nothing
+  catch e
+      e
+  end
+  println(repr(err))
+  println(a)
+  # expected: BoundsError, as for deleteat!(a, 1:4)
+  println(repr(try deleteat!([1, 2, 3], 1:4); nothing catch e; e end))
+  if err isa ArgumentError && occursin("_deletebeg!", err.msg)
+      println("REPRODUCED arrayops-deleteat-range-overflow")
+  end
+output:
+  release: |
+    ArgumentError("_deletebeg! requires delta in 0:length(a)")
+    [1, 2, 3]
+    BoundsError([1, 2, 3], 4)
+    REPRODUCED arrayops-deleteat-range-overflow
+  nightly: |
+    ArgumentError("_deletebeg! requires delta in 0:length(a)")
+    [1, 2, 3]
+    BoundsError([1, 2, 3], 4)
+    REPRODUCED arrayops-deleteat-range-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  BoundsError, as for deleteat!([1, 2, 3], 1:4).
+promised_by: |
+  deleteat! docstring, base/array.jl:1916-1944 (removes the items at the given
+  indices); _deleteat! itself reports out-of-range deletions as
+  BoundsError (base/array.jl:1316-1317). Invariant: index arithmetic does not wrap.
+cause: |
+  base/array.jl:1317 checks `i + delta <= len + 1` with i::Int and delta = length(r);
+  for delta near typemax(Int) the sum wraps to a negative number and the check
+  passes. base/array.jl:1319 (`2*i + delta <= len`) also wraps, so the
+  front-deletion branch runs: for i == 1 the copy is empty and _deletebeg!
+  (base/array.jl:1282-1283) throws its ArgumentError; for i >= 2 memoryref at
+  1 + delta throws BoundsError.
+possible_fix: |
+  Compare without overflow, e.g. `delta <= len + 1 - i` (both sides are nonnegative after the earlier checks).
+duplicates:
+  issues:
+    - {number: 22055, state: closed, relation: related}
+  queries: ["deleteat overflow", "deleteat typemax", "deleteat! BoundsError", "deleteat"]
+lean:
+  property: JuliaLean.ArrayOps.DeleteatRangeSpec
+  theorem: JuliaLean.ArrayOps.deleteatRangeSpec_refuted

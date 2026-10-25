@@ -1,0 +1,70 @@
+id: broadcastviews-range-negate-unsigned
+title: ".-r on an unsigned range containing 0 is empty, and .-(0x01:0x00) has 256 elements"
+priority: P2
+kind: wrong-result
+area: BroadcastViews
+files: [base/broadcast.jl]
+functions: ["broadcasted(::DefaultArrayStyle{1}, ::typeof(-), ::OrdinalRange)"]
+summary: |
+  Broadcast negation of an unsigned OrdinalRange builds `-first(r):-1:-last(r)` from
+  the wrapped endpoints. When the range contains 0 the negated endpoints are out of
+  order, so `.-(0x00:0x02)` is the empty range `0x00:-1:0x01` instead of
+  `[0x00, 0xff, 0xfe]` (what `.-collect(0x00:0x02)` gives). For an empty range the
+  result is nonempty: `.-(0x01:0x00)` and `.-Base.OneTo(UInt8(0))` are `0xff:-1:0x00`
+  with 256 elements (for UInt64 the length overflows). Unary `-r` on the same ranges
+  returns a correct Int range, so `.-r` and `-r` disagree.
+likelihood: |
+  Needs broadcast negation of an unsigned range that contains zero or is empty, e.g.
+  `.-(UInt8(0):n)` or `.-Base.OneTo(UInt(k))` with k == 0. Negating unsigned
+  values is unusual.
+maybe_intended: |
+  Negation of unsigned integers wraps by design, and the result keeps the unsigned
+  element type; but the elements and length must still match `.-collect(r)`, and
+  ranges with nonzero first elements do (`.-(0x01:0x03) == [0xff, 0xfe, 0xfd]`).
+reproducer: |
+  r = 0x00:0x02
+  a = .-r
+  b = .-collect(r)
+  println(".-(0x00:0x02) = ", repr(a), " with elements ", collect(a))
+  println(".-collect(0x00:0x02) = ", b)
+  e = .-(0x01:0x00)
+  println(".-(0x01:0x00) has length ", length(e), "; .-collect(0x01:0x00) has length ", length(.-collect(0x01:0x00)))
+  println("-(0x00:0x02) = ", -r)
+  if collect(a) != b || length(e) != 0
+      println("REPRODUCED broadcastviews-range-negate-unsigned")
+  end
+output:
+  release: |
+    .-(0x00:0x02) = 0x00:-1:0x01 with elements UInt8[]
+    .-collect(0x00:0x02) = UInt8[0x00, 0xff, 0xfe]
+    .-(0x01:0x00) has length 256; .-collect(0x01:0x00) has length 0
+    -(0x00:0x02) = 0:-1:-2
+    REPRODUCED broadcastviews-range-negate-unsigned
+  nightly: |
+    .-(0x00:0x02) = 0x00:-1:0x01 with elements UInt8[]
+    .-collect(0x00:0x02) = UInt8[0x00, 0xff, 0xfe]
+    .-(0x01:0x00) has length 256; .-collect(0x01:0x00) has length 0
+    -(0x00:0x02) = 0:-1:-2
+    REPRODUCED broadcastviews-range-negate-unsigned
+reproduced: {release: true, nightly: true}
+expected: |
+  UInt8[0x00, 0xff, 0xfe] for .-(0x00:0x02) and an empty result for .-(0x01:0x00).
+promised_by: |
+  Invariant: a broadcast over a range returns the same elements as the broadcast over
+  `collect(r)` (the range methods at base/broadcast.jl:1174-1242 are optimizations).
+cause: |
+  base/broadcast.jl:1179:
+  broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::OrdinalRange) = range(-first(r), -last(r), step=negate(step(r))).
+  `-first(r)` and `-last(r)` wrap in the unsigned type and `negate(::Unsigned)`
+  (base/int.jl:97) gives a negative signed step, so the new StepRange runs from
+  `-first(r)` down to `-last(r)`; this is only correct when 0 is not in r and r is nonempty.
+possible_fix: |
+  Restrict the endpoint-based method to signed element types and let unsigned ranges
+  use the generic elementwise broadcast.
+duplicates:
+  issues:
+    - {number: 54364, state: open, relation: related}
+  queries: ["negate unsigned range", "unsigned range negative broadcast", "range broadcast"]
+lean:
+  property: JuliaLean.BroadcastViews.RangeNegUnsigned
+  theorem: JuliaLean.BroadcastViews.rangeNegUnsigned_refuted

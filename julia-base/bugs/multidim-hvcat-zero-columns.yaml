@@ -1,0 +1,50 @@
+id: multidim-hvcat-zero-columns
+title: "hvcat(0, values...) throws DivideError instead of ArgumentError"
+priority: P3
+kind: wrong-exception
+area: Multidim
+files: [base/abstractarray.jl]
+functions: ["hvcat(nbc::Int, as...)"]
+summary: |
+  hvcat with a block-column count of zero throws DivideError from mod(n, 0), for
+  hvcat(0) as well as hvcat(0, 1, 2). Other invalid counts throw ArgumentError: a
+  count that does not divide the number of values gives "number of arrays ... is not
+  a multiple of the requested number of block columns", and a negative count fails
+  in ntuple.
+likelihood: |
+  Only code that computes the block-column count and can get zero. Error path only.
+maybe_intended: ""
+reproducer: |
+  hvcat(0, 1, 2)   # DivideError
+  hvcat(0)         # DivideError
+  hvcat(3, 1, 2)   # ArgumentError
+output:
+  release: |
+    DivideError()
+    DivideError()
+    ArgumentError("number of arrays 2 is not a multiple of the requested number of block columns 3")
+    ArgumentError("tuple length should be ≥ 0, got -2")
+    REPRODUCED multidim-hvcat-zero-columns
+  nightly: |
+    DivideError()
+    DivideError()
+    ArgumentError("number of arrays 2 is not a multiple of the requested number of block columns 3")
+    ArgumentError("tuple length should be ≥ 0, got -2")
+    REPRODUCED multidim-hvcat-zero-columns
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError (zero block columns is not a valid layout), or an empty result for
+  hvcat(0) without values.
+promised_by: |
+  Invariant: invalid arguments raise ArgumentError, as the method itself does for a
+  count that does not divide the number of values (base/abstractarray.jl:2200-2201).
+cause: |
+  base/abstractarray.jl:2199-2201 evaluates mod(n, nbc) without checking nbc > 0.
+possible_fix: |
+  Throw ArgumentError for nbc <= 0 before the mod.
+duplicates:
+  issues: []
+  queries: ["issues: hvcat DivideError", "issues: hvcat zero", "prs: hvcat"]
+lean:
+  property: JuliaLean.Multidim.HvcatColumnsError
+  theorem: JuliaLean.Multidim.hvcatColumnsError_refuted

@@ -1,0 +1,63 @@
+id: base64uuid-decode-padding-midstream
+title: "base64decode accepts padding before the last group, which the Base64 manual says is rejected"
+priority: P2
+kind: missing-error
+area: Base64Uuid
+files: [stdlib/Base64/src/decode.jl, stdlib/Base64/docs/src/index.md]
+functions: ["base64decode", "Base64DecodePipe"]
+summary: |
+  The Base64 manual (added in #60260, master only) states that data with padding outside
+  the last 0-2 characters of the last group of four is rejected with ArgumentError.
+  The decoder instead treats a padded group as complete and continues with the next
+  group: base64decode("QQ==QQ==") returns [0x41, 0x41]. For long inputs of this shape the
+  result is also silently truncated: "QQ==" * base64encode(1023 bytes) * base64encode(30
+  bytes) decodes to 1024 bytes instead of 1054 or an error.
+likelihood: |
+  Concatenating separately encoded pieces is the usual way to produce such input (issue
+  #44619 did this with VTU files). Short inputs decode to the concatenation, which hides
+  the problem; long ones lose data without an error.
+maybe_intended: |
+  #44619 (closed) judged decoding a concatenation of encodings "not a bug" because the
+  input is invalid base64. Accepting it leniently could be intended; the manual text in
+  master, however, promises an ArgumentError, and the silent truncation is not lenient.
+  In 1.13.2 the manual does not contain the padding rules.
+reproducer: |
+  using Base64
+  base64decode("QQ==QQ==")   # UInt8[0x41, 0x41]; manual: ArgumentError
+  s = "QQ==" * base64encode(fill(0x61, 1023)) * base64encode(fill(0x62, 30))
+  length(base64decode(s))    # 1024
+output:
+  release: |
+    base64decode("QQ==QQ==") = UInt8[0x41, 0x41]
+    length(s) = 1408, result = 1024 bytes (input carries 1 + 1023 + 30 = 1054)
+    REPRODUCED base64uuid-decode-padding-midstream
+  nightly: |
+    base64decode("QQ==QQ==") = UInt8[0x41, 0x41]
+    length(s) = 1408, result = 1024 bytes (input carries 1 + 1023 + 30 = 1054)
+    REPRODUCED base64uuid-decode-padding-midstream
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError("malformed base64 sequence") for both inputs.
+promised_by: |
+  stdlib/Base64/docs/src/index.md (master): "When decoding, if the data has padding outside
+  of its specified location in the last 0-2 characters of the last group of four alphabet
+  characters (e.g. "A===", "AAAA=", "A=AA"), the data is rejected with ArgumentError:
+  malformed base64 sequence."
+cause: |
+  stdlib/Base64/src/decode.jl:162-167 accept a group ending in padding (k = 2 or 1) but
+  return ended = (k == 0) (decode.jl:181), so read_until_end keeps decoding. The
+  truncation of long inputs is base64uuid-decodepipe-eof-buffered: after the padded group
+  the 1024-byte read boundary falls on a group end, pipe.rest is empty, and eof(pipe)
+  ignores the buffered characters.
+possible_fix: |
+  After a group with padding, require that only ignored characters remain (decode the next
+  group and throw unless it is the all-END group), or document that concatenations are
+  accepted and fix eof.
+duplicates:
+  issues:
+    - {number: 44619, state: closed, relation: related}
+    - {number: 60260, state: merged, relation: related}
+  queries: ["base64decode", "base64 padding", "base64decode padding middle", "base64 concatenated", "Base64 RFC 4648", "base64 decode invalid characters", "base64 in:title", "Base64"]
+lean:
+  property: JuliaLean.Base64Uuid.DecodeRejectsMidPadding
+  theorem: JuliaLean.Base64Uuid.decodeRejectsMidPadding_refuted

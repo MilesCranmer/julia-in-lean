@@ -1,0 +1,46 @@
+id: shellcmd-wincmd-percent-doc
+title: "shell_escape_wincmd docstring says input with % fails with ArgumentError, but it is returned unescaped"
+priority: P3
+kind: documentation
+area: ShellCmd
+files: [base/shell.jl]
+functions: ["Base.shell_escape_wincmd"]
+summary: |
+  The docstring says the result is received verbatim "if the input does not contain %
+  (else this function will fail with an ArgumentError)". The function never checks for
+  %: shell_escape_wincmd("100%") returns "100%". An earlier paragraph of the same
+  docstring says it "makes no attempt to escape the percent sign", so the docstring
+  contradicts itself.
+likelihood: |
+  Callers who rely on the stated ArgumentError to reject % get no error and pass
+  unescaped % to cmd.exe, which the docstring itself warns may allow command injection.
+maybe_intended: |
+  The behaviour matches the earlier paragraph ("makes no attempt to escape the percent
+  sign"); the parenthetical is probably the mistake.
+reproducer: |
+  Base.shell_escape_wincmd("100%")   # "100%"
+output:
+  release: |
+    shell_escape_wincmd("100%") = "100%"
+    REPRODUCED shellcmd-wincmd-percent-doc
+  nightly: |
+    shell_escape_wincmd("100%") = "100%"
+    REPRODUCED shellcmd-wincmd-percent-doc
+reproduced: {release: true, nightly: true}
+expected: |
+  Either an ArgumentError, as the docstring states, or a docstring without that claim.
+promised_by: |
+  base/shell.jl:589-592: "will be received verbatim by the target application if the
+  input does not contain `%` (else this function will fail with an ArgumentError)."
+cause: |
+  base/shell.jl:650-651 only rejects CR, LF and NUL.
+possible_fix: |
+  Drop the parenthetical from the docstring (or add % to the rejected characters).
+duplicates:
+  issues: []
+  queries:
+    - "issues/prs: shell_escape_wincmd"
+    - "issues/prs: wincmd percent ArgumentError"
+lean:
+  property: JuliaLean.ShellCmd.WincmdPercentThrows
+  theorem: JuliaLean.ShellCmd.wincmdPercentThrows_refuted

@@ -1,0 +1,62 @@
+id: reduce-maxdims-all-missing
+title: "maximum(A; dims) throws for a Matrix{Missing}: typemin(Union{})"
+priority: P2
+kind: wrong-exception
+area: Reduce
+files: [base/reducedim.jl]
+functions: ["maximum(A; dims)", "minimum(A; dims)", "extrema(A; dims)", "reducedim_init"]
+summary: |
+  maximum, minimum and extrema with dims throw for an array whose element type is
+  exactly Missing (e.g. [missing missing]): MethodError: no method matching
+  typemin(::Core.TypeofBottom) on master, ArgumentError: cannot construct a value
+  of type Union{} on 1.13.2. maximum([missing, missing]) is missing, and the same
+  data typed Union{Missing,Int} works with dims.
+likelihood: |
+  Low to moderate: an all-missing column read from data produces Matrix{Missing}
+  (e.g. [missing missing] literals or missings(2, 3)); a per-column maximum then
+  throws.
+maybe_intended: |
+  Hardly; the code path exists to make all-missing slices return missing
+  (#35308, PR #43604).
+reproducer: |
+  maximum([missing, missing])          # missing
+  maximum([missing missing]; dims=1)   # throws
+output:
+  release: |
+    Matrix{Missing} missing ArgumentError
+    REPRODUCED reduce-maxdims-all-missing
+    maximum([missing missing]; dims = 1)                    => THROWS ArgumentError: cannot construct a value of type Union{} for return result
+    maximum([missing missing]; dims = 2)                    => THROWS ArgumentError: cannot construct a value of type Union{} for return result
+    maximum([missing, missing])                             => missing :: Missing
+    minimum(Missing[missing]; dims = 1)                     => THROWS ArgumentError: cannot construct a value of type Union{} for return result
+    extrema([missing missing]; dims = 1)                    => THROWS ArgumentError: cannot construct a value of type Union{} for return result
+    maximum(Union{Missing, Int}[missing missing]; dims = 1) => Union{Missing, Int64}[missing missing] :: Matrix{Union{Missing, Int64}}
+  nightly: |
+    Matrix{Missing} missing MethodError
+    REPRODUCED reduce-maxdims-all-missing
+    maximum([missing missing]; dims = 1)                    => THROWS MethodError: no method matching typemin(::Core.TypeofBottom)
+    maximum([missing missing]; dims = 2)                    => THROWS MethodError: no method matching typemin(::Core.TypeofBottom)
+    maximum([missing, missing])                             => missing :: Missing
+    minimum(Missing[missing]; dims = 1)                     => THROWS MethodError: no method matching typemax(::Core.TypeofBottom)
+    extrema([missing missing]; dims = 1)                    => THROWS MethodError: no method matching typemax(::Core.TypeofBottom)
+    maximum(Union{Missing, Int}[missing missing]; dims = 1) => Union{Missing, Int64}[missing missing] :: Matrix{Union{Missing, Int64}}
+reproduced: {release: true, nightly: true}
+expected: |
+  [missing missing] (a Matrix{Missing} of the reduced shape).
+promised_by: |
+  base/missing.jl:129-137: max and min return missing when an argument is missing;
+  maximum([missing, missing]) === missing, so each slice's maximum is missing.
+cause: |
+  base/reducedim.jl:114-118: for v0 === missing, Tnm = nonmissingtype(Tr) with
+  Tr = Missing is Union{}, and Union{} <: Union{BitInteger, IEEEFloat, BigFloat}
+  holds, so typemin(Union{}) is called. extrema has the same check at
+  base/reducedim.jl:156-160.
+possible_fix: |
+  Exclude Tnm === Union{} from the typemin/typemax branch (keep v0 = missing).
+duplicates:
+  issues:
+    - {number: 35308, state: closed, relation: related}
+  queries: ["maximum missing dims typemin", "all missing dims maximum", "nonmissingtype Union{} typemin", "cannot construct a value of type Union{} maximum"]
+lean:
+  property: JuliaLean.Reduce.MaxDimsMissing
+  theorem: JuliaLean.Reduce.maxDimsMissing_refuted

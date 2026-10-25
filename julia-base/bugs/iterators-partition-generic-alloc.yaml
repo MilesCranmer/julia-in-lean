@@ -1,0 +1,65 @@
+id: iterators-partition-generic-alloc
+title: Iterators.partition(itr, n) of a non-array iterator allocates n slots per chunk
+priority: P2
+kind: wrong-exception
+area: Iterators
+files:
+- base/iterators.jl
+functions:
+- iterate(::PartitionIterator)
+summary: |
+  The generic iterate(::PartitionIterator) allocates Vector{eltype}(undef,
+  itr.n) before reading any element and shrinks it afterwards. With a large n
+  and a short iterator this throws (ArgumentError "invalid GenericMemory size"
+  for n = typemax(Int), OutOfMemoryError for n = 2^40) or wastes memory (800 MB
+  for the 3-element first chunk with n = 10^8), while partition of a Vector
+  with the same n works.
+likelihood: |
+  partition(itr, n) with a large n ("one chunk if small") on a generator,
+  tuple, eachline or other non-array iterator. Plausible; the failure is loud
+  but the memory use is silent.
+maybe_intended: ''
+reproducer: |
+  # partition(itr, n) of a non-array iterator allocates a Vector of n slots for every chunk
+  r = try collect(Iterators.partition((1, 2, 3), typemax(Int))) catch e; e end
+  println("collect(partition((1,2,3), typemax(Int))) = ", r isa Exception ? sprint(showerror, r) : repr(r))
+  println("collect(partition([1,2,3], typemax(Int))) = ", repr(collect(Iterators.partition([1, 2, 3], typemax(Int)))))
+  f() = first(Iterators.partition((i for i in 1:3), 10^8))
+  f()
+  b = @allocated f()
+  println("first chunk of partition((i for i in 1:3), 10^8) allocates ", b, " bytes")
+  r isa ArgumentError && b > 10^8 && println("REPRODUCED iterators-partition-generic-alloc")
+output:
+  release: |
+    collect(partition((1,2,3), typemax(Int))) = ArgumentError: invalid GenericMemory size: the number of elements is either negative or too large for system address width
+    collect(partition([1,2,3], typemax(Int))) = SubArray{Int64, 1, Vector{Int64}, Tuple{UnitRange{Int64}}, true}[[1, 2, 3]]
+    first chunk of partition((i for i in 1:3), 10^8) allocates 800002048 bytes
+    REPRODUCED iterators-partition-generic-alloc
+  nightly: |
+    collect(partition((1,2,3), typemax(Int))) = ArgumentError: invalid GenericMemory size: the number of elements is either negative or too large for system address width
+    collect(partition([1,2,3], typemax(Int))) = SubArray{Int64, 1, Vector{Int64}, Tuple{UnitRange{Int64}}, true}[[1, 2, 3]]
+    first chunk of partition((i for i in 1:3), 10^8) allocates 800002112 bytes
+    REPRODUCED iterators-partition-generic-alloc
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  collect(partition((1,2,3), typemax(Int))) == [[1, 2, 3]], as for the vector
+  [1, 2, 3], with memory proportional to the chunk actually produced.
+promised_by: |
+  partition docstring, base/iterators.jl:1424-1426: "Iterate over a collection n
+  elements at a time", for any n >= 1.
+cause: |
+  base/iterators.jl:1489, v = Vector{eltype(itr.c)}(undef, itr.n).
+possible_fix: |
+  Start with an empty vector and sizehint!(v, min(itr.n, some bound)) or push!
+  elements, or allocate min(itr.n, length(c)) when the length is known.
+duplicates:
+  issues: []
+  queries:
+  - partition allocates
+  - partition memory
+  - partition typemax
+lean:
+  property: JuliaLean.Iterators.PartitionFirstChunk
+  theorem: JuliaLean.Iterators.partitionFirstChunk_refuted

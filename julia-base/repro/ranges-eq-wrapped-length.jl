@@ -1,0 +1,7 @@
+u = UInt64(0):typemax(UInt64)
+e = range(UInt64(7); length=0)
+println("isempty(u) = ", isempty(u), ", isempty(e) = ", isempty(e))
+println("u == e: ", u == e)
+r = typemin(Int):typemax(Int)
+println("(typemin(Int):typemax(Int)) == Int[]: ", r == Int[])
+!isempty(u) && isempty(e) && u == e && r == Int[] && println("REPRODUCED ranges-eq-wrapped-length")

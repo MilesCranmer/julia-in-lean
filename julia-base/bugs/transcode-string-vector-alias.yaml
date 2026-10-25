@@ -1,0 +1,91 @@
+id: transcode-string-vector-alias
+title: "String(v) on a take! buffer returns a String that other arrays sharing v's memory can modify or truncate"
+priority: P1
+kind: wrong-result
+area: Transcode
+files: [base/strings/string.jl, src/genericmemory.c]
+functions: ["String(::Vector{UInt8})", "takestring!(::Vector{UInt8})"]
+summary: |
+  When v comes from take!(::IOBuffer) (or read(io, nb)), String(v) returns the
+  String object that owns v's memory, without copying. Any other array that
+  shares that memory, such as reshape(v, 1, 3) or vec(reshape(v, 1, 3)), keeps
+  write access to the bytes of the supposedly immutable String: writing
+  through it changes the String and its hash. Calling String on a second
+  vector over the same memory returns the same object again and rewrites its
+  length, so an earlier String "abc" silently becomes "a".
+likelihood: |
+  Needs a second array view of a take!/read buffer that outlives the String(v)
+  call. reshape and vec of I/O buffers are ordinary operations, but keeping
+  both and then calling String on one is uncommon. The effect is silent
+  corruption of a String that may already be a Dict key.
+maybe_intended: |
+  The String docstring (base/strings/string.jl:99-110) only promises that
+  "future modification of v cannot affect the contents of the resulting
+  string"; it says nothing about other arrays sharing v's memory. A comment in
+  #56435 notes that keeping another reference to such memory is "a recipe for
+  bugs anyway".
+reproducer: |
+  io = IOBuffer()
+  write(io, "abc")
+  v = take!(io)              # take! result: String(v) may reuse its memory
+  b = reshape(v, 1, 3)       # a second array sharing v's data
+  s = String(v)
+  h = hash(s)
+  b[1] = UInt8('A')          # write through the other array
+  println("s = ", repr(s), ", hash unchanged: ", hash(s) == h)
+
+  io = IOBuffer()
+  write(io, "abc")
+  v = take!(io)
+  w = vec(reshape(v, 1, 3))  # a second Vector sharing v's data
+  s1 = String(v)
+  resize!(w, 1)
+  s2 = String(w)             # creating another String truncates s1
+  println("s1 = ", repr(s1), ", s1 === s2: ", s1 === s2)
+  (s != "abc" || s1 != "abc") && println("REPRODUCED transcode-string-vector-alias")
+output:
+  release: |
+    s = "Abc", hash unchanged: false
+    s1 = "a", s1 === s2: true
+    REPRODUCED transcode-string-vector-alias
+  nightly: |
+    s = "Abc", hash unchanged: false
+    s1 = "a", s1 === s2: true
+    REPRODUCED transcode-string-vector-alias
+reproduced: {release: true, nightly: true}
+expected: |
+  s == "abc" and s1 == "abc" throughout: a String never changes after it is
+  created. Either String(v) copies when the memory can be reached from other
+  arrays, or such arrays lose access.
+promised_by: |
+  base/strings/string.jl:85: "`String`s are immutable sequences of `Char`s."
+  base/strings/string.jl:100-101: "future modification of `v` cannot affect
+  the contents of the resulting string."
+cause: |
+  String(v::Vector{UInt8}) (base/strings/string.jl:114-127) calls
+  jl_genericmemory_to_string(ref.mem, len) whenever v's data starts at the
+  start of its Memory. For string-owned memory (what take! and read(io, nb)
+  return), jl_genericmemory_to_string (src/genericmemory.c:189-207) returns the
+  owning String object itself after writing len and a trailing NUL into it.
+  String(v) then empties v, but other arrays referencing the same Memory keep
+  pointing at the String's bytes, and a later String call on such an array
+  returns the same object with a new length.
+possible_fix: |
+  Only adopt the memory without copying when nothing else can reference it, or
+  detach the Memory from its owning String (clear the owner field) on the
+  first adoption so later String calls and writes cannot reach the String.
+duplicates:
+  issues:
+    - {number: 56435, state: closed, relation: related}
+  queries:
+    - "issues: jl_genericmemory_to_string"
+    - "issues: String reshape take! mutate"
+    - "issues: String(v) aliasing reshape"
+    - "issues: String immutable mutated Vector{UInt8} shared memory"
+    - "issues: String constructor shares memory wrap"
+    - "issues: String mutable reshape"
+    - "issues: immutable String modified"
+    - "prs: jl_genericmemory_to_string"
+lean:
+  property: JuliaLean.Transcode.StringVectorImmutable
+  theorem: JuliaLean.Transcode.stringVectorImmutable_refuted

@@ -1,0 +1,50 @@
+id: tuples-prod-empty
+title: "`prod(())` returns 1 but `prod(identity, ())`, `sum(())` and `reduce(*, ())` throw"
+priority: P3
+kind: wrong-result
+area: Tuples
+files: [base/tuple.jl]
+functions: ["prod(x::Tuple{})", "prod(f, t::Tuple)", "sum(::Tuple{})"]
+summary: |
+  base/tuple.jl defines prod(x::Tuple{}) = 1 for bootstrapping, so prod(()) == 1,
+  while the generic reduction treats the empty tuple as a collection with
+  element type Union{} and throws ArgumentError("reducing over an empty
+  collection is not allowed"): prod(identity, ()), reduce(*, ()), sum(()) and
+  prod(Union{}[]) all throw.
+likelihood: |
+  Low: code reducing a possibly empty tuple sees the difference only when it
+  switches between prod(t) and prod(f, t) or between prod and sum.
+maybe_intended: |
+  The method exists for bootstrap (comment at base/tuple.jl:689-692) and 1 is
+  the mathematically right empty product; the inconsistency is a side effect.
+reproducer: |
+  prod(())               # 1
+  prod(identity, ())     # ArgumentError
+  sum(())                # ArgumentError
+output:
+  release: |
+    1 ArgumentError ArgumentError
+    REPRODUCED tuples-prod-empty
+  nightly: |
+    1 ArgumentError ArgumentError
+    REPRODUCED tuples-prod-empty
+reproduced: {release: true, nightly: true}
+expected: |
+  prod(t) and prod(identity, t) agree for every tuple: either both return 1
+  for (), or both throw (and then sum(()) consistently throws too).
+promised_by: |
+  prod docstring (base/reduce.jl): prod(itr) is the product of all elements and
+  prod(f, itr) the product of f applied to them; the empty case without init
+  depends only on the element type.
+cause: |
+  base/tuple.jl:688: prod(x::Tuple{}) = 1, while reduce_empty_iter for
+  Tuple{Vararg{T}} with undefined T uses Union{} (base/reduce.jl:389-390).
+possible_fix: |
+  Leave prod(()) and document it, or give sum/prod(f, ()) on Tuple{} the same
+  identity results.
+duplicates:
+  issues: []
+  queries: ["issues: prod empty tuple", "issues: sum empty tuple", "issues: prod empty tuple 1", "issues: reduce empty tuple", "issues: sum of empty tuple"]
+lean:
+  property: JuliaLean.Tuples.ProdAgrees
+  theorem: JuliaLean.Tuples.prodAgrees_refuted

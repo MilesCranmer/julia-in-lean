@@ -1,0 +1,84 @@
+id: floatranges-splitprec-typemax
+title: StepRangeLen{Float64}(typemax(Int)-1:typemax(Int)) throws InexactError in splitprec
+priority: P2
+kind: wrong-exception
+area: FloatRanges
+files:
+- base/twiceprecision.jl
+functions:
+- splitprec(::Type{Float64}, ::Integer)
+- TwicePrecision{Float64}(::Integer)
+- StepRangeLen{Float64}(::AbstractRange{<:Integer})
+summary: |
+  splitprec(Float64, i), documented as exact for every Int64 and UInt64, throws
+  InexactError for i >= 2^63 - 512 (and for UInt64 values near 2^64). Converting an
+  integer range that starts there to a Float64 StepRangeLen fails, and so does promotion:
+  [typemax(Int)-1:typemax(Int), 0.5:1.0:1.5] throws.
+likelihood: |
+  Needs integers within 512 of typemax(Int); edge inputs such as sentinel values or full-
+  width ranges.
+maybe_intended: ''
+reproducer: |
+  for f in (() -> Base.splitprec(Float64, typemax(Int) - 512),
+            () -> Base.splitprec(Float64, typemax(UInt64)),
+            () -> [typemax(Int)-1:typemax(Int), 0.5:1.0:1.5],
+            () -> Base.splitprec(Float64, typemax(Int) - 511))
+      try
+          println(repr(f()))
+      catch e
+          println("throws ", sprint(showerror, e))
+      end
+  end
+  try
+      StepRangeLen{Float64}(typemax(Int)-1:typemax(Int))
+  catch e
+      println("StepRangeLen{Float64}(typemax(Int)-1:typemax(Int)) throws ", sprint(showerror, e))
+      e isa InexactError && println("REPRODUCED floatranges-splitprec-typemax")
+  end
+output:
+  release: |
+    (9.223371899415822e18, 1.37438952959e11)
+    throws InexactError: UInt64(1.8446744073709552e19)
+    throws InexactError: Int64(9.223372036854776e18)
+    throws InexactError: Int64(9.223372036854776e18)
+    StepRangeLen{Float64}(typemax(Int)-1:typemax(Int)) throws InexactError: Int64(9.223372036854776e18)
+    REPRODUCED floatranges-splitprec-typemax
+  nightly: |
+    (9.223371899415822e18, 1.37438952959e11)
+    throws InexactError: UInt64(1.8446744073709552e19)
+    throws InexactError: Int64(9.223372036854776e18)
+    throws InexactError: Int64(9.223372036854776e18)
+    StepRangeLen{Float64}(typemax(Int)-1:typemax(Int)) throws InexactError: Int64(9.223372036854776e18)
+    REPRODUCED floatranges-splitprec-typemax
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  splitprec(Float64, typemax(Int)) == (hi, lo) with big(hi) + big(lo) == typemax(Int);
+  StepRangeLen{Float64}(typemax(Int)-1:typemax(Int)) is the two-element range
+  [9.223372036854776e18, 9.223372036854776e18].
+promised_by: |
+  splitprec docstring, base/twiceprecision.jl:18-20: "splitprec(Float64, i) is exact for
+  any Int64/UInt64."
+cause: |
+  base/twiceprecision.jl:22-26: hi = truncbits(Float64(i), 27) is 2^63 because Float64(i)
+  rounds up, and ihi = oftype(i, hi) converts 2^63 back to Int64, which throws. Reached
+  from TwicePrecision{Float64}(i::Integer) (base/twiceprecision.jl:211-212) and
+  _convertSRL (base/twiceprecision.jl:556-562).
+possible_fix: |
+  Split with truncation toward zero (e.g. hi from the high bits of i via i & ~(2^k - 1))
+  so that ihi always fits in the integer type, or compute i - ihi in a wider type.
+duplicates:
+  issues:
+  - number: 49589
+    state: open
+    relation: related
+  queries:
+  - splitprec
+  - TwicePrecision typemax
+  - StepRangeLen typemax InexactError
+  - twiceprecision
+  - StepRangeLen InexactError
+lean:
+  property: JuliaLean.FloatRanges.SplitprecExact
+  theorem: JuliaLean.FloatRanges.splitprecExact_refuted

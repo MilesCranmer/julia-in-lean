@@ -1,0 +1,70 @@
+id: reduce-sumdims-init-narrow
+title: "sum(A; dims, init) stores into an array of typeof(init): Int8 init throws InexactError, Int init with Float64 data throws"
+priority: P2
+kind: wrong-exception
+area: Reduce
+files: [base/reducedim.jl]
+functions: ["sum(A; dims, init)", "prod(A; dims, init)", "count(A; dims, init)", "mapreduce(f, op, A; dims, init)", "reducedim_initarray"]
+summary: |
+  With dims and init the result array gets element type typeof(init), and every
+  partial result is converted into it. sum(Int8[100; 100;;]; dims=1, init=Int8(0))
+  throws InexactError although sum(Int8[100, 100]; init=Int8(0)) == 200 (add_sum
+  widens to Int); count(fill(true, 200, 1); dims=1, init=Int8(0)) throws while the
+  dims-free count returns 200; and sum([1.5 2.5]; dims=2, init=0) throws
+  InexactError: Int64(1.5) while sum([1.5, 2.5]; init=0) == 4.0. An unsigned
+  init wraps silently: count(fill(true, 200, 1); dims=1, init=UInt8(0)) is 0xc8.
+likelihood: |
+  Moderate: init=0 for a Float64 matrix is a natural way to make an empty-safe
+  column sum, and it throws on the first non-integer value.
+maybe_intended: |
+  The dims docstring (base/reducedim.jl:361-366) calls init "the initial value to
+  use in the reductions" without stating the result type; using typeof(init) for
+  the output array is a long-standing implementation choice. The dims-free
+  reductions promote instead (PR #58374 widened small init types there).
+reproducer: |
+  sum(Int8[100, 100]; init=Int8(0))         # 200
+  sum(Int8[100; 100;;]; dims=1, init=Int8(0))   # InexactError
+  sum([1.5 2.5]; dims=2, init=0)            # InexactError
+output:
+  release: |
+    200 InexactError
+    REPRODUCED reduce-sumdims-init-narrow
+    sum(Int8[100; 100;;]; dims = 1, init = Int8(0))              => THROWS InexactError: trunc(Int8, 200)
+    sum(Int8[100, 100]; init = Int8(0))                          => 200
+    sum([1.5 2.5]; dims = 2, init = 0)                           => THROWS InexactError: Int64(1.5)
+    sum([1.5, 2.5]; init = 0)                                    => 4.0
+    count(fill(true, 200, 1); dims = 1, init = Int8(0))          => THROWS InexactError: trunc(Int8, 200)
+    count(fill(true, 200, 1); init = Int8(0))                    => 200
+    count(fill(true, 200, 1); dims = 1, init = UInt8(0))         => UInt8[0xc8;;]
+  nightly: |
+    200 InexactError
+    REPRODUCED reduce-sumdims-init-narrow
+    sum(Int8[100; 100;;]; dims = 1, init = Int8(0))              => THROWS InexactError: trunc(Int8, 200)
+    sum(Int8[100, 100]; init = Int8(0))                          => 200
+    sum([1.5 2.5]; dims = 2, init = 0)                           => THROWS InexactError: Int64(1.5)
+    sum([1.5, 2.5]; init = 0)                                    => 4.0
+    count(fill(true, 200, 1); dims = 1, init = Int8(0))          => THROWS InexactError: trunc(Int8, 200)
+    count(fill(true, 200, 1); init = Int8(0))                    => 200
+    count(fill(true, 200, 1); dims = 1, init = UInt8(0))         => UInt8[0xc8;;]
+reproduced: {release: true, nightly: true}
+expected: |
+  [200;;] (Int), [4.0;;] and [200;;]: the per-slice values of the dims-free calls.
+promised_by: |
+  base/reduce.jl:546-557 (sum docstring): the return type is Int for small signed
+  integers; sum(itr; init) with init = 0 sums Float64 data to a Float64.
+cause: |
+  base/reducedim.jl:348-349: _mapreduce_dim(f, op, nt, A, dims) =
+  mapreducedim!(f, op, reducedim_initarray(A, dims, nt), A), and
+  reducedim_initarray (base/reducedim.jl:52-53) uses typeof(init) as the element
+  type; _mapreducedim! (base/reducedim.jl:256-293) converts every op result into it.
+possible_fix: |
+  Choose the element type from op(init, f(first element)) (as the dims-free path
+  effectively does), or promote typeof(init) with the reduction's result type.
+duplicates:
+  issues:
+    - {number: 58374, state: merged, relation: related}
+    - {number: 58241, state: open, relation: related}
+  queries: ["sum dims init Int8", "count dims init", "sum dims init InexactError", "reduce dims init type"]
+lean:
+  property: JuliaLean.Reduce.SumDimsInit
+  theorem: JuliaLean.Reduce.sumDimsInit_refuted

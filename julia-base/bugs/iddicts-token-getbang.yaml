@@ -1,0 +1,51 @@
+id: iddicts-token-getbang
+title: "IdDict get!(d, k, default) silently overwrites an existing entry when the stored value is Base.secret_table_token"
+priority: P2
+kind: wrong-result
+area: IdDicts
+files: [base/iddict.jl, base/abstractdict.jl]
+functions: ["get!(::IdDict, key, default)", "get!(::Callable, ::IdDict, key)"]
+summary: |
+  get!(d, key, default) (base/iddict.jl:151-160) looks the key up through the
+  secret_table_token sentinel. When the stored value *is* that symbol, get!
+  believes the key is absent, stores the default over the existing entry and
+  returns the default. The Callable form (base/iddict.jl:171-183) has the
+  same check.
+likelihood: |
+  Same magic-symbol collision as iddicts-token-lookup; contrived value.
+maybe_intended: ""
+reproducer: |
+  const T = Symbol("__c782dbf1cf4d6a2e5e3865d7e95634f2e09b5902__")
+  d = IdDict{Any,Any}()
+  d["k"] = T
+  get!(d, "k", "DEFAULT")   # "DEFAULT"; the entry is overwritten
+output:
+  release: |
+    get!(d, "k", "DEFAULT") -> "DEFAULT"; stored value is now: "DEFAULT"
+    get!(() -> "FROM-F", e, "k") -> "FROM-F"; stored value is now: "FROM-F"
+    REPRODUCED iddicts-token-getbang
+  nightly: |
+    get!(d, "k", "DEFAULT") -> "DEFAULT"; stored value is now: "DEFAULT"
+    get!(() -> "FROM-F", e, "k") -> "FROM-F"; stored value is now: "FROM-F"
+    REPRODUCED iddicts-token-getbang
+reproduced: {release: true, nightly: true}
+expected: |
+  get! returns the stored value and leaves the dictionary unchanged, because
+  the key exists.
+promised_by: |
+  get! docstring, base/dict.jl:393-394: "Return the value stored for the
+  given key, or if no mapping for the key is present, store key => default,
+  and return default." The key is present, so the stored value must be
+  returned and nothing stored.
+cause: |
+  base/iddict.jl:152-156: `val === secret_table_token` is true for a stored
+  value that equals the sentinel, so the existing branch is skipped and
+  setindex! runs.
+possible_fix: |
+  Same as iddicts-token-lookup: a found flag instead of a value sentinel.
+duplicates:
+  issues: []
+  queries: ["secret_table_token", "IdDict get!", "get! overwrites", "IdDict sentinel"]
+lean:
+  property: JuliaLean.IdDicts.GetBangKeepsPresent
+  theorem: JuliaLean.IdDicts.getBangKeepsPresent_refuted

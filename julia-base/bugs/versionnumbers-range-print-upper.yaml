@@ -1,0 +1,75 @@
+id: versionnumbers-range-print-upper
+title: 'print(::VersionRange) widens a "*" lower bound range: VersionRange("*-2") prints as "0 -2.0.0"'
+priority: P3
+kind: wrong-result
+area: VersionNumbers
+files:
+- base/version.jl
+functions:
+- print(::IO, ::VersionRange)
+- show(::IO, ::VersionRange)
+- VersionRange(::AbstractString)
+summary: |
+  For a VersionRange whose lower bound is "*" (n == 0), print writes "0 -" followed by all
+  three components of the upper bound, ignoring upper.n. VersionRange("*-2") contains every
+  2.x.y, but it prints (and shows) as "0 -2.0.0", whose reparse contains only versions up
+  to 2.0.0, so show(r) does not round-trip. The space after "-" is also missing, unlike the
+  other branches. The same code is Pkg.Versions.VersionRange on 1.13.2 (moved into Base on
+  master).
+likelihood: |
+  Low: VersionRange is internal (not public), and "*-x" ranges are uncommon. Printed
+  ranges appear in Pkg output and error messages, where the wrong upper bound misleads.
+maybe_intended: ''
+reproducer: |
+  # print(::Base.VersionRange) with a "*" lower bound pads the upper bound to three
+  # components, so reparsing the printed range gives a smaller range
+  # (Base.VersionRange on master; on 1.13 the same code lives in the Pkg stdlib as Pkg.Versions)
+  const VR = isdefined(Base, :VersionRange) ? Base.VersionRange : (import Pkg; Pkg.Versions.VersionRange)
+  println("using ", parentmodule(VR), ".VersionRange")
+  r = VR("*-2")
+  s = string(r)
+  r2 = VR(s)
+  println("VersionRange(\"*-2\") prints as ", repr(s), "; shown as ", repr(r))
+  println("v\"2.5.0\" in VersionRange(\"*-2\") = ", v"2.5.0" in r)
+  println("v\"2.5.0\" in VersionRange(string(VersionRange(\"*-2\"))) = ", v"2.5.0" in r2)
+  if s == "0 -2.0.0" && (v"2.5.0" in r) && !(v"2.5.0" in r2)
+      println("REPRODUCED versionnumbers-range-print-upper")
+  end
+output:
+  release: |
+    using Pkg.Versions.VersionRange
+    VersionRange("*-2") prints as "0 -2.0.0"; shown as VersionRange("0 -2.0.0")
+    v"2.5.0" in VersionRange("*-2") = true
+    v"2.5.0" in VersionRange(string(VersionRange("*-2"))) = false
+    REPRODUCED versionnumbers-range-print-upper
+  nightly: |
+    using Base.VersionRange
+    VersionRange("*-2") prints as "0 -2.0.0"; shown as VersionRange("0 -2.0.0")
+    v"2.5.0" in VersionRange("*-2") = true
+    v"2.5.0" in VersionRange(string(VersionRange("*-2"))) = false
+    REPRODUCED versionnumbers-range-print-upper
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  string(VersionRange("*-2")) == "0 - 2" (or "* - 2"), which reparses to the same set.
+promised_by: |
+  Invariant: show(io, r) prints VersionRange("<string(r)>") (base/version.jl:466), so the
+  printed form should reconstruct r; the other branches of print use r.upper.t[1:n].
+cause: |
+  base/version.jl:452-454: the m == 0 branch prints "0 -" and join(io, r.upper.t, '.')
+  instead of " - " and r.upper.t[1:n].
+possible_fix: |
+  Print "0 - " and join(io, r.upper.t[1:n], '.').
+duplicates:
+  issues: []
+  queries:
+  - VersionRange print
+  - VersionRange show
+  - VersionRange (julia and Pkg.jl issues and PRs)
+  - 'VersionSpec print (Pkg.jl #1155, unrelated: TOML quoting)'
+  - compat star range
+  - semver_spec
+lean:
+  property: JuliaLean.VersionNumbers.RangePrintRoundtrip
+  theorem: JuliaLean.VersionNumbers.rangePrintRoundtrip_refuted

@@ -1,0 +1,87 @@
+id: show-sym-var-roundtrip
+title: "var\"...\" printing of symbols keeps raw \\r and invalid UTF-8 bytes, which the parser changes or rejects"
+priority: P2
+kind: wrong-result
+area: Show
+files: [base/show.jl]
+functions: ["Base.show_sym", "show(::IO, ::NamedTuple)", "show_unquoted(::IO, ::Symbol, ::Int, ::Int)"]
+summary: |
+  show_sym prints a non-identifier symbol as var"..." using escape_raw_string, which only
+  escapes quotes and backslashes. The parser normalizes a raw \r (and \r\n) inside the
+  literal to \n, so repr(NamedTuple{(Symbol("a\rb"),)}((1,))) evaluates to a NamedTuple
+  whose field is Symbol("a\nb"), and string(Expr(:call, :f, Symbol("a\rb"))) reparses
+  with a different symbol. Names with invalid UTF-8 or unbalanced bidirectional
+  formatting characters (e.g. Symbol("a b\xff")) print as var"..." text that is a
+  ParseError.
+likelihood: |
+  Symbols made from external data (CSV headers, dictionary keys) can contain \r or
+  invalid bytes; their NamedTuple repr then silently names a different field.
+maybe_intended: ""
+reproducer: |
+  sym = Symbol("a\rb")                       # name containing a carriage return
+  ex = Expr(:call, :f, sym)
+  s = string(ex)                             # show_sym prints var"..." with the raw \r byte
+  println("string(ex) = ", repr(s))
+  back = Meta.parse(s)
+  println("Meta.parse(string(ex)) = ", repr(back), "  args[2] = ", repr(String(back.args[2])))
+  nt = NamedTuple{(sym,)}((1,))
+  r = repr(nt)
+  println("repr(nt) = ", repr(r))
+  nt2 = eval(Meta.parse(r))
+  println("fieldnames(eval(Meta.parse(repr(nt)))) = ", repr(map(String, fieldnames(typeof(nt2)))))
+  bad = Symbol("a b\xff")                    # invalid UTF-8 name (isidentifier stops at the space)
+  s2 = string(Expr(:call, :f, bad))
+  println("string(Expr(:call, :f, Symbol(\"a b\\xff\"))) = ", repr(s2))
+  b2 = try Meta.parse(s2) catch err; err end
+  println("Meta.parse of that = ", b2 isa Exception ? typeof(b2) : repr(b2))
+  (back != ex || keys(nt2) != keys(nt)) && println("REPRODUCED show-sym-var-roundtrip")
+output:
+  release: |
+    string(ex) = "f(var\"a\rb\")"
+    Meta.parse(string(ex)) = :(f(var"a
+    b"))  args[2] = "a\nb"
+    repr(nt) = "(var\"a\rb\" = 1,)"
+    fieldnames(eval(Meta.parse(repr(nt)))) = ("a\nb",)
+    string(Expr(:call, :f, Symbol("a b\xff"))) = "f(var\"a b\xff\")"
+    Meta.parse of that = Base.Meta.ParseError
+    REPRODUCED show-sym-var-roundtrip
+  nightly: |
+    string(ex) = "f(var\"a\rb\")"
+    Meta.parse(string(ex)) = :(f(var"a
+    b"))  args[2] = "a\nb"
+    repr(nt) = "(var\"a\rb\" = 1,)"
+    fieldnames(eval(Meta.parse(repr(nt)))) = ("a\nb",)
+    string(Expr(:call, :f, Symbol("a b\xff"))) = "f(var\"a b\xff\")"
+    Meta.parse of that = Base.Meta.ParseError
+    REPRODUCED show-sym-var-roundtrip
+reproduced: {release: true, nightly: true}
+expected: |
+  Output that parses back to the same Symbol, e.g. Symbol("a\rb") or a var"..." form that
+  the parser does not normalize.
+promised_by: |
+  base/show.jl:1865-1866: "Print `sym` as it would appear as an identifier name in code
+  ... Escape invalid identifiers with var"" syntax", and base/show.jl:1636-1640
+  (Meta.parse(string(ex)) == ex).
+cause: |
+  base/show.jl:1867-1877 prints var" * escape_raw_string(string(sym)) * "; JuliaSyntax
+  unescape_raw_string converts \r and \r\n to \n (JuliaSyntax/src/julia/literal_parsing.jl:186-227),
+  and the tokenizer rejects invalid UTF-8 and unbalanced bidi controls inside the literal.
+possible_fix: |
+  Fall back to Symbol(repr(string(sym))) style (or $(Symbol(...)) in Expr printing) when the
+  name contains \r, invalid UTF-8 or bidi controls.
+duplicates:
+  issues:
+    - {number: 57887, state: merged, relation: related}
+    - {number: 61085, state: open, relation: related}
+  queries:
+    - "issues: var string symbol show"
+    - "issues: show_sym"
+    - "issues: Symbol carriage return show"
+    - "issues: var\"\" printing"
+    - "prs: var string symbol show"
+    - "prs: show_sym"
+    - "prs: Symbol carriage return show"
+    - "prs: var\"\" printing"
+lean:
+  property: JuliaLean.Show.ShowSymVarRoundTrip
+  theorem: JuliaLean.Show.showSymVarRoundTrip_refuted

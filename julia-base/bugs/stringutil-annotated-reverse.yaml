@@ -1,0 +1,80 @@
+id: stringutil-annotated-reverse
+title: "reverse(::AnnotatedString) maps annotation regions with lastindex and misplaces them for multi-byte characters"
+priority: P2
+kind: wrong-result
+area: StringUtil
+files: [base/strings/annotated.jl]
+functions: ["reverse(::AnnotatedString)", "reverse(::SubString{<:AnnotatedString})"]
+summary: |
+  reverse(s::AnnotatedString) maps each region a:b to (1+L-b):(1+L-a) with
+  L = lastindex(s), the start of the last character. That mirrors code units only
+  when the last character is one byte, and even then it reverses bytes, not
+  characters. For s = "aé" with :A on 'a' (1:1), reverse(s) is "éa" with :A on
+  2:2, a continuation byte, so neither character carries :A. For "b🍕" with an
+  annotation on the whole string (1:5), the reversed region is -2:2, which starts
+  before the string.
+likelihood: |
+  Any annotated text with non-ASCII characters (styled terminal output, emoji)
+  that is reversed. reverse is rare on annotated strings, but the result is
+  silently wrong whenever a multi-byte character is involved.
+maybe_intended: ""
+reproducer: |
+  using Base: AnnotatedString, annotations
+  # :A applies to the character 'a' only
+  s = AnnotatedString("aé", [(1:1, :A, 1)])
+  r = reverse(s)
+  println("String(reverse(s)) = ", repr(String(r)))
+  println("regions = ", [a.region for a in annotations(r)])
+  println("labels of 'é' at index 1 = ", [a.label for a in annotations(r, 1)])
+  println("labels of 'a' at index 3 = ", [a.label for a in annotations(r, 3)])
+  # :B covers the whole string "b🍕" (code units 1:5)
+  t = AnnotatedString("b🍕", [(1:5, :B, 2)])
+  u = reverse(t)
+  println("String(reverse(t)) = ", repr(String(u)), ", ncodeunits = ", ncodeunits(u))
+  println("regions = ", [a.region for a in annotations(u)])
+  if isempty(annotations(r, 3)) && first(annotations(u)[1].region) < 1
+      println("REPRODUCED stringutil-annotated-reverse")
+  end
+output:
+  release: |
+    String(reverse(s)) = "éa"
+    regions = UnitRange{Int64}[2:2]
+    labels of 'é' at index 1 = Symbol[]
+    labels of 'a' at index 3 = Symbol[]
+    String(reverse(t)) = "🍕b", ncodeunits = 5
+    regions = UnitRange{Int64}[-2:2]
+    REPRODUCED stringutil-annotated-reverse
+  nightly: |
+    String(reverse(s)) = "éa"
+    regions = UnitRange{Int64}[2:2]
+    labels of 'é' at index 1 = Symbol[]
+    labels of 'a' at index 3 = Symbol[]
+    String(reverse(t)) = "🍕b", ncodeunits = 5
+    regions = UnitRange{Int64}[-2:2]
+    REPRODUCED stringutil-annotated-reverse
+reproduced: {release: true, nightly: true}
+expected: |
+  The annotation stays on the same characters: reverse("aé" with :A on 'a')
+  is "éa" with :A on code unit 3 (the 'a'), and the whole-string annotation of
+  "b🍕" becomes 1:5.
+promised_by: |
+  The AnnotatedString docstring (base/strings/annotated.jl:32-35): "Code written
+  for `AnnotatedString`s in general should conserve the following properties:
+  Which characters an annotation is applied to; The order in which annotations
+  are applied to each character". Invariant: regions lie inside 1:ncodeunits.
+cause: |
+  base/strings/annotated.jl:346-355: the new region is computed from
+  lastind = lastindex(s) by reflecting code-unit offsets. Reversing a String
+  reverses the order of characters but keeps each character's bytes in order, so
+  a byte reflection is wrong for multi-byte characters, and lastindex(s) is not
+  ncodeunits(s) when the last character has more than one byte.
+possible_fix: |
+  Map each region through character positions: for a region covering the
+  characters starting at a..b, the new region starts at
+  ncodeunits(s) + 2 - nextind(s, b) and ends at ncodeunits(s) + 1 - a.
+duplicates:
+  issues: []
+  queries: ["issues: reverse AnnotatedString", "prs: reverse AnnotatedString", "issues: AnnotatedString reverse annotations", "issues: reverse annotated", "issues: AnnotatedString region multibyte", "issues: AnnotatedString (30 most relevant titles read)"]
+lean:
+  property: JuliaLean.StringUtil.ReverseKeepsChars
+  theorem: JuliaLean.StringUtil.reverseKeepsChars_refuted

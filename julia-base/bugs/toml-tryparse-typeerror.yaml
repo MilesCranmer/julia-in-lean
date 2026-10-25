@@ -1,0 +1,57 @@
+id: toml-tryparse-typeerror
+title: "TOML.tryparse throws TypeError when an array-of-tables header goes through a key that holds a value"
+priority: P2
+kind: wrong-exception
+area: Toml
+files: [base/toml/parser.jl]
+functions: ["Base.TOML.recurse_dict!", "Base.TOML.parse_array_table", "TOML.tryparse", "TOML.parse"]
+summary: |
+  When a header `[[a.b]]` has a parent key `a` that already holds a non-table value
+  (an integer, a string, or an array whose last element is not a table), the parser
+  hits a type assertion and throws `TypeError` instead of returning a `ParserError`.
+  `TOML.tryparse("a = 1\n[[a.b]]")` throws, and `TOML.parse` throws `TypeError`
+  instead of `ParserError`. The same documents with a plain `[a.b]` header give a
+  `ParserError`.
+likelihood: |
+  Needs an invalid document where a key is reused as the parent of an
+  array-of-tables header. Hand-edited configuration files can contain this
+  mistake, and any program that calls `tryparse` to validate user input crashes on it.
+maybe_intended: ""
+reproducer: |
+  import TOML
+  TOML.tryparse("a = 1\n[[a.b]]")   # throws TypeError
+output:
+  release: |
+    "a = 1\n[[a.b]]" => TypeError
+    "a = \"x\"\n[[a.b.c]]" => TypeError
+    "a = [[1]]\n[[a.b]]" => TypeError
+    REPRODUCED toml-tryparse-typeerror
+  nightly: |
+    "a = 1\n[[a.b]]" => TypeError
+    "a = \"x\"\n[[a.b.c]]" => TypeError
+    "a = [[1]]\n[[a.b]]" => TypeError
+    REPRODUCED toml-tryparse-typeerror
+reproduced: {release: true, nightly: true}
+expected: |
+  A `ParserError` returned by `tryparse` (thrown by `parse`), as for `"a = 1\n[a.b]"`,
+  which gives `ErrKeyAlreadyHasValue`.
+promised_by: |
+  TOML.tryparse docstring, stdlib/TOML/src/TOML.jl:138-152: "Parse the string or stream
+  `x`, and return the resulting table (dictionary). Return a ParserError upon failure."
+  TOML.parse docstring (stdlib/TOML/src/TOML.jl:115-129): "Throw a ParserError upon failure."
+cause: |
+  base/toml/parser.jl:717 calls `recurse_dict!(l, l.root, @view(table_key[1:end-1]), false)`
+  with `check=false`, so `check_allowed_add_key` (base/toml/parser.jl:660) never rejects a
+  non-table intermediate. The loop then reaches `d = d::TOMLDict`
+  (base/toml/parser.jl:646) or `return d::TOMLDict` (base/toml/parser.jl:666) with an
+  `Int64`, `String` or `Vector` and the type assertion throws. After `d = d[end]` for a
+  `Vector{Any}` (base/toml/parser.jl:651) the element is not checked either.
+possible_fix: |
+  In `recurse_dict!`, return `ParserError(ErrKeyAlreadyHasValue)` whenever `d` is not a
+  `TOMLDict` after the lookup (and after `d = d[end]`), independently of `check`.
+duplicates:
+  issues: []
+  queries: ["TOML TypeError", "TOML typeassert", "tryparse TypeError", "TOML tryparse throws", "TOML array of tables value", "TOML parse error typeassert"]
+lean:
+  property: JuliaLean.Toml.TryparseNoTypeError
+  theorem: JuliaLean.Toml.tryparseNoTypeError_refuted

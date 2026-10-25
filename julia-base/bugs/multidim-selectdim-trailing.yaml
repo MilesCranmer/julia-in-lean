@@ -1,0 +1,61 @@
+id: multidim-selectdim-trailing
+title: "selectdim(A, d, i) for d > ndims(A) disagrees with view(A, :, ..., i): throws for 1:1 and drops dimensions"
+priority: P3
+kind: wrong-exception
+area: Multidim
+files: [base/abstractarraymath.jl]
+functions: ["selectdim(A::AbstractArray, d::Integer, i)", "_selectdim"]
+summary: |
+  For d > ndims(A), selectdim accepts only an i with i == 1 and then returns a view of
+  all of A with ndims(A) dimensions. The documented equivalent view(A, :, ..., :, i)
+  accepts any index valid for a trailing singleton dimension and keeps the singleton
+  dimensions up to d: selectdim(A, 3, 1:1), selectdim(A, 3, [1]), selectdim(A, 4, :)
+  and selectdim(A, 4, CartesianIndex(1)) throw BoundsError although the view exists,
+  selectdim(A, 4, 1) has size (2, 3) where view(A, :, :, :, 1) has size (2, 3, 1), and
+  selectdim(A, 5, true) and selectdim(A, 5, 1.0) succeed although view rejects
+  Bool and Float64 indices with ArgumentError.
+likelihood: |
+  Generic code that slices along a trailing dimension (for example the last dimension
+  of a stack of slices that happens to have fewer dimensions) gets an exception or a
+  result with fewer dimensions than expected.
+maybe_intended: |
+  The d > ndims branch was written deliberately for scalar 1 (abstractarraymath.jl:331),
+  so other indices may simply not have been considered.
+reproducer: |
+  A = [1 2 3; 4 5 6]
+  size(view(A, :, :, 1:1))      # (2, 3, 1)
+  selectdim(A, 3, 1:1)          # BoundsError
+  size(view(A, :, :, :, 1))     # (2, 3, 1)
+  size(selectdim(A, 4, 1))      # (2, 3)
+output:
+  release: |
+    view(A,:,:,1:1) (2, 3, 1)  selectdim(A,3,1:1) BoundsError([1 2 3; 4 5 6], (Colon(), Colon(), 1:1))
+    view(A,:,:,:,1) (2, 3, 1)  selectdim(A,4,1) (2, 3)
+    REPRODUCED multidim-selectdim-trailing
+  nightly: |
+    view(A,:,:,1:1) (2, 3, 1)  selectdim(A,3,1:1) BoundsError([1 2 3; 4 5 6], (Colon(), Colon(), 1:1))
+    view(A,:,:,:,1) (2, 3, 1)  selectdim(A,4,1) (2, 3)
+    REPRODUCED multidim-selectdim-trailing
+reproduced: {release: true, nightly: true}
+expected: |
+  selectdim(A, d, i) == view(A, ntuple(_ -> :, d - 1)..., i): a 2x3x1 view for
+  selectdim(A, 3, 1:1) and for selectdim(A, 4, 1); ArgumentError for Bool and Float64 i.
+promised_by: |
+  selectdim docstring, base/abstractarraymath.jl:300-305: "Equivalent to
+  view(A,:,:,...,i,:,:,...) where i is in position d."
+cause: |
+  base/abstractarraymath.jl:331: `d > nd && (i == 1 || throw(BoundsError(...)))`
+  only admits values equal to 1 (so 1:1 and [1] fail, true and 1.0 pass), and the
+  index tuple from _setindex(i, d, map(Slice, axes(A))...) (line 327) has only
+  ndims(A) entries when d > ndims(A), so the trailing singleton dimensions and i are
+  dropped.
+possible_fix: |
+  For d > ndims(A), call view(A, ntuple(_ -> :, d - 1)..., i) and let to_indices
+  and checkbounds handle i.
+duplicates:
+  issues:
+    - {number: 51692, state: closed, relation: related}
+  queries: ["issues: selectdim", "issues: selectdim dimension", "issues: selectdim BoundsError", "issues: selectdim view", "prs: selectdim"]
+lean:
+  property: JuliaLean.Multidim.SelectdimViewAgrees
+  theorem: JuliaLean.Multidim.selectdimViewAgrees_refuted

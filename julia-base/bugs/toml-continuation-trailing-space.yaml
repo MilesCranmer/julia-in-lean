@@ -1,0 +1,54 @@
+id: toml-continuation-trailing-space
+title: "TOML parser rejects whitespace between a line-ending backslash and the newline"
+priority: P2
+kind: wrong-result
+area: Toml
+files: [base/toml/parser.jl]
+functions: ["Base.TOML.parse_string_continue", "TOML.parse"]
+summary: |
+  In a multi-line basic string, a backslash that is the last non-whitespace character
+  of a line trims the line break and the following whitespace. Julia only recognises the
+  backslash when the newline follows it immediately; with trailing spaces,
+  `"""x \  <newline>  y"""` gives `ParserError(ErrInvalidEscapeCharacter)` instead of `"x y"`.
+likelihood: |
+  Trailing whitespace after a line-continuation backslash is invisible in most editors,
+  so valid files hit this by accident.
+maybe_intended: ""
+reproducer: |
+  import TOML
+  TOML.tryparse("a = \"\"\"x \\  \n  y\"\"\"")   # ParserError(ErrInvalidEscapeCharacter)
+output:
+  release: |
+    "a = \"\"\"x \\  \n  y\"\"\""
+    ParserError: ErrInvalidEscapeCharacter
+    Dict{String, Any}("a" => "x y")
+    REPRODUCED toml-continuation-trailing-space
+  nightly: |
+    "a = \"\"\"x \\  \n  y\"\"\""
+    ParserError: ErrInvalidEscapeCharacter
+    Dict{String, Any}("a" => "x y")
+    REPRODUCED toml-continuation-trailing-space
+reproduced: {release: true, nightly: true}
+expected: |
+  `Dict("a" => "x y")`, the same as without the trailing spaces.
+promised_by: |
+  TOML v1.1.0, "String": "When the last non-whitespace character on a line is an
+  unescaped `\`, it will be trimmed along with all whitespace (including newlines) up to
+  the next non-whitespace character or closing delimiter."
+cause: |
+  base/toml/parser.jl:1411 tests only the character right after the backslash for `\n`
+  or `\r`; a space there is taken as an escape character and rejected at
+  base/toml/parser.jl:1438-1439.
+possible_fix: |
+  After a backslash, skip spaces and tabs; if a newline follows, treat it as a line
+  continuation, otherwise report the invalid escape.
+duplicates:
+  issues: []
+  queries: ["TOML line continuation", "TOML backslash", "TOML multiline string", "TOML escape"]
+  notes: |
+    stdlib/TOML/test/toml_test.jl:87 marks toml-test's
+    valid/string/ends-in-whitespace-escape.toml as a known failure (`broken`); there is
+    no issue or PR.
+lean:
+  property: JuliaLean.Toml.ContinuationTrailingWhitespace
+  theorem: JuliaLean.Toml.continuationTrailingWhitespace_refuted

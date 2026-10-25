@@ -1,0 +1,61 @@
+id: float-rem-down-bound
+title: "rem documentation gives a strict RoundDown bound contradicted by its rounding caveat"
+priority: P3
+kind: documentation
+area: Float
+files: [base/div.jl, base/int.jl, base/float.jl]
+functions: ["rem(::Float64,::Float64,RoundDown)", "mod(::Float64,::Float64)"]
+summary: |
+  The rem docstring promises a result strictly smaller than a positive divisor
+  under RoundDown. The result can round to the divisor, as the separate mod
+  docstring already explains. The two descriptions of the same operation disagree.
+likelihood: |
+  Any tiny negative value modulo a much larger positive value can reach this
+  case. It matters when a caller relies on the documented half-open interval.
+maybe_intended: |
+  The numerical result is intended under base/int.jl:302-306, which explicitly
+  allows rounding to y. This finding concerns the contradictory rem documentation.
+reproducer: |
+  x = -nextfloat(0.0)
+  y = 1.0
+  r = rem(x, y, RoundDown)
+  println("rem(-5.0e-324, 1.0, RoundDown) = ", repr(r))
+  println("0.0 <= r < 1.0 = ", 0.0 <= r < 1.0)
+  if r == y
+      println("REPRODUCED float-rem-down-bound")
+  end
+output:
+  release: |
+    rem(-5.0e-324, 1.0, RoundDown) = 1.0
+    0.0 <= r < 1.0 = false
+    REPRODUCED float-rem-down-bound
+  nightly: |
+    rem(-5.0e-324, 1.0, RoundDown) = 1.0
+    0.0 <= r < 1.0 = false
+    REPRODUCED float-rem-down-bound
+reproduced: {release: true, nightly: true}
+expected: |
+  Either weaken the rem docstring's strict interval to acknowledge rounding to
+  the endpoint, or change its numerical behavior. The existing mod caveat makes
+  the documentation correction the smaller, consistent fix.
+promised_by: |
+  base/div.jl:95-97: "if r == RoundDown, then the result is in the interval
+  [0, |y|) if y is positive, or (-|y|, 0] otherwise. The result may not be exact
+  if x and y have different signs, and abs(x) < abs(y)."
+  In contrast, base/int.jl:304-306 explicitly says that a floating-point result
+  very close to y "may be rounded to y."
+cause: |
+  base/div.jl:130 dispatches RoundDown rem to mod. base/float.jl:600-612 adds y
+  to the opposite-signed truncated remainder. For a negative minimum subnormal
+  and y=1.0, nearest-even addition returns 1.0. The strict rem documentation
+  omits the endpoint exception already present in the mod documentation.
+possible_fix: |
+  Add the same rounded-endpoint exception and cross-reference to the rem
+  RoundDown and RoundUp interval descriptions.
+duplicates:
+  issues:
+    - {number: 8831, state: closed, relation: related}
+  queries: ["rem RoundDown rounding interval", "mod rounding equal divisor", "rem RoundDown", "mod rounding", "mod eps"]
+lean:
+  property: JuliaLean.Float.remDownBound
+  theorem: JuliaLean.Float.remDownBound_refuted

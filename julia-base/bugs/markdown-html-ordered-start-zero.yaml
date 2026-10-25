@@ -1,0 +1,56 @@
+id: markdown-html-ordered-start-zero
+title: "Markdown.html drops the start number of an ordered list that starts at 0"
+priority: P3
+kind: wrong-result
+area: Markdown
+files: [stdlib/Markdown/src/render/html.jl]
+functions: ["Markdown.html(::IO, ::Markdown.List)"]
+summary: |
+  `Markdown.parse("0. zero\n1. one")` gives a `List` with `ordered == 0`, but `Markdown.html`
+  emits a bare `<ol>`, which browsers number from 1. The `start` attribute is only written when
+  `ordered > 1`.
+likelihood: |
+  Zero-based numbered lists (e.g. enumerating indices from 0) are occasional in technical
+  documentation. The manual describes start numbers as positive integers, hence P3.
+maybe_intended: |
+  The manual says ordered lists use "a positive integer" (stdlib/Markdown/docs/src/index.md:279-280),
+  but the parser accepts 0 and records it.
+reproducer: |
+  using Markdown
+  md = Markdown.parse("0. zero\n1. one")
+  println("ordered = ", md.content[1].ordered)
+  h = Markdown.html(md)
+  print(h)
+  startswith(h, "<ol>") && println("REPRODUCED markdown-html-ordered-start-zero")
+output:
+  release: |
+    ordered = 0
+    <ol>
+    <li><p>zero</p>
+    </li>
+    <li><p>one</p>
+    </li>
+    </ol>
+    REPRODUCED markdown-html-ordered-start-zero
+  nightly: |
+    ordered = 0
+    <ol>
+    <li>zero</li>
+    <li>one</li>
+    </ol>
+    REPRODUCED markdown-html-ordered-start-zero
+reproduced: {release: true, nightly: true}
+expected: |
+  `<ol start="0">`, as CommonMark renders `0.` lists; `plain`, `latex` and `rst` all print the 0.
+promised_by: |
+  `List.ordered`: "`>= 0` is ordered and indicates the start index" (stdlib/Markdown/src/Common/block.jl:305).
+cause: |
+  stdlib/Markdown/src/render/html.jl:131: `md.ordered > 1` should be `md.ordered != 1` (for ordered lists).
+possible_fix: |
+  `maybe_attr = isordered(md) && md.ordered != 1 ? Any[:start => string(md.ordered)] : []`.
+duplicates:
+  issues: []
+  queries: ["Markdown ordered list", "Markdown ordered list start 0", "ol start", "Markdown list start"]
+lean:
+  property: JuliaLean.Markdown.HtmlOrderedStart
+  theorem: JuliaLean.Markdown.htmlOrderedStart_refuted

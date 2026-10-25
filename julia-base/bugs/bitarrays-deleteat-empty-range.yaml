@@ -1,0 +1,56 @@
+id: bitarrays-deleteat-empty-range
+title: "deleteat!(::BitVector, r) and splice!(::BitVector, r) throw BoundsError for empty ranges that Vector accepts"
+priority: P2
+kind: wrong-exception
+area: BitArrays
+files: [base/bitarray.jl]
+functions: ["deleteat!(::BitVector, ::AbstractUnitRange{Int})", "splice!(::BitVector, ::AbstractUnitRange{Int}, ins)", "_splice_int!"]
+summary: |
+  For an empty unit range r whose first index is outside 1:length(B)+1, such as
+  0:-1 or length(B)+2:length(B)+1, deleteat!(B, r) and splice!(B, r) on a
+  BitVector throw BoundsError. On a Vector{Bool} both delete nothing:
+  deleteat!([false, true, false], 0:-1) returns the vector unchanged and
+  splice!([false, true, false], 5:4) returns Bool[]. checkbounds accepts every
+  empty range, and B[0:-1] works on both types.
+likelihood: |
+  Empty ranges computed as lo:hi with hi = lo - 1 at the boundaries (for example
+  deleting a computed span that is empty) reach it in generic code; the same
+  code works on Vector.
+maybe_intended: |
+  For splice! with a nonempty replacement Vector also throws for such ranges,
+  since the insertion point is out of bounds; only the deletion-only cases
+  differ.
+reproducer: |
+  deleteat!(BitVector([false, true, false]), 0:-1)   # BoundsError
+  deleteat!([false, true, false], 0:-1)              # unchanged
+  splice!(BitVector([false, true, false]), 5:4)      # BoundsError
+  splice!([false, true, false], 5:4)                 # Bool[]
+output:
+  release: |
+    BoundsError | Bool[0, 1, 0]
+    BoundsError | Bool[]
+    REPRODUCED bitarrays-deleteat-empty-range
+  nightly: |
+    BoundsError | Bool[0, 1, 0]
+    BoundsError | Bool[]
+    REPRODUCED bitarrays-deleteat-empty-range
+reproduced: {release: true, nightly: true}
+expected: |
+  Both calls delete nothing, like the Vector methods.
+promised_by: |
+  deleteat! docstring (base/array.jl:1916-1918): "Remove the items at the
+  indices given by inds" (none for an empty range); Vector's
+  deleteat!(a, r) returns a for isempty(r) (base/array.jl:1905-1914). A BitVector
+  should behave like Vector{Bool}.
+cause: |
+  base/bitarray.jl:959-960 checks 1 <= first(r) and last(r) <= n before looking
+  at length(r); _splice_int! does the same at base/bitarray.jl:1090-1091.
+possible_fix: |
+  Return B (respectively an empty BitVector) early when isempty(r) and there is
+  nothing to insert.
+duplicates:
+  issues: []
+  queries: ["issues: deleteat! empty range BoundsError", "issues: deleteat! range empty", "issues: splice! empty", "issues: deleteat! BitVector", "prs: deleteat! BitVector", "prs: bitarray deleteat"]
+lean:
+  property: JuliaLean.BitArrays.DeleteatRangeAgrees
+  theorem: JuliaLean.BitArrays.deleteatRangeAgrees_refuted

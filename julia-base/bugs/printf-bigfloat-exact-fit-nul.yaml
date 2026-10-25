@@ -1,0 +1,56 @@
+id: printf-bigfloat-exact-fit-nul
+title: "Printf replaces the last character of a BigFloat conversion with NUL when it exactly fills the buffer"
+priority: P1
+kind: wrong-result
+area: Printf
+files: [stdlib/Printf/src/Printf.jl]
+functions: ["Printf.format(::Printf.Format, args...)", "Printf.fmt(buf, pos, arg, ::Printf.Spec{<:Printf.Floats})"]
+summary: |
+  When the text of a BigFloat conversion is exactly as long as the space left in the buffer, mpfr_snprintf
+  stores only that length minus one characters and a NUL terminator, and fmt still advances by the full
+  length. The last character of the result is then '\0'. This happens whenever the field width is at
+  least the reserved hash + 309 + precision + 5 bytes (320 for %f and %e with the default precision), and
+  for %f of values with 313 integer digits: @sprintf("%320f", big"2.0"), @sprintf("%321f", big"2.0"),
+  @sprintf("%330.3f", big"1.5") and @sprintf("%400e", big"1.0") all end in NUL.
+likelihood: |
+  Needs a field width of at least hash + 309 + precision + 5 (320 for %f), or a %f value of about 1e312.
+  Uncommon, but the corruption is silent.
+maybe_intended: ""
+reproducer: |
+  using Printf
+  for (fmt, x) in [("%320f", big"2.0"), ("%f", big"1e313"), ("%400e", big"1.0")]
+      s = Printf.format(Printf.Format(fmt), x)
+      println(rpad(fmt, 6), " ", repr(x), ": length = ", ncodeunits(s), ", last byte = ", repr(s[end]))
+  end
+  s = @sprintf("%320f", big"2.0")
+  endswith(s, '\0') && println("REPRODUCED printf-bigfloat-exact-fit-nul")
+output:
+  release: |
+    %320f  2.0: length = 320, last byte = '\0'
+    %f     9.999999999999999999999999999999999999999999999999999999999999999999999999999985e312: length = 320, last byte = '\0'
+    %400e  1.0: length = 400, last byte = '\0'
+    REPRODUCED printf-bigfloat-exact-fit-nul
+  nightly: |
+    %320f  2.0: length = 320, last byte = '\0'
+    %f     9.999999999999999999999999999999999999999999999999999999999999999999999999999985e312: length = 320, last byte = '\0'
+    %400e  1.0: length = 400, last byte = '\0'
+    REPRODUCED printf-bigfloat-exact-fit-nul
+reproduced: {release: true, nightly: true}
+expected: |
+  @sprintf("%320f", big"2.0") is 312 spaces followed by "2.000000".
+promised_by: |
+  ISO/IEC 9899:1999 7.19.6.1 (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf) paragraph 4 (minimum field width) and paragraph 8 (f, e). stdlib/Printf/src/Printf.jl:68 (Printf.Format docstring): "Create a C printf-compatible format object that can be used for formatting values."
+cause: |
+  stdlib/Printf/src/Printf.jl:510 resizes only when required_length > siz. snprintf with size siz writes at
+  most siz - 1 characters and a NUL, so required_length == siz truncates the last character, and line 517
+  returns pos + required_length anyway. The same symptom was #22126 (closed in 2017 by #22154), before
+  the rewrite of Printf in #32859.
+possible_fix: |
+  Resize when required_length >= siz.
+duplicates:
+  issues:
+    - {number: 22126, state: closed, relation: related}
+  queries: ["issues: printf", "issues: Printf precision", "issues/prs: printf BigFloat", "issues/prs: sprintf BigFloat", "issues/prs: Printf mpfr", "issues/prs: printf precision negative", "issues/prs: printf negative width", "issues/prs: printf dynamic width", "issues/prs: printf %g exponent", "issues/prs: printf %g style", "issues/prs: printf %.0d", "issues/prs: printf zero precision", "issues/prs: printf #x", "issues/prs: printf alternate form", "issues/prs: printf octal", "issues/prs: printf %+x", "issues/prs: printf plus unsigned", "issues/prs: printf BoundsError", "issues/prs: Printf.Format BoundsError", "issues/prs: printf %D", "issues/prs: printf textwidth", "issues/prs: printf precision unicode", "issues/prs: printf round away from zero", "issues/prs: printf ties even", "issues/prs: printf %a zero", "issues/prs: printf hex float", "issues/prs: printf InvalidFormatStringError", "issues/prs: printf C compatible"]
+lean:
+  property: JuliaLean.Printf.BigFloatWidth
+  theorem: JuliaLean.Printf.bigFloatWidth_refuted

@@ -1,0 +1,57 @@
+id: hashops-widen-unsigned-sub
+title: "widen documentation promises overflow-free subtraction, but widened unsigned subtraction wraps"
+priority: P3
+kind: documentation
+area: HashOps
+files: [base/operators.jl, base/int.jl]
+functions: ["widen(x)", "widen(::Type{UInt8})", "-(::UInt16, ::UInt16)"]
+summary: |
+  The widen docstring says widened addition and subtraction cannot overflow or
+  lose precision for any values of the input type. widen preserves unsignedness,
+  so subtracting a larger widened unsigned value from a smaller one wraps.
+likelihood: |
+  Computing differences after widening small unsigned counters or measurements
+  is plausible. The full wrap shown here needs an operand-order reversal, while
+  less extreme values produce the same class of wrong result.
+maybe_intended: |
+  Returning UInt16 from widen(UInt8) is established behavior and preserves the
+  integer family. The implementation may be correct, in which case the
+  docstring must restrict its subtraction guarantee to nonnegative results.
+reproducer: |
+  x = UInt8(0)
+  y = typemax(UInt8)
+  widen(x) - widen(y)
+output:
+  release: |
+    typeof(widen(UInt8(0))) = UInt16
+    widen(UInt8(0)) - widen(typemax(UInt8)) = 65281
+    exact difference = -255
+    REPRODUCED hashops-widen-unsigned-sub
+  nightly: |
+    typeof(widen(UInt8(0))) = UInt16
+    widen(UInt8(0)) - widen(typemax(UInt8)) = 65281
+    exact difference = -255
+    REPRODUCED hashops-widen-unsigned-sub
+reproduced: {release: true, nightly: true}
+expected: |
+  Under the current docstring, the result should represent the exact difference
+  -255. Otherwise the documentation should state that unsigned subtraction can
+  still underflow after widening.
+promised_by: |
+  The widen docstring at base/operators.jl:955-964 says it returns a larger type
+  "defined so that arithmetic operations + and - are guaranteed not to overflow
+  nor lose precision for any combination of values that type x can hold."
+cause: |
+  base/int.jl:915 defines widen(UInt8) = UInt16, and the other fixed-width
+  unsigned methods likewise return a wider unsigned type. Such a type cannot
+  represent a negative difference, so ordinary unsigned subtraction wraps.
+possible_fix: |
+  Qualify the subtraction guarantee for unsigned inputs, or return a signed
+  wider type that can represent both the largest sum and the most negative
+  difference.
+duplicates:
+  issues: []
+  queries: ["widen UInt", "widen unsigned", "widen subtraction", "guaranteed not to overflow widen"]
+lean:
+  property: JuliaLean.HashOps.WidenNoLoss
+  theorem: JuliaLean.HashOps.widenNoLoss_refuted

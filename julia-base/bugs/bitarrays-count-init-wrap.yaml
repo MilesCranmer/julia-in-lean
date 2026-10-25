@@ -1,0 +1,55 @@
+id: bitarrays-count-init-wrap
+title: "count(::BitArray; init) wraps around in init's type, while count on Array{Bool} widens small init types to Int"
+priority: P2
+kind: wrong-result
+area: BitArrays
+files: [base/bitarray.jl]
+functions: ["count(::BitArray; init)", "bitcount"]
+summary: |
+  count(trues(128); init=Int8(0)) returns Int8(-128) and
+  count(trues(300); init=0x00) returns 0x2c (44). The same calls on
+  fill(true, n) return 128 and 300 as Int, since #58374 made add_sum promote
+  Bool and small integers to Int. BitArray's bitcount still accumulates in
+  typeof(init) with % T, so the count silently wraps and the two array types
+  disagree in value and type.
+likelihood: |
+  Needs an explicit small-integer init (Int8, UInt8, ...) and more true
+  elements than the type holds. Uncommon, but silent.
+maybe_intended: |
+  The count docstring says init "also determines the output type", which the
+  BitArray method follows (test/bitarray.jl checks count(trues(2, 2),
+  init=0x03) === 0x07); #59869 (open) reports that the Int widening of generic
+  count on master breaks this documented rule. Under that reading the Vector
+  methods are the ones that changed; the two methods still disagree.
+reproducer: |
+  count(trues(128); init=Int8(0))       # -128
+  count(fill(true, 128); init=Int8(0))  # 128
+output:
+  release: |
+    -128 128 -128 0x2c
+    REPRODUCED bitarrays-count-init-wrap
+  nightly: |
+    -128 128 -128 0x2c
+    REPRODUCED bitarrays-count-init-wrap
+reproduced: {release: true, nightly: true}
+expected: |
+  The same value from both array types: 128 (the number of true elements plus
+  init), with the same result type.
+promised_by: |
+  count docstring (base/reduce.jl:1067-1072): "Count the number of elements in
+  itr for which the function f returns true ... init optionally specifies the
+  value to start counting from". A BitArray should count like Array{Bool}.
+cause: |
+  bitcount (base/bitarray.jl:1439-1445) does n = (n + count_ones(Bc[i])) % T
+  with T = typeof(init); _simple_count for Array{Bool} (base/reduce.jl:1097-1113)
+  starts from add_sum(init, false), an Int for small types (base/reduce.jl:17).
+possible_fix: |
+  Start bitcount from Base.add_sum(init, false) as _simple_count does, or
+  settle #59869 and make both methods follow the same rule.
+duplicates:
+  issues:
+    - {number: 59869, state: open, relation: related}
+  queries: ["issues: count init", "issues: count init BitArray", "issues: bitcount init overflow", "issues: count init UInt8", "prs: bitcount", "prs: count init"]
+lean:
+  property: JuliaLean.BitArrays.CountAgrees
+  theorem: JuliaLean.BitArrays.countAgrees_refuted

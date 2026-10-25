@@ -1,0 +1,65 @@
+id: artifacts-slash-traversal
+title: "Artifact slash indexing permits paths outside the artifact directory"
+priority: P1
+kind: missing-error
+area: Artifacts
+files: [stdlib/Artifacts/src/Artifacts.jl]
+functions: ["split_artifact_slash", "artifact_slash_lookup", "__artifact_str", "@artifact_str"]
+summary: |
+  Artifact slash indexing accepts `..` path components. The resulting path can resolve
+  outside the selected artifact directory instead of naming a file within the artifact.
+likelihood: |
+  Literal artifact paths are normally package-controlled, but `@artifact_str` explicitly
+  supports dynamically computed strings. Code that incorporates an untrusted or unchecked
+  relative path can therefore expose files outside the immutable artifact tree.
+maybe_intended: |
+  The implementation documents the suffix as path names indexing into the artifact. It does
+  not document access outside the artifact directory.
+reproducer: |
+  mktempdir() do root
+      hash_string = "0"^40
+      artifact_dir = joinpath(root, hash_string)
+      mkpath(artifact_dir)
+      artifacts_toml = joinpath(root, "Artifacts.toml")
+      write(artifacts_toml, "[payload]\ngit-tree-sha1 = \"$(hash_string)\"\n")
+      artifact_dict = Artifacts.load_artifacts_toml(artifacts_toml)
+      platform = Platform("x86_64", "linux")
+      name, tail, hash = Artifacts.artifact_slash_lookup(
+          "payload/../escaped.txt", artifact_dict, artifacts_toml, platform)
+      path = Artifacts.with_artifacts_directory(root) do
+          Artifacts.__artifact_str(
+              Main, artifacts_toml, name, tail, artifact_dict, hash, platform, Val(nothing))
+      end
+      println(relpath(path, root))
+  end
+output:
+  release: |
+    tail = "../escaped.txt"
+    returned path relative to artifact root = escaped.txt
+    escaped artifact directory = true
+    REPRODUCED artifacts-slash-traversal
+  nightly: |
+    tail = "../escaped.txt"
+    returned path relative to artifact root = escaped.txt
+    escaped artifact directory = true
+    REPRODUCED artifacts-slash-traversal
+reproduced: {release: true, nightly: true}
+expected: |
+  Slash indexing should reject a suffix containing `..`, or otherwise guarantee that the
+  returned path remains within the selected artifact directory.
+promised_by: |
+  `stdlib/Artifacts/src/Artifacts.jl:677-679` says elements after the first slash are path
+  names indexing into the artifact. The artifact container boundary is an obvious invariant.
+cause: |
+  `split_artifact_slash` at `stdlib/Artifacts/src/Artifacts.jl:636-642` passes all suffix
+  components, including `..`, to `joinpath`. `__artifact_str` at lines 569-573 then joins the
+  unchecked tail to the artifact directory.
+possible_fix: |
+  Reject empty, absolute, `.` and `..` suffix components before joining, with equivalent
+  handling for forward and backward separators on every platform.
+duplicates:
+  issues: []
+  queries: ["artifact path traversal", "artifact slash indexing", "artifact dot dot path", "artifact macro path escape"]
+lean:
+  property: JuliaLean.Artifacts.SlashLookupContained
+  theorem: JuliaLean.Artifacts.slashLookupContained_refuted

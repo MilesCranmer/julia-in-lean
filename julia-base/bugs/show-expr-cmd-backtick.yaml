@@ -1,0 +1,60 @@
+id: show-expr-cmd-backtick
+title: "Expr printing of a command literal does not escape backticks"
+priority: P3
+kind: wrong-result
+area: Show
+files: [base/show.jl]
+functions: ["show_unquoted(::IO, ::Expr, ::Int, ::Int)"]
+summary: |
+  For ex = Meta.parse("`echo \\`x\\``") (a command whose text is "echo `x`"),
+  string(ex) == "`echo `x``", which reparses as `echo ` * x``. The macrocall branch for
+  Core.@cmd prints the command text verbatim between backticks.
+likelihood: |
+  Rare: command literals containing escaped backticks.
+maybe_intended: ""
+reproducer: |
+  ex = Meta.parse("`echo \\`x\\``")   # command literal whose text contains a backtick
+  println("ex.args[3] = ", repr(ex.args[3]))
+  s = string(ex)
+  println("string(ex) = ", repr(s))
+  back = Meta.parse(s)
+  println("Meta.parse(string(ex)) = ", repr(back))
+  Base.remove_linenums!(back) != Base.remove_linenums!(copy(ex)) && println("REPRODUCED show-expr-cmd-backtick")
+output:
+  release: |
+    ex.args[3] = "echo `x`"
+    string(ex) = "`echo `x``"
+    Meta.parse(string(ex)) = :(`echo ` * #= none:1 =# @x_cmd(""))
+    REPRODUCED show-expr-cmd-backtick
+  nightly: |
+    ex.args[3] = "echo `x`"
+    string(ex) = "`echo `x``"
+    Meta.parse(string(ex)) = :(`echo ` * #= none:1 =# @x_cmd(""))
+    REPRODUCED show-expr-cmd-backtick
+reproduced: {release: true, nightly: true}
+expected: |
+  "`echo \\`x\\``".
+promised_by: |
+  base/show.jl:1636-1640: "AST printing should follow two rules: 1. Meta.parse(string(ex))
+  == ex ...".
+cause: |
+  base/show.jl:2383-2384 prints args[3] without escaping backticks (or backslashes before them).
+possible_fix: |
+  Escape the text with escape_raw_string(args[3], '`').
+duplicates:
+  issues: []
+  queries:
+    - "issues: show cmd backtick escape"
+    - "issues: show cmd backtick"
+    - "issues: print command literal expression"
+    - "issues: Cmd literal printing backtick"
+    - "prs: @cmd show escape"
+    - "prs: show cmd backtick"
+    - "issues: show_unquoted"
+    - "issues: deparse"
+    - "issues: printing Expr precedence"
+    - "issues: string Meta.parse roundtrip"
+    - "issues: Expr printing"
+lean:
+  property: JuliaLean.Show.CmdLiteralLexes
+  theorem: JuliaLean.Show.cmdLiteralLexes_refuted

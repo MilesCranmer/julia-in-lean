@@ -1,0 +1,70 @@
+id: bignums-round-ties-away
+title: "round(Int, big(2.5), RoundNearestTiesAway) throws MethodError"
+priority: P2
+kind: wrong-exception
+area: BigNums
+files: [base/mpfr.jl]
+functions: ["round(::Type{T}, ::BigFloat, ::RoundingMode) where T<:Union{Signed,Unsigned}", "round(::Type{BigInt}, ::BigFloat, ::RoundingMode)"]
+summary: |
+  round(T, x::BigFloat, r) for an integer type T converts r to an MPFR rounding mode.
+  Only RoundNearest, RoundToZero, RoundUp, RoundDown and RoundFromZero have a
+  conversion, so RoundNearestTiesAway and RoundNearestTiesUp throw MethodError for every
+  integer target, although round(Int, 2.5, RoundNearestTiesAway) == 3 and
+  round(big(2.5), RoundNearestTiesAway) == 3.0 both work.
+likelihood: |
+  Any generic code that calls round(Int, x, RoundNearestTiesAway) (C-style rounding)
+  and receives a BigFloat.
+maybe_intended: ""
+reproducer: |
+  function res(f)
+      try
+          return repr(f())
+      catch e
+          return "throws " * string(typeof(e))
+      end
+  end
+  a = res(() -> round(Int, 2.5, RoundNearestTiesAway))
+  b = res(() -> round(Int, big(2.5), RoundNearestTiesAway))
+  c = res(() -> round(BigInt, big(2.5), RoundNearestTiesUp))
+  d = res(() -> round(big(2.5), RoundNearestTiesAway))
+  println("round(Int, 2.5, RoundNearestTiesAway)      -> ", a)
+  println("round(Int, big(2.5), RoundNearestTiesAway) -> ", b)
+  println("round(BigInt, big(2.5), RoundNearestTiesUp) -> ", c)
+  println("round(big(2.5), RoundNearestTiesAway)      -> ", d)
+  if a == "3" && b == "throws MethodError" && c == "throws MethodError"
+      println("REPRODUCED bignums-round-ties-away")
+  end
+output:
+  release: |
+    round(Int, 2.5, RoundNearestTiesAway)      -> 3
+    round(Int, big(2.5), RoundNearestTiesAway) -> throws MethodError
+    round(BigInt, big(2.5), RoundNearestTiesUp) -> throws MethodError
+    round(big(2.5), RoundNearestTiesAway)      -> 3.0
+    REPRODUCED bignums-round-ties-away
+  nightly: |
+    round(Int, 2.5, RoundNearestTiesAway)      -> 3
+    round(Int, big(2.5), RoundNearestTiesAway) -> throws MethodError
+    round(BigInt, big(2.5), RoundNearestTiesUp) -> throws MethodError
+    round(big(2.5), RoundNearestTiesAway)      -> 3.0
+    REPRODUCED bignums-round-ties-away
+reproduced: {release: true, nightly: true}
+expected: |
+  3 for both calls, as for Float64 and as round(T, round(x, r)) gives.
+promised_by: |
+  base/rounding.jl:331-350 (round docstring): round([T,] x, [r::RoundingMode]) rounds x
+  with the given RoundingMode and returns a value of type T; RoundNearestTiesAway and
+  RoundNearestTiesUp are documented RoundingModes (base/rounding.jl:96-109).
+cause: |
+  base/mpfr.jl:465-468 route round(T, x::BigFloat, r::RoundingMode) to the method at
+  base/mpfr.jl:449-456, which calls _unchecked_cast(T, x, r) and thus
+  convert(MPFRRoundingMode, r) (base/mpfr.jl:428). convert is defined only for the
+  five modes at base/mpfr.jl:75-79. Lines 450-469 on 1.13.2.
+possible_fix: |
+  For the two tie-breaking modes, round x to an integral BigFloat with
+  round(x, r) (which exists) and then convert with trunc(T, ...).
+duplicates:
+  issues: []
+  queries: ["round BigFloat RoundNearestTiesAway", "RoundNearestTiesAway BigFloat", "round BigFloat", "round BigFloat Int MethodError", "PR round BigFloat"]
+lean:
+  property: JuliaLean.BigNums.RoundBigFloatAllModes
+  theorem: JuliaLean.BigNums.roundBigFloatAllModes_refuted

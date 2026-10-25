@@ -1,0 +1,58 @@
+id: ranges-operations-intersect-mixed-regression
+title: "Mixed UInt8/Int8 range intersection returns values absent from an input on master"
+priority: P1
+kind: wrong-result
+area: Ranges
+files: [base/range.jl, base/int.jl]
+functions: ["intersect(::AbstractUnitRange{UInt8}, ::StepRange{Int8})"]
+summary: |
+  Master intersects UInt8(0):UInt8(255) and Int8(-100):Int8(7):Int8(117)
+  as 2:7:114, instead of 5:7:117. Its result includes 2, which is absent from
+  the signed input. Julia 1.13.2 throws InexactError on this range call instead.
+likelihood: |
+  Plausible for byte-sized data filtered against signed coordinate ranges.
+  All correct shared values fit UInt8; mixed signedness triggers the regression.
+maybe_intended: |
+  Promoting the result to UInt8 can be intentional. Wrapping intermediate
+  coordinate differences changes their congruence modulo 7 and cannot justify
+  returning elements absent from an input.
+reproducer: |
+  r = UInt8(0):UInt8(255)
+  s = Int8(-100):Int8(7):Int8(117)
+  try
+      t = intersect(r,s)
+      @assert first(t) == 2 && last(t) == 114 && !(UInt8(2) in s)
+      println("REPRODUCED ranges-operations-intersect-mixed-regression")
+  catch e
+      if e isa InexactError
+          println("NOT REPRODUCED ranges-operations-intersect-mixed-regression: InexactError")
+      else
+          rethrow()
+      end
+  end
+output:
+  release: |
+    NOT REPRODUCED ranges-operations-intersect-mixed-regression: InexactError
+  nightly: |
+    REPRODUCED ranges-operations-intersect-mixed-regression
+reproduced: {release: false, nightly: true}
+expected: |
+  Return UInt8[5,12,19,26,33,40,47,54,61,68,75,82,89,96,103,110,117],
+  consistent with the collected-array intersection.
+promised_by: |
+  Intersection invariant: every result element belongs to both input collections.
+cause: |
+  base/range.jl:1213 computes sta - lo in the mixed promoted UInt8 type.
+  Master's base/int.jl:1093-1099 wraps the Int8(-100) operand to UInt8(156),
+  changing its residue modulo 7 from 5 to 2. The selected output sequence
+  therefore has the wrong alignment. The release's mixed arithmetic instead
+  checks promotion and throws while converting -100 to UInt8.
+possible_fix: |
+  Compute mixed-sign congruence differences in a signed widened type before
+  converting representable final endpoints to the result type.
+duplicates:
+  issues: []
+  queries: ["issues: intersect UInt8 Int8", "issues: intersection unsigned range wrapping", "PRs: intersect mixed signed unsigned"]
+lean:
+  property: JuliaLean.Ranges.intersectMixedSoundProp
+  theorem: JuliaLean.Ranges.intersectMixedSoundRefuted

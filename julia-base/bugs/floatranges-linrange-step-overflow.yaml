@@ -1,0 +1,58 @@
+id: floatranges-linrange-step-overflow
+title: step(LinRange(-1e308, 1e308, 3)) is Inf, so 0.0 in r is false although r[2] == 0.0
+priority: P2
+kind: wrong-result
+area: FloatRanges
+files:
+- base/range.jl
+functions:
+- step(::LinRange)
+- in(::Real, ::AbstractRange{<:Real})
+summary: |
+  step(::LinRange) divides last - first, which overflows for finite endpoints of opposite
+  sign beyond floatmax/2. With step == Inf, in computes index 1 for every x and misses all
+  interior elements.
+likelihood: |
+  Needs endpoints near floatmax; rare.
+maybe_intended: ''
+reproducer: |
+  r = LinRange(-1.0e308, 1.0e308, 3)
+  println("collect(r) = ", collect(r))
+  println("step(r) = ", step(r))
+  println("r[2] = ", r[2], "   r[2] in r = ", r[2] in r)
+  isinf(step(r)) && !(r[2] in r) && println("REPRODUCED floatranges-linrange-step-overflow")
+output:
+  release: |
+    collect(r) = [-1.0e308, 0.0, 1.0e308]
+    step(r) = Inf
+    r[2] = 0.0   r[2] in r = false
+    REPRODUCED floatranges-linrange-step-overflow
+  nightly: |
+    collect(r) = [-1.0e308, 0.0, 1.0e308]
+    step(r) = Inf
+    r[2] = 0.0   r[2] in r = false
+    REPRODUCED floatranges-linrange-step-overflow
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  step(LinRange(-1e308, 1e308, 3)) == 1e308 and 0.0 in LinRange(-1e308, 1e308, 3).
+promised_by: |
+  in docstring, base/operators.jl:1503-1506; step docstring, base/range.jl:716-718 (the
+  step size of the range).
+cause: |
+  base/range.jl:740: step(r::LinRange) = (last(r)-first(r))/r.lendiv overflows;
+  base/range.jl:1468-1472 then rounds (x - f)/Inf = 0 to n = 1.
+possible_fix: |
+  Compute step as last/lendiv - first/lendiv when the difference overflows, as _linspace
+  does at base/twiceprecision.jl:675-677.
+duplicates:
+  issues: []
+  queries:
+  - LinRange step overflow
+  - LinRange step
+  - LinRange in
+  - step LinRange overflow
+lean:
+  property: JuliaLean.FloatRanges.LinContainsElements
+  theorem: JuliaLean.FloatRanges.linContainsElements_refuted

@@ -1,0 +1,74 @@
+id: broadcastviews-range-unsigned-float
+title: "Broadcasting an unsigned range with a Float64 gives wrong elements or InexactError: (UInt(1):UInt(2):UInt(5)) .- 2.0"
+priority: P1
+kind: wrong-result
+area: BroadcastViews
+files: [base/broadcast.jl, base/twiceprecision.jl, base/range.jl]
+functions: ["broadcasted(::DefaultArrayStyle{1}, ::typeof(-), ::AbstractRange, ::Number)", "broadcasted(::DefaultArrayStyle{1}, ::typeof(*), ::AbstractFloat, ::OrdinalRange)", "Base.floatrange", "unsafe_getindex(::StepRangeLen, ::Integer)"]
+summary: |
+  For a range with an unsigned element type, the range-returning broadcast methods
+  pass `length(r)::UInt64` to `range`/`range_start_step_length`, and `floatrange`
+  then does its index arithmetic in UInt64. When the result has negative elements
+  this either silently produces wrong values,
+  `(UInt(1):UInt(2):UInt(5)) .- 2.0 == [3.6893488147419103e19, 1.0, 3.0]` instead of
+  `[-1.0, 1.0, 3.0]`, or throws `InexactError: UInt64(1.8446744073709552e19)`, as in
+  `-2.0 .* (UInt(1):UInt(3))`, `0.0 .- (UInt(1):UInt(3))` and `(UInt(1):UInt(3)) ./ -2.0`.
+  `3.0 .- Base.OneTo(UInt(3))` returns `[-1.8e19, -1.8e19, 0.0]` instead of `[2.0, 1.0, 0.0]`.
+likelihood: |
+  Needs a UInt range (for example from `UInt(1):n` with an unsigned `n`, or
+  `Base.OneTo(length(...))` of an unsigned length) combined with a Float64 scalar
+  so that the result has negative values. Plausible in code that mixes unsigned
+  counters with floating-point offsets.
+maybe_intended: ""
+reproducer: |
+  r = UInt(1):UInt(2):UInt(5)
+  a = r .- 2.0
+  b = collect(r) .- 2.0
+  println("(UInt(1):UInt(2):UInt(5)) .- 2.0 = ", collect(a))
+  println("collect(UInt(1):UInt(2):UInt(5)) .- 2.0 = ", b)
+  c = try -2.0 .* (UInt(1):UInt(3)) catch e; e end
+  println("-2.0 .* (UInt(1):UInt(3)) = ", c isa Exception ? sprint(showerror, c) : collect(c))
+  println("-2.0 .* collect(UInt(1):UInt(3)) = ", -2.0 .* collect(UInt(1):UInt(3)))
+  if collect(a) != b || c isa Exception
+      println("REPRODUCED broadcastviews-range-unsigned-float")
+  end
+output:
+  release: |
+    (UInt(1):UInt(2):UInt(5)) .- 2.0 = [3.6893488147419103e19, 1.0, 3.0]
+    collect(UInt(1):UInt(2):UInt(5)) .- 2.0 = [-1.0, 1.0, 3.0]
+    -2.0 .* (UInt(1):UInt(3)) = InexactError: UInt64(1.8446744073709552e19)
+    -2.0 .* collect(UInt(1):UInt(3)) = [-2.0, -4.0, -6.0]
+    REPRODUCED broadcastviews-range-unsigned-float
+  nightly: |
+    (UInt(1):UInt(2):UInt(5)) .- 2.0 = [3.6893488147419103e19, 1.0, 3.0]
+    collect(UInt(1):UInt(2):UInt(5)) .- 2.0 = [-1.0, 1.0, 3.0]
+    -2.0 .* (UInt(1):UInt(3)) = InexactError: UInt64(1.8446744073709552e19)
+    -2.0 .* collect(UInt(1):UInt(3)) = [-2.0, -4.0, -6.0]
+    REPRODUCED broadcastviews-range-unsigned-float
+reproduced: {release: true, nightly: true}
+expected: |
+  [-1.0, 1.0, 3.0] and [-2.0, -4.0, -6.0], the results of broadcasting over the
+  collected ranges.
+promised_by: |
+  Invariant: a broadcast over a range returns the same elements as the broadcast over
+  `collect(r)` (the range methods at base/broadcast.jl:1174-1242 are optimizations).
+cause: |
+  base/broadcast.jl:1200 (`r .- x`), 1201 (`x .- r`), 1219-1220 and 1226-1227 (`x .* r`
+  with a float), 1230 (`r ./ x`) and 1235 pass `length(r)`, a UInt64 for unsigned
+  ranges, to `range`/`range_start_step_length`. base/twiceprecision.jl:450-451 keeps
+  `len + 0` unsigned and floatrange (380-392) computes `imin` as a UInt64 and
+  `ref_n = start_n + (imin-1)*step_n` in UInt64, so a negative reference element wraps
+  (and `TwicePrecision{Float64}(ref_n)` throws InexactError in splitprec, lines 22-26);
+  otherwise the StepRangeLen gets an unsigned offset and `unsafe_getindex`
+  (base/range.jl:1096) computes `u = oftype(r.offset, i) - r.offset` in UInt64, which
+  wraps for elements before the offset.
+possible_fix: |
+  Convert the length to Int (`Int(length(r))`) in the range broadcast methods, or
+  make `range_start_step_length`/`floatrange` convert `len` with `Int(len)` instead
+  of `len + 0`.
+duplicates:
+  issues: []
+  queries: ["unsigned range float broadcast", "range length UInt float", "UInt range float", "StepRangeLen unsigned offset", "floatrange UInt", "unsigned range negative broadcast", "range broadcast"]
+lean:
+  property: JuliaLean.BroadcastViews.RangeUnsignedFloat
+  theorem: JuliaLean.BroadcastViews.rangeUnsignedFloat_refuted

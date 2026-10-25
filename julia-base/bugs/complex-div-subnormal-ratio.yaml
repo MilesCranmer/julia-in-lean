@@ -1,0 +1,65 @@
+id: complex-div-subnormal-ratio
+title: "ComplexF64 division loses all accuracy in one component when d/c is subnormal"
+priority: P3
+kind: wrong-result
+area: Complex
+files: [base/complex.jl]
+functions: ["/(::ComplexF64, ::ComplexF64)", "robust_cdiv1"]
+summary: |
+  robust_cdiv1 forms r = d/c (or c/d). When that ratio lands in the subnormal range
+  it keeps only a few bits, and the component computed from it inherits the error.
+  complex(2.0^1000, 0.0)/complex(3*nextfloat(0.0), 2.0) returns real part 2^-74 instead of
+  about 3*2^-76, a relative error of 1/3, although both exact components are normal numbers.
+likelihood: |
+  Needs a divisor with one subnormal component and a numerator large enough to make
+  the affected component normal. Rare outside of extreme-range numerics.
+maybe_intended: |
+  The error is tiny relative to |z/w| (the other component is 2^999), and complex
+  division is usually only promised normwise accuracy. Baudin and Smith's algorithm
+  (arXiv:1210.4539) targets componentwise accuracy but does not treat gradual underflow of r.
+reproducer: |
+  z = complex(2.0^1000, 0.0)
+  w = complex(3 * nextfloat(0.0), 2.0)
+  q = z / w
+  setprecision(BigFloat, 4000) do
+      a, b, c, d = big(real(z)), big(imag(z)), big(real(w)), big(imag(w))
+      exact_re = (a * c + b * d) / (c^2 + d^2)
+      println("z / w            = ", q)
+      println("exact real part  = ", Float64(exact_re))
+      println("relative error   = ", Float64(abs(real(q) - exact_re) / abs(exact_re)))
+      if abs(real(q) - exact_re) > abs(exact_re) / 2^20
+          println("REPRODUCED complex-div-subnormal-ratio")
+      end
+  end
+output:
+  release: |
+    z / w            = 5.293955920339377e-23 - 5.357543035931337e300im
+    exact real part  = 3.970466940254533e-23
+    relative error   = 0.3333333333333333
+    REPRODUCED complex-div-subnormal-ratio
+  nightly: |
+    z / w            = 5.293955920339377e-23 - 5.357543035931337e300im
+    exact real part  = 3.970466940254533e-23
+    relative error   = 0.3333333333333333
+    REPRODUCED complex-div-subnormal-ratio
+reproduced: {release: true, nightly: true}
+expected: |
+  3.970466940254533e-23 - 5.357543035931337e300im (real part correctly rounded).
+promised_by: |
+  base/complex.jl:394-396: "robust complex division for double precision; variables are
+  scaled & unscaled to avoid over/underflow". Invariant: a normal-range exact component
+  should be accurate to a few ulps.
+cause: |
+  base/complex.jl:461 r = d/c underflows gradually (3*2^-1074/2 rounds to 2^-1073);
+  base/complex.jl:469-470 then uses b*r. The scaling thresholds at base/complex.jl:414
+  only look at max(|a|,|b|) and max(|c|,|d|), never at the ratio.
+possible_fix: |
+  Also scale when min(|c|,|d|)/max(|c|,|d|) is subnormal, or compute the affected
+  component as (b*(d/c)) via (b*d)/c when r is subnormal.
+duplicates:
+  issues:
+    - {number: 5072, state: closed, relation: related}
+  queries: ["complex division accuracy", "complex division underflow", "complex division subnormal", "robust complex division", "complex division Baudin"]
+lean:
+  property: JuliaLean.Complex.DivComponentAccurate
+  theorem: JuliaLean.Complex.divComponentAccurate_refuted

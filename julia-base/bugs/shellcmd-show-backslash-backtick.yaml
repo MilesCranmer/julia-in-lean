@@ -1,0 +1,58 @@
+id: shellcmd-show-backslash-backtick
+title: "show(::Cmd) prints an unparsable literal for an argument containing a backslash before a backtick"
+priority: P2
+kind: wrong-result
+area: ShellCmd
+files: [base/cmd.jl]
+functions: ["show(::IO, ::Cmd)"]
+summary: |
+  show(::Cmd) escapes each backtick of a quoted word as \` but leaves a backslash in front
+  of it alone. Command literals use raw-string rules, where `\\` followed by a backtick is
+  one backslash and the end of the literal. So Cmd(["echo", "\\`"]) prints as
+  `echo '\\`'`, which parses as the literal `echo '\` followed by stray text, and
+  evaluating it throws "unterminated single quote".
+likelihood: |
+  Low: needs an argument with a backslash directly before a backtick that contains no
+  single quote. The printed form is shown in REPL output and error messages, so a user
+  who copies it gets an error or a different command.
+maybe_intended: ""
+reproducer: |
+  c = Cmd(["echo", "\\`"])
+  repr(c)                     # "`echo '\\\\`'`"
+  eval(Meta.parse(repr(c)))   # LoadError: unterminated single quote
+output:
+  release: |
+    repr(c) = `echo '\\`'`
+    eval(Meta.parse(repr(c))) = LoadError("none", 1, ErrorException("unterminated single quote"))
+    REPRODUCED shellcmd-show-backslash-backtick
+  nightly: |
+    repr(c) = `echo '\\`'`
+    eval(Meta.parse(repr(c))) = LoadError("none", 1, ErrorException("unterminated single quote"))
+    REPRODUCED shellcmd-show-backslash-backtick
+reproduced: {release: true, nightly: true}
+expected: |
+  A literal that evaluates to an equal Cmd, for example `echo '\\\`'` (three backslashes
+  before the backtick).
+promised_by: |
+  The generic show docstring (base/show.jl): the output "should be parseable Julia code
+  when possible"; show(::Cmd) prints a command literal for this purpose and quotes
+  special characters and leading tildes so that the literal parses back
+  (base/cmd.jl:201-210).
+cause: |
+  base/cmd.jl:203-208 (master; :148-153 in 1.13.2): after print_shell_word, the code only
+  replaces '`' => "\\`". In a single-quoted word the backslashes before a backtick are
+  printed raw, and the raw-string lexing of the literal halves them.
+possible_fix: |
+  Replace the `replace(..., '`' => "\\`")` with `escape_raw_string(..., '`')`, which also
+  doubles backslashes that precede a backtick.
+duplicates:
+  issues: []
+  queries:
+    - "issues/prs: show Cmd backtick"
+    - "issues/prs: Cmd show roundtrip"
+    - "issues/prs: show Cmd escape"
+    - "issues/prs: repr Cmd parse"
+    - "issues/prs: Cmd literal backslash backtick"
+lean:
+  property: JuliaLean.ShellCmd.ShowLexesBackslash
+  theorem: JuliaLean.ShellCmd.showLexesBackslash_refuted

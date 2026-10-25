@@ -1,0 +1,58 @@
+id: show-expr-dotted-shortcircuit
+title: "print of a .&& b / a .|| b falls back to $(Expr(:.&&, ...))"
+priority: P3
+kind: wrong-result
+area: Show
+files: [base/show.jl]
+functions: ["show_unquoted(::IO, ::Expr, ::Int, ::Int)"]
+summary: |
+  print(:(a .&& b)) writes $(Expr(:.&&, :a, :b)); the heads .&& and .|| (parsed since
+  Julia 1.7) are missing from expr_infix_wide, so the printer uses the unhandled
+  fallback, whose output reparses to an interpolation Expr(:$, ...).
+likelihood: |
+  Plausible: broadcasting short-circuit operators in printed code, error messages and @show.
+maybe_intended: ""
+reproducer: |
+  ex = Meta.parse("a .&& b")          # Expr(:.&&, :a, :b)
+  s = string(ex)
+  println("string(ex) = ", repr(s))
+  back = Meta.parse(s)
+  println("Meta.parse(string(ex)) = ", repr(back))
+  back != ex && println("REPRODUCED show-expr-dotted-shortcircuit")
+output:
+  release: |
+    string(ex) = "\$(Expr(:.&&, :a, :b))"
+    Meta.parse(string(ex)) = :($(Expr(:$, :(Expr(:.&&, :a, :b)))))
+    REPRODUCED show-expr-dotted-shortcircuit
+  nightly: |
+    string(ex) = "\$(Expr(:.&&, :a, :b))"
+    Meta.parse(string(ex)) = :($(Expr(:$, :(Expr(:.&&, :a, :b)))))
+    REPRODUCED show-expr-dotted-shortcircuit
+reproduced: {release: true, nightly: true}
+expected: |
+  "a .&& b".
+promised_by: |
+  base/show.jl:1636-1640: "AST printing should follow two rules: 1. Meta.parse(string(ex))
+  == ex ...".
+cause: |
+  base/show.jl:1679-1683 (expr_infix_wide) lists && and || but not .&& and .||, so these
+  heads reach the fallback at base/show.jl:2601-2603.
+possible_fix: |
+  Add :.&& and :.|| to expr_infix_wide.
+duplicates:
+  issues:
+    - {number: 25121, state: open, relation: related}
+  queries:
+    - "issues: .&& show Expr"
+    - "issues: show Expr .&&"
+    - "issues: dotted && printing"
+    - "prs: .&& show"
+    - "prs: show Expr .&&"
+    - "issues: show_unquoted"
+    - "issues: deparse"
+    - "issues: printing Expr precedence"
+    - "issues: string Meta.parse roundtrip"
+    - "issues: Expr printing"
+lean:
+  property: JuliaLean.Show.DottedShortCircuitReparses
+  theorem: JuliaLean.Show.dottedShortCircuitReparses_refuted

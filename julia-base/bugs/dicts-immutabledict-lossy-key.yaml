@@ -1,0 +1,55 @@
+id: dicts-immutabledict-lossy-key
+title: "ImmutableDict(d, key => v) and Base.setindex(d, v, key) convert the key lossily, so the new key is not found"
+priority: P2
+kind: wrong-result
+area: Dicts
+files: [base/dict.jl]
+functions: ["ImmutableDict(::ImmutableDict, ::Pair)", "setindex(::ImmutableDict, value, key)"]
+summary: |
+  ImmutableDict{K,V}(parent, key, value) = new(parent, key, value) converts
+  the key field with convert(K, key) and no isequal check. Adding 0.1 to an
+  ImmutableDict{Float32,Int} stores 0.1f0, so haskey(d, 0.1) is false right
+  after the insertion; on master Base.setindex(d, 1, 0.1) does the same and
+  get(d2, 0.1, nothing) returns nothing. Dict{Float32,Int}(0.1 => 1) throws.
+  Base.setindex(::ImmutableDict, value, key) is new on master (MethodError on
+  1.13.2); the constructor path fails on both versions.
+likelihood: |
+  Needs a key of a wider type than the dictionary's key type. ImmutableDict is
+  used for IOContext properties (Symbol keys), where this cannot happen, so
+  user impact is limited to direct ImmutableDict users.
+maybe_intended: |
+  The inner constructor is a plain field constructor; the outer
+  constructors may have been expected to receive keys of type K.
+reproducer: |
+  d = Base.ImmutableDict(Base.ImmutableDict{Float32,Int}(), 0.1 => 1); haskey(d, 0.1)   # false
+  d2 = Base.setindex(Base.ImmutableDict{Float32,Int}(), 1, 0.1); get(d2, 0.1, nothing)  # nothing (master)
+output:
+  release: |
+    d = ImmutableDict(ImmutableDict{Float32,Int}(), 0.1 => 1) = Base.ImmutableDict{Float32, Int64}(0.1 => 1); haskey(d, 0.1) = false
+    Dict{Float32,Int}(0.1 => 1) throws: TypeError: 0.1 is not a valid key for type Float32
+    REPRODUCED dicts-immutabledict-lossy-key
+  nightly: |
+    d = ImmutableDict(ImmutableDict{Float32,Int}(), 0.1 => 1) = Base.ImmutableDict{Float32, Int64}(0.1 => 1); haskey(d, 0.1) = false
+    Base.setindex(ImmutableDict{Float32,Int}(), 1, 0.1) = Base.ImmutableDict{Float32, Int64}(0.1 => 1); get(d2, 0.1, nothing) = nothing
+    Dict{Float32,Int}(0.1 => 1) throws: TypeError: 0.1 is not a valid key for type Float32
+    REPRODUCED dicts-immutabledict-lossy-key
+reproduced: {release: true, nightly: true}
+expected: |
+  A KeyTypeError as for Dict, or haskey(d, 0.1) == true and d2[0.1] == 1.
+promised_by: |
+  ImmutableDict docstring, base/dict.jl:790-792: "Calling `getindex` will
+  return the most recent value for a particular key"; setindex docstring,
+  base/dict.jl:871-872: "with the most recent value of the key `key` set to
+  `value`".
+cause: |
+  base/dict.jl:782: new(parent, key, value) converts key to K; reached from
+  base/dict.jl:812 and setindex at base/dict.jl:886-888.
+possible_fix: |
+  In the outer constructors, convert the key and throw KeyTypeError(K, key)
+  unless isequal(convert(K, key), key), as setindex!(::Dict) does.
+duplicates:
+  issues: []
+  queries: ["ImmutableDict convert key", "ImmutableDict Float32"]
+lean:
+  property: JuliaLean.Dicts.ImmutableDictSetGet
+  theorem: JuliaLean.Dicts.immutableDictSetGet_refuted

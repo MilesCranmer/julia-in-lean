@@ -1,0 +1,55 @@
+id: promotion-trunc-rational-infinite-error
+title: "trunc/round/floor/ceil(T, x::Rational) throw DivideError for 1//0 instead of InexactError"
+priority: P3
+kind: wrong-exception
+area: Promotion
+files: [base/rational.jl, base/rounding.jl]
+functions: ["trunc(::Type{<:Integer}, ::Rational)", "round(::Type{<:Integer}, ::Rational)", "floor(::Type{<:Integer}, ::Rational)", "ceil(::Type{<:Integer}, ::Rational)"]
+summary: |
+  The integer-target rounding functions throw DivideError for the infinite
+  rationals 1//0 and -1//0, whereas the docstrings promise InexactError when the
+  rounded value is not representable, and the same calls on Inf throw
+  InexactError.
+likelihood: |
+  Needs an infinite Rational (produced by x//0 with nonzero x) passed to
+  trunc/round/floor/ceil with an integer type. Code catching InexactError for
+  out-of-range values misses this case.
+maybe_intended: |
+  DivideError is what div(num, 0) naturally throws, and the IntArith area records
+  this behaviour as a proven property (intarith-rational-infinite-rounding). The
+  finding only concerns the exception type.
+reproducer: |
+  # trunc(Int, 1//0) throws DivideError, while the docstring promises InexactError (as for Inf)
+  e1 = try trunc(Int, 1//0) catch e; e end
+  e2 = try trunc(Int, Inf) catch e; e end
+  e3 = try round(Int, -1//0) catch e; e end
+  println("trunc(Int, 1//0) -> ", typeof(e1), "; trunc(Int, Inf) -> ", typeof(e2), "; round(Int, -1//0) -> ", typeof(e3))
+  if e1 isa DivideError && e2 isa InexactError
+      println("REPRODUCED promotion-trunc-rational-infinite-error")
+  end
+output:
+  release: |
+    trunc(Int, 1//0) -> DivideError; trunc(Int, Inf) -> InexactError; round(Int, -1//0) -> DivideError
+    REPRODUCED promotion-trunc-rational-infinite-error
+  nightly: |
+    trunc(Int, 1//0) -> DivideError; trunc(Int, Inf) -> InexactError; round(Int, -1//0) -> DivideError
+    REPRODUCED promotion-trunc-rational-infinite-error
+reproduced: {release: true, nightly: true}
+expected: |
+  trunc(Int, 1//0) throws InexactError, like trunc(Int, Inf).
+promised_by: |
+  base/rounding.jl:423-424 (trunc docstring): "trunc(T, x) converts the result to
+  type T, throwing an InexactError if the truncated value is not representable as
+  a T." base/rounding.jl:454-455 and 471-472 say the same for floor and ceil.
+cause: |
+  base/rational.jl:614-619: round(::Type{T}, x::Rational, r) with T <: Integer
+  skips the zero-denominator branch and evaluates div(numerator(x),
+  denominator(x), r), which throws DivideError for a zero denominator.
+possible_fix: |
+  Throw InexactError(:round, T, x) when iszero(denominator(x)) and T <: Integer.
+duplicates:
+  issues: []
+  queries: ["trunc Rational infinite", "round Rational DivideError", "DivideError rational", "rational infinity round", "rational infinite integer conversion", "round Rational", "trunc Rational"]
+lean:
+  property: JuliaLean.Promotion.TruncInfiniteInexact
+  theorem: JuliaLean.Promotion.truncInfiniteInexact_refuted

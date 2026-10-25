@@ -1,0 +1,45 @@
+id: iobuffers-takestring-mark
+title: "takestring!(::PipeBuffer) returns already-read bytes when the buffer is marked"
+priority: P2
+kind: wrong-result
+area: IOBuffers
+files: [base/iobuffer.jl]
+functions: ["takestring!(::IOBuffer)", "unsafe_takestring!(::IOBuffer)"]
+summary: |
+  For a non-seekable buffer (PipeBuffer), take! returns the unread bytes, but
+  takestring! returns every byte from the mark on, including bytes already consumed by
+  read. So takestring!(pb) and String(take!(pb)) differ whenever pb is marked.
+likelihood: |
+  Needs mark on a PipeBuffer followed by takestring!; uncommon but silent.
+maybe_intended: |
+  None visible: takestring! is documented as the preferred replacement for
+  String(take!(io)).
+reproducer: |
+  pb = PipeBuffer(); write(pb, "abcdef"); mark(pb); read(pb, 2)
+  takestring!(pb)          # "abcdef"
+  # with the same setup, String(take!(pb)) == "cdef"
+output:
+  release: |
+    takestring! = "abcdef", String(take!) = "cdef"
+    REPRODUCED iobuffers-takestring-mark
+  nightly: |
+    takestring! = "abcdef", String(take!) = "cdef"
+    REPRODUCED iobuffers-takestring-mark
+reproduced: {release: true, nightly: true}
+expected: |
+  "cdef", the same as String(take!(pb)).
+promised_by: |
+  takestring! docstring, base/iobuffer.jl:812-817: "Return the content of io as a
+  String ... This is preferred over calling String(take!(io))."
+cause: |
+  takestring! (base/iobuffer.jl:842-849, and 854-857 when not writable) copies
+  get_used_span(io), which for a marked non-seekable buffer starts at the mark
+  (base/iobuffer.jl:668-669), while take! copies io.ptr:io.size (770-774).
+possible_fix: |
+  For non-seekable buffers take the bytes io.ptr:io.size, as take! does.
+duplicates:
+  issues: []
+  queries: ["takestring!", "takestring! mark", "takestring PipeBuffer", "takestring PipeBuffer mark"]
+lean:
+  property: JuliaLean.IOBuffers.TakestringEqTake
+  theorem: JuliaLean.IOBuffers.takestringEqTake_refuted

@@ -1,0 +1,8 @@
+r = range(typemax(Int) - 1; length=5)
+println("range(typemax(Int) - 1; length=5) = ", repr(r))
+println("length = ", length(r))
+s = range(0; step=2^62, length=3)
+println("range(0; step=2^62, length=3) = ", repr(s))
+println("length = ", length(s))
+println("expected length = 5 and 3, or an OverflowError")
+length(r) == 0 && length(s) == 0 && println("REPRODUCED ranges-keyword-length")

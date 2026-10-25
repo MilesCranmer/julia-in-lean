@@ -1,0 +1,56 @@
+id: dates-canonicalize-overflow
+title: "canonicalize can turn a positive CompoundPeriod into a negative period"
+priority: P2
+kind: wrong-result
+area: Dates
+files: [stdlib/Dates/src/periods.jl]
+functions: ["canonicalize(::CompoundPeriod)"]
+summary: |
+  canonicalize(CompoundPeriod(Year(typemax(Int64)), Month(12))) returns
+  Year(typemin(Int64)). The normalized period denotes the opposite sign and
+  loses 2^64 years from the exact calendar duration.
+likelihood: |
+  The year count is extreme. Code canonicalizing accumulated or sentinel
+  periods can reach it, but ordinary civil durations do not.
+maybe_intended: |
+  Individual Period arithmetic wraps like Int64. canonicalize is presented as
+  rewriting a duration into coarser units, so a change in the represented
+  duration should instead be rejected or retained without this normalization.
+reproducer: |
+  using Dates
+  canonicalize(Dates.CompoundPeriod(Year(typemax(Int64)), Month(12)))
+output:
+  release: |
+    input = 9223372036854775807 years, 12 months
+    canonicalized = -9223372036854775808 years
+    input exact months = 110680464442257309696
+    output exact months = -110680464442257309696
+    REPRODUCED dates-canonicalize-overflow
+  nightly: |
+    input = 9223372036854775807 years, 12 months
+    canonicalized = -9223372036854775808 years
+    input exact months = 110680464442257309696
+    output exact months = -110680464442257309696
+    REPRODUCED dates-canonicalize-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  Preserve the exact number of calendar months, or report that the canonical
+  coarser count is unrepresentable. It must not silently change the duration.
+promised_by: |
+  stdlib/Dates/src/periods.jl:208-215: canonicalize "Reduces the Period into
+  its canonical form" by breaking periods into coarser units and combining
+  opposite signs. These are representation changes, not changes in duration.
+cause: |
+  stdlib/Dates/src/periods.jl:246-258 carries Month(12) into Year(1), then
+  v += value(p[i]) at line 248 adds it to typemax(Int64) years using wrapping
+  arithmetic. The sign-normalization phase sees only the wrapped negative year.
+possible_fix: |
+  Use checked addition when merging a carry into a coarser period, and reject
+  an unrepresentable count instead of returning a changed duration.
+duplicates:
+  issues: []
+  queries: ["canonicalize overflow", "repo:JuliaLang/julia canonicalize overflow"]
+  notes: "Both issue and PR searches found no exact duplicate."
+lean:
+  property: JuliaLean.Dates.CanonicalizeMonths
+  theorem: JuliaLean.Dates.canonicalizeMonths_refuted

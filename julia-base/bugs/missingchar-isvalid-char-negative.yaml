@@ -1,0 +1,63 @@
+id: missingchar-isvalid-char-negative
+title: "isvalid(Char, -1) throws InexactError instead of returning false"
+priority: P3
+kind: wrong-exception
+area: MissingChar
+files: [base/strings/unicode.jl]
+functions: ["isvalid(::Type{<:AbstractChar}, ::Integer)"]
+summary: |
+  isvalid(Char, x) for a signed integer converts x with Unsigned(x) first, so
+  every negative x throws InexactError (isvalid(Char, -1),
+  isvalid(Char, Int8(-1))). Positive out-of-range values such as 2^40 and
+  0x110000 correctly return false.
+likelihood: |
+  Low: validating integer input before calling Char(x), e.g.
+  filter(x -> isvalid(Char, x), data), throws on the first negative value.
+maybe_intended: |
+  The docstring lists AbstractChar and UInt32 as the supported value types for
+  AbstractChar, so signed integers are an extension; but the extension exists
+  (base/strings/unicode.jl:60) and returns false for other invalid values.
+reproducer: |
+  f(g) = try repr(g()) catch e; "THROWS " * first(split(sprint(showerror, e), '\n')) end
+  r1 = f(() -> isvalid(Char, -1))
+  r2 = f(() -> isvalid(Char, Int8(-1)))
+  println("isvalid(Char, 0x110000) = ", f(() -> isvalid(Char, 0x110000)))
+  println("isvalid(Char, 2^40)     = ", f(() -> isvalid(Char, 2^40)))
+  println("isvalid(Char, -1)       = ", r1)
+  println("isvalid(Char, Int8(-1)) = ", r2)
+  startswith(r1, "THROWS InexactError") && println("REPRODUCED missingchar-isvalid-char-negative")
+output:
+  release: |
+    isvalid(Char, 0x110000) = false
+    isvalid(Char, 2^40)     = false
+    isvalid(Char, -1)       = THROWS InexactError: convert(UInt64, -1)
+    isvalid(Char, Int8(-1)) = THROWS InexactError: convert(UInt8, -1)
+    REPRODUCED missingchar-isvalid-char-negative
+  nightly: |
+    isvalid(Char, 0x110000) = false
+    isvalid(Char, 2^40)     = false
+    isvalid(Char, -1)       = THROWS InexactError: convert(UInt64, -1)
+    isvalid(Char, Int8(-1)) = THROWS InexactError: convert(UInt8, -1)
+    REPRODUCED missingchar-isvalid-char-negative
+reproduced: {release: true, nightly: true}
+expected: |
+  false for every negative integer.
+promised_by: |
+  The isvalid(T, value) docstring, base/strings/unicode.jl:34-36: "Return true
+  if the given value is valid for that type", with return type Bool.
+cause: |
+  base/strings/unicode.jl:60: isvalid(::Type{T}, c::Integer) where
+  {T<:AbstractChar} = isvalid(T, Unsigned(c)); Unsigned(c) throws for c < 0.
+possible_fix: |
+  isvalid(::Type{T}, c::Integer) where {T<:AbstractChar} = c ≥ 0 && isvalid(T, Unsigned(c))
+duplicates:
+  issues: []
+  queries:
+    - "issues: isvalid Char negative"
+    - "issues: isvalid InexactError"
+    - "issues: isvalid(Char, -1)"
+    - "prs: isvalid Char negative"
+    - "prs: isvalid InexactError"
+lean:
+  property: JuliaLean.MissingChar.IsvalidCharInteger
+  theorem: JuliaLean.MissingChar.isvalidCharInteger_refuted

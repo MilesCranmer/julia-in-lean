@@ -1,0 +1,57 @@
+id: dates-constructor-overflow
+title: "DateTime accepts an out-of-range year and silently constructs a different year"
+priority: P2
+kind: missing-error
+area: Dates
+files: [stdlib/Dates/src/types.jl]
+functions: ["DateTime(::Int64, ...)", "validargs(::Type{DateTime}, ...)"]
+summary: |
+  DateTime(300000000, 1, 1) passes validargs but becomes
+  -284554050-09-30T09:34:08.384. No error reports the loss of the supplied year.
+likelihood: |
+  The input is far outside ordinary civil dates, but can result from untrusted
+  input or a unit mistake. The constructor validates the other fields.
+maybe_intended: |
+  The DateTime type docstring warns that its fixed-point arithmetic can overflow.
+  Issue #50930 discusses whether wrapping arithmetic is a correctness bug.
+  Issue #50981 specifically requests that constructors reject unstorable years.
+reproducer: |
+  using Dates
+  DateTime(300000000, 1, 1)
+output:
+  release: |
+    requested year = 300000000
+    validargs = nothing
+    constructed = -284554050-09-30T09:34:08.384
+    year = -284554050
+    REPRODUCED dates-constructor-overflow
+  nightly: |
+    requested year = 300000000
+    validargs = nothing
+    constructed = -284554050-09-30T09:34:08.384
+    year = -284554050
+    REPRODUCED dates-constructor-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  Reject the year when the requested DateTime cannot be represented without
+  losing its parts, rather than return a different year, month, day and time.
+promised_by: |
+  stdlib/Dates/src/types.jl:369-374: "Construct a DateTime type by parts."
+  The constructor invariant is that supplied valid parts are retained, with
+  the documented 24:00 normalization. Issue #50981 states this expectation.
+cause: |
+  stdlib/Dates/src/types.jl:379 performs the day-to-millisecond multiplication
+  with wrapping Int64 arithmetic. validargs at lines 383-399 checks month,
+  day and time fields, but never checks the representable year or final count.
+possible_fix: |
+  Check the requested day and time using a wider intermediate and reject a
+  result outside the Int64 millisecond range before constructing the instant.
+duplicates:
+  issues:
+    - {number: 50981, state: open, relation: duplicate}
+    - {number: 50930, state: open, relation: related}
+    - {number: 63714, state: open, relation: related}
+  queries: ["DateTime overflow", "DateTime", "Dates yearmonthday overflow"]
+lean:
+  property: JuliaLean.Dates.DateTimeParts
+  theorem: JuliaLean.Dates.dateTimeParts_refuted

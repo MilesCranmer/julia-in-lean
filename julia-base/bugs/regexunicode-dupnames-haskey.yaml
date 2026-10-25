@@ -1,0 +1,59 @@
+id: regexunicode-dupnames-haskey
+title: "With (?J) duplicate group names, keys(m) lists a name that haskey(m, name) and m[name] reject"
+priority: P3
+kind: wrong-result
+area: RegexUnicode
+files: [base/regex.jl, base/pcre.jl]
+functions: ["keys(::RegexMatch)", "haskey(::RegexMatch, ::AbstractString)", "getindex(::RegexMatch, ::AbstractString)"]
+summary: |
+  For m = match(r"(?J)(?<x>a)|(?<x>b)", "b"), keys(m) == ["x", "x"] but
+  haskey(m, "x") == false and m["x"] throws "no capture group named x found in regex";
+  s"\g<x>" also fails. PCRE2's name lookup returns an error code for duplicate names,
+  which Julia reads as "not found".
+likelihood: |
+  Only patterns that enable duplicate names with (?J) are affected; PCRE supports them
+  but Julia does not.
+maybe_intended: |
+  Duplicate names are not supported by Julia's RegexMatch API; issue #51560 asks for
+  that support. The inconsistency between keys and haskey remains.
+reproducer: |
+  m = match(r"(?J)(?<x>a)|(?<x>b)", "b")
+  keys(m)          # ["x", "x"]
+  haskey(m, "x")   # false
+  m["x"]           # error: no capture group named x found in regex
+output:
+  release: |
+    keys(m) = ["x", "x"]
+    haskey(m, "x") = false
+    m["x"] -> no capture group named x found in regex
+    REPRODUCED regexunicode-dupnames-haskey
+  nightly: |
+    keys(m) = ["x", "x"]
+    haskey(m, "x") = false
+    m["x"] -> no capture group named x found in regex
+    REPRODUCED regexunicode-dupnames-haskey
+reproduced: {release: true, nightly: true}
+expected: |
+  haskey(m, k) for every k in keys(m); m["x"] returning the group that matched ("b"),
+  as pcre2_substring_*_byname does for duplicate names.
+promised_by: |
+  keys(m::RegexMatch) docstring: "Return a vector of keys for all capture groups of
+  the underlying regex ... Named capture groups will have string keys"
+  (base/regex.jl:238-259) together with haskey (base/regex.jl:293-297).
+cause: |
+  getindex and haskey (base/regex.jl:287-297) use pcre2_substring_number_from_name,
+  which returns PCRE2_ERROR_NOUNIQUESUBSTRING (negative) for a duplicated name, while
+  keys uses the full name table (base/pcre.jl:265-282).
+possible_fix: |
+  Resolve names with pcre2_substring_nametable_scan (first set group with that name),
+  or make keys return each name once and document that duplicates are unsupported.
+duplicates:
+  issues:
+    - {number: 51560, state: open, relation: duplicate}
+  queries:
+    - "issues: duplicate group names regex"
+    - "issues: duplicate capture group names"
+    - "issues: haskey RegexMatch"
+lean:
+  property: JuliaLean.RegexUnicode.Subst.DupnamesHaskey
+  theorem: JuliaLean.RegexUnicode.Subst.dupnamesHaskey_refuted

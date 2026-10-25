@@ -1,0 +1,48 @@
+id: printf-hex-zero-alternate-point
+title: "Printf %#a omits the decimal point for zero"
+priority: P3
+kind: wrong-result
+area: Printf
+files: [stdlib/Printf/src/Printf.jl]
+functions: ["Printf.fmt(buf, pos, arg, ::Printf.Spec{<:Printf.Floats})"]
+summary: |
+  @sprintf("%#a", 0.0) is "0x0p+0" and @sprintf("%#.0A", -0.0) is "-0X0P+0"; with # the result must contain
+  a decimal point. Nonzero values get one (stdlib/Printf/test/runtests.jl:38 tests that
+  @sprintf("%#.0a", 1.5) is "0x2.p+0").
+likelihood: |
+  Only with the # flag and a zero argument.
+maybe_intended: ""
+reproducer: |
+  using Printf
+  lower = @sprintf("%#a", 0.0)
+  upper = @sprintf("%#.0A", -0.0)
+  println("%#a 0.0 = ", repr(lower), "; C99 expected ", repr("0x0.p+0"))
+  println("%#.0A -0.0 = ", repr(upper), "; C99 expected ", repr("-0X0.P+0"))
+  lower == "0x0p+0" && upper == "-0X0P+0" && println("REPRODUCED printf-hex-zero-alternate-point")
+output:
+  release: |
+    %#a 0.0 = "0x0p+0"; C99 expected "0x0.p+0"
+    %#.0A -0.0 = "-0X0P+0"; C99 expected "-0X0.P+0"
+    REPRODUCED printf-hex-zero-alternate-point
+  nightly: |
+    %#a 0.0 = "0x0p+0"; C99 expected "0x0.p+0"
+    %#.0A -0.0 = "-0X0P+0"; C99 expected "-0X0.P+0"
+    REPRODUCED printf-hex-zero-alternate-point
+reproduced: {release: true, nightly: true}
+expected: |
+  "0x0.p+0" and "-0X0.P+0".
+promised_by: |
+  ISO/IEC 9899:1999 7.19.6.1 (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf) paragraph 6, #: "For a, A, e, E, f, F, g, and G conversions, the result of converting a
+  floating-point number always contains a decimal-point character, even if no digits follow it."
+  stdlib/Printf/src/Printf.jl:68 (Printf.Format docstring): "Create a C printf-compatible format object that can be used for formatting values."
+cause: |
+  The zero branch at stdlib/Printf/src/Printf.jl:581-596 writes the point only when prec > 0; the nonzero
+  branch (line 614) also tests hash.
+possible_fix: |
+  In the zero branch write the point when prec > 0 || hash.
+duplicates:
+  issues: []
+  queries: ["issues: printf", "issues: Printf precision", "issues/prs: printf BigFloat", "issues/prs: sprintf BigFloat", "issues/prs: Printf mpfr", "issues/prs: printf precision negative", "issues/prs: printf negative width", "issues/prs: printf dynamic width", "issues/prs: printf %g exponent", "issues/prs: printf %g style", "issues/prs: printf %.0d", "issues/prs: printf zero precision", "issues/prs: printf #x", "issues/prs: printf alternate form", "issues/prs: printf octal", "issues/prs: printf %+x", "issues/prs: printf plus unsigned", "issues/prs: printf BoundsError", "issues/prs: Printf.Format BoundsError", "issues/prs: printf %D", "issues/prs: printf textwidth", "issues/prs: printf precision unicode", "issues/prs: printf round away from zero", "issues/prs: printf ties even", "issues/prs: printf %a zero", "issues/prs: printf hex float", "issues/prs: printf InvalidFormatStringError", "issues/prs: printf C compatible"]
+lean:
+  property: JuliaLean.Printf.HexZeroHash
+  theorem: JuliaLean.Printf.hexZeroHash_refuted

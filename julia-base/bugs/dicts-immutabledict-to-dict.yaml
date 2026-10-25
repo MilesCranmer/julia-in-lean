@@ -1,0 +1,58 @@
+id: dicts-immutabledict-to-dict
+title: "Dict(d::ImmutableDict) and merge keep shadowed (stale) values"
+priority: P2
+kind: wrong-result
+area: Dicts
+files: [base/dict.jl, base/abstractdict.jl]
+functions: ["Dict(::ImmutableDict)", "merge(::ImmutableDict, ::AbstractDict)", "merge!(::Dict, ::ImmutableDict)"]
+summary: |
+  An ImmutableDict iterates its pairs most recent first, including pairs
+  shadowed by a later setting of the same key. Dict(kv) and merge!/merge store
+  the pairs in iteration order, so the oldest value is stored last and wins:
+  Dict(ImmutableDict(:a => 1, :a => 2)) is Dict(:a => 1) although the
+  ImmutableDict maps :a to 2.
+likelihood: |
+  Any ImmutableDict with a repeated key, e.g. the dict of a nested
+  IOContext(IOContext(io, :compact => false), :compact => true), converted
+  with Dict(...) or merged. Silent.
+maybe_intended: |
+  The source comment on iterate (base/dict.jl:859) warns that the iteration
+  "should not be used for merge/copy/filter type operations", but the
+  generic Dict constructor and merge do exactly that.
+reproducer: |
+  d = Base.ImmutableDict(:a => 1, :a => 2)   # d[:a] == 2
+  Dict(d)                                    # Dict(:a => 1)
+  merge(d, Dict(:b => 3))                    # Dict(:a => 1, :b => 3)
+output:
+  release: |
+    d[:a] = 2; collect(d) = [:a => 2, :a => 1]
+    Dict(d) = Dict(:a => 1); merge(d, Dict(:b => 3)) = Dict(:a => 1, :b => 3)
+    io[:compact] = true; Dict(io.dict)[:compact] = false
+    REPRODUCED dicts-immutabledict-to-dict
+  nightly: |
+    d[:a] = 2; collect(d) = [:a => 2, :a => 1]
+    Dict(d) = Dict(:a => 1); merge(d, Dict(:b => 3)) = Dict(:a => 1, :b => 3)
+    io[:compact] = true; Dict(io.dict)[:compact] = false
+    REPRODUCED dicts-immutabledict-to-dict
+reproduced: {release: true, nightly: true}
+expected: |
+  Dict(d) == Dict(:a => 2) and merge(d, Dict(:b => 3)) == Dict(:a => 2, :b => 3):
+  the values that d[key] returns.
+promised_by: |
+  ImmutableDict docstring, base/dict.jl:791-792: "Calling `getindex` will
+  return the most recent value for a particular key"; merge docstring
+  (base/abstractdict.jl:330): "Construct a merged collection from the given
+  collections", i.e. from their key => value mappings.
+cause: |
+  base/dict.jl:860-863 iterates from the most recent pair, shadowed pairs
+  included; base/dict.jl:94-96 (Dict{K,V}(kv)) and base/abstractdict.jl:229-231
+  (merge!) store pairs in that order, so the last write is the oldest pair.
+possible_fix: |
+  Give ImmutableDict an iteration that skips shadowed keys, or specialize
+  Dict(::ImmutableDict)/merge! to insert only the first occurrence of each key.
+duplicates:
+  issues: []
+  queries: ["ImmutableDict Dict conversion", "ImmutableDict merge", "ImmutableDict reverse iteration", "ImmutableDict convert Dict", "IOContext dict Dict"]
+lean:
+  property: JuliaLean.Dicts.ImmutableDictToDict
+  theorem: JuliaLean.Dicts.immutableDictToDict_refuted

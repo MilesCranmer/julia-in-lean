@@ -1,0 +1,68 @@
+id: bignums-parse-bigint-sign
+title: "parse(BigInt, \"--5\") == 5 and parse(BigInt, \"-0x-5\") == 5: GMP accepts a second minus sign"
+priority: P2
+kind: wrong-result
+area: BigNums
+files: [base/gmp.jl]
+functions: ["tryparse_internal(::Type{BigInt}, ...)", "parse(::Type{BigInt}, ::AbstractString)"]
+summary: |
+  parse(BigInt, s) strips one sign and the base prefix with Base.parseint_preamble and
+  hands the rest of the string to GMP's mpz_set_str, which accepts its own leading
+  minus sign. "--5" therefore parses as 5, "+-5" as -5 and "-0x-5" as 5, where
+  parse(Int, s) throws ArgumentError for all three. The sign of the result is
+  silently flipped relative to what the text suggests.
+likelihood: |
+  Needs malformed input with two signs; reachable when parsing untrusted or
+  concatenated text (e.g. "-" * string(x) for negative x).
+maybe_intended: ""
+reproducer: |
+  function res(f)
+      try
+          return repr(f())
+      catch e
+          return "throws " * string(typeof(e))
+      end
+  end
+  for s in ("--5", "+-5", "-+5", "1 2", "-0x-5")
+      println(rpad(repr(s), 8), " Int: ", rpad(res(() -> parse(Int, s)), 22), " BigInt: ", res(() -> parse(BigInt, s)))
+  end
+  if res(() -> parse(BigInt, "--5")) == "5" && startswith(res(() -> parse(Int, "--5")), "throws")
+      println("REPRODUCED bignums-parse-bigint-sign")
+  end
+output:
+  release: |
+    "--5"    Int: throws ArgumentError   BigInt: 5
+    "+-5"    Int: throws ArgumentError   BigInt: -5
+    "-+5"    Int: throws ArgumentError   BigInt: throws ArgumentError
+    "1 2"    Int: throws ArgumentError   BigInt: 12
+    "-0x-5"  Int: throws ArgumentError   BigInt: 5
+    REPRODUCED bignums-parse-bigint-sign
+  nightly: |
+    "--5"    Int: throws ArgumentError   BigInt: 5
+    "+-5"    Int: throws ArgumentError   BigInt: -5
+    "-+5"    Int: throws ArgumentError   BigInt: throws ArgumentError
+    "1 2"    Int: throws ArgumentError   BigInt: 12
+    "-0x-5"  Int: throws ArgumentError   BigInt: 5
+    REPRODUCED bignums-parse-bigint-sign
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError for "--5", "+-5" and "-0x-5", as parse(Int, s) throws.
+promised_by: |
+  base/parse.jl:6-30 (parse docstring): parse(type, str; base) parses str as a number
+  of the given type; the integer grammar allows one optional sign. Every other Integer
+  type rejects a second sign.
+cause: |
+  base/gmp.jl:307-331: after parseint_preamble consumes one sign (and an 0x/0o/0b
+  prefix), MPZ.set_str! is called on the remaining bytes. GMP's mpz_set_str accepts an
+  optional leading '-' and whitespace anywhere, so the second sign is applied by GMP
+  and then flipped again by flipsign!(z, sgn). Lines 289-313 on 1.13.2.
+possible_fix: |
+  Before calling mpz_set_str, check that the remaining bytes are digits valid in
+  `base` (or reject '-' and whitespace), so GMP only sees an unsigned digit string.
+duplicates:
+  issues:
+    - {number: 44570, state: open, relation: related}
+  queries: ["parse BigInt", "BigInt parse minus sign", "parse BigInt double minus", "BigInt parse sign", "mpz_set_str whitespace"]
+lean:
+  property: JuliaLean.BigNums.ParseBigIntMatchesInt
+  theorem: JuliaLean.BigNums.parseBigIntMatchesInt_refuted

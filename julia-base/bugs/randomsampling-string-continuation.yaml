@@ -1,0 +1,69 @@
+id: randomsampling-string-continuation
+title: "rand(s::String) never returns a stray continuation byte character, and hangs when s has only those"
+priority: P2
+kind: hang
+area: RandomSampling
+files: [stdlib/Random/src/generation.jl]
+functions: ["rand(::AbstractRNG, ::AbstractString)", "Sampler(::Type, ::AbstractString, ::Val{1})"]
+summary: |
+  The single-draw String sampler picks a random byte position and redraws
+  until the byte is not a UTF-8 continuation byte. String iteration (and
+  isvalid) treat a stray continuation byte, one not inside a lead byte's
+  sequence, as a character of its own. rand therefore never returns such a
+  character: rand on "a\x80" always gives 'a', although collect gives
+  ['a', '\x80']. If every byte is a stray continuation byte, as in
+  String(UInt8[0x80]), no draw is ever accepted and rand loops forever.
+likelihood: |
+  Requires malformed UTF-8 with a continuation byte that does not follow a
+  lead byte, for example Latin-1 or binary data read into a String. Julia
+  Strings explicitly support malformed bytes. Valid UTF-8 is unaffected.
+maybe_intended: |
+  The fast path treats a continuation byte as proof that an index is inside
+  a multibyte character, which holds for valid UTF-8. The Val(Inf) sampler
+  (rand(rng, s, n)) uses collect(s) and does return '\x80', so the two
+  sampling paths disagree.
+reproducer: |
+  using Random
+  rand(Xoshiro(1), "a\x80")       # always 'a'; collect gives ['a', '\x80']
+  rand(Xoshiro(1), "\x80")        # never returns
+  # The checked reproducer stops the hanging call by throwing from a custom
+  # RNG on its 101st draw, after 100 rejected draws of the only index.
+output:
+  release: |
+    string = "\x80"; length = 1; collect = ['\x80']
+    isvalid(s, 1) = true; acceptance at its only byte = false
+    mixed string = "a\x80"; collect = ['a', '\x80']; counts over 10000 draws = ['a' => 10000]
+    rand rejected 100 draws from the singleton index range before the RNG stopped it
+    collected sampler = '\x80'
+    REPRODUCED randomsampling-string-continuation
+  nightly: |
+    string = "\x80"; length = 1; collect = ['\x80']
+    isvalid(s, 1) = true; acceptance at its only byte = false
+    mixed string = "a\x80"; collect = ['a', '\x80']; counts over 10000 draws = ['a' => 10000]
+    rand rejected 100 draws from the singleton index range before the RNG stopped it
+    collected sampler = '\x80'
+    REPRODUCED randomsampling-string-continuation
+reproduced: {release: true, nightly: true}
+expected: |
+  rand(rng, s) picks uniformly among the characters of collect(s), as the
+  Val(Inf) sampler does; for String(UInt8[0x80]) it returns '\x80'.
+promised_by: |
+  stdlib/Random/src/Random.jl:326-335: "Pick a random element ... from the set
+  of values specified by S; S can be ... a string (considered as a collection
+  of characters)". The characters of a String are those at the indices i with
+  isvalid(s, i) (base/strings/string.jl:662), which is what iteration yields.
+cause: |
+  stdlib/Random/src/generation.jl:545-546 samples byte positions 1:sizeof(s);
+  line 548 accepts a position when its byte is not a continuation byte
+  (!is_valid_continuation), and lines 553-559 redraw until a position is
+  accepted. isvalid(s, i) is true at a stray continuation byte, so the
+  acceptance test rejects positions of real characters.
+possible_fix: |
+  Accept positions with isvalid(s, pos) (thisind(s, pos) == pos), or fall
+  back to the collect(str) sampler when the string is not valid UTF-8.
+duplicates:
+  issues: []
+  queries: ["rand invalid string", "rand String", "rand string invalid UTF-8", "rand String continuation", "rand malformed string", "rand AbstractString", "rand string hang", "PR rand string"]
+lean:
+  property: JuliaLean.RandomSampling.StringSamplerAcceptsValid
+  theorem: JuliaLean.RandomSampling.stringSamplerAcceptsValid_refuted

@@ -1,0 +1,76 @@
+id: tuples-split-rest-state
+title: "`a, b..., c = t` reuses consumed elements when the tuple or named tuple is too short"
+priority: P1
+kind: wrong-result
+area: Tuples
+files: [base/tuple.jl, base/namedtuple.jl]
+functions: ["split_rest(t::Tuple, n::Int, i)", "_split_tuple", "split_rest(t::NamedTuple, n::Int, st...)"]
+summary: |
+  Base.split_rest(t, n, i) on a tuple computes the split point from length(t)
+  instead of from the length of the rest starting at state i, and never checks
+  that the rest holds n elements. When it does not, it returns elements that
+  were already consumed: split_rest((1, 2, 3), 2, 3) == ((), (2, 3)). Through
+  destructuring, `a, b..., c = (1,)` (with the tuple in a variable) binds
+  a = 1, b = (), c = 1 instead of throwing. The NamedTuple method checks the
+  length of the whole named tuple and then calls the tuple method on the names,
+  so `a, b..., c = (x = 1,)` also binds a = c = 1. Vectors and strings throw
+  ArgumentError("The iterator only contains 0 elements, but at least 1 were
+  requested.").
+likelihood: |
+  Plausible: destructuring with a slurp in the middle (`first, mid..., last = t`)
+  of a tuple or named tuple that happens to have one element. Instead of an
+  error the same element is bound to two variables, silently. Only the error
+  case is affected; long enough tuples are split correctly.
+maybe_intended: ""
+reproducer: |
+  function mid(t)
+      a, b..., c = t
+      return (a, b, c)
+  end
+  mid((1,))                          # (1, (), 1)
+  mid((x = 1,))                      # (1, NamedTuple(), 1)
+  Base.split_rest((1, 2, 3), 2, 3)   # ((), (2, 3))
+  Base.split_rest([1, 2, 3], 2, 3)   # ArgumentError
+output:
+  release: |
+    (1, (), 1)
+    (1, NamedTuple(), 1)
+    ((), (2, 3))
+    ArgumentError("The iterator only contains 1 elements, but at least 2 were requested.")
+    REPRODUCED tuples-split-rest-state
+  nightly: |
+    (1, (), 1)
+    (1, NamedTuple(), 1)
+    ((), (2, 3))
+    ArgumentError("The iterator only contains 1 elements, but at least 2 were requested.")
+    REPRODUCED tuples-split-rest-state
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError, as for Vectors and strings: after `a` consumes the only
+  element the rest is empty, so there is no element left for `c`.
+  split_rest((1, 2, 3), 2, 3) should throw too (the rest (3,) has one element).
+promised_by: |
+  split_rest docstring, base/tuple.jl:215-221: "Generic function for splitting
+  the tail of collection, starting from a specific iteration state itr_state.
+  Returns a tuple of two new collections. The first one contains all elements of
+  the tail but the n last ones, which make up the second collection." The
+  elements before itr_state are not part of the tail.
+cause: |
+  base/tuple.jl:265-267: split_rest(t::Tuple, n, i) = _split_tuple(t,
+  length(t)-n, Int(i)) with _split_tuple(t, n, i) = (t[i:n], t[n+1:end]). When
+  length(t) - n < i, t[i:n] is empty and t[n+1:end] starts before i.
+  base/namedtuple.jl:586 checks _check_length_split_rest(length(t), n) on the
+  whole named tuple rather than on the rest, then reuses the tuple method on the
+  names (line 587). For a tuple literal on the right-hand side lowering takes a
+  different path and throws BoundsError.
+possible_fix: |
+  In split_rest(t::Tuple, n, i), call _check_length_split_rest(length(t) - i + 1, n)
+  before _split_tuple (and use the same check in the NamedTuple method).
+duplicates:
+  issues:
+    - {number: 47326, state: closed, relation: related}
+    - {number: 59611, state: open, relation: related}
+  queries: ["issues: split_rest", "issues: split_rest tuple", "issues: split_rest NamedTuple", "issues: slurping tuple", "issues: destructuring slurp middle", "issues: a, b..., c", "prs: split_rest", "prs: _split_tuple", "prs: slurping"]
+lean:
+  property: JuliaLean.Tuples.SplitRestAgrees
+  theorem: JuliaLean.Tuples.splitRestAgrees_refuted

@@ -1,0 +1,62 @@
+id: show-expr-neg-zero-base
+title: "Expr printing of (-0.0)^2 drops the parentheses and changes the value"
+priority: P2
+kind: wrong-result
+area: Show
+files: [base/show.jl]
+functions: ["show_unquoted(::IO, ::Expr, ::Int, ::Int)", "Base.show_list"]
+summary: |
+  string(Meta.parse("(-0.0)^2")) == "-0.0 ^ 2", which parses as -(0.0 ^ 2). Evaluating the
+  original gives 0.0, evaluating the printed code gives -0.0. show_list parenthesizes a
+  negative literal base of ^ only when `item < 0`, which is false for -0.0.
+likelihood: |
+  Needs a literal -0.0 base of ^ (or of another prec_power operator) in an Expr.
+maybe_intended: ""
+reproducer: |
+  ex = Meta.parse("(-0.0)^2")         # Expr(:call, :^, -0.0, 2)
+  s = string(ex)
+  println("string(ex) = ", repr(s))
+  back = Meta.parse(s)
+  println("Meta.parse(string(ex)) = ", repr(back))
+  println("eval(ex) = ", eval(ex), ", eval(Meta.parse(string(ex))) = ", eval(back))
+  back != ex && println("REPRODUCED show-expr-neg-zero-base")
+output:
+  release: |
+    string(ex) = "-0.0 ^ 2"
+    Meta.parse(string(ex)) = :(-(0.0 ^ 2))
+    eval(ex) = 0.0, eval(Meta.parse(string(ex))) = -0.0
+    REPRODUCED show-expr-neg-zero-base
+  nightly: |
+    string(ex) = "-0.0 ^ 2"
+    Meta.parse(string(ex)) = :(-(0.0 ^ 2))
+    eval(ex) = 0.0, eval(Meta.parse(string(ex))) = -0.0
+    REPRODUCED show-expr-neg-zero-base
+reproduced: {release: true, nightly: true}
+expected: |
+  "(-0.0) ^ 2", as printed for every other negative literal base.
+promised_by: |
+  base/show.jl:1636-1640: "AST printing should follow two rules: 1. Meta.parse(string(ex))
+  == ex ...".
+cause: |
+  base/show.jl:1808-1812 tests `item isa Real && item < 0`; -0.0 < 0 is false although
+  its printed form starts with a minus sign.
+possible_fix: |
+  Test `signbit(item)` (for AbstractFloat) instead of `item < 0`.
+duplicates:
+  issues: []
+  queries:
+    - "issues: show Expr negative zero"
+    - "issues: show_unquoted -0.0"
+    - "issues: negative zero Expr"
+    - "issues: -0.0 print expression"
+    - "issues: -0.0 ^"
+    - "issues: signbit show expression"
+    - "prs: negative zero show expression"
+    - "issues: show_unquoted"
+    - "issues: deparse"
+    - "issues: printing Expr precedence"
+    - "issues: string Meta.parse roundtrip"
+    - "issues: Expr printing"
+lean:
+  property: JuliaLean.Show.PowerBaseReparses
+  theorem: JuliaLean.Show.powerBaseReparses_refuted

@@ -1,0 +1,65 @@
+id: sockets-ipv4-field-grammar
+title: "parse(IPv4, ..) accepts signed and whitespace-padded fields like \"+1.2.3.4\" or \" 1.2.3.4 \""
+priority: P2
+kind: missing-error
+area: Sockets
+files: [stdlib/Sockets/src/IPAddr.jl]
+functions: ["parse(::Type{IPv4}, ::AbstractString)"]
+summary: |
+  The parser rejects leading zeros with a dedicated ArgumentError "due to
+  ambiguity", but it delegates each field to parse(Int, f, base=10), whose
+  grammar is [whitespace] sign [whitespace] digits [whitespace]. So
+  parse(IPv4, "+1.2.3.4"), parse(IPv4, "1.2.3.+4"), parse(IPv4, "1.2.3.-0"),
+  parse(IPv4, " 98.7.6.6 ") and parse(IPv4, "1.2.3.4\n") all succeed where
+  inet_pton and every strict dotted-quad grammar reject.
+likelihood: |
+  Common: address strings trimmed or assembled from user data routinely carry
+  whitespace or a sign; they parse silently instead of erroring.
+maybe_intended: |
+  Arguably convenient, but it contradicts the same function's own rejection of
+  leading zeros "due to ambiguity" (stdlib/Sockets/src/IPAddr.jl:191-194) and
+  issue #40255's goal of refusing non-canonical formats.
+reproducer: |
+  using Sockets
+  println(string(parse(IPv4, "+1.2.3.4")))
+  println(string(parse(IPv4, " 98.7.6.6 ")))
+  println(string(parse(IPv4, "1.2.3.4\n")))
+output:
+  release: |
+    parse(IPv4, "+1.2.3.4")    = 1.2.3.4
+    parse(IPv4, "1.2.3.+4")    = 1.2.3.4
+    parse(IPv4, " 98.7.6.6 ")  = 98.7.6.6
+    parse(IPv4, "1.2.3.-0")    = 1.2.3.0
+    parse(IPv4, "1.2.3.4\n")  = 1.2.3.4
+    REPRODUCED sockets-ipv4-field-grammar
+  nightly: |
+    parse(IPv4, "+1.2.3.4")    = 1.2.3.4
+    parse(IPv4, "1.2.3.+4")    = 1.2.3.4
+    parse(IPv4, " 98.7.6.6 ")  = 98.7.6.6
+    parse(IPv4, "1.2.3.-0")    = 1.2.3.0
+    parse(IPv4, "1.2.3.4\n")  = 1.2.3.4
+    REPRODUCED sockets-ipv4-field-grammar
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError for all five inputs: a dotted-quad field is an unsigned decimal
+  number 0-255 (RFC 6943; inet_pton).
+promised_by: |
+  IPv4(str) docstring "Parse an IPv4 address string into an IPv4 object"
+  (stdlib/Sockets/src/IPAddr.jl:52-63); the function's own strictness about
+  leading zeros (stdlib/Sockets/src/IPAddr.jl:207-208); issue #40255 (error on
+  unsupported/ambiguous formats).
+cause: |
+  stdlib/Sockets/src/IPAddr.jl:210: r = parse(Int, f, base = 10) admits
+  [whitespace] sign [whitespace] digits [whitespace] (base/parse.jl:49-51);
+  only the value range 0..255 is checked afterwards (line 212).
+possible_fix: |
+  Validate that the field consists solely of ASCII digits (as inet_pton does)
+  before delegating to parse(Int, ..), or use a strict tryparse that takes no
+  sign or surrounding whitespace.
+duplicates:
+  issues:
+    - {number: 40255, state: open, relation: related}
+  queries: ["IPv4 parse", "IPv4 whitespace", "parse IP address invalid", "ip_str", "IPv4 leading zero"]
+lean:
+  property: JuliaLean.Sockets.IPv4FieldBare
+  theorem: JuliaLean.Sockets.ipv4FieldBare_refuted

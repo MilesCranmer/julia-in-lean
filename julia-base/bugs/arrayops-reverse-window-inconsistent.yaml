@@ -1,0 +1,58 @@
+id: arrayops-reverse-window-inconsistent
+title: "reverse(v, 5, 5) throws BoundsError for a 3-element vector while reverse!(v, 5, 5) returns v"
+priority: P3
+kind: wrong-exception
+area: ArrayOps
+files: [base/array.jl]
+functions: ["reverse(v::AbstractVector, start::Integer, stop::Integer)", "reverse!(v::AbstractVector, start::Integer, stop::Integer)"]
+summary: |
+  For an empty or one-element window (stop <= start) with out-of-range indices,
+  reverse! returns v without checking, while reverse throws BoundsError because it
+  copies v[1:start-1] and v[stop+1:end] element by element. Examples:
+  reverse([1,2,3], 5, 5) and reverse(Int[], 5, 5) throw, the reverse! versions do not.
+likelihood: |
+  Needs out-of-range window indices with stop <= start; rare.
+maybe_intended: |
+  Either behaviour can be defended (out-of-range indices are an error; an empty
+  window is a no-op), but the two documented as in-place/out-of-place versions of
+  the same operation should agree.
+reproducer: |
+  println(reverse!([1, 2, 3], 5, 5))
+  err = try
+      reverse([1, 2, 3], 5, 5)
+      nothing
+  catch e
+      e
+  end
+  println(repr(err))
+  println(repr(try reverse(Int[], 5, 5); nothing catch e; e end), " vs ", reverse!(Int[], 5, 5))
+  if err isa BoundsError
+      println("REPRODUCED arrayops-reverse-window-inconsistent")
+  end
+output:
+  release: |
+    [1, 2, 3]
+    BoundsError([1, 2, 3], (4,))
+    BoundsError(Int64[], (1,)) vs Int64[]
+    REPRODUCED arrayops-reverse-window-inconsistent
+  nightly: |
+    [1, 2, 3]
+    BoundsError([1, 2, 3], (4,))
+    BoundsError(Int64[], (1,)) vs Int64[]
+    REPRODUCED arrayops-reverse-window-inconsistent
+reproduced: {release: true, nightly: true}
+expected: |
+  Both return [1, 2, 3], or both throw BoundsError.
+promised_by: |
+  reverse! docstring, base/array.jl:2291-2293: "In-place version of reverse".
+cause: |
+  base/array.jl:2319 checks bounds only when n > s; base/array.jl:2256-2264 loops
+  over firstindex(A):s-1 and n+1:lastindex(A) and indexes A at every position.
+possible_fix: |
+  Check 1 <= start and stop <= lastindex (for nonempty windows) in the same way in both, or make reverse return copy(v) when stop <= start.
+duplicates:
+  issues: []
+  queries: ["reverse start stop", "reverse! bounds", "reverse!"]
+lean:
+  property: JuliaLean.ArrayOps.ReverseCopyAgrees
+  theorem: JuliaLean.ArrayOps.reverseCopyAgrees_refuted

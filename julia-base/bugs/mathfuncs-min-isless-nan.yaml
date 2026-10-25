@@ -1,0 +1,52 @@
+id: mathfuncs-min-isless-nan
+title: "min/max docstrings say \"with respect to isless\" but Float64 min(NaN, 1.0) is NaN"
+priority: P3
+kind: documentation
+area: MathFuncs
+files: [base/operators.jl, base/math.jl]
+functions: ["min(::Float64, ::Float64)", "max(::Float64, ::Float64)", "minmax(::Float64, ::Float64)"]
+summary: |
+  The generic min/max docstrings define the result "with respect to isless",
+  under which NaN is the largest value, so min(NaN, 1.0) would be 1.0. The
+  Float64 methods use IEEE minimum/maximum and return NaN whenever an argument
+  is NaN. The docstrings never mention the different floating-point behaviour.
+likelihood: |
+  Anyone reading the docs to decide how min treats NaN (common in data
+  cleaning) gets the wrong answer.
+maybe_intended: |
+  NaN propagation is deliberate (base/math.jl:834-839) and matches IEEE 754
+  minimum/maximum; only the documentation is misleading.
+reproducer: |
+  min(NaN, 1.0)              # NaN
+  isless(1.0, NaN) ? 1.0 : NaN   # 1.0, "min with respect to isless"
+output:
+  release: |
+    min(NaN, 1.0) = NaN; min with respect to isless = 1.0
+    max(NaN, 1.0) = NaN; isless(1.0, NaN) = true
+    REPRODUCED mathfuncs-min-isless-nan
+  nightly: |
+    min(NaN, 1.0) = NaN; min with respect to isless = 1.0
+    max(NaN, 1.0) = NaN; isless(1.0, NaN) = true
+    REPRODUCED mathfuncs-min-isless-nan
+reproduced: {release: true, nightly: true}
+expected: |
+  The min/max docstrings should state that for floating-point arguments a
+  NaN argument gives NaN (and that -0.0 < 0.0).
+promised_by: |
+  base/operators.jl:560: "Return the minimum of the arguments, with respect to
+  isless." and base/operators.jl:542 for max.
+cause: |
+  base/math.jl:838-839 define min/max for IEEEFloat via the min_float/max_float
+  intrinsics (NaN-propagating), overriding the isless-based generic method at
+  base/operators.jl:555,573 that the docstring describes.
+possible_fix: |
+  Add a sentence on NaN propagation for floating-point arguments to the min,
+  max and minmax docstrings.
+duplicates:
+  issues:
+    - {number: 48523, state: open, relation: related}
+    - {number: 14621, state: closed, relation: related}
+  queries: ["min NaN isless", "min docstring NaN", "Document NaN policy", "min negative zero"]
+lean:
+  property: JuliaLean.MathFuncs.minIslessAll
+  theorem: JuliaLean.MathFuncs.minIslessAll_refuted

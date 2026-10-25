@@ -1,0 +1,53 @@
+id: stringutil-split-limit-type
+title: "split/rsplit/eachsplit accept limit::Integer but throw MethodError for integers other than Int"
+priority: P3
+kind: wrong-exception
+area: StringUtil
+files: [base/strings/util.jl]
+functions: ["split(::AbstractString, ::Any)", "rsplit(::AbstractString, ::Any)", "eachsplit(::AbstractString, ::Any)", "eachrsplit(::AbstractString, ::Any)"]
+summary: |
+  The keyword is declared and documented as limit::Integer, but SplitIterator and RSplitIterator
+  have a limit::Int field and only the default constructor, so split("a,b,c", ','; limit=UInt(2)),
+  rsplit(...; limit=Int32(2)) and eachsplit(...; limit=0x02) throw MethodError.
+likelihood: |
+  Only when the limit is computed in another integer type (UInt from sizes, Int32 from C or file
+  formats). Rare but confusing.
+maybe_intended: ""
+reproducer: |
+  show_result(f) = try repr(f()) catch e sprint(showerror, e)[1:findfirst('\n', sprint(showerror, e) * "\n")-1] end
+  println("split(\"a,b,c\", ','; limit=2)         = ", show_result(() -> split("a,b,c", ','; limit=2)))
+  println("split(\"a,b,c\", ','; limit=UInt(2))   = ", show_result(() -> split("a,b,c", ','; limit=UInt(2))))
+  println("rsplit(\"a,b,c\", ','; limit=Int32(2)) = ", show_result(() -> rsplit("a,b,c", ','; limit=Int32(2))))
+  println("eachsplit(\"a,b,c\", ','; limit=0x02)  = ", show_result(() -> collect(eachsplit("a,b,c", ','; limit=0x02))))
+  r = try split("a,b,c", ','; limit=UInt(2)) catch e e end
+  r isa MethodError && println("REPRODUCED stringutil-split-limit-type")
+output:
+  release: |
+    split("a,b,c", ','; limit=2)         = SubString{String}["a", "b,c"]
+    split("a,b,c", ','; limit=UInt(2))   = MethodError: no method matching Base.SplitIterator(::String, ::Base.Fix2{typeof(isequal), Char}, ::UInt64, ::Bool)
+    rsplit("a,b,c", ','; limit=Int32(2)) = MethodError: no method matching Base.RSplitIterator(::String, ::Base.Fix2{typeof(isequal), Char}, ::Int32, ::Bool)
+    eachsplit("a,b,c", ','; limit=0x02)  = MethodError: no method matching Base.SplitIterator(::String, ::Base.Fix2{typeof(isequal), Char}, ::UInt8, ::Bool)
+    REPRODUCED stringutil-split-limit-type
+  nightly: |
+    split("a,b,c", ','; limit=2)         = SubString{String}["a", "b,c"]
+    split("a,b,c", ','; limit=UInt(2))   = MethodError: no method matching Base.SplitIterator(::String, ::Base.Fix2{typeof(isequal), Char}, ::UInt64, ::Bool)
+    rsplit("a,b,c", ','; limit=Int32(2)) = MethodError: no method matching Base.RSplitIterator(::String, ::Base.Fix2{typeof(isequal), Char}, ::Int32, ::Bool)
+    eachsplit("a,b,c", ','; limit=0x02)  = MethodError: no method matching Base.SplitIterator(::String, ::Base.Fix2{typeof(isequal), Char}, ::UInt8, ::Bool)
+    REPRODUCED stringutil-split-limit-type
+reproduced: {release: true, nightly: true}
+expected: |
+  ["a", "b,c"] for every integer type, as for limit=2.
+promised_by: |
+  Signatures and docstrings: split(str, dlm; limit::Integer=0, ...) (base/strings/util.jl:930,
+  958-959), rsplit (:969-970, 1001-1002), eachsplit (:738, 820), eachrsplit (:835, 884).
+cause: |
+  eachsplit and eachrsplit (base/strings/util.jl:820-821, 884-885) pass limit unconverted to
+  SplitIterator/RSplitIterator, whose field is limit::Int (:776-781, 872-877).
+possible_fix: |
+  Pass Int(limit) in eachsplit/eachrsplit.
+duplicates:
+  issues: []
+  queries: ["issues: split limit UInt", "prs: split limit UInt", "issues: split limit Integer MethodError", "issues: SplitIterator limit"]
+lean:
+  property: JuliaLean.StringUtil.SplitLimitInteger
+  theorem: JuliaLean.StringUtil.splitLimitInteger_refuted

@@ -1,0 +1,6 @@
+ex = Meta.parse("(+)(b; a = 1)")    # Expr(:call, :+, Expr(:parameters, Expr(:kw, :a, 1)), :b)
+s = string(ex)
+println("string(ex) = ", repr(s))
+back = Base.remove_linenums!(Meta.parse(s))
+println("Meta.parse(string(ex)) = ", repr(back))
+back != ex && println("REPRODUCED show-expr-operator-call-kwargs")

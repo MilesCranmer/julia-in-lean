@@ -1,0 +1,63 @@
+id: bignums-isqrt-negative
+title: "isqrt(::BigInt) throws DivideError for negative input instead of DomainError"
+priority: P2
+kind: wrong-exception
+area: BigNums
+files: [base/gmp.jl, base/intfuncs.jl]
+functions: ["isqrt(::BigInt)"]
+summary: |
+  isqrt of a negative machine integer throws DomainError, but isqrt of a negative
+  BigInt passes the value straight to GMP's mpz_sqrt, which raises its
+  "square root of negative" exception as SIGFPE; Julia reports that as a
+  DivideError. Code that catches DomainError for invalid arguments misses it.
+likelihood: |
+  Needs isqrt of a negative BigInt, which is already an error; only the exception
+  type is wrong. Generic numeric code that handles DomainError is affected.
+maybe_intended: |
+  The isqrt docstring does not name the exception for negative arguments.
+reproducer: |
+  function err(f)
+      try
+          f()
+          return nothing
+      catch e
+          return e
+      end
+  end
+  e_int = err(() -> isqrt(-4))
+  e_big = err(() -> isqrt(big(-4)))
+  println("isqrt(-4)      throws ", typeof(e_int))
+  println("isqrt(big(-4)) throws ", typeof(e_big))
+  if e_int isa DomainError && e_big isa DivideError
+      println("REPRODUCED bignums-isqrt-negative")
+  end
+output:
+  release: |
+    isqrt(-4)      throws DomainError
+    isqrt(big(-4)) throws DivideError
+    REPRODUCED bignums-isqrt-negative
+  nightly: |
+    isqrt(-4)      throws DomainError
+    isqrt(big(-4)) throws DivideError
+    REPRODUCED bignums-isqrt-negative
+reproduced: {release: true, nightly: true}
+expected: |
+  DomainError, as for isqrt(-4) and sqrt(big(-4)).
+promised_by: |
+  base/intfuncs.jl:1283-1293 (isqrt docstring): "Integer square root: the largest
+  integer m such that m*m <= n." No such m exists for n < 0; every other integer
+  type, and sqrt(::BigInt) at base/mpfr.jl:789, report this with DomainError.
+cause: |
+  base/gmp.jl:637 defines isqrt(x::BigInt) = MPZ.sqrt(x) without a sign check.
+  GMP documents mpz_sqrt only for nonnegative operands and raises
+  GMP_ERROR_SQRT_OF_NEGATIVE (SIGFPE) otherwise, which Julia's signal handler turns
+  into DivideError. Same code at base/gmp.jl:639 on 1.13.2.
+possible_fix: |
+  isqrt(x::BigInt) = isnegative(x) ? throw(DomainError(x, "isqrt of a negative number")) : MPZ.sqrt(x)
+duplicates:
+  issues:
+    - {number: 4884, state: closed, relation: related}
+  queries: ["isqrt BigInt", "isqrt negative", "isqrt", "mpz_sqrt", "sqrt of negative BigInt", "isqrt DivideError"]
+lean:
+  property: JuliaLean.BigNums.IsqrtSpec
+  theorem: JuliaLean.BigNums.isqrtSpec_refuted

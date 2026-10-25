@@ -1,0 +1,66 @@
+id: promotion-cmp-rational-signed-zero
+title: "cmp(-0.0, 0//1) returns 0 although isless(-0.0, 0//1) is true"
+priority: P2
+kind: wrong-result
+area: Promotion
+files: [base/rational.jl, base/operators.jl]
+functions: ["cmp(::AbstractFloat, ::Rational)", "cmp(::Rational, ::AbstractFloat)"]
+summary: |
+  The cmp docstring says cmp uses the total order implemented by isless. For a
+  negative float zero and a zero Rational, isless(-0.0, 0//1) is true but
+  cmp(-0.0, 0//1) and cmp(0//1, -0.0) both return 0. The same pair compared
+  through an Integer or a Float64 gives -1, so the three numeric types disagree.
+likelihood: |
+  Needs a negative zero float compared against a zero Rational with cmp, or a
+  sort/search that uses cmp-based orderings over mixed Float/Rational data.
+  Uncommon, but -0.0 arises from ordinary arithmetic.
+maybe_intended: |
+  The specialized method mirrors < and <= (numeric order, where -0.0 == 0) and
+  only adds NaN handling; it may have been written as a numeric cmp rather than
+  the isless-based one. The cmp docstring does not make that distinction.
+reproducer: |
+  # cmp(-0.0, 0//1) must follow the isless total order, which puts -0.0 before 0//1
+  x = -0.0
+  y = 0//1
+  println("isless(-0.0, 0//1) = ", isless(x, y), ", isless(0//1, -0.0) = ", isless(y, x))
+  println("cmp(-0.0, 0//1) = ", cmp(x, y), ", cmp(0//1, -0.0) = ", cmp(y, x))
+  println("cmp(-0.0, 0) = ", cmp(x, 0), ", cmp(-0.0, 0.0) = ", cmp(x, 0.0))
+  if isless(x, y) && cmp(x, y) == 0 && cmp(y, x) == 0
+      println("REPRODUCED promotion-cmp-rational-signed-zero")
+  end
+output:
+  release: |
+    isless(-0.0, 0//1) = true, isless(0//1, -0.0) = false
+    cmp(-0.0, 0//1) = 0, cmp(0//1, -0.0) = 0
+    cmp(-0.0, 0) = -1, cmp(-0.0, 0.0) = -1
+    REPRODUCED promotion-cmp-rational-signed-zero
+  nightly: |
+    isless(-0.0, 0//1) = true, isless(0//1, -0.0) = false
+    cmp(-0.0, 0//1) = 0, cmp(0//1, -0.0) = 0
+    cmp(-0.0, 0) = -1, cmp(-0.0, 0.0) = -1
+    REPRODUCED promotion-cmp-rational-signed-zero
+reproduced: {release: true, nightly: true}
+expected: |
+  cmp(-0.0, 0//1) == -1 and cmp(0//1, -0.0) == 1, as cmp(-0.0, 0) == -1 and
+  cmp(-0.0, 0.0) == -1 already do.
+promised_by: |
+  base/operators.jl:508-511 (cmp docstring): "Return -1, 0, or 1 depending on
+  whether x is less than, equal to, or greater than y, respectively. Uses the total
+  order implemented by isless." base/operators.jl:242 defines
+  isless(x::AbstractFloat, y::Real) with the signless(x, y) term that orders -0.0
+  before a nonnegative zero.
+cause: |
+  base/rational.jl:531-574 generates cmp(::AbstractFloat, ::Rational) and
+  cmp(::Rational, ::AbstractFloat) together with < and <=. After the NaN checks it
+  decomposes both sides; for two zeros xs == ys == 0, so it returns cmp(xn, yn) =
+  cmp(0, 0) = 0, ignoring the sign bit that isless uses.
+possible_fix: |
+  In the cmp branch, break the zero tie by sign: return cmp(signbit(y), signbit(x))
+  (as Int) when both values are zero, or define cmp for these pairs through
+  isless like the generic fallback at base/operators.jl:526.
+duplicates:
+  issues: []
+  queries: ["cmp rational float", "cmp -0.0", "cmp signed zero", "cmp isless inconsistent", "cmp Rational", "cmp zero", "cmp NaN Rational", "cmp float", "Rational -0.0", "isless rational float"]
+lean:
+  property: JuliaLean.Promotion.CmpRationalFloatIsless
+  theorem: JuliaLean.Promotion.cmpRationalFloatIsless_refuted

@@ -1,0 +1,71 @@
+id: toml-int64-parsed-as-int128
+title: "TOML parser returns Int128 for integers in the Int64 range that have 18 or more characters"
+priority: P2
+kind: wrong-result
+area: Toml
+files: [base/toml/parser.jl]
+functions: ["Base.TOML.parse_integer", "Base.TOML.parse_hex", "TOML.parse"]
+summary: |
+  The integer type is chosen from the length of the literal's text, not its value:
+  decimal literals longer than 17 characters are parsed as `Int128` even when they fit
+  in `Int64`. `TOML.parse("a = 1700000000000000000")["a"]` (a nanosecond Unix time) and
+  `typemax(Int64)` written out are `Int128`, and an array mixing them with small integers
+  becomes `Vector{Any}`. Hexadecimal literals with leading zeros
+  (`0x00000000000000001`) likewise become `UInt128`.
+likelihood: |
+  18- and 19-digit integers are common for nanosecond timestamps, 64-bit IDs and hashes.
+  Code that annotates TOML integers as `Int` (or dispatches on `Int64`) fails on them,
+  and homogeneous integer arrays lose their element type.
+maybe_intended: |
+  Choosing the type from the length avoids an overflow check, and the value is kept
+  exactly. But the change that introduced the wider types (PR #47903) states the
+  convention "all numbers below UInt64 and Int64 are parsed as UInt64 or Int64 for
+  compatibility".
+reproducer: |
+  import TOML
+  typeof(TOML.parse("a = 1700000000000000000")["a"])   # Int128
+output:
+  release: |
+    a = 12345678901234567        => Int64 12345678901234567
+    a = 123456789012345678       => Int128 123456789012345678
+    a = 1700000000000000000      => Int128 1700000000000000000
+    a = 9223372036854775807      => Int128 9223372036854775807
+    a = -10000000000000000       => Int128 -10000000000000000
+    a = 0x00000000000000001      => UInt128 1
+    Vector{Any}
+    REPRODUCED toml-int64-parsed-as-int128
+  nightly: |
+    a = 12345678901234567        => Int64 12345678901234567
+    a = 123456789012345678       => Int128 123456789012345678
+    a = 1700000000000000000      => Int128 1700000000000000000
+    a = 9223372036854775807      => Int128 9223372036854775807
+    a = -10000000000000000       => Int128 -10000000000000000
+    a = 0x00000000000000001      => UInt128 1
+    Vector{Any}
+    REPRODUCED toml-int64-parsed-as-int128
+reproduced: {release: true, nightly: true}
+expected: |
+  `Int64` for every decimal value in `typemin(Int64):typemax(Int64)` (and `UInt64` for
+  prefixed values up to `typemax(UInt64)`), wider types only beyond that.
+promised_by: |
+  PR #47903 ("support UInt & BigInt in TOML"), which added the length table: "all numbers
+  below UInt64 and Int64 are parsed as UInt64 or Int64 for compatibility; numbers above
+  UInt64 and Int64 will be parsed accordingly to 128 or BigInt". TOML v1.1.0, "Integer":
+  64-bit signed integers must be accepted and handled losslessly.
+cause: |
+  base/toml/parser.jl:1140-1155: `("integer", Int64, Int128, 17, 33)` parses with `Int64`
+  only when `length(s) ≤ 17` (17 characters including a sign), although `Int64` holds all
+  18-digit and some 19-digit values; hexadecimal uses `UInt64` only up to 18 characters,
+  which excludes literals with leading zeros.
+possible_fix: |
+  Try `Base.tryparse(Int64, s)` (or `UInt64`) first and widen only when it returns
+  `nothing` because of overflow.
+duplicates:
+  issues: []
+  queries: ["TOML Int128", "TOML integer type", "TOML large integer", "TOML BigInt", "TOML integer"]
+  notes: |
+    PR #47903 (merged) introduced the length thresholds; JuliaLang/TOML.jl#46 (closed)
+    is the design discussion it resolved.
+lean:
+  property: JuliaLean.Toml.DecimalInt64Typed
+  theorem: JuliaLean.Toml.decimalInt64Typed_refuted

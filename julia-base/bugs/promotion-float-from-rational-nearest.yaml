@@ -1,0 +1,75 @@
+id: promotion-float-from-rational-nearest
+title: "Float64(::Rational) and Float16(::Rational) are not correctly rounded"
+priority: P2
+kind: wrong-result
+area: Promotion
+files: [base/rational.jl]
+functions: ["Float64(::Rational)", "Float32(::Rational)", "Float16(::Rational)", "float(::Rational)"]
+summary: |
+  Converting a Rational to a float divides the separately rounded numerator and
+  denominator, so the result can be one ulp away from the closest float.
+  Float64(9007199254740995//3) returns 3.002399751580332e15 although
+  prevfloat of that is closer to the exact value; Float16(6322//8583) returns
+  0.7363 although 0.737 is closer. The model and a random search find such inputs
+  for every component type and every float type.
+likelihood: |
+  Silent last-ulp errors on ordinary inputs: any numerator or denominator above
+  2^53 (Float64), 2^24 (Float32) or 2^11 (Float16, which goes through Float32) can
+  trigger it.
+maybe_intended: |
+  The manual (doc/src/manual/complex-and-rational-numbers.md:256-262) documents the
+  identity isequal(float(a//b), a/b), which describes exactly the current
+  division of rounded operands. Open PR #49749 proposes correctly rounded
+  conversion.
+reproducer: |
+  # Float64(::Rational{Int64}) does not return the closest Float64, as convert promises
+  q = 9007199254740995 // 3            # exact value 3002399751580331.666...
+  f = Float64(q)
+  exact = big(q.num) // big(q.den)
+  function ex(x)
+      n, p, d = Base.decompose(x)
+      p >= 0 ? big(n) * big(2)^p // d : big(n) // (d * big(2)^(-p))
+  end
+  d(y) = abs(ex(y) - exact)
+  println("Float64(", q, ") = ", f)
+  println("prevfloat = ", prevfloat(f), " is closer: ", d(prevfloat(f)) < d(f))
+  g = Float16(Int16(6322) // Int16(8583))   # exact value 0.73657229...
+  e2 = 6322 // 8583
+  d2(y) = abs(ex(y) - e2)
+  println("Float16(6322//8583) = ", g, ", nextfloat = ", nextfloat(g), " is closer: ", d2(nextfloat(g)) < d2(g))
+  if d(prevfloat(f)) < d(f) || d2(nextfloat(g)) < d2(g)
+      println("REPRODUCED promotion-float-from-rational-nearest")
+  end
+output:
+  release: |
+    Float64(9007199254740995//3) = 3.002399751580332e15
+    prevfloat = 3.0023997515803315e15 is closer: true
+    Float16(6322//8583) = 0.7363, nextfloat = 0.737 is closer: true
+    REPRODUCED promotion-float-from-rational-nearest
+  nightly: |
+    Float64(9007199254740995//3) = 3.002399751580332e15
+    prevfloat = 3.0023997515803315e15 is closer: true
+    Float16(6322//8583) = 0.7363, nextfloat = 0.737 is closer: true
+    REPRODUCED promotion-float-from-rational-nearest
+reproduced: {release: true, nightly: true}
+expected: |
+  Float64(9007199254740995//3) == 3.0023997515803315e15 and
+  Float16(Int16(6322)//Int16(8583)) == Float16(0.737), the nearest values.
+promised_by: |
+  base/essentials.jl:443-445 (convert docstring): "If T is an AbstractFloat type,
+  then it will return the closest value to x representable by T. Inf is treated as
+  one ulp greater than floatmax(T) for purposes of determining nearest."
+cause: |
+  base/rational.jl:196-207: (::Type{T})(x::Rational{S}) computes
+  convert(P, x.num)/convert(P, x.den) and converts to T, with Float16 going through
+  Float32 first. Each conversion and the division round separately.
+possible_fix: |
+  Compute the quotient with integer arithmetic and round once (PR #49749).
+duplicates:
+  issues:
+    - {number: 49749, state: open, relation: duplicate}
+    - {number: 45213, state: open, relation: related}
+  queries: ["Rational Float64 conversion correctly rounded", "Float64 Rational rounding", "rational float conversion", "Float32 Rational", "Rational correctly rounded", "Float16 Rational", "rational to float inaccurate"]
+lean:
+  property: JuliaLean.Promotion.RationalToFloatNearest
+  theorem: JuliaLean.Promotion.rationalToFloatNearest_refuted

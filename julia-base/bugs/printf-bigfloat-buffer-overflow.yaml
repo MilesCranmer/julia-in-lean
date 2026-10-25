@@ -1,0 +1,72 @@
+id: printf-bigfloat-buffer-overflow
+title: "Printf writes past the end of its buffer when a large BigFloat follows other output"
+priority: P0
+kind: crash
+area: Printf
+files: [stdlib/Printf/src/Printf.jl]
+functions: ["Printf.format(::Printf.Format, args...)", "Printf.fmt(buf, pos, arg, ::Printf.Spec{<:Printf.Floats})"]
+summary: |
+  For a finite BigFloat whose text is longer than the space computelen reserved (for %f, every value
+  of magnitude above about 1e310), fmt resizes the buffer to required_length + 1 bytes and then lets
+  mpfr_snprintf write required_length + 1 bytes starting at pos. When the conversion is not at the start
+  of the output (pos > 1), the last pos - 1 bytes are written past the end of the buffer. The reproducer's
+  result differs from the expected string from byte 410 on. While exploring, running
+  @sprintf("x%f", big"1e400"), @sprintf("%f %f", big"1e400", big"1e400") and then
+  @sprintf("%s%f", "a"^1000, big"1e5000") in one process ended in "signal 11 (128): Segmentation fault"
+  on 1.13.2 and in "free(): corrupted unsorted chunks" and signal 6 on nightly; the last call alone
+  hung until the 900 s timeout on both versions.
+likelihood: |
+  Any BigFloat above about 1e310 printed with %f after other text, e.g. @sprintf("x = %f", big"1e400"),
+  overruns the buffer by the length of the preceding output. BigFloat is used for values outside the Float64
+  range, and no error or warning is raised.
+maybe_intended: ""
+reproducer: |
+  using Printf
+  # The output of a large BigFloat after literal text: mpfr_snprintf writes past the
+  # end of the resized buffer. Run in a child process because the heap can be corrupted.
+  code = """
+  using Printf
+  s = @sprintf("%s%f", "a"^100, big"1e400")
+  expected = "a"^100 * @sprintf("%f", big"1e400")
+  println("length = ", ncodeunits(s), ", expected length = ", ncodeunits(expected), ", equal = ", s == expected)
+  println("first differing byte = ", findfirst(i -> codeunit(s, i) != codeunit(expected, i), 1:min(ncodeunits(s), ncodeunits(expected))))
+  """
+  out = IOBuffer()
+  p = run(pipeline(ignorestatus(`$(Base.julia_cmd()) --startup-file=no -e $code`), stdout=out, stderr=devnull))
+  text = String(take!(out))
+  print(text)
+  println("exit code = ", p.exitcode, ", signal = ", p.termsignal)
+  (occursin("equal = false", text) || p.termsignal != 0) && println("REPRODUCED printf-bigfloat-buffer-overflow")
+output:
+  release: |
+    length = 508, expected length = 508, equal = false
+    first differing byte = 410
+    exit code = 0, signal = 0
+    REPRODUCED printf-bigfloat-buffer-overflow
+  nightly: |
+    length = 508, expected length = 508, equal = false
+    first differing byte = 410
+    exit code = 0, signal = 0
+    REPRODUCED printf-bigfloat-buffer-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  The concatenation "a"^100 * @sprintf("%f", big"1e400"), with no write outside the buffer.
+promised_by: |
+  Invariant: Printf uses no unsafe API in its interface, so formatting must not write outside the memory it
+  allocated. The out-of-bounds write is the C call at stdlib/Printf/src/Printf.jl:514.
+cause: |
+  stdlib/Printf/src/Printf.jl:507-515: siz = length(buf) - pos + 1; when required_length > siz the code calls
+  resize!(buf, required_length + 1), which sizes the buffer as if the output started at index 1, and then
+  _snprintf(pointer(buf, pos), required_length + 1, str, x) writes up to index pos + required_length.
+  computelen reserves only hash + 309 + precision + 5 bytes for a float conversion (Printf.jl:899-900),
+  so every %f value with more than about 309 integer digits takes this branch.
+possible_fix: |
+  Resize to pos + required_length instead of required_length + 1.
+duplicates:
+  issues:
+    - {number: 44823, state: open, relation: related}
+    - {number: 22126, state: closed, relation: related}
+  queries: ["issues: printf", "issues: Printf precision", "issues/prs: printf BigFloat", "issues/prs: sprintf BigFloat", "issues/prs: Printf mpfr", "issues/prs: printf precision negative", "issues/prs: printf negative width", "issues/prs: printf dynamic width", "issues/prs: printf %g exponent", "issues/prs: printf %g style", "issues/prs: printf %.0d", "issues/prs: printf zero precision", "issues/prs: printf #x", "issues/prs: printf alternate form", "issues/prs: printf octal", "issues/prs: printf %+x", "issues/prs: printf plus unsigned", "issues/prs: printf BoundsError", "issues/prs: Printf.Format BoundsError", "issues/prs: printf %D", "issues/prs: printf textwidth", "issues/prs: printf precision unicode", "issues/prs: printf round away from zero", "issues/prs: printf ties even", "issues/prs: printf %a zero", "issues/prs: printf hex float", "issues/prs: printf InvalidFormatStringError", "issues/prs: printf C compatible"]
+lean:
+  property: JuliaLean.Printf.BigFloatInBounds
+  theorem: JuliaLean.Printf.bigFloatInBounds_refuted

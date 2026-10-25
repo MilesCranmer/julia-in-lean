@@ -1,0 +1,73 @@
+id: bignums-rational-cmp-range
+title: "cmp(::Rational{BigInt}, ::Rational{BigInt}) returns values other than -1, 0, 1 (e.g. -4)"
+priority: P1
+kind: wrong-result
+area: BigNums
+files: [base/gmp.jl]
+functions: ["cmp(::Rational{BigInt}, ::Rational{BigInt})"]
+summary: |
+  cmp for Rational{BigInt} returns GMP's mpq_cmp result unchanged. mpq_cmp only
+  promises the sign; its early exits return limb counts, so cmp(big(0)//1,
+  big(2)^200//1) == -4 and cmp(big(2)^100//3, big(5)//7) == 2. In a random sample of
+  20,000 pairs with up to 300-bit components, only 5% of results were -1 or 1. Code
+  that tests cmp(a, b) == 1 or uses cmp in a lt function silently misbehaves.
+likelihood: |
+  Any Rational{BigInt} whose numerator needs more than one 64-bit limb, which is
+  ordinary for Rational{BigInt}. Only callers that look at the value of cmp (not just
+  its sign) are affected, but that is what the docstring tells them they may do.
+maybe_intended: ""
+reproducer: |
+  a = big(0) // 1
+  b = big(2)^200 // 1
+  c = big(2)^100 // 3
+  d = big(5) // 7
+  println("cmp(0//1, 2^200//1)           = ", cmp(a, b))
+  println("cmp(2^200//1, 0//1)           = ", cmp(b, a))
+  println("cmp(2^100//3, 5//7)           = ", cmp(c, d))
+  println("cmp(Rational{Int128} values)  = ", cmp(Rational{Int128}(c), Rational{Int128}(d)))
+  println("cmp(BigInt(0), big(2)^200)    = ", cmp(big(0), big(2)^200))
+  vals = [b, d, c, a]
+  println("sort(vals; lt=(x, y) -> cmp(x, y) == -1) = ", sort(vals; lt=(x, y) -> cmp(x, y) == -1))
+  println("sort(vals)                               = ", sort(vals))
+  if !(cmp(a, b) in (-1, 0, 1)) && !(cmp(b, a) in (-1, 0, 1))
+      println("REPRODUCED bignums-rational-cmp-range")
+  end
+output:
+  release: |
+    cmp(0//1, 2^200//1)           = -4
+    cmp(2^200//1, 0//1)           = 4
+    cmp(2^100//3, 5//7)           = 2
+    cmp(Rational{Int128} values)  = 1
+    cmp(BigInt(0), big(2)^200)    = -1
+    sort(vals; lt=(x, y) -> cmp(x, y) == -1) = Rational{BigInt}[5//7, 1606938044258990275541962092341162602522202993782792835301376, 1267650600228229401496703205376//3, 0]
+    sort(vals)                               = Rational{BigInt}[0, 5//7, 1267650600228229401496703205376//3, 1606938044258990275541962092341162602522202993782792835301376]
+    REPRODUCED bignums-rational-cmp-range
+  nightly: |
+    cmp(0//1, 2^200//1)           = -4
+    cmp(2^200//1, 0//1)           = 4
+    cmp(2^100//3, 5//7)           = 2
+    cmp(Rational{Int128} values)  = 1
+    cmp(BigInt(0), big(2)^200)    = -1
+    sort(vals; lt=(x, y) -> cmp(x, y) == -1) = Rational{BigInt}[5//7, 1606938044258990275541962092341162602522202993782792835301376, 1267650600228229401496703205376//3, 0]
+    sort(vals)                               = Rational{BigInt}[0, 5//7, 1267650600228229401496703205376//3, 1606938044258990275541962092341162602522202993782792835301376]
+    REPRODUCED bignums-rational-cmp-range
+reproduced: {release: true, nightly: true}
+expected: |
+  -1, 1 and 1, as for Rational{Int128} and for cmp(::BigInt, ::BigInt), which wraps
+  MPZ.cmp in sign (base/gmp.jl:628).
+promised_by: |
+  base/operators.jl:508-511 (cmp docstring): "Return -1, 0, or 1 depending on whether x
+  is less than, equal to, or greater than y, respectively."
+cause: |
+  base/gmp.jl:1116-1118 returns Int(ccall(:__gmpq_cmp, ...)) without sign(). GMP
+  documents mpq_cmp as returning "a positive value if op1 > op2, zero if op1 = op2,
+  and a negative value if op1 < op2"; GMP's mpq/cmp.c returns -num2_size,
+  num1_size, or +-num1_size from its early exits. Lines 1105-1107 on 1.13.2.
+possible_fix: |
+  Wrap the result in sign(...), as cmp(::BigInt, ::BigInt) does at base/gmp.jl:628.
+duplicates:
+  issues: []
+  queries: ["mpq_cmp", "cmp Rational BigInt", "Rational{BigInt} cmp", "cmp returns", "MPQ", "PR MPQ cmp", "PR mpq_cmp"]
+lean:
+  property: JuliaLean.BigNums.RationalCmpUnit
+  theorem: JuliaLean.BigNums.rationalCmpUnit_refuted

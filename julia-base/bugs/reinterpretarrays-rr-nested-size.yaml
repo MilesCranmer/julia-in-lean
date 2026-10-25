@@ -1,0 +1,64 @@
+id: reinterpretarrays-rr-nested-size
+title: "reinterpret(reshape, T, reinterpret(reshape, S, a)) uses the shape of a, not of the inner reinterpreted array"
+priority: P1
+kind: wrong-result
+area: ReinterpretArrays
+files: [base/reinterpretarray.jl]
+functions: ["reinterpret(::typeof(reshape), ::Type{T}, ::ReshapedReinterpretArray)"]
+summary: |
+  Applying reinterpret(reshape, T, b) to b = reinterpret(reshape, S, a) forwards to
+  reinterpret(reshape, T, a), so the size and the argument checks come from a
+  instead of b. For a::Vector{UInt32} of length 3, b has size (2, 3) and
+  reinterpret(reshape, UInt8, b) should have size (2, 2, 3) but has size (4, 3).
+  For a 2×3 UInt32 matrix, reinterpret(reshape, UInt64, reinterpret(reshape, UInt16, m))
+  should throw (the first axis of the 2×2×3 array is not 1:4) but returns a 3-element vector.
+likelihood: |
+  Chains of reinterpret(reshape, ...) occur in image and signal code that splits
+  pixels or samples into channels step by step; the result silently has a
+  different shape (same bytes, different dimensions) or skips an error.
+maybe_intended: ''
+reproducer: |
+  a = UInt32[0x04030201, 0x08070605, 0x0c0b0a09]
+  b = reinterpret(reshape, UInt16, a)          # 2×3
+  size(reinterpret(reshape, UInt8, b))         # (4, 3), expected (2, 2, 3)
+  m = UInt32[1 2 3; 4 5 6]
+  reinterpret(reshape, UInt64, reinterpret(reshape, UInt16, m))   # 3-element, expected ArgumentError
+output:
+  release: |
+    size(b) = (2, 3)
+    size(reinterpret(reshape, UInt8, b)) = (4, 3)
+    size(reinterpret(reshape, UInt8, collect(b))) = (2, 2, 3)
+    reinterpret(reshape, UInt64, bm) -> (3,); on collect(bm) -> ArgumentError
+    REPRODUCED reinterpretarrays-rr-nested-size
+  nightly: |
+    size(b) = (2, 3)
+    size(reinterpret(reshape, UInt8, b)) = (4, 3)
+    size(reinterpret(reshape, UInt8, collect(b))) = (2, 2, 3)
+    reinterpret(reshape, UInt64, bm) -> (3,); on collect(bm) -> ArgumentError
+    REPRODUCED reinterpretarrays-rr-nested-size
+reproduced: {release: true, nightly: true}
+expected: |
+  size(reinterpret(reshape, UInt8, b)) == (2, 2, 3), the same as for collect(b);
+  reinterpret(reshape, UInt64, reinterpret(reshape, UInt16, m)) throws ArgumentError
+  like it does for collect(reinterpret(reshape, UInt16, m)).
+promised_by: |
+  reinterpret(reshape, T, A) docstring, base/reinterpretarray.jl:151-158: "If
+  Base.elsize(Array{S}) = n*Base.elsize(Array{T}) for n>1, B gets a new first
+  dimension of size n", and "A's first dimension must be of size n" in the
+  opposite case. The result of a nested call should not depend on whether the
+  intermediate array is a ReinterpretArray.
+cause: |
+  base/reinterpretarray.jl:191 defines
+  reinterpret(::typeof(reshape), ::Type{T}, a::ReshapedReinterpretArray) = reinterpret(reshape, T, a.parent).
+  This "avoid nesting" shortcut is only shape-preserving for the non-reshaped
+  variant (line 190); the reshaped variant adds or removes a dimension at each step.
+possible_fix: |
+  Drop the method at line 191 (construct the nested ReinterpretArray), or forward
+  to a.parent only when eltype(a.parent) == T, where the two steps cancel.
+duplicates:
+  issues:
+    - {number: 63305, state: closed, relation: related}
+  queries: ["reinterpret reshape", "ReshapedReinterpretArray", "nested reinterpret", "reinterpret of reinterpret", "reinterpret nesting", "reinterpret twice"]
+lean:
+  property: JuliaLean.ReinterpretArrays.RrNestedSize
+  theorem: JuliaLean.ReinterpretArrays.rrNestedSize_refuted

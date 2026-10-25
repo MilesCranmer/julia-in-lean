@@ -1,0 +1,67 @@
+id: combinatorics-permutecols-unsigned
+title: "permutecols! and invpermutecols! silently ignore unsigned permutation vectors"
+priority: P2
+kind: wrong-result
+area: Combinatorics
+files: [base/combinatorics.jl]
+functions: ["Base.permutecols!", "Base.invpermutecols!", "Base._permute!", "Base._invpermute!"]
+summary: |
+  The matrix permutation helpers accept AbstractVector{<:Integer}, but valid UInt
+  permutations leave the matrix unchanged. They also replace every permutation entry
+  with its wrapped unsigned negation instead of restoring the input permutation.
+likelihood: |
+  UInt index vectors are ordinary Julia values, but these helpers are unexported Base
+  functions. Package code that calls them with unsigned indices receives a silent wrong
+  result.
+maybe_intended: |
+  The functions are unexported and have no docstrings. Their signatures explicitly
+  accept every Integer subtype, and the same UInt vector works with isperm, invperm,
+  permute!, and permutecols!!, so accepting UInt while silently doing no work is unlikely
+  to be intended.
+reproducer: |
+  A = [1 3 5; 2 4 6]
+  p = UInt[3, 1, 2]
+  q = copy(p)
+  cols = copy(A)
+  Base.permutecols!(cols, q)
+  q = copy(p)
+  invcols = copy(A)
+  Base.invpermutecols!(invcols, q)
+  @show cols q invcols A[:, p] A[:, invperm(p)]
+output:
+  release: |
+    permutecols! result:    [1 3 5; 2 4 6]
+    permutecols! indices:   UInt64[0xfffffffffffffffd, 0xffffffffffffffff, 0xfffffffffffffffe]
+    expected columns:       [5 1 3; 6 2 4]
+    invpermutecols! result: [1 3 5; 2 4 6]
+    invpermutecols! indices:UInt64[0xfffffffffffffffd, 0xffffffffffffffff, 0xfffffffffffffffe]
+    expected inverse:       [3 5 1; 4 6 2]
+    REPRODUCED combinatorics-permutecols-unsigned
+  nightly: |
+    permutecols! result:    [1 3 5; 2 4 6]
+    permutecols! indices:   UInt64[0xfffffffffffffffd, 0xffffffffffffffff, 0xfffffffffffffffe]
+    expected columns:       [5 1 3; 6 2 4]
+    invpermutecols! result: [1 3 5; 2 4 6]
+    invpermutecols! indices:UInt64[0xfffffffffffffffd, 0xffffffffffffffff, 0xfffffffffffffffe]
+    expected inverse:       [3 5 1; 4 6 2]
+    REPRODUCED combinatorics-permutecols-unsigned
+reproduced: {release: true, nightly: true}
+expected: |
+  permutecols! should produce A[:, p], invpermutecols! should produce
+  A[:, invperm(p)], and both non-destructive helpers should restore p.
+promised_by: |
+  Invariant: the methods are declared for AbstractVector{<:Integer}; their signed-index
+  behavior and names specify column permutation and inverse permutation.
+cause: |
+  base/combinatorics.jl:153 and 172 use p .= .-p as a sign-bit visitation marker.
+  Unsigned negation wraps to a large positive value. The p[i] > 0 test at line 155 or
+  174 then skips every cycle, and the wrapped entries are never restored.
+possible_fix: |
+  Reject unsigned permutation vectors or use visitation state that does not depend on
+  storing negative sentinels in p. The latter preserves the declared Integer signature.
+duplicates:
+  issues: []
+  queries: ["permutecols unsigned", "_permute! UInt"]
+lean:
+  property: JuliaLean.Combinatorics.PermuteColsCorrect
+  theorem: JuliaLean.Combinatorics.permuteColsCorrect_refuted

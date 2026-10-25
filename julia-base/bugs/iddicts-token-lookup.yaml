@@ -1,0 +1,72 @@
+id: iddicts-token-lookup
+title: "IdDict: in/haskey report a present key as absent and d[k] throws KeyError when the stored value is Base.secret_table_token"
+priority: P2
+kind: wrong-result
+area: IdDicts
+files: [base/iddict.jl, base/abstractdict.jl]
+functions: ["getindex(::IdDict, key)", "haskey(::IdDict, key)", "in(k, ::KeySet{<:Any,<:IdDict})", "in(::Pair, ::IdDict)", "mergewith!(f, ::IdDict, d2)"]
+summary: |
+  IdDict lookups use the symbol :__c782dbf1cf4d6a2e5e3865d7e95634f2e09b5902__
+  (Base.secret_table_token, base/abstractdict.jl:17) as the "not found"
+  sentinel. If that symbol is itself stored as a value, `in(k, keys(d))` and
+  `haskey(d, k)` return false and `d[k]` throws KeyError although the key is
+  present (length(d) still counts it), while `get(d, k, default)` returns the
+  stored symbol. The generic methods built on haskey and the sentinel
+  inherit this: `(k => T) in d` is false (base/abstractdict.jl:21-27) and
+  mergewith! overwrites the entry instead of combining
+  (base/abstractdict.jl:288-293).
+likelihood: |
+  The value must be exactly the 43-character magic symbol, so this needs a
+  program that stores symbols derived from user or serialized data in an
+  IdDict{Any,...}; unlikely by accident, but the sentinel is publicly
+  constructible with Symbol("...").
+maybe_intended: |
+  The sentinel is an internal implementation detail and a collision is not
+  supposed to be observable; no documentation acknowledges the case.
+reproducer: |
+  const T = Symbol("__c782dbf1cf4d6a2e5e3865d7e95634f2e09b5902__")
+  d = IdDict{Any,Any}()
+  d["k"] = T
+  in("k", keys(d))   # false
+  d["k"]             # KeyError
+output:
+  release: |
+    in(k, keys(d)): false, haskey(d, k): false
+    get returns stored token: true
+    d[k] threw: KeyError
+    length(d) = 1 (entry still present)
+    (k => T) in d: false
+    mergewith!(tuple-combine) result for k: 1
+    REPRODUCED iddicts-token-lookup
+  nightly: |
+    in(k, keys(d)): false, haskey(d, k): false
+    get returns stored token: true
+    d[k] threw: KeyError
+    length(d) = 1 (entry still present)
+    (k => T) in d: false
+    mergewith!(tuple-combine) result for k: 1
+    REPRODUCED iddicts-token-lookup
+reproduced: {release: true, nightly: true}
+expected: |
+  haskey(d, "k") and in("k", keys(d)) return true, d["k"] returns the
+  stored symbol, ("k" => T) in d is true and mergewith! combines to (T, 1).
+promised_by: |
+  haskey docstring (base/dict.jl): "Determine whether a collection has a
+  mapping for a given key"; KeyError docstring, base/abstractdict.jl:5-9:
+  thrown when an operation "tried to access or delete a non-existent
+  element", and the key exists here (length(d) == 1, get returns its value).
+cause: |
+  base/abstractdict.jl:17 defines the sentinel as an ordinary Symbol;
+  base/iddict.jl:100-101 (getindex) and base/iddict.jl:185
+  (in(k, ::KeySet{<:Any,<:IdDict})) cannot distinguish "value equals the
+  sentinel" from "key absent", because jl_eqtable_get returns the default
+  when the lookup misses.
+possible_fix: |
+  Use the found-flag form of the ccall (as pop! does) or a fresh sentinel
+  object that cannot be constructed by user code.
+duplicates:
+  issues: []
+  queries: ["secret_table_token", "IdDict sentinel", "IdDict KeyError", "KeyError value stored", "IdDict getindex"]
+lean:
+  property: JuliaLean.IdDicts.LookupFindsPresent
+  theorem: JuliaLean.IdDicts.lookupFindsPresent_refuted

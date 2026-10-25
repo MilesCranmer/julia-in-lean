@@ -1,0 +1,57 @@
+id: toml-offset-datetime-rejected
+title: "TOML stdlib docs claim TOML v1.1 support, but offset date-times other than Z are rejected"
+priority: P3
+kind: documentation
+area: Toml
+files: [base/toml/parser.jl, stdlib/TOML/src/TOML.jl, stdlib/TOML/docs/src/index.md]
+functions: ["Base.TOML.parse_datetime", "TOML.parse"]
+summary: |
+  Offset date-times are one of TOML's value types, but the parser rejects every numeric
+  offset with `ParserError(ErrOffsetDateNotSupported)`: `TOML.tryparse("odt =
+  1979-05-27T00:32:00-07:00")` and even `+00:00` fail, while the equivalent `Z` form is
+  accepted and returned as a plain `DateTime`. Neither the TOML stdlib docstring nor its
+  manual page mentions the limitation.
+likelihood: |
+  Offset date-times are common in TOML written by other tools (timestamps in lock files
+  and metadata); Julia cannot read such files, and users learn this only from the error.
+maybe_intended: |
+  `Dates.DateTime` has no time zone, so the limitation is deliberate (the error type is
+  named `ErrOffsetDateNotSupported`, and stdlib/TOML/test/toml_test.jl:73-91 lists the
+  affected toml-test files as known failures). The problem is that the documentation
+  claims full TOML v1.1 support.
+reproducer: |
+  import TOML
+  TOML.tryparse("odt = 1979-05-27T00:32:00-07:00")   # ParserError(ErrOffsetDateNotSupported)
+output:
+  release: |
+    "odt = 1979-05-27T00:32:00-07:00" => ParserError: ErrOffsetDateNotSupported
+    "odt = 1979-05-27T07:32:00+00:00" => ParserError: ErrOffsetDateNotSupported
+    "odt = 1979-05-27T07:32:00Z" => Dict{String, Any}("odt" => Dates.DateTime("1979-05-27T07:32:00"))
+    REPRODUCED toml-offset-datetime-rejected
+  nightly: |
+    "odt = 1979-05-27T00:32:00-07:00" => ParserError: ErrOffsetDateNotSupported
+    "odt = 1979-05-27T07:32:00+00:00" => ParserError: ErrOffsetDateNotSupported
+    "odt = 1979-05-27T07:32:00Z" => Dict{String, Any}("odt" => Dates.DateTime("1979-05-27T07:32:00"))
+    REPRODUCED toml-offset-datetime-rejected
+reproduced: {release: true, nightly: true}
+expected: |
+  Either a parsed value (for example the UTC `DateTime`, as is already done for `Z`), or a
+  documented limitation in the TOML stdlib docstring and manual.
+promised_by: |
+  stdlib/TOML/src/TOML.jl:4: "TOML.jl is a Julia standard library for parsing and writing
+  TOML v1.1 files." TOML v1.1.0, "Offset Date-Time": `odt2 = 1979-05-27T00:32:00-07:00`.
+cause: |
+  base/toml/parser.jl:1237-1242 returns `ErrOffsetDateNotSupported` for `+` or `-` after
+  the time; `Z` is accepted and dropped.
+possible_fix: |
+  Document the limitation in the TOML stdlib docs, or convert offset date-times to UTC
+  `DateTime`s as `Z` already is.
+duplicates:
+  issues: []
+  queries: ["TOML offset", "TOML timezone", "TOML time zone", "TOML datetime offset"]
+  notes: |
+    In the former JuliaLang/TOML.jl repository, issue #54 (open, "DateTime values are
+    printed with a potentially incorrect timezone indicator") concerns printing, not parsing.
+lean:
+  property: JuliaLean.Toml.OffsetDateTimeAccepted
+  theorem: JuliaLean.Toml.offsetDateTimeAccepted_refuted

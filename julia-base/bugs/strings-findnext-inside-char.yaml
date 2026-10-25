@@ -1,0 +1,66 @@
+id: strings-findnext-inside-char
+title: "findfirst with an invalid-UTF-8 needle matches inside a character"
+priority: P3
+kind: wrong-result
+area: Strings
+files: [base/strings/search.jl]
+functions: ["findnext(::AbstractString, ::AbstractString, ::Integer)", "findfirst(::AbstractString, ::AbstractString)", "occursin"]
+summary: |
+  findfirst("\xa9x", "éx") returns 2:3, starting at the second byte of 'é';
+  s[2:3] throws StringIndexError. The one-character needle "\xa9" is searched by
+  character and not found, so occursin("\xa9x", s) is true while
+  occursin("\xa9", s) is false.
+likelihood: |
+  Only needles that are not valid UTF-8 can match inside a character; rare
+  outside byte-level processing.
+maybe_intended: |
+  Byte-level matching may be intended for String; then the docstring promise
+  s[r] == t and the single-character path disagree with it.
+reproducer: |
+  s = "éx"            # bytes c3 a9 78
+  t = "\xa9x"         # bytes a9 78
+  r = findfirst(t, s)
+  println("findfirst(\"\\xa9x\", \"éx\") = ", repr(r))
+  println("occursin(\"\\xa9\", \"éx\") = ", occursin("\xa9", s))
+  g = try
+      s[r]
+  catch e
+      e
+  end
+  println("s[r] = ", g isa Exception ? sprint(showerror, g) : repr(g))
+  r == 2:3 && g isa StringIndexError && println("REPRODUCED strings-findnext-inside-char")
+output:
+  release: |
+    findfirst("\xa9x", "éx") = 2:3
+    occursin("\xa9", "éx") = false
+    s[r] = StringIndexError: invalid index [2], valid nearby indices [1]=>'é', [3]=>'x'
+    REPRODUCED strings-findnext-inside-char
+  nightly: |
+    findfirst("\xa9x", "éx") = 2:3
+    occursin("\xa9", "éx") = false
+    s[r] = StringIndexError: invalid index [2], valid nearby indices [1]=>'é', [3]=>'x'
+    REPRODUCED strings-findnext-inside-char
+reproduced: {release: true, nightly: true}
+expected: |
+  nothing, or a range r with s[r] == t.
+promised_by: |
+  The findnext docstring: "a range of indices where the matching sequence is
+  found, such that `s[r] == t`" (base/strings/search.jl:489-492).
+cause: |
+  _searchindex for DenseUTF8String (base/strings/search.jl:395-399) uses a byte
+  search for needles longer than one character and a Char search for one-
+  character needles.
+possible_fix: |
+  Reject byte matches that do not start at a valid index, or document byte
+  semantics.
+duplicates:
+  issues: []
+  queries:
+    - "issues: findfirst invalid UTF-8"
+    - "issues: findnext invalid string index"
+    - "issues: occursin invalid UTF-8"
+    - "issues: search middle of character"
+    - "prs: findnext invalid UTF-8"
+lean:
+  property: JuliaLean.Strings.FindnextMatches
+  theorem: JuliaLean.Strings.findnextMatches_refuted

@@ -1,0 +1,55 @@
+id: iterators-product-last-empty
+title: last(Iterators.product(1:2, 1:0)) returns (2, 0) for an empty product
+priority: P3
+kind: missing-error
+area: Iterators
+files:
+- base/iterators.jl
+functions:
+- last(::ProductIterator)
+summary: |
+  last(p::ProductIterator) = map(last, p.iterators). Ranges return their end
+  point even when empty, so the last element of the empty product(1:2, 1:0) is
+  reported as (2, 0). With an empty Vector factor, last throws as expected.
+likelihood: |
+  Needs last of a product containing an empty range. Uncommon; silent.
+maybe_intended: |
+  last docstring (base/abstractarray.jl:513-520) says last returns "the end
+  point of an AbstractRange even if it is empty", and last(product) follows the
+  factors. The product itself is not a range.
+reproducer: |
+  # last(product(...)) returns a tuple for an empty product of ranges
+  p = Iterators.product(1:2, 1:0)
+  r = try last(p) catch e; e end
+  println("isempty(product(1:2, 1:0)) = ", isempty(p), ", last = ", repr(r))
+  println("last(product([1,2], Int[])) throws: ", try last(Iterators.product([1, 2], Int[])); false catch e; true end)
+  isempty(p) && r == (2, 0) && println("REPRODUCED iterators-product-last-empty")
+output:
+  release: |
+    isempty(product(1:2, 1:0)) = true, last = (2, 0)
+    last(product([1,2], Int[])) throws: true
+    REPRODUCED iterators-product-last-empty
+  nightly: |
+    isempty(product(1:2, 1:0)) = true, last = (2, 0)
+    last(product([1,2], Int[])) throws: true
+    REPRODUCED iterators-product-last-empty
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  An error (as last of any empty collection), since isempty(product(1:2, 1:0)).
+promised_by: |
+  last docstring, base/abstractarray.jl:513-520: "Get the last element of an
+  ordered collection".
+cause: |
+  base/iterators.jl:1256, last(p::ProductIterator) = Base.map(last, p.iterators)
+  does not check for empty factors.
+possible_fix: |
+  Throw when any factor is empty (any(isempty, p.iterators)).
+duplicates:
+  issues: []
+  queries:
+  - product last empty
+lean:
+  property: JuliaLean.Iterators.ProductLastNonempty
+  theorem: JuliaLean.Iterators.productLastNonempty_refuted

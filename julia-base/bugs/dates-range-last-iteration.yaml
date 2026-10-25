@@ -1,0 +1,73 @@
+id: dates-range-last-iteration
+title: "Month range last(r) differs from r[end] and is not in its own range"
+priority: P2
+kind: wrong-result
+area: Dates
+files: [stdlib/Dates/src/accessors.jl, stdlib/Dates/src/ranges.jl]
+functions: ["yearmonthday", "len", "Base.steprange_last", "length", "iterate", "in"]
+summary: |
+  A Month-stepped range spanning one day can report 124448796357 elements.
+  Its stored last date differs from r[end], and last(r) is not a member of r.
+  The start is a publicly constructible Date with an extreme day count.
+likelihood: |
+  This requires a date beyond the advertised typemin(Date), reached here
+  through public Date-plus-Day arithmetic. Ordinary civil dates are unaffected
+  by this accessor-overflow example.
+maybe_intended: |
+  The old typemin and typemax avoid accessor overflow, but Date arithmetic
+  does not enforce those calendar bounds. No error marks the invalid range.
+reproducer: |
+  using Dates
+  a = Date(0) + Day(Int64(-92233720368548195))
+  r = a:Month(1):(a + Day(1))
+  last(r) == r[end]
+output:
+  release: |
+    start day value = -92233720368548560
+    requested stop day value = -92233720368548559
+    length = 124448796357
+    stored last day value = -92229932536089924
+    last indexed day value = -92226144703631306
+    last(r) == r[end] = false
+    last(r) in r = false
+    REPRODUCED dates-range-last-iteration
+  nightly: |
+    start day value = -92233720368548560
+    requested stop day value = -92233720368548559
+    length = 124448796357
+    stored last day value = -92229932536089924
+    last indexed day value = -92226144703631306
+    last(r) == r[end] = false
+    last(r) in r = false
+    REPRODUCED dates-range-last-iteration
+reproduced: {release: true, nightly: true}
+expected: |
+  For a nonempty range, last(r) must equal r[length(r)]. The iterator at
+  its final cached index uses the same start + step * (length(r)-1)
+  calculation as r[end], so its final emitted date must also equal last(r).
+promised_by: |
+  Range invariant: last(r) is the last element. stdlib/Dates/src/ranges.jl:71-72
+  emits start + step * i for i from 1 through length(r)-1 after the initial
+  start. Lines 66-69 implement membership using the same indexed elements.
+cause: |
+  stdlib/Dates/src/accessors.jl:6-8 overflows multiplied Int64 intermediates.
+  Adding Month(0) can therefore change this extreme Date. ranges.jl:19-31
+  uses calendar addition while finding and then recounting the normalized stop;
+  the two counts disagree, so the stored stop and final indexed date diverge.
+possible_fix: |
+  Make calendar accessors correct for every stored Date before using calendar
+  arithmetic to normalize and count ranges. PR #63714 replaces the overflowing
+  accessor and adds an exact month-based count.
+duplicates:
+  issues:
+    - {number: 63714, state: open, relation: related}
+    - {number: 50981, state: open, relation: related}
+  queries: ["Dates last length", "Dates range Month last", "StepRange Month", "repo:JuliaLang/julia Month range"]
+  notes: |
+    PR #63714 was read, including its accessor and range diffs; it addresses
+    both underlying causes. The exact example was not found. The final PR
+    search for Dates last length hit GitHub's search rate limit (HTTP 403),
+    so that additional query could not be completed.
+lean:
+  property: JuliaLean.Dates.RangeLastIteration
+  theorem: JuliaLean.Dates.rangeLastIteration_refuted

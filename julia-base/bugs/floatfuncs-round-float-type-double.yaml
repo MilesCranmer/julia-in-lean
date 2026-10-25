@@ -1,0 +1,88 @@
+id: floatfuncs-round-float-type-double
+title: "round(Float32, x::Float64) and round(Float16, x) round twice and miss the nearest representable integer"
+priority: P2
+kind: wrong-result
+area: FloatFuncs
+files: [base/rounding.jl, base/float.jl]
+functions: ["round(::Type{Float32}, ::Float64, ::RoundingMode)", "round(::Type{Float16}, ::Float32, ::RoundingMode)", "Base._round_convert"]
+summary: |
+  For the nearest rounding modes, round(T, x) for a floating-point T first rounds x to an
+  integer in x's own type and then converts that integer to T with ties to even. The
+  second rounding can land on the wrong neighbour: round(Float32, 1.67772173e7) is
+  16777216 although 16777218 is closer (and Float32(x) itself is 16777218), and
+  round(Float16, 2845.343f0) is 2844 instead of 2846. The tie-breaking rule of the
+  requested mode is also ignored: round(Float32, 16777217.0, RoundNearestTiesAway) and
+  RoundNearestTiesUp both give 16777216.
+likelihood: |
+  Any value above maxintfloat(T) whose fraction pushes the intermediate integer onto a
+  midpoint between two T integers: Float32 targets above 2^24, Float16 targets above 2048
+  (values such as 2845.343f0 are ordinary Float32 data). The error is one spacing of T.
+maybe_intended: |
+  The docstring says rounding to a floating-point type is "similar to convert", and the
+  generic method is literally convert(T, round(x, r)). But the same docstring promises
+  rounding to the integers representable by T, and the directed modes already get a
+  dedicated correction (base/float.jl:467-474), so the nearest modes look overlooked.
+reproducer: |
+  x = 1.67772173e7                     # 16777217.3, between the Float32 integers 16777216 and 16777218
+  a = round(Float32, x)
+  println("round(Float32, 1.67772173e7) = ", a, "   Float32(x) = ", Float32(x))
+  println("distance to 16777216 = ", x - 16777216, ", to 16777218 = ", 16777218 - x)
+  b = round(Float16, 2845.343f0)
+  println("round(Float16, 2845.343f0) = ", b, "   Float16(2845.343f0) = ", Float16(2845.343f0))
+  c = round(Float32, 16777217.0, RoundNearestTiesAway)
+  d = round(Float32, 16777217.0, RoundNearestTiesUp)
+  println("round(Float32, 16777217.0, RoundNearestTiesAway) = ", c)
+  println("round(Float32, 16777217.0, RoundNearestTiesUp) = ", d)
+  if a == 16777216 && Float32(x) == 16777218
+      println("REPRODUCED floatfuncs-round-float-type-double")
+  end
+output:
+  release: |
+    round(Float32, 1.67772173e7) = 1.6777216e7   Float32(x) = 1.6777218e7
+    distance to 16777216 = 1.300000000745058, to 16777218 = 0.6999999992549419
+    round(Float16, 2845.343f0) = 2.844e3   Float16(2845.343f0) = 2.846e3
+    round(Float32, 16777217.0, RoundNearestTiesAway) = 1.6777216e7
+    round(Float32, 16777217.0, RoundNearestTiesUp) = 1.6777216e7
+    REPRODUCED floatfuncs-round-float-type-double
+  nightly: |
+    round(Float32, 1.67772173e7) = 1.6777216e7   Float32(x) = 1.6777218e7
+    distance to 16777216 = 1.300000000745058, to 16777218 = 0.6999999992549419
+    round(Float16, 2845.343f0) = 2.844e3   Float16(2845.343f0) = 2.846e3
+    round(Float32, 16777217.0, RoundNearestTiesAway) = 1.6777216e7
+    round(Float32, 16777217.0, RoundNearestTiesUp) = 1.6777216e7
+    REPRODUCED floatfuncs-round-float-type-double
+reproduced: {release: true, nightly: true}
+expected: |
+  round(Float32, 1.67772173e7) == 16777218 (the nearest Float32 integer, equal to
+  Float32(x)); round(Float16, 2845.343f0) == 2846; round(Float32, 16777217.0,
+  RoundNearestTiesAway) == round(Float32, 16777217.0, RoundNearestTiesUp) == 16777218.
+promised_by: |
+  base/rounding.jl:352-354: "When rounding to a floating point type, will round to
+  integers representable by that type (and Inf) rather than true integers. Inf is treated
+  as one ulp greater than the floatmax(T) for purposes of determining \"nearest\"".
+  base/rounding.jl:104-110: RoundNearestTiesUp rounds ties toward positive infinity;
+  base/rounding.jl:96-102: RoundNearestTiesAway rounds ties away from zero.
+cause: |
+  base/rounding.jl:490-491: round(::Type{T}, x, r) = _round_convert(T, round(x, r), x, r)
+  and the generic _round_convert is convert(T, x_integer). round(x, r) rounds x to an
+  integer of x's type (16777217.3 -> 16777217.0), and convert then rounds that integer to
+  T with ties to even (16777217 -> 16777216). base/float.jl:467-474 adds a correction only
+  for RoundToZero, RoundFromZero, RoundUp and RoundDown.
+possible_fix: |
+  For the nearest modes, convert x to T first (rounding to the T neighbours of x) and then
+  round within T, or add a _round_convert method for the nearest modes that compares x with
+  the two T integers around round(x, r).
+duplicates:
+  issues: []
+  queries:
+    - "issues: round Float32"
+    - "issues: round Float16"
+    - "issues: round Float32 double rounding"
+    - "issues: round to float type nearest"
+    - "issues: round Float16 RoundNearestTiesAway"
+    - "issues: _round_convert (found only unrelated range issues #58975, #57113)"
+    - "issues: rounding mode convert Float32"
+    - "pull requests: round Float16"
+lean:
+  property: JuliaLean.FloatFuncs.RoundToF32Nearest
+  theorem: JuliaLean.FloatFuncs.roundToF32Nearest_refuted

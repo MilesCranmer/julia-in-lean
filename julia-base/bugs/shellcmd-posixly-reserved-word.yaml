@@ -1,0 +1,52 @@
+id: shellcmd-posixly-reserved-word
+title: "shell_escape_posixly leaves a reserved word such as `done` unquoted in command position"
+priority: P3
+kind: wrong-result
+area: ShellCmd
+files: [base/shell.jl]
+functions: ["Base.shell_escape_posixly"]
+summary: |
+  shell_escape_posixly prints words made of letters unquoted. When the first argument
+  (the command name) is a POSIX reserved word (if, then, else, elif, fi, do, done, case,
+  esac, while, until, for, in), the shell parses it as syntax:
+  shell_escape_posixly("done", "x") is "done x", which sh rejects with a syntax error
+  instead of running the command named done. Quoting the word ('done') would work.
+likelihood: |
+  Very low: programs named like shell reserved words are unusual. Bash additionally
+  treats `time` as a reserved word, where the output silently changes meaning.
+maybe_intended: |
+  The comment at base/shell.jl:460-461 only intends to leave words unquoted that "any
+  (reasonable) shell will definitely never consider ... to be special"; reserved words
+  were probably not considered.
+reproducer: |
+  e = Base.shell_escape_posixly("done", "x")   # "done x"
+  run(ignorestatus(`sh -c $e`)).exitcode      # 2 (syntax error)
+output:
+  release: |
+    shell_escape_posixly("done", "x") = "done x"
+    sh -c exit code: 2 (127 = command not found, 2 = syntax error)
+    REPRODUCED shellcmd-posixly-reserved-word
+  nightly: |
+    shell_escape_posixly("done", "x") = "done x"
+    sh -c exit code: 2 (127 = command not found, 2 = syntax error)
+    REPRODUCED shellcmd-posixly-reserved-word
+reproduced: {release: true, nightly: true}
+expected: |
+  "'done' x", which sh runs as the command named done (exit code 127 here).
+promised_by: |
+  base/shell.jl:504-506: "escapes any special characters in such a way that it is safe
+  to pass it as an argument to a posix shell"; POSIX.1-2024 XCU 2.4 (Reserved Words)
+  recognizes unquoted reserved words in command-name position.
+cause: |
+  base/shell.jl:462-496: the unquoted-word test checks characters only.
+possible_fix: |
+  Quote the first argument when it equals a reserved word.
+duplicates:
+  issues: []
+  queries:
+    - "issues/prs: shell_escape_posixly"
+    - "issues/prs: posixly reserved word"
+    - "issues/prs: shell escape reserved word"
+lean:
+  property: JuliaLean.ShellCmd.PosixlyNoReservedWord
+  theorem: JuliaLean.ShellCmd.posixlyNoReservedWord_refuted

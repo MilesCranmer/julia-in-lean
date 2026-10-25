@@ -1,0 +1,6 @@
+ex = Meta.parse("f(:var\"a b\")")   # Expr(:call, :f, QuoteNode(Symbol("a b")))
+s = string(ex)
+println("string(ex) = ", repr(s))
+back = Meta.parse(s)
+println("Meta.parse(string(ex)) = ", repr(back))
+back != ex && println("REPRODUCED show-expr-quoted-symbol")

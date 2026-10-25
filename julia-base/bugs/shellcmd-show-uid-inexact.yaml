@@ -1,0 +1,52 @@
+id: shellcmd-show-uid-inexact
+title: "show(::Cmd) throws InexactError for a uid or gid of 2^31 or more"
+priority: P2
+kind: crash
+area: ShellCmd
+files: [base/cmd.jl]
+functions: ["show(::IO, ::Cmd)", "setuid(::Cmd, ::Integer)", "setgid(::Cmd, ::Integer)"]
+summary: |
+  Cmd stores uid and gid as UInt32, and setuid/setgid accept any value that fits, but
+  show(::Cmd) converts them with Int32(...), which throws InexactError for values at or
+  above 2^31. Printing such a command (in the REPL, in an error message, with repr)
+  throws instead of printing.
+likelihood: |
+  Low: user and group ids at or above 2^31 are rare but valid on Linux (some container
+  and systemd-homed setups use large ranges; 2^32-1 is the conventional "no id").
+maybe_intended: ""
+reproducer: |
+  c = setuid(`id -u`, 0x80000000)
+  repr(c)   # InexactError(:convert, (Int32, 0x80000000))
+output:
+  release: |
+    c.uid = 0x80000000
+    repr(c) = InexactError(:convert, (Int32, 0x80000000))
+    repr(setgid(`id -g`, typemax(UInt32))) = InexactError(:convert, (Int32, 0xffffffff))
+    REPRODUCED shellcmd-show-uid-inexact
+  nightly: |
+    c.uid = 0x80000000
+    repr(c) = InexactError(:convert, (Int32, 0x80000000))
+    repr(setgid(`id -g`, typemax(UInt32))) = InexactError(:convert, (Int32, 0xffffffff))
+    REPRODUCED shellcmd-show-uid-inexact
+reproduced: {release: true, nightly: true}
+expected: |
+  "setuid(`id -u`, 2147483648)".
+promised_by: |
+  Invariant: show of a valid object does not throw. setuid(cmd, uid::Integer) stores
+  UInt32(uid) (base/cmd.jl:469), so every UInt32 is a valid uid of a Cmd.
+cause: |
+  base/cmd.jl:212-213 (master; :157-158 in 1.13.2): `show(io, Int32(cmd.uid))` and
+  `show(io, Int32(cmd.gid))`.
+possible_fix: |
+  Use Int(cmd.uid) and Int(cmd.gid).
+duplicates:
+  issues: []
+  queries:
+    - "issues/prs: Cmd show uid"
+    - "issues/prs: setuid Cmd show"
+    - "issues/prs: setuid show"
+    - "issues/prs: setgid Int32"
+    - "issues/prs: show Cmd Int32"
+lean:
+  property: JuliaLean.ShellCmd.ShowUidTotal
+  theorem: JuliaLean.ShellCmd.showUidTotal_refuted

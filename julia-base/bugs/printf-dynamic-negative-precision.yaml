@@ -1,0 +1,60 @@
+id: printf-dynamic-negative-precision
+title: "Printf does not treat a negative dynamic precision as omitted"
+priority: P2
+kind: wrong-exception
+area: Printf
+files: [stdlib/Printf/src/Printf.jl]
+functions: ["Printf.format(::Printf.Format, args...)", "Printf.rmdynamic"]
+summary: |
+  @sprintf("%.*s", -2, "hello") throws BoundsError instead of printing "hello"; only -1, the internal
+  "no precision" marker for strings, works. For floating-point conversions 1.13.2 prints wrong text
+  (%.*f with -1 and 0.5 gives "0", %.*g gives "e-01"); nightly throws
+  ArgumentError("precision must be non-negative") from Ryu. Integer conversions are a separate entry
+  (printf-negative-precision-int-oob).
+likelihood: |
+  C code passes a negative precision to request the default; ports of such code reach this.
+maybe_intended: ""
+reproducer: |
+  using Printf
+  function reproduce_negative_precision()
+      for (fmt, args) in [("%.*s", (-2, "hello")), ("%.*f", (-1, 0.5)), ("%.*e", (-1, 0.5)), ("%.*g", (-1, 0.5))]
+          r = try repr(Printf.format(Printf.Format(fmt), args...)) catch e typeof(e) end
+          literal = Printf.format(Printf.Format(replace(fmt, ".*" => "")), args[2])
+          println(fmt, " with precision ", args[1], " => ", r, "; C99 expected ", repr(literal))
+      end
+      e = try @sprintf("%.*s", -2, "hello"); nothing catch e; e end
+      e isa BoundsError && println("REPRODUCED printf-dynamic-negative-precision")
+  end
+  reproduce_negative_precision()
+output:
+  release: |
+    %.*s with precision -2 => BoundsError; C99 expected "hello"
+    %.*f with precision -1 => "0"; C99 expected "0.500000"
+    %.*e with precision -1 => "0e-01"; C99 expected "5.000000e-01"
+    %.*g with precision -1 => "e-01"; C99 expected "0.5"
+    REPRODUCED printf-dynamic-negative-precision
+  nightly: |
+    %.*s with precision -2 => BoundsError; C99 expected "hello"
+    %.*f with precision -1 => ArgumentError; C99 expected "0.500000"
+    %.*e with precision -1 => ArgumentError; C99 expected "5.000000e-01"
+    %.*g with precision -1 => ArgumentError; C99 expected "0.5"
+    REPRODUCED printf-dynamic-negative-precision
+reproduced: {release: true, nightly: true}
+expected: |
+  Every negative dynamic precision behaves as an omitted precision: "hello", "0.500000", "5.000000e-01", "0.5".
+promised_by: |
+  ISO/IEC 9899:1999 7.19.6.1 (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf) paragraph 5: "A negative precision argument is taken as if the precision were omitted."
+  stdlib/Printf/src/Printf.jl:68 (Printf.Format docstring): "Create a C printf-compatible format object that can be used for formatting values." The @printf docstring (Printf.jl:1008-1009) documents dynamic precision.
+cause: |
+  rmdynamic (stdlib/Printf/src/Printf.jl:303-308) copies the negative precision into the Spec. The string
+  formatter treats only -1 as omitted (Printf.jl:343): for -2 it computes p = -2 and writes width - p
+  spaces into a buffer that plength (Printf.jl:885-886) sized to zero bytes. The float formatter passes
+  the precision to Ryu (Printf.jl:523-525), which on master rejects negative values and on 1.13.2 does not.
+possible_fix: |
+  In rmdynamic, replace a negative dynamic precision by the conversion's omitted-precision default.
+duplicates:
+  issues: []
+  queries: ["issues: printf", "issues: Printf precision", "issues/prs: printf BigFloat", "issues/prs: sprintf BigFloat", "issues/prs: Printf mpfr", "issues/prs: printf precision negative", "issues/prs: printf negative width", "issues/prs: printf dynamic width", "issues/prs: printf %g exponent", "issues/prs: printf %g style", "issues/prs: printf %.0d", "issues/prs: printf zero precision", "issues/prs: printf #x", "issues/prs: printf alternate form", "issues/prs: printf octal", "issues/prs: printf %+x", "issues/prs: printf plus unsigned", "issues/prs: printf BoundsError", "issues/prs: Printf.Format BoundsError", "issues/prs: printf %D", "issues/prs: printf textwidth", "issues/prs: printf precision unicode", "issues/prs: printf round away from zero", "issues/prs: printf ties even", "issues/prs: printf %a zero", "issues/prs: printf hex float", "issues/prs: printf InvalidFormatStringError", "issues/prs: printf C compatible"]
+lean:
+  property: JuliaLean.Printf.NegativePrecision
+  theorem: JuliaLean.Printf.negativePrecision_refuted

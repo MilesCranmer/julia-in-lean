@@ -1,0 +1,80 @@
+id: parseprint-round-digits-overflow-zero
+title: "round(floatmax(); sigdigits=1) and round(floatmax(); digits=-308) return 0.0"
+priority: P2
+kind: wrong-result
+area: ParsePrint
+files: [base/floatfuncs.jl]
+functions: ["round(::Real, ::RoundingMode; digits, sigdigits)", "Base._round_step"]
+summary: |
+  When rounding to a negative number of digits (directly, or through sigdigits)
+  rounds a large finite value up past floatmax, round returns zero:
+  round(floatmax(); sigdigits=1) == 0.0, round(floatmax(); digits=-308) == 0.0 and
+  round(-floatmax(); sigdigits=2) == -0.0. The nearest multiple of the step is at
+  least the step itself, so a zero result is off by the whole value. With RoundUp
+  the same call returns Inf.
+likelihood: |
+  Low: only values whose rounding to the requested precision exceeds floatmax
+  (for example any x >= 1.5e308 with sigdigits=1).
+  Code that rounds arbitrary data to a few significant digits for display can hit it.
+maybe_intended: |
+  The zero is returned on purpose for a non-finite intermediate
+  (base/floatfuncs.jl:104-112), which is right when the step itself is Inf
+  (digits below -308). Returning zero when the rounded value overflows looks like
+  that branch catching a case it was not written for.
+reproducer: |
+  x = floatmax(Float64)
+  @assert 10.0^308 == 1e308 && x >= 1e308
+  a = round(x; digits=-308)
+  b = round(x; sigdigits=1)
+  c = round(-x; sigdigits=2)
+  println("round(floatmax(), digits=-308) = ", a)
+  println("round(floatmax(), sigdigits=1) = ", b)
+  println("round(-floatmax(), sigdigits=2) = ", c)
+  println("round(floatmax(), RoundUp, digits=-308) = ", round(x, RoundUp; digits=-308))
+  a == 0 && b == 0 && c == 0 && println("REPRODUCED parseprint-round-digits-overflow-zero")
+output:
+  release: |
+    round(floatmax(), digits=-308) = 0.0
+    round(floatmax(), sigdigits=1) = 0.0
+    round(-floatmax(), sigdigits=2) = -0.0
+    round(floatmax(), RoundUp, digits=-308) = Inf
+    REPRODUCED parseprint-round-digits-overflow-zero
+  nightly: |
+    round(floatmax(), digits=-308) = 0.0
+    round(floatmax(), sigdigits=1) = 0.0
+    round(-floatmax(), sigdigits=2) = -0.0
+    round(floatmax(), RoundUp, digits=-308) = Inf
+    REPRODUCED parseprint-round-digits-overflow-zero
+reproduced: {release: true, nightly: true}
+expected: |
+  Inf (the overflowed value 2e308, as RoundUp gives), or floatmax() if saturation
+  is preferred; -Inf or -floatmax() for the negative case. Never zero.
+promised_by: |
+  base/rounding.jl:341-345: "it rounds to the specified number of digits after the
+  decimal place (or before if `digits` is negative)" and "rounds to the specified
+  number of significant digits". 1.7976931348623157e308 to one significant digit is
+  2e308, not 0.
+cause: |
+  base/floatfuncs.jl:103-109: `_round_step` computes round(x / step) * step, which
+  overflows to Inf for x = floatmax, step = 1e308 (round(1.797...) = 2); the
+  non-finite branch then returns zero(x) for every mode except RoundUp, a branch
+  meant for an infinite step. sigdigits reaches it via _round_sigdigits
+  (base/floatfuncs.jl:145-148) with digits = 1 - 309 = -308.
+possible_fix: |
+  In the non-finite branch, return zero only when step is infinite; otherwise return
+  the overflowed y (or copysign(floatmax, x) for modes rounding toward zero).
+duplicates:
+  issues: []
+  queries:
+    - "issues: round sigdigits floatmax"
+    - "issues: round digits overflow zero"
+    - "issues: round floatmax"
+    - "issues: round sigdigits returns 0"
+    - "issues: round digits negative overflow"
+    - "issues: _round_step"
+    - "pull requests: round sigdigits (found closed #61798 and open #63105, both about accuracy; #63105 keeps the zero branch)"
+    - "pull requests: _round_step"
+    - "pull requests: round digits overflow"
+lean:
+  property: JuliaLean.ParsePrint.RoundDigits.RoundDigitsNonzero
+  theorem: JuliaLean.ParsePrint.RoundDigits.roundDigitsNonzero_refuted

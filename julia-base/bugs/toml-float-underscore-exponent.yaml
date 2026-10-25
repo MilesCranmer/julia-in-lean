@@ -1,0 +1,62 @@
+id: toml-float-underscore-exponent
+title: "TOML parser rejects floats with underscores before an exponent, such as 6.022_140_76e23"
+priority: P2
+kind: wrong-result
+area: Toml
+files: [base/toml/parser.jl]
+functions: ["Base.TOML.parse_number_or_date_start", "Base.TOML.parse_float", "TOML.parse"]
+summary: |
+  A float may use underscores between digits in its integer and fractional parts and
+  also have an exponent. When the exponent itself has no underscore, Julia forgets that
+  the mantissa had one, passes the text with its underscores to
+  `Base.tryparse(Float64, ...)`, and fails: `TOML.tryparse("a = 6.022_140_76e23")` and
+  `"a = 1_000e3"` give `ParserError(ErrGenericValueError)`. Without the exponent
+  (`1_000.5`) or with an underscore in the exponent too (`1_0.5e1_0`) the value parses.
+likelihood: |
+  Digit grouping with an exponent is natural for physical constants and large limits
+  in configuration files (`6.022_140_76e23`, `1_000e3`); such valid files cannot be
+  read.
+maybe_intended: ""
+reproducer: |
+  import TOML
+  TOML.tryparse("a = 6.022_140_76e23")   # ParserError(ErrGenericValueError)
+output:
+  release: |
+    "a = 6.022_140_76e23" => ParserError: ErrGenericValueError
+    "a = 1_000e3" => ParserError: ErrGenericValueError
+    "a = 1_000.5" => Dict{String, Any}("a" => 1000.5)
+    "a = 1e1_0" => Dict{String, Any}("a" => 1.0e10)
+    "a = 1_0.5e1_0" => Dict{String, Any}("a" => 1.05e11)
+    REPRODUCED toml-float-underscore-exponent
+  nightly: |
+    "a = 6.022_140_76e23" => ParserError: ErrGenericValueError
+    "a = 1_000e3" => ParserError: ErrGenericValueError
+    "a = 1_000.5" => Dict{String, Any}("a" => 1000.5)
+    "a = 1e1_0" => Dict{String, Any}("a" => 1.0e10)
+    "a = 1_0.5e1_0" => Dict{String, Any}("a" => 1.05e11)
+    REPRODUCED toml-float-underscore-exponent
+reproduced: {release: true, nightly: true}
+expected: |
+  `Dict("a" => 6.02214076e23)` and `Dict("a" => 1.0e6)`.
+promised_by: |
+  TOML v1.1.0, "Float": "A float consists of an integer part (which follows the same
+  rules as decimal integer values) followed by a fractional part and/or an exponent
+  part", and "Similar to integers, you may use underscores to enhance readability. Each
+  underscore must be surrounded by at least one digit." (example `flt8 = 224_617.445_991_228`).
+cause: |
+  base/toml/parser.jl:1105 `_, read_underscore = @try accept_batch_underscore(l, isdigit, !read_digit)`
+  assigns the exponent's underscore flag to `read_underscore`, overwriting the flag
+  accumulated from the integer and fractional parts (base/toml/parser.jl:1078 and 1100).
+  `parse_float` (base/toml/parser.jl:1111, 1122-1127) then skips removing the
+  underscores, and `Base.tryparse(Float64, "6.022_140_76e23")` returns `nothing`.
+possible_fix: |
+  Combine the flags: `_, cu = @try accept_batch_underscore(...); read_underscore |= cu`.
+duplicates:
+  issues: []
+  queries: ["TOML float underscore", "TOML exponent", "TOML underscore", "TOML float"]
+  notes: |
+    toml-test's valid/float/underscore.toml has no case with underscores before an
+    exponent, so the stdlib's toml-test run does not catch it.
+lean:
+  property: JuliaLean.Toml.FloatUnderscoreExponent
+  theorem: JuliaLean.Toml.floatUnderscoreExponent_refuted

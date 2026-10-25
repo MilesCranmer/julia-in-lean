@@ -1,0 +1,70 @@
+id: arrayops-index-type-exception
+title: "LinearIndices(v)[UInt(2)^63] throws InexactError while v[UInt(2)^63] throws BoundsError"
+priority: P3
+kind: wrong-exception
+area: ArrayOps
+files: [base/indices.jl]
+functions: ["to_index(::Array, i::UInt)", "to_index(i::Integer)", "getindex(::LinearIndices, i)", "getindex(::CartesianIndices, i)"]
+summary: |
+  An out-of-range integer index throws different exceptions depending on its type
+  and on the container: v[UInt(2)^63] throws BoundsError (reporting index
+  -9223372036854775808), LinearIndices(v)[UInt(2)^63] and
+  CartesianIndices(v)[UInt(2)^63] throw InexactError, and v[Int128(2)^64] throws
+  InexactError. checkbounds(Bool, v, i) is false in all cases.
+likelihood: |
+  Needs an index outside the Int range or with the top bit set; rare, and only the exception type differs.
+maybe_intended: |
+  to_index is documented to convert the index to Int (base/indices.jl:250-258), so
+  InexactError for values not representable as Int is the documented behaviour; the
+  UInt reinterpretation for Array is an optimization whose BoundsError then reports
+  a negative index.
+reproducer: |
+  v = [1, 2, 3]
+  i = UInt(2)^63
+  e1 = try v[i]; nothing catch e; e end
+  e2 = try LinearIndices(v)[i]; nothing catch e; e end
+  e3 = try CartesianIndices(v)[i]; nothing catch e; e end
+  e4 = try v[Int128(2)^64]; nothing catch e; e end
+  println(repr(e1))
+  println(repr(e2))
+  println(repr(e3))
+  println(repr(e4))
+  println(checkbounds(Bool, v, i), " ", checkbounds(Bool, LinearIndices(v), i))
+  if e1 isa BoundsError && e2 isa InexactError
+      println("REPRODUCED arrayops-index-type-exception")
+  end
+output:
+  release: |
+    BoundsError([1, 2, 3], (-9223372036854775808,))
+    InexactError(:convert, (Int64, 0x8000000000000000))
+    InexactError(:convert, (Int64, 0x8000000000000000))
+    InexactError(:trunc, (Int64, 18446744073709551616))
+    false false
+    REPRODUCED arrayops-index-type-exception
+  nightly: |
+    BoundsError([1, 2, 3], (-9223372036854775808,))
+    InexactError(:convert, (Int64, 0x8000000000000000))
+    InexactError(:convert, (Int64, 0x8000000000000000))
+    InexactError(:trunc, (Int64, 18446744073709551616))
+    false false
+    REPRODUCED arrayops-index-type-exception
+reproduced: {release: true, nightly: true}
+expected: |
+  BoundsError for every out-of-range integer index, with the index as given.
+promised_by: |
+  Invariant: checkbounds(Bool, A, i) (base/abstractarray.jl:655-680) is false, so
+  indexing should throw BoundsError; Vector, LinearIndices(v) and
+  CartesianIndices(v) are the same index space for a vector.
+cause: |
+  base/indices.jl:247 `to_index(A::Array, i::UInt) = reinterpret(Int, i)` versus
+  base/indices.jl:243, 258 `to_index(A, i) = to_index(i)`, `convert(Int, i)` for
+  every other array and index type.
+possible_fix: |
+  Check bounds on the original integer before converting (checkbounds already compares exactly across integer types).
+duplicates:
+  issues:
+    - {number: 35038, state: closed, relation: related}
+  queries: ["to_index", "to_index Int128", "InexactError index", "BoundsError reinterpret UInt", "checkbounds"]
+lean:
+  property: JuliaLean.ArrayOps.OutOfRangeBoundsError
+  theorem: JuliaLean.ArrayOps.outOfRangeBoundsError_refuted

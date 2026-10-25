@@ -1,0 +1,59 @@
+id: toml-base-parser-date-array
+title: "Base's TOML parser throws on an array of dates, so code loading fails on such a Project.toml"
+priority: P2
+kind: wrong-exception
+area: Toml
+files: [base/toml/parser.jl, base/loading.jl]
+functions: ["Base.TOML.parse_array", "Base.TOML.tryparse(::Parser{nothing})", "Base.parsed_toml"]
+summary: |
+  Base parses Project.toml and Manifest.toml with `Base.TOML.Parser{nothing}`, which
+  stores dates and times in internal structs. `parse_array` does not know these types,
+  so a valid homogeneous array of dates or times reaches its unreachable branch and
+  throws `AssertionError("unexpected type")` (1.13.2) or `ErrorException("unexpected
+  type")` (master). `Base.parsed_toml` on a Project.toml containing
+  `releases = [2020-01-01, 2021-01-01]` throws.
+likelihood: |
+  Project files rarely hold arrays of dates, but they may carry arbitrary tool sections;
+  one such array makes every package load in that environment fail with an unhelpful
+  error. A single date value is handled.
+maybe_intended: ""
+reproducer: |
+  P = Base.TOML.Parser{nothing}
+  Base.TOML.tryparse(P("a = [1979-05-27, 1979-05-28]"))   # throws
+output:
+  release: |
+    (AssertionError, "AssertionError: unexpected type")
+    Dict{String, Any}("a" => Base.TOML.Date(1979, 5, 27))
+    (AssertionError, "AssertionError: unexpected type")
+    REPRODUCED toml-base-parser-date-array
+  nightly: |
+    (ErrorException, "unexpected type")
+    Dict{String, Any}("a" => Base.TOML.Date(1979, 5, 27))
+    (ErrorException, "unexpected type")
+    REPRODUCED toml-base-parser-date-array
+reproduced: {release: true, nightly: true}
+expected: |
+  `Dict("a" => Any[Base.TOML.Date(1979, 5, 27), Base.TOML.Date(1979, 5, 28)])`, as for
+  `Parser{Dates}`, which returns a `Vector{Any}` of dates.
+promised_by: |
+  The document is valid TOML (arrays of local dates, TOML v1.1.0 "Array"), and
+  `Base.TOML.tryparse` returns a `ParserError` rather than throwing on failure
+  (base/toml/parser.jl:599-616). PR #63604 replaced the `@assert` with `error` and
+  describes the branch as unreachable.
+cause: |
+  base/toml/parser.jl:929-933: the list of element types left as `Vector{Any}` includes
+  `Dates.Date`, `Dates.Time` and `Dates.DateTime` only when `Dates !== nothing`; the
+  internal `Date`, `Time` and `DateTime` structs (base/toml/parser.jl:8-24) used when
+  `Dates === nothing` fall into `else error("unexpected type")`.
+possible_fix: |
+  Also leave arrays of the internal `Date`, `Time` and `DateTime` structs as `Vector{Any}`.
+duplicates:
+  issues:
+    - {number: 63604, state: merged, relation: related}
+  queries: ["TOML unexpected type", "TOML Dates nothing", "TOML unexpected type array dates", "TOML Parser nothing dates", "TOML date"]
+  notes: |
+    PR #63604 ("TOML: Address parser issues reported by JETLS") changed this branch from
+    `@assert false` to `error`, calling it unreachable; it is reachable with `Parser{nothing}`.
+lean:
+  property: JuliaLean.Toml.BaseParserNoThrow
+  theorem: JuliaLean.Toml.baseParserNoThrow_refuted

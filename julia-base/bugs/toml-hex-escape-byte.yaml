@@ -1,0 +1,55 @@
+id: toml-hex-escape-byte
+title: "TOML \\xHH escape produces a raw byte instead of the code point U+00HH"
+priority: P1
+kind: wrong-result
+area: Toml
+files: [base/toml/parser.jl]
+functions: ["Base.TOML.parse_string_continue", "Base.TOML.take_chunks", "TOML.parse"]
+summary: |
+  TOML 1.1 defines `\xHH` as the Unicode character U+00HH. Julia accepts the escape but
+  unescapes it with `unescape_string`, which turns `\xHH` into the single byte 0xHH.
+  For HH >= 80 the result is an invalid `String`: `TOML.parse("a = \"\\xE9\"")["a"]` is
+  `"\xe9"` (one byte, `isvalid` false) instead of `"é"`. Escapes below 80 are correct.
+  The parsed table then cannot be written back: `TOML.print` throws
+  `ErrorException("TOML print: invalid character '\xe9' encountered when printing string")`.
+likelihood: |
+  `\x` escapes are new in TOML 1.1, so few files use them yet; any file that writes a
+  Latin-1 character this way (the TOML spec's own example uses `Jos\xE9`) gets a
+  corrupted string with no error.
+maybe_intended: ""
+reproducer: |
+  import TOML
+  TOML.parse("a = \"\\xE9\"")["a"]   # "\xe9", an invalid one-byte String
+output:
+  release: |
+    "\xe9" isvalid=false codeunits=UInt8[0xe9]
+    REPRODUCED toml-hex-escape-byte
+  nightly: |
+    "\xe9" isvalid=false codeunits=UInt8[0xe9]
+    REPRODUCED toml-hex-escape-byte
+reproduced: {release: true, nightly: true}
+expected: |
+  `"é"` (`"\u00e9"`, code units `[0xc3, 0xa9]`).
+promised_by: |
+  TOML v1.1.0, "String": `\xHH - unicode (U+00HH)`, with the example
+  `str = "... Name\tJos\xE9\nLocation\tSF."`. The TOML stdlib describes itself as a
+  TOML v1.1 parser (stdlib/TOML/src/TOML.jl:4), and the parser's comment at
+  base/toml/parser.jl:1431 says "For \x, the range is 0x00-0xFF (U+0000-U+00FF)".
+cause: |
+  base/toml/parser.jl:1417-1434 validates `\x` with two hex digits, and
+  `take_chunks` (base/toml/parser.jl:1461) unescapes with `Base.unescape_string`, whose
+  `\x` means a raw byte in Julia string syntax.
+possible_fix: |
+  Rewrite `\xHH` to `\u00HH` before calling `unescape_string`, or unescape TOML escapes
+  with a TOML-specific routine.
+duplicates:
+  issues: []
+  queries: ["TOML \\x escape", "TOML escape", "TOML UTF-8"]
+  notes: |
+    stdlib/TOML/test/toml_test.jl:88 marks toml-test's valid/string/hex-escape.toml as a
+    known failure (`broken`); no issue or PR describes the cause. JuliaLang/TOML.jl#22
+    (closed, "TOML printing of strings escaped with `\\xnn` doesn't round trip") predates
+    TOML 1.1 and is about printing.
+lean:
+  property: JuliaLean.Toml.HexEscapeCodepoint
+  theorem: JuliaLean.Toml.hexEscapeCodepoint_refuted

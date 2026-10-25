@@ -1,0 +1,73 @@
+id: reduce-foldr-reduce-first
+title: "foldr skips reduce_first for a single element: foldr(+, [true]) === true, foldr(hcat, [v]) is a Vector"
+priority: P2
+kind: wrong-result
+area: Reduce
+files: [base/reduce.jl]
+functions: ["foldr(op, itr)", "mapfoldr(f, op, itr)", "reduce_first"]
+summary: |
+  For a one-element collection foldr returns the element itself instead of
+  reduce_first(op, x), which foldl and reduce return. foldr(+, [true]) is true
+  (foldl gives 1), foldr(*, ['a']) is the Char 'a' (foldl gives "a"),
+  foldr(hcat, [v]) returns the vector v instead of a 1-column matrix, and
+  foldr(vcat, [v]) returns v itself (aliased) instead of a copy. With two or
+  more elements foldr returns the type op produces, so the result type depends
+  on the length.
+likelihood: |
+  Moderate for code folding concatenations or string products from the right
+  (foldr(hcat, cols), foldr(*, chars)) over collections that can have one
+  element; the shape change or aliasing appears only in that case.
+maybe_intended: |
+  foldr has no `init` and reduce_first is an internal hook; but its docstring
+  names foldr explicitly as a function that returns reduce_first(op, x) for a
+  single element.
+reproducer: |
+  foldr(+, [true])          # true   (foldl: 1)
+  foldr(*, ['a'])           # 'a'    (foldl: "a")
+  foldr(hcat, [[1, 2]])     # [1, 2] (foldl: 2x1 Matrix)
+  v = [1, 2]; foldr(vcat, [v]) === v   # true
+output:
+  release: |
+    true 1 'a' Vector{Int64} true
+    REPRODUCED reduce-foldr-reduce-first
+    foldr(+, [true])                                        => true :: Bool
+    foldl(+, [true])                                        => 1 :: Int64
+    foldr(*, ['a'])                                         => 'a' :: Char
+    foldl(*, ['a'])                                         => "a" :: String
+    foldr(hcat, [[1, 2]])                                   => [1, 2] :: Vector{Int64}
+    foldl(hcat, [[1, 2]])                                   => [1; 2;;] :: Matrix{Int64}
+    foldr(vcat, [v]) === v => true :: Bool
+    foldr(Base.add_sum, Int8[100])                          => 100 :: Int8
+  nightly: |
+    true 1 'a' Vector{Int64} true
+    REPRODUCED reduce-foldr-reduce-first
+    foldr(+, [true])                                        => true :: Bool
+    foldl(+, [true])                                        => 1 :: Int64
+    foldr(*, ['a'])                                         => 'a' :: Char
+    foldl(*, ['a'])                                         => "a" :: String
+    foldr(hcat, [[1, 2]])                                   => [1, 2] :: Vector{Int64}
+    foldl(hcat, [[1, 2]])                                   => [1; 2;;] :: Matrix{Int64}
+    foldr(vcat, [v]) === v => true :: Bool
+    foldr(Base.add_sum, Int8[100])                          => 100 :: Int8
+reproduced: {release: true, nightly: true}
+expected: |
+  foldr(op, [x]) == reduce_first(op, x): 1, "a", a 2x1 matrix, and a fresh copy
+  of v, as foldl and reduce return.
+promised_by: |
+  base/reduce.jl:397-403 (reduce_first docstring): "The value to be returned when
+  calling reduce, foldl or foldr with reduction op over an iterator which
+  contains a single element x."
+cause: |
+  base/reduce.jl:200-202: mapfoldr_impl folds BottomRF(FlipArgs(op)), so the first
+  element goes through reduce_first(FlipArgs(op), x), which matches only the
+  generic reduce_first(op, x) = x (base/reduce.jl:409). reduce_empty is
+  forwarded for FlipArgs (base/reduce.jl:361) but reduce_first is not.
+possible_fix: |
+  Add reduce_first(op::FlipArgs, x) = reduce_first(op.f, x) next to the
+  reduce_empty forwarding at base/reduce.jl:361.
+duplicates:
+  issues: []
+  queries: ["foldr reduce_first", "foldr single element", "foldr hcat", "FlipArgs", "foldr Char String"]
+lean:
+  property: JuliaLean.Reduce.FoldrReduceFirst
+  theorem: JuliaLean.Reduce.foldrReduceFirst_refuted

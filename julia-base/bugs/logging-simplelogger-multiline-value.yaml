@@ -1,0 +1,49 @@
+id: logging-simplelogger-multiline-value
+title: "SimpleLogger leaves continuation lines of multiline values unprefixed"
+priority: P3
+kind: wrong-result
+area: Logging
+files: [base/logging/logging.jl]
+functions: ["handle_message(::SimpleLogger, ...)"]
+summary: |
+  SimpleLogger prints a key, separator, and value with one println call. When the
+  value's text contains a newline, only its first line gets the log-record prefix;
+  later lines begin at column one and can be mistaken for unrelated output.
+likelihood: |
+  Multiline strings and exception text are ordinary metadata values. SimpleLogger
+  is mainly a debugging backend, and the defect affects presentation only.
+maybe_intended: |
+  SimpleLogger is documented as simplistic, but leaving physical lines outside the
+  record frame conflicts with readable and unambiguous record formatting.
+reproducer: |
+  logger = SimpleLogger(io)
+  with_logger(logger) do
+      @warn "message" value="one\ntwo" _module=Main _file="fake.jl" _line=7
+  end
+output:
+  release: |
+    output = "┌ Warning: message\n│   value = one\ntwo\n└ @ Main fake.jl:7\n"
+    REPRODUCED logging-simplelogger-multiline-value
+  nightly: |
+    output = "┌ Warning: message\n│   value = one\ntwo\n└ @ Main fake.jl:7\n"
+    REPRODUCED logging-simplelogger-multiline-value
+reproduced: {release: true, nightly: true}
+expected: |
+  Every physical value line should carry a box prefix, for example `│   value =`
+  followed by `│    one` and `│    two`.
+promised_by: |
+  Invariant: every physical line produced for one structured log record remains
+  visibly part of that record. base/logging/logging.jl:674-682 describes
+  SimpleLogger as a text logger with writes serialized per record.
+cause: |
+  base/logging/logging.jl:716-719 sends the complete value to one println call and
+  never splits its rendered text at newline characters.
+possible_fix: |
+  Render each value into a temporary buffer, split it into lines, and prefix every
+  line as ConsoleLogger does.
+duplicates:
+  issues: []
+  queries: ["SimpleLogger multiline", "SimpleLogger newline value", "logging key value multiline"]
+lean:
+  property: JuliaLean.Logging.SimpleMultilineValuePrefixed
+  theorem: JuliaLean.Logging.simpleMultilineValuePrefixed_refuted

@@ -1,0 +1,73 @@
+id: multidim-cat-scalar-shape
+title: "vcat(1, [2 3]) returns [1 1; 2 3]: cat broadcasts scalars instead of checking sizes"
+priority: P2
+kind: wrong-result
+area: Multidim
+files: [base/abstractarray.jl]
+functions: ["cat(A...; dims)", "vcat(A::Union{AbstractArray,Number}...)", "hcat(A::Union{AbstractArray,Number}...)", "cat_size_shape", "_cshp", "__cat_offset1!"]
+summary: |
+  The shape computation of cat checks a non-concatenated dimension only when both the
+  running shape and the new argument have it. A scalar (size (1,)) or an empty array
+  placed before an argument with more dimensions, or a scalar after an array along a
+  non-concatenated dimension that is still covered by dims, is never checked. The
+  scalar is then broadcast with fill! and the empty array is assigned without error:
+  vcat(1, [2 3]) == [1 1; 2 3], cat([1 2], 3; dims=3) == [1 2;;; 3 3] and
+  cat(Int[], [1 2; 3 4]; dims=1) == [1 2; 3 4], while vcat([1], [2 3]),
+  cat([1 2], [3]; dims=3) and vcat(Int[], [1 2; 3 4]) throw DimensionMismatch, and
+  vcat([2 3], 1) throws as well.
+likelihood: |
+  A typo such as [x; row] with a scalar x and a row vector is silently accepted and
+  produces a matrix with x repeated. Mixing scalars and higher-dimensional arrays in
+  cat is otherwise uncommon.
+maybe_intended: |
+  Known and discussed upstream in #38019 (open), where members called the
+  order-dependent behaviour a bug ("These should all throw", #48468).
+reproducer: |
+  vcat(1, [2 3])                    # [1 1; 2 3]
+  vcat([1], [2 3])                  # DimensionMismatch
+  cat([1 2], 3; dims=3)             # [1 2;;; 3 3]
+  cat(Int[], [1 2; 3 4]; dims=1)    # [1 2; 3 4]
+  vcat(Int[], [1 2; 3 4])           # DimensionMismatch
+output:
+  release: |
+    [1 1; 2 3]
+    DimensionMismatch("number of columns of each array must match (got (1, 2))")
+    [1 2;;; 3 3]
+    DimensionMismatch("tried to assign 1-element array to 1×2×1 destination")
+    [1 2; 3 4]
+    DimensionMismatch("number of columns of each array must match (got (1, 2))")
+    REPRODUCED multidim-cat-scalar-shape
+  nightly: |
+    [1 1; 2 3]
+    DimensionMismatch("number of columns of each array must match (got (1, 2))")
+    [1 2;;; 3 3]
+    DimensionMismatch("tried to assign 1-element array to 1×2×1 destination")
+    [1 2; 3 4]
+    DimensionMismatch("number of columns of each array must match (got (1, 2))")
+    REPRODUCED multidim-cat-scalar-shape
+reproduced: {release: true, nightly: true}
+expected: |
+  DimensionMismatch in each case, as for the same arguments wrapped in 1-element
+  arrays or given in the opposite order.
+promised_by: |
+  cat docstring, base/abstractarray.jl:2061-2066: "Along other dimensions, all input
+  arrays should have the same size, which will also be the size of the output array
+  along those dimensions."
+cause: |
+  base/abstractarray.jl:1873 `_cshp(ndim, ::Tuple{}, ::Tuple{}, nshape) = nshape`
+  takes the extra dimensions of a later argument without checking that the earlier
+  arguments (size 1 there) agree, and lines 1875-1876 add `shape[1] + dims[1]` for a
+  dimension the new argument lacks without checking that it is a cat dimension or
+  that shape[1] == 1. __cat_offset1! then fills the whole slice with a scalar
+  (line 1941) and assigns an empty array to an empty slice.
+possible_fix: |
+  Check the trailing sizes in both branches with _cs (expected 1), keeping the
+  unchecked path only for the first argument.
+duplicates:
+  issues:
+    - {number: 38019, state: open, relation: duplicate}
+    - {number: 48468, state: closed, relation: duplicate}
+  queries: ["issues: vcat scalar matrix", "issues: cat scalar dimension mismatch", "issues: vcat number row", "issues: cat number broadcast", "issues: _cshp", "prs: vcat number matrix"]
+lean:
+  property: JuliaLean.Multidim.CatShapeChecked
+  theorem: JuliaLean.Multidim.catShapeChecked_refuted

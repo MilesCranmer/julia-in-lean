@@ -1,0 +1,58 @@
+id: sockets-ipv6-signed-field-error
+title: "parse(IPv6, \"::-1\") throws InexactError instead of ArgumentError"
+priority: P2
+kind: wrong-exception
+area: Sockets
+files: [stdlib/Sockets/src/IPAddr.jl]
+functions: ["parse(::Type{IPv6}, ::AbstractString)", "parseipv6fields"]
+summary: |
+  Every malformed IPv6 field that parse(IPv6, ..) recognises raises
+  ArgumentError ("too many fields", "invalid base 16 digit", ...), but a field
+  with a minus sign is delegated to UInt128(parse(Int, f, base=16)), and the
+  checked conversion of the negative result throws InexactError. The same
+  happens for "-1::" and for any interior field like the last group of
+  "1:2:3:4:5:6:7:-1".
+likelihood: |
+  Malformed input with a sign; low frequency, but the exception type is part
+  of the observable behaviour and differs from the documented style of this
+  parser.
+maybe_intended: |
+  No Sockets docstring explicitly promises ArgumentError for every parse
+  failure. This is an exception-consistency finding.
+reproducer: |
+  using Sockets
+  try
+      parse(IPv6, "::-1")
+  catch e
+      println(nameof(typeof(e)))
+  end
+output:
+  release: |
+    parse(IPv6, "::-1") threw InexactError
+    REPRODUCED sockets-ipv6-signed-field-error
+  nightly: |
+    parse(IPv6, "::-1") threw InexactError
+    REPRODUCED sockets-ipv6-signed-field-error
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError: a signed field is not IPv6 text, and every other rejected
+  field in this parser raises ArgumentError.
+promised_by: |
+  Consistency of the parser: ArgumentError at stdlib/Sockets/src/IPAddr.jl:223,
+  246 and via parse(Int, ..) for invalid digits; the IPv6(::Integer...)
+  constructor rejects out-of-range fields with ArgumentError
+  (stdlib/Sockets/src/IPAddr.jl:85-88).
+cause: |
+  stdlib/Sockets/src/IPAddr.jl:236: `UInt128(parse(Int, f, base = 16))` - the
+  inner parse accepts "-1" and UInt128(-1) is a checked conversion that throws
+  InexactError.
+possible_fix: |
+  Range-check the parsed field (0 <= r <= 0xFFFF) before converting, which
+  would also fix sockets-ipv6-field-overflow.
+duplicates:
+  issues:
+    - {number: 40255, state: open, relation: related}
+  queries: ["IPv6 parse", "parse IPv6", "InexactError IPv6", "parse Sockets ArgumentError"]
+lean:
+  property: JuliaLean.Sockets.IPv6ErrorIsArgument
+  theorem: JuliaLean.Sockets.ipv6ErrorIsArgument_refuted

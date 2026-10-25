@@ -1,0 +1,55 @@
+id: complex-pow-typemin
+title: "ComplexF64 ^ typemin(Int) throws DomainError instead of returning a power"
+priority: P2
+kind: wrong-exception
+area: Complex
+files: [base/complex.jl]
+functions: ["^(::Complex{<:AbstractFloat}, ::Integer)", "power_by_squaring"]
+summary: |
+  z^n for ComplexF64 z and negative n calls power_by_squaring(inv(z), -n). For
+  n = typemin(Int), -n wraps to typemin(Int), so power_by_squaring sees a negative
+  exponent and throws "Cannot raise an integer x to a negative power". 2.0^typemin(Int)
+  returns 0.0, but complex(2.0, 0.0)^typemin(Int) throws.
+likelihood: |
+  Only the single exponent typemin(Int) (or typemin of the exponent type) triggers it.
+maybe_intended: ""
+reproducer: |
+  n = typemin(Int)
+  println("2.0^n = ", 2.0^n)
+  r = try
+      complex(2.0, 0.0)^n
+  catch e
+      e
+  end
+  println("complex(2.0, 0.0)^n = ", r)
+  if r isa DomainError
+      println("REPRODUCED complex-pow-typemin")
+  end
+output:
+  release: |
+    2.0^n = 0.0
+    complex(2.0, 0.0)^n = DomainError(-9223372036854775808, "Cannot raise an integer x to a negative power -9223372036854775808.\nConvert input to float.")
+    REPRODUCED complex-pow-typemin
+  nightly: |
+    2.0^n = 0.0
+    complex(2.0, 0.0)^n = DomainError(-9223372036854775808, "Cannot raise an integer x to a negative power -9223372036854775808.\nConvert input to float.")
+    REPRODUCED complex-pow-typemin
+reproduced: {release: true, nightly: true}
+expected: |
+  0.0 + 0.0im (the power underflows), as 2.0^typemin(Int) returns 0.0.
+promised_by: |
+  Invariant: float exponentiation by any Integer is defined; #57464 fixed the same
+  -typemin wrap for real Float32/Float16 powers.
+cause: |
+  base/complex.jl:892-893: n>=0 ? power_by_squaring(z,n) : power_by_squaring(inv(z),-n);
+  -typemin(Int) == typemin(Int), so base/intfuncs.jl:418-421 throws.
+possible_fix: |
+  Handle typemin like the real method: e.g. power_by_squaring(inv(z), -(n+1)) * inv(z),
+  or use unsigned(-n).
+duplicates:
+  issues:
+    - {number: 57464, state: closed, relation: related}
+  queries: ["complex power typemin", "power_by_squaring typemin", "complex typemin"]
+lean:
+  property: JuliaLean.Complex.PowIntTotal
+  theorem: JuliaLean.Complex.powIntTotal_refuted

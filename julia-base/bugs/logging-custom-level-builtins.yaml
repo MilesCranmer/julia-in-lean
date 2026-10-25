@@ -1,0 +1,52 @@
+id: logging-custom-level-builtins
+title: "ConsoleLogger rejects custom log level types after @logmsg converts them for filtering"
+priority: P2
+kind: wrong-result
+area: Logging
+files: [base/logging/logging.jl, base/logging/ConsoleLogger.jl]
+functions: ["@logmsg", "handle_message(::ConsoleLogger, ...)", "handle_message(::SimpleLogger, ...)"]
+summary: |
+  A custom level type with `convert(LogLevel, level)` passes the macro's early
+  filtering, but the original custom value is sent to the built-in logger.
+  ConsoleLogger and SimpleLogger accept only LogLevel, so the intended record is
+  replaced by an internal MethodError log.
+likelihood: |
+  Custom level types are niche, but the @logmsg documentation names them directly.
+  Any package following that contract with either built-in text logger hits this.
+maybe_intended: |
+  Passing the original level lets a custom logger retain its label. Built-in loggers
+  still need a supported way to display the documented custom types.
+reproducer: |
+  struct CustomLevel end
+  Base.convert(::Type{Logging.LogLevel}, ::CustomLevel) = Logging.Info
+  @logmsg CustomLevel() "custom message"
+output:
+  release: |
+    contains custom message = false
+    contains logging error = true
+    REPRODUCED logging-custom-level-builtins
+  nightly: |
+    contains custom message = false
+    contains logging error = true
+    REPRODUCED logging-custom-level-builtins
+reproduced: {release: true, nightly: true}
+expected: |
+  The built-in logger should emit the custom message at its converted Info severity,
+  while retaining a printable custom label if the interface supports one.
+promised_by: |
+  base/logging/logging.jl:201-207 says @logmsg accepts any LogLevel or custom log
+  level types.
+cause: |
+  base/logging/logging.jl:398-420 converts the level to `std_level` for filtering
+  but passes the original `level` to handle_message. ConsoleLogger.jl:111 and
+  logging.jl:700 constrain their handle_message methods to LogLevel.
+possible_fix: |
+  Let the built-in handlers accept a convertible level and use its standardized
+  severity, or complete the custom-level interface proposed by the related PR.
+duplicates:
+  issues:
+    - {number: 33418, state: open, relation: related}
+  queries: ["custom log level", "@logmsg custom type", "ConsoleLogger handle_message convert LogLevel", "PR 33960"]
+lean:
+  property: JuliaLean.Logging.CustomLevelAcceptedByBuiltins
+  theorem: JuliaLean.Logging.customLevelAcceptedByBuiltins_refuted

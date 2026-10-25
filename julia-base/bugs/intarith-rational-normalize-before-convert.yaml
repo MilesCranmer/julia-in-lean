@@ -1,0 +1,57 @@
+id: intarith-rational-normalize-before-convert
+title: "Rational{Int8}(128, -1) fails although its normalized components fit"
+priority: P3
+kind: documentation
+area: IntArith
+files: [base/rational.jl]
+functions: ["Rational{T}(::Integer,::Integer)"]
+summary: |
+  Rational{Int8}(Int16(128), Int16(-1)) throws InexactError even though -128//1
+  fits the requested type. Both versions reproduce. This is a semantics candidate,
+  since the documentation does not explicitly specify conversion order.
+likelihood: |
+  Requires a negative denominator and a value exactly at a signed type boundary.
+  Constructing smaller rationals from wider integer data can produce this pair.
+maybe_intended: |
+  Reading normalization as preceding target conversion predicts success. Reading
+  the typed constructor as requiring each gcd-reduced component to fit before
+  sign normalization permits the exception. The Rational docstring specifies
+  typed components and checked overflow, without promising conversion order.
+reproducer: |
+  expected = Int8(-128) // Int8(1)
+  observed = try Rational{Int8}(Int16(128), Int16(-1)) catch e; e end
+  @assert observed isa InexactError && expected == -128
+  println("actual: ", typeof(observed), "; expected: ", expected)
+  println("REPRODUCED intarith-rational-normalize-before-convert")
+output:
+  release: |
+    actual: InexactError; expected: -128//1
+    REPRODUCED intarith-rational-normalize-before-convert
+  nightly: |
+    actual: InexactError; expected: -128//1
+    REPRODUCED intarith-rational-normalize-before-convert
+reproduced: {release: true, nightly: true}
+expected: |
+  Under a normalize-then-convert interpretation, Int8(-128)//Int8(1).
+  The exception may be intended under the alternate typed-conversion interpretation.
+promised_by: |
+  The Rational Numbers manual says ratios "are reduced to lowest terms such that
+  the denominator is non-negative."
+  https://docs.julialang.org/en/v1/manual/complex-and-rational-numbers/#Rational-Numbers
+  base/rational.jl:3-7 describes components of type T and checked overflow.
+  Neither passage explicitly requires normalization before typed conversion.
+cause: |
+  base/rational.jl:43-44 reduces (128,-1), then converts both components to Int8.
+  Converting positive 128 fails before checked_den at lines 20-25 can move the
+  negative denominator sign into the numerator. The constructor is unchanged
+  between release and master.
+possible_fix: |
+  If normalize-then-convert is intended, normalize the sign in the wider input
+  type before target conversion. Otherwise document the existing conversion order.
+duplicates:
+  issues:
+    - {number: 31090, state: closed, relation: related}
+  queries: ["Rational typemin constructor InexactError", "Rational Int8 constructor", "rational normalization", "Rational typemin", "rational constructor negative"]
+lean:
+  property: JuliaLean.IntArith.Rational.NormalizeBeforeConvert
+  theorem: JuliaLean.IntArith.Rational.normalizeBeforeConvert_refuted

@@ -1,0 +1,56 @@
+id: mathfuncs-hypot-correctly-rounded
+title: "hypot(x, y) is not correctly rounded when the result is subnormal, despite the source comment"
+priority: P3
+kind: wrong-result
+area: MathFuncs
+files: [base/math.jl]
+functions: ["hypot(::Float64, ::Float64)"]
+summary: |
+  The fma branch of the two-argument hypot is documented in the source as
+  correctly rounded. For subnormal results it is not: the algorithm rounds the
+  scaled-up result to 53 bits and then rounds again when multiplying back by the
+  scale factor, a double rounding. hypot(1.529780669165982e-308, 2.6715387816e-314)
+  is 0.509 subnormal ulps from the exact value. In a 200,000-input sample all 230
+  non-correctly-rounded results were in this subnormal regime (max 0.75 ulp).
+likelihood: |
+  Only subnormal results are affected, and the error stays below one ulp.
+maybe_intended: |
+  The comment's claim is about the normal range; the docstring itself promises
+  only overflow/underflow avoidance.
+reproducer: |
+  x = 1.529780669165982e-308
+  y = 2.6715387816e-314
+  hypot(x, y)                         # 1.529780669168315e-308
+  Float64(sqrt(big(x)^2 + big(y)^2))  # 1.5297806691683143e-308
+output:
+  release: |
+    hypot(x, y)          = 1.529780669168315e-308
+    correctly rounded    = 1.5297806691683143e-308
+    error in ulps        = 0.5092324054263013
+    REPRODUCED mathfuncs-hypot-correctly-rounded
+  nightly: |
+    hypot(x, y)          = 1.529780669168315e-308
+    correctly rounded    = 1.5297806691683143e-308
+    error in ulps        = 0.5092324054263013
+    REPRODUCED mathfuncs-hypot-correctly-rounded
+reproduced: {release: true, nightly: true}
+expected: |
+  1.5297806691683143e-308 (nearest binary64 to the exact hypotenuse), or a
+  comment that restricts the claim to normal results.
+promised_by: |
+  base/math.jl:770: "# This branch is correctly rounded but requires a native
+  hardware fma."
+cause: |
+  base/math.jl:763-765 scale small operands up by 1/scale (scale = 2^-563);
+  the corrected h at line 774 is correctly rounded in that scaled range, but
+  h*scale at line 785 rounds a second time into the subnormal range.
+possible_fix: |
+  Weaken the comment to normal results, or for subnormal results compute the
+  final product with the correction term (e.g. fma-based scaling of h and its
+  residual) so the result is rounded once.
+duplicates:
+  issues: []
+  queries: ["hypot correctly rounded", "hypot subnormal", "hypot accuracy", "hypot ulp", "hypot"]
+lean:
+  property: JuliaLean.MathFuncs.hypotCorrectlyRounded
+  theorem: JuliaLean.MathFuncs.hypotCorrectlyRounded_refuted

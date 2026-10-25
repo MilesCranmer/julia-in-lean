@@ -1,0 +1,49 @@
+id: toml-hex-float-accepted
+title: "TOML parser accepts hexadecimal floats such as 0x.5"
+priority: P3
+kind: missing-error
+area: Toml
+files: [base/toml/parser.jl]
+functions: ["Base.TOML.parse_number_or_date_start", "Base.TOML.parse_float", "TOML.parse"]
+summary: |
+  TOML has no hexadecimal floats, but `TOML.parse("a = 0x.5")` returns
+  `Dict("a" => 0.3125)`. After `0x` with no hex digit, the lexer falls through to the
+  decimal float path, and `Base.tryparse(Float64, "0x.5")` accepts the C-style
+  hexadecimal float.
+likelihood: |
+  Very unlikely in real files; it only matters for validation (Julia accepts a file
+  other TOML tools reject).
+maybe_intended: ""
+reproducer: |
+  import TOML
+  TOML.parse("a = 0x.5")   # Dict("a" => 0.3125)
+output:
+  release: |
+    Dict{String, Any}("a" => 0.3125)
+    true
+    REPRODUCED toml-hex-float-accepted
+  nightly: |
+    Dict{String, Any}("a" => 0.3125)
+    true
+    REPRODUCED toml-hex-float-accepted
+reproduced: {release: true, nightly: true}
+expected: |
+  A `ParserError`.
+promised_by: |
+  TOML v1.1.0, "Float": a float is "an integer part (which follows the same rules as
+  decimal integer values) followed by a fractional part and/or an exponent part"; the
+  prefixes `0x`, `0o`, `0b` exist only for integers.
+cause: |
+  base/toml/parser.jl:1042-1045: when no hex digit follows `0x`, the branch does not
+  return, so parsing continues at base/toml/parser.jl:1068 and reaches `parse_float`
+  (base/toml/parser.jl:1111, 1122-1127) with the text `0x.5`, which
+  `Base.tryparse(Float64, ...)` reads as a hexadecimal float.
+possible_fix: |
+  Return a `ParserError` when no digit follows a `0x`/`0o`/`0b` prefix (the same fix as
+  toml-tryparse-argumenterror).
+duplicates:
+  issues: []
+  queries: ["TOML hex float", "TOML hexadecimal float", "TOML hex"]
+lean:
+  property: JuliaLean.Toml.NoHexFloat
+  theorem: JuliaLean.Toml.noHexFloat_refuted

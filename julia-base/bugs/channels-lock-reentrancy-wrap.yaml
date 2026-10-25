@@ -1,0 +1,54 @@
+id: channels-lock-reentrancy-wrap
+title: "ReentrantLock's UInt32 recursion count wraps: after 2^32+1 nested locks one unlock releases it"
+priority: P2
+kind: wrong-result
+area: Channels
+files: [base/lock.jl]
+functions: ["trylock(::ReentrantLock)", "lock(::ReentrantLock)", "unlock(::ReentrantLock)"]
+summary: |
+  ReentrantLock stores its recursion depth in a UInt32 and increments it with
+  wrapping arithmetic. A task that holds the lock 2^32 + 1 times has a count of
+  1, so its next unlock releases the lock while 2^32 acquisitions are still
+  outstanding, and another task can then acquire it. Nothing reports the
+  overflow.
+likelihood: |
+  Needs more than four billion nested acquisitions by one task without
+  unlocking, e.g. a long-running loop that leaks a lock/trylock call per
+  iteration. Rare, but the result is silent loss of mutual exclusion.
+maybe_intended: |
+  A UInt32 count is a deliberate space choice in the cache-line-sized lock
+  layout (base/lock.jl:49-79), and 2^32 nested acquisitions is far beyond normal
+  use. Throwing on overflow would cost one check on the reentrant path.
+reproducer: |
+  l = ReentrantLock(); lock(l)
+  for _ in 1:2^32; trylock(l); end   # 2^32 + 1 acquisitions
+  unlock(l)
+  islocked(l)                         # false
+  fetch(Threads.@spawn trylock(l))    # true: another task gets the lock
+output:
+  release: |
+    islocked before unlock: true; after one unlock: false; other task trylock: true
+    REPRODUCED channels-lock-reentrancy-wrap
+  nightly: |
+    islocked before unlock: true; after one unlock: false; other task trylock: true
+    REPRODUCED channels-lock-reentrancy-wrap
+reproduced: {release: true, nightly: true}
+expected: |
+  The lock stays held by the owner until 2^32 + 1 unlocks, or lock/trylock
+  throws when the count would overflow.
+promised_by: |
+  ReentrantLock docstring (base/lock.jl:24-26): "The same task can acquire the
+  lock as many times as required ... Each lock must be matched with an unlock."
+cause: |
+  `reentrancy_cnt::UInt32` (base/lock.jl:52); the reentrant path of trylock does
+  `rl.reentrancy_cnt += 0x0000_0001` (line 168), which wraps 0xffffffff to 0, and
+  unlock releases when the decremented count is 0 (lines 319-321).
+possible_fix: |
+  Check for overflow on the reentrant path (throw before wrapping), or widen
+  the counter.
+duplicates:
+  issues: []
+  queries: ["issues: reentrancy_cnt", "issues: ReentrantLock overflow", "issues: ReentrantLock reentrancy count", "issues: ReentrantLock UInt32", "issues: lock recursion limit", "prs: reentrancy_cnt", "prs: ReentrantLock overflow", "prs: ReentrantLock reentrancy count", "prs: ReentrantLock UInt32", "prs: lock recursion limit"]
+lean:
+  property: JuliaLean.Channels.LockReentrancyCount
+  theorem: JuliaLean.Channels.lockReentrancyCount_refuted

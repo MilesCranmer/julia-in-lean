@@ -1,0 +1,81 @@
+id: show-range-repr-elements
+title: "repr of a float StepRangeLen evaluates to a range with different elements"
+priority: P2
+kind: wrong-result
+area: Show
+files: [base/range.jl]
+functions: ["show(::IO, ::StepRangeLen)"]
+summary: |
+  show(io, r::StepRangeLen) prints repr(first(r)):repr(step(r)):repr(last(r)). For
+  r = (0:5) .* 0.1 .+ 0.3, repr(r) == "0.3:0.1:0.8", but r[2] == 0.39999999999999997 while
+  (0.3:0.1:0.8)[2] == 0.4. The same happens for StepRangeLen(0.3, 0.1, 6) (plain Float64
+  reference and step), whose 4th element is 0.6000000000000001. eval(Meta.parse(repr(r)))
+  therefore has different elements, although r == eval(Meta.parse(repr(r))) is true because
+  range == only compares first, step and last.
+likelihood: |
+  Float ranges built by broadcasting arithmetic or by the StepRangeLen constructor are
+  common; repr is used when generating code or test expectations from values.
+maybe_intended: |
+  The range docs say float ranges are computed with extra precision, and the printed
+  literal a:s:b is the most readable form; exact reconstruction needs the internal
+  TwicePrecision reference and offset.
+reproducer: |
+  r = (0:5) .* 0.1 .+ 0.3            # StepRangeLen{Float64, TwicePrecision{Float64}, ...}
+  s = repr(r)
+  println("repr(r) = ", s)
+  r2 = eval(Meta.parse(s))
+  println("collect(r)  = ", collect(r))
+  println("collect(r2) = ", collect(r2))
+  println("r == r2: ", r == r2, ", isequal(collect(r), collect(r2)): ", isequal(collect(r), collect(r2)))
+  r3 = StepRangeLen(0.3, 0.1, 6)      # plain Float64 reference and step
+  println("repr(StepRangeLen(0.3, 0.1, 6)) = ", repr(r3), "; collect = ", collect(r3), "; reparsed = ", collect(eval(Meta.parse(repr(r3)))))
+  !isequal(collect(r), collect(r2)) && println("REPRODUCED show-range-repr-elements")
+output:
+  release: |
+    repr(r) = 0.3:0.1:0.8
+    collect(r)  = [0.3, 0.39999999999999997, 0.5, 0.6, 0.7, 0.8]
+    collect(r2) = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+    r == r2: true, isequal(collect(r), collect(r2)): false
+    repr(StepRangeLen(0.3, 0.1, 6)) = 0.3:0.1:0.8; collect = [0.3, 0.4, 0.5, 0.6000000000000001, 0.7, 0.8]; reparsed = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+    REPRODUCED show-range-repr-elements
+  nightly: |
+    repr(r) = 0.3:0.1:0.8
+    collect(r)  = [0.3, 0.39999999999999997, 0.5, 0.6, 0.7, 0.8]
+    collect(r2) = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+    r == r2: true, isequal(collect(r), collect(r2)): false
+    repr(StepRangeLen(0.3, 0.1, 6)) = 0.3:0.1:0.8; collect = [0.3, 0.4, 0.5, 0.6000000000000001, 0.7, 0.8]; reparsed = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+    REPRODUCED show-range-repr-elements
+reproduced: {release: true, nightly: true}
+expected: |
+  Printed code that reconstructs the same elements, e.g. StepRangeLen(...) with the exact
+  reference, step and offset when a:s:b does not reproduce r.
+promised_by: |
+  The show/repr docstrings: the 2-argument show output should be parseable Julia code that
+  reproduces the value when possible (base/show.jl, show(io, x) docstring); the colon form
+  printed here does parse but yields a different collection.
+cause: |
+  base/range.jl:1132-1138 prints first:step:last for every StepRangeLen with nonzero step,
+  discarding the TwicePrecision reference/step and the offset that determine the
+  elements; the colon constructor recomputes a different TwicePrecision representation.
+possible_fix: |
+  Print the colon form only when it reconstructs r exactly (e.g. compare the constructed
+  range's ref/step/offset), else print a StepRangeLen(...) constructor.
+duplicates:
+  issues:
+    - {number: 50039, state: open, relation: related}
+    - {number: 47812, state: open, relation: related}
+  queries:
+    - "issues: show StepRangeLen"
+    - "issues: repr range float"
+    - "issues: range printing elements"
+    - "issues: StepRangeLen repr"
+    - "issues: StepRangeLen show"
+    - "issues: range show roundtrip"
+    - "issues: TwicePrecision"
+    - "issues: range == elements"
+    - "prs: show StepRangeLen"
+    - "prs: repr range float"
+    - "prs: StepRangeLen repr"
+lean:
+  property: JuliaLean.Show.RangeReprElements
+  theorem: JuliaLean.Show.rangeReprElements_refuted

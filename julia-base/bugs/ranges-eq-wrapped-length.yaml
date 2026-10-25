@@ -1,0 +1,56 @@
+id: ranges-eq-wrapped-length
+title: "A full-width range compares == to an empty range or empty vector because its length wraps to 0"
+priority: P2
+kind: wrong-result
+area: Ranges
+files: [base/range.jl, base/abstractarray.jl]
+functions: ["==(::AbstractRange, ::AbstractRange)", "==(::AbstractArray, ::AbstractArray)"]
+summary: |
+  (UInt64(0):typemax(UInt64)) == range(UInt64(7); length=0) is true, and
+  (typemin(Int):typemax(Int)) == Int[] is true, although the left-hand ranges
+  have 2^64 elements. Both methods trust length(r), which wraps to 0.
+likelihood: |
+  Needs a full-width 64- or 128-bit range; rare, but the result is silently
+  wrong and isequal agrees with it.
+maybe_intended: |
+  length is documented as unchecked only indirectly (Base.checked_length exists,
+  base/checked.jl:371-376); == is not documented to depend on length.
+reproducer: |
+  u = UInt64(0):typemax(UInt64)
+  e = range(UInt64(7); length=0)
+  println("isempty(u) = ", isempty(u), ", isempty(e) = ", isempty(e))
+  println("u == e: ", u == e)
+  r = typemin(Int):typemax(Int)
+  println("(typemin(Int):typemax(Int)) == Int[]: ", r == Int[])
+  !isempty(u) && isempty(e) && u == e && r == Int[] && println("REPRODUCED ranges-eq-wrapped-length")
+output:
+  release: |
+    isempty(u) = false, isempty(e) = true
+    u == e: true
+    (typemin(Int):typemax(Int)) == Int[]: true
+    REPRODUCED ranges-eq-wrapped-length
+  nightly: |
+    isempty(u) = false, isempty(e) = true
+    u == e: true
+    (typemin(Int):typemax(Int)) == Int[]: true
+    REPRODUCED ranges-eq-wrapped-length
+reproduced: {release: true, nightly: true}
+expected: "false for both comparisons: a nonempty range is never equal to an empty one."
+promised_by: |
+  == on AbstractArrays compares axes and elements; isempty(u) != isempty(e)
+  already shows the collections differ.
+cause: |
+  The generic method base/range.jl:1170-1184 returns true as soon as
+  length(r) == length(s) and iszero(length(r)); length (base/range.jl:794-803)
+  wraps 2^64 to 0. The array method compares axes(r) = OneTo(length(r)) =
+  OneTo(0) with axes(Int[]) and then zips elements, so it also returns true.
+possible_fix: |
+  In the generic range ==, decide emptiness with isempty rather than
+  iszero(length); more generally make length (or axes) of ranges throw on overflow.
+duplicates:
+  issues:
+    - {number: 45389, state: open, relation: related}
+  queries: ["range == empty array", "range length wraps zero", "length overflow UnitRange", "typemax range length"]
+lean:
+  property: JuliaLean.Ranges.RangeEqRespectsEmptiness
+  theorem: JuliaLean.Ranges.rangeEqRespectsEmptiness_refuted

@@ -1,0 +1,49 @@
+id: iobuffers-take-closewrite
+title: "take!(PipeBuffer) after closewrite throws \"Unreachable IOBuffer state\""
+priority: P2
+kind: wrong-exception
+area: IOBuffers
+files: [base/iobuffer.jl]
+functions: ["take!(::IOBuffer)", "closewrite(::GenericIOBuffer)"]
+summary: |
+  take! on a non-seekable IOBuffer that is not writable hits error("Unreachable IOBuffer
+  state"). The state is reachable: closewrite on a PipeBuffer makes it non-writable while
+  it stays readable and non-seekable. take! should return the unread bytes, as the
+  generic take!(::GenericIOBuffer) does by reading them.
+likelihood: |
+  Needs take! on a PipeBuffer after closewrite with unread data; plausible in code that
+  drains a pipe after the writer side is closed.
+maybe_intended: |
+  The comment calls the state unreachable, so the author did not expect it; closewrite
+  is documented for IO streams in general.
+reproducer: |
+  pb = PipeBuffer()
+  write(pb, "abc")
+  closewrite(pb)
+  take!(pb)        # ERROR: Unreachable IOBuffer state
+output:
+  release: |
+    take!(pb) = ErrorException("Unreachable IOBuffer state")
+    REPRODUCED iobuffers-take-closewrite
+  nightly: |
+    take!(pb) = ErrorException("Unreachable IOBuffer state")
+    REPRODUCED iobuffers-take-closewrite
+reproduced: {release: true, nightly: true}
+expected: |
+  UInt8[0x61, 0x62, 0x63] (the unread bytes), as for a writable PipeBuffer.
+promised_by: |
+  take! docstring, base/iobuffer.jl:716-718: "Obtain the contents of an IOBuffer as an
+  array."
+cause: |
+  base/iobuffer.jl:769-777: for a non-seekable buffer with bytes available, only the
+  writable case is handled; otherwise it calls error("Unreachable IOBuffer state").
+  closewrite (693-696) creates exactly that state.
+possible_fix: |
+  In the non-writable branch copy the bytes, e.g.
+  `copyto!(StringVector(nbytes), 1, io.data, io.ptr, nbytes)`, and advance io.ptr.
+duplicates:
+  issues: []
+  queries: ["Unreachable IOBuffer state", "Unreachable IOBuffer", "closewrite PipeBuffer take!", "closewrite PipeBuffer"]
+lean:
+  property: JuliaLean.IOBuffers.TakeReadOnly
+  theorem: JuliaLean.IOBuffers.takeReadOnly_refuted

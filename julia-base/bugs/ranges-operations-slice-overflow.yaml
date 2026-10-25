@@ -1,0 +1,48 @@
+id: ranges-operations-slice-overflow
+title: "Slicing an Int8 UnitRange with an Int8 index range throws on a valid index"
+priority: P2
+kind: wrong-exception
+area: Ranges
+files: [base/range.jl]
+functions: ["getindex(::AbstractUnitRange, ::AbstractUnitRange)"]
+summary: |
+  Slicing Int8(120):Int8(127) by Int8(8):Int8(8) throws InexactError.
+  Selecting the same positions with scalar indexing returns Int8[127].
+likelihood: |
+  Uncommon: both the values and the index range must use narrow integer types,
+  and an intermediate addition must cross the value type's endpoint.
+maybe_intended: ""
+reproducer: |
+  r = Int8(120):Int8(127)
+  s = Int8(8):Int8(8)
+  failed = try
+      r[s]
+      false
+  catch e
+      e isa InexactError
+  end
+  @assert failed && [r[i] for i in s] == Int8[127]
+  println("REPRODUCED ranges-operations-slice-overflow")
+output:
+  release: |
+    REPRODUCED ranges-operations-slice-overflow
+  nightly: |
+    REPRODUCED ranges-operations-slice-overflow
+reproduced: {release: true, nightly: true}
+expected: "Return the one-element Int8 range 127:127, consistent with scalar indexing."
+promised_by: |
+  Array indexing invariant: selecting valid integer indices by a range agrees
+  with selecting those positions individually and preserves the number selected.
+cause: |
+  base/range.jl:1010 evaluates f + first(s) in Int8 before subtracting
+  firstindex(r). Here 120 + 8 wraps to -128. Subtracting the Int64 index
+  origin produces -129, and converting that to Int8 throws InexactError.
+possible_fix: |
+  Compute the index offset before adding it to the starting value, with
+  overflow-safe promotion matching scalar indexing.
+duplicates:
+  issues: []
+  queries: ["issues: range indexing Int8 overflow", "issues: UnitRange Int8 getindex", "PRs: UnitRange getindex overflow"]
+lean:
+  property: JuliaLean.Ranges.sliceAgreementProp
+  theorem: JuliaLean.Ranges.sliceAgreementRefuted

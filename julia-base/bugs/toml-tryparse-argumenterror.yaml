@@ -1,0 +1,62 @@
+id: toml-tryparse-argumenterror
+title: "TOML.tryparse throws ArgumentError on malformed prefixed integers such as 0o8, 0b2 and 0x-1"
+priority: P2
+kind: wrong-exception
+area: Toml
+files: [base/toml/parser.jl]
+functions: ["Base.TOML.parse_number_or_date_start", "Base.TOML.parse_integer", "Base.TOML.parse_int", "TOML.tryparse", "TOML.parse"]
+summary: |
+  A `0x`, `0o` or `0b` prefix whose next character is not a digit of that base is not
+  rejected by the lexer. The number then falls through to the decimal path, and
+  `Base.parse(Int64, "0o8")` (or `"0x"`, `"0b"`) throws an `ArgumentError` that the TOML
+  parser rethrows. `TOML.tryparse("a = 0o8")`, `"a = 0b2"`, `"a = 0x-1"` and
+  `"a = 0b:00"` all throw instead of returning a `ParserError`.
+likelihood: |
+  Needs an invalid number literal, for example a typo in an octal or binary constant.
+  Programs that use `tryparse` to validate user-supplied TOML crash on it.
+maybe_intended: ""
+reproducer: |
+  import TOML
+  TOML.tryparse("a = 0o8")   # throws ArgumentError: invalid base 8 digit '8' in "0o8"
+output:
+  release: |
+    "a = 0o8" => ArgumentError: invalid base 8 digit '8' in "0o8"
+    "a = 0b2" => ArgumentError: invalid base 2 digit '2' in "0b2"
+    "a = 0x-1" => ArgumentError: premature end of integer: "0x"
+    "a = 0b:00" => ArgumentError: premature end of integer: "0b"
+    REPRODUCED toml-tryparse-argumenterror
+  nightly: |
+    "a = 0o8" => ArgumentError: invalid base 8 digit '8' in "0o8"
+    "a = 0b2" => ArgumentError: invalid base 2 digit '2' in "0b2"
+    "a = 0x-1" => ArgumentError: premature end of integer: "0x"
+    "a = 0b:00" => ArgumentError: premature end of integer: "0b"
+    REPRODUCED toml-tryparse-argumenterror
+reproduced: {release: true, nightly: true}
+expected: |
+  A `ParserError` (for example `ErrGenericValueError`) returned by `tryparse` and thrown by `parse`.
+promised_by: |
+  TOML.tryparse docstring, stdlib/TOML/src/TOML.jl:138-152: "Return a ParserError upon
+  failure." TOML.parse docstring, stdlib/TOML/src/TOML.jl:115-129: "Throw a ParserError
+  upon failure."
+cause: |
+  base/toml/parser.jl:1042-1053: when `accept_batch_underscore` eats no digit after the
+  prefix (`ate == false`), the branch does not return, and control continues at
+  base/toml/parser.jl:1068 with the prefix already consumed. A following decimal digit
+  makes it call `parse_integer` (base/toml/parser.jl:1080), and a following `-` or `:`
+  calls `parse_datetime`/`parse_local_time`, whose `parse_int` (base/toml/parser.jl:1201,
+  1281) also parses the prefixed text. `parse_int` and `parse_integer`
+  (base/toml/parser.jl:1131-1136, 1148-1159) catch only `OverflowError` and rethrow the
+  `ArgumentError` from `Base.parse`.
+possible_fix: |
+  Return `ParserError(ErrGenericValueError)` when no digit follows the `0x`/`0o`/`0b`
+  prefix (when `ate` is false).
+duplicates:
+  issues: []
+  queries: ["TOML parser ArgumentError", "TOML octal", "TOML binary integer", "TOML hex", "TOML integer", "TOML invalid"]
+  notes: |
+    stdlib/TOML/test/toml_test.jl:166 marks toml-test's invalid/integer/invalid-hex-03.toml
+    (`a = 0x-1`, one of the inputs here) as a known failure (`broken`); no issue or PR
+    describes the cause or the other inputs.
+lean:
+  property: JuliaLean.Toml.TryparseNoArgumentError
+  theorem: JuliaLean.Toml.tryparseNoArgumentError_refuted

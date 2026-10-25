@@ -1,0 +1,63 @@
+id: dates-format-year-loss
+title: "ISODateFormat drops negative-year signs, so formatting and parsing do not round-trip"
+priority: P3
+kind: documentation
+area: Dates
+files: [stdlib/Dates/src/io.jl]
+functions: ["format(::IO, ::DatePart{'y'}, dt)", "Dates.ISODateFormat", "parse(Date, string, DateFormat)"]
+summary: |
+  Dates.format(Date(-1, 1, 1), Dates.ISODateFormat) returns 0001-01-01.
+  Parsing with the same format gives year 1, losing the original negative sign.
+  Positive years longer than four digits similarly lose their leading digits.
+likelihood: |
+  Historical or astronomical dates can use negative years. Callers may choose
+  the supplied ISODateFormat rather than build a format with an uppercase Y.
+maybe_intended: |
+  stdlib/Dates/src/io.jl:782-807 explicitly documents lowercase y as fixed-width,
+  including truncation. Thus the broad round-trip property is false by design.
+  The documentation concern is that ISODateFormat is described as ISO8601
+  formatting without explaining that signed or extended years lose information.
+reproducer: |
+  using Dates
+  d = Date(-1, 1, 1)
+  s = Dates.format(d, Dates.ISODateFormat)
+  parse(Date, s, Dates.ISODateFormat) == d
+output:
+  release: |
+    input = -0001-01-01
+    ISODateFormat output = 0001-01-01
+    parsed = 0001-01-01
+    minimum-width year output = -0001-01-01
+    REPRODUCED dates-format-year-loss
+  nightly: |
+    input = -0001-01-01
+    ISODateFormat output = 0001-01-01
+    parsed = 0001-01-01
+    minimum-width year output = -0001-01-01
+    REPRODUCED dates-format-year-loss
+reproduced: {release: true, nightly: true}
+expected: |
+  Document that the built-in ISODateFormat is lossy for negative or extended
+  years, and recommend YYYY-mm-dd when a round-trip is needed. Alternatively
+  use uppercase Y in the built-in ISO formats.
+promised_by: |
+  stdlib/Dates/src/io.jl:551-562: ISODateFormat "Describes the ISO8601 formatting
+  for a date." The round-trip expectation conflicts with the documented
+  lowercase-y truncation; this report is a documentation concern, not a claim
+  that fixed-width truncation itself is undocumented.
+cause: |
+  stdlib/Dates/src/io.jl:215-229 takes the last n characters of the signed,
+  zero-padded year. For -0001 and width four those characters are 0001.
+  The ISODateFormat constant at line 561 uses lowercase yyyy.
+possible_fix: |
+  Clarify the supported year range in the ISODateFormat docstring, or use
+  uppercase YYYY for a minimum-width year that preserves the sign and digits.
+duplicates:
+  issues:
+    - {number: 42790, state: closed, relation: related}
+    - {number: 54535, state: merged, relation: related}
+  queries: ["Dates format negative year", "format BCE", "format negative year", "repo:JuliaLang/julia format negative year"]
+  notes: "#42790 and #54535 concern parsing negative years, not sign loss during formatting. No exact report found."
+lean:
+  property: JuliaLean.Dates.FormatRoundtrip
+  theorem: JuliaLean.Dates.formatRoundtrip_refuted

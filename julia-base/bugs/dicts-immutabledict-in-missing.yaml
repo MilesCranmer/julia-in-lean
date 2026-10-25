@@ -1,0 +1,57 @@
+id: dicts-immutabledict-in-missing
+title: "in(pair, ::ImmutableDict) and == throw TypeError on missing values instead of returning missing"
+priority: P3
+kind: wrong-exception
+area: Dicts
+files: [base/dict.jl]
+functions: ["in(::Pair, ::ImmutableDict)", "==(::AbstractDict, ::ImmutableDict)"]
+summary: |
+  The ImmutableDict method of in(key_value::Pair, dict, valcmp) evaluates
+  `valcmp(value, dict.value) && return true`. When the value comparison is
+  missing this throws TypeError, whereas the AbstractDict method returns the
+  comparison (missing). So (:a => missing) in ImmutableDict(:a => 1) and
+  ImmutableDict(:a => missing) == ImmutableDict(:a => missing) throw, while
+  the Dict equivalents return missing.
+likelihood: |
+  Needs missing values stored in an ImmutableDict and a pair membership test
+  or == comparison. Rare.
+maybe_intended: ""
+reproducer: |
+  (:a => missing) in Base.ImmutableDict(:a => 1)                          # TypeError
+  Base.ImmutableDict(:a => missing) == Base.ImmutableDict(:a => missing)  # TypeError
+output:
+  release: |
+    (:a => missing) in ImmutableDict(:a => 1): "TypeError: non-boolean (Missing) used in boolean context"
+    (:a => missing) in Dict(:a => 1): missing
+    ImmutableDict(:a => missing) == ImmutableDict(:a => missing): "TypeError: non-boolean (Missing) used in boolean context"
+    Dict(:a => missing) == Dict(:a => missing): missing
+    REPRODUCED dicts-immutabledict-in-missing
+  nightly: |
+    (:a => missing) in ImmutableDict(:a => 1): "TypeError: non-boolean (Missing) used in boolean context"
+    (:a => missing) in Dict(:a => 1): missing
+    ImmutableDict(:a => missing) == ImmutableDict(:a => missing): "TypeError: non-boolean (Missing) used in boolean context"
+    Dict(:a => missing) == Dict(:a => missing): missing
+    REPRODUCED dicts-immutabledict-in-missing
+reproduced: {release: true, nightly: true}
+expected: |
+  missing in both cases, as for Dict.
+promised_by: |
+  == docstring, base/operators.jl:126-127: "Collections generally implement
+  three-valued logic akin to [`all`](@ref), returning missing if any operands
+  contain missing values and all other pairs are equal." The generic
+  in(p::Pair, a::AbstractDict) (base/abstractdict.jl:21-27) returns
+  valcmp(v, p.second), and == (base/abstractdict.jl:518-533) handles a
+  missing result of in.
+cause: |
+  base/dict.jl:821: `valcmp(value, dict.value) && return true` uses the
+  comparison as a Bool condition.
+possible_fix: |
+  Track a missing comparison (return it if no later pair matches), as the
+  generic method does, e.g. `c = valcmp(value, dict.value); c === true &&
+  return true; ismissing(c) && (anymissing = true)`.
+duplicates:
+  issues: []
+  queries: ["ImmutableDict missing", "ImmutableDict in missing TypeError", "in Pair ImmutableDict missing"]
+lean:
+  property: JuliaLean.Dicts.ImmutableDictInMissing
+  theorem: JuliaLean.Dicts.immutableDictInMissing_refuted

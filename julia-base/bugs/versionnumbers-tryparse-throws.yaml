@@ -1,0 +1,84 @@
+id: versionnumbers-tryparse-throws
+title: tryparse(VersionNumber, s) throws on too-large or non-ASCII numbers instead of returning nothing
+priority: P2
+kind: wrong-exception
+area: VersionNumbers
+files:
+- base/version.jl
+functions:
+- tryparse(::Type{VersionNumber}, ::AbstractString)
+- split_idents
+summary: |
+  tryparse(VersionNumber, s) calls parse(UInt32, ...) and parse(UInt64, ...) on the
+  numeric fields matched by VERSION_REGEX, so a major/minor/patch above typemax(UInt32),
+  a numeric pre-release or build identifier above typemax(UInt64), or a component made of
+  non-ASCII Unicode digits (which `\d` matches because Julia compiles regexes with UCP)
+  makes tryparse throw OverflowError or ArgumentError instead of returning nothing.
+likelihood: |
+  Code that validates version strings from untrusted sources (registry tags, user
+  input, file names) with tryparse expects nothing for invalid input; a long digit string
+  such as a date stamp or commit-like number as the major version is enough.
+maybe_intended: ''
+reproducer: |
+  # tryparse(VersionNumber, s) throws instead of returning nothing for some invalid strings
+  function outcome(s)
+      try
+          r = tryparse(VersionNumber, s)
+          return r === nothing ? "nothing" : repr(r)
+      catch e
+          return "throws " * sprint(showerror, e)
+      end
+  end
+  cases = ["4294967296", "1.2.99999999999", "1.0.0-18446744073709551616", "1+18446744073709551616", "\u0661.0"]
+  results = [outcome(s) for s in cases]
+  for (s, r) in zip(cases, results)
+      println("tryparse(VersionNumber, ", repr(s), ") => ", r)
+  end
+  if all(startswith("throws"), results)
+      println("REPRODUCED versionnumbers-tryparse-throws")
+  end
+output:
+  release: |
+    tryparse(VersionNumber, "4294967296") => throws OverflowError: overflow parsing "4294967296"
+    tryparse(VersionNumber, "1.2.99999999999") => throws OverflowError: overflow parsing "99999999999"
+    tryparse(VersionNumber, "1.0.0-18446744073709551616") => throws OverflowError: overflow parsing "18446744073709551616"
+    tryparse(VersionNumber, "1+18446744073709551616") => throws OverflowError: overflow parsing "18446744073709551616"
+    tryparse(VersionNumber, "١.0") => throws ArgumentError: invalid base 10 digit '١' in "١"
+    REPRODUCED versionnumbers-tryparse-throws
+  nightly: |
+    tryparse(VersionNumber, "4294967296") => throws OverflowError: overflow parsing "4294967296"
+    tryparse(VersionNumber, "1.2.99999999999") => throws OverflowError: overflow parsing "99999999999"
+    tryparse(VersionNumber, "1.0.0-18446744073709551616") => throws OverflowError: overflow parsing "18446744073709551616"
+    tryparse(VersionNumber, "1+18446744073709551616") => throws OverflowError: overflow parsing "18446744073709551616"
+    tryparse(VersionNumber, "١.0") => throws ArgumentError: invalid base 10 digit '١' in "١"
+    REPRODUCED versionnumbers-tryparse-throws
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  nothing for every input that is not a valid VersionNumber.
+promised_by: |
+  tryparse docstring, base/parse.jl: "Like parse, but returns either a value of the
+  requested type, or nothing if the string does not contain a valid number."
+cause: |
+  base/version.jl:138-140 call parse(VInt, ...) and base/version.jl:129 (split_idents)
+  calls parse(UInt64, ident); both throw on overflow and on the non-ASCII Nd digits that
+  the `(\d+)` groups of VERSION_REGEX (base/version.jl:117-119) accept.
+possible_fix: |
+  Use tryparse for the numeric fields and return nothing on failure, as open PR #59609
+  does; that also covers the non-ASCII digits.
+duplicates:
+  issues:
+  - number: 59609
+    state: open
+    relation: duplicate
+  queries:
+  - tryparse VersionNumber
+  - VersionNumber overflow
+  - VersionNumber OverflowError
+  - tryparse VersionNumber throws
+  - VersionNumber unicode
+  - VersionNumber
+lean:
+  property: JuliaLean.VersionNumbers.TryparseNothrow
+  theorem: JuliaLean.VersionNumbers.tryparseNothrow_refuted

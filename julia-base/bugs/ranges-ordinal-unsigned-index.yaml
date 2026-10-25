@@ -1,0 +1,59 @@
+id: ranges-ordinal-unsigned-index
+title: "A valid unsigned scalar index throws BoundsError for negative UnitRange elements"
+priority: P2
+kind: wrong-exception
+area: Ranges
+files: [base/range.jl]
+functions: ["_getindex(::UnitRange{T}, ::Integer)"]
+summary: |
+  (Int8(-1):Int8(1))[UInt8(1)] throws BoundsError, although index 1 is valid
+  and signed index 1 returns -1. UInt64 and UInt128 indices also fail when
+  promotion makes the arithmetic intermediate unsigned.
+likelihood: |
+  Unsigned positions are plausible in code working with unsigned ranges.
+  The failure also requires a negative signed element and an index width
+  that wins promotion, so it is less common than ordinary signed indexing.
+maybe_intended: ""
+reproducer: |
+  r = Int8(-1):Int8(1)
+  @assert r[1] == first(r) == -1
+  try
+      r[UInt8(1)]
+  catch e
+      e isa BoundsError || rethrow()
+      println("REPRODUCED ranges-ordinal-unsigned-index")
+  end
+output:
+  release: |
+    REPRODUCED ranges-ordinal-unsigned-index
+  nightly: |
+    REPRODUCED ranges-ordinal-unsigned-index
+reproduced: {release: true, nightly: true}
+expected: |
+  Return Int8(-1), as for the signed representation of index 1.
+promised_by: |
+  Scalar indexing invariant: a nonempty range satisfies r[1] == first(r),
+  independently of which supported integer type represents position 1.
+  Iteration starts at this same element in base/range.jl:935.
+cause: |
+  base/range.jl:968-971 calculates start + (i - oneunit(i)), checks the
+  intermediate against the stored signed endpoints, and only then wraps
+  to the element type. For Int8 start -1 and UInt8 index 1, the intermediate
+  is UInt8(255). Comparing it with stop 1 rejects the valid position before
+  wrapping could recover Int8(-1).
+possible_fix: |
+  Check the mathematical index position using arithmetic that preserves
+  signed endpoint comparisons, then convert the selected element. Wrapping
+  before checking alone needs care to avoid accepting out-of-bounds indices.
+duplicates:
+  issues:
+    - {number: 63679, state: open, relation: related}
+  queries:
+    - "issues: UnitRange unsigned index BoundsError"
+    - "issues: range UInt8 BoundsError"
+    - "issues: range unsigned BoundsError"
+    - "issues: UnitRange unsigned"
+    - "prs: UnitRange unsigned index"
+lean:
+  property: JuliaLean.Ranges.UnsignedIndexAgreement
+  theorem: JuliaLean.Ranges.unsignedIndexAgreement_refuted

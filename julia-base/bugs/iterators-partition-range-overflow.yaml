@@ -1,0 +1,83 @@
+id: iterators-partition-range-overflow
+title: Iterators.partition of a range near typemax(Int) yields wrong chunks forever and collect segfaults
+priority: P2
+kind: crash
+area: Iterators
+files:
+- base/iterators.jl
+- base/array.jl
+functions:
+- iterate(::PartitionIterator{<:AbstractRange})
+- iterate(::PartitionIterator{<:AbstractArray})
+- collect
+summary: |
+  The range and array methods of iterate(::PartitionIterator) compute the chunk
+  end as min(state + n - 1, lastindex(c)). Near typemax(Int) the sum wraps:
+  partition(Base.IdentityUnitRange(typemax(Int)-2:typemax(Int)), 2) yields
+  typemax-2:typemax-1, then an empty chunk instead of typemax:typemax, then
+  chunks of indices near typemin(Int), and never ends. collect trusts
+  length == 2, stores the extra chunks with @inbounds and crashes with signal
+  11. partition(1:typemax(Int), 2^62 + 1) also never terminates.
+likelihood: |
+  Needs a range whose indices reach typemax(Int) (offset ranges or
+  IdentityUnitRange) or a range of more than 2^62 elements with a chunk size
+  above 2^62. Contrived; the consequence is memory corruption.
+maybe_intended: ''
+reproducer: |
+  # partition of a range: state + n - 1 wraps for indices near typemax(Int)
+  r = Base.IdentityUnitRange(typemax(Int)-2:typemax(Int))
+  p = Iterators.partition(r, 2)
+  chunks = Any[]
+  for c in p
+      push!(chunks, c)
+      length(chunks) == 4 && break
+  end
+  println("length(partition(r, 2)) = ", length(p))
+  println("first 4 chunks = ", chunks)
+  println("expected chunks = ", [typemax(Int)-2:typemax(Int)-1, typemax(Int):typemax(Int)])
+  cmd = `$(Base.julia_cmd()) --startup-file=no -e 'collect(Iterators.partition(Base.IdentityUnitRange(typemax(Int)-2:typemax(Int)), 2)); println("collect returned")'`
+  proc = run(pipeline(ignorestatus(cmd); stdout=devnull, stderr=devnull))
+  println("collect(partition(r, 2)) in a child process: exit code = ", proc.exitcode, ", signal = ", proc.termsignal)
+  if length(chunks) == 4 && isempty(chunks[2]) && (proc.termsignal != 0 || proc.exitcode != 0)
+      println("REPRODUCED iterators-partition-range-overflow")
+  end
+output:
+  release: |
+    length(partition(r, 2)) = 2
+    first 4 chunks = Any[9223372036854775805:9223372036854775806, 9223372036854775807:9223372036854775806, -9223372036854775807:-9223372036854775806, -9223372036854775805:-9223372036854775804]
+    expected chunks = UnitRange{Int64}[9223372036854775805:9223372036854775806, 9223372036854775807:9223372036854775807]
+    collect(partition(r, 2)) in a child process: exit code = 0, signal = 11
+    REPRODUCED iterators-partition-range-overflow
+  nightly: |
+    length(partition(r, 2)) = 2
+    first 4 chunks = Any[9223372036854775805:9223372036854775806, 9223372036854775807:9223372036854775806, -9223372036854775807:-9223372036854775806, -9223372036854775805:-9223372036854775804]
+    expected chunks = UnitRange{Int64}[9223372036854775805:9223372036854775806, 9223372036854775807:9223372036854775807]
+    collect(partition(r, 2)) in a child process: exit code = 0, signal = 11
+    REPRODUCED iterators-partition-range-overflow
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Two chunks, typemax(Int)-2:typemax(Int)-1 and typemax(Int):typemax(Int), and
+  collect returning them.
+promised_by: |
+  partition docstring, base/iterators.jl:1424-1426: "Iterate over a collection n
+  elements at a time"; length(itr) = cld(length(c), n) (line 1465-1468) and
+  Base code must not store out of bounds.
+cause: |
+  base/iterators.jl:1472 (and 1478 for arrays): state + itr.n - 1 wraps, so r is
+  negative, the chunk is empty, and r + 1 never exceeds lastindex. The crash
+  comes from collect_to! (base/array.jl:896-911), whose @inbounds stores assume
+  at most length(itr) elements.
+possible_fix: |
+  Compute the end without overflow, e.g. r = state + min(itr.n - 1, lastindex(c)
+  - state).
+duplicates:
+  issues: []
+  queries:
+  - partition overflow
+  - partition typemax
+  - partition range segfault
+lean:
+  property: JuliaLean.Iterators.PartitionRangeChunks
+  theorem: JuliaLean.Iterators.partitionRangeChunks_refuted

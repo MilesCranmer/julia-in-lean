@@ -1,0 +1,49 @@
+id: ranges-mod-congruence
+title: "mod(x, r::AbstractUnitRange) returns a non-congruent value when x - first(r) overflows"
+priority: P2
+kind: wrong-result
+area: Ranges
+files: [base/range.jl]
+functions: ["mod(::Integer, ::AbstractUnitRange)"]
+summary: |
+  mod(typemin(Int), 1:3) returns 2, but typemin(Int) ≡ 1 (mod 3). The method
+  computes x - first(r) with wrapping subtraction, which changes the residue.
+likelihood: |
+  Needs x within first(r) of typemin/typemax; rare in practice. Already
+  reported upstream.
+maybe_intended: ""
+reproducer: |
+  i = typemin(Int)
+  r = 1:3
+  y = mod(i, r)
+  expected = Int(mod(big(i) - first(r), big(length(r))) + first(r))
+  println("mod(typemin(Int), 1:3) = ", y)
+  println("expected = ", expected)
+  y == 2 && expected == 1 && println("REPRODUCED ranges-mod-congruence")
+output:
+  release: |
+    mod(typemin(Int), 1:3) = 2
+    expected = 1
+    REPRODUCED ranges-mod-congruence
+  nightly: |
+    mod(typemin(Int), 1:3) = 2
+    expected = 1
+    REPRODUCED ranges-mod-congruence
+reproduced: {release: true, nightly: true}
+expected: "1"
+promised_by: |
+  mod docstring, base/range.jl:1529-1532: "Find `y` in the range `r` such that
+  `x` ≡ `y` (mod `n`), where `n = length(r)`".
+cause: |
+  base/range.jl:1549: mod(i-first(r), length(r)) + first(r); i - first(r)
+  wraps from typemin(Int) - 1 to typemax(Int), whose residue mod 3 differs.
+possible_fix: |
+  Compute mod(i, n) and mod(first(r), n) separately and combine them, or widen
+  before subtracting.
+duplicates:
+  issues:
+    - {number: 62286, state: open, relation: duplicate}
+  queries: ["mod range typemin", "mod AbstractUnitRange overflow"]
+lean:
+  property: JuliaLean.Ranges.ModRangeCongruence
+  theorem: JuliaLean.Ranges.modRangeCongruence_refuted

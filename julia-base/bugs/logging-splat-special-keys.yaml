@@ -1,0 +1,55 @@
+id: logging-splat-special-keys
+title: "@logmsg treats splatted _module, _file, and _line as ordinary metadata"
+priority: P2
+kind: wrong-result
+area: Logging
+files: [base/logging/logging.jl]
+functions: ["@logmsg", "process_logmsg_exs"]
+summary: |
+  The logging macros recognize `_module`, `_group`, `_id`, `_file`, and `_line`
+  only when they appear as literal assignments in the macro call. The same keys
+  supplied through the documented keyword-splat syntax are forwarded as ordinary
+  metadata, so they do not override the log record's origin or identity.
+likelihood: |
+  Code that builds reusable metadata as a named tuple can reasonably include the
+  standard location keys. Direct spelling works, which makes the failure through
+  the documented splat form hard to notice unless the rendered location is checked.
+maybe_intended: |
+  Early filtering needs `_module`, `_group`, and `_id` before ordinary metadata is
+  evaluated, so supporting runtime splats has an evaluation-order cost. The macro
+  documentation does not limit splatting to non-special keys.
+reproducer: |
+  kws = (; _module=Main, _file="fake.jl", _line=7)
+  @warn "message" kws...
+output:
+  release: |
+    direct uses fake location = true
+    splatted uses fake location = false
+    splatted prints _file as ordinary metadata = true
+    REPRODUCED logging-splat-special-keys
+  nightly: |
+    direct uses fake location = true
+    splatted uses fake location = false
+    splatted prints _file as ordinary metadata = true
+    REPRODUCED logging-splat-special-keys
+reproduced: {release: true, nightly: true}
+expected: |
+  Splatting the named tuple should set the same module, file, and line as spelling
+  the three assignments directly, or the documentation should state that special
+  keys cannot be supplied through a keyword splat.
+promised_by: |
+  base/logging/logging.jl:213-239 says key-value pairs can be splatted with normal
+  syntax, then says `_module`, `_group`, `_id`, `_file`, and `_line` override the
+  automatically generated log data.
+cause: |
+  base/logging/logging.jl:443-483 recognizes special keys only in expressions with
+  head `=`, while an expression with head `...` is appended directly to `kwargs`.
+possible_fix: |
+  Define and implement the runtime semantics of special keys in splats, including
+  their evaluation before filtering, or narrow the splatting promise explicitly.
+duplicates:
+  issues: []
+  queries: ["logging special keys splat", "logging _file splat", "logging keyword splatting"]
+lean:
+  property: JuliaLean.Logging.SpecialKeysFromSplat
+  theorem: JuliaLean.Logging.specialKeysFromSplat_refuted

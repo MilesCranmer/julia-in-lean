@@ -1,0 +1,69 @@
+id: reduce-maxdims-union-eltype
+title: "maximum(A; dims) throws InexactError for Union{Int,Float64} arrays and type-unstable f"
+priority: P2
+kind: wrong-exception
+area: Reduce
+files: [base/reducedim.jl]
+functions: ["maximum(A; dims)", "minimum(A; dims)", "extrema(A; dims)", "findmax(A; dims)", "maximum(f, A; dims)", "sum(f, A; dims)", "reducedim_init"]
+summary: |
+  Dimensional reductions fix the result element type from the first slice (or
+  from f(zero(T))) before seeing the data. When the first values happen to be
+  Int and later ones Float64, storing the later result throws InexactError:
+  maximum(Union{Int,Float64}[1, 2.5]; dims=1), the same for minimum, extrema and
+  findmax, and for type-unstable functions such as
+  maximum(x -> x > 1 ? 2.5 : 1, [1, 2]; dims=1) or
+  sum(x -> x == 0 ? 0 : 1/x, [0, 2]; dims=1). The dims-free calls return 2.5 and 0.5.
+likelihood: |
+  Moderate: functions returning Int for some inputs and Float64 for others are
+  common in user code; Union{Int,Float64} element types arise from typed
+  comprehensions. The error is loud, not silent.
+maybe_intended: |
+  Type-unstable functions are discouraged, and reducedim's init guessing is a
+  known weak spot (#55213, #32366; PR #55318 and PR #58418 rework it). The
+  dims-free reductions handle the same inputs.
+reproducer: |
+  A = Union{Int,Float64}[1, 2.5]
+  maximum(A)           # 2.5
+  maximum(A; dims=1)   # InexactError: Int64(2.5)
+output:
+  release: |
+    2.5 InexactError
+    REPRODUCED reduce-maxdims-union-eltype
+    maximum(Union{Int, Float64}[1, 2.5]; dims = 1)               => THROWS InexactError: Int64(2.5)
+    maximum(Union{Int, Float64}[1, 2.5])                         => 2.5
+    findmax(Union{Int, Float64}[1, 2.5]; dims = 1)               => THROWS InexactError: Int64(2.5)
+    extrema(Union{Int, Float64}[1, 2.5]; dims = 1)               => THROWS InexactError: Int64(2.5)
+    minimum(Union{Int, Float64}[3, 2.5]; dims = 1)               => THROWS InexactError: Int64(2.5)
+  nightly: |
+    2.5 InexactError
+    REPRODUCED reduce-maxdims-union-eltype
+    maximum(Union{Int, Float64}[1, 2.5]; dims = 1)               => THROWS InexactError: Int64(2.5)
+    maximum(Union{Int, Float64}[1, 2.5])                         => 2.5
+    findmax(Union{Int, Float64}[1, 2.5]; dims = 1)               => THROWS InexactError: Int64(2.5)
+    extrema(Union{Int, Float64}[1, 2.5]; dims = 1)               => THROWS InexactError: Int64(2.5)
+    minimum(Union{Int, Float64}[3, 2.5]; dims = 1)               => THROWS InexactError: Int64(2.5)
+reproduced: {release: true, nightly: true}
+expected: |
+  [2.5] (a Float64 or Union{Int,Float64} vector), the slice maxima.
+promised_by: |
+  base/reducedim.jl:613-639 (maximum(A; dims) docstring): "Compute the maximum value
+  of an array over the given dimensions." The same call without dims succeeds.
+cause: |
+  base/reducedim.jl:105-108 and 124: v0 = mapreduce(f, min, first slice) is 1 (Int);
+  T = promote_union(eltype(A)) = Float64, so Tr = v0 isa T ? T : typeof(v0) = Int
+  and the result array is Vector{Int}; _mapreducedim! (base/reducedim.jl:256-293)
+  then stores max(1, 2.5) = 2.5 into it. findmax uses _findminmax_inittype
+  (base/reducedim.jl:1228-1236) with the same rule; sum uses f(zero(T))
+  (base/reducedim.jl:74-85, 190-193).
+possible_fix: |
+  Use the element type eltype(A) (or promote_union of it) whenever v0 isa
+  eltype(A), or widen the result array when a store fails, as PR #55318 proposed.
+duplicates:
+  issues:
+    - {number: 55213, state: open, relation: related}
+    - {number: 32366, state: open, relation: related}
+    - {number: 58418, state: open, relation: related}
+  queries: ["maximum dims Union", "maximum dims InexactError", "reducedim InexactError", "findmax dims InexactError", "sum dims type unstable", "reducedim type unstable function"]
+lean:
+  property: JuliaLean.Reduce.MaxDimsUnion
+  theorem: JuliaLean.Reduce.maxDimsUnion_refuted

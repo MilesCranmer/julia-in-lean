@@ -1,0 +1,49 @@
+id: tuples-getindex-inexact
+title: "`t[typemax(UInt)]` throws InexactError instead of BoundsError"
+priority: P3
+kind: wrong-exception
+area: Tuples
+files: [base/tuple.jl]
+functions: ["getindex(t::Tuple, i::Integer)"]
+summary: |
+  getindex(t::Tuple, i::Integer) converts i to Int before the bounds check, so
+  an out-of-bounds index that is not representable as Int throws InexactError:
+  (1, 2)[typemax(UInt)]. Base.setindex, get and isassigned compare the index
+  exactly and report BoundsError, the default or false, and [1, 2][typemax(UInt)]
+  throws BoundsError.
+likelihood: |
+  Low: needs an unsigned 64-bit index above typemax(Int), e.g. a wrapped
+  subtraction such as UInt(0) - 1 used as an index.
+maybe_intended: |
+  Vectors also throw InexactError for Int128/UInt128 indices outside Int, so the
+  conversion-first order may be considered acceptable; but for UInt64 the Vector
+  and Base.setindex report BoundsError.
+reproducer: |
+  (1, 2)[typemax(UInt)]                  # InexactError
+  Base.setindex((1, 2), 0, typemax(UInt))   # BoundsError
+  [1, 2][typemax(UInt)]                  # BoundsError
+output:
+  release: |
+    InexactError BoundsError BoundsError false
+    REPRODUCED tuples-getindex-inexact
+  nightly: |
+    InexactError BoundsError BoundsError false
+    REPRODUCED tuples-getindex-inexact
+reproduced: {release: true, nightly: true}
+expected: |
+  BoundsError, as for Base.setindex and Vector indexing.
+promised_by: |
+  setindex docstring, base/tuple.jl:43-48: "Throws a BoundsError when out of
+  bounds"; the manual: indexing outside the valid indices throws BoundsError.
+cause: |
+  base/tuple.jl:34: getindex(t::Tuple, i::Integer) = getfield(t, convert(Int, i),
+  @_boundscheck) converts first; base/tuple.jl:56 (setindex) compares first.
+possible_fix: |
+  Check 1 <= i <= length(t) before converting, or throw BoundsError when the
+  conversion fails.
+duplicates:
+  issues: []
+  queries: ["issues: tuple index InexactError", "issues: tuple getindex InexactError", "issues: tuple index UInt64"]
+lean:
+  property: JuliaLean.Tuples.GetindexBoundsError
+  theorem: JuliaLean.Tuples.getindexBoundsError_refuted

@@ -1,0 +1,59 @@
+id: channels-onceperthread-yield-hang
+title: "OncePerThread hangs when its initializer yields and another task on the same thread calls it"
+priority: P1
+kind: hang
+area: Channels
+files: [base/lock.jl]
+functions: ["(::OncePerThread)()", "getindex(::OncePerThread, ::Integer)", "init_perthread"]
+summary: |
+  While one task runs a OncePerThread initializer, the per-thread state is
+  PerStateConcurrent. A second call from another task on the same thread spins
+  in a loop that never yields. If the initializer yields (I/O, sleep, a
+  contended lock, an explicit yield), the first task can only resume on that
+  thread, so both tasks hang forever. OncePerProcess in the same situation
+  returns normally.
+likelihood: |
+  Needs an initializer that yields and two tasks on one thread calling the
+  object at the same time, e.g. @async tasks or a single-threaded session.
+  Initializers that open files, print, or take a lock can yield.
+maybe_intended: |
+  The spin is deliberate (comment at base/lock.jl:975-976: "wait for notification
+  this is done running elsewhere without releasing this thread"), and the
+  docstring warns that the thread may change "If initializer yields". It does
+  not say that a yielding initializer can deadlock.
+reproducer: |
+  const o = Base.OncePerThread{Int}(() -> (yield(); 42))
+  t = @async o()
+  yield()       # t starts the initializer, which yields back to the main task
+  o()           # spins forever; t never resumes
+output:
+  release: |
+    child still running after 20 s
+    REPRODUCED channels-onceperthread-yield-hang
+  nightly: |
+    child still running after 20 s
+    REPRODUCED channels-onceperthread-yield-hang
+reproduced: {release: true, nightly: true}
+expected: |
+  The second call waits (yielding) until the initializer finishes and both
+  calls return 42, as OncePerProcess does.
+promised_by: |
+  OncePerThread docstring (base/lock.jl:874-880): "Calling a OncePerThread object
+  returns a value of type T by running the function initializer exactly once per
+  thread. All future calls in the same thread, and concurrent or future calls
+  with the same thread id, will return exactly the same value."
+cause: |
+  init_perthread (base/lock.jl:974-985 on master) loops
+  `while state == PerStateConcurrent ... GC.safepoint() end` without yielding.
+  The task running the initializer is stuck behind the spinning task on the
+  same thread, so the state never leaves PerStateConcurrent.
+possible_fix: |
+  Wait with yield() (or on a condition notified when the state changes) instead
+  of a pure spin when the waiting task is on the thread that runs the initializer.
+duplicates:
+  issues:
+    - {number: 63400, state: open, relation: duplicate}
+  queries: ["issues: OncePerThread", "issues: OncePerThread deadlock", "issues: OncePerThread yield", "issues: OncePerThread hang", "issues: PerStateConcurrent", "prs: OncePerThread", "prs: OncePerThread hang", "prs: PerStateConcurrent"]
+lean:
+  property: JuliaLean.Channels.OncePerThreadCompletes
+  theorem: JuliaLean.Channels.oncePerThreadCompletes_refuted

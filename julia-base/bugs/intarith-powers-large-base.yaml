@@ -1,0 +1,59 @@
+id: intarith-powers-large-base
+title: "ndigits rejects valid positive integer bases larger than typemax(Int)"
+priority: P2
+kind: wrong-exception
+area: IntArith
+files: [base/intfuncs.jl]
+functions: [ndigits, ndigits0z, ndigits0zpb]
+summary: |
+  ndigits throws InexactError for a nonzero value and a valid positive
+  integer base larger than typemax(Int). The same base is accepted for zero.
+likelihood: |
+  Uncommon: it requires a very large Int128, UInt64, or UInt128 radix.
+  Generic integer code can nevertheless produce these valid bases.
+maybe_intended: |
+  Restricting the implementation to native Int bases may be intentional
+  for performance. The documented signature says Integer and the only
+  documented restriction excludes [-1, 0, 1].
+reproducer: |
+  b = Int128(1) << 63
+  @assert b > 1
+  threw = try
+      ndigits(1, base=b)
+      false
+  catch e
+      println("actual exception = ", typeof(e))
+      e isa InexactError
+  end
+  @assert threw
+  println("REPRODUCED intarith-powers-large-base")
+output:
+  release: |
+    actual exception = InexactError
+    REPRODUCED intarith-powers-large-base
+  nightly: |
+    actual exception = InexactError
+    REPRODUCED intarith-powers-large-base
+reproduced: {release: true, nightly: true}
+expected: |
+  1, because the positive value is smaller than the positive base.
+promised_by: |
+  "Compute the number of digits in integer n written in base base
+  (base must not be in [-1, 0, 1])." base/intfuncs.jl:846-850.
+cause: |
+  base/intfuncs.jl:767 accepts zero before converting the base. Line 768
+  unconditionally evaluates Int(b), which throws when a permitted positive
+  base cannot fit Int64. Both pinned Julia versions behave identically.
+possible_fix: |
+  Handle the base-larger-than-magnitude case before narrowing the base,
+  or retain a wider base type throughout division.
+duplicates:
+  issues: []
+  queries:
+    - "issues: ndigits InexactError"
+    - "issues: ndigits Int128 base"
+    - "pull requests: ndigits InexactError"
+    - "pull requests: ndigits base"
+lean:
+  property: JuliaLean.IntArith.PowersDigits.LargeBaseSingleDigit
+  theorem: JuliaLean.IntArith.PowersDigits.largeBaseSingleDigit_refuted

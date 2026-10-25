@@ -1,0 +1,61 @@
+id: arrayops-append-many-self
+title: "append!(a, a, a) and prepend!(a, a, a) append a four times: later collections see the grown vector"
+priority: P3
+kind: wrong-result
+area: ArrayOps
+files: [base/array.jl]
+functions: ["append!(a::AbstractVector, iter...)", "prepend!(a::AbstractVector, iter...)"]
+summary: |
+  With several collections, append! appends them one after another, so a collection
+  that is a itself is read after the earlier ones were appended:
+  a = [1, 2, 3]; append!(a, a, a) has 12 elements instead of 9, and prepend! does the
+  same. append!(a, a) and prepend!(a, a) with one collection are correct.
+likelihood: |
+  Needs a vector passed more than once as a source of its own append!; rare.
+maybe_intended: |
+  Sequential appending is a natural reading of "add the elements of each
+  collection". But the docstring presents append!(a, x, y) as push!(a, x..., y...),
+  which gives 9 elements, and prepend! special-cases items === a, showing that
+  self-aliasing is meant to work.
+reproducer: |
+  a = [1, 2, 3]
+  append!(a, a, a)
+  println(a)
+  b = [1, 2, 3]
+  prepend!(b, b, b)
+  println(b)
+  println(push!([1, 2, 3], [1, 2, 3]..., [1, 2, 3]...))
+  if length(a) == 12 && length(b) == 12
+      println("REPRODUCED arrayops-append-many-self")
+  end
+output:
+  release: |
+    [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]
+    [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]
+    [1, 2, 3, 1, 2, 3, 1, 2, 3]
+    REPRODUCED arrayops-append-many-self
+  nightly: |
+    [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]
+    [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]
+    [1, 2, 3, 1, 2, 3, 1, 2, 3]
+    REPRODUCED arrayops-append-many-self
+reproduced: {release: true, nightly: true}
+expected: |
+  [1, 2, 3, 1, 2, 3, 1, 2, 3] for both calls, i.e. vcat(a, a, a) of the original a.
+promised_by: |
+  append! docstring, base/array.jl:1389-1424: "add the elements of each collections
+  to the end of it", and "The result of the preceding example is equivalent to
+  push!([1, 2, 3], 4, 5, 6)". The append! docstring has no aliasing warning (unlike
+  splice! and keepat!).
+cause: |
+  base/array.jl:1437 `append!(a::AbstractVector, iter...) = (foreach(v -> append!(a, v), iter); a)`
+  and base/array.jl:1502 for prepend! loop over the collections and re-read a after
+  each step.
+possible_fix: |
+  Unalias every collection that is === a (or mightalias) before the loop, or compute the total length first and copy from the original contents.
+duplicates:
+  issues: []
+  queries: ["append aliasing", "append itself", "append! aliasing", "append! multiple", "prepend aliasing", "prepend!"]
+lean:
+  property: JuliaLean.ArrayOps.AppendManySpec
+  theorem: JuliaLean.ArrayOps.appendManySpec_refuted

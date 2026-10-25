@@ -1,0 +1,56 @@
+id: sockets-ipv4-overflow-error
+title: "parse(IPv4, \"1.2.3.999999999999999999999999\") throws OverflowError, not ArgumentError"
+priority: P3
+kind: wrong-exception
+area: Sockets
+files: [stdlib/Sockets/src/IPAddr.jl]
+functions: ["parse(::Type{IPv4}, ::AbstractString)"]
+summary: |
+  A dotted-quad field whose digits overflow Int64 escapes the parser as an
+  OverflowError from Base.parse(Int, ..) instead of the ArgumentError that
+  every other malformed field raises. The overflow check inside Base's
+  tryparse_internal takes precedence over the field range check that
+  parse(IPv4, ..) performs afterwards.
+likelihood: |
+  Rare: needs a field with about twenty digits. Malformed config data can
+  contain it, and callers that catch ArgumentError to validate input miss it.
+maybe_intended: |
+  Base.parse(Int, s) deliberately raises OverflowError, and Sockets does not
+  explicitly promise to translate that exception. This may be intended.
+reproducer: |
+  using Sockets
+  try
+      parse(IPv4, "1.2.3.999999999999999999999999")
+  catch e
+      println(nameof(typeof(e)))
+  end
+output:
+  release: |
+    parse(IPv4, "1.2.3.999999999999999999999999") threw OverflowError
+    REPRODUCED sockets-ipv4-overflow-error
+  nightly: |
+    parse(IPv4, "1.2.3.999999999999999999999999") threw OverflowError
+    REPRODUCED sockets-ipv4-overflow-error
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError ("IPv4 field out of range (must be 0-255)" or an
+  invalid-field error), as for "256.1.1.1" and "1.2.3.abc".
+promised_by: |
+  Consistency of the parser: every other rejected field raises ArgumentError
+  (stdlib/Sockets/src/IPAddr.jl:201, 205, 208, 213); the parse docstring says
+  an error is raised for input that is not a valid number
+  (base/parse.jl:5-35).
+cause: |
+  stdlib/Sockets/src/IPAddr.jl:210 delegates to parse(Int, f, base = 10),
+  which throws OverflowError for digit runs exceeding typemax(Int64)
+  (base/parse.jl:153-171) before the range check on line 212 runs.
+possible_fix: |
+  Parse fields into a bounded type (or tryparse and rethrow ArgumentError), or
+  check the field length before parsing.
+duplicates:
+  issues:
+    - {number: 40255, state: open, relation: related}
+  queries: ["IPv4 parse", "OverflowError parse", "parse IP address invalid", "ip_str"]
+lean:
+  property: JuliaLean.Sockets.IPv4ErrorIsArgument
+  theorem: JuliaLean.Sockets.ipv4ErrorIsArgument_refuted

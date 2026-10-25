@@ -1,0 +1,54 @@
+id: dicts-persistentdict-nothrow
+title: "KeyValue.set for PersistentDict is declared :nothrow but throws, so try/catch around it does not catch"
+priority: P2
+kind: crash
+area: Dicts
+files: [base/dict.jl, base/hamt.jl]
+functions: ["KeyValue.set(::PersistentDict{K,V}, ::K, ::V)", "PersistentDict(::PersistentDict, key, val)"]
+summary: |
+  KeyValue.set(dict::PersistentDict{K,V}, key::K, val::V) carries
+  Base.@assume_effects :nothrow :effect_free, but its insert! throws
+  error("Perfect hash collision") for two !== keys with equal objectid.
+  Inference then marks PersistentDict(p, k, v) as nothrow (+n), and in
+  compiled code a try/catch around it is dropped: the exception escapes the
+  catch block. If the result is unused, the call is removed entirely.
+  Issue #54740 reports the collision error itself but not the uncatchable
+  exception caused by the :nothrow annotation.
+likelihood: |
+  Needs an objectid collision (constructible for Int64/UInt64 keys, see
+  dicts-persistentdict-objectid-collision). The wrong effect annotation can
+  also justify other optimizations of code that relies on the error.
+maybe_intended: |
+  No: the annotation asserts the method cannot throw, and it can.
+reproducer: |
+  p = Base.PersistentDict{Any,Int}(8722453200027809036 => 1)
+  guarded(p, k) = try; return Base.PersistentDict(p, k, 2); catch; return :caught; end
+  guarded(p, 0x0000000000000001)   # ErrorException escapes instead of :caught
+output:
+  release: |
+    Base.infer_effects(Base.PersistentDict, (typeof(p), Any, Int)) = (!c,+e,+n,+t,+s,!m,!u,+o,!r)
+    guarded(p, y) = ErrorException("Perfect hash collision")
+    REPRODUCED dicts-persistentdict-nothrow
+  nightly: |
+    Base.infer_effects(Base.PersistentDict, (typeof(p), Any, Int)) = (!c,+e,!re,+n,+t,!s,!m,!u,!o,!r)
+    guarded(p, y) = ErrorException("Perfect hash collision")
+    REPRODUCED dicts-persistentdict-nothrow
+reproduced: {release: true, nightly: true}
+expected: |
+  guarded(p, y) returns :caught (or the insertion succeeds).
+promised_by: |
+  The method's own effect annotation, base/dict.jl:911-912
+  (`Base.@assume_effects :nothrow ... KeyValue.set(dict::PersistentDict{K,V},
+  key::K, val::V)`), and the try/catch semantics of the manual.
+cause: |
+  base/hamt.jl:205-208 can throw inside a method annotated :nothrow at
+  base/dict.jl:911.
+possible_fix: |
+  Drop :nothrow from the KeyValue.set annotations, or make insert! total by
+  handling perfect collisions.
+duplicates:
+  issues: []
+  queries: ["assume_effects nothrow PersistentDict", "try catch not caught assume_effects", "Perfect hash collision"]
+lean:
+  property: JuliaLean.Dicts.Persistent.PersistentSetNothrow
+  theorem: JuliaLean.Dicts.Persistent.persistentSetNothrow_refuted

@@ -1,0 +1,47 @@
+id: iobuffers-take-readonly-reset
+title: "take! on a read-only IOBuffer does not reset it, contrary to its docstring"
+priority: P3
+kind: documentation
+area: IOBuffers
+files: [base/iobuffer.jl]
+functions: ["take!(::IOBuffer)"]
+summary: |
+  The take! docstring says the IOBuffer is reset to its initial state afterwards. For a
+  buffer that is not writable (e.g. IOBuffer("abc")), take! returns a copy of all bytes
+  and leaves the buffer as it was: the position stays where it was and a second take!
+  returns the same bytes again.
+likelihood: |
+  Calling take! on a read-only buffer is unusual; code that relies on the documented
+  reset would read stale data.
+maybe_intended: |
+  A read-only buffer cannot hand over its memory, so not emptying it is deliberate
+  (base/iobuffer.jl:779 resets only when writable); the docstring does not mention this.
+reproducer: |
+  io = IOBuffer("abc")
+  read(io, UInt8)
+  take!(io)        # "abc"
+  position(io)     # 1, not 0
+output:
+  release: |
+    take! = "abc", position afterwards = 1, second take! = "abc"
+    REPRODUCED iobuffers-take-readonly-reset
+  nightly: |
+    take! = "abc", position afterwards = 1, second take! = "abc"
+    REPRODUCED iobuffers-take-readonly-reset
+reproduced: {release: true, nightly: true}
+expected: |
+  Either the documented reset (position 0, empty buffer) or a docstring that says
+  take! leaves a non-writable buffer unchanged.
+promised_by: |
+  take! docstring, base/iobuffer.jl:716-718: "Obtain the contents of an IOBuffer as an
+  array. Afterwards, the IOBuffer is reset to its initial state."
+cause: |
+  base/iobuffer.jl:779-784 resets ptr, size and offset only `if io.writable`.
+possible_fix: |
+  Document that take! on a non-writable buffer returns a copy and does not change it.
+duplicates:
+  issues: []
+  queries: ["take! read-only IOBuffer", "take! reset initial state"]
+lean:
+  property: JuliaLean.IOBuffers.TakeResets
+  theorem: JuliaLean.IOBuffers.takeResets_refuted

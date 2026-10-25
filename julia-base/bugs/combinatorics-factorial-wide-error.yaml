@@ -1,0 +1,63 @@
+id: combinatorics-factorial-wide-error
+title: "factorial throws InexactError before classifying large fixed-width and BigInt inputs"
+priority: P2
+kind: wrong-exception
+area: Combinatorics
+files: [base/combinatorics.jl, base/intfuncs.jl, base/gmp.jl]
+functions: ["factorial_lookup", "factorial(::UInt64)", "factorial(::Int128)", "factorial(::UInt128)", "factorial(::BigInt)"]
+summary: |
+  factorial converts its input to Int before checking its sign or the table limit. Large
+  nonnegative UInt64, Int128, and UInt128 values therefore throw InexactError instead of
+  OverflowError, while typemin(Int128) throws InexactError instead of DomainError. The
+  BigInt method likewise passes its argument directly to GMP's Culong factorial API, so
+  the first BigInt above typemax(Culong) also leaks InexactError.
+likelihood: |
+  These inputs are far beyond practical factorial arguments. Generic code can still
+  reach the exception mismatch when validating or forwarding wide counters.
+maybe_intended: ""
+reproducer: |
+  for n in Any[typemax(UInt64), typemax(Int128), typemax(UInt128), typemin(Int128),
+               big(typemax(Culong)) + 1]
+      try
+          factorial(n)
+      catch err
+          println(typeof(n), ": ", nameof(typeof(err)))
+      end
+  end
+output:
+  release: |
+    factorial(0xffffffffffffffff::UInt64): InexactError
+    factorial(170141183460469231731687303715884105727::Int128): InexactError
+    factorial(0xffffffffffffffffffffffffffffffff::UInt128): InexactError
+    factorial(-170141183460469231731687303715884105728::Int128): InexactError
+    factorial(18446744073709551616::BigInt): InexactError
+    REPRODUCED combinatorics-factorial-wide-error
+  nightly: |
+    factorial(0xffffffffffffffff::UInt64): InexactError
+    factorial(170141183460469231731687303715884105727::Int128): InexactError
+    factorial(0xffffffffffffffffffffffffffffffff::UInt128): InexactError
+    factorial(-170141183460469231731687303715884105728::Int128): InexactError
+    factorial(18446744073709551616::BigInt): InexactError
+    REPRODUCED combinatorics-factorial-wide-error
+reproduced: {release: true, nightly: true}
+expected: |
+  The three nonnegative calls should throw OverflowError, as factorial(21) does. The
+  negative Int128 call should throw DomainError, as factorial(Int128(-1)) does. The
+  BigInt call should throw an explicit OverflowError explaining the Culong/resource
+  limit, as the corresponding huge binomial call does.
+promised_by: |
+  The factorial docstring at base/intfuncs.jl:1305-1324 says fixed-width results may
+  overflow and demonstrates OverflowError for an excessive argument.
+cause: |
+  base/combinatorics.jl:24 executes idx = Int(n) before line 26 checks idx > lim, so the
+  fixed-width narrowing conversion fails first. base/gmp.jl:717 calls MPZ.fac_ui(n),
+  whose wrapper at line 227 passes n to a Culong argument without a range check.
+possible_fix: |
+  Compare fixed-width n with zero and lim before converting it to Int. Check BigInt n
+  against typemax(Culong) and throw an intentional resource-limit exception before GMP.
+duplicates:
+  issues: []
+  queries: ["factorial UInt64 InexactError", "factorial UInt128 InexactError", "factorial Int128 InexactError", "factorial BigInt Culong", "factorial BigInt InexactError", "factorial big typemax UInt64", "__gmpz_fac_ui factorial"]
+lean:
+  property: JuliaLean.Combinatorics.FactorialContract
+  theorem: JuliaLean.Combinatorics.factorialContract_refuted

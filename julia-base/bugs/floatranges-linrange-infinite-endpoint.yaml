@@ -1,0 +1,56 @@
+id: floatranges-linrange-infinite-endpoint
+title: LinRange(0.0, Inf, 3)[1] is NaN while first(r) is 0.0
+priority: P3
+kind: wrong-result
+area: FloatRanges
+files:
+- base/range.jl
+functions:
+- getindex(::LinRange, ::Integer)
+- first(::LinRange)
+- lerpi
+summary: |
+  LinRange accepts infinite endpoints, but indexing computes 0.0*Inf = NaN in lerpi, so
+  r[1] disagrees with first(r) (and r[end] with last(r) for LinRange(-Inf, 0.0, 3)).
+likelihood: |
+  Needs an infinite endpoint; rare.
+maybe_intended: |
+  A LinRange with an infinite endpoint has no meaningful interior; range(0.0, Inf;
+  length=3) throws ArgumentError instead.
+reproducer: |
+  r = LinRange(0.0, Inf, 3)
+  println("first(r) = ", first(r), "   r[1] = ", r[1])
+  println("collect(r) = ", collect(r))
+  isnan(r[1]) && first(r) == 0.0 && println("REPRODUCED floatranges-linrange-infinite-endpoint")
+output:
+  release: |
+    first(r) = 0.0   r[1] = NaN
+    collect(r) = [NaN, Inf, Inf]
+    REPRODUCED floatranges-linrange-infinite-endpoint
+  nightly: |
+    first(r) = 0.0   r[1] = NaN
+    collect(r) = [NaN, Inf, Inf]
+    REPRODUCED floatranges-linrange-infinite-endpoint
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  LinRange(0.0, Inf, 3)[1] == 0.0, or an ArgumentError from the constructor as range
+  gives.
+promised_by: |
+  invariant: r[1] == first(r) and r[end] == last(r) (base/range.jl:870,879,990).
+cause: |
+  base/range.jl:992-996: lerpi(0, d, a, b) = (1-0)*a + 0*b, and 0*Inf is NaN; the
+  constructor (base/range.jl:597-610) does not reject nonfinite endpoints.
+possible_fix: |
+  Reject nonfinite endpoints in the LinRange constructor, or return the endpoints directly
+  for j == 0 and j == d.
+duplicates:
+  issues: []
+  queries:
+  - LinRange Inf
+  - LinRange NaN
+  - LinRange
+lean:
+  property: JuliaLean.FloatRanges.LinIndexEndpoints
+  theorem: JuliaLean.FloatRanges.linIndexEndpoints_refuted

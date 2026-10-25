@@ -1,0 +1,51 @@
+id: markdown-plain-empty-code-span
+title: "Markdown.plain prints an empty code span as `` which reparses as text"
+priority: P3
+kind: wrong-result
+area: Markdown
+files: [stdlib/Markdown/src/render/plain.jl]
+functions: ["Markdown.plaininline(::IO, ::Markdown.Code)"]
+summary: |
+  ``Markdown.parse("a ` ` b")`` contains `Code("", "")` (HTML `<code></code>`). `plain` prints it
+  as two backticks, which the parser reads as an unclosed code-span opener, i.e. the literal text
+  `` `` ``.
+likelihood: |
+  Only empty or whitespace-only code spans; contrived.
+maybe_intended: ""
+reproducer: |
+  using Markdown
+  md = Markdown.parse("a ` ` b")
+  p = Markdown.plain(md)
+  md2 = Markdown.parse(p)
+  println("content = ", repr(md.content))
+  println("plain   = ", repr(p))
+  println("html    = ", repr(Markdown.html(md)), " vs ", repr(Markdown.html(md2)))
+  md2 != md && println("REPRODUCED markdown-plain-empty-code-span")
+output:
+  release: |
+    content = Any[Markdown.Paragraph(Any["a ", Markdown.Code("", ""), " b"])]
+    plain   = "a `` b\n"
+    html    = "<p>a <code></code> b</p>\n" vs "<p>a &#96;&#96; b</p>\n"
+    REPRODUCED markdown-plain-empty-code-span
+  nightly: |
+    content = Any[Markdown.Paragraph(Any["a ", Markdown.Code("", ""), " b"])]
+    plain   = "a `` b\n"
+    html    = "<p>a <code></code> b</p>\n" vs "<p>a `` b</p>\n"
+    REPRODUCED markdown-plain-empty-code-span
+reproduced: {release: true, nightly: true}
+expected: |
+  `Markdown.parse(Markdown.plain(md)) == md`, e.g. printing `` ` ` ``.
+promised_by: |
+  `show(io, ::MIME"text/markdown", md::MD) = plain(io, md)` (stdlib/Markdown/src/render/plain.jl:170).
+cause: |
+  stdlib/Markdown/src/render/plain.jl:157: `print(io, "`", md.code, "`")` with empty `md.code` yields "``", a
+  two-backtick opener with no closer (`read_code_span`, stdlib/Markdown/src/Common/inline.jl:64-70).
+possible_fix: |
+  Print `` ` ` `` (a space between the backticks) for empty code.
+duplicates:
+  issues:
+    - {number: 35917, state: open, relation: related}
+  queries: ["Markdown code span empty", "Markdown plain", "Markdown roundtripability"]
+lean:
+  property: JuliaLean.Markdown.PlainCodeSpan
+  theorem: JuliaLean.Markdown.plainCodeSpan_refuted

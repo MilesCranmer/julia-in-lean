@@ -1,0 +1,65 @@
+id: iddicts-idset-eltype
+title: "IdSet{T} push! accepts values of any type; iteration then throws TypeError and union! drops elements"
+priority: P2
+kind: missing-error
+area: IdDicts
+files: [base/idset.jl, base/abstractset.jl]
+functions: ["push!(::IdSet, x)", "iterate(::IdSet)", "IdSet{T}(itr)", "union!(::IdSet, itr)"]
+summary: |
+  push!(s::IdSet, x) (base/idset.jl:48-70) neither converts x to the element
+  type nor checks isa(x, T), unlike Set (convert) and IdDict keys
+  (KeyTypeError, base/iddict.jl:80). IdSet{Int}() accepts "a string"; in and
+  length report it, and the set looks healthy until iterate's
+  s.list[state]::S cast (base/idset.jl:125) throws TypeError in collect or
+  any loop. union! trusts the element type too: it stops once
+  length(s) == max_values(T) (base/abstractset.jl:109), so
+  IdSet{Bool}(Any[1, 2, true, false]) stops after storing 1 and 2 and
+  contains neither true nor false.
+likelihood: |
+  Any code that pushes values of a different type into a parameterized
+  IdSet (IdSet is exported since 1.11). The error surfaces far from the
+  push! that caused it.
+maybe_intended: |
+  IdSet is mostly used as IdSet{Any}, where no check is needed, and push!
+  takes @nospecialize(x) for speed. The docstring says the set holds "values
+  of type T", and eltype(s) is T, so the unchecked store still breaks the
+  type's own contract.
+reproducer: |
+  s = IdSet{Int}()
+  push!(s, "a string")     # accepted
+  collect(s)               # TypeError
+  true in IdSet{Bool}(Any[1, 2, true, false])   # false
+output:
+  release: |
+    IdSet{Int} push!(s, "a string"): in = true, length = 1
+    collect(s) threw: TypeError
+    push!(Set{Int}(), "a string") threw: MethodError
+    IdSet{Bool}(Any[1, 2, true, false]): length = 2, true in = false, false in = false
+    REPRODUCED iddicts-idset-eltype
+  nightly: |
+    IdSet{Int} push!(s, "a string"): in = true, length = 1
+    collect(s) threw: TypeError
+    push!(Set{Int}(), "a string") threw: MethodError
+    IdSet{Bool}(Any[1, 2, true, false]): length = 2, true in = false, false in = false
+    REPRODUCED iddicts-idset-eltype
+reproduced: {release: true, nightly: true}
+expected: |
+  push! converts x to T or throws (as push!(Set{Int}(), "a string") throws
+  MethodError), so every element of an IdSet{T} is a T and iteration never
+  throws.
+promised_by: |
+  IdSet docstring, base/idset.jl:7-8: "IdSet{T}() constructs a set ... with
+  values of type T"; iterate (base/idset.jl:121-126) returns
+  s.list[state]::S, i.e. claims every element is an S.
+cause: |
+  base/idset.jl:48-70 stores @nospecialize(x) into s.list without convert or
+  isa check (compare base/iddict.jl:80 for IdDict keys).
+possible_fix: |
+  Start push! with `x isa T || (x = convert(T, x)::T)` as Set does, or throw
+  a TypeError like IdDict's KeyTypeError.
+duplicates:
+  issues: []
+  queries: ["IdSet push convert", "IdSet eltype", "IdSet TypeError", "IdSet convert check", "IdSet"]
+lean:
+  property: JuliaLean.IdDicts.IdSetElemsHaveEltype
+  theorem: JuliaLean.IdDicts.idSetElemsHaveEltype_refuted

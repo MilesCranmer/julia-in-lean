@@ -1,0 +1,49 @@
+id: bitarrays-reverse-dims-empty
+title: "reverse(::BitArray; dims) throws \"step cannot be zero\" for some empty BitArrays"
+priority: P2
+kind: wrong-exception
+area: BitArrays
+files: [base/bitarray.jl]
+functions: ["reverse(::BitArray; dims)", "_reverse(::BitArray, ::Int)"]
+summary: |
+  reverse(falses(0, 7); dims=1) and reverse(falses(0, 7); dims=2) throw
+  ArgumentError("step cannot be zero"), while reverse(zeros(Bool, 0, 7); dims=d)
+  returns a 0×7 matrix. Any BitArray with a zero-length dimension before (or
+  at) the reversed one and a non-singleton other dimension is affected.
+likelihood: |
+  Generic code that reverses masks along a dimension and meets an empty mask
+  (for example from an empty selection). Throws rather than returning silently
+  wrong data.
+maybe_intended: ""
+reproducer: |
+  reverse(falses(0, 7); dims=2)        # ArgumentError: step cannot be zero
+  reverse(zeros(Bool, 0, 7); dims=2)   # 0×7 Matrix{Bool}
+output:
+  release: |
+    "ArgumentError: step cannot be zero" | "ArgumentError: step cannot be zero"
+    0×7 Matrix{Bool} | 0×7 Matrix{Bool}
+    REPRODUCED bitarrays-reverse-dims-empty
+  nightly: |
+    "ArgumentError: step cannot be zero" | "ArgumentError: step cannot be zero"
+    0×7 Matrix{Bool} | 0×7 Matrix{Bool}
+    REPRODUCED bitarrays-reverse-dims-empty
+reproduced: {release: true, nightly: true}
+expected: |
+  An empty BitArray of the same size, as for Array{Bool}.
+promised_by: |
+  reverse(A; dims) reverses A along dimension dims for any array; a BitArray
+  should behave like Array{Bool}.
+cause: |
+  _reverse (base/bitarray.jl:1217-1261) computes M = prod(size(A)[1:d-1]) and
+  stride = M * size(A, d) (line 1241) and then iterates j = 0:stride:(N-stride)
+  (lines 1244 and 1253). When the leading or reversed dimension is 0 the stride
+  is 0 and constructing the StepRange throws.
+possible_fix: |
+  Return similar(A) (or copy(A)) early when isempty(A).
+duplicates:
+  issues:
+    - {number: 58085, state: closed, relation: related}
+  queries: ["issues: reverse BitArray", "issues: reverse dims empty", "issues: step cannot be zero reverse", "prs: reverse BitArray", "issues: BitMatrix reverse"]
+lean:
+  property: JuliaLean.BitArrays.ReverseDimsAgrees
+  theorem: JuliaLean.BitArrays.reverseDimsAgrees_refuted

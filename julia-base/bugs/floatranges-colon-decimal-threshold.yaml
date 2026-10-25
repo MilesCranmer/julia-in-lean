@@ -1,0 +1,71 @@
+id: floatranges-colon-decimal-threshold
+title: (0.0:0.1:16777217.0)[4] == 0.30000000000000004 while (0.0:0.1:16777216.0)[4] == 0.3
+priority: P2
+kind: wrong-result
+area: FloatRanges
+files:
+- base/twiceprecision.jl
+functions:
+- (:)(::Float64, ::Float64, ::Float64)
+- rat(::Float64)
+summary: |
+  The decimal correction of a:s:b (which makes 0.0:0.1:0.3 end at 0.3) silently switches
+  off whenever an endpoint exceeds 2^24 in magnitude, because rat refuses such values. All
+  elements are then computed literally, so 0.3 becomes 0.30000000000000004 just by
+  enlarging the stop.
+likelihood: |
+  Plausible: decimal steps with large stops (sample times up to 2e7, coordinates in
+  metres) are common; the elements differ from the small-stop range by an ulp.
+maybe_intended: |
+  rat is documented internally as a heuristic ("not guaranteed to return a precise
+  answer", base/twiceprecision.jl:754-756), and 2^24 is its bound on numerators. The user-
+  visible promise in the range docstring has no such limit.
+reproducer: |
+  for b in (1.6777216e7, 1.6777217e7, 2.0e7)
+      r = 0.0:0.1:b
+      println("(0.0:0.1:$b)[4] = ", repr(r[4]), "   length = ", length(r))
+  end
+  (0.0:0.1:1.6777216e7)[4] === 0.3 && (0.0:0.1:1.6777217e7)[4] !== 0.3 &&
+      println("REPRODUCED floatranges-colon-decimal-threshold")
+output:
+  release: |
+    (0.0:0.1:1.6777216e7)[4] = 0.3   length = 167772161
+    (0.0:0.1:1.6777217e7)[4] = 0.30000000000000004   length = 167772171
+    (0.0:0.1:2.0e7)[4] = 0.30000000000000004   length = 200000001
+    REPRODUCED floatranges-colon-decimal-threshold
+  nightly: |
+    (0.0:0.1:1.6777216e7)[4] = 0.3   length = 167772161
+    (0.0:0.1:1.6777217e7)[4] = 0.30000000000000004   length = 167772171
+    (0.0:0.1:2.0e7)[4] = 0.30000000000000004   length = 200000001
+    REPRODUCED floatranges-colon-decimal-threshold
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  (0.0:0.1:16777217.0)[4] == 0.3, the same element as in 0.0:0.1:16777216.0.
+promised_by: |
+  range docstring, base/range.jl:138: "Special care is taken to ensure intermediate values
+  are computed rationally." base/twiceprecision.jl:5-7 states the goal r = 0.1:0.1:0.3
+  with r[3] == 0.3.
+cause: |
+  base/twiceprecision.jl:761-762: rat's loop runs only while abs(y) <=
+  maxintfloat(Float32) = 2^24, so rat(16777217.0) returns (1, 0); stop_d == 0 at
+  base/twiceprecision.jl:402 skips the rational branch.
+possible_fix: |
+  Treat integer-valued endpoints up to maxintfloat(Float64) as rationals with denominator
+  1 instead of calling rat on them.
+duplicates:
+  issues:
+  - number: 33677
+    state: open
+    relation: related
+  queries:
+  - 0.1:0.1 large
+  - range rational rat
+  - rat twiceprecision
+  - range 2^24
+  - maxintfloat rat
+  - range decimal
+lean:
+  property: JuliaLean.FloatRanges.ColonDecimal
+  theorem: JuliaLean.FloatRanges.colonDecimal_refuted

@@ -1,0 +1,53 @@
+id: mathfuncs-rem2pi-float32-range
+title: "mod2pi and rem2pi(::Float32) return values outside the documented intervals"
+priority: P3
+kind: documentation
+area: MathFuncs
+files: [base/special/rem2pi.jl, base/math.jl]
+functions: ["mod2pi(::Float32)", "rem2pi(::Float32, RoundDown)", "rem2pi(::Float32, RoundUp)"]
+summary: |
+  rem2pi(x::Float32, r) rounds the Float64 result to Float32. For small negative
+  x, the Float64 value just below 2π rounds up to 6.2831855f0, which exceeds 2π,
+  so mod2pi(-1f-10) violates the documented range [0, 2π). Likewise
+  rem2pi(tiny positive, RoundUp) returns -6.2831855f0 < -2π.
+likelihood: |
+  Every negative Float32 with magnitude below about 2.4e-7 hits it, e.g.
+  normalizing a slightly negative angle. Code that bins mod2pi(x)/2π into N
+  buckets can then get index N.
+maybe_intended: |
+  6.2831855f0 is the correctly rounded Float32 value of the exact remainder,
+  so the numerics are arguably right and the documentation lacks a rounding
+  caveat (mod's docstring has a similar one; see float-rem-down-bound).
+reproducer: |
+  mod2pi(-1f-10)              # 6.2831855f0 > 2π
+  rem2pi(1f-45, RoundUp)      # -6.2831855f0 < -2π
+output:
+  release: |
+    mod2pi(-1.0f-45) = 6.2831855f0  >= 2pi: true
+    rem2pi(-1.0f-45, RoundDown) = 6.2831855f0  > 2pi: true
+    rem2pi(1.0f-45, RoundUp) = -6.2831855f0  < -2pi: true
+    REPRODUCED mathfuncs-rem2pi-float32-range
+  nightly: |
+    mod2pi(-1.0f-45) = 6.2831855f0  >= 2pi: true
+    rem2pi(-1.0f-45, RoundDown) = 6.2831855f0  > 2pi: true
+    rem2pi(1.0f-45, RoundUp) = -6.2831855f0  < -2pi: true
+    REPRODUCED mathfuncs-rem2pi-float32-range
+reproduced: {release: true, nightly: true}
+expected: |
+  Either results within [0, 2π) / [-2π, 0] (e.g. prevfloat(Float32(2π)) when
+  rounding lands on or beyond 2π), or documentation that Float32 results may
+  round to ±Float32(2π).
+promised_by: |
+  base/math.jl:1223 (mod2pi): "returning in the range [0,2π)".
+  base/math.jl:1204,1206 (rem2pi): RoundDown result in [0, 2π]; RoundUp in [-2π, 0].
+cause: |
+  base/special/rem2pi.jl:133 rem2pi(x::Float32, r) = Float32(rem2pi(Float64(x), r)).
+  Float32(2π) = 6.2831855f0 lies above 2π, so final rounding can leave the interval.
+possible_fix: |
+  Document the rounding caveat, or clamp the Float32 result to prevfloat(Float32(2π)).
+duplicates:
+  issues: []
+  queries: ["mod2pi Float32", "rem2pi Float32", "mod2pi range", "rem2pi range", "mod2pi returns 2pi", "mod2pi", "rem2pi"]
+lean:
+  property: JuliaLean.MathFuncs.rem2piFloat32Range
+  theorem: JuliaLean.MathFuncs.rem2piFloat32Range_refuted

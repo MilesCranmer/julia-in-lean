@@ -1,0 +1,51 @@
+id: shellcmd-show-env-nonascii-key
+title: "show(::Cmd) throws StringIndexError for an environment variable whose name starts with a non-ASCII character"
+priority: P2
+kind: crash
+area: ShellCmd
+files: [base/cmd.jl]
+functions: ["show(::IO, ::Cmd)", "Base.show_env"]
+summary: |
+  On master, show(::Cmd) prints the environment through show_env, which locates the '='
+  of each entry with findnext('=', e, 2). When the variable name starts with a multi-byte
+  character, byte 2 is inside it and findnext throws StringIndexError, so printing
+  setenv(`env`, "é" => "1") (in the REPL, in an error message, with repr) throws. This is
+  a regression: 1.13.2 prints setenv(`env`,["é=1"]).
+likelihood: |
+  Low: non-ASCII leading characters in variable names are uncommon, but any such Cmd
+  becomes unprintable, including inside ProcessFailedException messages.
+maybe_intended: ""
+reproducer: |
+  c = setenv(`env`, "é" => "1")
+  repr(c)   # StringIndexError("é=1", 2) on master
+output:
+  release: |
+    c.env = ["é=1"]
+    repr(c) = "setenv(`env`,[\"é=1\"])"
+  nightly: |
+    c.env = ["é=1"]
+    repr(c) = StringIndexError("é=1", 2)
+    REPRODUCED shellcmd-show-env-nonascii-key
+reproduced: {release: false, nightly: true}
+expected: |
+  "setenv(`env`,[\"é=1\"])", as in 1.13.2.
+promised_by: |
+  Invariant: show of a valid object does not throw; setenv accepts the name
+  (base/cmd.jl:358-360).
+cause: |
+  base/cmd.jl:167 (show_env, added by #61287): `eqidx = findnext('=', e, 2)` with byte
+  index 2, which is not a character index when the first character has more than one
+  byte. Same pattern as splitenv (shellcmd-addenv-nonascii-key).
+possible_fix: |
+  Search from nextind(e, firstindex(e)), and handle empty entries.
+duplicates:
+  issues:
+    - {number: 61287, state: merged, relation: related}
+  queries:
+    - "issues/prs: show_env"
+    - "issues/prs: Redact sensitive env vars"
+    - "issues/prs: environment variable non-ASCII Cmd"
+    - "issues/prs: setenv StringIndexError"
+lean:
+  property: JuliaLean.ShellCmd.ShowEnvTotal
+  theorem: JuliaLean.ShellCmd.showEnvTotal_refuted

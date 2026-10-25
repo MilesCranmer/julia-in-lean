@@ -1,0 +1,56 @@
+id: reduce-count-init-float
+title: "count(::Array{Bool}; init=0.0) throws MethodError while count over a tuple returns 1.0"
+priority: P3
+kind: wrong-exception
+area: Reduce
+files: [base/reduce.jl]
+functions: ["count(A::Array{Bool}; init)", "count(identity, A::Array{Bool}; init)", "_simple_count"]
+summary: |
+  count with a Float64 init works for tuples, generators and Bool matrices with
+  dims, but throws MethodError: no method matching rem(::Float64,
+  ::Type{Float64}) for an Array{Bool} or a BitArray (also count(identity, A)).
+  An empty Array{Bool} returns 0.0 because the failing % is never reached.
+likelihood: |
+  Low: a floating-point init for count is unusual, but the docstring says init
+  chooses the output type.
+maybe_intended: |
+  init for count is meant to be an integer in practice; the docstring example
+  uses UInt(0). Nothing documents a restriction.
+reproducer: |
+  count((true, false); init=0.0)   # 1.0
+  count([true, false]; init=0.0)   # MethodError
+output:
+  release: |
+    1.0 MethodError
+    REPRODUCED reduce-count-init-float
+    count([true, false]; init = 0.0)                             => THROWS MethodError: no method matching rem(::Float64, ::Type{Float64})
+    count((true, false); init = 0.0)                             => 1.0
+    count(trues(2); init = 0.0)                                  => THROWS MethodError: no method matching rem(::Float64, ::Type{Float64})
+    count([true false]; dims = 2, init = 0.0)                    => [1.0;;]
+  nightly: |
+    1.0 MethodError
+    REPRODUCED reduce-count-init-float
+    count([true, false]; init = 0.0)                             => THROWS MethodError: no method matching rem(::Float64, ::Core.TypeEgal{Float64})
+    count((true, false); init = 0.0)                             => 1.0
+    count(trues(2); init = 0.0)                                  => THROWS MethodError: no method matching rem(::Float64, ::Core.TypeEgal{Float64})
+    count([true false]; dims = 2, init = 0.0)                    => [1.0;;]
+reproduced: {release: true, nightly: true}
+expected: |
+  1.0, the same value count returns for the tuple and for the matrix with dims.
+promised_by: |
+  base/reduce.jl:1067-1072 (count docstring): "init optionally specifies the value
+  to start counting from and therefore also determines the output type."
+cause: |
+  base/reduce.jl:1097-1113: _simple_count(::typeof(identity), x::Array{Bool}, init)
+  accumulates with n = (n + c) % T, T = typeof(add_sum(init, false)); x % T exists
+  only for integer T. bitcount for BitArray (base/bitarray.jl) does the same.
+possible_fix: |
+  Use % T only for T <: Integer and plain n + c otherwise, or fall back to
+  sum(_bool(identity), x; init) for non-integer init.
+duplicates:
+  issues:
+    - {number: 59869, state: open, relation: related}
+  queries: ["count init Float64", "count init rem", "count Array{Bool} init", "_simple_count"]
+lean:
+  property: JuliaLean.Reduce.CountInitAgrees
+  theorem: JuliaLean.Reduce.countInitAgrees_refuted

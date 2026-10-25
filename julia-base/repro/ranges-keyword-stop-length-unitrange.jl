@@ -1,0 +1,5 @@
+r = range(stop=UInt(10), length=5)
+println("range(stop=UInt(10), length=5) = ", repr(r))
+println("typeof = ", typeof(r))
+println("expected a UnitRange (range docstring: Integers, only `length` and `stop` provided)")
+!(r isa UnitRange) && r isa StepRangeLen && println("REPRODUCED ranges-keyword-stop-length-unitrange")

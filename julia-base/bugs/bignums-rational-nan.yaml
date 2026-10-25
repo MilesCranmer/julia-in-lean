@@ -1,0 +1,70 @@
+id: bignums-rational-nan
+title: "Rational{BigInt}(NaN) throws ArgumentError from its own 0//0 return value instead of InexactError"
+priority: P3
+kind: wrong-exception
+area: BigNums
+files: [base/mpfr.jl]
+functions: ["Rational{BigInt}(::AbstractFloat)", "Rational(::BigFloat)"]
+summary: |
+  Rational{BigInt}(x::AbstractFloat) starts with isnan(x) && return
+  zero(BigInt) // zero(BigInt). Constructing 0//0 throws ArgumentError("invalid
+  rational: zero(BigInt)//zero(BigInt)"), so Rational{BigInt}(NaN) and
+  Rational(big(NaN)) report a confusing error about 0//0, while Rational{Int}(NaN)
+  throws InexactError like every other lossy conversion.
+likelihood: |
+  Only for NaN inputs, which have no rational value anyway; the exception type and
+  message differ between Rational{Int} and Rational{BigInt}.
+maybe_intended: |
+  The method may have been written when 0//0 was a constructible value; the line now
+  serves only to throw.
+reproducer: |
+  function res(f)
+      try
+          return repr(f())
+      catch e
+          return "throws " * string(typeof(e))
+      end
+  end
+  a = res(() -> Rational{Int}(NaN))
+  b = res(() -> Rational{BigInt}(NaN))
+  c = res(() -> Rational(big(NaN)))
+  d = res(() -> Rational{Int}(big(NaN)))
+  println("Rational{Int}(NaN)      -> ", a)
+  println("Rational{BigInt}(NaN)   -> ", b)
+  println("Rational(big(NaN))      -> ", c)
+  println("Rational{Int}(big(NaN)) -> ", d)
+  if a == "throws InexactError" && b == "throws ArgumentError"
+      println("REPRODUCED bignums-rational-nan")
+  end
+output:
+  release: |
+    Rational{Int}(NaN)      -> throws InexactError
+    Rational{BigInt}(NaN)   -> throws ArgumentError
+    Rational(big(NaN))      -> throws ArgumentError
+    Rational{Int}(big(NaN)) -> throws InexactError
+    REPRODUCED bignums-rational-nan
+  nightly: |
+    Rational{Int}(NaN)      -> throws InexactError
+    Rational{BigInt}(NaN)   -> throws ArgumentError
+    Rational(big(NaN))      -> throws ArgumentError
+    Rational{Int}(big(NaN)) -> throws InexactError
+    REPRODUCED bignums-rational-nan
+reproduced: {release: true, nightly: true}
+expected: |
+  InexactError, as Rational{Int}(NaN) and Rational{Int}(big(NaN)) throw.
+promised_by: |
+  Consistency of conversions: base/essentials.jl convert docstring ("If T cannot
+  represent x ... an InexactError may be thrown"), as Rational{T}(::AbstractFloat)
+  does for every machine T.
+cause: |
+  base/mpfr.jl:565-566: the NaN branch builds zero(BigInt)//zero(BigInt), which
+  Rational{BigInt}(num, den) rejects with __throw_rational_argerror_zero
+  (base/gmp.jl:1004-1006). Lines 566-567 on 1.13.2.
+possible_fix: |
+  isnan(x) && throw(InexactError(:Rational, Rational{BigInt}, x))
+duplicates:
+  issues: []
+  queries: ["Rational NaN InexactError", "Rational(NaN)", "Rational BigInt infinity", "BigFloat Rational"]
+lean:
+  property: JuliaLean.BigNums.RationalOfNaNInexact
+  theorem: JuliaLean.BigNums.rationalOfNaNInexact_refuted

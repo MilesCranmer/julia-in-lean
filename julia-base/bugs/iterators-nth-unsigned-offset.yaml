@@ -1,0 +1,54 @@
+id: iterators-nth-unsigned-offset
+title: Iterators.nth(A, n::UInt) throws BoundsError for arrays with negative firstindex
+priority: P3
+kind: wrong-exception
+area: Iterators
+files:
+- base/iterators.jl
+functions:
+- nth(::AbstractArray, n)
+summary: |
+  nth(itr::AbstractArray, n) indexes itr[begin + n - 1]. For an unsigned n the
+  sum is computed in UInt64, so a negative firstindex wraps to a huge index:
+  nth(Base.IdentityUnitRange(-5:-3), UInt(1)) throws BoundsError although
+  nth(A, 1) == -5.
+likelihood: |
+  Needs an array with negative first index (OffsetArrays, IdentityUnitRange)
+  and an unsigned element number. Rare.
+maybe_intended: ''
+reproducer: |
+  # nth(A, n) computes begin + n - 1 in UInt when n is unsigned, so negative firstindex breaks
+  A = Base.IdentityUnitRange(-5:-3)
+  ri = Iterators.nth(A, 1)
+  ru = try Iterators.nth(A, UInt(1)) catch e; e end
+  println("nth(A, 1) = ", ri, ", nth(A, UInt(1)) = ", ru isa Exception ? sprint(showerror, ru) : repr(ru))
+  ri == -5 && ru isa BoundsError && println("REPRODUCED iterators-nth-unsigned-offset")
+output:
+  release: |
+    nth(A, 1) = -5, nth(A, UInt(1)) = BoundsError: attempt to access 3-element Base.IdentityUnitRange{UnitRange{Int64}} with indices -5:-3 at index [0xfffffffffffffffb]
+    REPRODUCED iterators-nth-unsigned-offset
+  nightly: |
+    nth(A, 1) = -5, nth(A, UInt(1)) = BoundsError: attempt to access 3-element Base.IdentityUnitRange{UnitRange{Int64}} with indices -5:-3 at index [0xfffffffffffffffb]
+    REPRODUCED iterators-nth-unsigned-offset
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  nth(A, UInt(1)) == -5.
+promised_by: |
+  nth docstring, base/iterators.jl:1728-1731: "Get the n-th element of an
+  iterable collection", n::Integer.
+cause: |
+  base/iterators.jl:1756, itr[begin + n - 1] promotes Int and UInt64 to UInt64.
+possible_fix: |
+  Convert first: itr[begin + (Int(n) - 1)], or compare n against length before
+  indexing.
+duplicates:
+  issues: []
+  queries:
+  - nth unsigned
+  - nth offset
+  - Iterators.nth
+lean:
+  property: JuliaLean.Iterators.NthAnyIntegerType
+  theorem: JuliaLean.Iterators.nthAnyIntegerType_refuted

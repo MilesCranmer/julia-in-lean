@@ -1,0 +1,62 @@
+id: floatranges-linrange-reverse
+title: reverse(LinRange(0.0, 1.0, 4)) does not hold the elements in reverse order
+priority: P2
+kind: wrong-result
+area: FloatRanges
+files:
+- base/range.jl
+functions:
+- reverse(::LinRange)
+summary: |
+  reverse(r::LinRange) builds LinRange(stop, start, len), whose elements are computed by
+  lerpi from the other end and differ by an ulp from the original ones:
+  reverse(LinRange(0.0, 1.0, 4))[2] == 0.6666666666666667 but LinRange(0.0, 1.0, 4)[3] ==
+  0.6666666666666666.
+likelihood: |
+  Ordinary inputs; most LinRanges with non-dyadic spacing differ somewhere.
+maybe_intended: |
+  LinRange documents uncorrected floating-point error, but reverse is documented to return
+  the same elements reversed, and collect(reverse(r)) != reverse(collect(r)).
+reproducer: |
+  r = LinRange(0.0, 1.0, 4)
+  println("collect(r)          = ", collect(r))
+  println("collect(reverse(r)) = ", collect(reverse(r)))
+  println("reverse(collect(r)) = ", reverse(collect(r)))
+  collect(reverse(r)) != reverse(collect(r)) && println("REPRODUCED floatranges-linrange-reverse")
+output:
+  release: |
+    collect(r)          = [0.0, 0.3333333333333333, 0.6666666666666666, 1.0]
+    collect(reverse(r)) = [1.0, 0.6666666666666667, 0.33333333333333337, 0.0]
+    reverse(collect(r)) = [1.0, 0.6666666666666666, 0.3333333333333333, 0.0]
+    REPRODUCED floatranges-linrange-reverse
+  nightly: |
+    collect(r)          = [0.0, 0.3333333333333333, 0.6666666666666666, 1.0]
+    collect(reverse(r)) = [1.0, 0.6666666666666667, 0.33333333333333337, 0.0]
+    reverse(collect(r)) = [1.0, 0.6666666666666666, 0.3333333333333333, 0.0]
+    REPRODUCED floatranges-linrange-reverse
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  collect(reverse(r)) == reverse(collect(r)).
+promised_by: |
+  reverse docstring, base/array.jl:2213-2215: "Return a copy of v reversed from start to
+  stop."
+cause: |
+  base/range.jl:1443 recomputes elements with lerpi(j, d, stop, start), which is not
+  lerpi(d-j, d, start, stop) bit for bit (t = j/d and 1 - (d-j)/d round differently).
+possible_fix: |
+  Make lerpi symmetric (e.g. interpolate from the nearer endpoint) or represent the
+  reversal by index.
+duplicates:
+  issues:
+  - number: 37276
+    state: open
+    relation: related
+  queries:
+  - LinRange reverse
+  - range reverse
+  - lerpi
+lean:
+  property: JuliaLean.FloatRanges.LinReverse
+  theorem: JuliaLean.FloatRanges.linReverse_refuted

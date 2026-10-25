@@ -1,0 +1,62 @@
+id: broadcastviews-repeated-index-alias
+title: "@views x[idx] .+= 1 adds twice for repeated indices while x[idx] .+= 1 adds once"
+priority: P3
+kind: wrong-result
+area: BroadcastViews
+files: [base/broadcast.jl]
+functions: ["Base.Broadcast.broadcast_unalias", "Base.Broadcast.preprocess", "copyto!(::AbstractArray, ::Broadcasted{Nothing})"]
+summary: |
+  When the destination of `.=` is a view with repeated indices and the same view
+  object also appears on the right-hand side (as in `@views x[idx] .+= 1`),
+  broadcast skips unaliasing because the argument is `===` the destination. Later
+  elements then read values written by earlier ones: `@views x[[1, 1, 2]] .+= 1`
+  turns [10, 20, 30] into [12, 21, 30], while `x[[1, 1, 2]] .+= 1` gives
+  [11, 21, 30], and so does using two distinct but identical view objects.
+likelihood: |
+  Needs an in-place update through a view whose index vector repeats an entry,
+  for example a histogram-style `@views counts[idx] .+= 1`. Such code is plausible
+  but already wrong without views (each repeated index counts once).
+maybe_intended: |
+  Issue #31392 (open) discusses exactly this and asks how in-place broadcasting with
+  repeated indices should behave; PR #31407 (open) proposes unaliasing such
+  destinations. The manual (doc/src/manual/functions.md:110-111) leaves aliasing to
+  the caller.
+reproducer: |
+  x = [10, 20, 30]
+  y = [10, 20, 30]
+  @views x[[1, 1, 2]] .+= 1        # dest === source view: not unaliased
+  y[[1, 1, 2]] .+= 1               # copy semantics
+  println("@views x[[1, 1, 2]] .+= 1 gives ", x, "; x[[1, 1, 2]] .+= 1 gives ", y)
+  if x != y
+      println("REPRODUCED broadcastviews-repeated-index-alias")
+  end
+output:
+  release: |
+    @views x[[1, 1, 2]] .+= 1 gives [12, 21, 30]; x[[1, 1, 2]] .+= 1 gives [11, 21, 30]
+    REPRODUCED broadcastviews-repeated-index-alias
+  nightly: |
+    @views x[[1, 1, 2]] .+= 1 gives [12, 21, 30]; x[[1, 1, 2]] .+= 1 gives [11, 21, 30]
+    REPRODUCED broadcastviews-repeated-index-alias
+reproduced: {release: true, nightly: true}
+expected: |
+  [11, 21, 30], the same as without @views and as with two distinct view objects.
+promised_by: |
+  base/broadcast.jl:995-1000 justifies skipping the unalias step with "the mutations
+  won't affect the result as the indices on the LHS and RHS will always match", which
+  does not hold when the destination repeats an index; the @views docstring
+  (base/views.jl:297-303) presents the macro as switching slices to views.
+cause: |
+  base/broadcast.jl:1001: broadcast_unalias(dest, src) = dest === src ? src : unalias(dest, src).
+  A destination view with repeated indices is written several times in one pass, so
+  an argument that is the same object is read after it has been partly overwritten.
+possible_fix: |
+  Only skip unaliasing for `dest === src` when the destination's indices cannot
+  repeat (ranges, scalars, Colon), as PR #31407 proposes.
+duplicates:
+  issues:
+    - {number: 31392, state: open, relation: duplicate}
+    - {number: 31407, state: open, relation: related}
+  queries: ["mightalias", "repeated indices broadcast view", "views repeated indices .+="]
+lean:
+  property: JuliaLean.BroadcastViews.SelfAssignFresh
+  theorem: JuliaLean.BroadcastViews.selfAssignFresh_refuted

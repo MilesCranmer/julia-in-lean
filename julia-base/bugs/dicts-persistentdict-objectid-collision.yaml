@@ -1,0 +1,53 @@
+id: dicts-persistentdict-objectid-collision
+title: "PersistentDict throws \"Perfect hash collision\" for distinct keys with equal objectid"
+priority: P2
+kind: wrong-exception
+area: Dicts
+files: [base/hamt.jl, base/dict.jl]
+functions: ["PersistentDict(::PersistentDict, key, val)", "HAMT.insert!"]
+summary: |
+  PersistentDict hashes keys with objectid only (HashState, base/hamt.jl:93)
+  and the rehash after 55 bits is a function of objectid too, so two keys
+  that are !== but share an objectid can never be separated: insert! throws
+  error("Perfect hash collision"). Such pairs are easy to build because
+  objectid(::Int64) and objectid(::UInt64) are int64hash(bits) xor a type
+  constant: x = 8722453200027809036 and y = 0x0000000000000001 collide.
+  IdDict stores both keys.
+likelihood: |
+  Needs an objectid collision: constructed keys, or random 16-byte or larger
+  isbits keys with probability about 2^-64 per pair.
+maybe_intended: |
+  The error is explicit, and hamt.jl comments that perfect collisions
+  "should not occur in practice"; the docstring nevertheless says the type
+  behaves like an IdDict, which handles collisions.
+reproducer: |
+  Base.PersistentDict{Any,Int}(8722453200027809036 => 1, 0x0000000000000001 => 2)   # ErrorException
+output:
+  release: |
+    x = 8722453200027809036, y = 0x0000000000000001, x === y: false, objectid(x) == objectid(y): true
+    PersistentDict{Any,Int}(x => 1, y => 2) = ErrorException("Perfect hash collision")
+    IdDict{Any,Int}(x => 1, y => 2) has 2 entries
+    REPRODUCED dicts-persistentdict-objectid-collision
+  nightly: |
+    x = 8722453200027809036, y = 0x0000000000000001, x === y: false, objectid(x) == objectid(y): true
+    PersistentDict{Any,Int}(x => 1, y => 2) = ErrorException("Perfect hash collision")
+    IdDict{Any,Int}(x => 1, y => 2) has 2 entries
+    REPRODUCED dicts-persistentdict-objectid-collision
+reproduced: {release: true, nightly: true}
+expected: |
+  A PersistentDict with both entries, as IdDict{Any,Int}(x => 1, y => 2).
+promised_by: |
+  PersistentDict docstring, base/dict.jl:945-946: "It behaves like an IdDict."
+cause: |
+  base/hamt.jl:93 and 111: every hash level derives from objectid(key);
+  base/hamt.jl:205-208 throws when the leaf's hash equals the new key's.
+possible_fix: |
+  Store colliding keys in a collision leaf (a small list compared with ===)
+  at the maximal depth instead of throwing.
+duplicates:
+  issues:
+    - {number: 54740, state: open, relation: duplicate}
+  queries: ["Perfect hash collision", "PersistentDict collision", "HAMT collision", "PersistentDict objectid"]
+lean:
+  property: JuliaLean.Dicts.Persistent.PersistentSetGet
+  theorem: JuliaLean.Dicts.Persistent.persistentSetGet_refuted

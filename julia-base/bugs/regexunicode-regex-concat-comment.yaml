@@ -1,0 +1,59 @@
+id: regexunicode-regex-concat-comment
+title: "Regex * and ^ fail for a free-spacing (x) regex that ends in a comment"
+priority: P2
+kind: crash
+area: RegexUnicode
+files: [base/regex.jl]
+functions: ["*(::Regex, ::Union{Regex,AbstractString,AbstractChar})", "^(::Regex, ::Integer)"]
+summary: |
+  Concatenation and repetition wrap the pattern as "(?:pattern)" or "(?x:pattern)" on
+  one line. In free-spacing mode a "#" comment runs to the end of the line, so a
+  pattern ending in a comment swallows the closing parenthesis and everything
+  appended. r"a  # the letter a"x matches "a", but r * "b", r^2 and r * r"b"x all
+  throw "PCRE compilation error: missing closing parenthesis".
+likelihood: |
+  Commented x-mode regexes are a common style for long patterns; combining them with
+  * or ^ fails loudly. The same happens for patterns with an unterminated \Q quote.
+maybe_intended: ""
+reproducer: |
+  r = r"a  # the letter a"x
+  r * "b"     # PCRE compilation error: missing closing parenthesis
+  r^2         # PCRE compilation error: missing closing parenthesis
+output:
+  release: |
+    match(r, "a") = RegexMatch("a")
+    r * "b" -> PCRE compilation error: missing closing parenthesis at offset 26
+    r^2 -> PCRE compilation error: missing closing parenthesis at offset 24
+    r * r"b"x -> PCRE compilation error: missing closing parenthesis at offset 26
+    REPRODUCED regexunicode-regex-concat-comment
+  nightly: |
+    match(r, "a") = RegexMatch("a")
+    r * "b" -> PCRE compilation error: missing closing parenthesis at offset 26
+    r^2 -> PCRE compilation error: missing closing parenthesis at offset 24
+    r * r"b"x -> PCRE compilation error: missing closing parenthesis at offset 26
+    REPRODUCED regexunicode-regex-concat-comment
+reproduced: {release: true, nightly: true}
+expected: |
+  r * "b" matches "ab" and r^2 matches "aa".
+promised_by: |
+  *(s::Regex, t) docstring: "Concatenate regexes, strings and/or characters, producing
+  a Regex" (base/regex.jl:829-855); ^(s::Regex, n) docstring: "Repeat a regex n
+  times" (base/regex.jl:912-928).
+cause: |
+  wrap_string(r::Regex, ...) (base/regex.jl:879) and ^ (base/regex.jl:929) append ")"
+  directly after r.pattern; in extended mode the trailing comment of r.pattern
+  extends over it.
+possible_fix: |
+  Insert a newline before the closing parenthesis ("(?:" * pattern * "\n)") when the
+  regex has the x flag (a newline is ignored in x mode).
+duplicates:
+  issues: []
+  queries:
+    - "issues: regex concatenation comment"
+    - "issues: regex extended mode comment"
+    - "issues: Regex * free-spacing"
+    - "issues: regex multiplication"
+    - "prs: regex multiplication wrap_string"
+lean:
+  property: JuliaLean.RegexUnicode.Subst.RegexConcatCompiles
+  theorem: JuliaLean.RegexUnicode.Subst.regexConcatCompiles_refuted

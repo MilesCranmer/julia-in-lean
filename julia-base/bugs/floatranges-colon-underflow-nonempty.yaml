@@ -1,0 +1,56 @@
+id: floatranges-colon-underflow-nonempty
+title: 1.0e-300:1.0e30:0.0 is nonempty although start > stop and step > 0
+priority: P2
+kind: wrong-result
+area: FloatRanges
+files:
+- base/twiceprecision.jl
+functions:
+- (:)(::Float64, ::Float64, ::Float64)
+summary: |
+  When (stop - start)/step underflows to -0.0, the literal branch of (:) treats the
+  quotient as zero and returns one element, so a range with b < a and a positive step
+  contains a.
+likelihood: |
+  Needs |b - a| below step * 2^-1075; contrived.
+maybe_intended: ''
+reproducer: |
+  r = 1.0e-300:1.0e30:0.0
+  println("length(1.0e-300:1.0e30:0.0) = ", length(r))
+  println("collect(1.0e-300:1.0e30:0.0) = ", collect(r))
+  println("length(1.0e-300:1.0e10:0.0) = ", length(1.0e-300:1.0e10:0.0))
+  length(r) == 1 && first(r) > 0.0 && println("REPRODUCED floatranges-colon-underflow-nonempty")
+output:
+  release: |
+    length(1.0e-300:1.0e30:0.0) = 1
+    collect(1.0e-300:1.0e30:0.0) = [1.0e-300]
+    length(1.0e-300:1.0e10:0.0) = 0
+    REPRODUCED floatranges-colon-underflow-nonempty
+  nightly: |
+    length(1.0e-300:1.0e30:0.0) = 1
+    collect(1.0e-300:1.0e30:0.0) = [1.0e-300]
+    length(1.0e-300:1.0e10:0.0) = 0
+    REPRODUCED floatranges-colon-underflow-nonempty
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  isempty(1.0e-300:1.0e30:0.0), as for 1.0e-300:1.0e10:0.0.
+promised_by: |
+  (:) docstring, base/range.jl:54-55: "when b < a, an empty range will be constructed".
+cause: |
+  base/twiceprecision.jl:424-428: lf = (stop-start)/step is -0.0, lf < 0 is false and lf
+  == 0 is true, so len = 1.
+possible_fix: |
+  Decide emptiness from the signs of stop - start and step before dividing, or test
+  signbit(lf).
+duplicates:
+  issues: []
+  queries:
+  - range empty float
+  - range underflow
+  - floating point range length
+  - empty range float
+lean:
+  property: JuliaLean.FloatRanges.ColonEmpty
+  theorem: JuliaLean.FloatRanges.colonEmpty_refuted

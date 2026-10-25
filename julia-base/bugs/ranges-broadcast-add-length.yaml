@@ -1,0 +1,60 @@
+id: ranges-broadcast-add-length
+title: "r .+ x and r .- x on an integer UnitRange return an empty range when the endpoints wrap"
+priority: P2
+kind: wrong-result
+area: Ranges
+files: [base/broadcast.jl, base/range.jl]
+functions: ["broadcasted(+, ::AbstractUnitRange, ::Integer)", "broadcasted(-, ::AbstractUnitRange, ::Integer)"]
+summary: |
+  The range specialization of `r .+ x` builds `(first(r)+x):(last(r)+x)`. When
+  only the last endpoint wraps, the new range is empty, while the ordinary
+  elementwise broadcast keeps every element (wrapped). The same happens for
+  `r .- x`, e.g. with unsigned ranges.
+likelihood: |
+  Needs results past typemax/typemin; the unsigned subtraction case
+  (UInt8(1):UInt8(3)) .- UInt8(2) is the most plausible in real code.
+maybe_intended: |
+  Integer arithmetic wraps in Julia, so a wrapped result is arguably fine, but
+  dropping elements is not: collect(r) .+ x gives a different answer.
+reproducer: |
+  r = Int8(126):Int8(127)
+  s = r .+ Int8(1)
+  expected = [x + Int8(1) for x in r]
+  println("(Int8(126):Int8(127)) .+ Int8(1) = ", repr(s))
+  println("length = ", length(s))
+  println("elementwise result = ", repr(expected))
+  length(s) == 0 && expected == Int8[127, -128] && println("REPRODUCED ranges-broadcast-add-length")
+output:
+  release: |
+    (Int8(126):Int8(127)) .+ Int8(1) = 127:126
+    length = 0
+    elementwise result = Int8[127, -128]
+    REPRODUCED ranges-broadcast-add-length
+  nightly: |
+    (Int8(126):Int8(127)) .+ Int8(1) = 127:126
+    length = 0
+    elementwise result = Int8[127, -128]
+    REPRODUCED ranges-broadcast-add-length
+reproduced: {release: true, nightly: true}
+expected: |
+  A result equal to collect(r) .+ x, here Int8[127, -128] (length 2), or an
+  OverflowError. Also (UInt8(1):UInt8(3)) .- UInt8(2) should equal
+  UInt8[0xff, 0x00, 0x01]; it is 0xff:0xfe (empty) on both versions.
+promised_by: |
+  broadcast docstring, base/broadcast.jl:783: broadcast applies f elementwise, so
+  r .+ x must agree with collect(r) .+ x; range specializations are optimizations.
+cause: |
+  base/broadcast.jl:1188 and 1204 return range(first(r) + x, last(r) + x) and
+  range(first(r) - x, last(r) - x). When last(r)+x wraps below first(r)+x,
+  unitrange_last (base/range.jl:440-442) normalizes to an empty range.
+possible_fix: |
+  Build the result from first(r)+x and length(r) (as the Real method at
+  base/broadcast.jl:1190 does), or check for overflow and fall back to the
+  generic broadcast.
+duplicates:
+  issues:
+    - {number: 45389, state: open, relation: related}
+  queries: ["broadcast range overflow", "Int8 range broadcast", "range .* overflow", "unsigned range broadcast subtraction"]
+lean:
+  property: JuliaLean.Ranges.BroadcastAddLengthPreserved
+  theorem: JuliaLean.Ranges.broadcastAddLength_refuted

@@ -1,0 +1,79 @@
+id: iterators-product-stateful-done
+title: 'collect(Iterators.product(eachline(io))) throws ArgumentError: tuple must be non-empty'
+priority: P2
+kind: wrong-exception
+area: Iterators
+files:
+- base/iterators.jl
+functions:
+- isdone(::ProductIterator, states)
+- _pisdone
+summary: |
+  isdone(P, states) walks the factors with _pisdone, which recurses into the
+  tail when a factor is done both at its state and at a restart. When every
+  factor reports isdone == true (exhausted Stateful, eachline at EOF), the
+  recursion reaches the empty tuple and first(()) throws ArgumentError("tuple
+  must be non-empty") instead of ending the iteration. collect(product(eachline(io)))
+  and collect(product(Stateful([1,2]))) fail after producing all elements.
+likelihood: |
+  Needs a product whose factors all define isdone, i.e. all stateful (a single
+  eachline, Stateful or channel-like iterator). A product of one stateful
+  iterator is unusual but legitimate; the error is loud.
+maybe_intended: ''
+reproducer: |
+  # product of iterators that report isdone == true throws once all of them are exhausted
+  show_r(x) = x isa Exception ? sprint(showerror, x) : repr(x)
+  a = try collect(Iterators.product(Iterators.Stateful([1, 2]))) catch e; e end
+  b = try collect(Iterators.product(eachline(IOBuffer("a\nb")))) catch e; e end
+  c = try collect(Iterators.product(Iterators.Stateful([1]), Iterators.Stateful([2]))) catch e; e end
+  println("collect(product(Stateful([1,2]))) = ", show_r(a))
+  println("collect(product(eachline(io))) = ", show_r(b))
+  println("collect(product(Stateful([1]), Stateful([2]))) = ", show_r(c))
+  println("collect(product([1,2])) = ", repr(collect(Iterators.product([1, 2]))))
+  a isa ArgumentError && b isa ArgumentError && println("REPRODUCED iterators-product-stateful-done")
+output:
+  release: |
+    collect(product(Stateful([1,2]))) = ArgumentError: tuple must be non-empty
+    collect(product(eachline(io))) = ArgumentError: tuple must be non-empty
+    collect(product(Stateful([1]), Stateful([2]))) = ArgumentError: tuple must be non-empty
+    collect(product([1,2])) = [(1,), (2,)]
+    REPRODUCED iterators-product-stateful-done
+  nightly: |
+    collect(product(Stateful([1,2]))) = ArgumentError: tuple must be non-empty
+    collect(product(eachline(io))) = ArgumentError: tuple must be non-empty
+    collect(product(Stateful([1]), Stateful([2]))) = ArgumentError: tuple must be non-empty
+    collect(product([1,2])) = [(1,), (2,)]
+    REPRODUCED iterators-product-stateful-done
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  collect(product(Stateful([1,2]))) == [(1,), (2,)] and
+  collect(product(eachline(IOBuffer("a\nb")))) == [("a",), ("b",)].
+promised_by: |
+  product docstring, base/iterators.jl:1129-1133: "Return an iterator over the
+  product of several iterators."
+cause: |
+  base/iterators.jl:1205-1212: _pisdone has no method for empty tuples, so
+  first(iters) at line 1206 throws when all factors are done (only
+  isdone(::ProductIterator{Tuple{}}, states), line 1213, covers the empty
+  product itself).
+possible_fix: |
+  Add _pisdone(::Tuple{}, ::Tuple{}) = true.
+duplicates:
+  issues:
+  - number: 28753
+    state: closed
+    relation: related
+  - number: 43921
+    state: closed
+    relation: related
+  queries:
+  - product Stateful
+  - product eachline
+  - tuple must be non-empty product
+  - _pisdone
+  - isdone product
+lean:
+  property: JuliaLean.Iterators.ProductOneFactor
+  theorem: JuliaLean.Iterators.productOneFactor_refuted

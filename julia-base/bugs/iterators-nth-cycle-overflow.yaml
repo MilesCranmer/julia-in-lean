@@ -1,0 +1,66 @@
+id: iterators-nth-cycle-overflow
+title: Iterators.nth(cycle(v, m), k) throws BoundsError when length(v) * m overflows
+priority: P2
+kind: wrong-exception
+area: Iterators
+files:
+- base/iterators.jl
+functions:
+- nth(::Flatten{Take{Repeated}}, n)
+- cycle(xs, n)
+summary: |
+  The fast path of nth for cycle(v, m) checks n > k*cycles with a wrapping
+  multiplication. For nth(cycle([1,2,3], 2^62), 1) the product wraps to -2^62,
+  so every index throws BoundsError, although first(cycle([1,2,3], 2^62)) == 1.
+  When the wrapped product is positive, valid indices above it throw.
+likelihood: |
+  Needs a repetition count with length(v) * m > typemax(Int), e.g. cycle(v,
+  typemax(Int)) used as "practically forever". Uncommon; the error is loud.
+maybe_intended: ''
+reproducer: |
+  # nth(cycle(v, m), k) checks k > length(v) * m with a wrapping multiplication
+  c = Iterators.cycle([1, 2, 3], 2^62)
+  r = try
+      Iterators.nth(c, 1)
+  catch e
+      e
+  end
+  println("nth(cycle([1,2,3], 2^62), 1) = ", r isa Exception ? sprint(showerror, r) : repr(r))
+  println("first(cycle([1,2,3], 2^62)) = ", first(c))
+  r isa BoundsError && println("REPRODUCED iterators-nth-cycle-overflow")
+output:
+  release: |
+    nth(cycle([1,2,3], 2^62), 1) = BoundsError: attempt to access Base.Iterators.Flatten{Base.Iterators.Take{Base.Iterators.Repeated{Vector{Int64}}}} at index [1]
+    first(cycle([1,2,3], 2^62)) = 1
+    REPRODUCED iterators-nth-cycle-overflow
+  nightly: |
+    nth(cycle([1,2,3], 2^62), 1) = BoundsError: attempt to access Base.Iterators.Flatten{Base.Iterators.Take{Base.Iterators.Repeated{Vector{Int64}}}} at index [1]
+    first(cycle([1,2,3], 2^62)) = 1
+    REPRODUCED iterators-nth-cycle-overflow
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  nth(cycle([1,2,3], 2^62), 1) == 1 (and v[mod1(k, 3)] for every k up to the
+  true length).
+promised_by: |
+  nth docstring, base/iterators.jl:1728-1731: "Get the n-th element of an
+  iterable collection. Throw a BoundsError if not existing."
+cause: |
+  base/iterators.jl:1771, (n > k*cycles || k == 0): k*cycles is Int
+  multiplication that wraps.
+possible_fix: |
+  Compare without multiplying: n > k*cycles  <=>  cld(n, k) > cycles (for k > 0),
+  or use widemul(k, cycles).
+duplicates:
+  issues:
+  - number: 56580
+    state: merged
+    relation: related
+  queries:
+  - nth cycle
+  - Iterators.nth
+  - nth BoundsError
+lean:
+  property: JuliaLean.Iterators.NthCycleCorrect
+  theorem: JuliaLean.Iterators.nthCycleCorrect_refuted

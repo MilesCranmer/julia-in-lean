@@ -1,0 +1,83 @@
+id: iterators-take-isdone-zero
+title: isempty(Iterators.take(itr, 0)) is false for stateful iterators, and zip then consumes elements
+priority: P1
+kind: wrong-result
+area: Iterators
+files:
+- base/iterators.jl
+functions:
+- isdone(::Take)
+- isempty(::Take)
+- zip
+summary: |
+  isdone(t::Take) returns isdone(t.xs) without looking at t.n. For a nonempty
+  stateful iterator (Iterators.Stateful, eachline) isdone(take(itr, 0)) is
+  false, so isempty(take(itr, 0)) returns false although take(itr, 0) yields
+  nothing. zip trusts the same answer: zip(a, take(s, 0)) pops an element of
+  the stateful a before noticing that the take is empty, breaking zip's
+  documented promise.
+likelihood: |
+  Needs take(itr, 0) of a stateful iterator with a definite isdone (Stateful,
+  eachline, readeach, DirEntryIterator). A count of 0 arises naturally from
+  computed lengths; the wrong isempty is silent.
+maybe_intended: ''
+reproducer: |
+  # isempty(Iterators.take(itr, 0)) is false when itr is a nonempty stateful iterator
+  s = Iterators.Stateful([1, 2, 3])
+  t = Iterators.take(s, 0)
+  e1 = isempty(t)
+  println("isempty(take(Stateful([1,2,3]), 0)) = ", e1, ", collect = ", collect(t))
+  e2 = isempty(Iterators.take(eachline(IOBuffer("a\nb\n")), 0))
+  println("isempty(take(eachline(io), 0)) = ", e2)
+  # zip promises not to advance a stateful iterator when another one is finished
+  a = Iterators.Stateful([10, 20, 30])
+  z = collect(zip(a, Iterators.take(Iterators.Stateful([1]), 0)))
+  rest_a = collect(a)
+  println("collect(zip(a, take(Stateful([1]), 0))) = ", z, ", then collect(a) = ", rest_a)
+  if !e1 && !e2 && isempty(z) && rest_a == [20, 30]
+      println("REPRODUCED iterators-take-isdone-zero")
+  end
+output:
+  release: |
+    isempty(take(Stateful([1,2,3]), 0)) = false, collect = Int64[]
+    isempty(take(eachline(io), 0)) = false
+    collect(zip(a, take(Stateful([1]), 0))) = Tuple{Int64, Int64}[], then collect(a) = [20, 30]
+    REPRODUCED iterators-take-isdone-zero
+  nightly: |
+    isempty(take(Stateful([1,2,3]), 0)) = false, collect = Int64[]
+    isempty(take(eachline(io), 0)) = false
+    collect(zip(a, take(Stateful([1]), 0))) = Tuple{Int64, Int64}[], then collect(a) = [20, 30]
+    REPRODUCED iterators-take-isdone-zero
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  isempty(take(itr, 0)) == true for every itr, and zip(a, take(s, 0)) leaves a
+  untouched (collect(a) == [10, 20, 30]).
+promised_by: |
+  isdone docstring, base/essentials.jl:1574-1587: stateful iterators define
+  isdone "that returns true/false depending on whether the iterator is done or
+  not". isempty docstring, base/essentials.jl:1204-1206. zip docstring,
+  base/iterators.jl:346-348: "zip orders the calls to its subiterators in such a
+  way that stateful iterators will not advance when another iterator finishes
+  in the current iteration."
+cause: |
+  base/iterators.jl:824, isdone(t::Take) = isdone(t.xs), ignores t.n. The
+  stateful version, line 825, does check state[1] <= 0. isempty
+  (base/essentials.jl:1225-1229) and _zip_isdone (base/iterators.jl:496-501)
+  take the false at face value.
+possible_fix: |
+  isdone(t::Take) = (t.n <= 0) | isdone(t.xs).
+duplicates:
+  issues:
+  - number: 63733
+    state: merged
+    relation: related
+  queries:
+  - isdone Take
+  - isempty take Stateful
+  - isempty Stateful take 0
+  - zip Stateful advance
+lean:
+  property: JuliaLean.Iterators.TakeIsemptyCorrect
+  theorem: JuliaLean.Iterators.takeIsemptyCorrect_refuted

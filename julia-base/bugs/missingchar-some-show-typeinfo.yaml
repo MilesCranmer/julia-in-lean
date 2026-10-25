@@ -1,0 +1,63 @@
+id: missingchar-some-show-typeinfo
+title: "repr([Some(1), Some(2)]) is \"Some{Int64}[1, 2]\", which does not evaluate"
+priority: P3
+kind: wrong-result
+area: MissingChar
+files: [base/some.jl]
+functions: ["show(::IO, ::Some)"]
+summary: |
+  When the IO context's :typeinfo equals typeof(x), show(io, x::Some) prints
+  only the wrapped value. Containers set :typeinfo to their element type, so
+  repr([Some(1), Some(2)]) is "Some{Int64}[1, 2]" and repr(Dict(1 => Some(2)))
+  is "Dict{Int64, Some{Int64}}(1 => 2)". Evaluating either throws MethodError,
+  because there is no convert(Some{Int64}, ::Int64).
+likelihood: |
+  Low to moderate: only printed output is affected, but it misleads readers
+  (the elements look like plain Ints) and breaks copy-paste of REPL output.
+maybe_intended: |
+  The elision is deliberate (base/some.jl:39-47) to shorten output; it assumes
+  the element can be rebuilt from the bare value, which holds for numbers but not
+  for Some.
+reproducer: |
+  v = [Some(1), Some(2)]
+  s = repr(v)
+  println("repr(v) = ", s)
+  r = try repr(eval(Meta.parse(s))) catch e; "THROWS " * first(split(sprint(showerror, e), '\n')) end
+  println("eval(Meta.parse(repr(v))) = ", r)
+  w = [Some(nothing)]
+  println("repr([Some(nothing)]) = ", repr(w))
+  startswith(r, "THROWS") && println("REPRODUCED missingchar-some-show-typeinfo")
+output:
+  release: |
+    repr(v) = Some{Int64}[1, 2]
+    eval(Meta.parse(repr(v))) = THROWS MethodError: Cannot `convert` an object of type Int64 to an object of type Some{Int64}
+    repr([Some(nothing)]) = [Some(nothing)]
+    REPRODUCED missingchar-some-show-typeinfo
+  nightly: |
+    repr(v) = Some{Int64}[1, 2]
+    eval(Meta.parse(repr(v))) = THROWS MethodError: Cannot `convert` an object of type Int64 to an object of type Some{Int64}
+    repr([Some(nothing)]) = [Some(nothing)]
+    REPRODUCED missingchar-some-show-typeinfo
+reproduced: {release: true, nightly: true}
+expected: |
+  "[Some(1), Some(2)]" or "Some{Int64}[Some(1), Some(2)]", which evaluate to v.
+promised_by: |
+  The show docstring (base/show.jl): the representation "should be parseable
+  Julia code when possible", and repr output of containers of ordinary values
+  evaluates back to an equal container.
+cause: |
+  base/some.jl:39-47: show(io, x::Some) prints show(io, x.value) when
+  get(io, :typeinfo, Any) == typeof(x).
+possible_fix: |
+  Always print the Some(...) wrapper, or define convert(::Type{Some{T}}, x) so
+  the elided form evaluates.
+duplicates:
+  issues: []
+  queries:
+    - "issues: Some show typeinfo"
+    - "issues: Some typeinfo"
+    - "issues: show Some array convert"
+    - "prs: show Some"
+lean:
+  property: JuliaLean.MissingChar.SomeShowEval
+  theorem: JuliaLean.MissingChar.someShowEval_refuted

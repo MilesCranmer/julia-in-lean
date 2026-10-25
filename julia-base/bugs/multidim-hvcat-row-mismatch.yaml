@@ -1,0 +1,58 @@
+id: multidim-hvcat-row-mismatch
+title: "hvcat with uneven rows throws ArgumentError for same-type numbers but DimensionMismatch otherwise"
+priority: P2
+kind: wrong-exception
+area: Multidim
+files: [base/abstractarray.jl]
+functions: ["hvcat(rows::Tuple{Vararg{Int}}, xs::T...) where T<:Number", "typed_hvcat(::Type{T}, rows::Tuple{Vararg{Int}}, xs::Number...)"]
+summary: |
+  hvcat((2, 1), 1, 2, 3) (the lowering of [1 2; 3]) throws ArgumentError("argument
+  count does not match specified shape"), but hvcat((2, 1), 1, 2.0, 3) and the same
+  layout with 1x1 matrices throw DimensionMismatch("row 2 has mismatched number of
+  columns"). The method for numbers of one type allocates rows[1] columns for every
+  row and compares the element count before checking the row lengths.
+likelihood: |
+  Any code that catches DimensionMismatch from block-matrix literals with rows of
+  different lengths gets a different exception when all entries share one numeric
+  type. Error-path only.
+maybe_intended: ""
+reproducer: |
+  hvcat((2, 1), 1, 2, 3)        # ArgumentError
+  hvcat((2, 1), 1, 2.0, 3)      # DimensionMismatch
+  hvcat((1, 3), 1, 2, 3, 4)     # ArgumentError
+  hvcat((1, 3), 1, 2.0, 3, 4)   # DimensionMismatch
+output:
+  release: |
+    ArgumentError("argument count does not match specified shape (expected 4, got 3)")
+    DimensionMismatch("row 2 has mismatched number of columns (expected 2, got 1)")
+    ArgumentError("argument count does not match specified shape (expected 2, got 4)")
+    DimensionMismatch("row 2 has mismatched number of columns (expected 1, got 3)")
+    DimensionMismatch("argument 3 has a mismatched number of elements along axis 2; expected 2, got 1")
+    REPRODUCED multidim-hvcat-row-mismatch
+  nightly: |
+    ArgumentError("argument count does not match specified shape (expected 4, got 3)")
+    DimensionMismatch("row 2 has mismatched number of columns (expected 2, got 1)")
+    ArgumentError("argument count does not match specified shape (expected 2, got 4)")
+    DimensionMismatch("row 2 has mismatched number of columns (expected 1, got 3)")
+    DimensionMismatch("argument 3 has a mismatched number of elements along axis 2; expected 2, got 1")
+    REPRODUCED multidim-hvcat-row-mismatch
+reproduced: {release: true, nightly: true}
+expected: |
+  DimensionMismatch("row 2 has mismatched number of columns ...") for all four calls,
+  as typed_hvcat and the array methods throw.
+promised_by: |
+  Invariant: the specialised method for numbers of a single type
+  (base/abstractarray.jl:2253-2272) must agree with the generic number method
+  typed_hvcat (base/abstractarray.jl:2279-2290), which checks row lengths first.
+cause: |
+  base/abstractarray.jl:2257-2260 builds Matrix{T}(undef, nr, rows[1]) and throws
+  ArgumentError when length(a) != length(xs) before the per-row check at lines
+  2263-2265 can report DimensionMismatch.
+possible_fix: |
+  Check all(==(rows[1]), rows) (DimensionMismatch) before comparing the argument count.
+duplicates:
+  issues: []
+  queries: ["issues: hvcat ArgumentError DimensionMismatch", "issues: hvcat argument count", "prs: hvcat"]
+lean:
+  property: JuliaLean.Multidim.HvcatNumbersAgree
+  theorem: JuliaLean.Multidim.hvcatNumbersAgree_refuted

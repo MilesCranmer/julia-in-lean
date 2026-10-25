@@ -1,0 +1,62 @@
+id: floatranges-colon-overshoot-stop
+title: last(0.1131:0.0252:1.0e15) is larger than the stop 1.0e15
+priority: P2
+kind: wrong-result
+area: FloatRanges
+files:
+- base/twiceprecision.jl
+functions:
+- (:)(::Float64, ::Float64, ::Float64)
+summary: |
+  For lengths above 2^53 the literal branch of (:) can choose a length one too large, so
+  the last element exceeds the stop. The length comes from round(Int, (stop-start)/step) +
+  1, and the overshoot check uses a once-rounded start + (len-1)*step rather than the
+  element value.
+likelihood: |
+  Needs more than 2^53 elements; such lazy ranges are legal but rare.
+maybe_intended: ''
+reproducer: |
+  r = 0.1131:0.0252:1.0e15
+  println("length = ", length(r))
+  println("last(r) = ", repr(last(r)), "  stop = ", repr(1.0e15))
+  println("r[end] > 1.0e15: ", r[end] > 1.0e15)
+  last(r) > 1.0e15 && println("REPRODUCED floatranges-colon-overshoot-stop")
+output:
+  release: |
+    length = 39682539682539680
+    last(r) = 1.0000000000000001e15  stop = 1.0e15
+    r[end] > 1.0e15: true
+    REPRODUCED floatranges-colon-overshoot-stop
+  nightly: |
+    length = 39682539682539680
+    last(r) = 1.0000000000000001e15  stop = 1.0e15
+    r[end] > 1.0e15: true
+    REPRODUCED floatranges-colon-overshoot-stop
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  last(0.1131:0.0252:1.0e15) <= 1.0e15.
+promised_by: |
+  (:) docstring, base/range.jl:42-52: a:s:b is the range from a in steps s up to b.
+cause: |
+  base/twiceprecision.jl:424-434: lf is rounded to Float64 and len = round(Int, lf) + 1;
+  stop′ = start + (len-1)*step is rounded twice and can be <= stop even though the element
+  computed by unsafe_getindex in twice precision is > stop.
+possible_fix: |
+  Compare the element as computed by unsafe_getindex (or the exact value) with stop when
+  correcting len.
+duplicates:
+  issues:
+  - number: 33677
+    state: open
+    relation: related
+  queries:
+  - range overshoot stop
+  - range larger than stop
+  - range exceeds stop
+  - floating point range length
+  - range length wrong
+lean:
+  property: JuliaLean.FloatRanges.ColonStopBound
+  theorem: JuliaLean.FloatRanges.colonStopBound_refuted

@@ -1,0 +1,76 @@
+id: bignums-bigfloat-rational-rounding
+title: "BigFloat(q::Rational, r) rounds twice: BigFloat(1//5, RoundToZero; precision=2) == 0.25 > 1//5"
+priority: P1
+kind: wrong-result
+area: BigNums
+files: [base/mpfr.jl]
+functions: ["BigFloat(::Rational, ::RoundingMode)", "BigFloat(::Rational)"]
+summary: |
+  BigFloat(q, r; precision) rounds the numerator with r, the denominator with the
+  "opposite" mode, and then rounds the quotient with r. When the denominator (or
+  numerator) has more significant bits than the precision, the result is not the
+  correctly rounded value and for directed modes may land on the wrong side of q:
+  BigFloat(1//5, RoundToZero; precision=2) == 0.25 and BigFloat(1//5; precision=2)
+  == 0.25 (nearest is 0.1875), BigFloat(1//5, RoundDown; precision=2) == 0.125.
+  At the default precision 256 the same happens for Rational{BigInt} values whose
+  numerator or denominator exceed 256 bits (e.g. 86//455 at precision 4, and random
+  200-bit rationals at precision 67 in a differential test).
+likelihood: |
+  Any Rational{BigInt} with large components (common after rational arithmetic), or
+  any rational at a reduced setprecision. Directed modes are used for interval
+  enclosures, where a result on the wrong side breaks the enclosure.
+maybe_intended: ""
+reproducer: |
+  q = 1 // 5
+  n = BigFloat(q; precision=2)
+  d = BigFloat(q, RoundDown; precision=2)
+  z = BigFloat(q, RoundToZero; precision=2)
+  println("BigFloat(1//5; precision=2)              = ", n, "  (nearest is 0.1875)")
+  println("BigFloat(1//5, RoundDown; precision=2)   = ", d, "  (largest <= 0.2 is 0.1875)")
+  println("BigFloat(1//5, RoundToZero; precision=2) = ", z)
+  println("BigFloat(\"0.2\"; precision=2)             = ", BigFloat("0.2"; precision=2))
+  println("abs(0.25 - 1//5) > abs(0.1875 - 1//5): ", abs(Rational{BigInt}(n) - q) > abs(3 // 16 - q))
+  if n == 0.25 && d == 0.125
+      println("REPRODUCED bignums-bigfloat-rational-rounding")
+  end
+output:
+  release: |
+    BigFloat(1//5; precision=2)              = 0.25  (nearest is 0.1875)
+    BigFloat(1//5, RoundDown; precision=2)   = 0.12  (largest <= 0.2 is 0.1875)
+    BigFloat(1//5, RoundToZero; precision=2) = 0.25
+    BigFloat("0.2"; precision=2)             = 0.19
+    abs(0.25 - 1//5) > abs(0.1875 - 1//5): true
+    REPRODUCED bignums-bigfloat-rational-rounding
+  nightly: |
+    BigFloat(1//5; precision=2)              = 0.25  (nearest is 0.1875)
+    BigFloat(1//5, RoundDown; precision=2)   = 0.12  (largest <= 0.2 is 0.1875)
+    BigFloat(1//5, RoundToZero; precision=2) = 0.25
+    BigFloat("0.2"; precision=2)             = 0.19
+    abs(0.25 - 1//5) > abs(0.1875 - 1//5): true
+    REPRODUCED bignums-bigfloat-rational-rounding
+reproduced: {release: true, nightly: true}
+expected: |
+  0.1875 for RoundNearest, RoundDown and RoundToZero, 0.25 for RoundUp: the
+  precision-2 values adjacent to 1//5 are 0.1875 and 0.25.
+promised_by: |
+  base/mpfr.jl:258-263 (BigFloat docstring): "Create an arbitrary precision floating
+  point number from x, with precision precision. The rounding argument specifies the
+  direction in which the result should be rounded if the conversion cannot be done
+  exactly."
+cause: |
+  base/mpfr.jl:393-405: BigFloat(numerator(x)) / BigFloat(denominator(x), r_den) with
+  r_den = _opposite_round(r) rounds up to three times. For RoundToZero
+  _opposite_round returns RoundToZero, so the denominator 5 rounds down to 4 and the
+  quotient rises above q; for RoundNearest the denominator rounds to 4 (ties to even)
+  and 1/4 is returned. Lines 394-406 on 1.13.2.
+possible_fix: |
+  Compute the quotient with one rounding: mpfr_set_q (mpq_t from the Rational{BigInt}),
+  or mpfr_div with both operands converted exactly (precision of at least their bit
+  lengths) before the final rounding.
+duplicates:
+  issues:
+    - {number: 49749, state: open, relation: related}
+  queries: ["BigFloat Rational rounding", "BigFloat rational precision", "BigFloat Rational", "BigFloat(::Rational)", "PR BigFloat Rational"]
+lean:
+  property: JuliaLean.BigNums.BigFloatOfRationalRounded
+  theorem: JuliaLean.BigNums.bigFloatOfRationalRounded_refuted

@@ -1,0 +1,51 @@
+id: iobuffers-copyline-prior
+title: "copyline(out::IOBuffer, s; keep=false) deletes newline bytes that were already in out"
+priority: P2
+kind: wrong-result
+area: IOBuffers
+files: [base/iobuffer.jl]
+functions: ["copyline(::GenericIOBuffer, ::IO)"]
+summary: |
+  When out appends (or is positioned at its end), copyline copies the line with
+  keep=true and then looks at the last one or two bytes of out to strip "\n" or "\r\n".
+  It does not check that these bytes came from the copied line. If the stream is at
+  its end, a "\n" already in out is deleted; if the line is "\n" and out ends with
+  "\r", the "\r" is deleted too. For a buffer over a vector with a memory offset the
+  look-back reads before the buffer's data and leaves position(out) == -1.
+likelihood: |
+  Reading lines from a file into an accumulating IOBuffer with copyline until EOF:
+  the final call at EOF deletes the newline of the previous content. Plausible in
+  line-processing loops.
+maybe_intended: ""
+reproducer: |
+  s = Base.BufferStream(); closewrite(s)
+  out = IOBuffer(); write(out, "a\n")
+  copyline(out, s)
+  String(take!(out))      # "a", expected "a\n"
+output:
+  release: |
+    "a\n" + exhausted stream: "a"; "ab\r" + "\n": "ab"
+    buffer over a vector with memory offset: position = -1, bytesavailable = 0
+    REPRODUCED iobuffers-copyline-prior
+  nightly: |
+    "a\n" + exhausted stream: "a"; "ab\r" + "\n": "ab"
+    buffer over a vector with memory offset: position = -1, bytesavailable = 0
+    REPRODUCED iobuffers-copyline-prior
+reproduced: {release: true, nightly: true}
+expected: |
+  "a\n" (nothing copied, nothing removed); "ab\r" followed by line "\n" should give "ab\r".
+promised_by: |
+  copyline docstring (base/io.jl:718-728): copies a single line from the stream to out;
+  only the line's own trailing newline characters are removed.
+cause: |
+  base/iobuffer.jl:1038-1053: after copyuntil, `i = out.size` and the checks
+  `line[i] != 0x0a` and `line[i-1] != 0x0d` look at out's bytes without remembering
+  where the copied line started.
+possible_fix: |
+  Record out.size before copyuntil and strip only bytes after it.
+duplicates:
+  issues: []
+  queries: ["copyline", "copyline IOBuffer", "copyline keep", "copyline keep false", "copyline CRLF"]
+lean:
+  property: JuliaLean.IOBuffers.CopylineAtEnd
+  theorem: JuliaLean.IOBuffers.copylineAtEnd_refuted

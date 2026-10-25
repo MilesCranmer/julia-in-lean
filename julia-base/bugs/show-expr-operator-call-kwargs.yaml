@@ -1,0 +1,65 @@
+id: show-expr-operator-call-kwargs
+title: "Expr printing of (+)(b; a = 1) produces +(b; a = 1), which parses as + applied to a block"
+priority: P3
+kind: wrong-result
+area: Show
+files: [base/show.jl]
+functions: ["Base.show_call"]
+summary: |
+  For Expr(:call, :+, Expr(:parameters, Expr(:kw, :a, 1)), :b), print gives "+(b; a = 1)".
+  The parser reads `+(` followed by a single item and `;` as unary + of the block
+  (b; a = 1), so the keyword call becomes an assignment inside a block. The same holds
+  for - and !.
+likelihood: |
+  Rare: keyword calls of unary-capable operators.
+maybe_intended: ""
+reproducer: |
+  ex = Meta.parse("(+)(b; a = 1)")    # Expr(:call, :+, Expr(:parameters, Expr(:kw, :a, 1)), :b)
+  s = string(ex)
+  println("string(ex) = ", repr(s))
+  back = Base.remove_linenums!(Meta.parse(s))
+  println("Meta.parse(string(ex)) = ", repr(back))
+  back != ex && println("REPRODUCED show-expr-operator-call-kwargs")
+output:
+  release: |
+    string(ex) = "+(b; a = 1)"
+    Meta.parse(string(ex)) = :(+(begin
+              b
+              a = 1
+          end))
+    REPRODUCED show-expr-operator-call-kwargs
+  nightly: |
+    string(ex) = "+(b; a = 1)"
+    Meta.parse(string(ex)) = :(+(begin
+              b
+              a = 1
+          end))
+    REPRODUCED show-expr-operator-call-kwargs
+reproduced: {release: true, nightly: true}
+expected: |
+  "(+)(b; a = 1)".
+promised_by: |
+  base/show.jl:1636-1640: "AST printing should follow two rules: 1. Meta.parse(string(ex))
+  == ex ...".
+cause: |
+  base/show.jl:1839-1845 prints an operator callee bare in show_call; JuliaSyntax resolves
+  `+(a;b)` as a block unless there are commas (JuliaSyntax/src/julia/parser.jl:1277-1306).
+possible_fix: |
+  In show_call, parenthesize operator callees that are unary operators when parameters are present (or always).
+duplicates:
+  issues:
+    - {number: 19260, state: open, relation: related}
+  queries:
+    - "issues: show operator keyword arguments"
+    - "issues: print call parameters operator"
+    - "issues: show_call parameters"
+    - "issues: prefix operator keyword call printing"
+    - "prs: show operator keyword arguments"
+    - "issues: show_unquoted"
+    - "issues: deparse"
+    - "issues: printing Expr precedence"
+    - "issues: string Meta.parse roundtrip"
+    - "issues: Expr printing"
+lean:
+  property: JuliaLean.Show.OperatorKwCallReparses
+  theorem: JuliaLean.Show.operatorKwCallReparses_refuted

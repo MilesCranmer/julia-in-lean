@@ -1,0 +1,71 @@
+id: artifacts-hash-pkg-uuid
+title: "Artifacts helpers ignore pkg_uuid keywords and bypass name overrides"
+priority: P1
+kind: wrong-result
+area: Artifacts
+files: [stdlib/Artifacts/src/Artifacts.jl]
+functions: ["artifact_hash", "select_downloadable_artifacts(::Dict, ...)", "artifact_meta", "process_overrides", "artifact_path"]
+summary: |
+  `artifact_hash` and the dictionary overload of `select_downloadable_artifacts` accept a
+  `pkg_uuid` keyword but do not process it. Package UUID/name overrides are therefore not
+  registered, and resolving the artifact hash uses the ordinary location instead of the
+  configured replacement.
+likelihood: |
+  UUID/name overrides are a documented configuration mechanism. Code that uses
+  either helper can silently bypass such an override even though the caller supplied the
+  package UUID specifically to enable it.
+maybe_intended: |
+  `artifact_hash` should still return the bound content hash, but the accepted keywords have
+  no observable purpose unless they process the override as `artifact_meta` does.
+reproducer: |
+  hash = artifact_hash("payload", artifacts_toml; pkg_uuid=uuid)
+  after_hash = Artifacts.query_override(hash)
+  path_after_hash = artifact_path(hash)
+  Artifacts.load_overrides(force=true)
+  artifact_dict = Artifacts.parse_toml(artifacts_toml)
+  select_downloadable_artifacts(artifact_dict, artifacts_toml; pkg_uuid=uuid)
+  after_selection = Artifacts.query_override(hash)
+  artifact_meta("payload", artifacts_toml; pkg_uuid=uuid)
+  after_meta = Artifacts.query_override(hash)
+  path_after_meta = artifact_path(hash)
+output:
+  release: |
+    after artifact_hash = nothing
+    path after artifact_hash = depot/artifacts/1111111111111111111111111111111111111111
+    after dictionary selection = nothing
+    after artifact_meta = replacement
+    path after artifact_meta = replacement
+    pkg_uuid ignored = true
+    REPRODUCED artifacts-hash-pkg-uuid
+  nightly: |
+    after artifact_hash = nothing
+    path after artifact_hash = depot/artifacts/1111111111111111111111111111111111111111
+    after dictionary selection = nothing
+    after artifact_meta = replacement
+    path after artifact_meta = replacement
+    pkg_uuid ignored = true
+    REPRODUCED artifacts-hash-pkg-uuid
+reproduced: {release: true, nightly: true}
+expected: |
+  Passing `pkg_uuid` to either helper should process the same UUID/name override as passing it
+  to `artifact_meta`, so later hash resolution uses the replacement.
+promised_by: |
+  `artifact_hash` is documented as a thin wrapper around `artifact_meta` at
+  `stdlib/Artifacts/src/Artifacts.jl:435-440`, and its method accepts `pkg_uuid`. The
+  `load_artifacts_toml` docstring at lines 315-320 says that setting `pkg_uuid` resolves
+  UUID/name overrides. The dictionary selection overload accepts the same keyword at lines
+  456-459, and the file overload forwards it through `load_artifacts_toml` at lines 488-496.
+cause: |
+  `artifact_hash` receives `pkg_uuid` at `stdlib/Artifacts/src/Artifacts.jl:445-447`, but
+  line 448 calls `artifact_meta` with only `platform=platform`. The omitted keyword prevents
+  `load_artifacts_toml` and `process_overrides` from registering the hash redirect. The
+  dictionary selection overload receives `pkg_uuid` at lines 456-459 but never uses it.
+possible_fix: |
+  Pass `pkg_uuid=pkg_uuid` to `artifact_meta` in `artifact_hash`, and call
+  `process_overrides(artifact_dict, pkg_uuid)` in the dictionary selection overload.
+duplicates:
+  issues: []
+  queries: ["artifact_hash pkg_uuid", "Artifacts artifact_hash override", "artifact_hash UUID override", "Artifacts pkg_uuid ignored", "select_downloadable_artifacts pkg_uuid", "select downloadable artifacts override", "Artifacts selection UUID override"]
+lean:
+  property: JuliaLean.Artifacts.PkgUuidKeywordsProcessOverrides
+  theorem: JuliaLean.Artifacts.pkgUuidKeywordsProcessOverrides_refuted

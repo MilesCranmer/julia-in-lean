@@ -1,0 +1,68 @@
+id: platforms-detect-libstdcxx-csl
+title: "detect_libstdcxx_version() returns nothing once CompilerSupportLibraries_jll is loaded"
+priority: P1
+kind: wrong-result
+area: Platforms
+files: [base/binaryplatforms.jl]
+functions: ["detect_libstdcxx_version(::Int)", "_get_libstdcxx_handle()", "HostPlatform()"]
+summary: |
+  When CompilerSupportLibraries_jll is loaded, _get_libstdcxx_handle() takes the branch
+  meant to use that package's libstdc++ and returns `nothing` instead of a handle, so
+  detect_libstdcxx_version() returns `nothing` although libstdc++ is loaded and exports
+  GLIBCXX_3.4.18 through 3.4.30. On master the package is loaded at startup, so the
+  function always returns `nothing` there, and HostPlatform() has no libstdcxx_version.
+likelihood: |
+  High on master (always). On 1.13.2 it happens after any package loads
+  CompilerSupportLibraries_jll, which many do. The host platform then has no libstdc++
+  cap, so artifacts that need a newer libstdc++ than the one loaded are not filtered out.
+maybe_intended: ""
+reproducer: |
+  using Base.BinaryPlatforms, Libdl
+  using CompilerSupportLibraries_jll
+  paths = filter(x -> occursin("libstdc++", x), Libdl.dllist())
+  println("libstdc++ loaded: ", paths)
+  h = Libdl.dlopen(first(paths), Libdl.RTLD_NOLOAD)
+  exports = [m for m in 18:30 if Libdl.dlsym(h, "GLIBCXX_3.4.$m"; throw_error=false) !== nothing]
+  println("GLIBCXX_3.4.m exported for m in 18:30: ", exports)
+  v = detect_libstdcxx_version()
+  println("detect_libstdcxx_version() = ", repr(v))
+  println("libstdcxx_version(HostPlatform()) = ", repr(libstdcxx_version(HostPlatform())))
+  if !isempty(exports) && v === nothing
+      println("REPRODUCED platforms-detect-libstdcxx-csl")
+  end
+output:
+  release: |
+    libstdc++ loaded: ["<julia>/bin/../lib/julia/libstdc++.so.6"]
+    GLIBCXX_3.4.m exported for m in 18:30: [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+    detect_libstdcxx_version() = nothing
+    libstdcxx_version(HostPlatform()) = nothing
+    REPRODUCED platforms-detect-libstdcxx-csl
+  nightly: |
+    libstdc++ loaded: ["<julia>/bin/../lib/julia/libstdc++.so.6"]
+    GLIBCXX_3.4.m exported for m in 18:30: [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+    detect_libstdcxx_version() = nothing
+    libstdcxx_version(HostPlatform()) = nothing
+    REPRODUCED platforms-detect-libstdcxx-csl
+reproduced: {release: true, nightly: true}
+expected: |
+  v"3.4.30" (the largest m <= max_minor_version = 30 whose GLIBCXX_3.4.m symbol the
+  loaded libstdc++ exports), as 1.13.2 returns before CompilerSupportLibraries_jll is loaded.
+promised_by: |
+  base/binaryplatforms.jl:1006-1012 (docstring): "Inspects the currently running Julia
+  process to find out what version of libstdc++ it is linked against (if any)." The
+  comment at base/binaryplatforms.jl:966 says the CSL branch should "directly open it".
+cause: |
+  base/binaryplatforms.jl:967-970: `libstdcxx = get_csl_member(:libstdcxx); if libstdcxx
+  !== nothing; return nothing; end`. The CSL branch returns `nothing` instead of a handle
+  to the library, and detect_libstdcxx_version (base/binaryplatforms.jl:1015-1017) then
+  skips the symbol search.
+possible_fix: |
+  Return `Libdl.dlopen(libstdcxx)::Ptr{Cvoid}` in that branch (libstdcxx is a String on
+  1.13 and a LazyLibrary on master), as suggested in #63967.
+duplicates:
+  issues:
+    - {number: 63967, state: open, relation: duplicate}
+  queries: ["detect_libstdcxx_version", "libstdcxx HostPlatform", "_get_libstdcxx_handle", "libstdcxx_version nothing CompilerSupportLibraries"]
+lean:
+  property: JuliaLean.Platforms.DetectLibstdcxx
+  theorem: JuliaLean.Platforms.detectLibstdcxx_refuted

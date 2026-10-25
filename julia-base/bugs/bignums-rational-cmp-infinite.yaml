@@ -1,0 +1,64 @@
+id: bignums-rational-cmp-infinite
+title: "cmp(big(1)//0, big(1)//2) == -1: mpq_cmp is called on a zero denominator (out-of-bounds limb read)"
+priority: P1
+kind: wrong-result
+area: BigNums
+files: [base/gmp.jl]
+functions: ["cmp(::Rational{BigInt}, ::Rational{BigInt})"]
+summary: |
+  cmp for Rational{BigInt} passes infinite rationals (denominator 0) to GMP's
+  mpq_cmp, which requires a positive denominator. The result has the wrong sign:
+  cmp(big(1)//0, big(1)//2) == -1, cmp(big(1)//2, big(1)//0) == 1 and
+  cmp(big(-1)//0, big(-3)//1) == 1, while Rational{Int} gives 1, -1, -1 and
+  big(1)//0 > big(1)//2 is true. mpq_cmp also reads the top limb of the zero-size
+  denominator, PTR(DEN)[den_size - 1] = PTR(DEN)[-1], one limb before the buffer.
+likelihood: |
+  Needs an infinite Rational{BigInt} (from x//0 or division by zero rationals)
+  compared with cmp; uncommon but valid Julia values.
+maybe_intended: ""
+reproducer: |
+  inf = big(1) // 0
+  half = big(1) // 2
+  println("cmp(big(1)//0, big(1)//2)  = ", cmp(inf, half), "   (Rational{Int}: ", cmp(1 // 0, 1 // 2), ")")
+  println("cmp(big(1)//2, big(1)//0)  = ", cmp(half, inf), "   (Rational{Int}: ", cmp(1 // 2, 1 // 0), ")")
+  println("cmp(big(-1)//0, big(-3)//1) = ", cmp(-inf, big(-3) // 1), "   (Rational{Int}: ", cmp(-1 // 0, -3 // 1), ")")
+  println("big(1)//0 > big(1)//2: ", inf > half, ", isless(big(1)//2, big(1)//0): ", isless(half, inf))
+  if cmp(inf, half) == -1 && cmp(1 // 0, 1 // 2) == 1 && inf > half
+      println("REPRODUCED bignums-rational-cmp-infinite")
+  end
+output:
+  release: |
+    cmp(big(1)//0, big(1)//2)  = -1   (Rational{Int}: 1)
+    cmp(big(1)//2, big(1)//0)  = 1   (Rational{Int}: -1)
+    cmp(big(-1)//0, big(-3)//1) = 1   (Rational{Int}: -1)
+    big(1)//0 > big(1)//2: true, isless(big(1)//2, big(1)//0): true
+    REPRODUCED bignums-rational-cmp-infinite
+  nightly: |
+    cmp(big(1)//0, big(1)//2)  = -1   (Rational{Int}: 1)
+    cmp(big(1)//2, big(1)//0)  = 1   (Rational{Int}: -1)
+    cmp(big(-1)//0, big(-3)//1) = 1   (Rational{Int}: -1)
+    big(1)//0 > big(1)//2: true, isless(big(1)//2, big(1)//0): true
+    REPRODUCED bignums-rational-cmp-infinite
+reproduced: {release: true, nightly: true}
+expected: |
+  cmp(big(1)//0, big(1)//2) == 1, cmp(big(1)//2, big(1)//0) == -1,
+  cmp(big(-1)//0, big(-3)//1) == -1, as for Rational{Int} and as > and isless report.
+promised_by: |
+  base/operators.jl:508-511 (cmp docstring): "Uses the total order implemented by
+  isless." base/rational.jl defines 1//0 as positive infinity, larger than every
+  finite rational.
+cause: |
+  base/gmp.jl:1116-1118 calls __gmpq_cmp directly. The MPQ arithmetic wrappers
+  (base/gmp.jl:1047-1106) special-case zero denominators before calling GMP; cmp does
+  not. GMP's mpq/cmp.c asserts den_size > 0 only in debug builds and then loads
+  PTR(DEN(op1))[den1_size - 1], i.e. index -1 for a zero denominator, and compares
+  limb counts that assume nonzero denominators. Lines 1105-1107 on 1.13.2.
+possible_fix: |
+  Handle iszero(x.den) or iszero(y.den) in Julia first (compare the infinite side by
+  the sign of its numerator), then call mpq_cmp and take sign of the result.
+duplicates:
+  issues: []
+  queries: ["mpq_cmp", "cmp Rational BigInt", "Rational{BigInt} cmp", "Rational BigInt infinity", "MPQ", "PR MPQ cmp"]
+lean:
+  property: JuliaLean.BigNums.RationalCmpIsless
+  theorem: JuliaLean.BigNums.rationalCmpIsless_refuted

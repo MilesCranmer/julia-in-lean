@@ -1,0 +1,16 @@
+# copyline(out, s; keep=false) into the middle of out keeps the newline of an empty line
+function run(line)
+    s = Base.BufferStream()
+    write(s, line)
+    closewrite(s)
+    out = IOBuffer()
+    write(out, "QQQQ")
+    seekstart(out)
+    copyline(out, s)
+    String(take!(out))
+end
+a = run("\nxyz")
+b = run("\r\nxyz")
+c = run("x\nxyz")
+println("empty line: ", repr(a), ", empty CRLF line: ", repr(b), ", line \"x\": ", repr(c))
+a == "\nQQQ" && println("REPRODUCED iobuffers-copyline-middle")

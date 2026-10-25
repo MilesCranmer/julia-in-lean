@@ -1,0 +1,61 @@
+id: hashops-annotated-isless
+title: "AnnotatedString isless treats unequal annotations as equivalent"
+priority: P2
+kind: wrong-result
+area: HashOps
+files: [base/strings/annotated.jl, base/strings/basic.jl]
+functions: ["isless(::AbstractString, ::AbstractString)", "cmp(::AnnotatedString, ::AnnotatedString)", "isequal(::AnnotatedString, ::AnnotatedString)"]
+summary: |
+  Two AnnotatedStrings with the same characters but different annotations are
+  not isequal, yet isless returns false in both directions and cmp returns 0.
+  This contradicts the documented total order shared by isless and isequal.
+likelihood: |
+  AnnotatedString is used for styled output. Comparing or sorting two styled
+  strings with identical text and different styles can reach this case.
+maybe_intended: |
+  The cmp(::AbstractString, ::AbstractString) docstring describes character
+  order only, so ignoring annotations may be deliberate for cmp. However,
+  AnnotatedString equality explicitly includes annotations and the isless
+  contract requires exactly one of the two isless calls and isequal to be true.
+reproducer: |
+  using Base: AnnotatedString
+  a = AnnotatedString("x", [(1:1, :style, :red)])
+  b = AnnotatedString("x", [(1:1, :style, :blue)])
+  (isequal(a, b), isless(a, b), isless(b, a), cmp(a, b))
+output:
+  release: |
+    isequal(a, b) = false
+    isless(a, b) = false
+    isless(b, a) = false
+    cmp(a, b) = 0
+    REPRODUCED hashops-annotated-isless
+  nightly: |
+    isequal(a, b) = false
+    isless(a, b) = false
+    isless(b, a) = false
+    cmp(a, b) = 0
+    REPRODUCED hashops-annotated-isless
+reproduced: {release: true, nightly: true}
+expected: |
+  Because isequal(a, b) is false, exactly one of isless(a, b) and
+  isless(b, a) should be true. cmp should have the corresponding sign.
+promised_by: |
+  The isless docstring at base/operators.jl:208-214 says it forms a fixed total
+  order with isequal and exactly one of isless(x,y), isless(y,x), or
+  isequal(x,y) must be true. The cmp docstring at base/operators.jl:508-511
+  says cmp uses that total order.
+cause: |
+  AnnotatedString equality compares both the underlying string and annotations
+  at base/strings/annotated.jl:229-230. Its cmp methods at lines 224-227 discard
+  annotations and compare only the underlying strings. The generic isless at
+  base/strings/basic.jl:355 delegates to cmp, so distinct annotations are
+  incomparable.
+possible_fix: |
+  Define an annotation-aware ordering for AnnotatedString, or document and
+  implement an isequal equivalence that matches the content-only ordering.
+duplicates:
+  issues: []
+  queries: ["AnnotatedString cmp", "AnnotatedString isless", "AnnotatedString equality ordering", "annotations cmp isless"]
+lean:
+  property: JuliaLean.HashOps.AnnotatedStringOrder
+  theorem: JuliaLean.HashOps.annotatedStringOrder_refuted

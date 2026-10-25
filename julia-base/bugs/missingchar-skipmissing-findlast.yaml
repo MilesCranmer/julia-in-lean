@@ -1,0 +1,92 @@
+id: missingchar-skipmissing-findlast
+title: "findlast, findnext and findprev fail on skipmissing although findfirst and findall work"
+priority: P2
+kind: wrong-exception
+area: MissingChar
+files: [base/missing.jl, base/array.jl, base/iterators.jl]
+functions: ["findlast(::Function, ::SkipMissing)", "findnext(::Function, ::SkipMissing, start)", "findprev(::Function, ::SkipMissing, start)"]
+summary: |
+  For s = skipmissing([2, missing, 3, 4]), findfirst(isodd, s) == 3 and
+  findall(iseven, s) == [1, 4], but findlast(iseven, s) throws ArgumentError
+  ("Cannot reverse zipped iterators of unknown, infinite, or unequal lengths"),
+  findnext(isodd, s, 1) and findprev(isodd, s, 4) throw MethodError (no nextind
+  or prevind for SkipMissing), and findnext(isodd, s, 2) throws MissingException.
+likelihood: |
+  Plausible: the manual presents find functions on skipmissing as a supported
+  pattern for locating values in data with missing entries, and findlast is the
+  natural companion of the documented findfirst.
+maybe_intended: |
+  SkipMissing is not an AbstractArray and has no nextind/prevind/lastindex;
+  issue #37014 (open) asks for lastindex/last/length on SkipMissing. But the
+  manual names find functions in general, not only findfirst/findall.
+reproducer: |
+  x = [2, missing, 3, 4]
+  s = skipmissing(x)
+  f(g) = try repr(g()) catch e; "THROWS " * first(split(sprint(showerror, e), '\n')) end
+  println("collect(keys(s))         = ", collect(keys(s)))
+  println("findfirst(isodd, s)      = ", f(() -> findfirst(isodd, s)))
+  println("findall(iseven, s)       = ", f(() -> findall(iseven, s)))
+  r1 = f(() -> findlast(iseven, s))
+  r2 = f(() -> findnext(isodd, s, 1))
+  r3 = f(() -> findprev(isodd, s, 4))
+  println("findlast(iseven, s)      = ", r1)
+  println("findnext(isodd, s, 1)    = ", r2)
+  println("findprev(isodd, s, 4)   = ", r3)
+  println("findnext(isodd, s, 2)    = ", f(() -> findnext(isodd, s, 2)))
+  startswith(r1, "THROWS") && startswith(r2, "THROWS") && startswith(r3, "THROWS") &&
+      println("REPRODUCED missingchar-skipmissing-findlast")
+output:
+  release: |
+    collect(keys(s))         = [1, 3, 4]
+    findfirst(isodd, s)      = 3
+    findall(iseven, s)       = [1, 4]
+    findlast(iseven, s)      = THROWS ArgumentError: Cannot reverse zipped iterators of unknown, infinite, or unequal lengths
+    findnext(isodd, s, 1)    = THROWS MethodError: no method matching nextind(::Base.SkipMissing{Vector{Union{Missing, Int64}}}, ::Int64)
+    findprev(isodd, s, 4)   = THROWS MethodError: no method matching prevind(::Base.SkipMissing{Vector{Union{Missing, Int64}}}, ::Int64)
+    findnext(isodd, s, 2)    = THROWS MissingException: the value at index (2,) is missing
+    REPRODUCED missingchar-skipmissing-findlast
+  nightly: |
+    collect(keys(s))         = [1, 3, 4]
+    findfirst(isodd, s)      = 3
+    findall(iseven, s)       = [1, 4]
+    findlast(iseven, s)      = THROWS ArgumentError: Cannot reverse zipped iterators of unknown, infinite, or unequal lengths
+    findnext(isodd, s, 1)    = THROWS MethodError: no method matching nextind(::Base.SkipMissing{Vector{Union{Missing, Int64}}}, ::Int64)
+    findprev(isodd, s, 4)   = THROWS MethodError: no method matching prevind(::Base.SkipMissing{Vector{Union{Missing, Int64}}}, ::Int64)
+    findnext(isodd, s, 2)    = THROWS MissingException: the value at index (2,) is missing
+    REPRODUCED missingchar-skipmissing-findlast
+reproduced: {release: true, nightly: true}
+expected: |
+  findlast(iseven, s) == 4, findnext(isodd, s, 1) == 3, findprev(isodd, s, 4) == 3,
+  findnext(isodd, s, 2) == 3: the indices of the parent array, as findfirst returns.
+promised_by: |
+  doc/src/manual/missing.md:356-360: "This allows functions which operate on
+  indices to work in combination with skipmissing. This is notably the case for
+  search and find functions. These functions return indices valid for the object
+  returned by skipmissing, and are also the indices of the matching entries in
+  the parent array". The skipmissing docstring (base/missing.jl:185-188) says the
+  object "can be indexed using indices of itr".
+cause: |
+  findlast(f, A) for non-arrays iterates Iterators.reverse(pairs(A))
+  (base/array.jl:2716-2721); pairs(s) zips keys(s), an Iterators.Filter of unknown
+  length (base/missing.jl:255-256), and reverse(::Zip) refuses iterators of unknown
+  length (base/iterators.jl:521-526). findnext/findprev (base/array.jl:2475-2486,
+  2671-) step with nextind/prevind, which SkipMissing lacks, and read A[i] at every
+  index from start, so a start on a missing entry throws MissingException.
+possible_fix: |
+  Define findnext/findprev/findlast for SkipMissing{<:AbstractArray} by searching
+  the parent array with a predicate that skips missing values.
+duplicates:
+  issues:
+    - {number: 37014, state: open, relation: related}
+  queries:
+    - "issues: skipmissing findlast"
+    - "issues: findlast skipmissing reverse"
+    - "issues: findnext skipmissing"
+    - "issues: findprev skipmissing"
+    - "issues: skipmissing nextind"
+    - "issues: Cannot reverse zipped iterators"
+    - "prs: skipmissing findlast"
+    - "prs: skipmissing find"
+lean:
+  property: JuliaLean.MissingChar.SkipMissingFindLast
+  theorem: JuliaLean.MissingChar.skipMissingFindLast_refuted

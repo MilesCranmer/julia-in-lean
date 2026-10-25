@@ -1,0 +1,65 @@
+id: intarith-number-gcdx-strict-bounds
+title: "gcdx documents strict coefficient bounds that fail for equal nonzero inputs"
+priority: P3
+kind: documentation
+area: IntArith
+files: [base/intfuncs.jl]
+functions: [gcdx]
+summary: |
+  gcdx(Int8(2), Int8(2)) returns (2, 0, 1), which satisfies the Bezout
+  identity. Its second coefficient violates the documented strict bound
+  abs(v) < abs(a/d), because both sides equal 1.
+likelihood: |
+  Equal nonzero inputs are common. Arithmetic remains correct, so the
+  practical effect is limited to readers or code relying on the stated
+  strict inequalities as a universal coefficient guarantee.
+maybe_intended: |
+  The returned coefficients are valid and cannot both satisfy the strict
+  inequalities when a = b != 0: both bounds would force u = v = 0.
+  The implementation is reasonable; the documentation needs exceptions.
+reproducer: |
+  a, b = Int8(2), Int8(2)
+  d, u, v = gcdx(a, b)
+  println("gcdx(Int8(2), Int8(2)) = ", (d, u, v))
+  println("abs(v) < abs(a ÷ d) = ", abs(v) < abs(a ÷ d))
+  if d == 2 && Int(u)*Int(a) + Int(v)*Int(b) == Int(d) && !(abs(u) < abs(b ÷ d) && abs(v) < abs(a ÷ d))
+      println("REPRODUCED intarith-number-gcdx-strict-bounds")
+  else
+      error("gcdx coefficient-bound counterexample did not reproduce")
+  end
+output:
+  release: |
+    gcdx(Int8(2), Int8(2)) = (2, 0, 1)
+    abs(v) < abs(a ÷ d) = false
+    REPRODUCED intarith-number-gcdx-strict-bounds
+  nightly: |
+    gcdx(Int8(2), Int8(2)) = (2, 0, 1)
+    abs(v) < abs(a ÷ d) = false
+    REPRODUCED intarith-number-gcdx-strict-bounds
+reproduced: {release: true, nightly: true}
+expected: |
+  Keep the valid (2, 0, 1) result and qualify the coefficient bounds for
+  degenerate cases, including when one input divides the other. Julia
+  1.13.2 and master have the same documentation and result in this case.
+promised_by: |
+  base/intfuncs.jl:228-230: "For signed integers, these coefficients u and v
+  are minimal in the sense that |u| < |b/d| and |v| < |a/d|."
+cause: |
+  The Euclidean update in base/intfuncs.jl:245-252 maps (a,b)=(2,2) to a=2,
+  b=0, s0=0, t0=1 and returns those coefficients at line 258. The strict
+  bounds in lines 228-230 omit the mathematically necessary exceptions.
+  Master makes unsigned updates explicitly wrapping at lines 189-190;
+  that change does not affect this signed example.
+possible_fix: |
+  Add explicit exceptions to the strict coefficient inequalities for
+  divisibility and zero-input cases, while retaining the Bezout identity.
+duplicates:
+  issues: []
+  queries:
+    - "issues and PRs: gcdx coefficients minimal"
+    - "issues and PRs: gcdx bounds"
+    - "PRs: gcdx documentation"
+    - "issues and PRs: gcdx"
+lean:
+  property: JuliaLean.IntArith.NumberTheory.GcdxStrictBounds
+  theorem: JuliaLean.IntArith.NumberTheory.gcdxStrictBounds_refuted

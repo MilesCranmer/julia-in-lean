@@ -1,0 +1,60 @@
+id: sockets-bigint-constructor
+title: "IPv4(big(1)) and IPv6(big(1)) fail in typemax(BigInt)"
+priority: P2
+kind: wrong-result
+area: Sockets
+files: [stdlib/Sockets/src/IPAddr.jl]
+functions: ["IPv4(::Integer)", "IPv6(::Integer)"]
+summary: |
+  The constructors advertise an Integer host argument, but nonnegative BigInt
+  values fail before their value can be checked or converted. IPv4(big(1))
+  and IPv6(big(1)) throw MethodError for typemax(BigInt), although the same
+  value as a fixed-width integer constructs the address successfully.
+likelihood: |
+  BigInt values arise from numeric parsers and arbitrary-precision address
+  calculations. Even zero and one hit the failure.
+maybe_intended: |
+  The implementation may have intended only fixed-width integers. The method
+  signatures and docstrings say Integer, which includes BigInt, and converting
+  these small BigInt values to UInt32 or UInt128 succeeds.
+reproducer: |
+  using Sockets
+  IPv4(big(1))
+  IPv6(big(1))
+output:
+  release: |
+    IPv4(1) = 0.0.0.1
+    IPv4(big(1)) threw MethodError
+    missing method = typemax(BigInt)
+    IPv6(1) = ::1
+    IPv6(big(1)) threw MethodError
+    missing method = typemax(BigInt)
+    REPRODUCED sockets-bigint-constructor
+  nightly: |
+    IPv4(1) = 0.0.0.1
+    IPv4(big(1)) threw MethodError
+    missing method = typemax(BigInt)
+    IPv6(1) = ::1
+    IPv6(big(1)) threw MethodError
+    missing method = typemax(BigInt)
+    REPRODUCED sockets-bigint-constructor
+reproduced: {release: true, nightly: true}
+expected: |
+  IPv4(big(1)) == ip"0.0.0.1" and IPv6(big(1)) == ip"::1".
+promised_by: |
+  stdlib/Sockets/src/IPAddr.jl:31-34 and 94-97 document IPv4(host::Integer)
+  and IPv6(host::Integer): "Return an IPv4 [IPv6] object from IP address
+  host formatted as an Integer." BigInt is an Integer.
+cause: |
+  stdlib/Sockets/src/IPAddr.jl:45 and 110 call typemax(typeof(host)) before
+  comparing the host's value with the address range. BigInt has no finite
+  maximum and no typemax method, so the expression raises MethodError.
+possible_fix: |
+  Check the host value directly against typemax(UInt32) or typemax(UInt128)
+  after rejecting negative values, without asking the source type for a maximum.
+duplicates:
+  issues: []
+  queries: ["IPv4 BigInt", "IPv6 BigInt", "PR: Sockets BigInt"]
+lean:
+  property: JuliaLean.Sockets.BigIntConstructors
+  theorem: JuliaLean.Sockets.bigIntConstructors_refuted

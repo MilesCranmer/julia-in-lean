@@ -1,0 +1,60 @@
+id: sort-partialsort-empty-range
+title: "partialsort(v, 4:3) throws \"range must be non-empty\" only when length(v) >= 260"
+priority: P2
+kind: wrong-exception
+area: Sort
+files: [base/sort.jl]
+functions: ["partialsort!(v, k::OrdinalRange)", "partialsort(v, k::OrdinalRange)"]
+summary: |
+  partialsort with an empty index range returns an empty vector for inputs of
+  fewer than 260 elements, but throws ArgumentError("range must be non-empty")
+  for 260 or more, because BracketedSort evaluates minimum(k) on the empty range.
+  partialsortperm with the same k returns an empty result at every length.
+likelihood: |
+  Plausible in generic code that computes k = lo:hi and may produce an empty
+  range (asking for zero order statistics). The behaviour depends on input
+  length, so tests with small inputs pass.
+maybe_intended: |
+  Throwing for an empty k could be defended, but then it should not depend on
+  length(v), and the docstring does not mention it.
+reproducer: |
+  println(partialsort(collect(259:-1:1), 4:3))
+  err = try
+      partialsort(collect(260:-1:1), 4:3)
+      nothing
+  catch e
+      e
+  end
+  println(err)
+  if err isa ArgumentError
+      println("REPRODUCED sort-partialsort-empty-range")
+  end
+output:
+  release: |
+    Int64[]
+    ArgumentError("range must be non-empty")
+    REPRODUCED sort-partialsort-empty-range
+  nightly: |
+    Int64[]
+    ArgumentError("range must be non-empty")
+    REPRODUCED sort-partialsort-empty-range
+reproduced: {release: true, nightly: true}
+expected: |
+  Int64[] for both calls, as for shorter inputs and for partialsortperm.
+promised_by: |
+  partialsort! docstring, base/sort.jl:116-120: "if k is a range, an array of
+  values at those indices is returned"; for an empty range that is an empty
+  array. Invariant: the result does not depend on which internal algorithm
+  BracketedSort dispatches to.
+cause: |
+  base/sort.jl:1277 sends inputs with ln < 260 to ScratchQuickSort, which
+  handles an empty target. Larger inputs reach base/sort.jl:1284-1286, where
+  minimum(target) throws ArgumentError for an empty range.
+possible_fix: |
+  In BracketedSort (or partialsort!), return early when k is an empty range.
+duplicates:
+  issues: []
+  queries: ["issues: partialsort empty", "issues: partialsort non-empty", "issues/prs: partialsort range"]
+lean:
+  property: JuliaLean.Sort.PartialsortEmptyRange
+  theorem: JuliaLean.Sort.partialsortEmptyRange_refuted

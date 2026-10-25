@@ -1,0 +1,61 @@
+id: ranges-ordinal-typemin-checked-length
+title: "checked_length throws InexactError for a two-element range with a typemin step"
+priority: P2
+kind: wrong-exception
+area: Ranges
+files: [base/range.jl]
+functions: ["checked_length(::OrdinalRange{T})"]
+summary: |
+  Base.checked_length(Int64(0):typemin(Int64):typemin(Int64)) throws
+  InexactError. The range has two elements, and length and collect work.
+likelihood: |
+  The most negative step is a plausible boundary test but unusual in
+  application code. The mathematical cardinality is only two.
+maybe_intended: |
+  The docstring says checked_length may check for overflow, allowing some
+  implementation choice. Here the mathematical length fits Int64, so an
+  InexactError from an intermediate conversion appears unintended.
+reproducer: |
+  r = Int64(0):typemin(Int64):typemin(Int64)
+  @assert collect(r) == [Int64(0), typemin(Int64)]
+  @assert length(r) == 2
+  try
+      Base.checked_length(r)
+  catch e
+      e isa InexactError || rethrow()
+      println("REPRODUCED ranges-ordinal-typemin-checked-length")
+  end
+output:
+  release: |
+    REPRODUCED ranges-ordinal-typemin-checked-length
+  nightly: |
+    REPRODUCED ranges-ordinal-typemin-checked-length
+reproduced: {release: true, nightly: true}
+expected: |
+  Return the integer 2, which fits both the element integer type and Int.
+promised_by: |
+  base/checked.jl:370-375: "Calculates `length(r)`, but may check for overflow
+  errors where applicable when the result doesn't fit into
+  `Union{Integer(eltype(r)),Int}`."
+cause: |
+  base/range.jl:840-842 negates the step before dividing the unsigned wrapped
+  endpoint difference. Negating typemin(Int64) wraps to itself. The mixed
+  unsigned/signed quotient is typemax(UInt64), and exact conversion to
+  Int64 throws before the final checked addition. Master uses explicit
+  wrapping subtraction; release uses ordinary fixed-width subtraction
+  with identical behavior for these built-in integer inputs.
+possible_fix: |
+  Form the absolute step in an unsigned representation before division.
+  Preserve exact conversion and overflow checking on the nonnegative
+  quotient and final count.
+duplicates:
+  issues: []
+  queries:
+    - "issues: checked_length typemin"
+    - "issues: checked_length InexactError"
+    - "prs: checked_length typemin"
+    - "prs: range InexactError typemin"
+    - "prs: checked_length StepRange (returned unrelated offset-axis PR 45260)"
+lean:
+  property: JuliaLean.Ranges.CheckedLengthCapacity
+  theorem: JuliaLean.Ranges.checkedLengthCapacity_refuted

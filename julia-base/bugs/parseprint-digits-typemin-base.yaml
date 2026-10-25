@@ -1,0 +1,69 @@
+id: parseprint-digits-typemin-base
+title: "digits(n; base=typemin(Int)) throws DomainError \"base must be ≥ 2 or ≤ -2\" because abs(base) overflows"
+priority: P3
+kind: wrong-exception
+area: ParsePrint
+files: [base/intfuncs.jl]
+functions: ["digits!", "digits"]
+summary: |
+  digits(5; base=typemin(Int)) throws DomainError with -9223372036854775808:
+  "base must be ≥ 2 or ≤ -2", although the base is ≤ -2 and
+  ndigits(5; base=typemin(Int)) returns 1. The check `2 <= abs(base)` sees the
+  wrapped abs(typemin(Int)) == typemin(Int).
+likelihood: |
+  Very low: a base of typemin is contrived. The error message contradicts itself,
+  which makes it a clear, small inconsistency.
+maybe_intended: |
+  Rejecting a typemin base is reasonable, since -base is not representable; but
+  the error should then not state a condition the base satisfies, and ndigits
+  should agree.
+reproducer: |
+  b = typemin(Int)
+  @assert b <= -2
+  println("ndigits(5; base=b) = ", ndigits(5; base=b))
+  threw = try
+      println("digits(5; base=b) = ", digits(5; base=b))
+      false
+  catch e
+      println("digits(5; base=b) threw ", typeof(e), ": ", sprint(showerror, e))
+      e isa DomainError
+  end
+  threw && println("REPRODUCED parseprint-digits-typemin-base")
+output:
+  release: |
+    ndigits(5; base=b) = 1
+    digits(5; base=b) threw DomainError: DomainError with -9223372036854775808:
+    base must be ≥ 2 or ≤ -2
+    REPRODUCED parseprint-digits-typemin-base
+  nightly: |
+    ndigits(5; base=b) = 1
+    digits(5; base=b) threw DomainError: DomainError with -9223372036854775808:
+    base must be ≥ 2 or ≤ -2
+    REPRODUCED parseprint-digits-typemin-base
+reproduced: {release: true, nightly: true}
+expected: |
+  [5] (one digit, as ndigits says), or an error whose message does not claim the
+  base violates "≤ -2".
+promised_by: |
+  The error message itself, base/intfuncs.jl:1250: "base must be ≥ 2 or ≤ -2";
+  and the digits docstring, base/intfuncs.jl:1172-1174.
+cause: |
+  base/intfuncs.jl:1250 tests `2 <= abs(base)`; abs(typemin(Int)) wraps to
+  typemin(Int), which is negative.
+possible_fix: |
+  Test `base >= 2 || base <= -2` instead of `2 <= abs(base)`.
+duplicates:
+  issues:
+    - {number: 64125, state: open, relation: related}
+  queries:
+    - "issues: digits typemin"
+    - "issues: digits base typemin"
+    - "issues: digits DomainError base"
+    - "issues: digits base typemin(Int)"
+    - "issues: abs(base) overflow"
+    - "issues: negative base"
+    - "pull requests: digits base"
+    - "pull requests: digits typemin"
+lean:
+  property: JuliaLean.ParsePrint.IntPrint.DigitsValidBase
+  theorem: JuliaLean.ParsePrint.IntPrint.digitsValidBase_refuted

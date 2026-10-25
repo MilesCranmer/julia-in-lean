@@ -1,0 +1,54 @@
+id: sockets-ipv6-lone-colon
+title: "parse(IPv6, \":1\") and parse(IPv6, \"1:\") silently misplace the groups instead of erroring"
+priority: P2
+kind: missing-error
+area: Sockets
+files: [stdlib/Sockets/src/IPAddr.jl]
+functions: ["parse(::Type{IPv6}, ::AbstractString)", "parseipv6fields"]
+summary: |
+  A single ':' at the start or end of the string (not part of a '::' pair) is
+  invalid IPv6 text, but parse(IPv6, ":1") returns ip"0:1::" and
+  parse(IPv6, "1:") returns ip"1::" without an error. The lone empty field is
+  treated like half an elision, so the following/preceding group is written
+  into the wrong slot.
+likelihood: |
+  Malformed strings from user input or configuration typos; the result is a
+  valid-looking but different address, so the failure is silent.
+maybe_intended: ""
+reproducer: |
+  using Sockets
+  println(string(parse(IPv6, ":1")))
+  println(string(parse(IPv6, "1:")))
+output:
+  release: |
+    parse(IPv6, ":1") = 0:1::
+    parse(IPv6, "1:") = 1::
+    REPRODUCED sockets-ipv6-lone-colon
+  nightly: |
+    parse(IPv6, ":1") = 0:1::
+    parse(IPv6, "1:") = 1::
+    REPRODUCED sockets-ipv6-lone-colon
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError: a lone leading or trailing colon is not valid IPv6 text
+  (inet_pton rejects ":1" and "1:").
+promised_by: |
+  IPv6(str) docstring "Parse an IPv6 address string into an IPv6 object"
+  (stdlib/Sockets/src/IPAddr.jl:117-127); RFC 4291 section 2.2 (the '::'
+  notation stands for one or more groups of zeros, written as two colons);
+  issue #40255's stated goal of erroring on unsupported formats.
+cause: |
+  parseipv6fields (stdlib/Sockets/src/IPAddr.jl:228-235) decrements cf for any
+  empty field. For ":1" the leading empty field at cf=7 is skipped without the
+  num_fields-length(fields) adjustment (guarded by cf != 7), so "1" lands at
+  cf=6 instead of cf=0. Symmetrically for the trailing case with cf == 0.
+possible_fix: |
+  Require empty fields to come in adjacent pairs ('::'), exactly once, as in
+  inet_pton.
+duplicates:
+  issues:
+    - {number: 40255, state: open, relation: related}
+  queries: ["IPv6 parse", "IPv6 colon", "lone colon", "IPv6 shorthand", "parse IP address invalid"]
+lean:
+  property: JuliaLean.Sockets.IPv6ColonPaired
+  theorem: JuliaLean.Sockets.ipv6ColonPaired_refuted

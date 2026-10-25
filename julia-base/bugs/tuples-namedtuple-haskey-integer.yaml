@@ -1,0 +1,54 @@
+id: tuples-namedtuple-haskey-integer
+title: "`haskey(nt, k)` and `get(nt, k, d)` throw TypeError for integer keys that are not Int"
+priority: P2
+kind: wrong-exception
+area: Tuples
+files: [base/namedtuple.jl]
+functions: ["haskey(nt::NamedTuple, key::Union{Integer, Symbol})", "get(nt::NamedTuple, key::Union{Integer, Symbol}, default)", "get(f::Callable, nt::NamedTuple, key::Union{Integer, Symbol})"]
+summary: |
+  The NamedTuple methods of haskey and get accept key::Union{Integer, Symbol}
+  but pass the key to the builtin isdefined, which accepts only Int and Symbol.
+  haskey((a = 1,), Int32(1)), haskey((a = 1,), 0x01), haskey((a = 1,), big(1))
+  and haskey((a = 1,), true) throw TypeError instead of returning a Bool, and
+  get with such keys throws instead of returning the field or the default.
+likelihood: |
+  Moderate: field positions computed in another integer type (an Int32 loop
+  counter, a UInt8 from data) reach haskey/get through generic code; the
+  signature advertises that they work.
+maybe_intended: ""
+reproducer: |
+  nt = (a = 1,)
+  haskey(nt, 1), get(nt, 1, 0)   # (true, 1)
+  haskey(nt, Int32(1))           # TypeError
+  get(nt, 0x01, 0)               # TypeError
+output:
+  release: |
+    true 1
+    TypeError(:isdefined, "", Symbol, 1)
+    TypeError(:isdefined, "", Symbol, 0x01)
+    REPRODUCED tuples-namedtuple-haskey-integer
+  nightly: |
+    true 1
+    TypeError(:isdefined, "", Symbol, 1)
+    TypeError(:isdefined, "", Symbol, 0x01)
+    REPRODUCED tuples-namedtuple-haskey-integer
+reproduced: {release: true, nightly: true}
+expected: |
+  haskey(nt, Int32(1)) == true and get(nt, 0x01, 0) == 1, as for Int keys.
+promised_by: |
+  The method signatures, base/namedtuple.jl:384-386:
+  haskey(nt::NamedTuple, key::Union{Integer, Symbol}) and
+  get(nt::NamedTuple, key::Union{Integer, Symbol}, default).
+cause: |
+  base/namedtuple.jl:384-386 call isdefined(nt, key) (and getfield(nt, key))
+  with the key unconverted; the builtins require Int or Symbol.
+possible_fix: |
+  Convert integer keys first, e.g. haskey(nt::NamedTuple, key::Integer) =
+  key isa Bool ? ... : 1 <= key <= length(nt), or narrow the signatures to
+  Union{Int, Symbol}.
+duplicates:
+  issues: []
+  queries: ["issues: haskey NamedTuple", "issues: NamedTuple haskey Int32", "issues: NamedTuple get Integer", "issues: NamedTuple get integer key", "issues: isdefined NamedTuple", "issues: isdefined Int32", "prs: haskey NamedTuple"]
+lean:
+  property: JuliaLean.Tuples.HaskeyInteger
+  theorem: JuliaLean.Tuples.haskeyInteger_refuted

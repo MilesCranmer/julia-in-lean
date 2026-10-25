@@ -1,0 +1,69 @@
+id: iterators-rest-isdone-state
+title: isempty(Iterators.rest(itr, st)) answers for the start of itr, not for st
+priority: P2
+kind: wrong-result
+area: Iterators
+files:
+- base/iterators.jl
+functions:
+- isdone(::Rest)
+- isempty(::Rest)
+- Iterators.peel
+summary: |
+  isdone(i::Rest, st...) forwards to isdone(i.itr, st...). Called without a
+  state (as isempty does), it asks whether i.itr is done at its beginning
+  instead of at i.st. For (x, r) = Iterators.peel(take(Stateful([1,2,3]), 1)),
+  isempty(r) is false although r yields nothing; the same happens with
+  take(eachline(io), 1).
+likelihood: |
+  Needs a Rest (from peel or Iterators.rest) over a wrapper whose state matters
+  for isdone, around a stateful iterator, typically a take of eachline or of a
+  Stateful. Plausible in parsing code; the answer is silently wrong.
+maybe_intended: ''
+reproducer: |
+  # isempty(rest) after Iterators.peel ignores the state stored in the Rest
+  itr = Iterators.take(Iterators.Stateful([1, 2, 3]), 1)
+  x, r = Iterators.peel(itr)
+  e = isempty(r)
+  c = collect(r)
+  println("peel(take(Stateful([1,2,3]), 1)) = (", x, ", r); isempty(r) = ", e, ", collect(r) = ", c)
+  io = IOBuffer("a\nb\nc\n")
+  y, r2 = Iterators.peel(Iterators.take(eachline(io), 1))
+  e2 = isempty(r2)
+  println("peel(take(eachline(io), 1)): isempty(rest) = ", e2, ", collect(rest) = ", collect(r2))
+  if !e && isempty(c) && !e2
+      println("REPRODUCED iterators-rest-isdone-state")
+  end
+output:
+  release: |
+    peel(take(Stateful([1,2,3]), 1)) = (1, r); isempty(r) = false, collect(r) = Int64[]
+    peel(take(eachline(io), 1)): isempty(rest) = false, collect(rest) = String[]
+    REPRODUCED iterators-rest-isdone-state
+  nightly: |
+    peel(take(Stateful([1,2,3]), 1)) = (1, r); isempty(r) = false, collect(r) = Int64[]
+    peel(take(eachline(io), 1)): isempty(rest) = false, collect(rest) = String[]
+    REPRODUCED iterators-rest-isdone-state
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  isempty(r) == true, since collect(r) == [].
+promised_by: |
+  peel docstring, base/iterators.jl:701-704: "Returns the first element and an
+  iterator over the remaining elements"; isempty docstring,
+  base/essentials.jl:1204-1206.
+cause: |
+  base/iterators.jl:733, isdone(i::Rest, st...) = isdone(i.itr, st...): with no
+  st it drops i.st. iterate(i::Rest, st=i.st) (line 732) uses i.st, so the two
+  disagree.
+possible_fix: |
+  isdone(i::Rest) = isdone(i.itr, i.st); isdone(i::Rest, st) = isdone(i.itr, st).
+duplicates:
+  issues: []
+  queries:
+  - isdone Rest
+  - peel isempty
+  - Iterators.rest isdone
+lean:
+  property: JuliaLean.Iterators.PeelRestIsempty
+  theorem: JuliaLean.Iterators.peelRestIsempty_refuted

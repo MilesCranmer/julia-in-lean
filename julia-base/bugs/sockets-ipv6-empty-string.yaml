@@ -1,0 +1,52 @@
+id: sockets-ipv6-empty-string
+title: "parse(IPv6, \"\") returns the unspecified address instead of an error"
+priority: P2
+kind: missing-error
+area: Sockets
+files: [stdlib/Sockets/src/IPAddr.jl]
+functions: ["parse(::Type{IPv6}, ::AbstractString)"]
+summary: |
+  parse(IPv6, "") returns ip"::" (the all-zero address) instead of throwing.
+  split("", ':') yields one empty field, and parseipv6fields simply skips empty
+  fields without requiring them to come in '::' pairs, so the empty string
+  parses to zero. Every inet_pton-style parser rejects it.
+likelihood: |
+  Empty strings reach parse(IPv6, ..) easily: unset configuration values,
+  empty variables interpolated into an address string, or split results.
+maybe_intended: |
+  Nobody documents "" as the unspecified address; IPv6("") = parse(IPv6, "")
+  per the constructor docstring "Parse an IPv6 address string".
+reproducer: |
+  using Sockets
+  println(try string(parse(IPv6, "")) catch e; nameof(typeof(e)) end)
+output:
+  release: |
+    parse(IPv6, "") = ::
+    REPRODUCED sockets-ipv6-empty-string
+  nightly: |
+    parse(IPv6, "") = ::
+    REPRODUCED sockets-ipv6-empty-string
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError, like every other string that is not IPv6 text. On 1.13.2 and
+  master alike, parse(IPv4, "") throws ArgumentError (dotted quad / empty
+  field), and ':' handling here is the direct analogue.
+promised_by: |
+  IPv6(str) docstring "Parse an IPv6 address string into an IPv6 object"
+  (stdlib/Sockets/src/IPAddr.jl:117-127); RFC 4291 section 2.2 grammar; the
+  stated goal of issue #40255 ("error on the [formats] that we don't support").
+cause: |
+  parseipv6fields (stdlib/Sockets/src/IPAddr.jl:221-241) treats any empty
+  field as part of an elision: for f in fields, isempty(f) just decrements cf.
+  With fields = [""] nothing is parsed and ret stays 0.
+possible_fix: |
+  Validate the elision structure before parsing: empty fields must form exactly
+  one '::' pair (two adjacent empty fields, or the pair at the start/end), and
+  an all-empty token list must be rejected.
+duplicates:
+  issues:
+    - {number: 40255, state: open, relation: related}
+  queries: ["IPv6 parse", "parse IPv6", "IPv6 address parse", "ip_str", "IPv6 colon", "parse Sockets ArgumentError"]
+lean:
+  property: JuliaLean.Sockets.IPv6Nonempty
+  theorem: JuliaLean.Sockets.ipv6Nonempty_refuted

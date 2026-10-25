@@ -1,0 +1,73 @@
+id: versionnumbers-negative-inexacterror
+title: VersionNumber(-1) throws InexactError instead of the intended ArgumentError
+priority: P2
+kind: wrong-exception
+area: VersionNumbers
+files:
+- base/version.jl
+functions:
+- VersionNumber(major::Integer, minor, patch, pre, bld)
+summary: |
+  The inner constructor checks `major >= 0 || throw(ArgumentError("invalid negative major
+  version: ..."))` and likewise for minor, patch and integer identifiers, but the outer
+  constructor converts with VInt(major) and UInt64(x) first, so a negative value throws
+  InexactError and the checks are dead code (UInt32/UInt64 values are never negative).
+likelihood: |
+  Code passing a negative component gets an error either way; only the exception type
+  and message differ.
+maybe_intended: |
+  Any error may be considered acceptable; the dead checks show ArgumentError was intended.
+reproducer: |
+  # VersionNumber with a negative component throws InexactError, not the intended ArgumentError
+  function err(f)
+      try
+          f()
+          return nothing
+      catch e
+          return e
+      end
+  end
+  e1 = err(() -> VersionNumber(-1))
+  e2 = err(() -> VersionNumber(1, -2, 0))
+  e3 = err(() -> VersionNumber(1, 0, 0, (-1,)))
+  e4 = err(() -> VersionNumber(1, 0, 0, (), (-1,)))
+  for (name, e) in (("VersionNumber(-1)", e1), ("VersionNumber(1, -2, 0)", e2), ("VersionNumber(1, 0, 0, (-1,))", e3), ("VersionNumber(1, 0, 0, (), (-1,))", e4))
+      println(name, " throws ", typeof(e), ": ", sprint(showerror, e))
+  end
+  if all(e -> e isa InexactError, (e1, e2, e3, e4))
+      println("REPRODUCED versionnumbers-negative-inexacterror")
+  end
+output:
+  release: |
+    VersionNumber(-1) throws InexactError: InexactError: trunc(UInt32, -1)
+    VersionNumber(1, -2, 0) throws InexactError: InexactError: trunc(UInt32, -2)
+    VersionNumber(1, 0, 0, (-1,)) throws InexactError: InexactError: convert(UInt64, -1)
+    VersionNumber(1, 0, 0, (), (-1,)) throws InexactError: InexactError: convert(UInt64, -1)
+    REPRODUCED versionnumbers-negative-inexacterror
+  nightly: |
+    VersionNumber(-1) throws InexactError: InexactError: trunc(UInt32, -1)
+    VersionNumber(1, -2, 0) throws InexactError: InexactError: trunc(UInt32, -2)
+    VersionNumber(1, 0, 0, (-1,)) throws InexactError: InexactError: convert(UInt64, -1)
+    VersionNumber(1, 0, 0, (), (-1,)) throws InexactError: InexactError: convert(UInt64, -1)
+    REPRODUCED versionnumbers-negative-inexacterror
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  ArgumentError("invalid negative major version: -1"), etc.
+promised_by: |
+  base/version.jl:58-60, 63, 73: the constructor's own negative-value checks.
+cause: |
+  base/version.jl:87-89 convert to VInt/UInt64 before the inner constructor's checks at
+  base/version.jl:58-60, 63, 73 run.
+possible_fix: |
+  Check signs in the outer constructor before converting, or drop the dead checks.
+duplicates:
+  issues: []
+  queries:
+  - VersionNumber negative
+  - VersionNumber InexactError
+  - VersionNumber
+lean:
+  property: JuliaLean.VersionNumbers.NegativeArgumentError
+  theorem: JuliaLean.VersionNumbers.negativeArgumentError_refuted

@@ -1,0 +1,53 @@
+id: mathfuncs-prevpow-float32-overflow
+title: "prevpow(2.0f0, 1.0e39) returns Inf32, which is greater than x"
+priority: P2
+kind: wrong-result
+area: MathFuncs
+files: [base/intfuncs.jl]
+functions: ["prevpow(::Float32, ::Real)", "nextpow(::Float32, ::Real)"]
+summary: |
+  For a floating-point base whose powers overflow before reaching x,
+  prevpow(a, x) returns Inf. n = floor(log(a, x)) is computed in Float64, a^n
+  overflows to Inf32, and the fallback only tries a^(n-1), which also
+  overflows. The result is larger than x, contradicting "the largest a^n not
+  greater than x"; the right answer is the largest finite power (2.0f0^127).
+likelihood: |
+  Needs x beyond the range of the base's type, e.g. a Float32 base with a
+  Float64 argument above 3.4e38. Uncommon but silent.
+maybe_intended: ""
+reproducer: |
+  prevpow(2.0f0, 1.0e39)   # Inf32, expected 1.7014118f38
+  prevpow(2.5f0, 1.0e40)   # Inf32
+output:
+  release: |
+    prevpow(2.0f0, 1.0e39) = Inf32; p <= x: false
+    prevpow(2.5f0, 1.0e40) = Inf32
+    largest Float32 power of 2 <= x: 1.7014118f38
+    REPRODUCED mathfuncs-prevpow-float32-overflow
+  nightly: |
+    prevpow(2.0f0, 1.0e39) = Inf32; p <= x: false
+    prevpow(2.5f0, 1.0e40) = Inf32
+    largest Float32 power of 2 <= x: 1.7014118f38
+    REPRODUCED mathfuncs-prevpow-float32-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  1.7014118f38 (= 2.0f0^127), or a DomainError like the integer case
+  ("argument is beyond the range of type of the base").
+promised_by: |
+  base/intfuncs.jl:674 (prevpow docstring): "The largest a^n not greater than
+  x, where n is a non-negative integer."
+cause: |
+  base/intfuncs.jl:699-712: n comes from the Float64 logarithm, so a^n can
+  overflow the base type. The guard at line 702, x > typemax(p), compares with
+  typemax(Float32) == Inf32 and never fires, and only n+1, n, n-1 are tried.
+possible_fix: |
+  For floating-point bases, throw a DomainError when x > floatmax(typeof(p))
+  (or clamp n so that a^n stays finite before the n±1 checks).
+duplicates:
+  issues:
+    - {number: 59681, state: closed, relation: related}
+    - {number: 57906, state: closed, relation: related}
+  queries: ["prevpow float", "prevpow Float32", "prevpow overflow", "prevpow Inf", "nextpow Float32", "prevpow"]
+lean:
+  property: JuliaLean.MathFuncs.prevpowLe
+  theorem: JuliaLean.MathFuncs.prevpowLe_refuted

@@ -1,0 +1,45 @@
+id: iobuffers-truncate-mark
+title: "truncate(io, n) removes a mark at position n, which is still inside the buffer"
+priority: P3
+kind: wrong-result
+area: IOBuffers
+files: [base/iobuffer.jl]
+functions: ["truncate(::GenericIOBuffer, ::Integer)"]
+summary: |
+  When truncate shrinks a buffer, it clears the mark "if it points to data that has now
+  been deleted". The test is off by one: a mark at position n (the new end, still a
+  valid position that seek(io, n) reaches) is cleared too.
+likelihood: |
+  Needs mark exactly at the truncation point. Rare; effect is a spurious "not marked"
+  error from reset.
+maybe_intended: |
+  Position n is end of file, which holds no data; clearing it is harmless if marks at
+  EOF are considered meaningless, but marks at EOF are allowed elsewhere.
+reproducer: |
+  io = IOBuffer(); write(io, "abcdef"); seek(io, 3); mark(io)
+  truncate(io, 3)
+  ismarked(io)     # false
+output:
+  release: |
+    after truncate(io, 3): ismarked = false, position = 3
+    REPRODUCED iobuffers-truncate-mark
+  nightly: |
+    after truncate(io, 3): ismarked = false, position = 3
+    REPRODUCED iobuffers-truncate-mark
+reproduced: {release: true, nightly: true}
+expected: |
+  ismarked(io) == true; reset(io) returns 3.
+promised_by: |
+  Comment at base/iobuffer.jl:578: "Clear the mark if it points to data that has now
+  been deleted."
+cause: |
+  base/iobuffer.jl:579 `translate_seek_position(io, io.mark) > n+offset` compares a
+  pointer (one-based) with a size; the mark at position n has pointer n+offset+1.
+possible_fix: |
+  Use `> n + offset + 1`, or compare io.mark > n.
+duplicates:
+  issues: []
+  queries: ["truncate mark IOBuffer", "truncate IOBuffer mark"]
+lean:
+  property: JuliaLean.IOBuffers.TruncateKeepsMark
+  theorem: JuliaLean.IOBuffers.truncateKeepsMark_refuted

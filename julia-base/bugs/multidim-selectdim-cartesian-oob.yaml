@@ -1,0 +1,70 @@
+id: multidim-selectdim-cartesian-oob
+title: "selectdim(A, d, I::CartesianIndex) returns a view that reads and writes outside A"
+priority: P0
+kind: wrong-result
+area: Multidim
+files: [base/abstractarraymath.jl]
+functions: ["selectdim(A::AbstractArray, d::Integer, i)", "_selectdim"]
+summary: |
+  When i is a CartesianIndex with more than one component, selectdim builds the index
+  tuple by replacing position d of (Slice(axes(A,1)), ..., Slice(axes(A,N))) with i.
+  The CartesianIndex consumes several dimensions, so the remaining Slices are applied
+  to dimensions past ndims(A). view trusts Slices and does not bounds-check them, so
+  the result has the wrong shape and its elements alias memory outside A:
+  selectdim(A, 2, CartesianIndex(1, 1)) for a 2x3x4 array is a 2x4 view whose
+  columns 2-4 are A[:, 1, 1, 2:4], i.e. out of bounds. Reading returns garbage;
+  writing corrupts memory. No @inbounds is involved.
+likelihood: |
+  Needs a multi-component CartesianIndex as the index argument, which the docstring
+  allows (i is untyped and "equivalent to view(A, :, ..., i, ...)"). Generic code that
+  selects along a dimension with a CartesianIndex from CartesianIndices of other
+  dimensions would hit it. Uncommon, but the consequence is memory unsafety.
+maybe_intended: |
+  The docstring examples only use integers and ranges; a reviewer may say a
+  multi-dimensional index is unsupported. Then it should throw, not read out of bounds.
+reproducer: |
+  A = reshape(collect(1:24), 2, 3, 4)
+  size(selectdim(A, 2, CartesianIndex(1, 1)))      # (2, 4)
+  size(view(A, :, CartesianIndex(1, 1), :))        # (2, 1)
+  collect(selectdim(A, 2, CartesianIndex(1, 1)))   # garbage in columns 2-4
+  selectdim([1 2; 3 4], 1, CartesianIndex(2, 2))   # 2 elements; the second is B[2, 2, 2]
+output:
+  release: |
+    size(selectdim(A, 2, CartesianIndex(1, 1))) = (2, 4), size(view(A, :, CartesianIndex(1, 1), :)) = (2, 1)
+    A[1, 1, 1, 2] in bounds? false
+    size(selectdim(B, 1, CartesianIndex(2, 2))) = (2,) (B has 4 elements; S[2] is B[2, 2, 2])
+    REPRODUCED multidim-selectdim-cartesian-oob
+  nightly: |
+    size(selectdim(A, 2, CartesianIndex(1, 1))) = (2, 4), size(view(A, :, CartesianIndex(1, 1), :)) = (2, 1)
+    A[1, 1, 1, 2] in bounds? false
+    size(selectdim(B, 1, CartesianIndex(2, 2))) = (2,) (B has 4 elements; S[2] is B[2, 2, 2])
+    REPRODUCED multidim-selectdim-cartesian-oob
+reproduced: {release: true, nightly: true}
+expected: |
+  view(A, :, CartesianIndex(1, 1), :), a 2x1 view of A[:, 1, 1] (or an error if
+  multi-dimensional indices are not supported). In a separate exploratory run,
+  collect(selectdim(A, 2, CartesianIndex(1, 1))) returned
+  [1 0 23455893414576 23456032308336; 2 23455964429968 23455893414640 23456032117488]
+  on 1.13.2.
+promised_by: |
+  selectdim docstring, base/abstractarraymath.jl:300-305: "Return a view of all the
+  data of A where the index for dimension d equals i. Equivalent to
+  view(A,:,:,...,i,:,:,...) where i is in position d." Invariant: a view never
+  exposes memory outside its parent unless @inbounds is used.
+cause: |
+  base/abstractarraymath.jl:327: selectdim passes
+  _setindex(i, d, map(Slice, axes(A))...), which keeps all N Slices and only replaces
+  slot d. With i::CartesianIndex{K}, K > 1, the K-1 Slices after slot d index
+  dimensions beyond ndims(A). view's bounds check accepts Slices without checking
+  them against the axis they land on, so the out-of-range Slice(OneTo(4)) on the
+  trailing singleton dimension 4 is accepted.
+possible_fix: |
+  Build the index tuple as (ntuple(_ -> :, d-1)..., i, ntuple(_ -> :, N-d-K+1)...)
+  with Colons (which to_indices checks), or reject CartesianIndex arguments.
+duplicates:
+  issues:
+    - {number: 64175, state: open, relation: duplicate}
+  queries: ["issues: selectdim (titles scanned; #64175 was opened by MilesCranmerBot on 2026-10-25 from this write-up)", "issues: selectdim CartesianIndex", "issues: selectdim view", "issues: selectdim BoundsError", "prs: selectdim"]
+lean:
+  property: JuliaLean.Multidim.SelectdimInBounds
+  theorem: JuliaLean.Multidim.selectdimInBounds_refuted

@@ -1,0 +1,50 @@
+id: mathfuncs-rempio2-kernel-sign
+title: "rem_pio2_kernel docstring: quadrant k is only correct mod 4 on the Payne-Hanek path"
+priority: P3
+kind: documentation
+area: MathFuncs
+files: [base/special/rem_pio2.jl]
+functions: ["Base.Math.rem_pio2_kernel(::Float64)", "Base.Math.paynehanek"]
+summary: |
+  The internal rem_pio2_kernel docstring says k*π/2 = x - r and that k is
+  negative for x <= 0. For |x| >= 2^20*π/2 the Payne-Hanek branch returns only
+  the quadrant modulo 4, as a value in 0:4: rem_pio2_kernel(-3.0e300) gives
+  k = 0 and rem_pio2_kernel(1.0e10) gives k = 4 instead of 6366197724.
+likelihood: |
+  All callers in Base (sin, cos, tan, rem2pi, ...) use k only mod 4, so results
+  are correct. Only code reading the docstring and using k directly is affected.
+maybe_intended: |
+  Using k mod 4 is intended; the docstring overstates what k is.
+reproducer: |
+  k, r = Base.Math.rem_pio2_kernel(-3.0e300)   # k == 0, expected negative
+  Base.Math.rem_pio2_kernel(1.0e10)[1]         # 4, round(1e10/(π/2)) = 6366197724
+output:
+  release: |
+    rem_pio2_kernel(-3.0e300) = (0, Base.Math.DoubleFloat64(0.26843214527711134, 1.3487327843241702e-17))
+    rem_pio2_kernel(1.0e10)[1] = 4; round(y/(pi/2)) = 6366197724
+    REPRODUCED mathfuncs-rempio2-kernel-sign
+  nightly: |
+    rem_pio2_kernel(-3.0e300) = (0, Base.Math.DoubleFloat64(0.26843214527711134, 1.3487327843241702e-17))
+    rem_pio2_kernel(1.0e10)[1] = 4; round(y/(pi/2)) = 6366197724
+    REPRODUCED mathfuncs-rempio2-kernel-sign
+reproduced: {release: true, nightly: true}
+expected: |
+  A docstring saying that k is the quadrant modulo 4 (k ≡ (x - r)/(π/2) mod 4),
+  with no sign guarantee for large |x|.
+promised_by: |
+  base/special/rem_pio2.jl:216-218: "Returns a pair (k, r), where k is the
+  quadrant of the result (multiple of π/2) and r is the remainder, such that
+  k * π/2 = x - r. ... k is positive if x > 0 and is negative if x ≤ 0."
+cause: |
+  base/special/rem_pio2.jl:198 computes q = (((w>>125)%Int + 1)>>1) from the
+  fractional bits of x/(2π) only, so it lies in 0:4 regardless of the size or
+  sign of x; the kernel returns it unchanged at line 281.
+possible_fix: |
+  Reword the docstring to state that k is only meaningful modulo 4.
+duplicates:
+  issues:
+    - {number: 63574, state: open, relation: related}
+  queries: ["rem_pio2_kernel", "paynehanek quadrant", "rem2pi", "Payne-Hanek"]
+lean:
+  property: JuliaLean.MathFuncs.remPio2KernelSign
+  theorem: JuliaLean.MathFuncs.remPio2KernelSign_refuted

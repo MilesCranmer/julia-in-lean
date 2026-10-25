@@ -1,0 +1,51 @@
+id: shellcmd-show-carriage-return
+title: "show(::Cmd) prints carriage returns raw, and they parse back as linefeeds"
+priority: P3
+kind: wrong-result
+area: ShellCmd
+files: [base/cmd.jl]
+functions: ["show(::IO, ::Cmd)"]
+summary: |
+  show(::Cmd) writes a carriage return inside an argument as a raw CR byte. The Julia
+  parser normalizes CR and CRLF in string and command literals to LF, so the printed
+  literal evaluates to a different command: Cmd(["printf", "a\rb"]) prints as
+  `printf 'a<CR>b'` and parses back with the argument "a\nb".
+likelihood: |
+  Rare: arguments containing carriage returns. Mostly affects copying REPL output.
+maybe_intended: |
+  Shell quoting has no escape for CR inside a command literal; printing an interpolation
+  would be needed.
+reproducer: |
+  c = Cmd(["printf", "a\rb"])
+  eval(Meta.parse(repr(c))).exec   # ["printf", "a\nb"]
+output:
+  release: |
+    repr(c) = "`printf 'a\rb'`"
+    reparsed exec = ["printf", "a\nb"]
+    REPRODUCED shellcmd-show-carriage-return
+  nightly: |
+    repr(c) = "`printf 'a\rb'`"
+    reparsed exec = ["printf", "a\nb"]
+    REPRODUCED shellcmd-show-carriage-return
+reproduced: {release: true, nightly: true}
+expected: |
+  A printed form that parses back to ["printf", "a\rb"], e.g. `printf $("a\rb")`.
+promised_by: |
+  The generic show docstring (base/show.jl): the output "should be parseable Julia code
+  when possible"; base/cmd.jl:201-210 prints a command literal meant to parse back.
+cause: |
+  base/cmd.jl:206: print_shell_word (base/shell.jl:394-422) prints every character other
+  than its specials verbatim, including CR, which the lexer rewrites.
+possible_fix: |
+  Print arguments that contain CR (or other characters the lexer changes) as
+  interpolated string literals.
+duplicates:
+  issues: []
+  queries:
+    - "issues/prs: Cmd carriage return"
+    - "issues/prs: show Cmd escape"
+    - "issues/prs: repr Cmd parse"
+    - "issues/prs: Cmd show roundtrip"
+lean:
+  property: JuliaLean.ShellCmd.ShowLexesCR
+  theorem: JuliaLean.ShellCmd.showLexesCR_refuted

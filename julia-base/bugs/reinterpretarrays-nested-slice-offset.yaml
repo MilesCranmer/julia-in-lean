@@ -1,0 +1,61 @@
+id: reinterpretarrays-nested-slice-offset
+title: "view(V, :) of a view with an IdentityUnitRange index reads and writes the wrong (even out-of-bounds) parent elements"
+priority: P1
+kind: wrong-result
+area: ReinterpretArrays
+files: [base/subarray.jl, base/indices.jl]
+functions: ["view(::SubArray, ::Colon)", "reindex", "compute_offset1", "getindex(::IdentityUnitRange, ::AbstractUnitRange)"]
+summary: |
+  For V = view(M, IdentityUnitRange(2:3), 2), view(V, :) is shifted by one row:
+  view(V, :)[2] returns M[3, 2] instead of M[2, 2], writes through it land one
+  element further, and copyto!(V, V) corrupts the column. Indexing
+  IdentityUnitRange(lo:hi) with Slice(IdentityUnitRange(lo:hi)) returns the Slice,
+  so the nested view's index claims to cover the whole first axis and
+  compute_offset1 takes the index-preserving branch. With the last column the
+  nested view reads parent linear index 22 of a 20-element matrix under @inbounds.
+likelihood: |
+  Needs an offset-axis index (IdentityUnitRange, as produced by OffsetArrays-style
+  code and by some Base internals) and then a colon view of the view; silent and
+  possibly out of bounds.
+maybe_intended: ''
+reproducer: |
+  IUR = Base.IdentityUnitRange
+  M = reshape(collect(1:20), 4, 5)
+  V = view(M, IUR(2:3), 2)     # V[2] == 6
+  view(V, :)[2]                # 7, expected 6
+output:
+  release: |
+    V[2], V[3] = 6, 7;  view(V, :)[2], [3] = 7, 8
+    fill!(view(view(M, IUR(2:3), 2), :), 0) zeroed [(3, 2), (4, 2)]
+    copyto!(V, V) changed column 2 from [5, 6, 7, 8] to [5, 7, 8, 8]
+    view(view(M, IUR(3:4), 5), :) reads parent linear index 22 for index 4; length(M) = 20
+    REPRODUCED reinterpretarrays-nested-slice-offset
+  nightly: |
+    V[2], V[3] = 6, 7;  view(V, :)[2], [3] = 7, 8
+    fill!(view(view(M, IUR(2:3), 2), :), 0) zeroed [(3, 2), (4, 2)]
+    copyto!(V, V) changed column 2 from [5, 6, 7, 8] to [5, 7, 8, 8]
+    view(view(M, IUR(3:4), 5), :) reads parent linear index 22 for index 4; length(M) = 20
+    REPRODUCED reinterpretarrays-nested-slice-offset
+reproduced: {release: true, nightly: true}
+expected: |
+  view(V, :)[i] == V[i] == M[i, 2] for i in 2:3; copyto!(V, V) leaves M unchanged.
+promised_by: |
+  view docstring, base/subarray.jl:175-183: view "lazily references ... the parent
+  array A at the given index or indices"; view(V, :) must select the same elements as V.
+cause: |
+  base/subarray.jl:303 reindex computes idxs[1][subidxs[1]] =
+  IdentityUnitRange(2:3)[Slice(IdentityUnitRange(2:3))], which getindex in
+  base/indices.jl returns as the Slice. The new SubArray then uses the Slice branch of
+  compute_offset1 (base/subarray.jl:480-481), subtracting first(axes(parent, 1)) = 1
+  instead of first(axes1(I[1])) = 2.
+possible_fix: |
+  Return an IdentityUnitRange (not the Slice) from getindex(::IdentityUnitRange,
+  ::Slice), as open PR #63079 does.
+duplicates:
+  issues:
+    - {number: 62906, state: open, relation: duplicate}
+    - {number: 63079, state: open, relation: related}
+  queries: ["IdentityUnitRange view", "Slice IdentityUnitRange", "view of view offset", "compute_offset1", "SubArray offset1 wrong", "nested view IdentityUnitRange", "unaliascopy offset", "SubArray Slice offset"]
+lean:
+  property: JuliaLean.ReinterpretArrays.NestedColonViewCorrect
+  theorem: JuliaLean.ReinterpretArrays.nestedColonViewCorrect_refuted

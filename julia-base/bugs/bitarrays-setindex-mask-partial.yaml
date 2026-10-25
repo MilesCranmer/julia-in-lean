@@ -1,0 +1,54 @@
+id: bitarrays-setindex-mask-partial
+title: "B[mask] = X on a BitArray writes elements before throwing DimensionMismatch for a length mismatch"
+priority: P2
+kind: wrong-result
+area: BitArrays
+files: [base/bitarray.jl]
+functions: ["setindex!(::BitArray, X::AbstractArray, I::BitArray)", "_unsafe_setindex!(::BitArray, X, ::BitArray)"]
+summary: |
+  With a logical BitArray mask I and length(X) != count(I), B[I] = X on a
+  BitArray stores elements of X and only then throws DimensionMismatch. For
+  B = falses(4), B[trues(4)] = trues(5) throws and leaves B all true; with
+  B = falses(100) and X = trues(70) it throws after writing 64 elements. On a
+  Vector{Bool}, and for range indices on a BitArray, setindex_shape_check
+  throws before any write.
+likelihood: |
+  Only code that catches the DimensionMismatch and keeps using the array sees
+  the partial update.
+maybe_intended: |
+  Julia does not promise that a throwing setindex! leaves its argument
+  unchanged in general; the Array and BitArray range methods happen to check
+  the shape first.
+reproducer: |
+  B = falses(4)
+  try; B[trues(4)] = trues(5); catch; end
+  B                                     # all true
+  V = fill(false, 4)
+  try; V[trues(4)] = trues(5); catch; end
+  V                                     # unchanged
+output:
+  release: |
+    DimensionMismatch Bool[1, 1, 1, 1] | DimensionMismatch Bool[0, 0, 0, 0]
+    REPRODUCED bitarrays-setindex-mask-partial
+  nightly: |
+    DimensionMismatch Bool[1, 1, 1, 1] | DimensionMismatch Bool[0, 0, 0, 0]
+    REPRODUCED bitarrays-setindex-mask-partial
+reproduced: {release: true, nightly: true}
+expected: |
+  DimensionMismatch with B unchanged, as for Vector{Bool}.
+promised_by: |
+  A BitArray should behave like Array{Bool}; Array logical-index assignment
+  checks the shape (setindex_shape_check) before writing, as do the BitArray
+  range methods (base/multidimensional.jl:1516-1525).
+cause: |
+  _unsafe_setindex!(B, X, I::BitArray) (base/bitarray.jl:707-735) stores each
+  finished chunk (line 731) and detects a too-short X inside the loop (line
+  723) and a too-long X only after the loop (line 733).
+possible_fix: |
+  Check length(X) == count(I) before the loop (count(I) is cheap on chunks).
+duplicates:
+  issues: []
+  queries: ["issues: BitArray setindex! DimensionMismatch mask", "issues: logical indexing setindex", "issues: BitArray DimensionMismatch", "issues: setindex! partial mutation", "issues: BitArray setindex"]
+lean:
+  property: JuliaLean.BitArrays.SetindexMaskAgrees
+  theorem: JuliaLean.BitArrays.setindexMaskAgrees_refuted

@@ -1,0 +1,61 @@
+id: bignums-parse-bigint-whitespace
+title: "parse(BigInt, \"100 10\") == 10010: GMP ignores whitespace inside the digits"
+priority: P2
+kind: missing-error
+area: BigNums
+files: [base/gmp.jl]
+functions: ["tryparse_internal(::Type{BigInt}, ...)", "parse(::Type{BigInt}, ::AbstractString)"]
+summary: |
+  parse(BigInt, s) passes the digits to GMP's mpz_set_str, which skips whitespace
+  anywhere in the string, so "100 10" parses as 10010 and "1\t2" as 12, while
+  parse(Int, s) throws ArgumentError. Already reported as #44570.
+likelihood: |
+  Parsing whitespace-separated numbers with a wrong split, or user input with stray
+  spaces, silently concatenates digits.
+maybe_intended: ""
+reproducer: |
+  function res(f)
+      try
+          return repr(f())
+      catch e
+          return "throws " * string(typeof(e))
+      end
+  end
+  a = res(() -> parse(Int, "100 10"))
+  b = res(() -> parse(BigInt, "100 10"))
+  c = res(() -> parse(BigInt, "1\t2"))
+  println("parse(Int, \"100 10\")    -> ", a)
+  println("parse(BigInt, \"100 10\") -> ", b)
+  println("parse(BigInt, \"1\\t2\")   -> ", c)
+  if startswith(a, "throws") && b == "10010"
+      println("REPRODUCED bignums-parse-bigint-whitespace")
+  end
+output:
+  release: |
+    parse(Int, "100 10")    -> throws ArgumentError
+    parse(BigInt, "100 10") -> 10010
+    parse(BigInt, "1\t2")   -> 12
+    REPRODUCED bignums-parse-bigint-whitespace
+  nightly: |
+    parse(Int, "100 10")    -> throws ArgumentError
+    parse(BigInt, "100 10") -> 10010
+    parse(BigInt, "1\t2")   -> 12
+    REPRODUCED bignums-parse-bigint-whitespace
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError, as parse(Int, "100 10") throws.
+promised_by: |
+  base/parse.jl:6-30 (parse docstring) and the behaviour of every other Integer type:
+  only leading and trailing whitespace is allowed.
+cause: |
+  base/gmp.jl:324 calls MPZ.set_str! on the rest of the string; GMP documents that
+  "White space is allowed in the string, and is simply ignored." Line 306 on 1.13.2.
+possible_fix: |
+  Reject interior whitespace before calling mpz_set_str (see #44570).
+duplicates:
+  issues:
+    - {number: 44570, state: open, relation: duplicate}
+  queries: ["parse BigInt", "parse BigInt whitespace", "parse BigInt spaces", "BigInt space", "mpz_set_str whitespace"]
+lean:
+  property: JuliaLean.BigNums.ParseBigIntNoInteriorSpace
+  theorem: JuliaLean.BigNums.parseBigIntNoInteriorSpace_refuted

@@ -1,0 +1,65 @@
+id: platforms-validate-os-version
+title: "validate_strict accepts a non-version os_version, and triplet of the platform then throws"
+priority: P3
+kind: missing-error
+area: Platforms
+files: [base/binaryplatforms.jl]
+functions: ["validate_tags(::Dict)", "Platform(arch, os; validate_strict = true)", "triplet(::AbstractPlatform)", "os_version(::AbstractPlatform)"]
+summary: |
+  validate_tags checks that libgfortran_version and cxxlib_version parse as VersionNumbers
+  but not os_version. Platform("x86_64", "macos"; os_version = "foo", validate_strict = true)
+  is accepted, and triplet(p) and os_version(p) then throw
+  ArgumentError("invalid version string: foo").
+likelihood: |
+  Low: needs a malformed os_version. But validate_strict exists to catch exactly that,
+  and the failure surfaces later in an unrelated call.
+maybe_intended: ""
+reproducer: |
+  using Base.BinaryPlatforms
+  p = Platform("x86_64", "macos"; os_version = "foo", validate_strict = true)
+  println("accepted with validate_strict=true: ", repr(p))
+  r = try
+      triplet(p)
+  catch e
+      e
+  end
+  println("triplet(p) => ", r isa Exception ? sprint(showerror, r) : repr(r))
+  g = try
+      Platform("x86_64", "linux"; libgfortran_version = "foo", validate_strict = true)
+  catch e
+      e
+  end
+  println("libgfortran_version = \"foo\" for comparison => ", g isa Exception ? sprint(showerror, g) : repr(g))
+  if r isa ArgumentError && g isa ArgumentError
+      println("REPRODUCED platforms-validate-os-version")
+  end
+output:
+  release: |
+    accepted with validate_strict=true: Platform("x86_64", "macos"; os_version = "foo")
+    triplet(p) => ArgumentError: invalid version string: foo
+    libgfortran_version = "foo" for comparison => ArgumentError: "libgfortran_version" cannot have value "foo", must be a valid VersionNumber
+    REPRODUCED platforms-validate-os-version
+  nightly: |
+    accepted with validate_strict=true: Platform("x86_64", "macos"; os_version = "foo")
+    triplet(p) => ArgumentError: invalid version string: foo
+    libgfortran_version = "foo" for comparison => ArgumentError: "libgfortran_version" cannot have value "foo", must be a valid VersionNumber
+    REPRODUCED platforms-validate-os-version
+reproduced: {release: true, nightly: true}
+expected: |
+  Platform(...; os_version = "foo", validate_strict = true) throws
+  ArgumentError("\"os_version\" cannot have value \"foo\", must be a valid VersionNumber").
+promised_by: |
+  base/binaryplatforms.jl:135-138 (comment in add_platform_tag!): non-VersionNumber
+  values of libgfortran_version, cxxlib_version and os_version are kept, "but if
+  `validate_strict` is set to `true`, it will cause an error later on."
+cause: |
+  validate_tags (base/binaryplatforms.jl:273-292) has the VersionNumber check for
+  libgfortran_version and cxxlib_version only.
+possible_fix: |
+  Add the same tryparse(VersionNumber, ...) check for os_version.
+duplicates:
+  issues: []
+  queries: ["validate_strict", "os_version VersionNumber", "BinaryPlatforms validate_strict", "triplet os_version"]
+lean:
+  property: JuliaLean.Platforms.StrictTripletTotal
+  theorem: JuliaLean.Platforms.strictTripletTotal_refuted

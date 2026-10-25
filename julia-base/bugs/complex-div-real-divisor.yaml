@@ -1,0 +1,66 @@
+id: complex-div-real-divisor
+title: "complex(x, 0.0)/complex(y, 0.0) disagrees with x/y (49.0+0im)/(49.0+0im) is not 1"
+priority: P3
+kind: wrong-result
+area: Complex
+files: [base/complex.jl]
+functions: ["/(::ComplexF64, ::ComplexF64)", "inv(::ComplexF64)"]
+summary: |
+  Dividing two ComplexF64 values whose imaginary parts are zero does not give the
+  correctly rounded real quotient: (49.0+0im)/(49.0+0im) is 0.9999999999999999+0im,
+  while 49.0/49.0 and (49.0+0im)/49.0 are exactly 1. The robust algorithm forms the
+  reciprocal t = 1/c and then multiplies, so it rounds twice even when the divisor is real.
+  The same multiply-by-reciprocal rounding makes exactly representable Gaussian-integer
+  quotients inexact: in a random test about half of (z*z)/z with integer components below
+  2^26 differed from z by an ulp, e.g. (1.099157e6 - 2.6319015e7im)^2 / z gives real part
+  1.0991570000000002e6.
+likelihood: |
+  Ordinary inputs hit it: any real-valued divisor c whose reciprocal 1/c is
+  inexact can do it, and z/z == 1 fails for common values such as 49. Code that
+  compares results, or that expects division by a real-valued complex number to
+  match real division, sees one-ulp differences.
+maybe_intended: |
+  The `/` docstring (base/docs/basedocs.jl:3550) defines x/y as "multiplication
+  of x by the inverse of y", and complex division is not required to be correctly
+  rounded. Issue #48457 reported the same symptom (including this exact 49.0 example)
+  for inv and was closed without a change to `/`.
+reproducer: |
+  z = complex(49.0, 0.0)
+  q = z / complex(49.0, 0.0)
+  r = z / 49.0
+  println("complex(49.0, 0.0) / complex(49.0, 0.0) = ", q)
+  println("complex(49.0, 0.0) / 49.0               = ", r)
+  if q != r && q != 1
+      println("REPRODUCED complex-div-real-divisor")
+  end
+output:
+  release: |
+    complex(49.0, 0.0) / complex(49.0, 0.0) = 0.9999999999999999 + 0.0im
+    complex(49.0, 0.0) / 49.0               = 1.0 + 0.0im
+    REPRODUCED complex-div-real-divisor
+  nightly: |
+    complex(49.0, 0.0) / complex(49.0, 0.0) = 0.9999999999999999 + 0.0im
+    complex(49.0, 0.0) / 49.0               = 1.0 + 0.0im
+    REPRODUCED complex-div-real-divisor
+reproduced: {release: true, nightly: true}
+expected: |
+  1.0 + 0.0im, the same as complex(49.0, 0.0)/49.0.
+promised_by: |
+  Invariant: dividing by complex(y, 0.0) should agree with dividing each component by
+  the real y, whose IEEE quotient is correctly rounded; for z/z the exact quotient 1 is
+  representable. #48457 discussion: "I would imagine we guarantee that a complex number
+  with no imaginary part would behave the same as a normal Float".
+cause: |
+  base/complex.jl:460-474: robust_cdiv1 computes t = 1.0/(c+d*r) and robust_cdiv2
+  returns (a + d*(b/c))*t when r == 0, i.e. a*fl(1/c), a double rounding of a/c.
+possible_fix: |
+  In robust_cdiv2's r == 0 branch return (a + d*(b/c))/(c + d*r) style division
+  (or a/c when d == 0) instead of multiplying by the rounded reciprocal.
+duplicates:
+  issues:
+    - {number: 48457, state: closed, relation: duplicate}
+    - {number: 47255, state: merged, relation: related}
+  queries: ["complex division accuracy", "ComplexF64 division", "complex division exact", "robust complex division", "complex division NaN"]
+lean:
+  property: JuliaLean.Complex.DivRealDivisor
+  theorem: JuliaLean.Complex.divRealDivisor_refuted

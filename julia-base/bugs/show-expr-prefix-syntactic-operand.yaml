@@ -1,0 +1,65 @@
+id: show-expr-prefix-syntactic-operand
+title: "Expr printing of ::(-1), ::(!a), $(-1) and &(-1) drops the parentheses and does not parse"
+priority: P3
+kind: wrong-result
+area: Show
+files: [base/show.jl]
+functions: ["show_unquoted(::IO, ::Expr, ::Int, ::Int)"]
+summary: |
+  The one-argument forms Expr(:(::), x), Expr(:$, x) and Expr(:&, x) print x right after
+  the prefix without parentheses when x is a negative literal or (for ::) a unary call:
+  "::-1", "::!a", "$-1" and "&-1" are all ParseErrors, while Meta.parse("::(-1)") etc.
+  produced the original Exprs.
+likelihood: |
+  Rare outside generated code.
+maybe_intended: ""
+reproducer: |
+  function check(src)
+      ex = Meta.parse(src)
+      s = string(ex)
+      back = try Meta.parse(s) catch err; err end
+      println(rpad(src, 8), " string(ex) = ", rpad(repr(s), 8), " Meta.parse(string(ex)) = ", back isa Exception ? typeof(back) : repr(back))
+      return back != ex
+  end
+  bad = map(check, ["::(-1)", "::(!a)", "\$(-1)", "&(-1)"])
+  any(bad) && println("REPRODUCED show-expr-prefix-syntactic-operand")
+output:
+  release: |
+    ::(-1)   string(ex) = "::-1"   Meta.parse(string(ex)) = Base.Meta.ParseError
+    ::(!a)   string(ex) = "::!a"   Meta.parse(string(ex)) = Base.Meta.ParseError
+    $(-1)    string(ex) = "\$-1"   Meta.parse(string(ex)) = Base.Meta.ParseError
+    &(-1)    string(ex) = "&-1"    Meta.parse(string(ex)) = Base.Meta.ParseError
+    REPRODUCED show-expr-prefix-syntactic-operand
+  nightly: |
+    ::(-1)   string(ex) = "::-1"   Meta.parse(string(ex)) = Base.Meta.ParseError
+    ::(!a)   string(ex) = "::!a"   Meta.parse(string(ex)) = Base.Meta.ParseError
+    $(-1)    string(ex) = "\$-1"   Meta.parse(string(ex)) = Base.Meta.ParseError
+    &(-1)    string(ex) = "&-1"    Meta.parse(string(ex)) = Base.Meta.ParseError
+    REPRODUCED show-expr-prefix-syntactic-operand
+reproduced: {release: true, nightly: true}
+expected: |
+  "::(-1)", "::(!a)", "$(-1)", "&(-1)".
+promised_by: |
+  base/show.jl:1636-1640: "AST printing should follow two rules: 1. Meta.parse(string(ex))
+  == ex ...".
+cause: |
+  base/show.jl:2354-2357 (uni_syms branch) prints the operand with show_unquoted and never
+  parenthesizes; base/show.jl:2545-2549 parenthesizes only Expr operands other than
+  tuple/$/vect/braces and operator symbols, not negative literals.
+possible_fix: |
+  Parenthesize operands that print with a leading operator character (negative literals, unary calls).
+duplicates:
+  issues: []
+  queries:
+    - "issues: show type annotation unary"
+    - "issues: print :: expression parse"
+    - "issues: show_unquoted ::"
+    - "prs: show type annotation unary"
+    - "issues: show_unquoted"
+    - "issues: deparse"
+    - "issues: printing Expr precedence"
+    - "issues: string Meta.parse roundtrip"
+    - "issues: Expr printing"
+lean:
+  property: JuliaLean.Show.PrefixSyntacticReparses
+  theorem: JuliaLean.Show.prefixSyntacticReparses_refuted

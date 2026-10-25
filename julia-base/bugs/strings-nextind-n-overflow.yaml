@@ -1,0 +1,50 @@
+id: strings-nextind-n-overflow
+title: "nextind(s, i, n) wraps to a negative index for large n"
+priority: P3
+kind: wrong-result
+area: Strings
+files: [base/strings/basic.jl]
+functions: ["nextind(::AbstractString, ::Int, ::Int)"]
+summary: |
+  nextind("a", 1, typemax(Int)) returns typemin(Int). The documented result,
+  ncodeunits(s)+1 plus the remaining steps, is not representable, and the final
+  addition wraps silently.
+likelihood: |
+  Direct calls with huge n are rare, but first, chop and Iterators.partition
+  pass user counts to nextind and inherit the wrap (see the related strings-*
+  entries).
+maybe_intended: |
+  The exact result is unrepresentable; throwing OverflowError or saturating are
+  both defensible. Returning a negative index is not.
+reproducer: |
+  j = nextind("a", 1, typemax(Int))
+  println("nextind(\"a\", 1, typemax(Int)) = ", j)
+  j < 1 && println("REPRODUCED strings-nextind-n-overflow")
+output:
+  release: |
+    nextind("a", 1, typemax(Int)) = -9223372036854775808
+    REPRODUCED strings-nextind-n-overflow
+  nightly: |
+    nextind("a", 1, typemax(Int)) = -9223372036854775808
+    REPRODUCED strings-nextind-n-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  An index greater than i (saturated), or an OverflowError.
+promised_by: |
+  The nextind docstring: "each remaining iteration increases the returned value
+  by `1`" (base/strings/basic.jl:529-534).
+cause: |
+  base/strings/basic.jl:573 returns i + n with Int wrapping after the loop stops
+  at ncodeunits(s).
+possible_fix: |
+  Use checked addition, or saturate at typemax(Int).
+duplicates:
+  issues: []
+  queries:
+    - "issues: nextind overflow"
+    - "issues: nextind typemax"
+    - "prs: nextind overflow"
+    - "issues: nextind"
+lean:
+  property: JuliaLean.Strings.NextindNIncreasing
+  theorem: JuliaLean.Strings.nextindNIncreasing_refuted

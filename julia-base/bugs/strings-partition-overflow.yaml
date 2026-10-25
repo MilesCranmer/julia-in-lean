@@ -1,0 +1,51 @@
+id: strings-partition-overflow
+title: "Iterators.partition(s, typemax(Int)) throws BoundsError for non-ASCII strings"
+priority: P2
+kind: wrong-exception
+area: Strings
+files: [base/strings/util.jl, base/strings/basic.jl]
+functions: ["iterate(::Base.Iterators.PartitionIterator{<:AbstractString})"]
+summary: |
+  collect(Iterators.partition("é€", typemax(Int))) throws BoundsError at index
+  -9223372036854775806 instead of yielding the whole string; the ASCII string
+  "ab" works.
+likelihood: |
+  Needs a chunk size near typemax(Int); uncommon.
+maybe_intended: ""
+reproducer: |
+  s = "é€"
+  println("partition(s, 2) = ", repr(collect(Iterators.partition(s, 2))))
+  r = try
+      collect(Iterators.partition(s, typemax(Int)))
+  catch e
+      e
+  end
+  println("partition(s, typemax(Int)) = ", r isa Exception ? sprint(showerror, r) : repr(r))
+  r isa BoundsError && println("REPRODUCED strings-partition-overflow")
+output:
+  release: |
+    partition(s, 2) = SubString{String}["é€"]
+    partition(s, typemax(Int)) = BoundsError: attempt to access 5-codeunit String at index [-9223372036854775806]
+    REPRODUCED strings-partition-overflow
+  nightly: |
+    partition(s, 2) = SubString{String}["é€"]
+    partition(s, typemax(Int)) = BoundsError: attempt to access 5-codeunit String at index [-9223372036854775806]
+    REPRODUCED strings-partition-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  One chunk, the whole string.
+promised_by: |
+  The partition docstring: "Iterate over a collection `n` elements at a time."
+  (base/iterators.jl:1424-1426).
+cause: |
+  base/strings/util.jl:816 computes nextind(itr.c, state, itr.n - 1), which
+  wraps (base/strings/basic.jl:573).
+possible_fix: |
+  Fix the overflow in nextind(s, i, n).
+duplicates:
+  issues: []
+  queries:
+    - "issues: partition string typemax"
+lean:
+  property: JuliaLean.Strings.PartitionWhole
+  theorem: JuliaLean.Strings.partitionWhole_refuted

@@ -1,0 +1,67 @@
+id: promotion-rational-from-float-representable
+title: "Rational{T}(x::AbstractFloat) throws InexactError for exactly representable x such as -128.0"
+priority: P2
+kind: wrong-exception
+area: Promotion
+files: [base/rational.jl]
+functions: ["Rational{T}(::AbstractFloat)", "rationalize(::Type{T}, ::AbstractFloat)"]
+summary: |
+  Rational{Int8}(-128.0) throws InexactError although -128//1 is a valid
+  Rational{Int8} and Int8(-128.0) succeeds. The same happens for
+  -2^(bits-1) with Int16/Int32/Int64/Int128 sources such as Float32(-2^15), and for
+  tiny exact powers of two: Rational{Int32}(nextfloat(Float16(0.0))) throws
+  although the value is exactly 1//16777216.
+likelihood: |
+  typemin(T) as a float is a natural boundary value when converting integral
+  floats to rationals; Float16 subnormals are rarer.
+maybe_intended: |
+  The subnormal Float16 case is a known rationalize inaccuracy (issues #49848,
+  #49803; open PR #63121 adds an exact tol=0 path). The typemin case comes from
+  rationalize's fallback clamping to typemax(T) - |pp| and looks unintended.
+reproducer: |
+  # Rational{T}(x::AbstractFloat) throws InexactError although x is exactly a Rational{T}
+  a = try Rational{Int8}(-128.0) catch e; e end
+  println("Rational{Int8}(-128.0) = ", a, "  (Int8(-128.0) = ", Int8(-128.0), ")")
+  x = nextfloat(Float16(0.0))   # 2^-24
+  b = try Rational{Int32}(x) catch e; e end
+  println("Rational{Int32}(nextfloat(Float16(0.0))) = ", b, "  (x == 1//16777216: ", x == 1//16777216, ")")
+  if a isa InexactError || b isa InexactError
+      println("REPRODUCED promotion-rational-from-float-representable")
+  end
+output:
+  release: |
+    Rational{Int8}(-128.0) = InexactError(:Rational, (Rational{Int8}, -128.0))  (Int8(-128.0) = -128)
+    Rational{Int32}(nextfloat(Float16(0.0))) = InexactError(:Rational, (Rational{Int32}, Float16(6.0e-8)))  (x == 1//16777216: true)
+    REPRODUCED promotion-rational-from-float-representable
+  nightly: |
+    Rational{Int8}(-128.0) = InexactError(:Rational, (Rational{Int8}, -128.0))  (Int8(-128.0) = -128)
+    Rational{Int32}(nextfloat(Float16(0.0))) = InexactError(:Rational, (Rational{Int32}, Float16(6.0e-8)))  (x == 1//16777216: true)
+    REPRODUCED promotion-rational-from-float-representable
+reproduced: {release: true, nightly: true}
+expected: |
+  Rational{Int8}(-128.0) == -128//1 and
+  Rational{Int32}(nextfloat(Float16(0.0))) == 1//16777216.
+promised_by: |
+  Invariant: Rational{T}(x) returns the exact value of x whenever that value is a
+  Rational{T} (it is "Rational number type, with numerator and denominator of type
+  T", base/rational.jl:3-7). The constructor throws InexactError only for values
+  that are not representable.
+cause: |
+  base/rational.jl:305-315: for x = -128.0 the loop is skipped, a_min = 128 and
+  convert(Int8, 128) throws; the catch computes ia = min(fld(typemax(T) - |pp|,
+  |p|), typemax(T)) = 127 and returns -127//1, which base/rational.jl:220 rejects
+  because Float64(-127//1) != -128.0. For tiny x the continued fraction starts with
+  a huge partial quotient that overflows T, and the semiconvergent fallback returns
+  0//1.
+possible_fix: |
+  Before running the continued fraction, return the exact dyadic value
+  num*2^pow//den from decompose(x) when it fits in T (as PR #63121 does for tol=0).
+duplicates:
+  issues:
+    - {number: 49848, state: open, relation: related}
+    - {number: 49803, state: open, relation: related}
+    - {number: 63121, state: open, relation: related}
+  queries: ["rationalize", "Rational InexactError", "rationalize typemin", "typemin Rational conversion", "Rational float conversion inexact"]
+lean:
+  property: JuliaLean.Promotion.RationalOfFloatRepresentable
+  theorem: JuliaLean.Promotion.rationalOfFloatRepresentable_refuted

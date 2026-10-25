@@ -1,0 +1,54 @@
+id: combinatorics-invperm-offset
+title: "invperm rejects offset-indexed vectors that isperm accepts, without documenting the restriction"
+priority: P3
+kind: documentation
+area: Combinatorics
+files: [base/combinatorics.jl]
+functions: ["isperm(::AbstractVector)", "invperm(::AbstractVector)"]
+summary: |
+  isperm returns true for an offset-indexed AbstractVector whose values are a permutation
+  of 1:length(p), but invperm rejects the same value with ArgumentError before examining
+  it. The invperm docstring says it returns the inverse of v and does not state that v
+  must use one-based axes.
+likelihood: |
+  Offset arrays are common in Julia packages, but permutation index vectors are usually
+  ordinary one-based Vectors. The behavior is deliberate implementation policy and the
+  defect is the missing documented precondition.
+maybe_intended: |
+  base/combinatorics.jl explicitly calls require_one_based_indexing, so rejecting offset
+  storage is intended. The mismatch is that isperm accepts it and invperm's public
+  documentation does not disclose the restriction.
+reproducer: |
+  p = OffsetPermutation([2, 3, 1]) # AbstractVector with axes 0:2
+  @show axes(p) isperm(p)
+  invperm(p)
+output:
+  release: |
+    axes(p):    (0:2,)
+    isperm(p):  true
+    invperm(p): ArgumentError: ArgumentError: offset arrays are not supported but got an array with index other than 1
+    REPRODUCED combinatorics-invperm-offset
+  nightly: |
+    axes(p):    (0:2,)
+    isperm(p):  true
+    invperm(p): ArgumentError: ArgumentError: offset arrays are not supported but got an array with index other than 1
+    REPRODUCED combinatorics-invperm-offset
+reproduced: {release: true, nightly: true}
+expected: |
+  Either return inverse values [3, 1, 2] or document that invperm requires one-based
+  indexing even though isperm does not.
+promised_by: |
+  base/combinatorics.jl:246-251 says "Return the inverse permutation of v" and gives the
+  inverse-indexing identity without a one-based-indexing precondition.
+cause: |
+  base/combinatorics.jl:287 calls require_one_based_indexing(a) before allocating or
+  validating the permutation values. isperm at lines 76-85 only iterates the values.
+possible_fix: |
+  Add the one-based restriction to the invperm docstring, or construct the inverse by
+  position without indexing the result through 1:length(a).
+duplicates:
+  issues: []
+  queries: ["invperm offset array", "invperm require_one_based", "isperm offset array invperm", "invperm one based indexing"]
+lean:
+  property: JuliaLean.Combinatorics.InvpermEveryPermutation
+  theorem: JuliaLean.Combinatorics.invpermEveryPermutation_refuted

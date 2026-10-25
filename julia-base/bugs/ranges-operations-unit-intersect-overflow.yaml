@@ -1,0 +1,44 @@
+id: ranges-operations-unit-intersect-overflow
+title: "UnitRange/StepRange intersection silently loses shared Int8 elements"
+priority: P1
+kind: wrong-result
+area: Ranges
+files: [base/range.jl]
+functions: ["intersect(::AbstractUnitRange, ::StepRange)"]
+summary: |
+  Intersecting an Int8 unit range with an Int8 step range loses the shared value 97.
+  The returned range ends at 90 even though both inputs contain 97.
+likelihood: |
+  Plausible for signed byte coordinates crossing zero. All endpoints and selected
+  values fit the input type; only internal endpoint differences overflow.
+maybe_intended: ""
+reproducer: |
+  r = Int8(-100):Int8(100)
+  s = Int8(-120):Int8(7):Int8(125)
+  t = intersect(r, s)
+  @assert Int8(97) in r && Int8(97) in s
+  @assert !(Int8(97) in t) && last(t) == 90
+  println("REPRODUCED ranges-operations-unit-intersect-overflow")
+output:
+  release: |
+    REPRODUCED ranges-operations-unit-intersect-overflow
+  nightly: |
+    REPRODUCED ranges-operations-unit-intersect-overflow
+reproduced: {release: true, nightly: true}
+expected: "Return the shared progression -99:7:97, including 97."
+promised_by: |
+  Intersection invariant: every element belonging to both input collections
+  belongs to their intersection (intersect documentation, base/abstractset.jl).
+cause: |
+  base/range.jl:1214 computes hi - sta in Int8: 100 - (-120) wraps to -36.
+  Its modulus by 7 is 6 instead of 3, so the computed upper endpoint is too low.
+  The StepRange constructor then rounds that endpoint down to 90.
+possible_fix: |
+  Compute the congruence corrections with widened or overflow-safe differences
+  before converting the final endpoints to the promoted element type.
+duplicates:
+  issues: []
+  queries: ["issues: intersect range Int8 overflow", "issues: intersect Int8", "PRs: intersect overflow range"]
+lean:
+  property: JuliaLean.Ranges.unitIntersectCompleteProp
+  theorem: JuliaLean.Ranges.unitIntersectCompleteRefuted

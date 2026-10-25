@@ -1,0 +1,72 @@
+id: intarith-checked-negative-pow
+title: "checked_pow accepts negative exponents for unsigned typemax values"
+priority: P1
+kind: wrong-result
+area: IntArith
+files: [base/checked.jl, base/intfuncs.jl]
+functions: ["checked_pow(::Integer, ::Integer)", "power_by_squaring"]
+summary: |
+  Base.Checked.checked_pow(UInt8(255), Int8(-1)) returns UInt8(255)
+  instead of rejecting a nonintegral integer power. The negative-exponent
+  unit test mistakes wrapping unsigned negation for mathematical negation.
+  The same source pattern applies to other unsigned widths.
+likelihood: |
+  Unsigned typemax values are plausible sentinels or results of wrapping
+  arithmetic, although applying a negative exponent to them is uncommon.
+maybe_intended: |
+  The shortcut could support unsigned encodings of -1 under modular
+  arithmetic. That interpretation conflicts with rejecting other invertible
+  odd unsigned bases and with the integer negative-power DomainError.
+reproducer: |
+  x = UInt8(255)
+  r = Base.Checked.checked_pow(x, Int8(-1))
+  @assert r == x
+  @assert BigInt(x) * BigInt(r) != 1
+  println("actual = ", repr(r), " :: ", typeof(r))
+  println("REPRODUCED intarith-checked-negative-pow")
+output:
+  release: |
+    actual = 0xff :: UInt8
+    REPRODUCED intarith-checked-negative-pow
+  nightly: |
+    actual = 0xff :: UInt8
+    REPRODUCED intarith-checked-negative-pow
+reproduced: {release: true, nightly: true}
+expected: |
+  Throw DomainError, as for other integer bases with nonintegral negative
+  powers. An integer result r for 255^(-1) must satisfy 255*r == 1,
+  which the returned value does not satisfy.
+promised_by: |
+  The checked_pow docstring says, "Calculates ^(x,y), checking for overflow
+  errors where applicable" (base/checked.jl:357-362). The negative-power
+  error says, "Cannot raise an integer x to a negative power"
+  (base/intfuncs.jl:388-392). The source permits the integral unit exceptions
+  +1 and -1 before throwing (base/intfuncs.jl:418-421).
+cause: |
+  checked_pow delegates to power_by_squaring with checked multiplication
+  (base/checked.jl:364-366). Its negative-exponent branch tests isone(-x)
+  (base/intfuncs.jl:420). Unsigned unary negation wraps, so typemax(UInt8)
+  passes this test and is returned for odd exponents. This branch never
+  performs checked multiplication. Julia 1.13.2 has the same test at
+  base/intfuncs.jl:415.
+possible_fix: |
+  For integer operands, recognize the second unit by x == -1, or restrict
+  isone(-x) to signed integer types. Unsigned operands other than one
+  should follow the negative-exponent DomainError branch.
+duplicates:
+  issues:
+    - {number: 52262, state: closed, relation: related}
+  queries:
+    - "issues: checked_pow unsigned negative"
+    - "issues: unsigned negative exponent"
+    - "issues: power_by_squaring typemax"
+    - "issues: negative power unsigned"
+    - "issues: 255 power"
+    - "issues: checked_pow"
+    - "prs: power_by_squaring unsigned"
+    - "prs: checked_pow negative"
+    - "prs: negative exponent UInt"
+    - "prs: isone unsigned"
+lean:
+  property: JuliaLean.IntArith.Checked.NegativePowerUnits
+  theorem: JuliaLean.IntArith.Checked.negativePowerUnits_refuted

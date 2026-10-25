@@ -1,0 +1,58 @@
+id: dicts-sizehint-wrap-hang
+title: "sizehint!(::Dict, n) hangs forever when 3n overflows Int"
+priority: P2
+kind: hang
+area: Dicts
+files: [base/dict.jl, base/abstractdict.jl]
+functions: ["sizehint!(::Dict, ::Integer)", "sizehint!(::Set, ::Integer)", "rehash!(::Dict, newsz)"]
+summary: |
+  sizehint!(d, n) computes the table size as _tablesz(cld(3 * n, 2)) in Int
+  arithmetic. For n between about 3.07e18 and 6.15e18, 3n wraps to a negative
+  or tiny value, the requested table size becomes 16 slots, and the default
+  shrink=true rehashes into it. When d has more than 16 entries, rehash! loops
+  forever looking for a free slot. With 11 to 16 entries it returns a table
+  filled above the 2/3 load limit. sizehint!(::Set, n) forwards to the Dict
+  method (base/set.jl:172) and hangs the same way.
+likelihood: |
+  Needs a size hint above typemax(Int)/3, which real code rarely passes
+  (typemax(Int) itself does not wrap far enough and asks for 2^62 slots instead).
+  Code that forwards an unvalidated user hint, or a sentinel such as
+  typemax(Int) ÷ 2, can hit it. merge!, union! and the Dict constructor pass
+  shrink=false or start from an empty table and are not affected.
+maybe_intended: |
+  sizehint! is only a performance hint, so a meaningless hint could be
+  ignored or rejected. Hanging is not one of those outcomes.
+reproducer: |
+  d = Dict(i => i for i in 1:17)
+  sizehint!(d, 2^62)   # never returns
+output:
+  release: |
+    3n = -4611686018427387904, table size requested = 16
+    sizehint!(Dict with 17 entries, 2^62): still running after 30 s
+    REPRODUCED dicts-sizehint-wrap-hang
+  nightly: |
+    3n = -4611686018427387904, table size requested = 16
+    sizehint!(Dict with 17 entries, 2^62): still running after 30 s
+    REPRODUCED dicts-sizehint-wrap-hang
+reproduced: {release: true, nightly: true}
+expected: |
+  The call returns d unchanged, or throws (ArgumentError or OutOfMemoryError,
+  as sizehint!(d, typemax(Int)) does when allocating 2^62 slots).
+promised_by: |
+  sizehint! docstring, base/array.jl:1584: "Suggest that collection `s`
+  reserve capacity for at least `n` elements." The Dict method relies on the
+  table size being at least 1.5 * length(d) (base/dict.jl:201-202).
+cause: |
+  base/dict.jl:202: newsz = _tablesz(cld(3 * newsz, 2)). 3 * 2^62 wraps to
+  -2^62, _tablesz(-2^61) is 16 (base/abstractdict.jl:584), 16 != oldsz so
+  rehash!(d, 16) runs, and its probe loop `while slots[index] != 0`
+  (base/dict.jl:173-175) never finds an empty slot for the 17th key.
+possible_fix: |
+  Saturate before multiplying, e.g. clamp newsz to typemax(Int) ÷ 3 (or use
+  checked arithmetic) before cld(3 * newsz, 2).
+duplicates:
+  issues: []
+  queries: ["sizehint! overflow", "sizehint! hang", "sizehint! Dict typemax", "sizehint large hang", "rehash infinite loop", "_tablesz overflow"]
+lean:
+  property: JuliaLean.Dicts.SizehintAgrees
+  theorem: JuliaLean.Dicts.sizehintAgrees_refuted

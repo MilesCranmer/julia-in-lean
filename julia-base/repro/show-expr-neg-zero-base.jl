@@ -1,0 +1,7 @@
+ex = Meta.parse("(-0.0)^2")         # Expr(:call, :^, -0.0, 2)
+s = string(ex)
+println("string(ex) = ", repr(s))
+back = Meta.parse(s)
+println("Meta.parse(string(ex)) = ", repr(back))
+println("eval(ex) = ", eval(ex), ", eval(Meta.parse(string(ex))) = ", eval(back))
+back != ex && println("REPRODUCED show-expr-neg-zero-base")

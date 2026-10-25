@@ -1,0 +1,48 @@
+id: printf-hex-alternate-zero
+title: "Printf %#x and %#X print a 0x prefix for zero"
+priority: P3
+kind: wrong-result
+area: Printf
+files: [stdlib/Printf/src/Printf.jl]
+functions: ["Printf.fmt(buf, pos, arg, ::Printf.Spec{<:Printf.Ints})"]
+summary: |
+  @sprintf("%#x", 0) is "0x0" and @sprintf("%#X", 0) is "0X0"; C99 prints "0".
+likelihood: |
+  Zero is a common value in hexadecimal dumps with %#x.
+maybe_intended: |
+  stdlib/Printf/test/runtests.jl:656-657 assert @sprintf("%#x", UInt(0)) == "0x0" and
+  @sprintf("%#X", UInt(0)) == "0X0", so the behaviour is deliberate; it still contradicts the C
+  compatibility the Format docstring promises.
+reproducer: |
+  using Printf
+  lower = @sprintf("%#x", UInt32(0))
+  upper = @sprintf("%#X", UInt32(0))
+  println("%#x zero = ", repr(lower), "; C99 expected ", repr("0"))
+  println("%#X zero = ", repr(upper), "; C99 expected ", repr("0"))
+  lower == "0x0" && upper == "0X0" && println("REPRODUCED printf-hex-alternate-zero")
+output:
+  release: |
+    %#x zero = "0x0"; C99 expected "0"
+    %#X zero = "0X0"; C99 expected "0"
+    REPRODUCED printf-hex-alternate-zero
+  nightly: |
+    %#x zero = "0x0"; C99 expected "0"
+    %#X zero = "0X0"; C99 expected "0"
+    REPRODUCED printf-hex-alternate-zero
+reproduced: {release: true, nightly: true}
+expected: |
+  "0" for both.
+promised_by: |
+  ISO/IEC 9899:1999 7.19.6.1 (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf) paragraph 6, #: "For x (or X) conversion, a nonzero result has 0x (or 0X) prefixed to it."
+  stdlib/Printf/src/Printf.jl:68 (Printf.Format docstring): "Create a C printf-compatible format object that can be used for formatting values."
+cause: |
+  stdlib/Printf/src/Printf.jl:394-396 and 415-422 count and write the prefix whenever hash is set,
+  without testing the value.
+possible_fix: |
+  Write the prefix only for a nonzero value (and update the tests).
+duplicates:
+  issues: []
+  queries: ["issues: printf", "issues: Printf precision", "issues/prs: printf BigFloat", "issues/prs: sprintf BigFloat", "issues/prs: Printf mpfr", "issues/prs: printf precision negative", "issues/prs: printf negative width", "issues/prs: printf dynamic width", "issues/prs: printf %g exponent", "issues/prs: printf %g style", "issues/prs: printf %.0d", "issues/prs: printf zero precision", "issues/prs: printf #x", "issues/prs: printf alternate form", "issues/prs: printf octal", "issues/prs: printf %+x", "issues/prs: printf plus unsigned", "issues/prs: printf BoundsError", "issues/prs: Printf.Format BoundsError", "issues/prs: printf %D", "issues/prs: printf textwidth", "issues/prs: printf precision unicode", "issues/prs: printf round away from zero", "issues/prs: printf ties even", "issues/prs: printf %a zero", "issues/prs: printf hex float", "issues/prs: printf InvalidFormatStringError", "issues/prs: printf C compatible"]
+lean:
+  property: JuliaLean.Printf.HexZeroPrefix
+  theorem: JuliaLean.Printf.hexZeroPrefix_refuted

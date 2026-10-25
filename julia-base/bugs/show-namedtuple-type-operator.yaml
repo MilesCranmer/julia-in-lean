@@ -1,0 +1,54 @@
+id: show-namedtuple-type-operator
+title: "NamedTuple types with operator field names print as @NamedTuple{+::Int64}, which does not evaluate"
+priority: P3
+kind: wrong-result
+area: Show
+files: [base/show.jl]
+functions: ["show(::IO, ::Type{<:NamedTuple})", "Base.show_at_namedtuple"]
+summary: |
+  repr(typeof((; var"+" = 1))) == "@NamedTuple{+::Int64}". show_sym prints valid operator
+  names bare, but inside @NamedTuple{...} a field must be an identifier or var"...", so
+  evaluating the printed type throws (the macro sees a call to +).
+likelihood: |
+  Rare: operator-named fields only arise from var"" syntax or programmatic Symbols.
+maybe_intended: ""
+reproducer: |
+  T = typeof((; var"+" = 1))          # NamedTuple{(:+,), Tuple{Int64}}
+  s = repr(T)
+  println("repr(T) = ", repr(s))
+  r = try eval(Meta.parse(s)) catch err; err end
+  println("eval(Meta.parse(repr(T))) = ", r isa Exception ? typeof(r) : repr(r))
+  r !== T && println("REPRODUCED show-namedtuple-type-operator")
+output:
+  release: |
+    repr(T) = "@NamedTuple{+::Int64}"
+    eval(Meta.parse(repr(T))) = LoadError
+    REPRODUCED show-namedtuple-type-operator
+  nightly: |
+    repr(T) = "@NamedTuple{+::Int64}"
+    eval(Meta.parse(repr(T))) = LoadError
+    REPRODUCED show-namedtuple-type-operator
+reproduced: {release: true, nightly: true}
+expected: |
+  repr(T) == "@NamedTuple{var\"+\"::Int64}", which evaluates back to T.
+promised_by: |
+  The repr/show convention that type printing produces valid Julia code; the value
+  form (; var"+" = 1) of the same NamedTuple already round-trips.
+cause: |
+  base/show.jl:1362-1376 (show_at_namedtuple) uses show_sym, which prints any
+  is_valid_identifier name verbatim (base/show.jl:1867-1870); operators such as + are
+  valid identifiers in call position but not as @NamedTuple field names.
+possible_fix: |
+  In show_at_namedtuple print the field with var"..." unless Base.isidentifier(sym).
+duplicates:
+  issues: []
+  queries:
+    - "issues: NamedTuple show operator"
+    - "issues: @NamedTuple show var"
+    - "issues: NamedTuple type printing field name"
+    - "issues: @NamedTuple operator"
+    - "prs: NamedTuple show operator"
+    - "prs: NamedTuple show_sym"
+lean:
+  property: JuliaLean.Show.NamedTupleFieldName
+  theorem: JuliaLean.Show.namedTupleFieldName_refuted

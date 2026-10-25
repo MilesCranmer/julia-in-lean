@@ -1,0 +1,54 @@
+id: regexunicode-subst-empty-group-name
+title: "s\"\\g<>\" in replace throws ArgumentError from parse instead of \"Bad replacement string\""
+priority: P3
+kind: wrong-exception
+area: RegexUnicode
+files: [base/regex.jl]
+functions: ["replace(::AbstractString, ::Pair{Regex,SubstitutionString})", "Base._replace(::Any, ::SubstitutionString, ::Any, ::Any, ::Any)"]
+summary: |
+  A substitution string with an empty group name, s"\g<>", reaches
+  parse(Int, "") because all(isdigit, "") is true, and replace throws
+  "ArgumentError: input string is empty or only contains whitespace". Every other
+  malformed substitution (s"\g<", s"x\", unknown names) throws the documented
+  ErrorException("Bad replacement string: ...").
+likelihood: |
+  Only malformed substitution strings are affected, and they still error; only the
+  exception type and message differ.
+maybe_intended: ""
+reproducer: |
+  replace("ab", r"(a)" => s"\g<>")   # ArgumentError: input string is empty ...
+  replace("ab", r"(a)" => s"\g<")    # ErrorException: Bad replacement string: \g<
+output:
+  release: |
+    s"\g<>"  -> ArgumentError: ArgumentError: input string is empty or only contains whitespace
+    s"\g<"   -> ErrorException: Bad replacement string: \g<
+    s"\g<x>" -> ErrorException: Bad replacement string: Group x not found in regex r"(a)"
+    REPRODUCED regexunicode-subst-empty-group-name
+  nightly: |
+    s"\g<>"  -> ArgumentError: ArgumentError: input string is empty or only contains whitespace
+    s"\g<"   -> ErrorException: Bad replacement string: \g<
+    s"\g<x>" -> ErrorException: Bad replacement string: Group x not found in regex r"(a)"
+    REPRODUCED regexunicode-subst-empty-group-name
+reproduced: {release: true, nightly: true}
+expected: |
+  ErrorException("Bad replacement string: \g<>"), like the other malformed cases.
+promised_by: |
+  Invariant: _replace reports malformed substitution strings through
+  replace_err(repl) = error("Bad replacement string: $repl") (base/regex.jl:652,
+  675-733).
+cause: |
+  base/regex.jl:713-715: groupname = SubString(repl, groupstart, prevind(repl, i)) is
+  empty when '>' follows '<' directly, and all(isdigit, groupname) is true for the empty
+  string, so parse(Int, groupname) runs.
+possible_fix: |
+  Use `!isempty(groupname) && all(isdigit, groupname)`, or call replace_err for an
+  empty name.
+duplicates:
+  issues: []
+  queries:
+    - "issues: SubstitutionString g<"
+    - "issues: SubstitutionString group name empty"
+    - "issues: replace SubstitutionString IOBuffer"
+lean:
+  property: JuliaLean.RegexUnicode.Subst.SubstEmptyGroupName
+  theorem: JuliaLean.RegexUnicode.Subst.substEmptyGroupName_refuted

@@ -1,0 +1,53 @@
+id: reinterpretarrays-size-overflow
+title: "size(reinterpret(T, A)) wraps for long lazy arrays: reinterpret(Int32, 1:2^61) is empty"
+priority: P2
+kind: wrong-result
+area: ReinterpretArrays
+files: [base/reinterpretarray.jl]
+functions: ["reinterpret(::Type{T}, ::AbstractArray)", "size(::NonReshapedReinterpretArray)", "axes(::NonReshapedReinterpretArray)"]
+summary: |
+  The constructor check and size/axes of a non-reshaped ReinterpretArray compute
+  size(A, 1) * sizeof(eltype(A)) in Int without overflow checking. For a lazy parent
+  with more than 2^60 Int64 elements the byte count wraps: reinterpret(Int32, 1:2^61)
+  has size (0,) although its correct size 2^62 fits in an Int, reinterpret(UInt8, 1:2^60)
+  has a negative size, and reinterpret(NTuple{3,UInt8}, 1:2^61) is accepted (2^64 bytes
+  are not a multiple of 3) with size (0,).
+likelihood: |
+  Needs a lazy parent with more than 2^60 elements (ranges); contrived but silent.
+maybe_intended: ''
+reproducer: |
+  size(reinterpret(Int32, 1:2^61))            # (0,), expected (2^62,)
+  size(reinterpret(UInt8, 1:2^60))            # (-9223372036854775808,)
+  size(reinterpret(NTuple{3,UInt8}, 1:2^61))  # (0,), expected ArgumentError
+output:
+  release: |
+    size(reinterpret(Int32, 1:2^61)) = (0,)
+    size(reinterpret(UInt8, 1:2^60)) = (-9223372036854775808,)
+    reinterpret(NTuple{3,UInt8}, 1:2^61) -> (0,)   (2^64 bytes are not a multiple of 3)
+    REPRODUCED reinterpretarrays-size-overflow
+  nightly: |
+    size(reinterpret(Int32, 1:2^61)) = (0,)
+    size(reinterpret(UInt8, 1:2^60)) = (-9223372036854775808,)
+    reinterpret(NTuple{3,UInt8}, 1:2^61) -> (0,)   (2^64 bytes are not a multiple of 3)
+    REPRODUCED reinterpretarrays-size-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  size(reinterpret(Int32, 1:2^61)) == (2^62,); reinterpret(UInt8, 1:2^60) and
+  reinterpret(NTuple{3,UInt8}, 1:2^61) throw (OverflowError or ArgumentError).
+promised_by: |
+  ReinterpretArray docstring, base/reinterpretarray.jl:3-7: "the array will be
+  compressed/expanded in the first dimension", and the constructor's own error for a
+  non-integral first dimension (base/reinterpretarray.jl:76-78, 96).
+cause: |
+  base/reinterpretarray.jl:96 (rem(dim*aligned_sizeof(S), aligned_sizeof(T))),
+  line 373 (div(psize[1]*aligned_sizeof(S), aligned_sizeof(T))) and line 387
+  (div(l*aligned_sizeof(S), aligned_sizeof(T))) use wrapping Int multiplication.
+possible_fix: |
+  Divide first when possible (e.g. dim ÷ (sT ÷ gcd) * (sS ÷ gcd)), or use
+  checked_mul/widemul in the constructor and in size/axes.
+duplicates:
+  issues: []
+  queries: ["reinterpret size overflow", "reinterpret range overflow", "reinterpret negative size", "reinterpret large range", "reinterpret lazy"]
+lean:
+  property: JuliaLean.ReinterpretArrays.RaSizeExact
+  theorem: JuliaLean.ReinterpretArrays.raSizeExact_refuted

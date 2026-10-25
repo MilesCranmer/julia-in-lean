@@ -1,0 +1,60 @@
+id: regexunicode-replace-capture-append
+title: "replace(io, s, r => s\"\\1\") writes captures at the read position of an append-mode IOBuffer"
+priority: P1
+kind: wrong-result
+area: RegexUnicode
+files: [base/regex.jl]
+functions: ["replace(::IO, ::AbstractString, ::Pair{Regex,SubstitutionString})", "Base._write_capture(::IO, ::Int, ::Any, ::Any, ::RegexAndMatchData)"]
+summary: |
+  For an append-mode buffer (PipeBuffer(), IOBuffer(append=true)), replace writes
+  literal text at the end of the buffer but copies each capture group to io.ptr,
+  the read position, overwriting unread data and moving the read pointer. With
+  "head" in a PipeBuffer and one byte consumed, replacing r"(b)" by s"<\1>" in "abc"
+  leaves "\0da<>c" to read instead of "eada<b>c".
+likelihood: |
+  Needs replace with an io argument and a SubstitutionString group reference on a
+  PipeBuffer or append-mode IOBuffer, for example when streaming rewritten text
+  into a pipe-like buffer. The corruption is silent.
+maybe_intended: ""
+reproducer: |
+  io = PipeBuffer()
+  write(io, "head")
+  read(io, UInt8)
+  replace(io, "abc", r"(b)" => s"<\1>")
+  read(io, String)   # "\0da<>c"
+output:
+  release: |
+    got      = "\0da<>c"
+    expected = "eada<b>c"
+    REPRODUCED regexunicode-replace-capture-append
+  nightly: |
+    got      = "\0da<>c"
+    expected = "eada<b>c"
+    REPRODUCED regexunicode-replace-capture-append
+reproduced: {release: true, nightly: true}
+expected: |
+  "eada<b>c": the replaced text appended after the unread "ead", as for a plain
+  write(io, replace("abc", r"(b)" => s"<\1>")).
+promised_by: |
+  replace docstring: "If the io::IO argument is supplied, the transformed string is
+  instead written to io (returning io)" (base/strings/util.jl:1147-1148); IOBuffer
+  append mode: "If true, write new data to the index size+1 instead of the index ptr"
+  (base/iobuffer.jl:52-53).
+cause: |
+  _write_capture (base/regex.jl:654-664) copies the capture to pointer(io.data,
+  io.ptr) and advances io.ptr, ignoring io.append; the literal parts go through
+  write, which honours append (base/iobuffer.jl:948-963).
+possible_fix: |
+  Write the capture with write(io, ...) instead of poking io.data, io.ptr and io.size.
+duplicates:
+  issues: []
+  queries:
+    - "issues: replace SubstitutionString IOBuffer"
+    - "issues: replace io regex capture"
+    - "issues: replace PipeBuffer"
+    - "issues: _write_capture"
+    - "prs: _write_capture"
+    - "prs: replace io argument"
+lean:
+  property: JuliaLean.RegexUnicode.Subst.ReplaceCaptureAppend
+  theorem: JuliaLean.RegexUnicode.Subst.replaceCaptureAppend_refuted

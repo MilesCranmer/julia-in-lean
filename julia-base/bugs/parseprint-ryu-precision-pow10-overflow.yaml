@@ -1,0 +1,67 @@
+id: parseprint-ryu-precision-pow10-overflow
+title: "Ryu.writeshortest with precision >= 20 switches to exponent form for exact powers of ten from 1e19, because 10^(pt - olength) overflows Int"
+priority: P3
+kind: wrong-result
+area: ParsePrint
+files: [base/ryu/shortest.jl]
+functions: ["Ryu.writeshortest"]
+summary: |
+  With precision = 30, writeshortest prints 1e18 in fixed notation
+  ("1000000000000000000.00000000000") but 1e19 and 1e20 in exponent form
+  ("1.000000000000000000000000000000e19"). The fixed-notation test computes
+  10^(pt - olength) in Int, which wraps for exponents of 19 and more, so the
+  "x is a multiple of the omitted power of ten" check fails for every exact
+  integer whose shortest digits omit 19 or more trailing zeros.
+likelihood: |
+  Low. Printf does not pass a precision to writeshortest, and show uses
+  precision = -1 (at most 6). Only direct callers of the documented
+  Ryu.writeshortest with precision >= 20 are affected.
+maybe_intended: |
+  The fixed/exponent choice for large precisions is not documented exactly; the
+  docstring only says `precision` is the minimum number of digits. But the
+  result changes between 1e18 and 1e19 purely because of Int overflow.
+reproducer: |
+  W(x) = Base.Ryu.writeshortest(x, false, false, true, 30)
+  println("1e18 -> ", W(1e18))
+  println("1e19 -> ", W(1e19))
+  println("1e20 -> ", W(1e20))
+  !occursin('e', W(1e18)) && occursin('e', W(1e19)) && occursin('e', W(1e20)) &&
+      println("REPRODUCED parseprint-ryu-precision-pow10-overflow")
+output:
+  release: |
+    1e18 -> 1000000000000000000.00000000000
+    1e19 -> 1.000000000000000000000000000000e19
+    1e20 -> 1.000000000000000000000000000000e20
+    REPRODUCED parseprint-ryu-precision-pow10-overflow
+  nightly: |
+    1e18 -> 1000000000000000000.00000000000
+    1e19 -> 1.000000000000000000000000000000e19
+    1e20 -> 1.000000000000000000000000000000e20
+    REPRODUCED parseprint-ryu-precision-pow10-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  Fixed notation for 1e19 and 1e20 as for 1e18, since pt = 20 and 21 are at most
+  the precision 30 and both values are exact multiples of 10^19 and 10^20.
+promised_by: |
+  Invariant of the branch condition at base/ryu/shortest.jl:337-338: fixed notation
+  when -4 < pt <= precision and x is a multiple of 10^(pt - olength).
+cause: |
+  base/ryu/shortest.jl:338 evaluates `10^(pt - olength)` with Int operands;
+  10^19 wraps to -8446744073709551616 and 10^20 to 7766279631452241920, so
+  `mod(x + 0.05, ...)` is far from 0 and exp_form stays true.
+possible_fix: |
+  Compute the power in Float64 (`exp10(pt - olength)`, exact up to 1e22) or test
+  the multiple-of-power condition with the integer `output` and `nexp`.
+duplicates:
+  issues: []
+  queries:
+    - "issues: writeshortest precision"
+    - "issues: Ryu precision"
+    - "issues: writeshortest 1e19"
+    - "issues: Ryu precision exponent form"
+    - "issues: writeshortest hash precision"
+    - "pull requests: writeshortest"
+    - "pull requests: writeshortest precision"
+lean:
+  property: JuliaLean.ParsePrint.Ryu.PrecisionFixedPowersOfTen
+  theorem: JuliaLean.ParsePrint.Ryu.precisionFixedPowersOfTen_refuted

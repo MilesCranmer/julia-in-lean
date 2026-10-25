@@ -1,0 +1,43 @@
+id: bitarrays-resize-negative
+title: "resize!(::BitVector, n) throws BoundsError for n < 0; resize!(::Vector, n) throws ArgumentError"
+priority: P2
+kind: wrong-exception
+area: BitArrays
+files: [base/bitarray.jl]
+functions: ["resize!(::BitVector, n)", "_resize_int!"]
+summary: |
+  resize!(BitVector(), -1) throws BoundsError, while resize!(Bool[], -1) throws
+  ArgumentError("new length must be ≥ 0"). Code that catches the documented
+  Vector error misses the BitVector one.
+likelihood: |
+  Only negative lengths, which are a caller error anyway; matters for code that
+  dispatches on the exception type.
+maybe_intended: |
+  Both are errors for invalid input; the BitVector choice predates the Vector
+  message. The resize! docstring does not name an exception type.
+reproducer: |
+  resize!(BitVector(), -1)   # BoundsError
+  resize!(Bool[], -1)        # ArgumentError
+output:
+  release: |
+    BoundsError | ArgumentError
+    REPRODUCED bitarrays-resize-negative
+  nightly: |
+    BoundsError | ArgumentError
+    REPRODUCED bitarrays-resize-negative
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError, as for Vector.
+promised_by: |
+  A BitVector should behave like Vector{Bool}; resize!(::Vector) throws
+  ArgumentError("new length must be ≥ 0") (base/array.jl:1575-1576).
+cause: |
+  base/bitarray.jl:807: n >= 0 || throw(BoundsError(B, n)).
+possible_fix: |
+  Throw ArgumentError("new length must be ≥ 0") as Vector does.
+duplicates:
+  issues: []
+  queries: ["issues: resize! negative", "issues: resize! BoundsError", "issues: BitArray resize!", "issues: resize! negative BitVector"]
+lean:
+  property: JuliaLean.BitArrays.ResizeAgrees
+  theorem: JuliaLean.BitArrays.resizeAgrees_refuted

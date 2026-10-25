@@ -1,0 +1,63 @@
+id: strings-lpad-typemin
+title: "lpad(s, typemin(Int)) and rpad(s, typemin(Int)) throw OutOfMemoryError"
+priority: P2
+kind: wrong-exception
+area: Strings
+files: [base/strings/util.jl]
+functions: ["lpad(::AbstractString, ::Integer)", "rpad(::AbstractString, ::Integer)"]
+summary: |
+  lpad("a", -5) returns "a", but lpad("a", typemin(Int)) throws
+  OutOfMemoryError. signed(n) - textwidth(s) wraps to a huge positive pad width.
+  rpad has the same code.
+likelihood: |
+  Needs n = typemin(Int) (or within textwidth(s) of it), for example from a
+  sentinel width. Uncommon.
+maybe_intended: ""
+reproducer: |
+  println("lpad(\"a\", -5) = ", repr(lpad("a", -5)))
+  r = try
+      lpad("a", typemin(Int))
+  catch e
+      e
+  end
+  println("lpad(\"a\", typemin(Int)) = ", r isa Exception ? sprint(showerror, r) : repr(r))
+  q = try
+      rpad("a", typemin(Int))
+  catch e
+      e
+  end
+  println("rpad(\"a\", typemin(Int)) = ", q isa Exception ? sprint(showerror, q) : repr(q))
+  r isa OutOfMemoryError && println("REPRODUCED strings-lpad-typemin")
+output:
+  release: |
+    lpad("a", -5) = "a"
+    lpad("a", typemin(Int)) = OutOfMemoryError()
+    rpad("a", typemin(Int)) = OutOfMemoryError()
+    REPRODUCED strings-lpad-typemin
+  nightly: |
+    lpad("a", -5) = "a"
+    lpad("a", typemin(Int)) = OutOfMemoryError()
+    rpad("a", typemin(Int)) = OutOfMemoryError()
+    REPRODUCED strings-lpad-typemin
+reproduced: {release: true, nightly: true}
+expected: |
+  "a" unchanged, as for every other n <= textwidth(s).
+promised_by: |
+  The lpad docstring: "If `s` is already `n` characters long, an equal string is
+  returned." (base/strings/util.jl:496-499).
+cause: |
+  base/strings/util.jl:534 (lpad) and :574 (rpad): m = signed(n) -
+  Int(textwidth(s)) wraps; m <= 0 then fails and the pad allocation throws.
+possible_fix: |
+  Test n <= textwidth(s) before subtracting, or use checked subtraction.
+duplicates:
+  issues: []
+  queries:
+    - "issues: lpad typemin"
+    - "issues: lpad negative OutOfMemoryError"
+    - "prs: lpad overflow"
+    - "issues: rpad typemin"
+    - "issues: lpad"
+lean:
+  property: JuliaLean.Strings.LpadNoPad
+  theorem: JuliaLean.Strings.lpadNoPad_refuted

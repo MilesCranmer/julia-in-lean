@@ -1,0 +1,75 @@
+id: broadcastviews-cartesian-alias
+title: "Broadcast assignment misses aliasing between a view with a scalar index and a view indexed by CartesianIndex arrays"
+priority: P2
+kind: wrong-result
+area: BroadcastViews
+files: [base/multidimensional.jl, base/broadcast.jl]
+functions: ["Base.mightalias(::SubArray, ::SubArray)", "Base._indicesmightoverlap", "Base.Broadcast.broadcast_unalias", "materialize!"]
+summary: |
+  When two views share a parent and one is indexed by an array of CartesianIndex
+  (for example the result of findall on a matrix), Base.mightalias compares a
+  scalar or one-element integer index with the CartesianIndex array using `in`,
+  which is always false. The views are reported as disjoint, broadcast does not
+  copy the source, and `.=` reads elements it has already overwritten:
+  `@views M[1, :] .= M[[CartesianIndex(3,3), CartesianIndex(2,2), CartesianIndex(1,1)]]`
+  sets row 1 of [1 2 3; 4 5 6; 7 8 9] to [9, 5, 9] instead of [9, 5, 1].
+likelihood: |
+  Needs a view whose index is an array of CartesianIndex (findall on a matrix,
+  a logical mask of a matrix, a hand-built index list) combined with a view of
+  the same parent that has a scalar index (a row or column), or a single-element
+  index, in one broadcast assignment where the read and write sets overlap. Plain
+  `@views` code can do this, but it is an unusual combination.
+maybe_intended: |
+  The manual (doc/src/manual/functions.md:110-111) says the caller is responsible
+  for aliasing unless a docstring promises otherwise, and Base.unalias says "No
+  guarantees are provided". But broadcast does detect the same overlap when the
+  CartesianIndex array is replaced by the equivalent linear indices, and
+  Base.mightalias is documented as a conservative test.
+reproducer: |
+  M = [1 2 3; 4 5 6; 7 8 9]
+  idx = [CartesianIndex(3, 3), CartesianIndex(2, 2), CartesianIndex(1, 1)]
+  expected = copy(M)
+  expected[1, :] .= M[idx]                     # right-hand side copied first
+  println("mightalias = ", Base.mightalias(view(M, 1, :), view(M, idx)))
+  @views M[1, :] .= M[idx]
+  println("@views M[1, :] .= M[idx] gives row ", M[1, :], ", expected ", expected[1, :])
+  if M != expected
+      println("REPRODUCED broadcastviews-cartesian-alias")
+  end
+output:
+  release: |
+    mightalias = false
+    @views M[1, :] .= M[idx] gives row [9, 5, 9], expected [9, 5, 1]
+    REPRODUCED broadcastviews-cartesian-alias
+  nightly: |
+    mightalias = false
+    @views M[1, :] .= M[idx] gives row [9, 5, 9], expected [9, 5, 1]
+    REPRODUCED broadcastviews-cartesian-alias
+reproduced: {release: true, nightly: true}
+expected: |
+  Row 1 becomes [9, 5, 1], the same as `M[1, :] .= M[idx]` without views, and
+  Base.mightalias(view(M, 1, :), view(M, idx)) is true.
+promised_by: |
+  Base.mightalias docstring (base/abstractarray.jl:1596-1601): "Perform a
+  conservative test to check if arrays A and B might share the same memory."
+  base/broadcast.jl:1004-1008: preprocessing "unaliases any arguments from dest".
+cause: |
+  base/multidimensional.jl:1172-1181 (master): for two SubArrays of the same
+  parent, _indicesmightoverlap checks `A[1] in B[1]` (scalar against array) and
+  `A[1][1] in B[1]` (one-element array). When one side's index is an array of
+  CartesianIndex it spans several parent dimensions, so an Int is compared with
+  CartesianIndex values (never equal) and the function returns false although
+  the views overlap. The per-dimension comparison is only valid when both index
+  tuples consume one parent dimension per entry.
+possible_fix: |
+  Fall back to `true` (or compare against the expanded Cartesian positions) in
+  _indicesmightoverlap whenever either index tuple contains an array of
+  CartesianIndex{N} with N != 1.
+duplicates:
+  issues:
+    - {number: 50820, state: open, relation: related}
+    - {number: 31392, state: open, relation: related}
+  queries: ["mightalias CartesianIndex", "_indicesmightoverlap", "indicesmightoverlap", "aliasing view CartesianIndex", "unalias CartesianIndex", "mightalias SubArray", "mightalias", "view alias findall broadcast"]
+lean:
+  property: JuliaLean.BroadcastViews.AliasAssignFresh
+  theorem: JuliaLean.BroadcastViews.aliasAssignFresh_refuted

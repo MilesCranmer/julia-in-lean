@@ -1,0 +1,59 @@
+id: ranges-collect-full-width-crash
+title: "collect(typemin(Int):typemax(Int)) segfaults: Array(r) writes past a vector sized by the wrapped length"
+priority: P1
+kind: crash
+area: Ranges
+files: [base/range.jl]
+functions: ["Array{T,1}(::AbstractRange{T})", "collect(::AbstractRange)"]
+summary: |
+  For a range with 2^64 elements, length(r) wraps to 0. Array(r) allocates a
+  vector of length(r) slots and then stores every iterated element with
+  @inbounds, so it writes far past the empty vector and Julia crashes with
+  signal 11. Memory unsafety from plain Base code without user @inbounds.
+likelihood: |
+  Needs a full-width 64-bit (or 128-bit) range such as typemin(Int):typemax(Int)
+  or 0:typemax(UInt); such ranges are easy to write, but collecting one is
+  never useful. Rated P1 because the input is extreme; memory unsafety would
+  justify P0 if crashes on edge inputs count as P0.
+maybe_intended: ""
+reproducer: |
+  r = typemin(Int):typemax(Int)
+  println("length(r) = ", length(r), ", isempty(r) = ", isempty(r))
+  cmd = `$(Base.julia_cmd()) --startup-file=no -e 'collect(typemin(Int):typemax(Int)); println("collect returned")'`
+  p = run(pipeline(ignorestatus(cmd); stdout=devnull, stderr=devnull))
+  println("child exit code = ", p.exitcode, ", signal = ", p.termsignal)
+  length(r) == 0 && !isempty(r) && (p.termsignal != 0 || p.exitcode != 0) &&
+      println("REPRODUCED ranges-collect-full-width-crash")
+output:
+  release: |
+    length(r) = 0, isempty(r) = false
+    child exit code = 0, signal = 11
+    REPRODUCED ranges-collect-full-width-crash
+  nightly: |
+    length(r) = 0, isempty(r) = false
+    child exit code = 0, signal = 11
+    REPRODUCED ranges-collect-full-width-crash
+reproduced: {release: true, nightly: true}
+expected: |
+  An OverflowError or OutOfMemoryError (the result cannot be allocated), never
+  a segmentation fault.
+promised_by: |
+  Invariant: Base code must not perform out-of-bounds stores; the @inbounds
+  loop at base/range.jl:1427-1430 is only safe if iteration yields at most
+  length(r) elements.
+cause: |
+  base/range.jl:1425 allocates Vector{T}(undef, length(r)); for
+  typemin(Int):typemax(Int), length (base/range.jl:794-803) returns 0 because
+  oneunit + (stop - start) wraps. The loop at base/range.jl:1427-1430 iterates
+  all 2^64 elements and stores them with @inbounds a[i] = x.
+possible_fix: |
+  Use checked_length(r) in Array{T,1}(r) (base/range.jl:1425), or drop
+  @inbounds / stop iterating after length(r) elements.
+duplicates:
+  issues:
+    - {number: 58245, state: open, relation: duplicate}
+    - {number: 45389, state: open, relation: related}
+  queries: ["collect typemin typemax segfault", "collect range segfault", "checked_length", "typemax range length", "Array AbstractRange inbounds"]
+lean:
+  property: JuliaLean.Ranges.CollectStoresInBounds
+  theorem: JuliaLean.Ranges.collectStoresInBounds_refuted

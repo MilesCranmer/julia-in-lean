@@ -1,0 +1,51 @@
+id: markdown-plain-loose-list
+title: "Markdown.plain prints loose lists without blank lines, so they reparse as tight lists"
+priority: P3
+kind: wrong-result
+area: Markdown
+files: [stdlib/Markdown/src/render/plain.jl]
+functions: ["Markdown.plain(::IO, ::Markdown.List)"]
+summary: |
+  On master, `Markdown.parse("- a\n\n- b")` is a loose list (HTML items wrapped in `<p>`), but
+  `Markdown.plain` prints `  * a\n  * b\n` with no blank line between items, which reparses as a
+  tight list. Since #60676 renders the `loose` flag, `parse(plain(md)) != md`.
+likelihood: |
+  Every loose list whose items are single paragraphs. Cosmetic difference in HTML.
+maybe_intended: ""
+reproducer: |
+  using Markdown
+  md = Markdown.parse("- a\n\n- b")
+  p = Markdown.plain(md)
+  md2 = Markdown.parse(p)
+  println("loose = ", md.content[1].loose, ", plain = ", repr(p), ", reparsed loose = ", md2.content[1].loose)
+  println(repr(Markdown.html(md)))
+  println(repr(Markdown.html(md2)))
+  md2 != md && println("REPRODUCED markdown-plain-loose-list")
+output:
+  release: |
+    loose = true, plain = "  * a\n  * b\n", reparsed loose = false
+    "<ul>\n<li><p>a</p>\n</li>\n<li><p>b</p>\n</li>\n</ul>\n"
+    "<ul>\n<li><p>a</p>\n</li>\n<li><p>b</p>\n</li>\n</ul>\n"
+  nightly: |
+    loose = true, plain = "  * a\n  * b\n", reparsed loose = false
+    "<ul>\n<li>\n<p>a</p>\n</li>\n<li>\n<p>b</p>\n</li>\n</ul>\n"
+    "<ul>\n<li>a</li>\n<li>b</li>\n</ul>\n"
+    REPRODUCED markdown-plain-loose-list
+reproduced: {release: false, nightly: true}
+expected: |
+  `Markdown.parse(Markdown.plain(md)) == md`: blank lines between the items of a loose list.
+promised_by: |
+  `show(io, ::MIME"text/markdown", md::MD) = plain(io, md)` (stdlib/Markdown/src/render/plain.jl:170).
+cause: |
+  stdlib/Markdown/src/render/plain.jl:42-56 prints one item per line; `list.loose` only selects `plain` vs `plaintight`
+  for the item body (line 46), and `rstrip` removes the trailing blank line.
+possible_fix: |
+  Emit an empty line between items when `list.loose`.
+duplicates:
+  issues:
+    - {number: 60676, state: merged, relation: related}
+    - {number: 35917, state: open, relation: related}
+  queries: ["loose list", "Markdown plain", "Markdown roundtripability", "Markdown loose"]
+lean:
+  property: JuliaLean.Markdown.PlainLooseList
+  theorem: JuliaLean.Markdown.plainLooseList_refuted

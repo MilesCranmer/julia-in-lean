@@ -1,0 +1,58 @@
+id: platforms-match-reflexive
+title: "platforms_match(p, p) throws for a strictly validated platform with a non-version julia_version"
+priority: P3
+kind: wrong-exception
+area: Platforms
+files: [base/binaryplatforms.jl]
+functions: ["platforms_match(::AbstractPlatform, ::AbstractPlatform)", "Platform(arch, os; validate_strict = true)"]
+summary: |
+  The Platform constructor installs a julia_version comparison strategy that calls
+  VersionNumber on both values, but validate_tags never checks julia_version. So
+  Platform("x86_64", "linux"; julia_version = "foo", validate_strict = true) is accepted
+  and platforms_match(p, p) throws ArgumentError instead of returning true.
+likelihood: |
+  Low: needs a malformed julia_version tag, e.g. from a hand-written triplet such as
+  "x86_64-linux-gnu-julia_version+foo", which parse also accepts.
+maybe_intended: ""
+reproducer: |
+  using Base.BinaryPlatforms
+  p = Platform("x86_64", "linux"; julia_version = "foo", validate_strict = true)
+  println("accepted with validate_strict=true: ", repr(p))
+  r = try
+      platforms_match(p, p)
+  catch e
+      e
+  end
+  println("platforms_match(p, p) => ", r isa Exception ? sprint(showerror, r) : repr(r))
+  if r !== true
+      println("REPRODUCED platforms-match-reflexive")
+  end
+output:
+  release: |
+    accepted with validate_strict=true: Platform("x86_64", "linux"; libc = "glibc", julia_version = "foo")
+    platforms_match(p, p) => ArgumentError: invalid version string: foo
+    REPRODUCED platforms-match-reflexive
+  nightly: |
+    accepted with validate_strict=true: Platform("x86_64", "linux"; julia_version = "foo", libc = "glibc")
+    platforms_match(p, p) => ArgumentError: invalid version string: foo
+    REPRODUCED platforms-match-reflexive
+reproduced: {release: true, nightly: true}
+expected: |
+  Either validate_strict rejects julia_version = "foo", or platforms_match(p, p) == true.
+promised_by: |
+  platforms_match docstring, base/binaryplatforms.jl:1128-1141: platforms match when
+  every key both contain matches; a platform matches itself. validate_strict is the
+  documented way to reject malformed tags (base/binaryplatforms.jl:85-88).
+cause: |
+  base/binaryplatforms.jl:91-97 installs the julia_version strategy
+  (`VersionNumber(a)`, `VersionNumber(b)`); validate_tags (base/binaryplatforms.jl:222-293)
+  has no julia_version check. Related to platforms-validate-os-version (same missing
+  VersionNumber validation, different tag).
+possible_fix: |
+  Validate julia_version as a VersionNumber in validate_tags.
+duplicates:
+  issues: []
+  queries: ["julia_version platforms_match", "BinaryPlatforms julia_version", "platforms_match", "validate_strict"]
+lean:
+  property: JuliaLean.Platforms.MatchReflexive
+  theorem: JuliaLean.Platforms.matchReflexive_refuted

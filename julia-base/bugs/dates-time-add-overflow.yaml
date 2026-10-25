@@ -1,0 +1,58 @@
+id: dates-time-add-overflow
+title: "Time addition wraps at Int64 before wrapping at the 24-hour boundary"
+priority: P2
+kind: wrong-result
+area: Dates
+files: [stdlib/Dates/src/arithmetic.jl, stdlib/Dates/src/types.jl]
+functions: ["+(::Time, ::TimePeriod)", "Time(::Nanosecond)"]
+summary: |
+  Adding a large Nanosecond period to a valid Time can produce a different
+  time of day from the exact sum modulo 24 hours. The Int64 sum wraps before
+  the Time constructor applies its day modulus.
+likelihood: |
+  The period is extreme, about 292 years of nanoseconds, although the input
+  Time is ordinary. Large elapsed periods or overflow sentinels can reach it.
+maybe_intended: |
+  Date arithmetic uses wrapping integers. For Time, however, the intended
+  storage invariant is the 24-hour clock, whose modulus does not divide 2^64.
+  Applying machine wrap first changes the answer on that clock.
+reproducer: |
+  using Dates
+  t = Time(1)
+  Dates.value(t + Nanosecond(typemax(Int64)))
+output:
+  release: |
+    input nanoseconds = 3600000000000
+    added nanoseconds = 9223372036854775807
+    actual nanoseconds of day = 4363145224191
+    exact modulo-day result = 2836854775807
+    REPRODUCED dates-time-add-overflow
+  nightly: |
+    input nanoseconds = 3600000000000
+    added nanoseconds = 9223372036854775807
+    actual nanoseconds of day = 4363145224191
+    exact modulo-day result = 2836854775807
+    REPRODUCED dates-time-add-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  2836854775807 nanoseconds since midnight: the exact sum modulo 86400000000000.
+  Reducing the added period modulo one day first produces this value.
+promised_by: |
+  stdlib/Dates/src/types.jl:184-191: Time represents a moment in a 24-hour day,
+  and its inner constructor reduces modulo 86400000000000. The clock-arithmetic
+  invariant is addition modulo this day length.
+cause: |
+  stdlib/Dates/src/arithmetic.jl:85 computes value(x) + tons(y) as an Int64
+  before the Time constructor at types.jl:191 takes the day modulus. The
+  first reduction is modulo 2^64, which does not preserve modulo-one-day sums.
+possible_fix: |
+  Reduce the period modulo one day before adding it to the stored time, or
+  use an Int128 sum and apply the day modulus before converting to Int64.
+duplicates:
+  issues:
+    - {number: 50930, state: open, relation: related}
+  queries: ["Time typemax", "repo:JuliaLang/julia Time overflow nanosecond", "DateTime overflow"]
+  notes: "No exact report found. #50930 discusses wrapping DateTime arithmetic, not the extra Time day modulus."
+lean:
+  property: JuliaLean.Dates.TimeAdditionClock
+  theorem: JuliaLean.Dates.timeAdditionClock_refuted

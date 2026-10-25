@@ -1,0 +1,5 @@
+r = typemin(Int):typemax(Int)
+println("length(typemin(Int):typemax(Int)) = ", length(r))
+println("isempty = ", isempty(r), ", count = ", big(last(r)) - big(first(r)) + 1)
+println("expected = 18446744073709551616 or an OverflowError")
+length(r) == 0 && !isempty(r) && println("REPRODUCED ranges-length-overflow-silent")

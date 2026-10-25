@@ -1,0 +1,58 @@
+id: abstractarrays-size-large-dim
+title: "size(A, d) throws for large positive Integer dimensions while axes(A, d) returns 1:1"
+priority: P3
+kind: wrong-exception
+area: AbstractArrays
+files: [base/abstractarray.jl]
+functions: ["size(::AbstractArray, dim)", "axes(::AbstractArray, d)"]
+summary: |
+  size(A, d) throws InexactError when d is a positive UInt64, Int128 or BigInt
+  above typemax(Int), even though every such d is beyond ndims(A) and the
+  documented result is 1. axes(A, d) handles the same dimensions and returns
+  Base.OneTo(1).
+likelihood: |
+  Very low. Array dimensions are normally small Int values. Generic code can
+  forward another Integer type, but reaching a value above typemax(Int) is
+  contrived.
+maybe_intended: |
+  The implementation may intend to normalize every dimension to Int before any
+  other work. The public signature and docstring do not restrict dim to Int,
+  and axes(A, d) accepts the same values without conversion.
+reproducer: |
+  struct GenericMatrix <: AbstractMatrix{Int} end
+  Base.size(::GenericMatrix) = (2, 3)
+  Base.getindex(::GenericMatrix, i::Int, j::Int) = i + 2 * (j - 1)
+  A = GenericMatrix()
+  d = UInt(typemax(Int)) + 1
+  size(A, d) # InexactError
+  axes(A, d) # Base.OneTo(1)
+output:
+  release: |
+    UInt64 size=InexactError axes=Base.OneTo(1)
+    Int128 size=InexactError axes=Base.OneTo(1)
+    REPRODUCED abstractarrays-size-large-dim
+  nightly: |
+    UInt64 size=InexactError axes=Base.OneTo(1)
+    Int128 size=InexactError axes=Base.OneTo(1)
+    REPRODUCED abstractarrays-size-large-dim
+reproduced: {release: true, nightly: true}
+expected: |
+  size(A, d) should return 1 for every positive Integer d greater than ndims(A),
+  matching axes(A, d) and the documented trailing-singleton rule.
+promised_by: |
+  base/abstractarray.jl:21-24 says dim selects the length of that dimension.
+  The axes(A, d) example at lines 63-64 states that all dimensions d greater
+  than ndims(A) have size 1.
+cause: |
+  base/abstractarray.jl:42-45 converts dim to Int before comparing it with the
+  length of size(A). The conversion throws for larger Integer values. The
+  axes(A, d) method at lines 79-82 compares d with N first and returns OneTo(1).
+possible_fix: |
+  Return 1 when dim is greater than ndims(A) before converting dim to Int. Keep
+  the existing BoundsError behavior for nonpositive dimensions.
+duplicates:
+  issues: []
+  queries: ["size dimension InexactError", "size UInt dimension", "size typemax dimension axes", "size(A,d) Int(dim)", "prs: size dimension InexactError", "prs: size UInt dimension"]
+lean:
+  property: JuliaLean.AbstractArrays.SizeAllIntegerDims
+  theorem: JuliaLean.AbstractArrays.sizeAllIntegerDims_refuted

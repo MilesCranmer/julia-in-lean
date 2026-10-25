@@ -1,0 +1,58 @@
+id: strings-findprev-empty-end
+title: "findprev(\"\", s, ncodeunits(s)+1) returns 0:-1"
+priority: P2
+kind: wrong-result
+area: Strings
+files: [base/strings/search.jl]
+functions: ["findprev(::AbstractString, ::AbstractString, ::Integer)"]
+summary: |
+  findprev("", "abc", 4) returns 0:-1, while findnext("", "abc", 4) == 4:3,
+  findall("", "abc") contains 4:3, and the generic AbstractString method returns
+  4:3. The String method maps every i > sizeof(s) to index 0.
+likelihood: |
+  Empty patterns at the end position arise in generic search loops; uncommon.
+maybe_intended: |
+  Empty-needle semantics are loosely specified, but 0:-1 is neither nothing nor
+  an occurrence ending at or before i.
+reproducer: |
+  s = "abc"
+  a = findnext("", s, 4)
+  b = findprev("", s, 4)
+  println("findnext(\"\", \"abc\", 4) = ", repr(a))
+  println("findprev(\"\", \"abc\", 4) = ", repr(b))
+  println("findall(\"\", \"abc\") = ", repr(findall("", s)))
+  a == 4:3 && b == 0:-1 && println("REPRODUCED strings-findprev-empty-end")
+output:
+  release: |
+    findnext("", "abc", 4) = 4:3
+    findprev("", "abc", 4) = 0:-1
+    findall("", "abc") = UnitRange{Int64}[1:0, 2:1, 3:2, 4:3]
+    REPRODUCED strings-findprev-empty-end
+  nightly: |
+    findnext("", "abc", 4) = 4:3
+    findprev("", "abc", 4) = 0:-1
+    findall("", "abc") = UnitRange{Int64}[1:0, 2:1, 3:2, 4:3]
+    REPRODUCED strings-findprev-empty-end
+reproduced: {release: true, nightly: true}
+expected: |
+  4:3, the last empty occurrence with stop <= 4 (or BoundsError for i beyond
+  ncodeunits(s)+1).
+promised_by: |
+  The findprev docstring: "`start:stop` such that `string[start:stop] ==
+  \"substring\"` and `stop <= i`, or `nothing` if unmatched"
+  (base/strings/search.jl:799-806).
+cause: |
+  base/strings/search.jl:713-714: `elseif i > sizeof(s) return 0` in
+  _rsearchindex(::DenseUTF8String, ...). For nonempty needles the same method
+  also accepts any i > ncodeunits(s)+1, where findnext throws BoundsError.
+possible_fix: |
+  Return i for i == sizeof(s)+1 and throw BoundsError above it, matching the
+  generic method.
+duplicates:
+  issues: []
+  queries:
+    - "issues: findprev empty string"
+    - "issues: findlast empty string"
+lean:
+  property: JuliaLean.Strings.FindprevLatest
+  theorem: JuliaLean.Strings.findprevLatest_refuted

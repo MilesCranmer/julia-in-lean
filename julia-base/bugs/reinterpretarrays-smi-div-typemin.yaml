@@ -1,0 +1,49 @@
+id: reinterpretarrays-smi-div-typemin
+title: "div(typemin(Int), multiplicativeinverse(-1)) returns typemin(Int) instead of throwing DivideError"
+priority: P3
+kind: missing-error
+area: ReinterpretArrays
+files: [base/multinverses.jl]
+functions: ["div(::T, ::SignedMultiplicativeInverse{T})", "divrem(::T, ::MultiplicativeInverse{T})"]
+summary: |
+  Division by a SignedMultiplicativeInverse agrees with div for every dividend and
+  nonzero divisor except div(typemin(T), -1): the |divisor| == 1 branch returns
+  a*b.divisor, which wraps to typemin(T), while div(typemin(T), -1) throws
+  DivideError. divrem gives (typemin(T), 0) for the same input.
+likelihood: |
+  Base only uses SignedMultiplicativeInverse with positive divisors (ReshapedArray
+  sizes), so Base itself is unaffected; direct users of the internal module could hit it.
+maybe_intended: |
+  MultiplicativeInverses is an internal, performance-oriented module without a
+  docstring promising div semantics; wrapping may be accepted as the price of speed.
+reproducer: |
+  using Base.MultiplicativeInverses: multiplicativeinverse
+  div(typemin(Int), multiplicativeinverse(-1))   # typemin(Int)
+  div(typemin(Int), -1)                          # DivideError
+output:
+  release: |
+    div(typemin(Int), multiplicativeinverse(-1)) = -9223372036854775808; div(typemin(Int), -1) -> DivideError
+    divrem(typemin(Int8), multiplicativeinverse(Int8(-1))) = (-128, 0); divrem(typemin(Int8), Int8(-1)) -> DivideError
+    REPRODUCED reinterpretarrays-smi-div-typemin
+  nightly: |
+    div(typemin(Int), multiplicativeinverse(-1)) = -9223372036854775808; div(typemin(Int), -1) -> DivideError
+    divrem(typemin(Int8), multiplicativeinverse(Int8(-1))) = (-128, 0); divrem(typemin(Int8), Int8(-1)) -> DivideError
+    REPRODUCED reinterpretarrays-smi-div-typemin
+reproduced: {release: true, nightly: true}
+expected: |
+  DivideError, like div(typemin(Int), -1); or a documented wrapping semantics.
+promised_by: |
+  Invariant: the module computes division by a constant (base/multinverses.jl:19-21,
+  "Computes integer division by a constant using multiply, add, and bitshift"), so it
+  should agree with div, which throws DivideError for typemin(T) ÷ -1.
+cause: |
+  base/multinverses.jl:140: ifelse(abs(b.divisor) == 1, a*b.divisor, ...) multiplies
+  with wrapping.
+possible_fix: |
+  Use checked arithmetic in that branch (e.g. div(a, b.divisor) when abs(b.divisor) == 1).
+duplicates:
+  issues: []
+  queries: ["SignedMultiplicativeInverse", "multiplicativeinverse", "MultiplicativeInverses", "multiplicative inverse typemin"]
+lean:
+  property: JuliaLean.ReinterpretArrays.SmiDivAll
+  theorem: JuliaLean.ReinterpretArrays.smiDivAll_refuted

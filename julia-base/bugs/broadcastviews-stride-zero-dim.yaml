@@ -1,0 +1,62 @@
+id: broadcastviews-stride-zero-dim
+title: "stride(V, 1) throws BoundsError for a zero-dimensional view such as view(A, 1, 2)"
+priority: P3
+kind: wrong-exception
+area: BroadcastViews
+files: [base/subarray.jl]
+functions: ["stride(::SubArray, ::Integer)"]
+summary: |
+  `stride(V::SubArray, d)` returns `strides(V)[end] * size(V)[end]` for `d > ndims(V)`.
+  For a zero-dimensional view (all indices scalars, e.g. `view(zeros(3, 4), 1, 2)`)
+  `strides(V)` is `()`, so `stride(V, 1)` throws
+  `BoundsError: attempt to access Tuple{} at index [0]`, while `stride(fill(0.0), 1)`
+  and `stride(copy(V), 1)` return 1 and the generic AbstractArray method returns 1
+  for zero-dimensional arrays.
+likelihood: |
+  Needs `stride` on a zero-dimensional view, for example generic strided-array code
+  (BLAS wrappers, pointer arithmetic) that loops `stride(A, k)` over dimensions and
+  receives `view(A, i, j)`. Uncommon.
+maybe_intended: ""
+reproducer: |
+  A = zeros(3, 4)
+  V = view(A, 1, 2)                 # 0-dimensional SubArray, strides(V) == ()
+  r = try stride(V, 1) catch e; e end
+  println("strides(V) = ", strides(V))
+  println("stride(view(zeros(3, 4), 1, 2), 1) = ", r isa Exception ? sprint(showerror, r) : r)
+  println("stride(fill(0.0), 1) = ", stride(fill(0.0), 1))
+  println("stride(copy(V), 1) = ", stride(copy(V), 1))
+  if r isa Exception
+      println("REPRODUCED broadcastviews-stride-zero-dim")
+  end
+output:
+  release: |
+    strides(V) = ()
+    stride(view(zeros(3, 4), 1, 2), 1) = BoundsError: attempt to access Tuple{} at index [0]
+    stride(fill(0.0), 1) = 1
+    stride(copy(V), 1) = 1
+    REPRODUCED broadcastviews-stride-zero-dim
+  nightly: |
+    strides(V) = ()
+    stride(view(zeros(3, 4), 1, 2), 1) = BoundsError: attempt to access Tuple{} at index [0]
+    stride(fill(0.0), 1) = 1
+    stride(copy(V), 1) = 1
+    REPRODUCED broadcastviews-stride-zero-dim
+reproduced: {release: true, nightly: true}
+expected: |
+  1, as for `stride(fill(0.0), 1)` and the generic method's zero-dimensional case.
+promised_by: |
+  base/abstractarray.jl:580-582 (stride docstring: "the distance in memory (in number of
+  elements) between adjacent elements in dimension k"); base/abstractarray.jl:600
+  (`ndims(A) == 0 && return 1`) and base/reinterpretarray.jl:205-206 (`length(A)` past the
+  last dimension) for the other array types.
+cause: |
+  base/subarray.jl:446: `stride(V::SubArray, d::Integer) = d <= ndims(V) ? strides(V)[d] : strides(V)[end] * size(V)[end]`
+  has no zero-dimensional case.
+possible_fix: |
+  Return 1 when ndims(V) == 0, as the AbstractArray fallback does.
+duplicates:
+  issues: []
+  queries: ["stride zero-dimensional view", "stride SubArray BoundsError", "stride 0-dimensional"]
+lean:
+  property: JuliaLean.BroadcastViews.StrideTotal
+  theorem: JuliaLean.BroadcastViews.strideTotal_refuted

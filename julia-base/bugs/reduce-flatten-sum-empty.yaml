@@ -1,0 +1,60 @@
+id: reduce-flatten-sum-empty
+title: "sum(Iterators.flatten([Int[], Int[]])) throws although the element type is known"
+priority: P2
+kind: wrong-exception
+area: Reduce
+files: [base/reduce.jl]
+functions: ["sum(::Iterators.Flatten)", "foldl(op, ::Iterators.Flatten)", "FlatteningRF", "reduce_empty"]
+summary: |
+  Reductions over Iterators.flatten whose inner collections are all empty throw
+  "reducing over an empty collection is not allowed", even though eltype is Int
+  and sum(Int[]) == 0. sum(collect(Iterators.flatten(vs))) is 0, and an all-
+  rejecting Iterators.filter also gives 0; prod behaves the same way.
+likelihood: |
+  Moderate: summing nested data (e.g. lengths per group) where every group can
+  be empty, through Iterators.flatten or a nested generator.
+maybe_intended: |
+  Reductions over iterators often need init; but reduce's docstring says init is
+  not needed for + when Julia can determine the neutral element, and here eltype
+  is known (HasEltype).
+reproducer: |
+  vs = [Int[], Int[]]
+  sum(collect(Iterators.flatten(vs)))   # 0
+  sum(Iterators.flatten(vs))            # ArgumentError
+output:
+  release: |
+    Int64 0 ArgumentError
+    REPRODUCED reduce-flatten-sum-empty
+    sum(Iterators.flatten([Int[], Int[]]))                       => THROWS ArgumentError: reducing over an empty collection is not allowed; consider supplying `init` to the reducer
+    sum(Iterators.flatten((Int[],)))                             => THROWS ArgumentError: reducing over an empty collection is not allowed; consider supplying `init` to the reducer
+    sum(Iterators.filter(iseven, [1, 3]))                        => 0
+    eltype(Iterators.flatten([Int[]]))                           => Int64
+  nightly: |
+    Int64 0 ArgumentError
+    REPRODUCED reduce-flatten-sum-empty
+    sum(Iterators.flatten([Int[], Int[]]))                       => THROWS ArgumentError: reducing over an empty collection is not allowed; consider supplying `init` to the reducer
+    sum(Iterators.flatten((Int[],)))                             => THROWS ArgumentError: reducing over an empty collection is not allowed; consider supplying `init` to the reducer
+    sum(Iterators.filter(iseven, [1, 3]))                        => 0
+    eltype(Iterators.flatten([Int[]]))                           => Int64
+reproduced: {release: true, nightly: true}
+expected: |
+  0, as for sum(Int[]) and sum over an empty filtered iterator.
+promised_by: |
+  base/reduce.jl:470-472 (reduce docstring): "For empty collections, providing init
+  will be necessary, except for some special cases (e.g. when op is one of +, *,
+  max, min, &, |) when Julia can determine the neutral element of op."
+cause: |
+  base/reduce.jl:161-164 turns the Flatten into FlatteningRF(BottomRF(op)) over the
+  outer collection; the empty case calls reduce_empty_iter(op', outer), and
+  reduce_empty has forwarding methods for BottomRF, MappingRF, FilteringRF and
+  FlipArgs (base/reduce.jl:358-361) but none for FlatteningRF, so it reaches the
+  error fallback at base/reduce.jl:319.
+possible_fix: |
+  Add reduce_empty(op::FlatteningRF, ::Type{T}) where T = reduce_empty(op.rf, eltype(T))
+  (the inner element type).
+duplicates:
+  issues: []
+  queries: ["flatten sum empty", "Iterators.flatten reduce empty", "flatten reduce_empty", "reduce flatten empty"]
+lean:
+  property: JuliaLean.Reduce.FlattenSumAgrees
+  theorem: JuliaLean.Reduce.flattenSumAgrees_refuted

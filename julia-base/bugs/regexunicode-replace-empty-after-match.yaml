@@ -1,0 +1,68 @@
+id: regexunicode-replace-empty-after-match
+title: "replace(s, r => t) skips an empty regex match right after a non-empty match, unlike eachmatch, findall and count"
+priority: P2
+kind: wrong-result
+area: RegexUnicode
+files: [base/strings/util.jl]
+functions: ["replace(::AbstractString, ::Pair{Regex})", "Base._replace_once"]
+summary: |
+  For a regex that can match the empty string, replace drops an empty match that
+  starts where the previous non-empty match ended. eachmatch(r"x*", "abxd"),
+  findall and count all report five matches (the fourth is the empty match at 4,
+  after "x"), but replace("abxd", r"x*" => "-") makes four replacements:
+  "-a-b-d-" instead of "-a-b--d-".
+likelihood: |
+  Needs a pattern that matches the empty string, such as r"x*" or r"\s*", used with
+  replace; then the number of replacements disagrees with count and eachmatch.
+maybe_intended: |
+  Skipping an empty match adjacent to the previous match is the rule of sed and of
+  Python before 3.7, so it may be deliberate; if so, eachmatch, findall and count
+  follow a different rule (that of Perl and Python 3.7+) and the docstrings do not
+  say which matches replace uses.
+reproducer: |
+  collect(eachmatch(r"x*", "abxd"))   # 5 matches: "", "", "x", "", ""
+  count(r"x*", "abxd")                # 5
+  replace("abxd", r"x*" => "-")       # "-a-b-d-" (4 replacements)
+output:
+  release: |
+    eachmatch: Tuple{Int64, SubString{String}}[(1, ""), (2, ""), (3, "x"), (4, ""), (5, "")]
+    findall:   UnitRange{Int64}[1:0, 2:1, 3:3, 4:3, 5:4]
+    count:     5
+    replace:   "-a-b-d-"   (4 replacements)
+    assembled from eachmatch: "-a-b--d-"
+    REPRODUCED regexunicode-replace-empty-after-match
+  nightly: |
+    eachmatch: Tuple{Int64, SubString{String}}[(1, ""), (2, ""), (3, "x"), (4, ""), (5, "")]
+    findall:   UnitRange{Int64}[1:0, 2:1, 3:3, 4:3, 5:4]
+    count:     5
+    replace:   "-a-b-d-"   (4 replacements)
+    assembled from eachmatch: "-a-b--d-"
+    REPRODUCED regexunicode-replace-empty-after-match
+reproduced: {release: true, nightly: true}
+expected: |
+  "-a-b--d-": one replacement per occurrence reported by eachmatch/findall/count.
+promised_by: |
+  replace docstring: "Search for the given pattern pat in s, and replace each
+  occurrence with r" (base/strings/util.jl:1136); count docstring: "Return the number
+  of matches for pattern in string" (base/regex.jl:546).
+cause: |
+  _replace_once (base/strings/util.jl:1075) writes a replacement only when
+  `i == start || i <= k`; for an empty match r = j:j-1 found at the position i where
+  the previous non-empty match ended, k = j-1 < i, so it is skipped. findall
+  (base/strings/search.jl:651-665), count (base/regex.jl:573-585) and the
+  RegexMatchIterator (base/regex.jl:749-777) keep such matches.
+possible_fix: |
+  Decide on one rule for empty matches adjacent to a previous match and use it in
+  replace, findall, count and eachmatch; document it.
+duplicates:
+  issues: []
+  queries:
+    - "issues: replace regex empty match"
+    - "issues: replace empty matches"
+    - "issues: eachmatch empty"
+    - "issues: findall regex empty"
+    - "issues: count regex overlap empty"
+    - "prs: replace empty match regex"
+lean:
+  property: JuliaLean.RegexUnicode.Core.ReplaceAssemblesEachmatch
+  theorem: JuliaLean.RegexUnicode.Core.replaceAssemblesEachmatch_refuted

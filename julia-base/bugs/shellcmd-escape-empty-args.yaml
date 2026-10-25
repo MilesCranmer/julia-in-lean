@@ -1,0 +1,57 @@
+id: shellcmd-escape-empty-args
+title: "shell_escape_csh and escape_microsoft_c_args throw on an empty Cmd or no arguments"
+priority: P2
+kind: wrong-exception
+area: ShellCmd
+files: [base/shell.jl]
+functions: ["Base.shell_escape_csh", "Base.escape_microsoft_c_args"]
+summary: |
+  With no arguments, or with an empty command ``, shell_escape_csh and
+  escape_microsoft_c_args throw ArgumentError("reducing over an empty collection is not
+  allowed ..."), while shell_escape and shell_escape_posixly return "". The error comes
+  from the sizehint computation, not from the escaping.
+likelihood: |
+  Low: escaping an argument list that happens to be empty (e.g. built by splatting a
+  filtered vector).
+maybe_intended: ""
+reproducer: |
+  Base.shell_escape_csh()            # ArgumentError
+  Base.escape_microsoft_c_args(``)   # ArgumentError
+  Base.shell_escape_posixly(``)      # ""
+output:
+  release: |
+    shell_escape() = ""; shell_escape(``) = ""
+    shell_escape_posixly() = ""; shell_escape_posixly(``) = ""
+    shell_escape_csh() = ArgumentError("reducing over an empty collection is not allowed; consider supplying `init` to the reducer"); shell_escape_csh(``) = ArgumentError("reducing over an empty collection is not allowed; consider supplying `init` to the reducer")
+    escape_microsoft_c_args() = ArgumentError("reducing over an empty collection is not allowed; consider supplying `init` to the reducer"); escape_microsoft_c_args(``) = ArgumentError("reducing over an empty collection is not allowed; consider supplying `init` to the reducer")
+    REPRODUCED shellcmd-escape-empty-args
+  nightly: |
+    shell_escape() = ""; shell_escape(``) = ""
+    shell_escape_posixly() = ""; shell_escape_posixly(``) = ""
+    shell_escape_csh() = ArgumentError("reducing over an empty collection is not allowed; consider supplying `init` to the reducer"); shell_escape_csh(``) = ArgumentError("reducing over an empty collection is not allowed; consider supplying `init` to the reducer")
+    escape_microsoft_c_args() = ArgumentError("reducing over an empty collection is not allowed; consider supplying `init` to the reducer"); escape_microsoft_c_args(``) = ArgumentError("reducing over an empty collection is not allowed; consider supplying `init` to the reducer")
+    REPRODUCED shellcmd-escape-empty-args
+reproduced: {release: true, nightly: true}
+expected: |
+  "" for both, as for shell_escape and shell_escape_posixly; the IO methods
+  (shell_escape_csh(io) with no arguments) already write nothing.
+promised_by: |
+  base/shell.jl:523-524 and 676-677 document both functions for
+  `args::Union{Cmd,AbstractString...}`, which includes the empty Cmd and zero strings;
+  the sibling escapers return "" for them.
+cause: |
+  base/shell.jl:566-568 and 716-718 (master; :351-353 and :501-503 in 1.13.2):
+  `sizehint = sum(sizeof, args) + ...` reduces over an empty tuple without init.
+possible_fix: |
+  `sum(sizeof, args; init=0)`.
+duplicates:
+  issues: []
+  queries:
+    - "issues/prs: escape empty Cmd"
+    - "issues/prs: reducing over an empty collection shell"
+    - "issues/prs: shell_escape empty"
+    - "issues/prs: shell_escape_csh"
+    - "issues/prs: escape_microsoft_c_args"
+lean:
+  property: JuliaLean.ShellCmd.EscapeEmptyArgs
+  theorem: JuliaLean.ShellCmd.escapeEmptyArgs_refuted

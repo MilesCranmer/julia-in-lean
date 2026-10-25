@@ -1,0 +1,65 @@
+id: ranges-broadcast-mul-elementwise
+title: "r .* x on a small-integer range builds a StepRangeLen whose elements throw InexactError"
+priority: P2
+kind: wrong-exception
+area: Ranges
+files: [base/broadcast.jl, base/range.jl]
+functions: ["broadcasted(*, ::AbstractRange, ::Number)", "unsafe_getindex(::StepRangeLen, ::Integer)"]
+summary: |
+  For Int8/Int16/Int32 and small unsigned ranges, `r .* x` returns a
+  StepRangeLen whose element computation promotes to Int and then converts
+  exactly, so elements that wrap in the element type throw InexactError. The
+  generic elementwise broadcast wraps instead. Even printing the result throws.
+likelihood: |
+  Needs products past typemax of a small integer type; plausible in byte or
+  pixel arithmetic code, uncommon otherwise. Int64 ranges are not affected.
+maybe_intended: |
+  Throwing on overflow could be preferred to wrapping, but then the generic
+  broadcast and the range specialization disagree, and the error appears only
+  when an element is read, not at construction.
+reproducer: |
+  r = Int8(1):Int8(3)
+  x = Int8(64)
+  println("collect(r) .* x = ", repr(collect(r) .* x))
+  s = r .* x
+  println("typeof(r .* x) = ", typeof(s))
+  try
+      println("(r .* x)[2] = ", repr(s[2]))
+  catch e
+      println("(r .* x)[2] throws ", sprint(showerror, e))
+      e isa InexactError && collect(r) .* x == Int8[64, -128, -64] &&
+          println("REPRODUCED ranges-broadcast-mul-elementwise")
+  end
+output:
+  release: |
+    collect(r) .* x = Int8[64, -128, -64]
+    typeof(r .* x) = StepRangeLen{Int8, Int8, Int8, Int64}
+    (r .* x)[2] throws InexactError: trunc(Int8, 128)
+    REPRODUCED ranges-broadcast-mul-elementwise
+  nightly: |
+    collect(r) .* x = Int8[64, -128, -64]
+    typeof(r .* x) = StepRangeLen{Int8, Int8, Int8, Int64}
+    (r .* x)[2] throws InexactError: trunc(Int8, 128)
+    REPRODUCED ranges-broadcast-mul-elementwise
+reproduced: {release: true, nightly: true}
+expected: |
+  (r .* x)[2] == Int8(-128), matching collect(r) .* x == Int8[64, -128, -64].
+promised_by: |
+  broadcast docstring, base/broadcast.jl:783: broadcast applies f elementwise, so
+  (r .* x)[i] must equal r[i] * x.
+cause: |
+  base/broadcast.jl:1222 returns StepRangeLen(first(r)*x, step(r)*x, length(r)),
+  a StepRangeLen{Int8,Int8,Int8,Int64}. unsafe_getindex (base/range.jl:986-989)
+  computes r.ref + u*r.step with u::Int64, so the sum is an exact Int64 (128),
+  and convert(Int8, 128) throws.
+possible_fix: |
+  In unsafe_getindex for integer StepRangeLen, wrap the offset into the element
+  type before multiplying (e.g. (u % T) * step), or make the broadcast method
+  build a StepRange for integer ranges.
+duplicates:
+  issues:
+    - {number: 59032, state: open, relation: related}
+  queries: ["broadcast multiply range InexactError", "StepRangeLen InexactError", "Int8 range broadcast"]
+lean:
+  property: JuliaLean.Ranges.BroadcastMulElementwise
+  theorem: JuliaLean.Ranges.broadcastMulElementwise_refuted

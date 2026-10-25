@@ -1,0 +1,58 @@
+id: shellcmd-addenv-nonascii-key
+title: "addenv throws StringIndexError when an environment variable name starts with a non-ASCII character"
+priority: P2
+kind: crash
+area: ShellCmd
+files: [base/cmd.jl]
+functions: ["addenv(::Cmd, ...)", "Base.splitenv"]
+summary: |
+  addenv splits every "name=value" entry with findnext('=', e, 2), searching from byte 2
+  so that a leading '=' (Windows "=C:" entries) belongs to the name. When the name starts
+  with a multi-byte character, byte 2 is inside that character and findnext throws
+  StringIndexError. So addenv(setenv(`env`, "é" => "1"), "A" => "2") and
+  addenv(`env`, ["éa=1"]) both throw. (Variables inherited from ENV are not split, so
+  only entries already in cmd.env or passed as strings are affected.)
+likelihood: |
+  Low: environment variable names with a non-ASCII first character are legal on Unix and
+  Windows but uncommon.
+maybe_intended: ""
+reproducer: |
+  c = setenv(`env`, "é" => "1")
+  addenv(c, "A" => "2")        # StringIndexError("é=1", 2)
+  addenv(`env`, ["éa=1"])      # StringIndexError("éa=1", 2)
+output:
+  release: |
+    c.env = ["é=1"]
+    addenv(c, "A" => "2") = StringIndexError("é=1", 2)
+    addenv(`env`, ["éa=1"]) = StringIndexError("éa=1", 2)
+    REPRODUCED shellcmd-addenv-nonascii-key
+  nightly: |
+    c.env = ["é=1"]
+    addenv(c, "A" => "2") = StringIndexError("é=1", 2)
+    addenv(`env`, ["éa=1"]) = StringIndexError("éa=1", 2)
+    REPRODUCED shellcmd-addenv-nonascii-key
+reproduced: {release: true, nightly: true}
+expected: |
+  A Cmd with env ["é=1", "A=2"] (in some order) and ["éa=1"] (plus the inherited
+  environment).
+promised_by: |
+  base/cmd.jl:373-378 (addenv docstring): "Merge new environment mappings into the given
+  Cmd object, returning a new Cmd object. Duplicate keys are replaced."
+cause: |
+  base/cmd.jl:364-370 (splitenv): `i = findnext('=', e, 2)` uses byte index 2, which is not
+  a character index when the first character has more than one byte.
+possible_fix: |
+  Search from nextind(e, firstindex(e)) (and treat an empty entry as malformed).
+duplicates:
+  issues:
+    - {number: 44212, state: merged, relation: related}
+  queries:
+    - "issues/prs: splitenv"
+    - "issues/prs: addenv StringIndexError"
+    - "issues/prs: addenv unicode"
+    - "issues/prs: setenv StringIndexError"
+    - "issues/prs: environment variable non-ASCII Cmd"
+    - "issues/prs: addenv"
+lean:
+  property: JuliaLean.ShellCmd.AddenvSets
+  theorem: JuliaLean.ShellCmd.addenvSets_refuted

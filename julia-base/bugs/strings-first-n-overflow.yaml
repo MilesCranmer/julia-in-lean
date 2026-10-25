@@ -1,0 +1,55 @@
+id: strings-first-n-overflow
+title: "first(s, typemax(Int)) returns an empty string for non-ASCII s"
+priority: P1
+kind: wrong-result
+area: Strings
+files: [base/strings/basic.jl]
+functions: ["first(::AbstractString, ::Integer)", "nextind(::AbstractString, ::Int, ::Int)"]
+summary: |
+  first("é", typemax(Int)) returns "" instead of "é". first computes
+  s[1:min(end, nextind(s, 0, n))], and nextind(s, 0, n) wraps to a negative
+  index when n is within ncodeunits(s) - length(s) of typemax(Int).
+likelihood: |
+  Passing typemax(Int) as "no limit" is a common idiom (for example a default
+  keyword limit), and any string with a multibyte character is affected. Other n
+  are fine.
+maybe_intended: ""
+reproducer: |
+  s = "é"
+  r = first(s, typemax(Int))
+  println("first(\"é\", typemax(Int)) = ", repr(r))
+  println("first(\"é\", 1) = ", repr(first(s, 1)))
+  r == "" && first(s, 1) == "é" && println("REPRODUCED strings-first-n-overflow")
+output:
+  release: |
+    first("é", typemax(Int)) = ""
+    first("é", 1) = "é"
+    REPRODUCED strings-first-n-overflow
+  nightly: |
+    first("é", typemax(Int)) = ""
+    first("é", 1) = "é"
+    REPRODUCED strings-first-n-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  "é": the whole string, because n >= length(s).
+promised_by: |
+  The first docstring says "Get a string consisting of the first `n` characters
+  of `s`" (base/strings/basic.jl:684-686).
+cause: |
+  first (base/strings/basic.jl:700) uses nextind(s, 0, n), whose loop returns i
+  + n (base/strings/basic.jl:573) with i = ncodeunits(s) and n the remaining
+  count; the sum wraps.
+possible_fix: |
+  Clamp before the addition in nextind, or have first stop at ncodeunits(s)+1
+  once the loop reaches the end.
+duplicates:
+  issues: []
+  queries:
+    - "issues: nextind overflow"
+    - "issues: nextind typemax"
+    - "prs: nextind overflow"
+    - "issues: first string typemax"
+    - "issues: first(s, n) overflow"
+lean:
+  property: JuliaLean.Strings.FirstNAll
+  theorem: JuliaLean.Strings.firstNAll_refuted

@@ -1,0 +1,54 @@
+id: ranges-operations-negate-typemin
+title: "Negating an Int8 range disagrees with negating its collected elements"
+priority: P2
+kind: wrong-result
+area: Ranges
+files: [base/range.jl]
+functions: ["-(::OrdinalRange)"]
+summary: |
+  Unary minus on typemin(Int8):Int8(1):Int8(-126) returns elements
+  [-128, -129, -130]. Negating the collected Int8 elements gives [-128, 127, 126].
+  The Int64 range typemin(Int):3:typemin(Int)+20 has seven elements, but its
+  negated range is empty (Lean witness JuliaLean.Ranges.negateInt64Empty).
+likelihood: |
+  Rare boundary inconsistency when a fixed-width range includes typemin and
+  its negation crosses the signed representability boundary.
+maybe_intended: |
+  Julia may permit arithmetic on ranges to widen the result element type.
+  Even under that interpretation, the first element wraps before widening
+  while later elements follow widened arithmetic, producing inconsistent results.
+reproducer: |
+  r = typemin(Int8):Int8(1):Int8(-126)
+  s = -r
+  @assert s[2] == -129 && (-collect(r))[2] == 127
+  println("REPRODUCED ranges-operations-negate-typemin")
+output:
+  release: |
+    REPRODUCED ranges-operations-negate-typemin
+  nightly: |
+    REPRODUCED ranges-operations-negate-typemin
+reproduced: {release: true, nightly: true}
+expected: |
+  Match scalar fixed-width negation at corresponding positions, or consistently
+  widen before negating all elements. The second element should be 127 under
+  either interpretation, rather than -129.
+promised_by: |
+  Linear range-operation invariant (base/range.jl:1310-1312): unary range minus
+  represents scalar negation of the elements. This is an invariant rather than
+  an explicit promise about preserving the result element type.
+cause: |
+  base/range.jl:1312 negates first(r) in Int8, so typemin wraps to itself.
+  The length-based constructor at lines 230-238 then combines the Int8
+  negated step with the Int64 length and widens the later arithmetic.
+  With Int64 inputs, the reconstructed last value instead wraps across the
+  signed boundary and disagrees with the negative step, yielding an empty range.
+possible_fix: |
+  Choose the arithmetic element type before negating the first value and step.
+  If preserving fixed-width pointwise wrapping cannot be represented by one
+  ordinal range, return a collected result or reject that case explicitly.
+duplicates:
+  issues: []
+  queries: ["issues: range negation typemin overflow", "issues: negation range Int8", "PRs: range unary minus overflow"]
+lean:
+  property: JuliaLean.Ranges.negatePointwiseProp
+  theorem: JuliaLean.Ranges.negatePointwiseRefuted

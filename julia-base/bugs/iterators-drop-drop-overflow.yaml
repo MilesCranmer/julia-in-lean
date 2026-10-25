@@ -1,0 +1,62 @@
+id: iterators-drop-drop-overflow
+title: drop(drop(itr, a), b) throws ArgumentError when a + b overflows
+priority: P2
+kind: wrong-exception
+area: Iterators
+files:
+- base/iterators.jl
+functions:
+- drop(::Drop, n)
+- drop(::Take, n)
+summary: |
+  drop(xs::Drop, n) builds Drop(xs.xs, Int(n) + xs.n). When the two counts add
+  up past typemax(Int) the sum wraps negative and the constructor throws
+  ArgumentError("Drop length must be non-negative"), although dropping that
+  many elements is valid and yields an empty iterator. drop(take(drop(x, a),
+  k), b) goes through the same addition.
+likelihood: |
+  Needs a drop count near typemax(Int), e.g. drop(itr, typemax(Int)) used as
+  "drop everything" followed by another drop. Rare; the error is loud.
+maybe_intended: ''
+reproducer: |
+  # drop(drop(itr, a), b) adds a + b with wraparound
+  r = try
+      collect(Iterators.drop(Iterators.drop([1, 2, 3], typemax(Int)), 1))
+  catch e
+      e
+  end
+  println("collect(drop(drop([1,2,3], typemax(Int)), 1)) = ", r isa Exception ? sprint(showerror, r) : repr(r))
+  println("collect(drop([1,2,3], typemax(Int))) = ", repr(collect(Iterators.drop([1, 2, 3], typemax(Int)))))
+  r isa ArgumentError && println("REPRODUCED iterators-drop-drop-overflow")
+output:
+  release: |
+    collect(drop(drop([1,2,3], typemax(Int)), 1)) = ArgumentError: Drop length must be non-negative
+    collect(drop([1,2,3], typemax(Int))) = Int64[]
+    REPRODUCED iterators-drop-drop-overflow
+  nightly: |
+    collect(drop(drop([1,2,3], typemax(Int)), 1)) = ArgumentError: Drop length must be non-negative
+    collect(drop([1,2,3], typemax(Int))) = Int64[]
+    REPRODUCED iterators-drop-drop-overflow
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  An empty iterator: collect(drop(drop([1,2,3], typemax(Int)), 1)) == Int[],
+  the same as collect(drop([1,2,3], typemax(Int))).
+promised_by: |
+  drop docstring, base/iterators.jl:847-849: "An iterator that generates all but
+  the first n elements of iter", for any n >= 0.
+cause: |
+  base/iterators.jl:873, Int(n) + xs.n wraps; base/iterators.jl:841 rejects the
+  negative result.
+possible_fix: |
+  Saturate the sum: Drop(xs.xs, Base.Checked.checked_add(...)) falling back to
+  typemax(Int) on overflow, or nest Drop(xs, n) when the sum overflows.
+duplicates:
+  issues: []
+  queries:
+  - drop overflow
+  - Drop length must be non-negative
+lean:
+  property: JuliaLean.Iterators.DropDropCorrect
+  theorem: JuliaLean.Iterators.dropDropCorrect_refuted

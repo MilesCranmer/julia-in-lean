@@ -1,0 +1,60 @@
+id: base64uuid-decodepipe-eof-ignored-tail
+title: "Base64DecodePipe: eof is false before a trailing newline, then read(pipe, UInt8) and readline throw EOFError"
+priority: P1
+kind: wrong-exception
+area: Base64Uuid
+files: [stdlib/Base64/src/decode.jl]
+functions: ["eof(::Base64DecodePipe)", "read(::Base64DecodePipe, ::Type{UInt8})", "readline(::Base64DecodePipe)"]
+summary: |
+  When the only characters left in the source are ones the decoder ignores (a trailing
+  newline, spaces, other non-alphabet characters), eof(pipe) is false because the source
+  is not at its end, but read(pipe, UInt8) then finds no data and throws EOFError.
+  The generic byte loop `while !eof(io); read(io, UInt8); end` and functions built on it,
+  such as readline and readuntil, therefore throw on newline-terminated base64 input.
+likelihood: |
+  Base64 text usually ends with a newline (the base64 command line tool, files written with
+  println, line-wrapped MIME bodies). Reading such a pipe byte by byte, or with readline,
+  readuntil or eachline, throws at the end of the data. read(pipe) and base64decode are
+  not affected.
+maybe_intended: ""
+reproducer: |
+  using Base64
+  pipe = Base64DecodePipe(IOBuffer("SGVsbG8h\n"))   # "Hello!" plus a newline
+  out = UInt8[]
+  while !eof(pipe)
+      push!(out, read(pipe, UInt8))   # throws EOFError after the 6 bytes
+  end
+  readline(Base64DecodePipe(IOBuffer("SGVsbG8h\n")))  # also throws EOFError
+output:
+  release: |
+    bytes read before the error: "Hello!"
+    error: EOFError()
+    readline(pipe) = EOFError()
+    REPRODUCED base64uuid-decodepipe-eof-ignored-tail
+  nightly: |
+    bytes read before the error: "Hello!"
+    error: EOFError()
+    readline(pipe) = EOFError()
+    REPRODUCED base64uuid-decodepipe-eof-ignored-tail
+reproduced: {release: true, nightly: true}
+expected: |
+  eof(pipe) == true after the six bytes "Hello!", so the loop ends normally, and
+  readline returns "Hello!".
+promised_by: |
+  base/io.jl:211-213 (eof docstring): "If the stream is not yet exhausted, this function
+  will block to wait for more data if necessary, and then return false. Therefore it is
+  always safe to read one byte after seeing eof return false."
+cause: |
+  stdlib/Base64/src/decode.jl:131: eof(pipe) = isempty(pipe.rest) && eof(pipe.io) treats
+  any remaining source byte as data. read(pipe, UInt8) (decode.jl:106-114) decodes the
+  next group, decode_slow (decode.jl:137-156) skips the ignored characters and reaches the
+  end, and read throws EOFError because pipe.rest is still empty.
+possible_fix: |
+  Implement eof by decoding ahead into pipe.rest (as read(pipe, UInt8) does) and testing
+  isempty(pipe.rest); this also fixes base64uuid-decodepipe-eof-buffered.
+duplicates:
+  issues: []
+  queries: ["Base64DecodePipe EOFError", "base64 EOFError", "Base64 readline", "Base64DecodePipe eof", "Base64 eof", "Base64DecodePipe", "base64 in:title", "Base64"]
+lean:
+  property: JuliaLean.Base64Uuid.EofThenReadByte
+  theorem: JuliaLean.Base64Uuid.eofThenReadByte_refuted

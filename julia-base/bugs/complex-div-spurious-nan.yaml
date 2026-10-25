@@ -1,0 +1,64 @@
+id: complex-div-spurious-nan
+title: "ComplexF64 division returns NaN components when the divisor is real or imaginary"
+priority: P2
+kind: wrong-result
+area: Complex
+files: [base/complex.jl]
+functions: ["/(::ComplexF64, ::ComplexF64)", "robust_cdiv2"]
+summary: |
+  When the divisor has a zero imaginary (or real) part, robust_cdiv2 evaluates
+  d*(b/c) with d == 0. If b/c overflows or b is infinite this is 0*Inf = NaN, which
+  poisons the other component. complex(1.0, 2.0^1000)/complex(2.0^-40, 0.0) gives
+  NaN + Inf*im although the real part is exactly 2^40, and (Inf+0im)/(1+0im) gives
+  Inf + NaN*im. The same code path gives (0+Inf*im)/(1+0im) a NaN real part, the example of
+  closed issue #5979.
+likelihood: |
+  Needs either an infinite component or a quotient component that overflows, with a
+  purely real or purely imaginary divisor. Uncommon, but it occurs in code that
+  propagates Inf through complex arithmetic, and it is the exact case of closed #5979.
+maybe_intended: |
+  Naive complex arithmetic also mixes Inf and NaN between components, and Julia does
+  not follow C99 Annex G infinity rules. But z/complex(x, 0.0) differs from z/x, and
+  #5979 treated the same NaN from (0+Inf*im)/(1+0im) as a bug.
+reproducer: |
+  z = complex(1.0, 2.0^1000)
+  w = complex(2.0^-40, 0.0)
+  q = z / w
+  println("complex(1.0, 2.0^1000) / complex(2.0^-40, 0.0) = ", q)
+  println("componentwise z / 2.0^-40                       = ", z / real(w))
+  println("(Inf + 0im) / (1 + 0im) = ", complex(Inf, 0.0) / complex(1.0, 0.0))
+  if isnan(real(q))
+      println("REPRODUCED complex-div-spurious-nan")
+  end
+output:
+  release: |
+    complex(1.0, 2.0^1000) / complex(2.0^-40, 0.0) = NaN + Inf*im
+    componentwise z / 2.0^-40                       = 1.099511627776e12 + Inf*im
+    (Inf + 0im) / (1 + 0im) = Inf + NaN*im
+    REPRODUCED complex-div-spurious-nan
+  nightly: |
+    complex(1.0, 2.0^1000) / complex(2.0^-40, 0.0) = NaN + Inf*im
+    componentwise z / 2.0^-40                       = 1.099511627776e12 + Inf*im
+    (Inf + 0im) / (1 + 0im) = Inf + NaN*im
+    REPRODUCED complex-div-spurious-nan
+reproduced: {release: true, nightly: true}
+expected: |
+  1.099511627776e12 + Inf*im (componentwise z / 2.0^-40); Inf + 0.0im for
+  (Inf+0im)/(1+0im), as z / 1.0 gives.
+promised_by: |
+  Invariant: a component whose exact value is finite should not be NaN; the scaled
+  algorithm exists to avoid spurious over/underflow (base/complex.jl:394-396). Issue #5979.
+cause: |
+  base/complex.jl:471-472: robust_cdiv2 returns (a + d*(b/c))*t when r == 0. With
+  d == 0 and b/c == ±Inf the product d*(b/c) is NaN. Scaling (base/complex.jl:439-459)
+  does not prevent it because b/c is the other component of the true quotient.
+possible_fix: |
+  Skip the d*(b/c) term when d == 0 (it is exactly zero), e.g. use iszero(d) ? a*t : ...
+duplicates:
+  issues:
+    - {number: 5979, state: closed, relation: related}
+    - {number: 22983, state: closed, relation: related}
+  queries: ["complex division NaN", "complex division Inf", "Inf + NaN*im", "robust complex division", "cdiv", "complex division underflow"]
+lean:
+  property: JuliaLean.Complex.DivNoSpuriousNaN
+  theorem: JuliaLean.Complex.divNoSpuriousNaN_refuted

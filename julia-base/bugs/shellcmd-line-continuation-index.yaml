@@ -1,0 +1,66 @@
+id: shellcmd-line-continuation-index
+title: "Backslash-newline in a command literal drops characters after non-ASCII text"
+priority: P1
+kind: wrong-result
+area: ShellCmd
+files: [base/shell.jl]
+functions: ["Base.shell_parse", "Base.shell_split", "@cmd"]
+summary: |
+  When a command literal or a shell_split string continues a line with backslash-newline
+  and the next line is indented, the parser can silently drop characters of the next word,
+  or throw StringIndexError. It happens when the text being parsed no longer starts at
+  byte 1 of the original string (after an interpolation, or after stripped leading
+  whitespace) and multi-byte characters precede the continuation. For example
+  `ls é $x \` followed by a line ` --flag` gives the arguments ["ls", "é", "X", "-flag"].
+likelihood: |
+  Plausible in ordinary scripts: multi-line command literals with interpolation and
+  backslash continuations are common, and any non-ASCII character (an accented file name,
+  a symbol, CJK text) earlier on the line triggers it. The result is silently wrong
+  (an argument loses leading characters), so the external program receives different
+  flags or file names.
+maybe_intended: ""
+reproducer: |
+  x = "X"
+  c = `ls é $x \
+   --flag`
+  c.exec                               # ["ls", "é", "X", "-flag"]
+  Base.shell_split("    é\\\n x")      # ["é"]
+output:
+  release: |
+    cmd literal: ["ls", "é", "X", "-flag"]
+    shell_split("    é\\\n x") = ["é"]
+    REPRODUCED shellcmd-line-continuation-index
+  nightly: |
+    cmd literal: ["ls", "é", "X", "-flag"]
+    shell_split("    é\\\n x") = ["é"]
+    REPRODUCED shellcmd-line-continuation-index
+reproduced: {release: true, nightly: true}
+expected: |
+  ["ls", "é", "X", "--flag"] and ["éx"]: the continuation removes the backslash, the
+  newline and the indentation, and nothing else.
+promised_by: |
+  Invariant of the line-continuation branch (base/shell.jl:216-227): after `\` and a
+  newline, the following spaces and tabs are skipped and parsing resumes at the next
+  character. The same input without the leading non-ASCII text or without the
+  interpolation parses correctly (`ls e $x \` gives "--flag").
+cause: |
+  base/shell.jl:224-227 (master; :117-120 in 1.13.2) advances the literal start with
+  `i = nextind(str, i)` while skipping indentation. `i` is an index into `s`, which is a
+  SubString of `str` that starts later (after lstrip at :38-39, or after each `$`
+  interpolation at :100), so `nextind` is evaluated on the wrong string. When the byte of
+  `str` at that position starts a multi-byte character, `i` jumps by 2-4 bytes and the
+  next literal slice `s[i:...]` skips characters (or starts inside a character and throws
+  StringIndexError).
+possible_fix: |
+  Use `i = nextind(s, i)` (the indentation is ASCII, so `i += 1` is equivalent).
+duplicates:
+  issues: []
+  queries:
+    - "issues/prs: shell_parse line continuation"
+    - "issues/prs: shell_split backslash newline"
+    - "issues/prs: line continuation backtick command"
+    - "issues/prs: cmd line continuation"
+    - "issues/prs: nextind shell_parse"
+lean:
+  property: JuliaLean.ShellCmd.LineContinuationJoins
+  theorem: JuliaLean.ShellCmd.lineContinuationJoins_refuted

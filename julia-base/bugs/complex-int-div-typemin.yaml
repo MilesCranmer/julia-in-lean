@@ -1,0 +1,55 @@
+id: complex-int-div-typemin
+title: "Complex{Int} division by a divisor with a typemin component returns NaN + NaN*im"
+priority: P2
+kind: wrong-result
+area: Complex
+files: [base/complex.jl]
+functions: ["/(::Complex{T}, ::Complex{T}) where T<:Real"]
+summary: |
+  The generic Smith division compares abs(real(b)) <= abs(imag(b)) on the integer
+  components. abs(typemin(Int)) is typemin(Int) (negative), so for b = typemin + 0im the
+  wrong branch divides by the zero component: r = typemin/0 = -Inf and the result is
+  NaN + NaN*im. Complex(1,0)/Complex(typemin(Int),0) should be about -1.08e-19 + 0im.
+likelihood: |
+  Requires a divisor component equal to typemin of its signed type with the other
+  component zero. Edge input; any signed element type (Int8 ... Int128) is affected.
+maybe_intended: ""
+reproducer: |
+  q = Complex(1, 0) / Complex(typemin(Int), 0)
+  println("Complex(1, 0) / Complex(typemin(Int), 0) = ", q)
+  println("1 / typemin(Int)                         = ", 1 / typemin(Int))
+  println("Complex(1, 0) / Complex(0, typemin(Int)) = ", Complex(1, 0) / Complex(0, typemin(Int)))
+  if isnan(real(q))
+      println("REPRODUCED complex-int-div-typemin")
+  end
+output:
+  release: |
+    Complex(1, 0) / Complex(typemin(Int), 0) = NaN + NaN*im
+    1 / typemin(Int)                         = -1.0842021724855044e-19
+    Complex(1, 0) / Complex(0, typemin(Int)) = NaN + NaN*im
+    REPRODUCED complex-int-div-typemin
+  nightly: |
+    Complex(1, 0) / Complex(typemin(Int), 0) = NaN + NaN*im
+    1 / typemin(Int)                         = -1.0842021724855044e-19
+    Complex(1, 0) / Complex(0, typemin(Int)) = NaN + NaN*im
+    REPRODUCED complex-int-div-typemin
+reproduced: {release: true, nightly: true}
+expected: |
+  -1.0842021724855044e-19 + 0.0im (and 0.0 + 1.0842021724855044e-19im for
+  Complex(0, typemin(Int))), matching 1/typemin(Int).
+promised_by: |
+  Invariant: the quotient of finite values by a nonzero divisor is finite here, and
+  `/` "gives floating-point results for integer arguments" (base/docs/basedocs.jl:3552).
+cause: |
+  base/complex.jl:368 abs(bre) <= abs(bim) uses integer abs, which wraps for typemin
+  (base/int.jl:234). With bim == 0 the branch then computes r = bre/bim = ±Inf
+  (base/complex.jl:369) and den = Inf, giving NaN.
+possible_fix: |
+  Convert to float first (e.g. a method /(a::Complex{<:Integer}, b::Complex{<:Integer}) =
+  float(a)/float(b)), or compare uabs/float magnitudes.
+duplicates:
+  issues: []
+  queries: ["complex typemin", "Complex Int division", "complex integer division NaN", "complex division NaN"]
+lean:
+  property: JuliaLean.Complex.IntDivNoNaN
+  theorem: JuliaLean.Complex.intDivNoNaN_refuted

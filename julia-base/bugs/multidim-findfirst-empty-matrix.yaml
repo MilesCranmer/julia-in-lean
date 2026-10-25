@@ -1,0 +1,68 @@
+id: multidim-findfirst-empty-matrix
+title: "findfirst/findlast throw BoundsError on empty matrices such as zeros(Bool, 0, 3)"
+priority: P1
+kind: wrong-exception
+area: Multidim
+files: [base/array.jl, base/multidimensional.jl]
+functions: ["findfirst(A::AbstractArray)", "findfirst(testf::Function, A::AbstractArray)", "findlast(A::AbstractArray)", "findlast(testf::Function, A::AbstractArray)", "findnext(testf::Function, A, start)", "findprev(testf::Function, A, start)"]
+summary: |
+  For an empty array whose empty dimension is not the last one (0x3, 2x0x2, ...),
+  findfirst(A), findfirst(f, A), findlast(A) and findlast(f, A) throw BoundsError
+  instead of returning nothing. Vectors, 3x0 matrices and 0x0 matrices are fine.
+  BitMatrix is affected too.
+likelihood: |
+  Ordinary code searches masks or data matrices that can be empty, for example
+  findfirst(x -> x > t, M) on a matrix with zero rows read from a file or produced by
+  filtering. The call throws instead of returning nothing.
+maybe_intended: |
+  Reported for findnext in #36938 (open since 2020); the findfirst/findlast consequence
+  is not mentioned there.
+reproducer: |
+  findfirst(zeros(Bool, 0, 3))            # BoundsError, expected nothing
+  findlast(zeros(Bool, 0, 3))             # BoundsError
+  findfirst(iszero, zeros(0, 2))          # BoundsError
+  findfirst(zeros(Bool, 3, 0))            # nothing
+output:
+  release: |
+    BoundsError(Matrix{Bool}(undef, 0, 3), (1, 1))
+    BoundsError(Matrix{Bool}(undef, 0, 3), (0, 3))
+    BoundsError(Matrix{Float64}(undef, 0, 2), (1, 1))
+    BoundsError(Matrix{Int64}(undef, 0, 2), (0, 2))
+    nothing
+    BoundsError(0×3 BitMatrix, (1, 1))
+    REPRODUCED multidim-findfirst-empty-matrix
+  nightly: |
+    BoundsError(Matrix{Bool}(undef, 0, 3), (1, 1))
+    BoundsError(Matrix{Bool}(undef, 0, 3), (0, 3))
+    BoundsError(Matrix{Float64}(undef, 0, 2), (1, 1))
+    BoundsError(Matrix{Int64}(undef, 0, 2), (0, 2))
+    nothing
+    BoundsError(0×3 BitMatrix, (1, 1))
+    REPRODUCED multidim-findfirst-empty-matrix
+reproduced: {release: true, nightly: true}
+expected: |
+  nothing, as for every other empty collection.
+promised_by: |
+  findfirst docstring, base/array.jl:2488-2492: "Return the index or key of the first
+  element of A for which predicate returns true. Return nothing if there is no such
+  element." findlast likewise (base/array.jl:2684-2714).
+cause: |
+  findfirst(A::AbstractArray) and findfirst(f, A::AbstractArray) call
+  findnext(f, A, first(keys(A))) (base/array.jl:2444, 2531-2532). For a 0x3 matrix
+  keys(A) is CartesianIndices((0, 3)) with first CartesianIndex(1, 1) and last
+  CartesianIndex(0, 3). The generic findnext (base/array.jl:2475-2486) treats the
+  search as empty only if i > l, but CartesianIndex ordering compares the last
+  coordinate first (base/multidimensional.jl:142), so CartesianIndex(1, 1) <
+  CartesianIndex(0, 3) and A[1, 1] is read. findlast/findprev (base/array.jl:2632,
+  2671-2682) mirror this with i < f.
+possible_fix: |
+  Return nothing early when isempty(A) (or isempty(keys(A))) in findfirst/findlast,
+  or test emptiness of the index range instead of i > l in findnext/findprev.
+duplicates:
+  issues:
+    - {number: 36938, state: open, relation: duplicate}
+    - {number: 40120, state: open, relation: related}
+  queries: ["issues: findfirst (titles scanned)", "issues: findnext (titles scanned)", "issues: findlast (titles scanned)", "issues: findfirst empty matrix", "issues: findfirst BoundsError empty", "issues: findlast empty matrix", "issues: findfirst 0×", "prs: findnext CartesianIndex", "prs: findfirst matrix BoundsError", "prs: findfirst zero rows"]
+lean:
+  property: JuliaLean.Multidim.FindfirstCartesian
+  theorem: JuliaLean.Multidim.findfirstCartesian_refuted

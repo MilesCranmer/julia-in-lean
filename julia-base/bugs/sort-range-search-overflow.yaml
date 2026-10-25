@@ -1,0 +1,73 @@
+id: sort-range-search-overflow
+title: "searchsortedfirst/searchsortedlast on integer ranges overflow when the range spans more than typemax(T)"
+priority: P1
+kind: wrong-result
+area: Sort
+files: [base/sort.jl]
+functions: ["searchsortedfirst(::AbstractRange{<:Integer}, x, o)", "searchsortedlast(::AbstractRange{<:Integer}, x, o)", "searchsorted(::AbstractRange{<:Real}, x, o)"]
+summary: |
+  The O(1) range methods compute x - first(r) in the element type, which wraps
+  when last(r) - first(r) exceeds typemax(T). They then return negative indices:
+  searchsortedfirst(Int8(-100):Int8(100), Int8(50)) is -105 instead of 151.
+  With the default Int it happens on Int64 ranges spanning more than
+  typemax(Int), such as typemin(Int):2:2^62.
+likelihood: |
+  Needs a range covering more than half the value range of its element type and
+  a search value of the same type: plausible for Int8/Int16/UInt-typed data
+  (full-range lookup tables) and for very large Int64 ranges. The wrong answer
+  is silent.
+maybe_intended: ""
+reproducer: |
+  r = Int8(-100):Int8(100)
+  x = Int8(50)
+  v = collect(r)
+  got = (searchsortedfirst(r, x), searchsortedlast(r, x), searchsorted(r, x))
+  want = (searchsortedfirst(v, x), searchsortedlast(v, x), searchsorted(v, x))
+  println("Int8 range:  ", got, "  collect: ", want)
+
+  r64 = typemin(Int):2:2^62
+  y = 2^62 - 1
+  got64 = searchsortedlast(r64, y)
+  want64 = fld(big(y) - first(r64), step(r64)) + 1
+  println("Int64 range: ", got64, "  expected: ", want64)
+
+  if got != want && got64 != want64
+      println("REPRODUCED sort-range-search-overflow")
+  end
+output:
+  release: |
+    Int8 range:  (-105, -105, -105:-105)  collect: (151, 151, 151:151)
+    Int64 range: -2305843009213693952  expected: 6917529027641081856
+    REPRODUCED sort-range-search-overflow
+  nightly: |
+    Int8 range:  (-105, -105, -105:-105)  collect: (151, 151, 151:151)
+    Int64 range: -2305843009213693952  expected: 6917529027641081856
+    REPRODUCED sort-range-search-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  The same answers as on collect(r): 151, 151 and 151:151 for the Int8 range,
+  and 6917529027641081856 for the Int64 range.
+promised_by: |
+  searchsortedfirst docstring, base/sort.jl:353-363: "Return the index of the
+  first value in v that is not ordered before x ... The index is generally found
+  using binary search, but there are optimized implementations for some inputs."
+  (searchsortedlast: base/sort.jl:392-402.) The optimized range methods must
+  return the same index.
+cause: |
+  base/sort.jl:278 and 280 (searchsortedlast) and 294 and 296
+  (searchsortedfirst) compute fld(floor(Integer, x) - f, h) + 1 and
+  cld(ceil(Integer, x) - f, h) + 1 with x and f of type T, so the subtraction
+  wraps. When the difference is exactly typemin(T) and the step is -1, fld
+  throws DivideError instead.
+possible_fix: |
+  Compute the distance from first(r) without overflow (e.g. as the unsigned
+  difference in the direction of the range, as PR #63399 does) before dividing
+  by the step.
+duplicates:
+  issues:
+    - {number: 63399, state: open, relation: duplicate}
+    - {number: 34408, state: open, relation: related}
+  queries: ["issues/prs: searchsorted overflow", "issues/prs: searchsortedfirst range", "issues: searchsorted range wrong", "issues: searchsortedlast Int8", "prs: searchsorted StepRange"]
+lean:
+  property: JuliaLean.Sort.RangeSearchNonemptyCorrect
+  theorem: JuliaLean.Sort.rangeSearchNonemptyCorrect_refuted

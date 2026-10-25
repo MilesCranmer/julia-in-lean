@@ -1,0 +1,65 @@
+id: regexunicode-eachmatch-offset-inside-malformed
+title: "On master (PCRE2 10.49), eachmatch and replace place empty matches inside a malformed character"
+priority: P2
+kind: wrong-result
+area: RegexUnicode
+files: [base/regex.jl, base/strings/util.jl]
+functions: ["eachmatch(::Regex, ::AbstractString)", "findfirst(::Regex, ::AbstractString)", "replace(::AbstractString, ::Pair{Regex})"]
+summary: |
+  For s = "a\xe2\x82" (a truncated 3-byte sequence, one malformed Char at index 2),
+  master reports an empty match of r"(?<!a)(?!a)" at index 3, between the two bytes
+  of that Char: eachmatch offsets are [3, 4] and replace(s, r => "-") returns
+  "a\xe2-\x82-", splitting the character. 1.13.2 (PCRE2 10.46) reports only
+  offset 4. This is a regression on master.
+likelihood: |
+  Needs invalid UTF-8 input and a pattern that can match the empty string next to
+  invalid bytes (lookarounds, \b-like assertions); rare, but replace then changes the
+  character structure of the string.
+maybe_intended: |
+  PCRE2 with MATCH_INVALID_UTF treats each invalid code unit as its own barrier, so
+  from PCRE's point of view offset 2 is a legal match position; Julia groups the two
+  bytes into one Char and does not map PCRE positions to its own indices.
+reproducer: |
+  s = "a\xe2\x82"
+  r = r"(?<!a)(?!a)"
+  [m.offset for m in eachmatch(r, s)]   # [3, 4] on master, [4] on 1.13.2
+  replace(s, r => "-")                  # "a\xe2-\x82-" on master
+output:
+  release: |
+    collect(eachindex(s)) = [1, 2]
+    eachmatch offsets = [4]
+    findfirst = 4:3
+    replace(s, r => "-") = "a\xe2\x82-"
+  nightly: |
+    collect(eachindex(s)) = [1, 2]
+    eachmatch offsets = [3, 4]
+    findfirst = 3:2
+    replace(s, r => "-") = "a\xe2-\x82-"
+    REPRODUCED regexunicode-eachmatch-offset-inside-malformed
+reproduced: {release: false, nightly: true}
+expected: |
+  Match offsets that are valid indices of s (as on 1.13.2: offsets [4], replace
+  result "a\xe2\x82-").
+promised_by: |
+  RegexMatch docstring: "The location of the start of the match is stored in the
+  offset field" (base/regex.jl:177); eachmatch iterates over matches in the string
+  (base/regex.jl:779-784); string indices are valid indices (invariant).
+cause: |
+  The RegexMatchIterator (base/regex.jl:749-777), findnext (base/regex.jl:491-512) and
+  replace (base/strings/util.jl:1068-1104) use PCRE's byte offsets directly. PCRE2
+  10.49 (master's PCRE2_jll; 1.13.2 ships 10.46) reports a match position between the
+  bytes of a truncated sequence.
+possible_fix: |
+  Skip or move matches whose start is not a valid Julia index, or pin PCRE2 behaviour
+  with a test such as the reproducer.
+duplicates:
+  issues:
+    - {number: 63805, state: closed, relation: related}
+  queries:
+    - "issues: PCRE 10.49"
+    - "prs: PCRE2 10.49"
+    - "issues: PCRE invalid UTF-8 empty match"
+    - "issues: match offset inside character"
+lean:
+  property: JuliaLean.RegexUnicode.Core.EachmatchOffsetsValid
+  theorem: JuliaLean.RegexUnicode.Core.eachmatchOffsetsValid_refuted

@@ -1,0 +1,71 @@
+id: intarith-division-fldmod-consistency
+title: "fldmod returns a different remainder from mod for unsigned numerators and negative signed divisors"
+priority: P2
+kind: wrong-result
+area: IntArith
+files: [base/div.jl, base/int.jl]
+functions: ["fldmod(::Unsigned, ::Signed)", "mod(::Unsigned, ::Signed)", "divrem(::Integer, ::Integer, ::typeof(RoundDown))"]
+summary: |
+  fldmod(UInt8(1), Int8(-2)) returns (0xff, 0xff), while mod on the same
+  arguments returns -1. The remainder from the tuple is therefore a different
+  number from the documented equivalent call to mod.
+likelihood: |
+  This affects mixed unsigned/signed integer arithmetic whenever the signed
+  divisor is negative and the remainder is nonzero. Small values suffice;
+  code that selects between mod and fldmod can receive different numbers.
+maybe_intended: |
+  Issue #57855 records a triage decision to retain wrapped unsigned quotients
+  and document them. That explains the quotient 0xff. It does not directly
+  explain why the remainder differs from mod, which can represent -1 here.
+reproducer: |
+  x, y = UInt8(1), Int8(-2)
+  q, r = fldmod(x, y)
+  @assert q == fld(x, y) == UInt8(255)
+  @assert r == UInt8(255)
+  @assert mod(x, y) == Int8(-1)
+  @assert r != mod(x, y)
+  println("fldmod = ", repr((q, r)))
+  println("mod = ", repr(mod(x, y)))
+  println("REPRODUCED intarith-division-fldmod-consistency")
+output:
+  release: |
+    fldmod = (0xff, 0xff)
+    mod = -1
+    REPRODUCED intarith-division-fldmod-consistency
+  nightly: |
+    fldmod = (0xff, 0xff)
+    mod = -1
+    REPRODUCED intarith-division-fldmod-consistency
+reproduced: {release: true, nightly: true}
+expected: |
+  The quotient may retain Julia's chosen wrapping behavior, but the second
+  component should equal mod(x, y), namely Int8(-1) for this example.
+promised_by: |
+  base/div.jl:382-383: "A convenience wrapper for divrem(x, y, RoundDown).
+  Equivalent to (fld(x, y), mod(x, y))."
+  base/int.jl:299-300 also promises the divisor's sign for a nonzero modulus.
+cause: |
+  base/div.jl:387 delegates fldmod to divrem with RoundDown. The generic integer
+  branch at base/div.jl:297-300 computes d = fld(a, b) and then a - d*b.
+  Its quotient is unsigned under base/int.jl:275-276 and base/div.jl:395-398.
+  The multiplication and subtraction therefore wrap into unsigned arithmetic
+  under base/int.jl:1092-1100, giving 255 rather than -1. The separate mixed
+  mod method at base/int.jl:347-349 instead returns a signed remainder.
+  Julia 1.13.2 follows the same mixed path. Master adds explicit wrapping
+  same-type signed divrem and mod methods, which do not cover mixed inputs.
+possible_fix: |
+  Give mixed fldmod a method that returns (fld(x, y), mod(x, y)), preserving
+  the existing quotient policy and using the existing modulus result type.
+duplicates:
+  issues:
+    - {number: 57855, state: open, relation: related}
+    - {number: 62319, state: open, relation: related}
+    - {number: 63557, state: open, relation: related}
+  queries:
+    - "issues and prs: fldmod unsigned"
+    - "issues and prs: fldmod signed"
+    - "issues and prs: fldmod mod"
+    - "issues and prs: divrem mixed signed"
+lean:
+  property: JuliaLean.IntArith.Division.FldmodConsistency
+  theorem: JuliaLean.IntArith.Division.fldmodInconsistent

@@ -1,0 +1,65 @@
+id: bitarrays-vec-resize-alias
+title: "Resizing vec(M) or reshape(M, n) of a BitArray corrupts M: push! sets padding bits, pop! frees M's last chunk"
+priority: P0
+kind: crash
+area: BitArrays
+files: [base/bitarray.jl]
+functions: ["reshape(::BitArray, dims)", "vec(::BitArray)", "push!(::BitVector, x)", "pop!(::BitVector)", "append!(::BitVector, x)", "resize!(::BitVector, n)", "deleteat!(::BitVector, i)"]
+summary: |
+  reshape and vec of a BitArray return a BitVector whose chunks field is the
+  same Vector{UInt64} object as the original's. Resizing that BitVector resizes
+  the original's storage too. After M = falses(2, 2); push!(vec(M), true), M
+  still shows four false elements but M == falses(2, 2) is false, count(M) == 1
+  and any(M) is true. After N = falses(65, 1); pop!(vec(N)), N has 65 elements
+  but only one chunk, so N[65], fill!(N, true) or N[65] = true read and write
+  past the end of the chunk vector under @inbounds (with --check-bounds=yes,
+  N[65] throws BoundsError for the chunk vector at index 2).
+likelihood: |
+  Needs resizing (push!, pop!, append!, deleteat!, resize!, splice!, ...) of a
+  vec or reshape of a BitMatrix or other BitArray while the original is still
+  used. Ordinary API calls, no extreme values. For Array the same code is safe:
+  the reshaped Vector gets its own storage when it grows.
+maybe_intended: |
+  reshape documents that the result shares data with the original, but sharing
+  elements does not license breaking the original's chunk invariant or its
+  memory safety; Array does neither.
+reproducer: |
+  M = falses(2, 2); push!(vec(M), true)
+  M == falses(2, 2), count(M), any(M)  # (false, 1, true)
+  N = falses(65, 1); pop!(vec(N))
+  length(N), length(N.chunks)          # (65, 1): N[65] now reads out of bounds
+output:
+  release: |
+    (false, 1, true, true) (65, 1, 2) true
+    BoundsError: attempt to access 1-element Vector{UInt64} at index [2]
+    REPRODUCED bitarrays-vec-resize-alias
+  nightly: |
+    (false, 1, true, true) (65, 1, 2) true
+    BoundsError: attempt to access 1-element Vector{UInt64} at index [2]
+    REPRODUCED bitarrays-vec-resize-alias
+reproduced: {release: true, nightly: true}
+expected: |
+  M == falses(2, 2) and count(M) == 0 (as for Array{Bool}), and N keeps the two
+  chunks its 65 elements need, or the resize throws.
+promised_by: |
+  Invariant stated at base/bitarray.jl:5-6: "unused bits must always be set to
+  0"; ==, count, hash, any and all read whole chunks and rely on it
+  (base/bitarray.jl:1206-1209, 1439-1447, 1715-1736). Every BitArray must also
+  hold num_bit_chunks(length) chunks for its @inbounds reads to be safe.
+cause: |
+  _bitreshape (base/bitarray.jl:476-485) sets Br.chunks = B.chunks (line 481),
+  so both headers share one Vector{UInt64}. push! grows it with _growend! and
+  stores bit length+1 (base/bitarray.jl:747-753), which lies in the original's
+  padding; pop! and deleteat! remove chunks with _deleteend!
+  (base/bitarray.jl:833, 935, 968) while the original keeps its len.
+possible_fix: |
+  Give the reshaped BitArray its own Vector{UInt64} header over the same Memory
+  (as reshape does for Array since 1.11), so resizing it reallocates instead of
+  mutating the original's chunk vector; or throw when resizing a BitVector whose
+  chunks are shared.
+duplicates:
+  issues: []
+  queries: ["issues: reshape BitArray", "issues: BitArray resize!", "issues: BitVector reshape", "issues: vec push! shared", "issues: reshape push!", "issues: BitArray shared chunks", "prs: BitArray reshape"]
+lean:
+  property: JuliaLean.BitArrays.VecAliasKeepsParentValid
+  theorem: JuliaLean.BitArrays.vecAliasKeepsParentValid_refuted

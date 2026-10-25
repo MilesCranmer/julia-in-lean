@@ -1,0 +1,74 @@
+id: floatranges-linspace-tiny-endpoint
+title: 'range(a, b; length=n) misses a tiny nonzero stop: last(range(1.0, 1e-300; length=24)) == 7.9e-31'
+priority: P1
+kind: wrong-result
+area: FloatRanges
+files:
+- base/twiceprecision.jl
+functions:
+- range(::Float64, ::Float64; length)
+- _linspace(::Float64, ::Float64, ::Int)
+summary: |
+  When the endpoint of smaller magnitude is tiny but nonzero (so rat cannot represent it),
+  range(a, b; length=n) returns a range whose last element is not b. The error is one ulp
+  for b = 1e-14, a relative 8e-11 for b = 1e-20, and for b = 1e-300 the last element is
+  7.888609052210118e-31.
+likelihood: |
+  Plausible: ranges from an O(1) value down to a small tolerance or physical constant
+  (1e-14 ... 1e-300) are ordinary in scientific code, and nothing signals the error.
+maybe_intended: ''
+reproducer: |
+  for b in (1.0e-14, 1.0e-20, 1.0e-300)
+      r = range(1.0, b; length=24)
+      println("last(range(1.0, $b; length=24)) = ", repr(last(r)), "   (stop = ", repr(b), ")")
+  end
+  r = range(1.0, 1.0e-300; length=24)
+  println("collect(r)[end] = ", repr(collect(r)[end]))
+  last(range(1.0, 1.0e-14; length=24)) != 1.0e-14 && last(r) != 1.0e-300 &&
+      println("REPRODUCED floatranges-linspace-tiny-endpoint")
+output:
+  release: |
+    last(range(1.0, 1.0e-14; length=24)) = 1.0000000000000002e-14   (stop = 1.0e-14)
+    last(range(1.0, 1.0e-20; length=24)) = 1.000000000078886e-20   (stop = 1.0e-20)
+    last(range(1.0, 1.0e-300; length=24)) = 7.888609052210118e-31   (stop = 1.0e-300)
+    collect(r)[end] = 7.888609052210118e-31
+    REPRODUCED floatranges-linspace-tiny-endpoint
+  nightly: |
+    last(range(1.0, 1.0e-14; length=24)) = 1.0000000000000002e-14   (stop = 1.0e-14)
+    last(range(1.0, 1.0e-20; length=24)) = 1.000000000078886e-20   (stop = 1.0e-20)
+    last(range(1.0, 1.0e-300; length=24)) = 7.888609052210118e-31   (stop = 1.0e-300)
+    collect(r)[end] = 7.888609052210118e-31
+    REPRODUCED floatranges-linspace-tiny-endpoint
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  last(range(1.0, 1e-300; length=24)) == 1.0e-300 (and likewise 1e-14, 1e-20), as for
+  every other stop.
+promised_by: |
+  range docstring, base/range.jl:80: "Mathematically a range is uniquely determined by any
+  three of start, step, stop and length"; the LinRange docstring (base/range.jl:569-587)
+  contrasts range, which corrects floating-point error so that the endpoints are exact.
+cause: |
+  base/twiceprecision.jl:687-711: the smallest-magnitude element is the stop (imin ==
+  len), so ref = stop, but ref_lo = a - (1 - imin)*step_lo is the rounding residue of the
+  truncated step (about 2^-100), not zero. unsafe_getindex at index len returns ref +
+  ref_lo, which changes the result once |stop| is below about 2^-46 and is dominated by
+  ref_lo below 2^-100.
+possible_fix: |
+  Set ref_lo to zero (or to the exact residual of the endpoint at imin) when imin is 1 or
+  len, so the reference endpoint is reproduced exactly.
+duplicates:
+  issues:
+  - number: 58975
+    state: open
+    relation: related
+  queries:
+  - range endpoint not exact
+  - range last element stop
+  - linspace endpoint
+  - range stop
+  - range last stop small
+lean:
+  property: JuliaLean.FloatRanges.LinspaceEndpoints
+  theorem: JuliaLean.FloatRanges.linspaceEndpoints_refuted

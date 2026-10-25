@@ -1,0 +1,63 @@
+id: reduce-any-dims-missing
+title: "any(A; dims) and all(A; dims) throw TypeError on missing instead of following three-valued logic"
+priority: P2
+kind: wrong-exception
+area: Reduce
+files: [base/reducedim.jl, base/reduce.jl]
+functions: ["any(A; dims)", "all(A; dims)", "any(f, A; dims)", "or_any", "and_all"]
+summary: |
+  any(A) and all(A) return missing when the decision depends on a missing
+  value, but the dims versions throw: any([missing false]; dims=2) and
+  all([missing true]; dims=2) throw TypeError (non-boolean (Missing) used in
+  boolean context). Even any([missing true]; dims=2), whose answer is true,
+  throws, because the left operand of || is missing.
+likelihood: |
+  Plausible: comparisons on data with missing values (any(A .> 0; dims=1))
+  produce Union{Missing,Bool} arrays; the whole-array call works, the
+  per-column call throws.
+maybe_intended: |
+  The dims docstrings (base/reducedim.jl:841-961) do not mention missing, and the
+  result array is a Bool array that could not store missing anyway; before
+  PR #58185 (Julia 1.12) the dims path used |, which handles missing but then
+  failed converting missing into the Bool result array.
+reproducer: |
+  any([missing, false])          # missing
+  any([missing false]; dims=2)   # TypeError
+output:
+  release: |
+    missing TypeError
+    REPRODUCED reduce-any-dims-missing
+    any([missing false]; dims = 2)                               => THROWS TypeError: non-boolean (Missing) used in boolean context
+    any([missing false])                                         => missing
+    all([missing true]; dims = 2)                                => THROWS TypeError: non-boolean (Missing) used in boolean context
+    any([missing true]; dims = 2)                                => THROWS TypeError: non-boolean (Missing) used in boolean context
+  nightly: |
+    missing TypeError
+    REPRODUCED reduce-any-dims-missing
+    any([missing false]; dims = 2)                               => THROWS TypeError: non-boolean (Missing) used in boolean context
+    any([missing false])                                         => missing
+    all([missing true]; dims = 2)                                => THROWS TypeError: non-boolean (Missing) used in boolean context
+    any([missing true]; dims = 2)                                => THROWS TypeError: non-boolean (Missing) used in boolean context
+reproduced: {release: true, nightly: true}
+expected: |
+  A 1x1 result [missing;;] for any([missing false]; dims=2) and [true;;] for
+  any([missing true]; dims=2), the per-slice values of any.
+promised_by: |
+  base/anyall.jl:8-10 (any docstring): "If the input contains missing values,
+  return missing if all non-missing values are false ... following three-valued
+  logic." any(A; dims) is documented as testing "whether any values along the
+  given dimensions of an array are true".
+cause: |
+  base/reduce.jl:32-33: and_all(x, y) = (x && y)::Bool and or_any(x, y) =
+  (x || y)::Bool reject missing; the dims path mapreduce(f, or_any, A; dims)
+  (base/reducedim.jl:1025) starts from a Bool array (base/reducedim.jl:175-176).
+possible_fix: |
+  For element types containing Missing, reduce with | and & into a
+  Union{Missing,Bool} array (or error with a clear message).
+duplicates:
+  issues:
+    - {number: 58185, state: merged, relation: related}
+  queries: ["any dims missing", "any dims missing TypeError", "or_any missing", "all dims missing", "any missing dims"]
+lean:
+  property: JuliaLean.Reduce.AnyDimsSlices
+  theorem: JuliaLean.Reduce.anyDimsSlices_refuted

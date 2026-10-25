@@ -1,0 +1,105 @@
+import JuliaLean.Registry.Types
+import JuliaLean.Registry.Generality
+import JuliaLean.Float
+import JuliaLean.IntArith
+import JuliaLean.Ranges
+import JuliaLean.Sort
+import JuliaLean.FloatRanges
+import JuliaLean.Dicts
+import JuliaLean.Strings
+import JuliaLean.ParsePrint
+import JuliaLean.Iterators
+import JuliaLean.Tuples
+import JuliaLean.BitArrays
+import JuliaLean.ArrayOps
+import JuliaLean.Arrays
+import JuliaLean.Complex
+import JuliaLean.MathFuncs
+import JuliaLean.Reduce
+import JuliaLean.ReinterpretArrays
+import JuliaLean.IOBuffers
+import JuliaLean.VersionNumbers
+import JuliaLean.Paths
+import JuliaLean.Promotion
+import JuliaLean.Toml
+import JuliaLean.RegexUnicode
+import JuliaLean.Show
+import JuliaLean.Multidim
+import JuliaLean.BigNums
+import JuliaLean.MissingChar
+import JuliaLean.StringUtil
+import JuliaLean.ShellCmd
+import JuliaLean.Transcode
+import JuliaLean.Platforms
+import JuliaLean.FloatFuncs
+import JuliaLean.Channels
+import JuliaLean.Printf
+import JuliaLean.Dates
+import JuliaLean.Base64Uuid
+import JuliaLean.BroadcastViews
+import JuliaLean.RandomSampling
+import JuliaLean.Sockets
+import JuliaLean.Serialization
+import JuliaLean.Markdown
+import JuliaLean.IdDicts
+import JuliaLean.AbstractArrays
+import JuliaLean.HashOps
+import JuliaLean.Artifacts
+import JuliaLean.MemSafety
+import JuliaLean.Combinatorics
+import JuliaLean.Logging
+
+namespace JuliaLean.Registry
+
+/-- Every registered property. Each area contributes its own `entries`. -/
+def all : List Entry :=
+  JuliaLean.Float.entries
+    ++ JuliaLean.IntArith.entries
+    ++ JuliaLean.Ranges.entries
+    ++ JuliaLean.Sort.entries
+    ++ JuliaLean.FloatRanges.entries
+    ++ JuliaLean.Dicts.entries
+    ++ JuliaLean.Strings.entries
+    ++ JuliaLean.ParsePrint.entries
+    ++ JuliaLean.Iterators.entries
+    ++ JuliaLean.Tuples.entries
+    ++ JuliaLean.BitArrays.entries
+    ++ JuliaLean.ArrayOps.entries
+    ++ JuliaLean.Arrays.entries
+    ++ JuliaLean.Complex.entries
+    ++ JuliaLean.MathFuncs.entries
+    ++ JuliaLean.Reduce.entries
+    ++ JuliaLean.ReinterpretArrays.entries
+    ++ JuliaLean.IOBuffers.entries
+    ++ JuliaLean.VersionNumbers.entries
+    ++ JuliaLean.Paths.entries
+    ++ JuliaLean.Promotion.entries
+    ++ JuliaLean.Toml.entries
+    ++ JuliaLean.RegexUnicode.entries
+    ++ JuliaLean.Show.entries
+    ++ JuliaLean.Multidim.entries
+    ++ JuliaLean.BigNums.entries
+    ++ JuliaLean.MissingChar.entries
+    ++ JuliaLean.StringUtil.entries
+    ++ JuliaLean.ShellCmd.entries
+    ++ JuliaLean.Transcode.entries
+    ++ JuliaLean.Platforms.entries
+    ++ JuliaLean.FloatFuncs.entries
+    ++ JuliaLean.Channels.entries
+    ++ JuliaLean.Printf.entries
+    ++ JuliaLean.Dates.entries
+    ++ JuliaLean.Base64Uuid.entries
+    ++ JuliaLean.BroadcastViews.entries
+    ++ JuliaLean.RandomSampling.entries
+    ++ JuliaLean.Sockets.entries
+    ++ JuliaLean.Serialization.entries
+    ++ JuliaLean.Markdown.entries
+    ++ JuliaLean.IdDicts.entries
+    ++ JuliaLean.AbstractArrays.entries
+    ++ JuliaLean.HashOps.entries
+    ++ JuliaLean.Artifacts.entries
+    ++ JuliaLean.MemSafety.entries
+    ++ JuliaLean.Combinatorics.entries
+    ++ JuliaLean.Logging.entries
+
+end JuliaLean.Registry

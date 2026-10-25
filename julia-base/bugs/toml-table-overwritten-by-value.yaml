@@ -1,0 +1,54 @@
+id: toml-table-overwritten-by-value
+title: "TOML parser silently replaces a table created by [a.b.c] when [a] later assigns b = value"
+priority: P1
+kind: missing-error
+area: Toml
+files: [base/toml/parser.jl]
+functions: ["Base.TOML.parse_entry", "Base.TOML.check_allowed_add_key", "TOML.parse"]
+summary: |
+  A header `[a.b.c]` creates the tables `a` and `a.b` as intermediates. If a later `[a]`
+  section assigns `b = 2`, the key `b` is defined twice, which TOML forbids. Julia does
+  not report it: the assignment overwrites the table `a.b`, and everything under
+  `[a.b.c]` disappears from the result (`Dict("a" => Dict("b" => 2))`). One level up,
+  `[a.b]` followed by `[a]` and `b = 2`, the same conflict is rejected.
+likelihood: |
+  Needs an invalid document, but the mistake is natural in hand-written configuration
+  files, for example `[tool.x.settings]` followed later by `[tool]` and `x = "..."`.
+  The data under the deeper header is lost without any error.
+maybe_intended: ""
+reproducer: |
+  import TOML
+  TOML.parse("[a.b.c]\nx = 1\n\n[a]\nb = 2\n")   # Dict("a" => Dict("b" => 2)), x lost
+output:
+  release: |
+    Dict{String, Any}("a" => Dict{String, Any}("b" => 2))
+    Base.TOML.ParserError
+    REPRODUCED toml-table-overwritten-by-value
+  nightly: |
+    Dict{String, Any}("a" => Dict{String, Any}("b" => 2))
+    Base.TOML.ParserError
+    REPRODUCED toml-table-overwritten-by-value
+reproduced: {release: true, nightly: true}
+expected: |
+  A `ParserError` (`ErrDuplicatedKey` or `ErrKeyAlreadyHasValue`).
+promised_by: |
+  TOML v1.1.0, "Keys": "Defining a key multiple times is invalid." and "Table": "Like
+  keys, you cannot define a table more than once." The toml-test case
+  invalid/table/overwrite-array-in-parent.toml rejects the same pattern with an
+  array of tables in place of `[a.b.c]`.
+cause: |
+  base/toml/parser.jl:763-769: an existing value `v` is rejected only if it is not a
+  dict, an inline table, a table in `defined_tables`, or a table in `implicit_tables`.
+  Intermediate tables created by a header (`recurse_dict!` with `check=true`,
+  base/toml/parser.jl:655-664, `define_implicit=false`) are in none of these sets, so
+  `d[last_key_part] = value` (base/toml/parser.jl:778) overwrites them when the value is
+  not a dict.
+possible_fix: |
+  Reject the assignment whenever `v !== nothing`: an existing key, whether a value or a
+  table created implicitly by a header, cannot be given a value.
+duplicates:
+  issues: []
+  queries: ["TOML redefine table", "TOML duplicate key", "TOML overwrite table"]
+lean:
+  property: JuliaLean.Toml.NoTableOverwrite
+  theorem: JuliaLean.Toml.noTableOverwrite_refuted

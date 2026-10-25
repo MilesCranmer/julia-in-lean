@@ -1,0 +1,55 @@
+id: randomsampling-randstring-uint8-length
+title: "randstring with UInt8 characters can return fewer characters than requested"
+priority: P3
+kind: documentation
+area: RandomSampling
+files: [stdlib/Random/src/misc.jl]
+functions: ["randstring"]
+summary: |
+  The randstring documentation permits UInt8 character collections and promises
+  a string of length len. The UInt8 path writes len bytes directly into a
+  String, where adjacent bytes can form one UTF-8 character. Sampling 0xc3
+  followed by 0xa9 for len=2 returns the one-character string "é".
+likelihood: |
+  Requires a non-ASCII UInt8 character collection. The default ASCII alphabet
+  is unaffected. The custom RNG makes the two-byte sequence deterministic.
+maybe_intended: |
+  The UInt8 path is a byte-oriented optimization. A length guarantee in bytes
+  may be intended, or UInt8 inputs may be intended to be ASCII-only. Neither
+  qualification appears in the docstring, so this is a documentation finding.
+reproducer: |
+  using Random
+  # AlternatingWords returns 0, typemax(UInt64), 0, ...
+  s = randstring(AlternatingWords(0), UInt8[0xc3, 0xa9], 2)
+  length(s) # 1
+output:
+  release: |
+    randstring = "é"
+    requested length = 2; length = 1; ncodeunits = 2
+    REPRODUCED randomsampling-randstring-uint8-length
+  nightly: |
+    randstring = "é"
+    requested length = 2; length = 1; ncodeunits = 2
+    REPRODUCED randomsampling-randstring-uint8-length
+reproduced: {release: true, nightly: true}
+expected: |
+  State that UInt8 collections specify raw bytes and len counts bytes on
+  that path, or restrict UInt8 collections to ASCII for the character-length
+  guarantee. A universal character-length guarantee would require encoding.
+promised_by: |
+  stdlib/Random/src/misc.jl:46-47: "Create a random string of length len,
+  consisting of characters from chars". Lines 63-66 permit collections of
+  Char or UInt8 without an ASCII restriction.
+cause: |
+  stdlib/Random/src/misc.jl:73-78 allocates exactly n bytes and fills them
+  directly from chars for eltype(chars) === UInt8. String length counts
+  decoded characters, so n bytes need not represent n characters.
+possible_fix: |
+  Clarify the byte-length contract of the UInt8 fast path and its relation
+  to ASCII. Keep the efficient implementation if byte sampling is intended.
+duplicates:
+  issues: []
+  queries: ["randstring UInt8 length", "randstring UTF", "randstring length", "randstring", "PR randstring UInt8"]
+lean:
+  property: JuliaLean.RandomSampling.RandstringCharacterLength
+  theorem: JuliaLean.RandomSampling.randstringCharacterLength_refuted

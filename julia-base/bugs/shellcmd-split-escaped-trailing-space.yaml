@@ -1,0 +1,54 @@
+id: shellcmd-split-escaped-trailing-space
+title: "shell_split keeps an escaped trailing space but reports a dangling backslash for an escaped trailing tab"
+priority: P3
+kind: wrong-exception
+area: ShellCmd
+files: [base/shell.jl]
+functions: ["Base.shell_split", "Base.shell_parse", "Base.rstrip_shell"]
+summary: |
+  A backslash escapes a following whitespace character, and an escaped space at the end
+  of the input is kept: shell_split("a\\ ") == ["a "]. Any other escaped whitespace at
+  the end (tab, no-break space, ...) is stripped before parsing, leaving the backslash
+  dangling: shell_split("a\\\t") throws "dangling backslash", although
+  shell_split("a\\\tb") == ["a\tb"]. The same holds for command literals.
+likelihood: |
+  Rare: command strings that end in an escaped tab or Unicode space.
+maybe_intended: |
+  rstrip_shell documents only the "\\ " case (base/shell.jl:10).
+reproducer: |
+  Base.shell_split("a\\ ")    # ["a "]
+  Base.shell_split("a\\\t")   # ERROR: dangling backslash
+output:
+  release: |
+    shell_split("a\\ ") = ["a "]
+    shell_split("a\\\t") = ErrorException("dangling backslash")
+    shell_split("a\\\tb") = ["a\tb"]
+    REPRODUCED shellcmd-split-escaped-trailing-space
+  nightly: |
+    shell_split("a\\ ") = ["a "]
+    shell_split("a\\\t") = ErrorException("dangling backslash")
+    shell_split("a\\\tb") = ["a\tb"]
+    REPRODUCED shellcmd-split-escaped-trailing-space
+reproduced: {release: true, nightly: true}
+expected: |
+  ["a\t"], as POSIX sh gives for `a\<tab>` and as shell_split gives for an escaped
+  trailing space.
+promised_by: |
+  Consistency between whitespace characters: the parser treats every isspace character
+  alike (base/shell.jl:118), and an escaped character is literal (base/shell.jl:235-238).
+cause: |
+  base/shell.jl:24: rstrip_shell keeps a trailing whitespace character after a backslash
+  only when it is ' '.
+possible_fix: |
+  In rstrip_shell, keep the character after a backslash whenever it is whitespace (track
+  c_old as any isspace character).
+duplicates:
+  issues: []
+  queries:
+    - "issues/prs: rstrip_shell"
+    - "issues/prs: dangling backslash"
+    - "issues/prs: shell_split tab"
+    - "issues/prs: backslash trailing whitespace command"
+lean:
+  property: JuliaLean.ShellCmd.SplitEscapedTrailingWhitespace
+  theorem: JuliaLean.ShellCmd.splitEscapedTrailingWhitespace_refuted

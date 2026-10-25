@@ -1,0 +1,69 @@
+id: bignums-digits-view-pow2-base
+title: "digits!(view, ::BigInt; base=128) throws MethodError: the mpz_export path resizes the output array"
+priority: P2
+kind: wrong-exception
+area: BigNums
+files: [base/gmp.jl]
+functions: ["digits!(::AbstractVector{T}, ::BigInt)", "Base.GMP.MPZ.export!"]
+summary: |
+  digits! with a BigInt and a power-of-two base larger than 62 uses mpz_export.
+  When the output vector is shorter than the number of digits, export! calls
+  resize!(a, ndigits) and later shrinks it back. A view or any other non-resizable
+  StridedVector has no resize!, so the call throws MethodError, while the same call
+  with a machine integer fills the least significant digits as documented.
+likelihood: |
+  Needs digits! into a view (or fixed-size strided vector) that is too short for a
+  BigInt whose digits are requested in base 64, 128, 256, ...; plausible in code that
+  extracts the low bytes of a big number into a buffer.
+maybe_intended: ""
+reproducer: |
+  function res(f)
+      try
+          return f()
+      catch e
+          return typeof(e)
+      end
+  end
+  v1 = view(zeros(Int, 10), 1:3)
+  v2 = view(zeros(Int, 10), 1:3)
+  a = res(() -> digits!(v1, 2^62 + 5; base=128))
+  b = res(() -> digits!(v2, big(2)^62 + 5; base=128))
+  c = res(() -> digits!(zeros(Int, 3), big(2)^62 + 5; base=128))
+  println("digits!(view, 2^62 + 5; base=128)      = ", a)
+  println("digits!(view, big(2)^62 + 5; base=128) = ", b)
+  println("digits!(Vector, big(2)^62 + 5; base=128) = ", c)
+  if a == [5, 0, 0] && b === MethodError && c == [5, 0, 0]
+      println("REPRODUCED bignums-digits-view-pow2-base")
+  end
+output:
+  release: |
+    digits!(view, 2^62 + 5; base=128)      = [5, 0, 0]
+    digits!(view, big(2)^62 + 5; base=128) = MethodError
+    digits!(Vector, big(2)^62 + 5; base=128) = [5, 0, 0]
+    REPRODUCED bignums-digits-view-pow2-base
+  nightly: |
+    digits!(view, 2^62 + 5; base=128)      = [5, 0, 0]
+    digits!(view, big(2)^62 + 5; base=128) = MethodError
+    digits!(Vector, big(2)^62 + 5; base=128) = [5, 0, 0]
+    REPRODUCED bignums-digits-view-pow2-base
+reproduced: {release: true, nightly: true}
+expected: |
+  [5, 0, 0], the three least significant base-128 digits, as for a machine integer
+  or a Vector.
+promised_by: |
+  base/intfuncs.jl:1223-1228 (digits! docstring): "If the array length is
+  insufficient, the least significant digits are filled up to the array length."
+cause: |
+  base/gmp.jl:800-806 accepts any StridedVector with stride 1, but MPZ.export! at
+  base/gmp.jl:274-284 grows the destination with resize!(a, ndigits) (line 277) so
+  mpz_export can write every word; resize! is not defined for SubArray. Line 259 on
+  1.13.2.
+possible_fix: |
+  Restrict the fast path to Vector, or export into a temporary buffer and copy the
+  first length(a) words.
+duplicates:
+  issues: []
+  queries: ["digits! BigInt", "digits!", "digits! resize", "mpz_export digits", "digits BigInt"]
+lean:
+  property: JuliaLean.BigNums.DigitsBangFillsLow
+  theorem: JuliaLean.BigNums.digitsBangFillsLow_refuted

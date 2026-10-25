@@ -1,0 +1,62 @@
+id: base64uuid-crc32c-iostream-filesize
+title: "crc32c(io::IOStream) trusts filesize: returns the seed for /proc files and throws after seeking past the end"
+priority: P2
+kind: wrong-result
+area: Base64Uuid
+files: [base/util.jl, stdlib/CRC32c/src/CRC32c.jl]
+functions: ["crc32c(::IOStream, ::UInt32)", "Base._crc32c(::IOStream, ::UInt32)"]
+summary: |
+  The IOStream method checksums filesize(io) - position(io) bytes instead of reading to
+  the end. Files whose stat size is 0 but which have content (Linux /proc and /sys files,
+  FIFOs opened with open) give the seed 0x00000000, so open(crc32c, "/proc/self/status")
+  returns 0. After seeking past the end the byte count is negative and crc32c throws
+  ArgumentError, while the generic IO method (e.g. on an IOBuffer) returns the seed.
+likelihood: |
+  Checksumming a /proc or /sys file, or a named pipe, with the documented
+  open(crc32c, filename) idiom silently returns 0. Regular files are not affected.
+maybe_intended: |
+  Using filesize avoids a final short read for regular files; the behaviour for
+  zero-size special files is likely an oversight rather than a design choice.
+reproducer: |
+  using CRC32c
+  open(crc32c, "/proc/self/status")             # 0x00000000
+  crc32c(read("/proc/self/status"))             # nonzero
+  f = tempname(); write(f, "hello")
+  open(io -> (seek(io, 10); crc32c(io)), f)      # ArgumentError
+output:
+  release: |
+    filesize(path)                  = 0
+    open(crc32c, path)              = 0x00000000
+    crc32c(read(io)) on same handle = 0x6293ef56
+    IOStream seeked past end: crc32c(io) = ArgumentError("number of bytes to checksum must be ≥ 0, got -5")
+    IOBuffer seeked past end: crc32c(io) = 0x00000000
+    REPRODUCED base64uuid-crc32c-iostream-filesize
+  nightly: |
+    filesize(path)                  = 0
+    open(crc32c, path)              = 0x00000000
+    crc32c(read(io)) on same handle = 0xb0f83389
+    IOStream seeked past end: crc32c(io) = ArgumentError("number of bytes to checksum must be ≥ 0, got -5")
+    IOBuffer seeked past end: crc32c(io) = 0x00000000
+    REPRODUCED base64uuid-crc32c-iostream-filesize
+reproduced: {release: true, nightly: true}
+expected: |
+  open(crc32c, path) == crc32c(read(path)); after seeking past the end crc32c(io) returns
+  the seed 0x00000000, as for an IOBuffer.
+promised_by: |
+  stdlib/CRC32c/src/CRC32c.jl:25-28: "There is also a method crc32c(io, nb, crc) to checksum
+  nb bytes from a stream io, or crc32c(io, crc) to checksum all the remaining bytes. Hence
+  you can do open(crc32c, filename) to checksum an entire file". CRC32c.jl:63-65: "If nb is
+  not supplied, then io will be read until the end of the stream."
+cause: |
+  base/util.jl:541: _crc32c(io::IOStream, crc) = _crc32c(io, filesize(io)-position(io), crc).
+  For a zero-size special file nb = 0 and nothing is read (util.jl:538); past the end nb < 0
+  and util.jl:529 throws.
+possible_fix: |
+  Drop the IOStream specialization so the generic method (read until eof, util.jl:540) is
+  used, or use max(filesize - position, 0) only as a size hint and keep reading until eof.
+duplicates:
+  issues: []
+  queries: ["crc32c filesize", "crc32c IOStream", "crc32c proc", "crc32c open file", "crc32c /proc"]
+lean:
+  property: JuliaLean.Base64Uuid.Crc32cStreamAll
+  theorem: JuliaLean.Base64Uuid.crc32cStreamAll_refuted

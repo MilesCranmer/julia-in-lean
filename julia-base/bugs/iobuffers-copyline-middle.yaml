@@ -1,0 +1,45 @@
+id: iobuffers-copyline-middle
+title: "copyline(out::IOBuffer, s; keep=false) keeps the newline of an empty line when writing into the middle of out"
+priority: P2
+kind: wrong-result
+area: IOBuffers
+files: [base/iobuffer.jl]
+functions: ["copyline(::GenericIOBuffer, ::IO)"]
+summary: |
+  When out is not appending and its position is before its end, copyline copies the
+  line into a temporary buffer and strips "\n" and then "\r" only if the line is longer
+  than one byte (`length(v) > 1`). An empty line "\n" is written as "\n", and an empty
+  CRLF line "\r\n" as "\r", although keep=false must remove both.
+likelihood: |
+  Needs copyline from a non-IOBuffer stream (file, pipe, socket) into an IOBuffer that
+  was seeked back, plus an empty line. Rare.
+maybe_intended: ""
+reproducer: |
+  s = Base.BufferStream(); write(s, "\nxyz"); closewrite(s)
+  out = IOBuffer(); write(out, "QQQQ"); seekstart(out)
+  copyline(out, s)
+  String(take!(out))      # "\nQQQ", expected "QQQQ"
+output:
+  release: |
+    empty line: "\nQQQ", empty CRLF line: "\rQQQ", line "x": "xQQQ"
+    REPRODUCED iobuffers-copyline-middle
+  nightly: |
+    empty line: "\nQQQ", empty CRLF line: "\rQQQ", line "x": "xQQQ"
+    REPRODUCED iobuffers-copyline-middle
+reproduced: {release: true, nightly: true}
+expected: |
+  "QQQQ": the empty line writes nothing ("\r\n" likewise).
+promised_by: |
+  copyline docstring (base/io.jl:724-728): "Lines in the input end with '\n' or "\r\n"
+  ... When keep is false (as it is by default), these trailing newline characters are
+  removed from the line before it is returned."
+cause: |
+  base/iobuffer.jl:1024 and 1027 test `length(v) > 1` instead of `!isempty(v)`.
+possible_fix: |
+  Use `!isempty(v)` in both tests.
+duplicates:
+  issues: []
+  queries: ["copyline", "copyline IOBuffer", "copyline keep", "copyline keep false", "copyline CRLF"]
+lean:
+  property: JuliaLean.IOBuffers.CopylineMiddle
+  theorem: JuliaLean.IOBuffers.copylineMiddle_refuted

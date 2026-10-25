@@ -1,0 +1,64 @@
+id: toml-control-chars-accepted
+title: "TOML parser accepts control characters in strings and comments, and a bare CR as a newline"
+priority: P3
+kind: missing-error
+area: Toml
+files: [base/toml/parser.jl]
+functions: ["Base.TOML.parse_string_continue", "Base.TOML.skip_comment", "Base.TOML.isnewline", "TOML.parse"]
+summary: |
+  Control characters other than tab are not allowed in TOML strings or comments, and a
+  carriage return is only allowed as part of CRLF. Julia accepts all of them:
+  `"a = \"x\x01y\""` and `"a = 'x\x7fy'"` give strings containing the control
+  characters, `"# \x00\na = 1"` accepts a NUL in a comment, and `"a = 1\rb = 2"` treats
+  the bare CR as a line break.
+likelihood: |
+  Real files rarely contain raw control characters; the effect is that Julia accepts
+  files other TOML parsers reject.
+maybe_intended: |
+  stdlib/TOML/test/toml_test.jl:137-164 lists all of toml-test's invalid/control cases
+  as known failures, so the gap is known and has been left open.
+reproducer: |
+  import TOML
+  TOML.parse("a = \"x\x01y\"")   # Dict("a" => "x\x01y")
+  TOML.parse("a = 1\rb = 2")     # Dict("a" => 1, "b" => 2)
+output:
+  release: |
+    "a = \"x\x01y\"" => Dict{String, Any}("a" => "x\x01y")
+    "a = 'x\x7fy'" => Dict{String, Any}("a" => "x\x7fy")
+    "# \0\na = 1" => Dict{String, Any}("a" => 1)
+    "a = 1\rb = 2" => Dict{String, Any}("a" => 1, "b" => 2)
+    "a = \"\"\"x\ry\"\"\"" => Dict{String, Any}("a" => "x\ry")
+    REPRODUCED toml-control-chars-accepted
+  nightly: |
+    "a = \"x\x01y\"" => Dict{String, Any}("a" => "x\x01y")
+    "a = 'x\x7fy'" => Dict{String, Any}("a" => "x\x7fy")
+    "# \0\na = 1" => Dict{String, Any}("a" => 1)
+    "a = 1\rb = 2" => Dict{String, Any}("a" => 1, "b" => 2)
+    "a = \"\"\"x\ry\"\"\"" => Dict{String, Any}("a" => "x\ry")
+    REPRODUCED toml-control-chars-accepted
+reproduced: {release: true, nightly: true}
+expected: |
+  A `ParserError` for each document.
+promised_by: |
+  TOML v1.1.0, "Preliminaries": "Newline means LF (U+000A) or CRLF (U+000D U+000A)."
+  "Comment": "Control characters other than tab (U+0000 to U+0008, U+000A to U+001F,
+  U+007F) are not permitted in comments." "String": basic strings may contain any
+  character "except those that must be escaped: quotation mark, backslash, and the
+  control characters other than tab"; literal strings allow no control characters other
+  than tab.
+cause: |
+  The string scanners stop only at quotes, backslashes and `\n`
+  (base/toml/parser.jl:1378-1381); `skip_comment` accepts everything up to a newline
+  (base/toml/parser.jl:531); `isnewline` treats a lone `\r` as a newline
+  (base/toml/parser.jl:470, used by base/toml/parser.jl:627 and 637).
+possible_fix: |
+  Reject characters in U+0000-U+0008, U+000A-U+001F and U+007F (other than the allowed
+  newlines) in strings and comments, and accept `\r` only when `\n` follows.
+duplicates:
+  issues: []
+  queries: ["TOML control character", "TOML invalid", "TOML carriage return"]
+  notes: |
+    Known failures in stdlib/TOML/test/toml_test.jl:137-164 (invalid/control/*); no issue or PR.
+lean:
+  property: JuliaLean.Toml.ControlCharsRejected
+  theorem: JuliaLean.Toml.controlCharsRejected_refuted

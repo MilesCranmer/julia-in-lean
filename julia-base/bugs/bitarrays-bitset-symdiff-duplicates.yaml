@@ -1,0 +1,53 @@
+id: bitarrays-bitset-symdiff-duplicates
+title: "symdiff!(::BitSet, itr) toggles repeated elements of itr, unlike Set and the documented set semantics"
+priority: P1
+kind: wrong-result
+area: BitArrays
+files: [base/bitset.jl]
+functions: ["symdiff!(::BitSet, itr)", "symdiff(::BitSet, itr)", "int_symdiff!"]
+summary: |
+  symdiff!(s::BitSet, itr) flips membership once per element of itr, so an
+  element that occurs twice in itr is added and removed again.
+  symdiff!(BitSet([1]), [2, 2]) returns BitSet([1]) while
+  symdiff!(Set([1]), [2, 2]) returns Set([1, 2]). symdiff(BitSet([1]), [2, 2])
+  is affected the same way. Since #46397 every other symdiff method treats its
+  arguments as sets and ignores multiplicity.
+likelihood: |
+  Any call with a vector, range of repeated values or other iterable holding a
+  duplicate hits it; no extreme values are needed. The result is silently wrong.
+maybe_intended: ""
+reproducer: |
+  symdiff!(BitSet([1]), [2, 2])   # BitSet([1])
+  symdiff!(Set([1]), [2, 2])      # Set([1, 2])
+output:
+  release: |
+    [1] [1, 2] [1]
+    REPRODUCED bitarrays-bitset-symdiff-duplicates
+  nightly: |
+    [1] [1, 2] [1]
+    REPRODUCED bitarrays-bitset-symdiff-duplicates
+reproduced: {release: true, nightly: true}
+expected: |
+  BitSet([1, 2]): 2 occurs in exactly one of the two collections.
+promised_by: |
+  symdiff! docstring, base/abstractset.jl:282-284: "Construct the symmetric
+  difference of the passed in sets, and overwrite s with the result." The
+  generic method symdiff!(s::AbstractSet, itr) = symdiff!(s, Set(itr))
+  (base/abstractset.jl:297) deduplicates itr; PR #46397 ("symdiff does
+  uniquify", fixing #34686) made this the documented behaviour.
+cause: |
+  base/bitset.jl:305-310 defines symdiff!(s::BitSet, ns) for any iterable and
+  calls int_symdiff! (base/bitset.jl:319-324) on every element, toggling
+  membership each time. PR #46397 added the AbstractSet method at
+  base/bitset.jl:312-317 but left this one toggling per element.
+possible_fix: |
+  Deduplicate first, e.g. symdiff!(s::BitSet, ns) = symdiff!(s, BitSet(ns)) for
+  Integer iterables, or toggle only elements not seen before in ns.
+duplicates:
+  issues:
+    - {number: 34686, state: closed, relation: related}
+    - {number: 44591, state: closed, relation: related}
+  queries: ["issues: symdiff", "issues: BitSet", "issues: symdiff multiplicity", "prs: symdiff", "prs: BitSet symdiff", "issues: symdiff! BitSet duplicates"]
+lean:
+  property: JuliaLean.BitArrays.BitSetSymdiffAgrees
+  theorem: JuliaLean.BitArrays.bitSetSymdiffAgrees_refuted

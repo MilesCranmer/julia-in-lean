@@ -1,0 +1,59 @@
+id: bignums-string-base-error
+title: "string(big(7); base=63) throws ArgumentError, string(7; base=63) throws DomainError"
+priority: P3
+kind: wrong-exception
+area: BigNums
+files: [base/gmp.jl, base/intfuncs.jl]
+functions: ["string(::BigInt; base, pad)"]
+summary: |
+  For an unsupported base (1, 63, 100, ...) string(n; base) throws DomainError for
+  machine integers but ArgumentError for BigInt. Generic code catching the documented
+  exception for one integer type misses it for the other.
+likelihood: |
+  Only on invalid bases, which are already errors; cosmetic inconsistency.
+maybe_intended: |
+  Both messages say the base is out of range; the docstring does not name the
+  exception type.
+reproducer: |
+  function res(f)
+      try
+          return repr(f())
+      catch e
+          return "throws " * string(typeof(e))
+      end
+  end
+  for b in (1, 63, 100)
+      println("base=", b, ": Int ", res(() -> string(7; base=b)), ", BigInt ", res(() -> string(big(7); base=b)))
+  end
+  if res(() -> string(7; base=63)) == "throws DomainError" && res(() -> string(big(7); base=63)) == "throws ArgumentError"
+      println("REPRODUCED bignums-string-base-error")
+  end
+output:
+  release: |
+    base=1: Int throws DomainError, BigInt throws ArgumentError
+    base=63: Int throws DomainError, BigInt throws ArgumentError
+    base=100: Int throws DomainError, BigInt throws ArgumentError
+    REPRODUCED bignums-string-base-error
+  nightly: |
+    base=1: Int throws DomainError, BigInt throws ArgumentError
+    base=63: Int throws DomainError, BigInt throws ArgumentError
+    base=100: Int throws DomainError, BigInt throws ArgumentError
+    REPRODUCED bignums-string-base-error
+reproduced: {release: true, nightly: true}
+expected: |
+  DomainError, as base/intfuncs.jl:1049 throws for the same base.
+promised_by: |
+  Consistency between integer types for string(n; base, pad) (base/intfuncs.jl:1101);
+  the base check for machine integers throws DomainError(base, "base must satisfy
+  2 ≤ abs(base) ≤ 62") at base/intfuncs.jl:1049.
+cause: |
+  base/gmp.jl:767 throws ArgumentError("base must be 2 ≤ base ≤ 62, got $base").
+  Line 769 on 1.13.2.
+possible_fix: |
+  Throw DomainError(base, ...) at base/gmp.jl:767.
+duplicates:
+  issues: []
+  queries: ["BigInt string base", "string BigInt base error", "digits BigInt"]
+lean:
+  property: JuliaLean.BigNums.StringBigIntMatchesInt
+  theorem: JuliaLean.BigNums.stringBigIntMatchesInt_refuted

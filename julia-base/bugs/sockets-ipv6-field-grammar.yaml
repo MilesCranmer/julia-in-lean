@@ -1,0 +1,50 @@
+id: sockets-ipv6-field-grammar
+title: "parse(IPv6, \"::+1\") and parse(IPv6, \":: 1\") accept signed or padded groups"
+priority: P2
+kind: missing-error
+area: Sockets
+files: [stdlib/Sockets/src/IPAddr.jl]
+functions: ["parse(::Type{IPv6}, ::AbstractString)", "parseipv6fields"]
+summary: |
+  Same delegation issue as the IPv4 side: parse(Int, f, base=16) accepts a
+  sign and surrounding whitespace, so parse(IPv6, "::+1") returns ip"::1" and
+  parse(IPv6, ":: 1") returns ip"::1" instead of ArgumentError.
+likelihood: |
+  Address strings assembled from unpadded data; silently accepted rather than
+  rejected, so no error is ever raised.
+maybe_intended: |
+  Whitespace tolerance may be intentional, as with numeric parse. IPv6 text
+  has a stricter grammar, and Julia rejects other ambiguous forms explicitly.
+reproducer: |
+  using Sockets
+  println(string(parse(IPv6, "::+1")))
+  println(string(parse(IPv6, ":: 1")))
+output:
+  release: |
+    parse(IPv6, "::+1") = ::1
+    parse(IPv6, ":: 1") = ::1
+    REPRODUCED sockets-ipv6-field-grammar
+  nightly: |
+    parse(IPv6, "::+1") = ::1
+    parse(IPv6, ":: 1") = ::1
+    REPRODUCED sockets-ipv6-field-grammar
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError: an IPv6 group is 1-4 hex digits (RFC 4291 section 2.2).
+promised_by: |
+  IPv6(str) docstring (stdlib/Sockets/src/IPAddr.jl:117-127); RFC 4291
+  section 2.2 group grammar; issue #40255's goal of erroring on unsupported
+  formats.
+cause: |
+  stdlib/Sockets/src/IPAddr.jl:236: parse(Int, f, base = 16) admits
+  [whitespace] sign [whitespace] digits [whitespace] (base/parse.jl:49-51)
+  and no bare-hex-digit check is applied.
+possible_fix: |
+  Validate that each group consists solely of hex digits before parsing it.
+duplicates:
+  issues:
+    - {number: 40255, state: open, relation: related}
+  queries: ["IPv6 parse", "parse IPv6", "IPv6 whitespace", "ip_str", "parse IP address invalid"]
+lean:
+  property: JuliaLean.Sockets.IPv6FieldBare
+  theorem: JuliaLean.Sockets.ipv6FieldBare_refuted

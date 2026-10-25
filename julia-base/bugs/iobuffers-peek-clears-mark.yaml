@@ -1,0 +1,48 @@
+id: iobuffers-peek-clears-mark
+title: "peek(io, T) removes the stream's mark for T such as Char or Int8"
+priority: P2
+kind: wrong-result
+area: IOBuffers
+files: [base/io.jl]
+functions: ["peek(::IO, ::Type{T})"]
+summary: |
+  The generic peek(s, T) is implemented as mark(s); read(s, T); reset(s). It overwrites
+  any mark the caller had set, and reset then unmarks the stream. After peek(io, Char)
+  or peek(io, Int8) a previously marked stream is no longer marked, and a later
+  reset(io) throws.
+likelihood: |
+  Parsers commonly combine mark/reset with peek(io, Char). Any IO type without its own
+  peek(::T, ::Type{Char}) method (IOBuffer, IOStream, BufferStream) is affected.
+maybe_intended: |
+  The mark/reset implementation is a convenience fallback; the docstrings of peek and
+  mark do not say that peek consumes the mark.
+reproducer: |
+  io = IOBuffer("abc"); mark(io); read(io, UInt8)
+  peek(io, Char)
+  ismarked(io)       # false
+output:
+  release: |
+    peek(io, Char) = 'b', ismarked(io) = false
+    after peek(io, Int8): ismarked = false
+    REPRODUCED iobuffers-peek-clears-mark
+  nightly: |
+    peek(io, Char) = 'b', ismarked(io) = false
+    after peek(io, Int8): ismarked = false
+    REPRODUCED iobuffers-peek-clears-mark
+reproduced: {release: true, nightly: true}
+expected: |
+  ismarked(io) == true; peek leaves the stream, including its mark, unchanged.
+promised_by: |
+  peek docstring, base/essentials.jl:1539: "Read and return a value of type T from a
+  stream without advancing the current position in the stream."
+cause: |
+  base/io.jl:382-388: `mark(s); try read(s, T) finally reset(s) end` replaces the user's
+  mark and reset (base/io.jl:1600-1606) sets it to -1.
+possible_fix: |
+  Save the old mark and restore it after reset (or use position/seek for seekable streams).
+duplicates:
+  issues: []
+  queries: ["peek mark reset", "peek clobbers mark", "peek Char mark", "peek resets mark", "peek unmark", "peek mark IOBuffer"]
+lean:
+  property: JuliaLean.IOBuffers.PeekKeepsMark
+  theorem: JuliaLean.IOBuffers.peekKeepsMark_refuted

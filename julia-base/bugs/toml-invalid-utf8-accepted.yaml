@@ -1,0 +1,51 @@
+id: toml-invalid-utf8-accepted
+title: "TOML parser accepts documents that are not valid UTF-8"
+priority: P3
+kind: missing-error
+area: Toml
+files: [base/toml/parser.jl]
+functions: ["Base.TOML.parse_string_continue", "Base.TOML.skip_comment", "TOML.parse"]
+summary: |
+  A TOML document must be valid UTF-8, but Julia parses strings and comments containing
+  invalid bytes: `TOML.parse("a = \"\xff\"")` returns a `Dict` whose value `"\xff"` is
+  an invalid `String`, and an invalid byte in a comment is ignored.
+likelihood: |
+  Happens with files saved in Latin-1 or another non-UTF-8 encoding; Julia then returns
+  invalid strings instead of reporting the encoding problem.
+maybe_intended: |
+  The spec allows replacing ill-formed sequences with U+FFFD as an alternative to
+  rejection, but Julia does neither. stdlib/TOML/test/toml_test.jl:165-171 lists
+  invalid/encoding/* as known failures.
+reproducer: |
+  import TOML
+  TOML.parse("a = \"\xff\"")   # Dict("a" => "\xff")
+output:
+  release: |
+    "a = \"\xff\"" => Dict{String, Any}("a" => "\xff")
+    "# \xc3\na = 1" => Dict{String, Any}("a" => 1)
+    REPRODUCED toml-invalid-utf8-accepted
+  nightly: |
+    "a = \"\xff\"" => Dict{String, Any}("a" => "\xff")
+    "# \xc3\na = 1" => Dict{String, Any}("a" => 1)
+    REPRODUCED toml-invalid-utf8-accepted
+reproduced: {release: true, nightly: true}
+expected: |
+  A `ParserError` (or U+FFFD in place of each ill-formed sequence).
+promised_by: |
+  TOML v1.1.0, "Preliminaries": "A TOML file must be a valid UTF-8 encoded Unicode
+  document. ... Otherwise, it must be rejected (preferably) or have ill-formed byte
+  sequences replaced with U+FFFD".
+cause: |
+  The scanners in `parse_string_continue` (base/toml/parser.jl:1378-1396) and
+  `skip_comment` (base/toml/parser.jl:531) accept any `Char`, including malformed ones
+  produced by iterating invalid UTF-8, and nothing checks `isvalid` on the input.
+possible_fix: |
+  Check `isvalid(str)` once in `tryparse` (or reject malformed `Char`s in the scanners).
+duplicates:
+  issues: []
+  queries: ["TOML UTF-8", "TOML invalid", "TOML encoding"]
+  notes: |
+    Known failures in stdlib/TOML/test/toml_test.jl:165-171 (invalid/encoding/*); no issue or PR.
+lean:
+  property: JuliaLean.Toml.InvalidUtf8Rejected
+  theorem: JuliaLean.Toml.invalidUtf8Rejected_refuted

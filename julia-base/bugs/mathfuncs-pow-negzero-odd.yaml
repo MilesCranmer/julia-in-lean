@@ -1,0 +1,57 @@
+id: mathfuncs-pow-negzero-odd
+title: "(-0.0)^y loses the sign of zero for odd integer y with |y| > 24576"
+priority: P2
+kind: wrong-result
+area: MathFuncs
+files: [base/special/pow.jl]
+functions: ["^(::Float64, ::Float64)"]
+summary: |
+  For x = -0.0 and an odd integer-valued Float64 exponent y outside the
+  power-by-squaring range (-4096 <= y <= 24576), x^y returns +0.0 instead of
+  -0.0 for y > 0 and +Inf instead of -Inf for y < 0. The Integer-exponent method
+  and the small-exponent path both keep the sign, so (-0.0)^24577.0 and
+  (-0.0)^24577 disagree.
+likelihood: |
+  Low. It needs a negative zero raised to a large odd integer given as a float.
+  The -Inf versus +Inf case can change the sign of later results.
+maybe_intended: |
+  Julia's ^ docstring does not spell out IEEE 754 pow special cases. But the
+  same function keeps the sign for odd y <= 24575 and for Integer exponents.
+reproducer: |
+  y = 24577.0
+  (-0.0)^y      # 0.0, expected -0.0
+  (-0.0)^(-y)   # Inf, expected -Inf
+  (-0.0)^24577  # -0.0 (Integer exponent)
+output:
+  release: |
+    (-0.0)^24577.0 = 0.0   (-0.0)^24577 = -0.0
+    (-0.0)^-24577.0 = Inf   (-0.0)^-24577 = -Inf
+    (-0.0)^3.0 = -0.0   (-0.0)^-3.0 = -Inf
+    REPRODUCED mathfuncs-pow-negzero-odd
+  nightly: |
+    (-0.0)^24577.0 = 0.0   (-0.0)^24577 = -0.0
+    (-0.0)^-24577.0 = Inf   (-0.0)^-24577 = -Inf
+    (-0.0)^3.0 = -0.0   (-0.0)^-3.0 = -Inf
+    REPRODUCED mathfuncs-pow-negzero-odd
+reproduced: {release: true, nightly: true}
+expected: |
+  (-0.0)^24577.0 === -0.0 and (-0.0)^-24577.0 === -Inf, as IEEE 754 pow
+  requires for odd integer exponents and as (-0.0)^24577 already returns.
+promised_by: |
+  IEEE 754-2019 section 9.2.1: pow(+-0, y) is +-0 for y an odd integer > 0 and
+  +-Inf for y an odd integer < 0. Invariant: x^Float64(n) and x^n agree in sign
+  for odd n (base/special/pow.jl:7-31 and 58-75).
+cause: |
+  base/special/pow.jl:22 handles a zero base with abs(y)*Inf*(!(y>0)), which
+  always gives +0.0 or +Inf. It runs after the power-by-squaring shortcut at
+  line 20, so only exponents outside -4096..24576 reach it, and it ignores
+  whether y is an odd integer.
+possible_fix: |
+  Return copysign(that value, x) when y is an odd integer, e.g.
+  ifelse(yisint & isodd(yint), copysign(r, x), r).
+duplicates:
+  issues: []
+  queries: ["negative zero power odd", "pow -0.0 odd", "signed zero pow", "pow_body zero", "pow negative zero", "power negative zero sign", "negative zero exponent"]
+lean:
+  property: JuliaLean.MathFuncs.powNegZeroOddSign
+  theorem: JuliaLean.MathFuncs.powNegZeroOddSign_refuted

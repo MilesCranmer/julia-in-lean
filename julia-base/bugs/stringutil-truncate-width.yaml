@@ -1,0 +1,61 @@
+id: stringutil-truncate-width
+title: "rtruncate/ltruncate/ctruncate return the replacement even when it is wider than maxwidth"
+priority: P2
+kind: wrong-result
+area: StringUtil
+files: [base/strings/util.jl]
+functions: ["rtruncate(::AbstractString, ::Integer, ::Union{AbstractString,AbstractChar})", "ltruncate(::AbstractString, ::Integer, ::Union{AbstractString,AbstractChar})", "ctruncate(::AbstractString, ::Integer, ::Union{AbstractString,AbstractChar})"]
+summary: |
+  The docstrings promise a result of at most maxwidth columns, but when maxwidth is smaller than
+  textwidth(replacement) and the string is too wide, the result is the bare replacement:
+  rtruncate("abc", 0) == "…" (width 1) and rtruncate("abcdef", 2, "...") == "..." (width 3).
+  ltruncate and ctruncate behave the same.
+likelihood: |
+  maxwidth = 0 or 1 arises naturally when the width is computed from a terminal or column
+  layout (for example available space minus a label). Multi-column replacements such as "..."
+  make it more likely.
+maybe_intended: |
+  One could argue the replacement must always be shown to signal truncation, but the docstrings
+  state the width bound without exception, and maxwidth < 0 is rejected explicitly.
+reproducer: |
+  for (f, w) in ((rtruncate, 0), (ltruncate, 0), (ctruncate, 0))
+      r = f("abc", w)
+      println(f, "(\"abc\", ", w, ") = ", repr(r), ", textwidth = ", textwidth(r))
+  end
+  r = rtruncate("abcdef", 2, "...")
+  println("rtruncate(\"abcdef\", 2, \"...\") = ", repr(r), ", textwidth = ", textwidth(r))
+  textwidth(rtruncate("abc", 0)) > 0 && textwidth(r) > 2 && println("REPRODUCED stringutil-truncate-width")
+output:
+  release: |
+    rtruncate("abc", 0) = "…", textwidth = 1
+    ltruncate("abc", 0) = "…", textwidth = 1
+    ctruncate("abc", 0) = "…", textwidth = 1
+    rtruncate("abcdef", 2, "...") = "...", textwidth = 3
+    REPRODUCED stringutil-truncate-width
+  nightly: |
+    rtruncate("abc", 0) = "…", textwidth = 1
+    ltruncate("abc", 0) = "…", textwidth = 1
+    ctruncate("abc", 0) = "…", textwidth = 1
+    rtruncate("abcdef", 2, "...") = "...", textwidth = 3
+    REPRODUCED stringutil-truncate-width
+reproduced: {release: true, nightly: true}
+expected: |
+  A string of textwidth at most maxwidth, for example "" (or an error) for rtruncate("abc", 0).
+promised_by: |
+  rtruncate docstring (base/strings/util.jl:587-590): "Truncate `str` to at most `maxwidth`
+  columns (as estimated by `textwidth`), replacing the last characters with `replacement` if
+  necessary." ltruncate (:620-623) and ctruncate (:653-657) say the same.
+cause: |
+  string_truncate_boundaries (base/strings/util.jl:697-735) starts with width =
+  textwidth(replacement) (:707) and only stops adding characters once width exceeds maxwidth; it
+  never checks the replacement alone against maxwidth, and the callers (:609-684) always append
+  the replacement.
+possible_fix: |
+  If textwidth(replacement) > maxwidth, return a truncated replacement (or ""), or throw an
+  ArgumentError; and document the choice.
+duplicates:
+  issues: []
+  queries: ["issues: rtruncate", "prs: rtruncate", "issues: ltruncate", "issues: ctruncate", "issues: truncate maxwidth", "issues: truncate replacement wider"]
+lean:
+  property: JuliaLean.StringUtil.TruncateWidth
+  theorem: JuliaLean.StringUtil.truncateWidth_refuted

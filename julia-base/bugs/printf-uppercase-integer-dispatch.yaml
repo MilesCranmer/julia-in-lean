@@ -1,0 +1,61 @@
+id: printf-uppercase-integer-dispatch
+title: "Printf.Format accepts %D, %O and %U, which no formatter implements"
+priority: P2
+kind: wrong-exception
+area: Printf
+files: [stdlib/Printf/src/Printf.jl]
+functions: ["Printf.Format(::AbstractString)", "Printf.format(::Printf.Format, args...)"]
+summary: |
+  Format("%D"), Format("%O") and Format("%U") succeed, and formatting any argument then throws
+  MethodError, because no plength or fmt method covers Spec{Val{'D'}}, Spec{Val{'O'}} or Spec{Val{'U'}}.
+likelihood: |
+  Old BSD format strings use %D, %O and %U for long conversions.
+maybe_intended: |
+  D, O and U are obsolete BSD synonyms for ld, lo and lu and are not C99 conversions; the parser may accept
+  them on purpose, but nothing implements them.
+reproducer: |
+  using Printf
+  failures = 0
+  for s in ["%D", "%O", "%U"]
+      f = Printf.Format(s)
+      println("Format(", repr(s), ") accepted; arguments = ", f.numarguments)
+      e = try Printf.format(f, 1); nothing catch e; e end
+      println("format => ", typeof(e))
+      global failures += e isa MethodError
+  end
+  failures == 3 && println("REPRODUCED printf-uppercase-integer-dispatch")
+output:
+  release: |
+    Format("%D") accepted; arguments = 1
+    format => MethodError
+    Format("%O") accepted; arguments = 1
+    format => MethodError
+    Format("%U") accepted; arguments = 1
+    format => MethodError
+    REPRODUCED printf-uppercase-integer-dispatch
+  nightly: |
+    Format("%D") accepted; arguments = 1
+    format => MethodError
+    Format("%O") accepted; arguments = 1
+    format => MethodError
+    Format("%U") accepted; arguments = 1
+    format => MethodError
+    REPRODUCED printf-uppercase-integer-dispatch
+reproduced: {release: true, nightly: true}
+expected: |
+  InvalidFormatStringError from Format, like other unknown conversions, or the ld/lo/lu behaviour.
+promised_by: |
+  Invariant: a Format that constructs successfully can be formatted with matching arguments. The other
+  unsupported conversions throw InvalidFormatStringError at parse time (stdlib/Printf/src/Printf.jl:241).
+cause: |
+  stdlib/Printf/src/Printf.jl:241 accepts the bytes "diouxXDOUeEfFgGaAcCsSpn", but the Ints union at line 14
+  lists only d, i, u, x, X and o, so computelen (line 910) finds no plength method.
+possible_fix: |
+  Remove D, O and U from the accepted set, or map them to d, o and u.
+duplicates:
+  issues:
+    - {number: 41078, state: closed, relation: related}
+  queries: ["issues: printf", "issues: Printf precision", "issues/prs: printf BigFloat", "issues/prs: sprintf BigFloat", "issues/prs: Printf mpfr", "issues/prs: printf precision negative", "issues/prs: printf negative width", "issues/prs: printf dynamic width", "issues/prs: printf %g exponent", "issues/prs: printf %g style", "issues/prs: printf %.0d", "issues/prs: printf zero precision", "issues/prs: printf #x", "issues/prs: printf alternate form", "issues/prs: printf octal", "issues/prs: printf %+x", "issues/prs: printf plus unsigned", "issues/prs: printf BoundsError", "issues/prs: Printf.Format BoundsError", "issues/prs: printf %D", "issues/prs: printf textwidth", "issues/prs: printf precision unicode", "issues/prs: printf round away from zero", "issues/prs: printf ties even", "issues/prs: printf %a zero", "issues/prs: printf hex float", "issues/prs: printf InvalidFormatStringError", "issues/prs: printf C compatible"]
+lean:
+  property: JuliaLean.Printf.AcceptedHaveMethods
+  theorem: JuliaLean.Printf.acceptedHaveMethods_refuted

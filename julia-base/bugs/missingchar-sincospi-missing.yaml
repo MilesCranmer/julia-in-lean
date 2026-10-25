@@ -1,0 +1,74 @@
+id: missingchar-sincospi-missing
+title: "sincospi(missing) returns missing instead of (missing, missing)"
+priority: P2
+kind: wrong-result
+area: MissingChar
+files: [base/math.jl, base/special/trig.jl]
+functions: ["sincospi(::Missing)", "sincos(::Missing)", "sincosd(::Missing)"]
+summary: |
+  sincos(missing) and sincosd(missing) return the tuple (missing, missing), but
+  sincospi(missing) returns a bare missing. Destructuring s, c = sincospi(x)
+  therefore throws MethodError (no method iterate(::Missing)) when x is missing,
+  while the same code with sincos or sincosd works.
+likelihood: |
+  Moderate for code that broadcasts or maps sincospi over data with missing
+  values and destructures the result; every element of type Missing hits it.
+maybe_intended: ""
+reproducer: |
+  a = sincospi(missing)
+  b = sincos(missing)
+  c = sincosd(missing)
+  println("sincospi(missing) = ", repr(a))
+  println("sincos(missing)   = ", repr(b))
+  println("sincosd(missing)  = ", repr(c))
+  r = try
+      s, co = sincospi(missing)
+      "ok"
+  catch e
+      sprint(showerror, e; context=:limit => true) |> l -> first(split(l, '\n'))
+  end
+  println("s, c = sincospi(missing): ", r)
+  a === missing && b === (missing, missing) && c === (missing, missing) && println("REPRODUCED missingchar-sincospi-missing")
+output:
+  release: |
+    sincospi(missing) = missing
+    sincos(missing)   = (missing, missing)
+    sincosd(missing)  = (missing, missing)
+    s, c = sincospi(missing): MethodError: no method matching iterate(::Missing)
+    REPRODUCED missingchar-sincospi-missing
+  nightly: |
+    sincospi(missing) = missing
+    sincos(missing)   = (missing, missing)
+    sincosd(missing)  = (missing, missing)
+    s, c = sincospi(missing): MethodError: no method matching iterate(::Missing)
+    REPRODUCED missingchar-sincospi-missing
+reproduced: {release: true, nightly: true}
+expected: |
+  sincospi(missing) === (missing, missing), like sincosd(missing) and
+  sincos(missing), and like minmax(missing, x) === (missing, missing) on master.
+promised_by: |
+  The sincospi docstring: "sincospi(x::T) where T -> Tuple{float(T),float(T)} ...
+  returning a tuple (sine, cosine)" (base/special/trig.jl:993-996), together
+  with the manual's rule that missing propagates through math functions
+  (doc/src/manual/missing.md:14-18). sincosd(::Missing) = (missing, missing)
+  (base/special/trig.jl:1547) shows the intended shape for the tuple-valued
+  functions.
+cause: |
+  base/math.jl:1322-1332 defines f(::Missing) = missing for every name in one
+  list, and that list includes :sincospi (added by PR #50850, which put the pi
+  functions in the list). sincos(missing) instead reaches the generic
+  sincos(x) = _sincos(float(x)) = (sin(x), cos(x)) (base/special/trig.jl:202-205).
+possible_fix: |
+  Remove :sincospi from the list in base/math.jl and add
+  sincospi(::Missing) = (missing, missing) next to sincosd(::Missing).
+duplicates:
+  issues: []
+  queries:
+    - "issues: sincospi missing"
+    - "issues: sincos missing"
+    - "issues: sincospi"
+    - "prs: sincospi missing"
+    - "prs: sincosd missing"
+lean:
+  property: JuliaLean.MissingChar.SincosFamilyMissing
+  theorem: JuliaLean.MissingChar.sincosFamilyMissing_refuted

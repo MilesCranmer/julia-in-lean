@@ -1,0 +1,60 @@
+id: sockets-ipv6-embedded-8fields
+title: "parse(IPv6, \"::1:2:3:4:5:1.2.3.4\") rejects valid IPv6 text"
+priority: P3
+kind: wrong-result
+area: Sockets
+files: [stdlib/Sockets/src/IPAddr.jl]
+functions: ["parse(::Type{IPv6}, ::AbstractString)"]
+summary: |
+  "::1:2:3:4:5:1.2.3.4" is valid IPv6 text: five hex groups plus an embedded
+  IPv4 part around exactly one elided group (7 of 8 groups explicit). libc
+  inet_pton accepts it (value 0:1:2:3:4:5:102:304). parse(IPv6, ..) throws
+  ArgumentError instead, because splitting on ':' yields 8 tokens, so the
+  `length(fields) == 8` branch runs and tries to parse "1.2.3.4" as a single
+  hex group.
+likelihood: |
+  Rare but real address form (elision combined with an embedded IPv4 tail);
+  any library round-tripping addresses through inet_pton-compatible parsers
+  can hand Julia such a string.
+maybe_intended: ""
+reproducer: |
+  using Sockets
+  buf = zeros(UInt8, 16)
+  println(ccall((:inet_pton, "libc.so.6"), Cint, (Cint, Cstring, Ptr{Cvoid}),
+                Cint(10), "::1:2:3:4:5:1.2.3.4", buf) == 1)
+  try
+      parse(IPv6, "::1:2:3:4:5:1.2.3.4")
+  catch e
+      println(nameof(typeof(e)), ": ", e.msg)
+  end
+output:
+  release: |
+    inet_pton("::1:2:3:4:5:1.2.3.4") accepted = true
+    parse(IPv6, "::1:2:3:4:5:1.2.3.4") threw ArgumentError: invalid base 16 digit '.' in "1.2.3.4"
+    REPRODUCED sockets-ipv6-embedded-8fields
+  nightly: |
+    inet_pton("::1:2:3:4:5:1.2.3.4") accepted = true
+    parse(IPv6, "::1:2:3:4:5:1.2.3.4") threw ArgumentError: invalid base 16 digit '.' in "1.2.3.4"
+    REPRODUCED sockets-ipv6-embedded-8fields
+reproduced: {release: true, nightly: true}
+expected: |
+  ip"0:1:2:3:4:5:102:304" (0x0000:0001:0002:0003:0004:0005:0102:0304), the
+  value inet_pton produces for the same text.
+promised_by: |
+  IPv6(str) docstring "Parse an IPv6 address string into an IPv6 object"
+  (stdlib/Sockets/src/IPAddr.jl:117-127); RFC 4291 section 2.2 form 3
+  (embedded IPv4 in the last 32 bits) combined with '::'.
+cause: |
+  stdlib/Sockets/src/IPAddr.jl:245-251: the `length(fields) == 8` check runs
+  before the `in('.', fields[end])` embedded-IPv4 check, and an embedded IPv4
+  tail with an elision produces exactly 8 tokens.
+possible_fix: |
+  Move the embedded-IPv4 test (or at least the '.'-in-last-field test) ahead of
+  the length == 8 branch.
+duplicates:
+  issues:
+    - {number: 40255, state: open, relation: related}
+  queries: ["IPv6 parse", "IPv6 embedded IPv4", "parse IPv6", "IPv4-mapped", "ip_str"]
+lean:
+  property: JuliaLean.Sockets.IPv6AcceptsFiveGroupsV4
+  theorem: JuliaLean.Sockets.ipv6AcceptsFiveGroupsV4_refuted

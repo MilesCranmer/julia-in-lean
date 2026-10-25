@@ -1,0 +1,52 @@
+id: printf-wide-precision-padding
+title: "Printf %W.Ps pads to fewer than W columns when the precision cuts before a wide character"
+priority: P3
+kind: wrong-result
+area: Printf
+files: [stdlib/Printf/src/Printf.jl]
+functions: ["Printf.fmt(buf, pos, arg, ::Printf.Spec{<:Printf.Strings})"]
+summary: |
+  @sprintf("%5.1s", "你") and @sprintf("%-5.1s", "你") are four spaces: the width-2 character does not fit in
+  precision 1 and is dropped, but the padding is computed as if one column had been printed. The field
+  is one column narrower than the requested width 5.
+likelihood: |
+  Tables of East Asian text or emoji with a precision that cuts a wide character.
+maybe_intended: |
+  Julia measures %s width and precision in textwidth columns rather than C's bytes (compat note,
+  stdlib/Printf/src/Printf.jl:1002-1006); within that extension the field should still be W columns wide.
+reproducer: |
+  using Printf
+  right = @sprintf("%5.1s", "你")
+  left = @sprintf("%-5.1s", "你")
+  println("%5.1s wide character = ", repr(right), "; textwidth = ", textwidth(right), "; width = 5")
+  println("%-5.1s wide character = ", repr(left), "; textwidth = ", textwidth(left), "; width = 5")
+  textwidth(right) == 4 && textwidth(left) == 4 && println("REPRODUCED printf-wide-precision-padding")
+output:
+  release: |
+    %5.1s wide character = "    "; textwidth = 4; width = 5
+    %-5.1s wide character = "    "; textwidth = 4; width = 5
+    REPRODUCED printf-wide-precision-padding
+  nightly: |
+    %5.1s wide character = "    "; textwidth = 4; width = 5
+    %-5.1s wide character = "    "; textwidth = 4; width = 5
+    REPRODUCED printf-wide-precision-padding
+reproduced: {release: true, nightly: true}
+expected: |
+  Five spaces.
+promised_by: |
+  ISO/IEC 9899:1999 7.19.6.1 (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf) paragraph 4: "If the converted value has fewer characters than the field width, it is padded with
+  spaces ... to the field width." stdlib/Printf/src/Printf.jl:1002-1006: "%s (string) and %c (character)
+  widths are computed using textwidth".
+cause: |
+  stdlib/Printf/src/Printf.jl:343 sets op = min(slen, prec) and pads width - op columns (lines 344-349 and
+  370-375), but the loop at 361-365 stops before a character that does not fit and prints fewer than op
+  columns.
+possible_fix: |
+  Pad by width minus the textwidth actually printed.
+duplicates:
+  issues:
+    - {number: 41068, state: closed, relation: related}
+  queries: ["issues: printf", "issues: Printf precision", "issues/prs: printf BigFloat", "issues/prs: sprintf BigFloat", "issues/prs: Printf mpfr", "issues/prs: printf precision negative", "issues/prs: printf negative width", "issues/prs: printf dynamic width", "issues/prs: printf %g exponent", "issues/prs: printf %g style", "issues/prs: printf %.0d", "issues/prs: printf zero precision", "issues/prs: printf #x", "issues/prs: printf alternate form", "issues/prs: printf octal", "issues/prs: printf %+x", "issues/prs: printf plus unsigned", "issues/prs: printf BoundsError", "issues/prs: Printf.Format BoundsError", "issues/prs: printf %D", "issues/prs: printf textwidth", "issues/prs: printf precision unicode", "issues/prs: printf round away from zero", "issues/prs: printf ties even", "issues/prs: printf %a zero", "issues/prs: printf hex float", "issues/prs: printf InvalidFormatStringError", "issues/prs: printf C compatible"]
+lean:
+  property: JuliaLean.Printf.StringFieldWidth
+  theorem: JuliaLean.Printf.stringFieldWidth_refuted

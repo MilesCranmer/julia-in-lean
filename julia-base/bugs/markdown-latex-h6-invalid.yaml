@@ -1,0 +1,53 @@
+id: markdown-latex-h6-invalid
+title: "Markdown.latex renders level-6 headers as the nonexistent \\subsubparagraph command"
+priority: P3
+kind: wrong-result
+area: Markdown
+files: [stdlib/Markdown/src/render/latex.jl]
+functions: ["Markdown.latex(::IO, ::Markdown.Header)"]
+summary: |
+  `Markdown.latex(Markdown.parse("###### Title"))` is `"\\subsubparagraph{Title}\n"`. Standard LaTeX
+  has no `\subsubparagraph`, so compiling the output fails with an undefined control sequence.
+  Levels 1-5 map to `\section` ... `\subparagraph`.
+likelihood: |
+  Only level-6 headers, which the manual lists as supported; rare in practice.
+maybe_intended: ""
+reproducer: |
+  using Markdown
+  for l in 1:6
+      print(Markdown.latex(Markdown.parse("#"^l * " Title")))
+  end
+  occursin("\\subsubparagraph", Markdown.latex(Markdown.parse("###### Title"))) && println("REPRODUCED markdown-latex-h6-invalid")
+output:
+  release: |
+    \section{Title}
+    \subsection{Title}
+    \subsubsection{Title}
+    \paragraph{Title}
+    \subparagraph{Title}
+    \subsubparagraph{Title}
+    REPRODUCED markdown-latex-h6-invalid
+  nightly: |
+    \section{Title}
+    \subsection{Title}
+    \subsubsection{Title}
+    \paragraph{Title}
+    \subparagraph{Title}
+    \subsubparagraph{Title}
+    REPRODUCED markdown-latex-h6-invalid
+reproduced: {release: true, nightly: true}
+expected: |
+  A defined sectioning command, e.g. `\subparagraph` (the deepest standard level) for level 6.
+promised_by: |
+  Manual lists `###### Level Six` headers (stdlib/Markdown/docs/src/index.md:160-169); `latex`
+  docstring promises LaTeX output (stdlib/Markdown/src/render/latex.jl:185-199).
+cause: |
+  stdlib/Markdown/src/render/latex.jl:28: `"sub"^(l-4) * "paragraph"` gives `subsubparagraph` for l = 6.
+possible_fix: |
+  Clamp: `"sub"^min(l-4, 1) * "paragraph"`.
+duplicates:
+  issues: []
+  queries: ["subparagraph", "Markdown latex header", "Markdown latex", "Markdown.latex"]
+lean:
+  property: JuliaLean.Markdown.LatexHeaderCommands
+  theorem: JuliaLean.Markdown.latexHeaderCommands_refuted

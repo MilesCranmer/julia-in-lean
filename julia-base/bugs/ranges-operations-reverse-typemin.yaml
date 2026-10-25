@@ -1,0 +1,48 @@
+id: ranges-operations-reverse-typemin
+title: "Reversing a StepRange with a typemin step can return an empty range"
+priority: P2
+kind: wrong-result
+area: Ranges
+files: [base/range.jl]
+functions: ["reverse(::OrdinalRange)", "sort(::AbstractRange)"]
+summary: |
+  Reversing the two-element range Int8(0):typemin(Int8):typemin(Int8)
+  produces an empty range. The returned step remains negative.
+  Sorting Int8(127):typemin(Int8):Int8(-1) also returns empty, because the
+  descending-range sort at base/range.jl:1453 calls reverse. The concrete Lean
+  witness is JuliaLean.Ranges.reverseSortEmpty.
+likelihood: |
+  Rare, but reachable when a fixed-width step equals typemin. The same failure
+  occurs with Int64 and Int128 typemin steps, so this is not confined to byte types.
+maybe_intended: |
+  The reversed positive step cannot fit the original signed step type. Widening
+  or throwing would be defensible; silently returning an empty range loses data.
+reproducer: |
+  r = Int8(0):typemin(Int8):typemin(Int8)
+  s = reverse(r)
+  @assert length(r) == 2 && isempty(s)
+  @assert reverse(collect(r)) == Int8[-128, 0]
+  println("REPRODUCED ranges-operations-reverse-typemin")
+output:
+  release: |
+    REPRODUCED ranges-operations-reverse-typemin
+  nightly: |
+    REPRODUCED ranges-operations-reverse-typemin
+reproduced: {release: true, nightly: true}
+expected: "A reversed range has the same two elements, in order [-128, 0], or reports an unrepresentable step."
+promised_by: |
+  "Return a copy of v reversed from start to stop" (reverse documentation,
+  base/array.jl). Reversal preserves the number of elements.
+cause: |
+  base/range.jl:1435 reconstructs last(r):negate(step(r)):first(r).
+  Signed negate uses wrapping unary minus (base/int.jl:96), so -typemin
+  remains negative and the constructor sees incompatible endpoint direction.
+possible_fix: |
+  Detect an unrepresentable signed step negation and widen the step or throw
+  rather than constructing a range with the wrong direction.
+duplicates:
+  issues: []
+  queries: ["issues: reverse range typemin", "issues: reverse StepRange overflow", "PRs: reverse range typemin"]
+lean:
+  property: JuliaLean.Ranges.reverseCardinalityProp
+  theorem: JuliaLean.Ranges.reverseCardinalityRefuted

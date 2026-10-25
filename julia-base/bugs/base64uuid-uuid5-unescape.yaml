@@ -1,0 +1,60 @@
+id: base64uuid-uuid5-unescape
+title: "uuid5 hashes unescape_string(name) instead of the name: escape spellings collide and names with backslashes throw"
+priority: P2
+kind: wrong-result
+area: Base64Uuid
+files: [stdlib/UUIDs/src/UUIDs.jl]
+functions: ["uuid5(::UUID, ::String)"]
+summary: |
+  uuid5 computes SHA-1 over the namespace bytes followed by
+  codeunits(unescape_string(name)), not the bytes of name. Names that contain a
+  backslash are therefore changed before hashing: uuid5(ns, "a\\nb") (four characters)
+  equals uuid5(ns, "a\nb") (three characters) and differs from the RFC 4122 value, and
+  names whose backslash starts an invalid escape, such as the Windows path
+  "C:\\Users\\julia", throw ArgumentError.
+likelihood: |
+  Names with backslashes are plausible for name-based UUIDs: Windows paths, regular
+  expressions, LaTeX, JSON strings. Their UUIDs differ from every other RFC 4122
+  implementation, or uuid5 throws. Names without backslashes are unaffected.
+maybe_intended: |
+  The behaviour dates from the first uuid5 implementation and changing it would change
+  existing UUIDs for names with backslashes; nothing in the docstring or the source
+  explains the unescape_string call.
+reproducer: |
+  using UUIDs
+  ns = UUIDs.namespace_dns
+  uuid5(ns, "a\\nb") == uuid5(ns, "a\nb")   # true
+  uuid5(ns, "C:\\Users\\julia")             # ArgumentError
+output:
+  release: |
+    uuid5(ns, "a\\nb") = bc53ca1e-f585-5345-8b2a-13931664f96c
+    uuid5(ns, "a\nb")  = bc53ca1e-f585-5345-8b2a-13931664f96c
+    RFC 4122 uuid5 of "a\\nb" = 3784d226-71a4-55f7-92af-c39aeea8698f
+    uuid5(ns, "C:\\Users\\julia") = ArgumentError("invalid unicode (\\U) escape sequence")
+    REPRODUCED base64uuid-uuid5-unescape
+  nightly: |
+    uuid5(ns, "a\\nb") = bc53ca1e-f585-5345-8b2a-13931664f96c
+    uuid5(ns, "a\nb")  = bc53ca1e-f585-5345-8b2a-13931664f96c
+    RFC 4122 uuid5 of "a\\nb" = 3784d226-71a4-55f7-92af-c39aeea8698f
+    uuid5(ns, "C:\\Users\\julia") = ArgumentError("invalid unicode (\\U) escape sequence")
+    REPRODUCED base64uuid-uuid5-unescape
+reproduced: {release: true, nightly: true}
+expected: |
+  uuid5(ns, "a\\nb") == UUID("3784d226-71a4-55f7-92af-c39aeea8698f") (SHA-1 over the
+  namespace bytes and the four name bytes), and uuid5(ns, "C:\\Users\\julia") returns a UUID.
+promised_by: |
+  stdlib/UUIDs/src/UUIDs.jl:124-127 (uuid5 docstring): "Generates a version 5 (namespace
+  and domain-based) universally unique identifier (UUID), as specified by RFC 4122."
+  RFC 4122 section 4.3: "Compute the hash of the name space ID concatenated with the name."
+cause: |
+  stdlib/UUIDs/src/UUIDs.jl:152: SHA.sha1(append!(nsbytes, convert(Vector{UInt8},
+  codeunits(unescape_string(name))))).
+possible_fix: |
+  Hash codeunits(name) directly (a breaking change for names with backslashes, so it may
+  need a NEWS entry).
+duplicates:
+  issues: []
+  queries: ["uuid5 unescape_string", "uuid5", "uuid5 unescape", "uuid5 escape", "UUIDs uuid5 backslash", "uuid5 RFC 4122", "UUIDs uuid5 name", "uuid in:title"]
+lean:
+  property: JuliaLean.Base64Uuid.Uuid5HashesName
+  theorem: JuliaLean.Base64Uuid.uuid5HashesName_refuted

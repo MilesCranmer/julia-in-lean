@@ -1,0 +1,69 @@
+id: transcode-utf32-invalid
+title: "transcode(UInt32, s) throws InvalidCharError on invalid UTF-8, although transcode promises to succeed on invalid data"
+priority: P2
+kind: wrong-exception
+area: Transcode
+files: [base/strings/cstring.jl]
+functions: ["transcode(::Type{UInt32}, ::String)", "transcode(::Type{Int32}, ::String)", "transcode(::Type{UInt32}, ::AbstractVector{UInt8})", "cconvert(::Type{Cwstring}, ::AbstractString)"]
+summary: |
+  transcode(UInt32, "a\xffb") (and the Int32 = Cwchar_t variant) throws
+  InvalidCharError, while transcode(UInt16, "a\xffb") succeeds and passes the
+  invalid byte through as 0x00ff. On Linux and macOS, where Cwchar_t is Int32,
+  this makes every ccall with a Cwstring argument fail on such strings.
+likelihood: |
+  Any string read from a file, environment variable or socket can hold invalid
+  UTF-8; converting it to UTF-32 or passing it as Cwstring on non-Windows
+  systems then throws.
+maybe_intended: |
+  A malformed Char has no code point, so UInt32(c) refusing it is consistent
+  with the Char API; the transcode docstring is the only promise broken.
+reproducer: |
+  s = "a\xffb"
+  println("transcode(UInt16, s) = ", repr(transcode(UInt16, s)))
+  try
+      println("transcode(UInt32, s) = ", repr(transcode(UInt32, s)))
+  catch e
+      println("transcode(UInt32, s) threw ", typeof(e), ": ", sprint(showerror, e))
+      e isa Base.InvalidCharError && println("REPRODUCED transcode-utf32-invalid")
+  end
+output:
+  release: |
+    transcode(UInt16, s) = UInt16[0x0061, 0x00ff, 0x0062]
+    transcode(UInt32, s) threw Base.InvalidCharError{Char}: Base.InvalidCharError{Char}('\xff')
+    REPRODUCED transcode-utf32-invalid
+  nightly: |
+    transcode(UInt16, s) = UInt16[0x0061, 0x00ff, 0x0062]
+    transcode(UInt32, s) threw Base.InvalidCharError{Char}: Base.InvalidCharError{Char}('\xff')
+    REPRODUCED transcode-utf32-invalid
+reproduced: {release: true, nightly: true}
+expected: |
+  A UInt32 vector, for example UInt32[0x61, 0xff, 0x62] (passing the invalid
+  byte through, as the UTF-16 conversion does).
+promised_by: |
+  base/strings/cstring.jl:140-142: "The `transcode` function succeeds as long
+  as the input data can be reasonably represented in the target encoding; it
+  always succeeds for conversions between UTF-XX encodings, even for invalid
+  Unicode data."
+cause: |
+  transcode(::Type{T}, src::String) where {T<:Union{Int32,UInt32}} =
+  T[T(c) for c in src] (base/strings/cstring.jl:164) converts each Char with
+  UInt32(::Char), which throws InvalidCharError for malformed characters
+  (base/char.jl). The UTF-16 method (cstring.jl:185-234) instead decodes the
+  bytes itself and passes invalid bytes through.
+possible_fix: |
+  Decode bytes directly as the UTF-16 method does, mapping each byte of a
+  malformed sequence to its own code unit.
+duplicates:
+  issues: []
+  queries:
+    - "issues: transcode"
+    - "issues: transcode UInt32 invalid"
+    - "issues: transcode InvalidCharError"
+    - "issues: transcode UTF-32 invalid UTF-8"
+    - "issues: transcode Cwchar_t invalid"
+    - "issues: Cwstring invalid UTF-8"
+    - "issues: transcode always succeeds"
+    - "prs: transcode"
+lean:
+  property: JuliaLean.Transcode.Utf8ToUtf32Total
+  theorem: JuliaLean.Transcode.utf8ToUtf32Total_refuted

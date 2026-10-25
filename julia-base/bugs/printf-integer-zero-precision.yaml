@@ -1,0 +1,57 @@
+id: printf-integer-zero-precision
+title: "Printf prints 0 for a zero value with precision zero"
+priority: P2
+kind: wrong-result
+area: Printf
+files: [stdlib/Printf/src/Printf.jl]
+functions: ["Printf.fmt(buf, pos, arg, ::Printf.Spec{<:Printf.Ints})"]
+summary: |
+  %.0d, %.0i, %.0u, %.0o, %.0x and %.0X of zero print "0"; C99 prints no characters. With a width the
+  field holds a 0 instead of only spaces (@sprintf("%6.0d", 0) is "     0", glibc gives six spaces).
+likelihood: |
+  Precision zero is the C idiom for leaving zero entries blank in tables.
+maybe_intended: ""
+reproducer: |
+  using Printf
+  failures = 0
+  for c in ["d", "i", "u", "o", "x", "X"]
+      s = "%.0" * c
+      actual = Printf.format(Printf.Format(s), UInt32(0))
+      println(s, " zero = ", repr(actual), "; C99 expected ", repr(""))
+      global failures += actual == "0"
+  end
+  failures == 6 && println("REPRODUCED printf-integer-zero-precision")
+output:
+  release: |
+    %.0d zero = "0"; C99 expected ""
+    %.0i zero = "0"; C99 expected ""
+    %.0u zero = "0"; C99 expected ""
+    %.0o zero = "0"; C99 expected ""
+    %.0x zero = "0"; C99 expected ""
+    %.0X zero = "0"; C99 expected ""
+    REPRODUCED printf-integer-zero-precision
+  nightly: |
+    %.0d zero = "0"; C99 expected ""
+    %.0i zero = "0"; C99 expected ""
+    %.0u zero = "0"; C99 expected ""
+    %.0o zero = "0"; C99 expected ""
+    %.0x zero = "0"; C99 expected ""
+    %.0X zero = "0"; C99 expected ""
+    REPRODUCED printf-integer-zero-precision
+reproduced: {release: true, nightly: true}
+expected: |
+  The empty string for each of the six conversions.
+promised_by: |
+  ISO/IEC 9899:1999 7.19.6.1 (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf) paragraph 8, d and i, and o, u, x and X: "The result of converting a zero value with a precision of
+  zero is no characters." stdlib/Printf/src/Printf.jl:68 (Printf.Format docstring): "Create a C printf-compatible format object that can be used for formatting values."
+cause: |
+  stdlib/Printf/src/Printf.jl:391 uses ndigits(arg2, base=bs, pad=1), which is at least 1, and the digit loop
+  (lines 440-452) always writes it; the formatter cannot tell an explicit zero precision from none.
+possible_fix: |
+  Record whether a precision was given and print no digits for a zero value with precision zero.
+duplicates:
+  issues: []
+  queries: ["issues: printf", "issues: Printf precision", "issues/prs: printf BigFloat", "issues/prs: sprintf BigFloat", "issues/prs: Printf mpfr", "issues/prs: printf precision negative", "issues/prs: printf negative width", "issues/prs: printf dynamic width", "issues/prs: printf %g exponent", "issues/prs: printf %g style", "issues/prs: printf %.0d", "issues/prs: printf zero precision", "issues/prs: printf #x", "issues/prs: printf alternate form", "issues/prs: printf octal", "issues/prs: printf %+x", "issues/prs: printf plus unsigned", "issues/prs: printf BoundsError", "issues/prs: Printf.Format BoundsError", "issues/prs: printf %D", "issues/prs: printf textwidth", "issues/prs: printf precision unicode", "issues/prs: printf round away from zero", "issues/prs: printf ties even", "issues/prs: printf %a zero", "issues/prs: printf hex float", "issues/prs: printf InvalidFormatStringError", "issues/prs: printf C compatible"]
+lean:
+  property: JuliaLean.Printf.IntegerZeroPrecision
+  theorem: JuliaLean.Printf.integerZeroPrecision_refuted

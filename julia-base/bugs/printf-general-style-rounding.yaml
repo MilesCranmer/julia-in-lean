@@ -1,0 +1,55 @@
+id: printf-general-style-rounding
+title: "Printf %g chooses between fixed and exponential style from the wrong rounding"
+priority: P2
+kind: wrong-result
+area: Printf
+files: [stdlib/Printf/src/Printf.jl]
+functions: ["Printf.fmt(buf, pos, arg, ::Printf.Spec{<:Printf.Floats})"]
+summary: |
+  %g decides the style from the exponent after rounding to P + 1 significant digits, while C99 uses the
+  exponent after rounding to P digits. When rounding to P digits carries into the next power of ten the
+  style is wrong: @sprintf("%.3g", 999.5) is "1000" instead of "1e+03", @sprintf("%g", 9.999999e-5) is
+  "1e-04" instead of "0.0001", and @sprintf("%.1g", 9.5) is "10" instead of "1e+01".
+likelihood: |
+  Values just below a power of ten at the precision used, e.g. %g of numbers in [999999.5, 1e6) or
+  [9.9999995e-5, 1e-4). The printed value is right; the notation differs from C.
+maybe_intended: ""
+reproducer: |
+  using Printf
+  high = @sprintf("%.3g", 999.5)
+  low = @sprintf("%g", 9.999999e-5)
+  println("%.3g 999.5 = ", repr(high), "; C99 expected ", repr("1e+03"))
+  println("%g 9.999999e-5 = ", repr(low), "; C99 expected ", repr("0.0001"))
+  high == "1000" && low == "1e-04" && println("REPRODUCED printf-general-style-rounding")
+output:
+  release: |
+    %.3g 999.5 = "1000"; C99 expected "1e+03"
+    %g 9.999999e-5 = "1e-04"; C99 expected "0.0001"
+    REPRODUCED printf-general-style-rounding
+  nightly: |
+    %.3g 999.5 = "1000"; C99 expected "1e+03"
+    %g 9.999999e-5 = "1e-04"; C99 expected "0.0001"
+    REPRODUCED printf-general-style-rounding
+reproduced: {release: true, nightly: true}
+expected: |
+  "1e+03" and "0.0001".
+promised_by: |
+  ISO/IEC 9899:1999 7.19.6.1 (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf) paragraph 8, g: "Let P equal the precision if nonzero, 6 if the precision is omitted, or 1 if the
+  precision is zero. Then, if a conversion with style E would have an exponent of X: if P > X >= -4, the
+  conversion is with style f (or F) and precision P - (X + 1). Otherwise, the conversion is with style e
+  (or E) and precision P - 1." The code comment at stdlib/Printf/src/Printf.jl:530 says "C11-compliant
+  general format".
+cause: |
+  stdlib/Printf/src/Printf.jl:533 calls Ryu.writeexp(buf, pos, x, prec), which prints prec digits after the
+  point (P + 1 significant digits); the exponent read back at lines 534-545 then decides the style. The
+  C99 exponent is that of a style-e conversion with precision P - 1.
+possible_fix: |
+  Call Ryu.writeexp(buf, pos, x, prec - 1) to obtain the exponent.
+duplicates:
+  issues:
+    - {number: 14360, state: closed, relation: related}
+    - {number: 43129, state: closed, relation: related}
+  queries: ["issues: printf", "issues: Printf precision", "issues/prs: printf BigFloat", "issues/prs: sprintf BigFloat", "issues/prs: Printf mpfr", "issues/prs: printf precision negative", "issues/prs: printf negative width", "issues/prs: printf dynamic width", "issues/prs: printf %g exponent", "issues/prs: printf %g style", "issues/prs: printf %.0d", "issues/prs: printf zero precision", "issues/prs: printf #x", "issues/prs: printf alternate form", "issues/prs: printf octal", "issues/prs: printf %+x", "issues/prs: printf plus unsigned", "issues/prs: printf BoundsError", "issues/prs: Printf.Format BoundsError", "issues/prs: printf %D", "issues/prs: printf textwidth", "issues/prs: printf precision unicode", "issues/prs: printf round away from zero", "issues/prs: printf ties even", "issues/prs: printf %a zero", "issues/prs: printf hex float", "issues/prs: printf InvalidFormatStringError", "issues/prs: printf C compatible"]
+lean:
+  property: JuliaLean.Printf.GeneralStyle
+  theorem: JuliaLean.Printf.generalStyle_refuted

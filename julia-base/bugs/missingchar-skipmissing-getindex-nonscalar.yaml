@@ -1,0 +1,69 @@
+id: missingchar-skipmissing-getindex-nonscalar
+title: "skipmissing(x)[1:2] returns missing values instead of throwing MissingException"
+priority: P3
+kind: missing-error
+area: MissingChar
+files: [base/missing.jl]
+functions: ["getindex(::SkipMissing, I...)"]
+summary: |
+  Scalar indexing of skipmissing(x) at a missing entry throws MissingException,
+  but indexing with a range or vector of indices returns the parent's values
+  unchanged, missing included: skipmissing([1, missing, 3])[1:2] is
+  Union{Missing, Int64}[1, missing] and skipmissing([1, missing, 3])[[2]] is
+  [missing].
+likelihood: |
+  Low: non-scalar indexing of a SkipMissing is rare, but code that slices it
+  silently gets missing values from an object meant to have none.
+maybe_intended: |
+  Non-scalar indexing of SkipMissing is not documented; the getindex method only
+  checks ismissing on the whole result, which is never missing for an array.
+reproducer: |
+  x = [1, missing, 3]
+  s = skipmissing(x)
+  f(g) = try repr(g()) catch e; "THROWS " * first(split(sprint(showerror, e), '\n')) end
+  println("s[2]   = ", f(() -> s[2]))
+  println("s[1:2] = ", f(() -> s[1:2]))
+  println("s[[2]] = ", f(() -> s[[2]]))
+  v = s[1:2]
+  any(ismissing, v) && startswith(f(() -> s[2]), "THROWS MissingException") &&
+      println("REPRODUCED missingchar-skipmissing-getindex-nonscalar")
+output:
+  release: |
+    s[2]   = THROWS MissingException: the value at index (2,) is missing
+    s[1:2] = Union{Missing, Int64}[1, missing]
+    s[[2]] = Union{Missing, Int64}[missing]
+    REPRODUCED missingchar-skipmissing-getindex-nonscalar
+  nightly: |
+    s[2]   = THROWS MissingException: the value at index (2,) is missing
+    s[1:2] = Union{Missing, Int64}[1, missing]
+    s[[2]] = Union{Missing, Int64}[missing]
+    REPRODUCED missingchar-skipmissing-getindex-nonscalar
+reproduced: {release: true, nightly: true}
+expected: |
+  A MissingException for the index 2 (or a MethodError if non-scalar indexing is
+  unsupported), never a result containing missing.
+promised_by: |
+  The skipmissing docstring, base/missing.jl:186-188: "Indices corresponding to
+  missing values are not valid: they are skipped by keys and eachindex, and a
+  MissingException is thrown when trying to use them."
+cause: |
+  base/missing.jl:257-261: getindex(itr::SkipMissing, I...) computes
+  v = itr.x[I...] and throws only if ismissing(v); for array-valued I the result
+  v is an array, so the check never fires.
+possible_fix: |
+  Restrict the method to scalar indices, or check any(ismissing, v) when v is an
+  array.
+duplicates:
+  issues:
+    - {number: 30606, state: open, relation: related}
+  queries:
+    - "issues: skipmissing getindex range"
+    - "issues: skipmissing indexing vector"
+    - "issues: skipmissing range index"
+    - "issues: SkipMissing getindex"
+    - "issues: skipmissing getindex vector"
+    - "issues: skipmissing index range missing"
+    - "prs: skipmissing getindex"
+lean:
+  property: JuliaLean.MissingChar.SkipMissingGetindexNoMissing
+  theorem: JuliaLean.MissingChar.skipMissingGetindexNoMissing_refuted

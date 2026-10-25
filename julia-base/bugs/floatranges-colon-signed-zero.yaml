@@ -1,0 +1,54 @@
+id: floatranges-colon-signed-zero
+title: first(-0.0:1.0:2.0) is +0.0
+priority: P3
+kind: wrong-result
+area: FloatRanges
+files:
+- base/twiceprecision.jl
+functions:
+- (:)(::Float64, ::Float64, ::Float64)
+- range(::Float64; step, length)
+summary: |
+  The rational branch of (:) and range(start; step, length) rebuilds the start from its
+  integer numerator, so a start of -0.0 comes back as +0.0.
+likelihood: |
+  Only code distinguishing signed zeros notices; cosmetic.
+maybe_intended: |
+  -0.0 == 0.0, so the range compares equal to the expected one.
+reproducer: |
+  r = -0.0:1.0:2.0
+  println("first(-0.0:1.0:2.0) = ", repr(first(r)), "   signbit = ", signbit(first(r)))
+  println("first(range(-0.0; step=1.0, length=3)) = ", repr(first(range(-0.0; step=1.0, length=3))))
+  !signbit(first(r)) && println("REPRODUCED floatranges-colon-signed-zero")
+output:
+  release: |
+    first(-0.0:1.0:2.0) = 0.0   signbit = false
+    first(range(-0.0; step=1.0, length=3)) = 0.0
+    REPRODUCED floatranges-colon-signed-zero
+  nightly: |
+    first(-0.0:1.0:2.0) = 0.0   signbit = false
+    first(range(-0.0; step=1.0, length=3)) = 0.0
+    REPRODUCED floatranges-colon-signed-zero
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  first(-0.0:1.0:2.0) === -0.0.
+promised_by: |
+  (:) docstring, base/range.jl:42-52: the range starts at a.
+cause: |
+  base/twiceprecision.jl:768: rat(-0.0) returns (0, 1) because 0.0/1.0 == -0.0;
+  TwicePrecision{Float64}((0, 1)) is +0.0.
+possible_fix: |
+  Use the literal branch (or copysign) when start is -0.0.
+duplicates:
+  issues: []
+  queries:
+  - range -0.0
+  - negative zero range
+  - signbit range
+  - first range zero
+  - range negative zero
+lean:
+  property: JuliaLean.FloatRanges.ColonFirstIdentical
+  theorem: JuliaLean.FloatRanges.colonFirstIdentical_refuted

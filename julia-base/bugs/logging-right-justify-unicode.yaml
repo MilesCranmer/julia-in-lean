@@ -1,0 +1,52 @@
+id: logging-right-justify-unicode
+title: "ConsoleLogger right_justify misaligns metadata after wide or combining characters"
+priority: P3
+kind: wrong-result
+area: Logging
+files: [base/logging/ConsoleLogger.jl]
+functions: ["termlength", "handle_message(::ConsoleLogger, ...)"]
+summary: |
+  ConsoleLogger computes the terminal width of a message by adding one per Unicode
+  character. A CJK character occupies two columns and a combining mark occupies
+  zero, so metadata requested at column 20 ends at columns 21 and 19 respectively.
+likelihood: |
+  Non-ASCII log messages are common. The effect is cosmetic and appears only when
+  right_justify is positive and the suffix fits on the message line.
+maybe_intended: ""
+reproducer: |
+  ConsoleLogger(io; meta_formatter=(args...)->(:normal, "PREFIX", "SUFFIX"),
+                right_justify=20)
+  @warn "界"
+  @warn "e\u0301"
+output:
+  release: |
+    ASCII textwidth = 20: "[ PREFIX xxx  SUFFIX\n"
+    wide textwidth = 21: "[ PREFIX 界    SUFFIX\n"
+    combining textwidth = 19: "[ PREFIX é   SUFFIX\n"
+    REPRODUCED logging-right-justify-unicode
+  nightly: |
+    ASCII textwidth = 20: "[ PREFIX xxx  SUFFIX\n"
+    wide textwidth = 21: "[ PREFIX 界    SUFFIX\n"
+    combining textwidth = 19: "[ PREFIX é   SUFFIX\n"
+    REPRODUCED logging-right-justify-unicode
+reproduced: {release: true, nightly: true}
+expected: |
+  All three rendered lines should have terminal text width 20, so the SUFFIX
+  metadata is right justified at the requested column.
+promised_by: |
+  base/logging/ConsoleLogger.jl:25-26 says right_justify is the column where log
+  metadata is right justified. Lines 90-92 describe termlength as displayed length
+  after ANSI color codes are removed.
+cause: |
+  base/logging/ConsoleLogger.jl:92-108 increments N by one for each non-ANSI Char
+  instead of adding its terminal text width. Lines 169-172 use that count to choose
+  the metadata padding.
+possible_fix: |
+  Add textwidth(c) for each visible character in termlength, with the existing ANSI
+  escape handling retained.
+duplicates:
+  issues: []
+  queries: ["right_justify ConsoleLogger", "termlength logging", "ConsoleLogger unicode width"]
+lean:
+  property: JuliaLean.Logging.RightJustifyUsesDisplayWidth
+  theorem: JuliaLean.Logging.rightJustifyUsesDisplayWidth_refuted

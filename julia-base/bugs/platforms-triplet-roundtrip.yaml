@@ -1,0 +1,69 @@
+id: platforms-triplet-roundtrip
+title: "parse(Platform, triplet(p)) fails or differs for strictly validated platforms (empty tag value, libgfortran6, minor versions)"
+priority: P3
+kind: wrong-result
+area: Platforms
+files: [base/binaryplatforms.jl]
+functions: ["triplet(::AbstractPlatform)", "parse(::Type{Platform}, ::String)", "Platform(arch, os; kwargs...)"]
+summary: |
+  Platform("x86_64", "linux"; foo = "", validate_strict = true) is accepted, its triplet
+  is "x86_64-linux-gnu-foo+", and parse rejects that string with ArgumentError. Other
+  strictly valid platforms whose triplet does not parse back are libgfortran_version = "6"
+  (or "2"); platforms whose triplet parses to a different platform are libgfortran_version
+  = "4.1" (reparsed as 4.0.0), a libstdc++ version outside 3.4.x, a macOS os_version with a
+  minor part, a FreeBSD os_version with a patch part, and any os_version on Linux or Windows.
+likelihood: |
+  Low. Empty tag values and these versions are unusual, though a libgfortran6 platform
+  would appear as soon as a GCC release bumps the libgfortran soname.
+maybe_intended: |
+  The triplet is a compact name and may be meant to be lossy for minor versions; the
+  empty value and libgfortran6 cases are still accepted by the validator but yield a
+  string parse rejects.
+reproducer: |
+  using Base.BinaryPlatforms
+  p = Platform("x86_64", "linux"; foo = "", validate_strict = true)
+  println("p = ", repr(p))
+  t = triplet(p)
+  println("triplet(p) = ", repr(t))
+  r = try
+      parse(Platform, t)
+  catch e
+      e
+  end
+  println("parse(Platform, triplet(p)) => ", r isa Exception ? sprint(showerror, r) : repr(r))
+  if r isa ArgumentError
+      println("REPRODUCED platforms-triplet-roundtrip")
+  end
+output:
+  release: |
+    p = Platform("x86_64", "linux"; foo = "", libc = "glibc")
+    triplet(p) = "x86_64-linux-gnu-foo+"
+    parse(Platform, triplet(p)) => ArgumentError: Platform `x86_64-linux-gnu-foo+` is not an officially supported platform
+    REPRODUCED platforms-triplet-roundtrip
+  nightly: |
+    p = Platform("x86_64", "linux"; foo = "", libc = "glibc")
+    triplet(p) = "x86_64-linux-gnu-foo+"
+    parse(Platform, triplet(p)) => ArgumentError: Platform `x86_64-linux-gnu-foo+` is not an officially supported platform
+    REPRODUCED platforms-triplet-roundtrip
+reproduced: {release: true, nightly: true}
+expected: |
+  Either validate_strict rejects the empty tag value, or parse(Platform, triplet(p)) == p.
+promised_by: |
+  Invariant: parse(::Type{Platform}, triplet) "Parses a string platform triplet back into
+  a Platform object" (base/binaryplatforms.jl:755-759). The Platform docstring
+  (base/binaryplatforms.jl:32-33) says valid tag values "are composed of alphanumeric and
+  period characters", which excludes the empty string only if read as nonempty.
+cause: |
+  add_tag! (base/binaryplatforms.jl:154-171) accepts an empty value; triplet prints
+  "-foo+" (base/binaryplatforms.jl:600) but the tag grammar `-[^-]+\+[^-]+`
+  (base/binaryplatforms.jl:750) needs a nonempty value. libgfortran_version_mapping
+  (base/binaryplatforms.jl:717-722) lists only libgfortran3/4/5.
+possible_fix: |
+  Reject empty tag names and values in add_tag!, and accept `-libgfortran\d+` in the
+  triplet grammar.
+duplicates:
+  issues: []
+  queries: ["BinaryPlatforms triplet", "BinaryPlatforms triplet roundtrip", "triplet os_version", "libgfortran_version minor"]
+lean:
+  property: JuliaLean.Platforms.TripletRoundtrip
+  theorem: JuliaLean.Platforms.tripletRoundtrip_refuted

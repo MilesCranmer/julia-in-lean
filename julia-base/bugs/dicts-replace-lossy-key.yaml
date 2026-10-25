@@ -1,0 +1,59 @@
+id: dicts-replace-lossy-key
+title: "replace!(f, ::Dict) and replace!(f, ::Set) convert new keys lossily instead of throwing like setindex!/push!"
+priority: P2
+kind: wrong-result
+area: Dicts
+files: [base/set.jl]
+functions: ["replace!(::Function, ::Dict)", "replace!(::Function, ::Set)", "replace(::Function, ::Set)", "replace!(::Set, ::Pair)"]
+summary: |
+  The Dict specialization of _replace! collects replacement pairs whose key is
+  not isequal to the old key in a Vector{Pair{K,V}}, which converts the key
+  to K without the isequal(convert(K, key0), key0) check of setindex!. So
+  replace!(p -> 0.1 => 2, Dict{Float32,Int}(1f0 => 1)) stores 0.1f0 and
+  haskey(d, 0.1) is false afterwards; the Set method (which delegates to it)
+  does the same, while push!(Set{Float32}(), 0.1) throws.
+likelihood: |
+  Needs a replacement function returning keys of a wider type than the
+  collection's key type (e.g. Float64 values for a Set{Float32}). Plausible in
+  numeric code; silently stores a different key.
+maybe_intended: |
+  The generic AbstractDict method (base/set.jl:909-943) also converts through
+  a Vector{Pair{eltype(A),eltype(A)}} in its aliased branch, so the lossy
+  conversion may be inherited rather than chosen; setindex!, push!, merge!,
+  mergewith! and get! all throw for the same key.
+reproducer: |
+  d = replace!(p -> 0.1 => 2, Dict{Float32,Int}(1f0 => 1)); haskey(d, 0.1)   # false
+  s = replace!(x -> 0.1, Set{Float32}([1f0])); 0.1 in s                     # false
+  push!(Set{Float32}(), 0.1)                                                 # TypeError
+output:
+  release: |
+    replace!(p -> 0.1 => 2, Dict{Float32,Int}(1f0 => 1)) = Dict{Float32, Int64}(0.1 => 2); haskey(d, 0.1) = false
+    replace!(x -> 0.1, Set{Float32}([1f0])) = Set(Float32[0.1]); 0.1 in s = false
+    push!(Set{Float32}(), 0.1) throws: TypeError: 0.1 is not a valid key for type Float32
+    REPRODUCED dicts-replace-lossy-key
+  nightly: |
+    replace!(p -> 0.1 => 2, Dict{Float32,Int}(1f0 => 1)) = Dict{Float32, Int64}(0.1 => 2); haskey(d, 0.1) = false
+    replace!(x -> 0.1, Set{Float32}([1f0])) = Set(Float32[0.1]); 0.1 in s = false
+    push!(Set{Float32}(), 0.1) throws: TypeError: 0.1 is not a valid key for type Float32
+    REPRODUCED dicts-replace-lossy-key
+reproduced: {release: true, nightly: true}
+expected: |
+  The same TypeError (KeyTypeError) that d[0.1] = 2 and push!(s, 0.1) throw,
+  or a result in which 0.1 is a key.
+promised_by: |
+  replace! docstring, base/set.jl:778: "Replace each element `x` in
+  collection `A` by `new(x)`"; setindex!(::Dict, v, key0) rejects keys whose
+  conversion is not isequal (base/dict.jl:347-357).
+cause: |
+  base/set.jl:999: push!(news, x2) into news = Pair{K,V}[] (line 985)
+  converts x2's key with convert(K, k2) and no isequal check; line 1007 then
+  inserts the converted key.
+possible_fix: |
+  Store the unconverted pairs (Vector{Any} or the new pair type) and insert
+  them with t[k2] = v2, which performs the KeyTypeError check.
+duplicates:
+  issues: []
+  queries: ["replace! Dict KeyTypeError", "replace! Set Float32", "replace! lossy key"]
+lean:
+  property: JuliaLean.Dicts.ReplaceKeepsReplacements
+  theorem: JuliaLean.Dicts.replaceKeepsReplacements_refuted

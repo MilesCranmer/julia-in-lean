@@ -1,0 +1,82 @@
+id: platforms-select-order
+title: "select_platform depends on Dict insertion order when two keys have the same triplet"
+priority: P3
+kind: wrong-result
+area: Platforms
+files: [base/binaryplatforms.jl]
+functions: ["select_platform(::Dict, ::AbstractPlatform)"]
+summary: |
+  select_platform breaks ties between equally good matches by comparing triplet strings.
+  Distinct platforms can share a triplet (here libgfortran_version 5.0.0 and 5.5.0 both
+  print as "libgfortran5"); the stable sort then keeps the order of the candidates, which
+  comes from the Dict's iteration order. Two equal Dicts built in different insertion
+  orders therefore select different values.
+likelihood: |
+  Low: needs two artifact platforms that differ only in information triplet drops
+  (minor versions, os_version on Linux, compare strategies).
+maybe_intended: |
+  The comment at base/binaryplatforms.jl:1232-1234 only aims to "generally choose the
+  latest release"; ties between platforms with equal triplets may be considered
+  unimportant.
+reproducer: |
+  using Base.BinaryPlatforms
+  host = Platform("x86_64", "linux")
+  key(m) = Platform("x86_64", "linux"; libgfortran_version = "5.$m.0", validate_strict = true)
+  function build(pairs)
+      d = Dict{Platform,String}()
+      for (k, v) in pairs
+          d[k] = v
+      end
+      return d
+  end
+  found = false
+  for a in 0:40, b in a+1:40
+      ka, kb = key(a), key(b)
+      d1 = build([ka => "5.$a", kb => "5.$b"])
+      d2 = build([kb => "5.$b", ka => "5.$a"])
+      s1, s2 = select_platform(d1, host), select_platform(d2, host)
+      if d1 == d2 && s1 != s2
+          println("triplet(ka) = ", triplet(ka), ", triplet(kb) = ", triplet(kb))
+          println("d1 = ", d1, "\nd2 = ", d2, "\nd1 == d2: ", d1 == d2)
+          println("select_platform(d1, host) = ", repr(s1), ", select_platform(d2, host) = ", repr(s2))
+          println("REPRODUCED platforms-select-order")
+          global found = true
+          break
+      end
+  end
+  found || println("no order dependence found")
+output:
+  release: |
+    triplet(ka) = x86_64-linux-gnu-libgfortran5, triplet(kb) = x86_64-linux-gnu-libgfortran5
+    d1 = Dict{Platform, String}(Platform("x86_64", "linux"; libc = "glibc", libgfortran_version = "5.0.0") => "5.0", Platform("x86_64", "linux"; libc = "glibc", libgfortran_version = "5.5.0") => "5.5")
+    d2 = Dict{Platform, String}(Platform("x86_64", "linux"; libc = "glibc", libgfortran_version = "5.5.0") => "5.5", Platform("x86_64", "linux"; libc = "glibc", libgfortran_version = "5.0.0") => "5.0")
+    d1 == d2: true
+    select_platform(d1, host) = "5.0", select_platform(d2, host) = "5.5"
+    REPRODUCED platforms-select-order
+  nightly: |
+    triplet(ka) = x86_64-linux-gnu-libgfortran5, triplet(kb) = x86_64-linux-gnu-libgfortran5
+    d1 = Dict{Platform, String}(Platform("x86_64", "linux"; libc = "glibc", libgfortran_version = "5.0.0") => "5.0", Platform("x86_64", "linux"; libc = "glibc", libgfortran_version = "5.5.0") => "5.5")
+    d2 = Dict{Platform, String}(Platform("x86_64", "linux"; libc = "glibc", libgfortran_version = "5.5.0") => "5.5", Platform("x86_64", "linux"; libc = "glibc", libgfortran_version = "5.0.0") => "5.0")
+    d1 == d2: true
+    select_platform(d1, host) = "5.0", select_platform(d2, host) = "5.5"
+    REPRODUCED platforms-select-order
+reproduced: {release: true, nightly: true}
+expected: |
+  The same value for equal Dicts, e.g. by breaking remaining ties with a total order on
+  the platforms' tags.
+promised_by: |
+  Invariant: select_platform(download_info, platform) is a function of the Dict's
+  contents; its docstring (base/binaryplatforms.jl:1204-1209) describes the choice only
+  in terms of the keys and how well they match.
+cause: |
+  base/binaryplatforms.jl:1216 collects candidates in Dict iteration order and
+  base/binaryplatforms.jl:1235-1242 sorts with a comparison that treats keys with equal
+  match loss and equal triplet as tied, so the stable sort keeps that order.
+possible_fix: |
+  Add a final tie-break on the sorted tag lists (or on repr) of the two platforms.
+duplicates:
+  issues: []
+  queries: ["select_platform", "select_platform order"]
+lean:
+  property: JuliaLean.Platforms.SelectOrderIndependent
+  theorem: JuliaLean.Platforms.selectOrderIndependent_refuted

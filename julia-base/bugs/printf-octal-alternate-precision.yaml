@@ -1,0 +1,49 @@
+id: printf-octal-alternate-precision
+title: "Printf %#o adds a zero even when the precision already supplies one"
+priority: P2
+kind: wrong-result
+area: Printf
+files: [stdlib/Printf/src/Printf.jl]
+functions: ["Printf.fmt(buf, pos, arg, ::Printf.Spec{<:Printf.Ints})"]
+summary: |
+  @sprintf("%#.5o", 1) is "000001" (six digits) instead of "00001", and @sprintf("%#o", 0) is "00" instead
+  of "0". The # flag is implemented as an extra leading 0 rather than as a minimum precision.
+likelihood: |
+  Octal with # and a precision is unusual; %#o of zero is plausible.
+maybe_intended: |
+  stdlib/Printf/test/runtests.jl:655 asserts @sprintf("%#o", UInt(0)) == "00", so the zero case is deliberate;
+  the precision case is not tested.
+reproducer: |
+  using Printf
+  zero = @sprintf("%#o", UInt32(0))
+  padded = @sprintf("%#.5o", UInt32(1))
+  println("%#o zero = ", repr(zero), "; C99 expected ", repr("0"))
+  println("%#.5o one = ", repr(padded), "; C99 expected ", repr("00001"))
+  zero == "00" && padded == "000001" && println("REPRODUCED printf-octal-alternate-precision")
+output:
+  release: |
+    %#o zero = "00"; C99 expected "0"
+    %#.5o one = "000001"; C99 expected "00001"
+    REPRODUCED printf-octal-alternate-precision
+  nightly: |
+    %#o zero = "00"; C99 expected "0"
+    %#.5o one = "000001"; C99 expected "00001"
+    REPRODUCED printf-octal-alternate-precision
+reproduced: {release: true, nightly: true}
+expected: |
+  "00001" and "0".
+promised_by: |
+  ISO/IEC 9899:1999 7.19.6.1 (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf) paragraph 6, #: "For o conversion, it increases the precision, if and only if necessary, to force
+  the first digit of the result to be a zero (if the value and precision are both 0, a single 0 is
+  printed)." stdlib/Printf/src/Printf.jl:68 (Printf.Format docstring): "Create a C printf-compatible format object that can be used for formatting values."
+cause: |
+  stdlib/Printf/src/Printf.jl:395 counts and 412-414 write a separate '0'; the precision padding at 429-433 is
+  then added in full.
+possible_fix: |
+  For %#o, raise the precision to ndigits + 1 when the first digit would not be 0, instead of a prefix.
+duplicates:
+  issues: []
+  queries: ["issues: printf", "issues: Printf precision", "issues/prs: printf BigFloat", "issues/prs: sprintf BigFloat", "issues/prs: Printf mpfr", "issues/prs: printf precision negative", "issues/prs: printf negative width", "issues/prs: printf dynamic width", "issues/prs: printf %g exponent", "issues/prs: printf %g style", "issues/prs: printf %.0d", "issues/prs: printf zero precision", "issues/prs: printf #x", "issues/prs: printf alternate form", "issues/prs: printf octal", "issues/prs: printf %+x", "issues/prs: printf plus unsigned", "issues/prs: printf BoundsError", "issues/prs: Printf.Format BoundsError", "issues/prs: printf %D", "issues/prs: printf textwidth", "issues/prs: printf precision unicode", "issues/prs: printf round away from zero", "issues/prs: printf ties even", "issues/prs: printf %a zero", "issues/prs: printf hex float", "issues/prs: printf InvalidFormatStringError", "issues/prs: printf C compatible"]
+lean:
+  property: JuliaLean.Printf.OctalHashPrecision
+  theorem: JuliaLean.Printf.octalHashPrecision_refuted

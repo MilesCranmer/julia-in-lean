@@ -1,0 +1,8 @@
+name = "JuliaLean"
+defaultTargets = ["JuliaLean"]
+
+[[lean_lib]]
+name = "JuliaLean"
+# Per-file memory cap (MB), so a runaway elaboration fails instead of
+# exhausting the machine's memory.
+moreLeanArgs = ["-M8000"]

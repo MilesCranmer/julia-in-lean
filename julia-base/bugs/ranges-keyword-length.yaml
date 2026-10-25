@@ -1,0 +1,68 @@
+id: ranges-keyword-length
+title: "range(start; length) and range(start; step, length) silently return an empty range when the stop overflows"
+priority: P2
+kind: wrong-result
+area: Ranges
+files: [base/range.jl]
+functions: ["range(start; length)", "range(start; step, length)", "range(; stop, length)", "range(; step, stop, length)"]
+summary: |
+  For signed integers, the length-taking range constructors compute the stop
+  with wrapping arithmetic and then build a UnitRange or StepRange from it.
+  When the true stop does not fit the type, the result is an empty range
+  instead of a range with the requested length or an error.
+likelihood: |
+  Needs elements beyond typemax/typemin of the element type, e.g. a start near
+  typemax(Int) or a huge step. Uncommon, but the failure is silent.
+maybe_intended: |
+  The source comment "overflow in recomputing length from stop is okay"
+  (base/range.jl:224) shows that some overflow is accepted on purpose, but it
+  refers to length() overflowing for a correct stop, not to a wrong stop.
+reproducer: |
+  r = range(typemax(Int) - 1; length=5)
+  println("range(typemax(Int) - 1; length=5) = ", repr(r))
+  println("length = ", length(r))
+  s = range(0; step=2^62, length=3)
+  println("range(0; step=2^62, length=3) = ", repr(s))
+  println("length = ", length(s))
+  println("expected length = 5 and 3, or an OverflowError")
+  length(r) == 0 && length(s) == 0 && println("REPRODUCED ranges-keyword-length")
+output:
+  release: |
+    range(typemax(Int) - 1; length=5) = 9223372036854775806:9223372036854775805
+    length = 0
+    range(0; step=2^62, length=3) = 0:4611686018427387904:-1
+    length = 0
+    expected length = 5 and 3, or an OverflowError
+    REPRODUCED ranges-keyword-length
+  nightly: |
+    range(typemax(Int) - 1; length=5) = 9223372036854775806:9223372036854775805
+    length = 0
+    range(0; step=2^62, length=3) = 0:4611686018427387904:-1
+    length = 0
+    expected length = 5 and 3, or an OverflowError
+    REPRODUCED ranges-keyword-length
+reproduced: {release: true, nightly: true}
+expected: |
+  A range of length 5 (and 3), or an OverflowError because the elements do not
+  fit in Int. An empty range is never correct when a positive length was requested.
+promised_by: |
+  range docstring, base/range.jl:80: "Mathematically a range is uniquely
+  determined by any three of `start`, `step`, `stop` and `length`." The
+  requested length is one of the three determining parameters.
+cause: |
+  base/range.jl:222 computes stop = _range_wrapping_add(a, len - oneunit(len))
+  and base/range.jl:233 the same with a wrapped step product; the Signed branch
+  (base/range.jl:223-226, 234-237) then calls UnitRange/StepRange, which treat
+  the wrapped stop as lying before start and normalize to an empty range.
+  range_stop_length and range_step_stop_length (base/range.jl:200, 211) have the
+  same shape for the start.
+possible_fix: |
+  Use checked arithmetic for the stop (or start) in the Signed branch and throw
+  OverflowError when it does not fit.
+duplicates:
+  issues:
+    - {number: 59032, state: open, relation: related}
+  queries: ["range length overflow", "range start length overflow", "range .* overflow", "StepRangeLen InexactError"]
+lean:
+  property: JuliaLean.Ranges.KeywordLengthPreserved
+  theorem: JuliaLean.Ranges.keywordLength_refuted

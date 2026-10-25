@@ -1,0 +1,68 @@
+id: iddicts-weakkeydict-length
+title: "WeakKeyDict: re-setting an isequal key registers no finalizer for it; after it is collected, length counts a dead entry forever"
+priority: P2
+kind: wrong-result
+area: IdDicts
+files: [base/weakdict.jl]
+functions: ["setindex!(::WeakKeyDict, v, key)", "length(::WeakKeyDict)", "iterate(::WeakKeyDict)", "haskey(::WeakKeyDict, key)"]
+summary: |
+  When setindex!(wkh, v, key) finds an existing isequal key, it points the
+  existing WeakRef at the new key object (k.value = key) but registers the
+  dictionary's finalizer only for brand-new keys (base/weakdict.jl:97-103).
+  The entry is now held through the new key alone. When that key is
+  collected, the WeakRef becomes nothing but no finalizer marks the
+  dictionary dirty, so the dead entry is never swept while the first key
+  lives: length(wkh) still counts it, iteration skips it, haskey with the
+  first key is false, and storing that key again adds a second entry
+  (length 2, one pair iterated).
+likelihood: |
+  Needs two distinct but isequal keys (equal arrays or strings, structs with
+  custom ==/hash) stored in turn, the later one dropped while the earlier
+  one stays reachable. Ordinary for caches keyed by value-equal objects; the
+  symptom depends on GC timing.
+maybe_intended: |
+  Dropping the entry when the newest key object dies follows from storing
+  that object (as Dict does), so the vanished entry may be intended; the
+  stale count and the duplicate entry are not.
+reproducer: |
+  wk = WeakKeyDict{Any,Any}()
+  k1 = [1]; wk[k1] = :first
+  (wk -> (wk[[1]] = :second; nothing))(wk)   # isequal key, then unreachable
+  GC.gc(); GC.gc(); GC.gc()
+  length(wk), collect(wk)                    # (1, Pair{Any,Any}[])
+  wk[k1] = :third
+  length(wk), collect(wk)                    # (2, [[1] => :third])
+output:
+  release: |
+    after the second key was collected: length = 1, collect = Pair{Any, Any}[], haskey(wk, k1) = false
+    after wk[k1] = :third: length = 2, collect = Pair{Any, Any}[[1] => :third]
+    REPRODUCED iddicts-weakkeydict-length
+  nightly: |
+    after the second key was collected: length = 1, collect = Pair{Any, Any}[], haskey(wk, k1) = false
+    after wk[k1] = :third: length = 2, collect = Pair{Any, Any}[[1] => :third]
+    REPRODUCED iddicts-weakkeydict-length
+reproduced: {release: true, nightly: true}
+expected: |
+  length(wk) equals the number of pairs iteration yields (0, then 1): the
+  dead entry is swept once its key is collected.
+promised_by: |
+  Invariant: length of an iterable equals the number of elements it yields;
+  WeakKeyDict docstring, base/weakdict.jl:14-16: keys "may be garbage
+  collected even when referenced in a hash table", and length
+  (base/weakdict.jl:190-195) sweeps collected keys before counting.
+cause: |
+  base/weakdict.jl:97-103: only the `k === nothing` branch calls
+  finalizer(wkh.finalizer, key); the `k.value = key` branch retargets the
+  WeakRef without one, so the only finalizer that sets wkh.dirty is on the
+  old key object. length (base/weakdict.jl:190-195) sweeps only when dirty.
+  1.13.2 has the same code in base/weakkeydict.jl:96-104.
+possible_fix: |
+  Register finalizer(wkh.finalizer, key) in the `k.value = key` branch too
+  (when key !== k.value).
+duplicates:
+  issues:
+    - {number: 24721, state: closed, relation: related}
+  queries: ["WeakKeyDict finalizer", "WeakKeyDict length", "WeakKeyDict isequal key", "WeakKeyDict replace key", "WeakKeyDict dirty", "WeakKeyDict WeakRef value", "WeakKeyDict setindex", "WeakKeyDict stale entry", "WeakKeyDict collected key", "WeakKeyDict"]
+lean:
+  property: JuliaLean.IdDicts.WeakKeyLengthLive
+  theorem: JuliaLean.IdDicts.weakKeyLengthLive_refuted

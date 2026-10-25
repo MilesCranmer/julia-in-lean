@@ -1,0 +1,50 @@
+id: toml-single-line-continuation
+title: "TOML parser accepts a line-ending backslash inside a single-line basic string"
+priority: P2
+kind: missing-error
+area: Toml
+files: [base/toml/parser.jl]
+functions: ["Base.TOML.parse_string_continue", "TOML.parse"]
+summary: |
+  A backslash followed by a newline is a line continuation only in multi-line basic
+  strings. In a single-line basic string the newline is not allowed at all, but Julia
+  applies the continuation anyway: `TOML.parse("a = \"x\\\ny\"")` returns
+  `Dict("a" => "xy")` instead of an error. The same applies to quoted keys.
+likelihood: |
+  Needs an invalid document. A long single-line string broken with a backslash is a
+  plausible mistake; Julia accepts it where other TOML parsers refuse.
+maybe_intended: ""
+reproducer: |
+  import TOML
+  TOML.parse("a = \"x\\\ny\"")   # Dict("a" => "xy")
+output:
+  release: |
+    "a = \"x\\\ny\""
+    Dict{String, Any}("a" => "xy")
+    REPRODUCED toml-single-line-continuation
+  nightly: |
+    "a = \"x\\\ny\""
+    Dict{String, Any}("a" => "xy")
+    REPRODUCED toml-single-line-continuation
+reproduced: {release: true, nightly: true}
+expected: |
+  A `ParserError` (`ErrNewLineInString` or `ErrInvalidEscapeCharacter`).
+promised_by: |
+  TOML v1.1.0, "String": basic strings may not contain the control characters
+  U+000A-U+001F, and the "line ending backslash" is described only for multi-line basic
+  strings. `\` followed by a newline is not one of the listed escapes, and "All other
+  escape sequences not listed above are reserved; if they are used, TOML should produce
+  an error."
+cause: |
+  base/toml/parser.jl:1410-1414 handles `\` followed by `\n` or `\r` as a line
+  continuation without checking `multiline`, so the newline check at
+  base/toml/parser.jl:1397 is never reached for it.
+possible_fix: |
+  Apply the continuation only when `multiline` is true; otherwise treat it as an
+  invalid escape.
+duplicates:
+  issues: []
+  queries: ["TOML line continuation", "TOML backslash", "TOML multiline string", "TOML escape"]
+lean:
+  property: JuliaLean.Toml.SingleLineNoContinuation
+  theorem: JuliaLean.Toml.singleLineNoContinuation_refuted

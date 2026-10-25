@@ -1,0 +1,52 @@
+id: stringutil-startswith-io-eof
+title: "startswith(io, chars) throws EOFError on an empty stream and leaves it marked"
+priority: P2
+kind: wrong-exception
+area: StringUtil
+files: [base/strings/util.jl]
+functions: ["startswith(::IO, ::Base.Chars)"]
+summary: |
+  startswith(IOBuffer(""), "a") returns false, as startswith("", 'a') does, but
+  startswith(IOBuffer(""), 'a') throws EOFError. The read happens after mark(io), so the
+  exception also leaves the stream marked.
+likelihood: |
+  Any loop that tests startswith(io, c) until the stream is exhausted, e.g. a tokenizer reading
+  a file or socket to its end.
+maybe_intended: ""
+reproducer: |
+  println("startswith(IOBuffer(\"\"), \"a\") = ", startswith(IOBuffer(""), "a"))
+  io = IOBuffer("")
+  r = try startswith(io, 'a') catch e e end
+  println("startswith(IOBuffer(\"\"), 'a') = ", r isa Exception ? sprint(showerror, r) : r, ", ismarked(io) = ", ismarked(io))
+  println("startswith(\"\", 'a') = ", startswith("", 'a'))
+  r isa EOFError && ismarked(io) && println("REPRODUCED stringutil-startswith-io-eof")
+output:
+  release: |
+    startswith(IOBuffer(""), "a") = false
+    startswith(IOBuffer(""), 'a') = EOFError: read end of file, ismarked(io) = true
+    startswith("", 'a') = false
+    REPRODUCED stringutil-startswith-io-eof
+  nightly: |
+    startswith(IOBuffer(""), "a") = false
+    startswith(IOBuffer(""), 'a') = EOFError: read end of file, ismarked(io) = true
+    startswith("", 'a') = false
+    REPRODUCED stringutil-startswith-io-eof
+reproduced: {release: true, nightly: true}
+expected: |
+  false (the stream does not start with 'a'), with the stream state unchanged.
+promised_by: |
+  The docstring (base/strings/util.jl:87-92): "Check if an `IO` object starts with a prefix,
+  which can be either a string, a character, or a tuple/vector/set of characters." The string
+  method returns false at end of stream.
+cause: |
+  base/strings/util.jl:93-98: read(io, Char) throws at end of stream; there is no eof check and
+  no try/finally around the read, so reset(io) is skipped.
+possible_fix: |
+  Return false when eof(io), and restore the stream state in a finally block.
+duplicates:
+  issues: 
+    - {number: 40616, state: closed, relation: related}
+  queries: ["issues: startswith IO", "issues: startswith IOBuffer", "issues: startswith EOFError", "prs: startswith EOFError"]
+lean:
+  property: JuliaLean.StringUtil.StartswithIoEof
+  theorem: JuliaLean.StringUtil.startswithIoEof_refuted

@@ -1,0 +1,54 @@
+id: shellcmd-eq-ignores-cpus
+title: "==(::Cmd, ::Cmd) and hash(::Cmd) ignore the CPU affinity set by setcpuaffinity"
+priority: P2
+kind: wrong-result
+area: ShellCmd
+files: [base/cmd.jl]
+functions: ["==(::Cmd, ::Cmd)", "hash(::Cmd, ::UInt)"]
+summary: |
+  Equality and hashing of Cmd compare every setting (exec, env, ignorestatus, dir,
+  flags, uid, gid) except cpus. So setcpuaffinity(`ls`, [1]) == `ls` is true, the two
+  hash equally, and a Dict keyed by commands merges them.
+likelihood: |
+  Low: comparing or hashing commands that differ only in CPU affinity.
+maybe_intended: ""
+reproducer: |
+  a = setcpuaffinity(`ls`, [1])
+  a == `ls`                       # true
+  hash(a) == hash(`ls`)           # true
+output:
+  release: |
+    a = setcpuaffinity(`ls`, [1]); b = `ls`
+    a.cpus = UInt16[0x0001]; b.cpus = nothing
+    a == b: true; hash equal: true; isequal: true
+    Dict keys: 1
+    REPRODUCED shellcmd-eq-ignores-cpus
+  nightly: |
+    a = setcpuaffinity(`ls`, [1]); b = `ls`
+    a.cpus = UInt16[0x0001]; b.cpus = nothing
+    a == b: true; hash equal: true; isequal: true
+    Dict keys: 1
+    REPRODUCED shellcmd-eq-ignores-cpus
+reproduced: {release: true, nightly: true}
+expected: |
+  false: the commands run with different CPU affinity.
+promised_by: |
+  Invariant: == on a struct of settings compares all settings. The method lists every
+  field of Cmd except cpus (base/cmd.jl:13-21, 99-101); uid and gid, added later, were
+  included.
+cause: |
+  base/cmd.jl:99-101: neither hash nor == mentions x.cpus.
+possible_fix: |
+  Add `x.cpus == y.cpus` to == and hash(x.cpus, ...) to hash.
+duplicates:
+  issues: []
+  queries:
+    - "issues/prs: Cmd cpus equality"
+    - "issues/prs: setcpuaffinity"
+    - "issues/prs: Cmd hash"
+    - "issues/prs: Cmd equality"
+    - "issues/prs: Cmd isequal"
+    - "issues/prs: cpus Cmd"
+lean:
+  property: JuliaLean.ShellCmd.CmdEqFieldwise
+  theorem: JuliaLean.ShellCmd.cmdEqFieldwise_refuted

@@ -1,0 +1,68 @@
+id: markdown-latex-printer-throws
+title: "Markdown.latex throws MethodError on interpolated values and (on master) raw HTML"
+priority: P2
+kind: crash
+area: Markdown
+files: [stdlib/Markdown/src/render/latex.jl]
+functions: ["Markdown.latex(::IO, ::Vector)", "Markdown.latexinline(::IO, ::Vector)"]
+summary: |
+  `x = 42; Markdown.latex(md"The answer is $x.")` throws `MethodError: no method matching
+  latexinline(::IOBuffer, ::Int64)`, and block-level interpolations fail in `latex(::IO, ::Symbol)`
+  etc. On master, raw HTML parsed into `HTMLInline`/`HTMLBlock` nodes (#60732, #60632), e.g.
+  `a <span>b</span>`, also throws. `Markdown.html` and `Markdown.plain` handle all of these.
+likelihood: |
+  Interpolation into `md"..."` strings and inline HTML are both documented features; any such
+  document passed to `latex` or `show(io, "text/latex", md)` fails.
+maybe_intended: ""
+reproducer: |
+  using Markdown
+  x = 42
+  md = md"The answer is $x."
+  println(repr(md.content))
+  ok = try
+      print(Markdown.latex(md)); true
+  catch e
+      println("latex throws ", sprint(showerror, e)[1:80]); false
+  end
+  try
+      print(Markdown.latex(Markdown.parse("a <span>b</span>")))
+  catch e
+      println("latex of raw HTML throws ", sprint(showerror, e)[1:80])
+  end
+  ok || println("REPRODUCED markdown-latex-printer-throws")
+output:
+  release: |
+    Any[Markdown.Paragraph(Any["The answer is ", 42, "."])]
+    latex throws MethodError: no method matching latexinline(::IOBuffer, ::Int64)
+    The function `l
+    a <span>b</span>
+
+    REPRODUCED markdown-latex-printer-throws
+  nightly: |
+    Any[Markdown.Paragraph(Any["The answer is ", 42, "."])]
+    latex throws MethodError: no method matching latexinline(::IOBuffer, ::Int64)
+    The function `l
+    latex of raw HTML throws MethodError: no method matching latexinline(::IOBuffer, ::Markdown.HTMLInline)
+    T
+    REPRODUCED markdown-latex-printer-throws
+reproduced: {release: true, nightly: true}
+expected: |
+  LaTeX output, e.g. falling back to the text/plain representation (escaped) as `html`
+  falls back through `tohtml`.
+promised_by: |
+  Manual, Markdown Syntax Extensions: "When the Markdown content is rendered the usual `show`
+  methods will be called" (stdlib/Markdown/docs/src/index.md:434-436); `latex` docstring
+  (stdlib/Markdown/src/render/latex.jl:185-199) promises LaTeX output for `md`.
+cause: |
+  stdlib/Markdown/src/render/latex.jl: no fallback `latex(io, x)` / `latexinline(io, x)` methods and no methods for
+  `HTMLBlock`/`HTMLInline`; `latex(io, content::Vector)` (line 21-25) and `latexinline(io, md::Vector)`
+  (lines 114-118) dispatch on every element.
+possible_fix: |
+  Add `latex(io, x)`/`latexinline(io, x)` fallbacks (escaped `repr`), and methods that skip or verbatim raw HTML.
+duplicates:
+  issues:
+    - {number: 13760, state: closed, relation: related}
+  queries: ["Markdown latex", "Markdown.latex", "latexinline MethodError", "Markdown latex MethodError", "Markdown interpolation latex"]
+lean:
+  property: JuliaLean.Markdown.LatexTotal
+  theorem: JuliaLean.Markdown.latexTotal_refuted

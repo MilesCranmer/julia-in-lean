@@ -1,0 +1,59 @@
+id: intarith-powers-nextpow-overflow
+title: "nextpow(2, x) silently returns a negative number or zero after overflow"
+priority: P1
+kind: wrong-result
+area: IntArith
+files: [base/intfuncs.jl]
+functions: [nextpow, _nextpow2]
+summary: |
+  The integer base-two fast path wraps when the next power does not fit the
+  input type. Signed inputs can produce a negative result; unsigned inputs
+  can produce zero.
+likelihood: |
+  Rounding capacities near a fixed-width boundary is plausible. Small
+  integer types expose the defect without large numerical inputs.
+maybe_intended: |
+  Julia integer arithmetic normally wraps, but returning less than x
+  contradicts nextpow's contract and its general-base overflow checks.
+reproducer: |
+  x = Int8(65)
+  r = nextpow(2, x)
+  @assert r == Int8(-128) && r < x
+  @assert nextpow(2, typemax(UInt8)) == UInt8(0)
+  println("signed result = ", repr(r))
+  println("unsigned result = ", repr(nextpow(2, typemax(UInt8))))
+  println("REPRODUCED intarith-powers-nextpow-overflow")
+output:
+  release: |
+    signed result = -128
+    unsigned result = 0x00
+    REPRODUCED intarith-powers-nextpow-overflow
+  nightly: |
+    signed result = -128
+    unsigned result = 0x00
+    REPRODUCED intarith-powers-nextpow-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  Return a representable result no smaller than x, or report overflow.
+promised_by: |
+  "The smallest a^n not less than x, where n is a non-negative integer."
+  base/intfuncs.jl:629-630.
+cause: |
+  base/intfuncs.jl:654 bypasses the general overflow checks at lines 661-669.
+  _nextpow2 at lines 589-590 shifts a same-type one into the sign bit or
+  beyond the type width and reinterprets the wrapped result.
+possible_fix: |
+  Check the shift count against the positive result bits and throw
+  OverflowError before shifting, or document and return a widened type.
+duplicates:
+  issues:
+    - {number: 45880, state: open, relation: duplicate}
+    - {number: 59681, state: closed, relation: related}
+  queries:
+    - "issues: nextpow overflow"
+    - "issues: nextpow typemax"
+    - "pull requests: nextpow overflow"
+    - "pull requests: nextpow typemax"
+lean:
+  property: JuliaLean.IntArith.PowersDigits.NextpowLowerBound
+  theorem: JuliaLean.IntArith.PowersDigits.nextpowLowerBound_refuted

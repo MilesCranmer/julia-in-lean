@@ -1,0 +1,47 @@
+id: regexunicode-isvalid-char-negative
+title: "isvalid(Char, x) throws InexactError for negative integers instead of returning false"
+priority: P3
+kind: wrong-exception
+area: RegexUnicode
+files: [base/strings/unicode.jl]
+functions: ["isvalid(::Type{<:AbstractChar}, ::Integer)"]
+summary: |
+  isvalid(::Type{T}, c::Integer) converts c with Unsigned(c), which throws
+  InexactError for negative c, so the predicate isvalid(Char, -1) throws instead of
+  returning false. Large positive values such as typemax(Int) correctly give false.
+likelihood: |
+  Validating untrusted integer code points (for example parsed from input) with
+  isvalid(Char, x) before calling Char(x) fails on negative values.
+maybe_intended: |
+  The docstring lists AbstractChar and UInt32 values for AbstractChar; signed integers
+  are accepted by the method but not mentioned.
+reproducer: |
+  isvalid(Char, -1)             # InexactError: convert(UInt64, -1)
+  isvalid(Char, typemax(Int))   # false
+output:
+  release: |
+    isvalid(Char, -1) -> InexactError: convert(UInt64, -1)
+    isvalid(Char, typemax(Int)) -> false
+    REPRODUCED regexunicode-isvalid-char-negative
+  nightly: |
+    isvalid(Char, -1) -> InexactError: convert(UInt64, -1)
+    isvalid(Char, typemax(Int)) -> false
+    REPRODUCED regexunicode-isvalid-char-negative
+reproduced: {release: true, nightly: true}
+expected: |
+  false.
+promised_by: |
+  isvalid(T, value)::Bool docstring: "Return true if the given value is valid for that
+  type" (base/strings/unicode.jl:33-56).
+cause: |
+  base/strings/unicode.jl:60: isvalid(::Type{T}, c::Integer) = isvalid(T, Unsigned(c)).
+possible_fix: |
+  Return `c >= 0 && isvalid(T, Unsigned(c))`.
+duplicates:
+  issues: []
+  queries:
+    - "issues: isvalid Char InexactError"
+    - "issues: isvalid Char negative"
+lean:
+  property: JuliaLean.RegexUnicode.Uni.IsvalidCharIntTotal
+  theorem: JuliaLean.RegexUnicode.Uni.isvalidCharIntTotal_refuted

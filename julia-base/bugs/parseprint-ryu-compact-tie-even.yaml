@@ -1,0 +1,68 @@
+id: parseprint-ryu-compact-tie-even
+title: "Compact Float64 display rounds exact ties up above 2^54: a width mismatch in the mod-5 test"
+priority: P3
+kind: wrong-result
+area: ParsePrint
+files: [base/ryu/shortest.jl]
+functions: ["Ryu.reduce_shortest", "show(::IO, ::Float64)"]
+summary: |
+  1.234565e17 is exactly 123456500000000000, a tie at six digits. Compact display
+  prints 1.23457e17; the code's explicit round-half-to-even rule gives 1.23456e17, as
+  it does for 1234565.0 (printed 1.23456e6). The mod-5 test that should set b_allzero
+  is computed as UInt32 minus UInt64 and is never zero once v >= 2^32, which holds
+  for every normal Float64 in that branch.
+likelihood: |
+  Low: only Float64 values of at least 2^54 whose exact value has seven significant
+  digits ending in 5, shown in compact form. The shortest (non-compact) output is not
+  affected, since such ties cannot occur there.
+maybe_intended: |
+  Rounding a tie up is a defensible display convention, and the docstring does not
+  name a rounding rule. But reduce_shortest implements ties-to-even on purpose
+  (base/ryu/shortest.jl:131-133,174,209) and uses it for smaller values, so the
+  result depends on the magnitude of x.
+reproducer: |
+  x = 1.234565e17
+  @assert BigInt(x) == 123456500000000000
+  small = sprint(show, 1234565.0; context=:compact => true)
+  s = sprint(show, x; context=:compact => true)
+  println("compact(1234565.0) = ", small, "    (tie rounded to even)")
+  println("compact(1.234565e17) = ", s, "    (expected 1.23456e17)")
+  small == "1.23456e6" && s == "1.23457e17" && println("REPRODUCED parseprint-ryu-compact-tie-even")
+output:
+  release: |
+    compact(1234565.0) = 1.23456e6    (tie rounded to even)
+    compact(1.234565e17) = 1.23457e17    (expected 1.23456e17)
+    REPRODUCED parseprint-ryu-compact-tie-even
+  nightly: |
+    compact(1234565.0) = 1.23456e6    (tie rounded to even)
+    compact(1.234565e17) = 1.23457e17    (expected 1.23456e17)
+    REPRODUCED parseprint-ryu-compact-tie-even
+reproduced: {release: true, nightly: true}
+expected: |
+  1.23456e17, the even neighbour, as for 1234565.0 and as @sprintf("%.6g", x) gives.
+promised_by: |
+  Invariant: base/ryu/shortest.jl:131-133, 174 and 209 round exact ties to even
+  (b_allzero && iseven(b)), and compact output is "limited to 6 significant digits"
+  (base/ryu/Ryu.jl:46).
+cause: |
+  base/ryu/shortest.jl:59: `((v % UInt32) -% 5 *% div(v, 5)) == 0` is meant to be
+  v mod 5 computed in 32 bits (Ryu's `(uint32_t)mv - 5 * (uint32_t)div5(mv)`), but
+  div(v, 5) stays UInt64, so the difference is taken modulo 2^64 and is nonzero
+  whenever v >= 2^32. b_allzero = pow5(v, q) is therefore never computed for normal
+  values with e2 >= 0, and the tie at line 174 rounds up. The same expression is in
+  1.13.2 spelled with - and *.
+possible_fix: |
+  Write `(v % UInt32) -% UInt32(5) *% (div(v, 5) % UInt32)`, or simply `v % 5 == 0`.
+duplicates:
+  issues: []
+  queries:
+    - "issues: compact tie even"
+    - "issues: round half even compact"
+    - "issues: compact float printing"
+    - "issues: Ryu compact"
+    - "pull requests: compact float"
+    - "pull requests: Ryu shortest"
+    - "pull requests: writeshortest"
+lean:
+  property: JuliaLean.ParsePrint.Ryu.CompactTiesToEven
+  theorem: JuliaLean.ParsePrint.Ryu.compactTiesToEven_refuted

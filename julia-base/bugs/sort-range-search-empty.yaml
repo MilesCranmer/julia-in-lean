@@ -1,0 +1,62 @@
+id: sort-range-search-empty
+title: "searchsorted on an empty range returns a nonempty or out-of-range answer when the step points against the order"
+priority: P2
+kind: wrong-result
+area: Sort
+files: [base/sort.jl]
+functions: ["searchsortedfirst(::AbstractRange{<:Integer}, x, o)", "searchsortedlast(::AbstractRange{<:Integer}, x, o)", "searchsorted(::AbstractRange{<:Real}, x, o)"]
+summary: |
+  For an empty integer range whose stored step points against the requested
+  order (an empty UnitRange searched with rev=true, or an empty negative-step
+  range searched forward), the range methods return index 0 from
+  searchsortedfirst or index 1 from searchsortedlast. searchsorted(5:4, 5; rev=true)
+  returns 1:1, claiming a match in an empty collection, and
+  searchsorted(1:-1:2, 2) returns 0:0. The vector methods return 1, 0 and 1:0.
+likelihood: |
+  Needs an empty range plus an order that disagrees with its step, e.g. generic
+  code searching lo:hi with rev=true when lo > hi. Uncommon but silent.
+maybe_intended: ""
+reproducer: |
+  a = searchsortedfirst(1:0, 0; rev=true)
+  b = searchsorted(5:4, 5; rev=true)
+  c = searchsorted(1:-1:2, 2)
+  println(a, " ", b, " ", c)
+  println(searchsortedfirst(Int[], 0; rev=true), " ", searchsorted(Int[], 5; rev=true), " ", searchsorted(Int[], 2))
+  if a != 1 && !isempty(b) && first(c) != 1
+      println("REPRODUCED sort-range-search-empty")
+  end
+output:
+  release: |
+    0 1:1 0:0
+    1 1:0 1:0
+    REPRODUCED sort-range-search-empty
+  nightly: |
+    0 1:1 0:0
+    1 1:0 1:0
+    REPRODUCED sort-range-search-empty
+reproduced: {release: true, nightly: true}
+expected: |
+  searchsortedfirst returns 1 and searchsortedlast returns 0 on every empty
+  range, so searchsorted returns 1:0, as for Int[].
+promised_by: |
+  searchsortedfirst docstring, base/sort.jl:353-354: "If all values in v are
+  ordered before x, return lastindex(v) + 1"; searchsortedlast,
+  base/sort.jl:392-393: "If all values in v are ordered after x, return
+  firstindex(v) - 1". An empty range is sorted under every order.
+cause: |
+  base/sort.jl:272-275 and 288-291 guard with lt(o, x, f) and lt(o, x, l) (or
+  lt(o, f, x) and lt(o, l, x)). An empty range stores last = first - 1 for a
+  positive step and first + 1 for a negative step (steprange_last_empty,
+  base/range.jl:389-397), so when the order runs against the step, x = last(r)
+  or x = first(r) passes both guards and the fld/cld formula at
+  base/sort.jl:277-281 and 293-297 yields 0 or 1.
+possible_fix: |
+  Return 1 (searchsortedfirst) or 0 (searchsortedlast) early when isempty(a).
+duplicates:
+  issues:
+    - {number: 35272, state: closed, relation: related}
+    - {number: 18653, state: closed, relation: related}
+  queries: ["issues: searchsorted empty range", "prs: searchsorted empty", "issues: searchsortedfirst empty range", "issues: searchsorted rev range", "issues: searchsortedfirst range"]
+lean:
+  property: JuliaLean.Sort.RangeSearchEmptyCorrect
+  theorem: JuliaLean.Sort.rangeSearchEmptyCorrect_refuted

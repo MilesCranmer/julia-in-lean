@@ -1,0 +1,48 @@
+id: iobuffers-readuntil-unreadable
+title: "readline/readuntil/copyuntil read from an IOBuffer opened with read=false"
+priority: P2
+kind: missing-error
+area: IOBuffers
+files: [base/iobuffer.jl]
+functions: ["copyuntil(::IO, ::GenericIOBuffer, ::UInt8)", "_copyline(::IO, ::GenericIOBuffer)", "occursin(::UInt8, ::GenericIOBuffer)"]
+summary: |
+  read, peek, readbytes! and unsafe_read on an IOBuffer that is not readable throw
+  ArgumentError("read failed, IOBuffer is not readable"), but the specialised
+  copyuntil and _copyline never check io.readable. readuntil(io, 0x0a), readline(io)
+  and copyline therefore return the data of a write-only buffer.
+likelihood: |
+  Needs a buffer created with read=false (or after close of a buffer whose data
+  was not reset). Uncommon.
+maybe_intended: |
+  base/iobuffer.jl:344-347 cites #29688, which added the not-readable error; the
+  line-reading methods were not covered.
+reproducer: |
+  io = IOBuffer(read=false, write=true); write(io, "ab\ncd"); seekstart(io)
+  read(io, UInt8)          # ArgumentError: read failed, IOBuffer is not readable
+  readuntil(io, 0x0a)      # UInt8[0x61, 0x62]
+output:
+  release: |
+    read(io, UInt8) = ArgumentError("read failed, IOBuffer is not readable")
+    readuntil(io, 0x0a) = UInt8[0x61, 0x62], readline(io) = "ab"
+    REPRODUCED iobuffers-readuntil-unreadable
+  nightly: |
+    read(io, UInt8) = ArgumentError("read failed, IOBuffer is not readable")
+    readuntil(io, 0x0a) = UInt8[0x61, 0x62], readline(io) = "ab"
+    REPRODUCED iobuffers-readuntil-unreadable
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError("read failed, IOBuffer is not readable"), as from read.
+promised_by: |
+  IOBuffer docstring, base/iobuffer.jl:178: "read, write, append: restricts operations
+  to the buffer"; read itself enforces it (base/iobuffer.jl:350, 439).
+cause: |
+  base/iobuffer.jl:993-1008 (copyuntil) and 1057-1074 (_copyline) read io.data[io.ptr:io.size]
+  without `io.readable || _throw_not_readable()`.
+possible_fix: |
+  Add `io.readable || _throw_not_readable()` at the start of both methods.
+duplicates:
+  issues: []
+  queries: ["IOBuffer not readable readline", "readuntil not readable IOBuffer", "_throw_not_readable", "IOBuffer readable readline", "readuntil readable"]
+lean:
+  property: JuliaLean.IOBuffers.ReadUntilUnreadable
+  theorem: JuliaLean.IOBuffers.readUntilUnreadable_refuted

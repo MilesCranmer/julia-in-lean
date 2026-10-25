@@ -1,0 +1,67 @@
+id: platforms-dl-name-four-part
+title: "parse_dl_name_version throws on library names with a four-part soversion such as libcublas.so.12.1.3.1"
+priority: P2
+kind: wrong-exception
+area: Platforms
+files: [base/binaryplatforms.jl]
+functions: ["parse_dl_name_version(::String, ::String)"]
+summary: |
+  The filename regexes accept any number of numeric soversion components, but the
+  captured version is passed to VersionNumber, which accepts at most three. So
+  parse_dl_name_version("libcublas.so.12.1.3.1", "linux") throws
+  ArgumentError("invalid version string: 12.1.3.1") instead of returning a name and
+  version; the same happens for macOS (`libfoo.1.2.3.4.dylib`) and Windows
+  (`libfoo-1.2.3.4.dll`) names. A component above typemax(UInt32) gives an OverflowError.
+likelihood: |
+  Moderate. Four-part soversions are common in real libraries (CUDA ships
+  libcublas.so.12.1.3.1 and libcufft.so.11.0.2.54), and tools that scan a prefix with
+  this function stop with an error on them.
+maybe_intended: |
+  The docstring says the function "throws an error" when "the path name is not a valid
+  dynamic library"; one could argue that only versions VersionNumber can represent are
+  supported, but the regex itself accepts these names as valid libraries.
+reproducer: |
+  using Base.BinaryPlatforms
+  for (path, os) in [("libcublas.so.12.1.3.1", "linux"), ("libcufft.11.0.2.54.dylib", "macos"), ("libfoo-1.2.3.4.dll", "windows")]
+      r = try
+          parse_dl_name_version(path, os)
+      catch e
+          e
+      end
+      println(repr(path), " => ", r isa Exception ? sprint(showerror, r) : repr(r))
+      if r isa Exception && path == "libcublas.so.12.1.3.1"
+          println("REPRODUCED platforms-dl-name-four-part")
+      end
+  end
+output:
+  release: |
+    "libcublas.so.12.1.3.1" => ArgumentError: invalid version string: 12.1.3.1
+    REPRODUCED platforms-dl-name-four-part
+    "libcufft.11.0.2.54.dylib" => ArgumentError: invalid version string: 11.0.2.54
+    "libfoo-1.2.3.4.dll" => ArgumentError: invalid version string: 1.2.3.4
+  nightly: |
+    "libcublas.so.12.1.3.1" => ArgumentError: invalid version string: 12.1.3.1
+    REPRODUCED platforms-dl-name-four-part
+    "libcufft.11.0.2.54.dylib" => ArgumentError: invalid version string: 11.0.2.54
+    "libfoo-1.2.3.4.dll" => ArgumentError: invalid version string: 1.2.3.4
+reproduced: {release: true, nightly: true}
+expected: |
+  A result such as ("libcublas", v"12.1.3") or ("libcublas", nothing), or at least a
+  documented choice; not an exception for a well-formed versioned library name.
+promised_by: |
+  base/binaryplatforms.jl:868-876 (docstring): "Given a path to a dynamic library, parse
+  out what information we can from the filename ... If the path name is not a valid
+  dynamic library, this method throws an error."
+cause: |
+  base/binaryplatforms.jl:901-907 capture `((?:\.[\d]+)+)` (any number of components) and
+  base/binaryplatforms.jl:921 calls `VersionNumber(strip(version, '.'))`, which rejects
+  more than three components.
+possible_fix: |
+  Parse at most the first three components (or fall back to `nothing`) when the
+  soversion has more components than VersionNumber supports.
+duplicates:
+  issues: []
+  queries: ["parse_dl_name_version", "dynamic library invalid version string", "soversion"]
+lean:
+  property: JuliaLean.Platforms.DlNameNoThrow
+  theorem: JuliaLean.Platforms.dlNameNoThrow_refuted

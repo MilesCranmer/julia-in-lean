@@ -1,0 +1,66 @@
+id: iddicts-idset-issetequal
+title: "issetequal(::IdSet, itr) is false although a ⊆ b and b ⊆ a, when the IdSet holds isequal but distinct elements"
+priority: P2
+kind: wrong-result
+area: IdDicts
+files: [base/abstractset.jl]
+functions: ["issetequal(::AbstractSet, itr)", "issetequal(itr, ::AbstractSet)", "==(::AbstractSet, ::AbstractSet)"]
+summary: |
+  issetequal(a::AbstractSet, b) converts b to a Set and then compares with
+  ==(::AbstractSet, ::AbstractSet), which first requires
+  length(a) == length(Set(b)) (base/abstractset.jl:522, 622). An IdSet can
+  hold several elements that one Set element covers, so for
+  a = IdSet{Any}(Any[1, 1.0]) and b = Any[1, 1.0], issetequal(a, b) and
+  issetequal(b, a) are false while a ⊆ b and b ⊆ a are both true. Equal but
+  distinct arrays behave the same way.
+likelihood: |
+  Any IdSet holding objects that are == but not === (equal arrays, 1 and
+  1.0, structs with a custom ==), compared with issetequal against a vector
+  or other non-set iterable. The answer is silently false.
+maybe_intended: |
+  #61893 discusses giving the set functions isequal semantics; under that
+  reading Set(a) and Set(b) are equal, so the expected answer is true as
+  well. The length comparison is wrong under either reading.
+reproducer: |
+  a = IdSet{Any}(Any[1, 1.0])
+  b = Any[1, 1.0]
+  issetequal(a, b)        # false
+  (a ⊆ b) && (b ⊆ a)      # true
+output:
+  release: |
+    issetequal(a, b) = false
+    issetequal(b, a) = false
+    a ⊆ b = true, b ⊆ a = true
+    issetequal(IdSet{Any}([x, y]), [x, y]) = false with x == y, x !== y
+    IdSet{Any}([x, y]) ⊆ [x, y] = true, [x, y] ⊆ IdSet{Any}([x, y]) = true
+    REPRODUCED iddicts-idset-issetequal
+  nightly: |
+    issetequal(a, b) = false
+    issetequal(b, a) = false
+    a ⊆ b = true, b ⊆ a = true
+    issetequal(IdSet{Any}([x, y]), [x, y]) = false with x == y, x !== y
+    IdSet{Any}([x, y]) ⊆ [x, y] = true, [x, y] ⊆ IdSet{Any}([x, y]) = true
+    REPRODUCED iddicts-idset-issetequal
+reproduced: {release: true, nightly: true}
+expected: |
+  issetequal(a, b) == (a ⊆ b && b ⊆ a), which is true here.
+promised_by: |
+  issetequal docstring, base/abstractset.jl:507-508: "Determine whether a
+  and b have the same elements. Equivalent to a ⊆ b && b ⊆ a but more
+  efficient when possible."
+cause: |
+  base/abstractset.jl:522 replaces b by Set(b), which merges 1 and 1.0;
+  base/abstractset.jl:622 then rejects because length(a) == 2 and
+  length(Set(b)) == 1. The length test assumes both sets use the same
+  equality.
+possible_fix: |
+  Compare with a ⊆ b && b ⊆ a (or the subset loops) when the two sets'
+  element equalities can differ, instead of the cardinality shortcut.
+duplicates:
+  issues:
+    - {number: 61893, state: open, relation: related}
+    - {number: 41748, state: closed, relation: related}
+  queries: ["IdSet issetequal", "issetequal IdSet", "issetequal length", "issetequal", "IdSet =="]
+lean:
+  property: JuliaLean.IdDicts.IdSetIssetequalSubsets
+  theorem: JuliaLean.IdDicts.idSetIssetequalSubsets_refuted

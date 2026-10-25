@@ -1,0 +1,68 @@
+id: platforms-openbsd-os-version
+title: "triplet drops the OpenBSD os_version that parse(Platform, s) reads"
+priority: P2
+kind: wrong-result
+area: Platforms
+files: [base/binaryplatforms.jl]
+functions: ["triplet(::AbstractPlatform)", "parse(::Type{Platform}, ::String)"]
+summary: |
+  parse(Platform, "x86_64-unknown-openbsd7.4") stores os_version = "7.4.0", but triplet
+  of that platform is "x86_64-unknown-openbsd": os_str prints the version for macOS and
+  FreeBSD only. Reparsing the triplet gives a platform without os_version, so
+  parse(Platform, triplet(p)) != p and the version requirement is lost.
+likelihood: |
+  Low to moderate: only OpenBSD platforms that carry an os_version, but those are exactly
+  what parse produces from versioned OpenBSD triplets, and triplets are used to name and
+  look up artifacts.
+maybe_intended: |
+  It could be that OpenBSD artifacts were meant to be unversioned; then parse should not
+  extract an os_version from "openbsd7.4" (base/binaryplatforms.jl:817-819) either.
+reproducer: |
+  using Base.BinaryPlatforms
+  p = parse(Platform, "x86_64-unknown-openbsd7.4")
+  println("parse(Platform, \"x86_64-unknown-openbsd7.4\") = ", repr(p))
+  println("os_version(p) = ", repr(os_version(p)))
+  t = triplet(p)
+  println("triplet(p) = ", repr(t))
+  q = parse(Platform, t)
+  println("parse(Platform, triplet(p)) = ", repr(q), "; == p: ", q == p)
+  f = parse(Platform, "x86_64-unknown-freebsd13.2")
+  println("FreeBSD for comparison: triplet = ", repr(triplet(f)))
+  if q != p && os_version(q) === nothing
+      println("REPRODUCED platforms-openbsd-os-version")
+  end
+output:
+  release: |
+    parse(Platform, "x86_64-unknown-openbsd7.4") = Platform("x86_64", "openbsd"; os_version = "7.4.0")
+    os_version(p) = v"7.4.0"
+    triplet(p) = "x86_64-unknown-openbsd"
+    parse(Platform, triplet(p)) = Platform("x86_64", "openbsd"; ); == p: false
+    FreeBSD for comparison: triplet = "x86_64-unknown-freebsd13.2"
+    REPRODUCED platforms-openbsd-os-version
+  nightly: |
+    parse(Platform, "x86_64-unknown-openbsd7.4") = Platform("x86_64", "openbsd"; os_version = "7.4.0")
+    os_version(p) = v"7.4.0"
+    triplet(p) = "x86_64-unknown-openbsd"
+    parse(Platform, triplet(p)) = Platform("x86_64", "openbsd"; ); == p: false
+    FreeBSD for comparison: triplet = "x86_64-unknown-freebsd13.2"
+    REPRODUCED platforms-openbsd-os-version
+reproduced: {release: true, nightly: true}
+expected: |
+  triplet(p) == "x86_64-unknown-openbsd7.4" (as FreeBSD prints "freebsd13.2"), so that
+  parse(Platform, triplet(p)) == p.
+promised_by: |
+  Invariant: parse(::Type{Platform}, triplet) "Parses a string platform triplet back into
+  a Platform object" (base/binaryplatforms.jl:755-759), so triplet followed by parse
+  should give back the platform parse produced.
+cause: |
+  base/binaryplatforms.jl:624-625: os_str returns "-unknown-openbsd" without the
+  os_version, while base/binaryplatforms.jl:817-819 extracts it on parse.
+possible_fix: |
+  Print the version in os_str for OpenBSD as for FreeBSD
+  ("-unknown-openbsd$(osvn.major).$(osvn.minor)").
+duplicates:
+  issues: []
+  queries: ["openbsd platform triplet", "openbsd os_version", "BinaryPlatforms openbsd", "triplet os_version", "BinaryPlatforms triplet"]
+lean:
+  property: JuliaLean.Platforms.ParseTripletParse
+  theorem: JuliaLean.Platforms.parseTripletParse_refuted

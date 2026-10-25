@@ -1,0 +1,69 @@
+id: missingchar-codepoint-malformed
+title: "codepoint(c) returns a value for malformed Chars whose first byte is ASCII"
+priority: P2
+kind: missing-error
+area: MissingChar
+files: [base/char.jl]
+functions: ["codepoint(::Char)", "UInt32(::Char)", "Int(::Char)", "+(::Char, ::Integer)"]
+summary: |
+  A Char whose first byte is ASCII but whose other bytes are not zero is
+  malformed (Base.ismalformed is true), yet codepoint returns the first byte:
+  codepoint(reinterpret(Char, 0x61620000)) == 0x61, so Int(c) == 97 and
+  c + 1 == 'b'. Malformed Chars with a non-ASCII first byte, such as '\xc3',
+  throw InvalidCharError as documented.
+likelihood: |
+  Low: string iteration never produces such a Char (an ASCII byte always ends a
+  character); it takes reinterpret, bitcast or unsafe_load of raw data.
+maybe_intended: |
+  The fast path for ASCII deliberately skips validation; the docstrings promise
+  an exception for every malformed character.
+reproducer: |
+  c = reinterpret(Char, 0x61620000)   # the bytes "ab" packed into one Char
+  println("c = ", repr(c), ", ismalformed(c) = ", Base.ismalformed(c), ", isvalid(c) = ", isvalid(c))
+  r = try repr(codepoint(c)) catch e; "THROWS " * sprint(showerror, e) end
+  println("codepoint(c) = ", r)
+  println("Int(c) = ", Int(c), ", c + 1 = ", repr(c + 1), ", c == 'a' = ", c == 'a')
+  d = reinterpret(Char, 0xc3000000)   # a truncated two-byte sequence
+  println("codepoint(", repr(d), ") = ", try repr(codepoint(d)) catch e; "THROWS " * sprint(showerror, e) end)
+  Base.ismalformed(c) && r == "0x00000061" && println("REPRODUCED missingchar-codepoint-malformed")
+output:
+  release: |
+    c = '\x61\x62', ismalformed(c) = true, isvalid(c) = false
+    codepoint(c) = 0x00000061
+    Int(c) = 97, c + 1 = 'b', c == 'a' = false
+    codepoint('\xc3') = THROWS Base.InvalidCharError{Char}('\xc3')
+    REPRODUCED missingchar-codepoint-malformed
+  nightly: |
+    c = '\x61\x62', ismalformed(c) = true, isvalid(c) = false
+    codepoint(c) = 0x00000061
+    Int(c) = 97, c + 1 = 'b', c == 'a' = false
+    codepoint('\xc3') = THROWS Base.InvalidCharError{Char}('\xc3')
+    REPRODUCED missingchar-codepoint-malformed
+reproduced: {release: true, nightly: true}
+expected: |
+  codepoint(c) throws InvalidCharError, as for every other malformed Char.
+promised_by: |
+  base/char.jl:83-85 (codepoint docstring): "or throw an exception if c
+  represents a malformed character"; base/char.jl:141-142 (ismalformed
+  docstring): "Malformed data, in contrast, cannot be decoded to a codepoint
+  (codepoint will throw an exception)."
+cause: |
+  base/char.jl:158-161: UInt32(c::Char) returns u >> 24 whenever
+  u < 0x80000000, before the malformation checks, so the low three bytes are
+  ignored. ismalformed (base/char.jl:111-117) does look at them.
+possible_fix: |
+  Take the fast path only when u & 0x80ffffff == 0, i.e. u < 0x80000000 and
+  the low 24 bits are zero; otherwise fall through to the existing checks.
+duplicates:
+  issues: []
+  queries:
+    - "issues: codepoint malformed"
+    - "issues: ismalformed codepoint"
+    - "issues: codepoint ascii malformed"
+    - "issues: UInt32 Char malformed"
+    - "issues: InvalidCharError reinterpret"
+    - "issues: codepoint malformed char"
+    - "prs: codepoint malformed"
+lean:
+  property: JuliaLean.MissingChar.CodepointThrowsMalformed
+  theorem: JuliaLean.MissingChar.codepointThrowsMalformed_refuted

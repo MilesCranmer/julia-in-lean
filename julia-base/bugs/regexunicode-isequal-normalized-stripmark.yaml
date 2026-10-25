@@ -1,0 +1,83 @@
+id: regexunicode-isequal-normalized-stripmark
+title: "isequal_normalized(...; stripmark=true) is wrong when a combining mark is a separate character"
+priority: P1
+kind: wrong-result
+area: RegexUnicode
+files: [stdlib/Unicode/src/Unicode.jl]
+functions: ["Unicode.isequal_normalized(::AbstractString, ::AbstractString)", "Unicode._isequal_normalized!"]
+summary: |
+  With stripmark=true, a combining mark stored as its own character (decomposed text,
+  NFD) is mishandled. isequal_normalized("noe\u0308l", "noel"; stripmark=true) is
+  false although the docstring's precomposed "no\u00EBl" gives true, and
+  isequal_normalized("cafe\u0301", "cafee"; stripmark=true) is true. The function
+  also reads d[0], one element before its buffer, under @inbounds (BoundsError with
+  --check-bounds=yes), so some results depend on that memory: in a loop of 44548 calls,
+  isequal_normalized("\u0301", "\u0301"; stripmark=true) returned false for identical
+  strings, while a fresh session returns true.
+likelihood: |
+  Decomposed text is common (macOS file names, text from NFD sources, user input with
+  combining accents), and stripmark=true is the documented way to compare text
+  ignoring accents, so ordinary calls hit both false negatives and false positives.
+maybe_intended: ""
+reproducer: |
+  using Unicode
+  isequal_normalized("noe\u0308l", "noel"; stripmark=true)   # false, expected true
+  isequal_normalized("cafe\u0301", "cafe"; stripmark=true)   # false, expected true
+  isequal_normalized("cafe\u0301", "cafee"; stripmark=true)  # true, expected false
+  isequal_normalized("a\u0301", "aa"; stripmark=true)        # true, expected false
+output:
+  release: |
+    isequal_normalized("noël", "noel"; stripmark=true) = true   normalize: "noel" vs "noel" => true
+    isequal_normalized("noël", "noel"; stripmark=true) = false   normalize: "noel" vs "noel" => true
+    isequal_normalized("café", "cafe"; stripmark=true) = false   normalize: "cafe" vs "cafe" => true
+    isequal_normalized("café", "cafee"; stripmark=true) = true   normalize: "cafe" vs "cafee" => false
+    isequal_normalized("á", "aa"; stripmark=true) = true   normalize: "a" vs "aa" => false
+    isequal_normalized("́", ""; stripmark=true) = false   normalize: "" vs "" => true
+    with --check-bounds=yes: BoundsError: attempt to access 4-element Vector{UInt32} at index [0]
+    REPRODUCED regexunicode-isequal-normalized-stripmark
+  nightly: |
+    isequal_normalized("noël", "noel"; stripmark=true) = true   normalize: "noel" vs "noel" => true
+    isequal_normalized("noël", "noel"; stripmark=true) = false   normalize: "noel" vs "noel" => true
+    isequal_normalized("café", "cafe"; stripmark=true) = false   normalize: "cafe" vs "cafe" => true
+    isequal_normalized("café", "cafee"; stripmark=true) = true   normalize: "cafe" vs "cafee" => false
+    isequal_normalized("á", "aa"; stripmark=true) = true   normalize: "a" vs "aa" => false
+    isequal_normalized("́", ""; stripmark=true) = false   normalize: "" vs "" => true
+    Precompiling Unicode...
+      The existing caches were built with different compilation options (such as `--check-bounds` or `-O`), so packages are being precompiled for this session's options.
+      1 dependency successfully precompiled in 0 seconds
+    with --check-bounds=yes: BoundsError: attempt to access 4-element Vector{UInt32} at index [0]
+    REPRODUCED regexunicode-isequal-normalized-stripmark
+reproduced: {release: true, nightly: true}
+expected: |
+  The value of Unicode.normalize(s1; decompose=true, stripmark=true) ==
+  Unicode.normalize(s2; decompose=true, stripmark=true): true, true, false, false for
+  the four calls above. Canonically equivalent inputs ("no\u00EBl" and "noe\u0308l")
+  must give the same answer.
+promised_by: |
+  isequal_normalized docstring: "Return whether s1 and s2 are canonically equivalent
+  Unicode strings. ... if stripmark=true, strips diacritical marks and other combining
+  characters", with the example isequal_normalized(s1, "noel", stripmark=true) == true
+  for s1 = "no\u00EBl" and s2 = "noe\u0308l" described as canonically equivalent
+  (stdlib/Unicode/src/Unicode.jl:230-268).
+cause: |
+  In decompose_next_chars! (stdlib/Unicode/src/Unicode.jl:277-327) a combining mark
+  decomposes to zero code points under STRIPMARK, so n = offset = 0; line 302 then
+  evaluates combining_class(d[0]), an out-of-bounds read under @inbounds, and the
+  function returns n = 0 with j = 1. The main loop (lines 334-345) does not re-check
+  j1 > n1 after the refill, so it either returns false because the other string is
+  exhausted (line 340) or compares the stale d1[1] left over from the previous chunk
+  (line 343).
+possible_fix: |
+  When a chunk decomposes to nothing, continue reading characters (or loop back to the
+  j > n checks) instead of returning n = 0, and test n == 0 before reading d[n].
+duplicates:
+  issues:
+    - {number: 52408, state: closed, relation: related}
+  queries:
+    - "issues: isequal_normalized"
+    - "issues: isequal_normalized stripmark"
+    - "prs: isequal_normalized"
+    - "prs: isequal_normalized stripmark"
+lean:
+  property: JuliaLean.RegexUnicode.Uni.IsequalNormalizedSpec
+  theorem: JuliaLean.RegexUnicode.Uni.isequalNormalizedSpec_refuted

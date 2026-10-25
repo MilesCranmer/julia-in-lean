@@ -1,0 +1,54 @@
+id: combinatorics-binomial-typemin
+title: "binomial(typemin(T), one(T)) returns zero for every signed integer type"
+priority: P1
+kind: wrong-result
+area: Combinatorics
+files: [base/intfuncs.jl]
+functions: ["binomial(::T, ::T) where T<:Integer"]
+summary: |
+  For each fixed-width signed integer type T, binomial(typemin(T), one(T)) returns zero.
+  The documented negative-n identity and the elementary identity binomial(n, 1) both
+  give typemin(T), which is representable in T.
+likelihood: |
+  The failure needs the minimum signed value. Such sentinel and boundary values are
+  plausible inputs to integer combinatorics code, and the result is silently wrong.
+maybe_intended: ""
+reproducer: |
+  for T in (Int8, Int16, Int32, Int64, Int128)
+      n = typemin(T)
+      println(T, ": ", binomial(n, one(T)), "; expected ", n)
+  end
+output:
+  release: |
+    binomial(typemin(Int8), one(Int8)) = 0; expected -128
+    binomial(typemin(Int16), one(Int16)) = 0; expected -32768
+    binomial(typemin(Int32), one(Int32)) = 0; expected -2147483648
+    binomial(typemin(Int64), one(Int64)) = 0; expected -9223372036854775808
+    binomial(typemin(Int128), one(Int128)) = 0; expected -170141183460469231731687303715884105728
+    REPRODUCED combinatorics-binomial-typemin
+  nightly: |
+    binomial(typemin(Int8), one(Int8)) = 0; expected -128
+    binomial(typemin(Int16), one(Int16)) = 0; expected -32768
+    binomial(typemin(Int32), one(Int32)) = 0; expected -2147483648
+    binomial(typemin(Int64), one(Int64)) = 0; expected -9223372036854775808
+    binomial(typemin(Int128), one(Int128)) = 0; expected -170141183460469231731687303715884105728
+    REPRODUCED combinatorics-binomial-typemin
+reproduced: {release: true, nightly: true}
+expected: |
+  Return typemin(T) for every fixed-width signed T because binomial(n, 1) = n.
+promised_by: |
+  base/intfuncs.jl:1342-1354 defines the coefficient, including negative n, and gives
+  binomial(n, k) = (-1)^k binomial(k-n-1, k).
+cause: |
+  base/intfuncs.jl:1380 computes -n + k - one(T) in T. Negating typemin(T) wraps back
+  to typemin(T), so the transformed n stays negative. The k > n check at line 1385 then
+  returns zero before the k == 1 identity at line 1387.
+possible_fix: |
+  Handle k == one(T) before transforming negative n, or perform the transformation in a
+  widened type with an explicit range check.
+duplicates:
+  issues: []
+  queries: ["binomial typemin", "binomial -9223372036854775808", "binomial negative overflow"]
+lean:
+  property: JuliaLean.Combinatorics.BinomialContract
+  theorem: JuliaLean.Combinatorics.binomialContract_refuted

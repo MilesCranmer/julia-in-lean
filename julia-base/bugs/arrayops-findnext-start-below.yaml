@@ -1,0 +1,62 @@
+id: arrayops-findnext-start-below
+title: "findnext(f, v, 0) throws BoundsError although findnext(f, v, length(v)+1) returns nothing (findprev mirrored)"
+priority: P3
+kind: wrong-exception
+area: ArrayOps
+files: [base/array.jl]
+functions: ["findnext(testf::Function, A, start)", "findprev(testf::Function, A, start)"]
+summary: |
+  The generic findnext returns nothing for any start past the end but indexes A at
+  a start below firstindex: findnext(iseven, [1, 2], 0) throws BoundsError instead
+  of returning 2. findprev is the mirror image: findprev(iseven, [1, 2], 3) throws,
+  findprev(iseven, [1, 2], 0) returns nothing.
+likelihood: |
+  Loops that step a search index downwards/upwards by more than one can produce
+  such starts; most code starts at firstindex or a found index.
+maybe_intended: |
+  Out-of-range starts may be considered errors; then the other side should throw
+  as well. Open PR #40120 addresses these inconsistencies.
+reproducer: |
+  println(repr(findnext(iseven, [1, 2], 3)))
+  println(repr(findprev(iseven, [1, 2], 0)))
+  e1 = try findnext(iseven, [1, 2], 0); nothing catch e; e end
+  e2 = try findprev(iseven, [1, 2], 3); nothing catch e; e end
+  println(repr(e1))
+  println(repr(e2))
+  if e1 isa BoundsError && e2 isa BoundsError
+      println("REPRODUCED arrayops-findnext-start-below")
+  end
+output:
+  release: |
+    nothing
+    nothing
+    BoundsError([1, 2], (0,))
+    BoundsError([1, 2], (3,))
+    REPRODUCED arrayops-findnext-start-below
+  nightly: |
+    nothing
+    nothing
+    BoundsError([1, 2], (0,))
+    BoundsError([1, 2], (3,))
+    REPRODUCED arrayops-findnext-start-below
+reproduced: {release: true, nightly: true}
+expected: |
+  findnext(iseven, [1, 2], 0) == 2 and findprev(iseven, [1, 2], 3) == 2 (the next/previous index after/before or including the start), or BoundsError on both sides.
+promised_by: |
+  findnext docstring, base/array.jl:2446-2474: "Find the next index after or
+  including i of an element of A for which predicate returns true, or nothing if not
+  found"; findprev docstring, base/array.jl:2634-2670.
+cause: |
+  base/array.jl:2475-2486: only `i > l` returns early; base/array.jl:2671-2682: only
+  `i < f` returns early. The loop then reads A[i].
+possible_fix: |
+  Clamp the start (i = max(i, first) for findnext, min(i, last) for findprev), or throw on both sides.
+duplicates:
+  issues:
+    - {number: 40120, state: open, relation: duplicate}
+    - {number: 54584, state: open, relation: related}
+    - {number: 33100, state: closed, relation: related}
+  queries: ["findnext BoundsError", "findprev", "findnext out of bounds", "findnext start index", "54584"]
+lean:
+  property: JuliaLean.ArrayOps.FindAllStarts
+  theorem: JuliaLean.ArrayOps.findAllStarts_refuted

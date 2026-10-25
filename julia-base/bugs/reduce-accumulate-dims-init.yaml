@@ -1,0 +1,54 @@
+id: reduce-accumulate-dims-init
+title: "accumulate(op, A; dims, init) ignores init when dims > ndims(A)"
+priority: P2
+kind: wrong-result
+area: Reduce
+files: [base/accumulate.jl]
+functions: ["accumulate(op, A; dims, init)", "accumulate!(op, B, A; dims, init)"]
+summary: |
+  When dims exceeds ndims(A) every slice along dims has one element, so the
+  accumulation should be op(init, x) for each element. _accumulate! instead
+  returns copyto!(B, A): accumulate(+, [1, 2]; dims=2, init=10) == [1, 2] and
+  accumulate(+, [1 2; 3 4]; dims=3, init=10) == [1 2; 3 4]. The matching
+  reduction sum([1 2; 3 4]; dims=3, init=10) == [11 12; 13 14] uses init.
+likelihood: |
+  Low: needs a trailing singleton dims in generic N-dimensional code; the result
+  is silently wrong then.
+maybe_intended: |
+  The copy shortcut is correct without init (reduce_first(op, x) is x for most
+  ops); init was likely overlooked.
+reproducer: |
+  accumulate(+, [1, 2]; dims=2, init=10)        # [1, 2]
+  sum([1 2; 3 4]; dims=3, init=10)              # [11 12; 13 14]
+output:
+  release: |
+    [1, 2] [1 2; 3 4] [11 12; 13 14]
+    REPRODUCED reduce-accumulate-dims-init
+    accumulate(+, [1 2; 3 4]; dims = 3, init = 10)               => [1 2; 3 4]
+    accumulate(+, [1, 2]; dims = 2, init = 10)                   => [1, 2]
+    accumulate(+, [1, 2]; dims = 1, init = 10)                   => [11, 13]
+    sum([1 2; 3 4]; dims = 3, init = 10)                         => [11 12; 13 14]
+  nightly: |
+    [1, 2] [1 2; 3 4] [11 12; 13 14]
+    REPRODUCED reduce-accumulate-dims-init
+    accumulate(+, [1 2; 3 4]; dims = 3, init = 10)               => [1 2; 3 4]
+    accumulate(+, [1, 2]; dims = 2, init = 10)                   => [1, 2]
+    accumulate(+, [1, 2]; dims = 1, init = 10)                   => [11, 13]
+    sum([1 2; 3 4]; dims = 3, init = 10)                         => [11 12; 13 14]
+reproduced: {release: true, nightly: true}
+expected: |
+  [11, 12] and [11 12; 13 14].
+promised_by: |
+  base/accumulate.jl:306-310 (accumulate! docstring): "If the keyword argument init
+  is given, its value is used to instantiate the accumulation."
+cause: |
+  base/accumulate.jl:378: `dims > ndims(A) && return copyto!(B, A)` runs before init
+  is consulted.
+possible_fix: |
+  When init is given and dims > ndims(A), return map!(x -> op(something(init), x), B, A).
+duplicates:
+  issues: []
+  queries: ["accumulate dims init", "accumulate init ignored", "accumulate dims larger than ndims"]
+lean:
+  property: JuliaLean.Reduce.AccumulateDimsInit
+  theorem: JuliaLean.Reduce.accumulateDimsInit_refuted

@@ -1,0 +1,54 @@
+id: stringutil-pad-malformed
+title: "lpad/rpad with invalid UTF-8 return strings narrower than n that no longer end (start) with s"
+priority: P3
+kind: wrong-result
+area: StringUtil
+files: [base/strings/util.jl]
+functions: ["lpad(::AbstractString, ::Integer, ::AbstractString)", "rpad(::AbstractString, ::Integer, ::AbstractString)"]
+summary: |
+  lpad and rpad compute the pad from textwidth(s) and textwidth(p) separately and then
+  concatenate the bytes. When the pad ends with an incomplete UTF-8 sequence and s starts with
+  continuation bytes (or the reverse for rpad), the pieces merge into fewer characters:
+  lpad("\x80", 3, "\xe0") == "\xe0\xe0\x80" has textwidth 2 and does not end with "\x80";
+  rpad("\xe0", 3, "\x80") has textwidth 1.
+likelihood: |
+  Needs invalid UTF-8 in both the string and the pad; contrived.
+maybe_intended: |
+  Concatenating invalid UTF-8 always risks merging characters; one may consider the result
+  undefined for such inputs. Valid UTF-8 inputs are not affected.
+reproducer: |
+  s = "\x80"                 # one (malformed) character, textwidth 1
+  r = lpad(s, 3, "\xe0")     # pad with the one-character string "\xe0" (textwidth 1)
+  println("lpad(\"\\x80\", 3, \"\\xe0\") = ", repr(r), ", textwidth = ", textwidth(r),
+          ", chars = ", collect(r), ", endswith(r, s) = ", endswith(r, s))
+  q = rpad("\xe0", 3, "\x80")
+  println("rpad(\"\\xe0\", 3, \"\\x80\") = ", repr(q), ", textwidth = ", textwidth(q),
+          ", startswith(q, \"\\xe0\") = ", startswith(q, "\xe0"))
+  textwidth(r) < 3 && !endswith(r, s) && textwidth(q) < 3 && println("REPRODUCED stringutil-pad-malformed")
+output:
+  release: |
+    lpad("\x80", 3, "\xe0") = "\xe0\xe0\x80", textwidth = 2, chars = ['\xe0', '\xe0\x80'], endswith(r, s) = false
+    rpad("\xe0", 3, "\x80") = "\xe0\x80\x80", textwidth = 1, startswith(q, "\xe0") = false
+    REPRODUCED stringutil-pad-malformed
+  nightly: |
+    lpad("\x80", 3, "\xe0") = "\xe0\xe0\x80", textwidth = 2, chars = ['\xe0', '\xe0\x80'], endswith(r, s) = false
+    rpad("\xe0", 3, "\x80") = "\xe0\x80\x80", textwidth = 1, startswith(q, "\xe0") = false
+    REPRODUCED stringutil-pad-malformed
+reproduced: {release: true, nightly: true}
+expected: |
+  A string of textwidth at least n that ends with s (lpad) or starts with s (rpad), or an error
+  for pads that cannot be concatenated safely.
+promised_by: |
+  lpad docstring (base/strings/util.jl:494-498): "pad the resulting string on the left with `p`
+  to make it `n` characters (in `textwidth`) long"; rpad (:547-551) likewise.
+cause: |
+  base/strings/util.jl:534-543 (lpad) and :574-583 (rpad) add widths of the separately
+  measured pieces; string concatenation of invalid UTF-8 can merge the boundary characters.
+possible_fix: ""
+duplicates:
+  issues: 
+    - {number: 25016, state: closed, relation: related}
+  queries: ["issues: lpad invalid UTF-8", "issues: lpad textwidth", "issues: rpad textwidth", "issues: lpad malformed"]
+lean:
+  property: JuliaLean.StringUtil.LpadWidthSuffix
+  theorem: JuliaLean.StringUtil.lpadWidthSuffix_refuted

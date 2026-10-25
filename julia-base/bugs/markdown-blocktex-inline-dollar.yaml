@@ -1,0 +1,57 @@
+id: markdown-blocktex-inline-dollar
+title: "Markdown: a paragraph starting with inline $x$ math is split into a display equation and a new paragraph"
+priority: P2
+kind: wrong-result
+area: Markdown
+files: [stdlib/Markdown/src/IPython/IPython.jl]
+functions: ["Markdown.blocktex"]
+summary: |
+  `Markdown.parse("\$x\$ is positive")` returns `[LaTeX("x"), Paragraph(["is positive"])]`: the
+  leading inline math becomes a block-level (display) equation and the rest of the line becomes a
+  separate paragraph. `"Here \$x\$ is positive"` correctly gives one paragraph with inline LaTeX.
+  Because `plain` prints inline LaTeX as `$x$`, ``` ``x`` is positive ``` also fails to round trip.
+likelihood: |
+  Any paragraph (or list item) whose first token is `$...$` math; the manual discourages
+  the `$` form but documents it as inline LaTeX. Also hit by every `plain` round trip of a paragraph
+  starting with double-backtick math.
+maybe_intended: |
+  The manual calls `$` math "not recommended" (stdlib/Markdown/docs/src/index.md:85-90).
+reproducer: |
+  using Markdown
+  md = Markdown.parse("\$x\$ is positive")
+  println(repr(md.content))
+  print(Markdown.html(md))
+  println(repr(Markdown.parse("Here \$x\$ is positive").content))
+  length(md.content) == 2 && md.content[2] isa Markdown.Paragraph && println("REPRODUCED markdown-blocktex-inline-dollar")
+output:
+  release: |
+    Any[$x$, Markdown.Paragraph(Any["is positive"])]
+    &#36;x&#36;
+    <p>is positive</p>
+    Any[Markdown.Paragraph(Any["Here ", $x$, " is positive"])]
+    REPRODUCED markdown-blocktex-inline-dollar
+  nightly: |
+    Any[$x$, Markdown.Paragraph(Any["is positive"])]
+    $x$
+    <p>is positive</p>
+    Any[Markdown.Paragraph(Any["Here ", $x$, " is positive"])]
+    REPRODUCED markdown-blocktex-inline-dollar
+reproduced: {release: true, nightly: true}
+expected: |
+  `[Paragraph([LaTeX("x"), " is positive"])]`.
+promised_by: |
+  Manual: "Inline LaTeX can also be created using a pair of single `$` characters"
+  (stdlib/Markdown/docs/src/index.md:85).
+cause: |
+  stdlib/Markdown/src/IPython/IPython.jl:13-23: `blocktex` accepts any `$...$` (rep = true, one or more `$`) at the
+  start of a block and returns without requiring the math to end the line, so the remainder starts a
+  new block.
+possible_fix: |
+  Require `$$` delimiters and that only whitespace follows the closing run on the line before accepting a block equation.
+duplicates:
+  issues:
+    - {number: 37334, state: open, relation: related}
+  queries: ["Markdown dollar", "inline math dollar", "blocktex", "Markdown math", "Markdown $$"]
+lean:
+  property: JuliaLean.Markdown.BlocktexInlineDollar
+  theorem: JuliaLean.Markdown.blocktexInlineDollar_refuted

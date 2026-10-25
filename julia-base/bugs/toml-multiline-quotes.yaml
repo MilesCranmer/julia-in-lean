@@ -1,0 +1,57 @@
+id: toml-multiline-quotes
+title: "TOML parser rejects multi-line strings with one or two quotes before the closing delimiter"
+priority: P2
+kind: wrong-result
+area: Toml
+files: [base/toml/parser.jl]
+functions: ["Base.TOML.parse_string_continue", "TOML.parse"]
+summary: |
+  TOML allows one or two quote characters right before the closing `"""` (or `'''`) of a
+  multi-line string, so `a = """"q""""` is the string `"q"`. Julia ends the string at the
+  first three quotes it sees and then fails on the remaining quote:
+  `TOML.tryparse("a = \"\"\"\"q\"\"\"\"")`, `"a = \"\"\"q\"\"\"\"\""` and `"a = '''x''''"`
+  all return `ParserError(ErrExpectedNewLineKeyValue)`.
+likelihood: |
+  Occurs whenever a multi-line string ends with a quote character, for example quoted
+  text or a docstring ending in `"`. The file is valid but cannot be read.
+maybe_intended: |
+  The source has a TODO for it (base/toml/parser.jl:1402), so the limitation is known
+  to the authors.
+reproducer: |
+  import TOML
+  TOML.tryparse("a = \"\"\"\"q\"\"\"\"")   # ParserError(ErrExpectedNewLineKeyValue)
+output:
+  release: |
+    "a = \"\"\"\"q\"\"\"\"" => ParserError: ErrExpectedNewLineKeyValue
+    "a = \"\"\"q\"\"\"\"\"" => ParserError: ErrExpectedNewLineKeyValue
+    "a = '''x''''" => ParserError: ErrExpectedNewLineKeyValue
+    REPRODUCED toml-multiline-quotes
+  nightly: |
+    "a = \"\"\"\"q\"\"\"\"" => ParserError: ErrExpectedNewLineKeyValue
+    "a = \"\"\"q\"\"\"\"\"" => ParserError: ErrExpectedNewLineKeyValue
+    "a = '''x''''" => ParserError: ErrExpectedNewLineKeyValue
+    REPRODUCED toml-multiline-quotes
+reproduced: {release: true, nightly: true}
+expected: |
+  `Dict("a" => "\"q\"")`, `Dict("a" => "q\"\"")` and `Dict("a" => "x'")`.
+promised_by: |
+  TOML v1.1.0, "String": "You can write a quotation mark, or two adjacent quotation
+  marks, anywhere inside a multi-line basic string. They can also be written just inside
+  the delimiters." with the example `str5 = """Here are three quotation marks: ""\"."""`
+  and `str7 = """"This," she said, "is just a pointless statement.""""`; the same holds
+  for multi-line literal strings.
+cause: |
+  base/toml/parser.jl:1403 closes the string at the first `"""` (or `'''`) without
+  looking ahead for up to two further quote characters.
+possible_fix: |
+  After seeing three quotes, consume up to two more quotes as content before closing.
+duplicates:
+  issues: []
+  queries: ["TOML multiline string", "TOML multiline quotes", "TOML string"]
+  notes: |
+    stdlib/TOML/test/toml_test.jl:90 marks toml-test's valid/string/multiline-quotes.toml
+    as a known failure (`broken`), and base/toml/parser.jl:1402 has a TODO; there is no
+    issue or PR.
+lean:
+  property: JuliaLean.Toml.MultilineQuotesBeforeDelimiter
+  theorem: JuliaLean.Toml.multilineQuotesBeforeDelimiter_refuted

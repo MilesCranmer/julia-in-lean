@@ -1,0 +1,64 @@
+id: printf-negative-precision-int-oob
+title: "Printf integer conversions with a negative dynamic precision write digits past the end of the buffer"
+priority: P1
+kind: wrong-result
+area: Printf
+files: [stdlib/Printf/src/Printf.jl]
+functions: ["Printf.format(::Printf.Format, args...)", "Printf.plength(::Printf.Spec{<:Printf.Ints}, x)", "Printf.fmt(buf, pos, arg, ::Printf.Spec{<:Printf.Ints})"]
+summary: |
+  plength for integer conversions adds the precision to the digit count, so a dynamic precision of -6 or
+  less makes the buffer shorter than the digits. The digit stores are @inbounds, so they write past the
+  end of the buffer and the result holds whatever bytes were there: @sprintf("%.*d", -6, 42) returns
+  "4\0", and @sprintf("%.*d", -24, typemax(Int64)) returns 19 bytes that are not digits (all NUL in the
+  reproducer, other heap contents when run after other code). With --check-bounds=yes the same call throws
+  BoundsError at index 19 of a 0-element vector, which shows the out-of-bounds stores.
+likelihood: |
+  Needs a computed precision of -6 or less; C code commonly passes -1 for "default", which happens to be
+  safe. Silent memory corruption when it happens.
+maybe_intended: ""
+reproducer: |
+  using Printf
+  # A negative dynamic precision shrinks the buffer estimate below the number of digits;
+  # the digit stores are @inbounds, so they write past the end of the buffer.
+  code = """
+  using Printf
+  print(repr(@sprintf("%.*d", -24, typemax(Int64))))
+  """
+  for flag in ("--check-bounds=yes", "--check-bounds=auto")
+      out = IOBuffer()
+      run(pipeline(ignorestatus(`$(Base.julia_cmd()) --startup-file=no $flag -e $code`), stdout=out, stderr=out))
+      text = String(take!(out))
+      println(flag, ": ", first(split(text, '\n')))
+  end
+  s = @sprintf("%.*d", -6, 42)
+  println("%.*d with precision -6 and 42: ", repr(s), "; C99 expected \"42\"")
+  s != "42" && println("REPRODUCED printf-negative-precision-int-oob")
+output:
+  release: |
+    --check-bounds=yes: ERROR: BoundsError: attempt to access 0-element Vector{UInt8} at index [19]
+    --check-bounds=auto: "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    %.*d with precision -6 and 42: "4\0"; C99 expected "42"
+    REPRODUCED printf-negative-precision-int-oob
+  nightly: |
+    --check-bounds=yes: ERROR: BoundsError: attempt to access 0-element Vector{UInt8} at index [19]
+    --check-bounds=auto: "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    %.*d with precision -6 and 42: "4\0"; C99 expected "42"
+    REPRODUCED printf-negative-precision-int-oob
+reproduced: {release: true, nightly: true}
+expected: |
+  "42" for @sprintf("%.*d", -6, 42): a negative precision is taken as omitted.
+promised_by: |
+  ISO/IEC 9899:1999 7.19.6.1 (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf) paragraph 5: "A negative precision argument is taken as if the precision were omitted."
+  stdlib/Printf/src/Printf.jl:68 (Printf.Format docstring): "Create a C printf-compatible format object that can be used for formatting values." Independently, formatting must not write outside its buffer.
+cause: |
+  rmdynamic (stdlib/Printf/src/Printf.jl:303-308) keeps a negative precision. plength
+  (Printf.jl:889-895) returns max(width, precision + ndigits + 5), which is smaller than the digit
+  count for precision <= -6, and the digit loop (Printf.jl:440-452) stores with @inbounds.
+possible_fix: |
+  Treat a negative dynamic precision as omitted in rmdynamic (precision 0 for integers).
+duplicates:
+  issues: []
+  queries: ["issues: printf", "issues: Printf precision", "issues/prs: printf BigFloat", "issues/prs: sprintf BigFloat", "issues/prs: Printf mpfr", "issues/prs: printf precision negative", "issues/prs: printf negative width", "issues/prs: printf dynamic width", "issues/prs: printf %g exponent", "issues/prs: printf %g style", "issues/prs: printf %.0d", "issues/prs: printf zero precision", "issues/prs: printf #x", "issues/prs: printf alternate form", "issues/prs: printf octal", "issues/prs: printf %+x", "issues/prs: printf plus unsigned", "issues/prs: printf BoundsError", "issues/prs: Printf.Format BoundsError", "issues/prs: printf %D", "issues/prs: printf textwidth", "issues/prs: printf precision unicode", "issues/prs: printf round away from zero", "issues/prs: printf ties even", "issues/prs: printf %a zero", "issues/prs: printf hex float", "issues/prs: printf InvalidFormatStringError", "issues/prs: printf C compatible"]
+lean:
+  property: JuliaLean.Printf.IntDigitsInBounds
+  theorem: JuliaLean.Printf.intDigitsInBounds_refuted

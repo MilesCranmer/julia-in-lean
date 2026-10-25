@@ -1,0 +1,63 @@
+id: ranges-range-error-hint
+title: "range_error hint uses `start !== nothing` for haslength, so it can say a given `length` is missing"
+priority: P3
+kind: documentation
+area: Ranges
+files: [base/range.jl]
+functions: ["range_error"]
+summary: |
+  The error hint for invalid range keyword combinations computes `haslength`
+  from `start`. For range(step=1, length=3) it says "At least one of `length`
+  or `stop` must be specified." although length was given.
+likelihood: |
+  Hit by anyone who forgets `start` or `stop`; the error is still thrown, only
+  the hint is misleading.
+maybe_intended: ""
+reproducer: |
+  try
+      range(step=1, length=3)
+  catch e
+      msg = sprint(showerror, e)
+      println(msg)
+      occursin("At least one of `length` or `stop` must be specified.", msg) &&
+          println("REPRODUCED ranges-range-error-hint")
+  end
+output:
+  release: |
+    ArgumentError: Cannot construct range from arguments:
+    start = nothing
+    step = 1
+    stop = nothing
+    length = 3
+    At least one of `length` or `stop` must be specified.
+
+    REPRODUCED ranges-range-error-hint
+  nightly: |
+    ArgumentError: Cannot construct range from arguments:
+    start = nothing
+    step = 1
+    stop = nothing
+    length = 3
+    At least one of `length` or `stop` must be specified.
+
+    REPRODUCED ranges-range-error-hint
+reproduced: {release: true, nightly: true}
+expected: |
+  "At least one of `start` or `stop` must be specified." (the branch the code
+  would take with the correct haslength = true).
+promised_by: |
+  Invariant: the hint names arguments that are missing, never ones the caller
+  supplied.
+cause: |
+  base/range.jl:247 reads `haslength = start !== nothing`; it should test
+  `length`. With start = nothing the second branch (base/range.jl:251-252)
+  fires.
+possible_fix: |
+  Change base/range.jl:247 to `haslength = length !== nothing`.
+duplicates:
+  issues:
+    - {number: 50492, state: open, relation: duplicate}
+  queries: ["range_error haslength", "Cannot construct range from arguments", "At least one of length or stop must be specified", "range error message hint"]
+lean:
+  property: JuliaLean.Ranges.RangeErrorHintAccurate
+  theorem: JuliaLean.Ranges.rangeErrorHintAccurate_refuted

@@ -1,0 +1,47 @@
+id: regexunicode-subst-group-overflow
+title: "A huge group number in a SubstitutionString wraps around Int and refers to another group"
+priority: P3
+kind: wrong-result
+area: RegexUnicode
+files: [base/regex.jl]
+functions: ["replace(::AbstractString, ::Pair{Regex,SubstitutionString})", "Base._replace(::Any, ::SubstitutionString, ::Any, ::Any, ::Any)"]
+summary: |
+  _replace accumulates the digits of \N with group = 10group + d in Int, which wraps.
+  s"\18446744073709551617" (2^64 + 1) is read as group 1, so
+  replace("ab", r"(a)" => s"[\18446744073709551617]") returns "[a]b" instead of an
+  error about a nonexistent group (s"[\2]" throws "PCRE error: unknown substring").
+likelihood: |
+  Only absurdly large group numbers are affected.
+maybe_intended: ""
+reproducer: |
+  replace("ab", r"(a)" => s"[\18446744073709551617]")   # "[a]b"
+output:
+  release: |
+    replace("ab", r"(a)" => s"[\18446744073709551617]") = "[a]b"
+    group 2 for comparison: PCRE error: unknown substring
+    REPRODUCED regexunicode-subst-group-overflow
+  nightly: |
+    replace("ab", r"(a)" => s"[\18446744073709551617]") = "[a]b"
+    group 2 for comparison: PCRE error: unknown substring
+    REPRODUCED regexunicode-subst-group-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  An error (the regex has no group 18446744073709551617).
+promised_by: |
+  @s_str docstring: "sequences of the form \N refer to the Nth capture group in the
+  regex" (base/regex.jl:621-626).
+cause: |
+  base/regex.jl:690-699 computes group = 10group + parse(Int, repl[i]) with wrapping
+  Int arithmetic.
+possible_fix: |
+  Use checked arithmetic (Base.Checked.checked_mul/checked_add) and call replace_err
+  on overflow.
+duplicates:
+  issues: []
+  queries:
+    - "issues: SubstitutionString overflow"
+    - "issues: substitution string group number overflow"
+    - "issues: SubstitutionString g<"
+lean:
+  property: JuliaLean.RegexUnicode.Subst.SubstGroupRef
+  theorem: JuliaLean.RegexUnicode.Subst.substGroupRef_refuted

@@ -1,0 +1,52 @@
+id: intarith-rational-infinity-sub
+title: "Subtracting a finite unsigned rational from infinity throws OverflowError"
+priority: P2
+kind: wrong-exception
+area: IntArith
+files: [base/rational.jl]
+functions: ["-(::Rational,::Rational)", "-(::Rational{<:Unsigned})"]
+summary: |
+  UInt8(1)//UInt8(0) - UInt8(1)//UInt8(1) throws OverflowError.
+  Positive infinity is representable by the same type. Both versions reproduce.
+likelihood: |
+  Requires unsigned rational infinity, so ordinary finite arithmetic is unaffected.
+  Generic code accepting signed and unsigned rationals can encounter the inconsistency.
+maybe_intended: |
+  Rejecting unsigned unary negation is intended. Evaluating that negation on a
+  finite operand merely to detect opposite infinities appears accidental.
+reproducer: |
+  x = UInt8(1) // UInt8(0)
+  y = UInt8(1) // UInt8(1)
+  observed = try x - y catch e; e end
+  @assert observed isa OverflowError
+  println("actual: ", typeof(observed), "; expected: ", x)
+  println("REPRODUCED intarith-rational-infinity-sub")
+output:
+  release: |
+    actual: OverflowError; expected: 0x01//0x00
+    REPRODUCED intarith-rational-infinity-sub
+  nightly: |
+    actual: OverflowError; expected: 0x01//0x00
+    REPRODUCED intarith-rational-infinity-sub
+reproduced: {release: true, nightly: true}
+expected: |
+  UInt8(1)//UInt8(0), positive infinity. The equivalent rational-minus-integer
+  method returns this value because it does not negate the finite rational.
+promised_by: |
+  Arithmetic invariant: positive infinity minus a finite value remains positive infinity.
+  The Rational Numbers manual says "Constructing infinite rational values is acceptable."
+  https://docs.julialang.org/en/v1/manual/complex-and-rational-numbers/#Rational-Numbers
+cause: |
+  base/rational.jl:433-440 checks isinf(x) && x == -y before ordinary subtraction.
+  Evaluating -y invokes lines 408-411 and rejects every nonzero unsigned numerator.
+  Release has the same checked subtraction branch as master.
+possible_fix: |
+  Detect opposite infinities by checking both denominators and numerator signs.
+  Do not negate a finite operand merely to decide whether the shortcut applies.
+duplicates:
+  issues:
+    - {number: 16111, state: closed, relation: related}
+  queries: ["Rational unsigned infinity subtraction", "rational infinity", "rational unsigned"]
+lean:
+  property: JuliaLean.IntArith.Rational.InfinitySub
+  theorem: JuliaLean.IntArith.Rational.infinitySub_refuted

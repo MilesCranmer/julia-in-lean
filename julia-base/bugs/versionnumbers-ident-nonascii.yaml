@@ -1,0 +1,68 @@
+id: versionnumbers-ident-nonascii
+title: VersionNumber identifiers accept the non-ASCII letters ſ (U+017F) and K (U+212A)
+priority: P3
+kind: missing-error
+area: VersionNumbers
+files:
+- base/version.jl
+- base/regex.jl
+functions:
+- tryparse(::Type{VersionNumber}, ::AbstractString)
+- VersionNumber(major, minor, patch, pre, bld)
+summary: |
+  VERSION_REGEX and the constructor's identifier check use [a-z] / [0-9a-z-] with the
+  `i` flag, and Julia compiles regexes with UTF and UCP, so caseless matching also admits
+  U+017F (LATIN SMALL LETTER LONG S, folds to s) and U+212A (KELVIN SIGN, folds to k).
+  v"1.0.0-ſ" and VersionNumber(1, 0, 0, ("ſ",)) are accepted although semver identifiers
+  are ASCII; every other non-ASCII letter is rejected.
+likelihood: |
+  Very low: only these two code points are affected.
+maybe_intended: ''
+reproducer: |
+  # VersionNumber identifiers accept the non-ASCII letters U+017F and U+212A
+  v = VersionNumber("1.0.0-\u017f")
+  w = VersionNumber("1.0.0-\u212a.x+\u212a")
+  u = VersionNumber(1, 0, 0, ("\u017f",))
+  println("VersionNumber(\"1.0.0-\\u017f\").prerelease = ", repr(v.prerelease))
+  println("VersionNumber(\"1.0.0-\\u212a.x+\\u212a\") = ", repr(w))
+  println("VersionNumber(1, 0, 0, (\"\\u017f\",)) = ", repr(u))
+  r = try VersionNumber("1.0.0-\u00e9"); "accepted" catch e; "throws " * sprint(showerror, e) end
+  println("VersionNumber(\"1.0.0-\\u00e9\") ", r)
+  if v.prerelease == ("\u017f",) && w.build == ("\u212a",) && u.prerelease == ("\u017f",) && !all(isascii, v.prerelease[1])
+      println("REPRODUCED versionnumbers-ident-nonascii")
+  end
+output:
+  release: |
+    VersionNumber("1.0.0-\u017f").prerelease = ("ſ",)
+    VersionNumber("1.0.0-\u212a.x+\u212a") = v"1.0.0-K.x+K"
+    VersionNumber(1, 0, 0, ("\u017f",)) = v"1.0.0-ſ"
+    VersionNumber("1.0.0-\u00e9") throws ArgumentError: invalid version string: 1.0.0-é
+    REPRODUCED versionnumbers-ident-nonascii
+  nightly: |
+    VersionNumber("1.0.0-\u017f").prerelease = ("ſ",)
+    VersionNumber("1.0.0-\u212a.x+\u212a") = v"1.0.0-K.x+K"
+    VersionNumber(1, 0, 0, ("\u017f",)) = v"1.0.0-ſ"
+    VersionNumber("1.0.0-\u00e9") throws ArgumentError: invalid version string: 1.0.0-é
+    REPRODUCED versionnumbers-ident-nonascii
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  ArgumentError for identifiers outside [0-9A-Za-z-].
+promised_by: |
+  VersionNumber docstring, base/version.jl:11-14 and manual "Version Number Literals"
+  (semver 2.0.0-rc.2: identifiers comprise only ASCII alphanumerics and hyphen).
+cause: |
+  base/version.jl:65, 75 (identifier check) and 121, 123 (VERSION_REGEX) use caseless
+  [a-z] under the default UCP compile option (base/regex.jl:7).
+possible_fix: |
+  Add the `a` (ASCII) flag to these regexes, or list A-Z explicitly instead of using `i`.
+duplicates:
+  issues: []
+  queries:
+  - VersionNumber unicode
+  - VersionNumber prerelease identifier
+  - VersionNumber
+lean:
+  property: JuliaLean.VersionNumbers.ParseIdentCharset
+  theorem: JuliaLean.VersionNumbers.parseIdentCharset_refuted

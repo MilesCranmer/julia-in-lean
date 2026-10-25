@@ -1,0 +1,51 @@
+id: markdown-list-number-overflow
+title: "Markdown.parse throws OverflowError on an ordered-list marker with 20 or more digits"
+priority: P2
+kind: crash
+area: Markdown
+files: [stdlib/Markdown/src/Common/block.jl]
+functions: ["Markdown.list"]
+summary: |
+  A line such as `12345678901234567890. item` makes `Markdown.parse` throw
+  `OverflowError: overflow parsing "12345678901234567890"` (julia and common flavors, 1.13.2 and
+  master). The list parser converts the marker digits with `Base.parse(Int, ...)` without any
+  length limit.
+likelihood: |
+  Needs a line starting with at least 19 digits followed by `.` or `)` and a space, e.g. a
+  long numeric identifier at the start of a line. Uncommon in prose, plausible in machine-generated
+  text or logs passed through `Markdown.parse`.
+maybe_intended: ""
+reproducer: |
+  using Markdown
+  s = "12345678901234567890. item"
+  try
+      println(repr(Markdown.parse(s).content))
+  catch e
+      println("Markdown.parse(", repr(s), ") throws ", sprint(showerror, e))
+      e isa OverflowError && println("REPRODUCED markdown-list-number-overflow")
+  end
+output:
+  release: |
+    Markdown.parse("12345678901234567890. item") throws OverflowError: overflow parsing "12345678901234567890"
+    REPRODUCED markdown-list-number-overflow
+  nightly: |
+    Markdown.parse("12345678901234567890. item") throws OverflowError: overflow parsing "12345678901234567890"
+    REPRODUCED markdown-list-number-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  No exception. CommonMark limits ordered-list start numbers to 9 digits, so the line should
+  parse as a paragraph (or as a list with some start number); it must not throw.
+promised_by: |
+  Invariant: the parser accepts every string; `Markdown.parse` documents no exception
+  (stdlib/Markdown/src/Markdown.jl:63-70).
+cause: |
+  stdlib/Markdown/src/Common/block.jl:327-335: `NUM_OR_BULLETS` (`\d+`, line 315) accepts any number of digits
+  and `Base.parse(Int, something(m.captures[2]))` throws `OverflowError` above `typemax(Int)`.
+possible_fix: |
+  Restrict the digit run to `\d{1,9}` in `NUM_OR_BULLETS` and the item regexes, as CommonMark does.
+duplicates:
+  issues: []
+  queries: ["Markdown list overflow", "Markdown OverflowError", "Markdown ordered list number", "NUM_OR_BULLETS"]
+lean:
+  property: JuliaLean.Markdown.ListTotal
+  theorem: JuliaLean.Markdown.listTotal_refuted

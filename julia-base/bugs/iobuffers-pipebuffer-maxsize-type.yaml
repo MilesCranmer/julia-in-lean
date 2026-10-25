@@ -1,0 +1,41 @@
+id: iobuffers-pipebuffer-maxsize-type
+title: "PipeBuffer documents maxsize::Integer but throws TypeError for non-Int integers"
+priority: P3
+kind: documentation
+area: IOBuffers
+files: [base/iobuffer.jl]
+functions: ["PipeBuffer(data; maxsize)", "PipeBuffer(maxsize::Integer)"]
+summary: |
+  The PipeBuffer docstring shows the keyword as maxsize::Integer, but the method
+  declares maxsize::Int, so PipeBuffer(UInt8[]; maxsize=UInt(10)) throws a TypeError.
+  PipeBuffer(maxsize::Integer) accepts any integer but forwards it to that keyword, so
+  PipeBuffer(UInt(10)) throws the same TypeError.
+likelihood: |
+  Only for maxsize computed in another integer type. Rare.
+maybe_intended: ""
+reproducer: |
+  PipeBuffer(UInt8[]; maxsize=UInt(10))   # TypeError
+  PipeBuffer(UInt(10))                    # TypeError
+output:
+  release: |
+    PipeBuffer(UInt8[]; maxsize=UInt(10)) = TypeError; PipeBuffer(UInt(10)) = TypeError
+    REPRODUCED iobuffers-pipebuffer-maxsize-type
+  nightly: |
+    PipeBuffer(UInt8[]; maxsize=UInt(10)) = TypeError; PipeBuffer(UInt(10)) = TypeError
+    REPRODUCED iobuffers-pipebuffer-maxsize-type
+reproduced: {release: true, nightly: true}
+expected: |
+  A PipeBuffer with maxsize 10, as IOBuffer(; maxsize=UInt(10)) accepts any Integer.
+promised_by: |
+  PipeBuffer docstring, base/iobuffer.jl:276: "PipeBuffer(data::AbstractVector{UInt8}=UInt8[];
+  maxsize::Integer = typemax(Int))".
+cause: |
+  base/iobuffer.jl:284 declares `maxsize::Int`; 286 passes `maxsize = maxsize` unconverted.
+possible_fix: |
+  Declare `maxsize::Integer` and convert with Int(maxsize).
+duplicates:
+  issues: []
+  queries: ["PipeBuffer maxsize Integer", "PipeBuffer maxsize"]
+lean:
+  property: JuliaLean.IOBuffers.PipeBufferMaxsizeInteger
+  theorem: JuliaLean.IOBuffers.pipeBufferMaxsizeInteger_refuted

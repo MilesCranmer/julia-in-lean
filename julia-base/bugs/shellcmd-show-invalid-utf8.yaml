@@ -1,0 +1,50 @@
+id: shellcmd-show-invalid-utf8
+title: "show(::Cmd) prints invalid UTF-8 bytes raw, producing unparsable output"
+priority: P3
+kind: wrong-result
+area: ShellCmd
+files: [base/cmd.jl]
+functions: ["show(::IO, ::Cmd)"]
+summary: |
+  An argument with invalid UTF-8 (a byte string file name, for example) is printed by
+  show(::Cmd) as raw bytes, which the Julia parser rejects with "invalid UTF-8 sequence":
+  Cmd(["echo", "\xff"]) prints as `echo <0xff>`.
+likelihood: |
+  Rare: non-UTF-8 file names exist on Unix systems, and show is used in REPL output and
+  error messages, but reparsing printed commands is uncommon.
+maybe_intended: |
+  Shell quoting cannot express such bytes inside a command literal; show(::String) uses
+  \x escapes, which command literals do not support.
+reproducer: |
+  c = Cmd(["echo", "\xff"])
+  Meta.parse(repr(c))   # ParseError: invalid UTF-8 sequence
+output:
+  release: |
+    repr(c) = "`echo \xff`"
+    reparse: Base.Meta.ParseError
+    REPRODUCED shellcmd-show-invalid-utf8
+  nightly: |
+    repr(c) = "`echo \xff`"
+    reparse: Base.Meta.ParseError
+    REPRODUCED shellcmd-show-invalid-utf8
+reproduced: {release: true, nightly: true}
+expected: |
+  A parseable form such as `echo $("\xff")`.
+promised_by: |
+  The generic show docstring (base/show.jl): the output "should be parseable Julia code
+  when possible"; base/cmd.jl:201-210 prints a command literal meant to parse back.
+cause: |
+  base/cmd.jl:206: print_shell_word (base/shell.jl:394-422) prints invalid characters
+  verbatim.
+possible_fix: |
+  Print arguments that are not valid UTF-8 as interpolated string literals.
+duplicates:
+  issues: []
+  queries:
+    - "issues/prs: Cmd invalid UTF-8 show"
+    - "issues/prs: Cmd show non-UTF-8"
+    - "issues/prs: show Cmd escape"
+    - "issues/prs: repr Cmd parse"
+lean:
+  property: JuliaLean.ShellCmd.ShowLexesUtf8
+  theorem: JuliaLean.ShellCmd.showLexesUtf8_refuted

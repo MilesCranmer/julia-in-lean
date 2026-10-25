@@ -1,0 +1,59 @@
+id: regexunicode-findall-skips-nonempty
+title: "findall/count with a Regex miss a non-empty match that starts where an empty match was found"
+priority: P2
+kind: wrong-result
+area: RegexUnicode
+files: [base/strings/search.jl, base/regex.jl]
+functions: ["findall(::Regex, ::AbstractString)", "count(::Regex, ::AbstractString)"]
+summary: |
+  After an empty match at position j, findall and count restart the search at
+  nextind(s, j), so a non-empty match that also starts at j is never seen.
+  eachmatch retries at j with NOTEMPTY_ATSTART and finds it. For r"|b" on "b",
+  eachmatch gives "", "b", "" while findall gives [1:0, 2:1] and count gives 2.
+likelihood: |
+  Needs an alternation or optional pattern whose first choice can be empty, such as
+  r"a*|b" or r"|b"; results then differ between eachmatch and findall/count.
+maybe_intended: |
+  The findall docstring only says "all the matches" and does not define empty-match
+  handling; the difference from eachmatch may be accepted as an implementation detail.
+reproducer: |
+  collect(eachmatch(r"|b", "b"))   # (1, ""), (1, "b"), (2, "")
+  findall(r"|b", "b")              # [1:0, 2:1]
+  count(r"|b", "b")                # 2
+output:
+  release: |
+    eachmatch: Tuple{Int64, SubString{String}}[(1, ""), (1, "b"), (2, "")]
+    findall:   UnitRange{Int64}[1:0, 2:1]
+    count:     2
+    REPRODUCED regexunicode-findall-skips-nonempty
+  nightly: |
+    eachmatch: Tuple{Int64, SubString{String}}[(1, ""), (1, "b"), (2, "")]
+    findall:   UnitRange{Int64}[1:0, 2:1]
+    count:     2
+    REPRODUCED regexunicode-findall-skips-nonempty
+reproduced: {release: true, nightly: true}
+expected: |
+  findall(r"|b", "b") == [1:0, 1:1, 2:1] and count == 3, the same matches as eachmatch.
+promised_by: |
+  findall docstring: "Return a Vector{UnitRange{Int}} of all the matches for pattern
+  in string" (base/strings/search.jl:619); eachmatch docstring: "Search for all
+  matches of the regular expression r in s" (base/regex.jl:782); count docstring:
+  "equivalent to calling length(findall(pattern, string))" (base/regex.jl:546-547).
+cause: |
+  findall (base/strings/search.jl:660-662) and count (base/regex.jl:580-582) set
+  j = first(r) for an empty match and continue at nextind(s, j), while the
+  RegexMatchIterator (base/regex.jl:749-773) first retries at the same offset with
+  PCRE.ANCHORED | PCRE.NOTEMPTY_ATSTART.
+possible_fix: |
+  Use the eachmatch stepping rule (retry at the same offset with NOTEMPTY_ATSTART)
+  for Regex patterns in findall and count.
+duplicates:
+  issues: []
+  queries:
+    - "issues: eachmatch empty"
+    - "issues: findall regex empty"
+    - "issues: count regex overlap empty"
+    - "issues: findall overlapping regex empty"
+lean:
+  property: JuliaLean.RegexUnicode.Core.FindallRangesOfEachmatch
+  theorem: JuliaLean.RegexUnicode.Core.findallRangesOfEachmatch_refuted

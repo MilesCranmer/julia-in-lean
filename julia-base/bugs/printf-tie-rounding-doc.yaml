@@ -1,0 +1,53 @@
+id: printf-tie-rounding-doc
+title: "@printf docstring says ties round away from zero, but they round to even"
+priority: P3
+kind: documentation
+area: Printf
+files: [stdlib/Printf/src/Printf.jl]
+functions: ["Printf.@printf"]
+summary: |
+  The @printf caveat promises the output string further from zero for values exactly halfway between two
+  outputs. Printf rounds such values to even: %.0f of 0.5 is "0", of 2.5 is "2", and %f of -0.0078125
+  is "-0.007812". The docstring's own example shows "0" and "-0.007812".
+likelihood: |
+  Readers of the docstring may rely on the wrong rule.
+maybe_intended: |
+  Rounding to even matches C (glibc) and the docstring's example; only the sentence is wrong.
+reproducer: |
+  using Printf
+  zero = @sprintf("%.0f", 0.5)
+  two = @sprintf("%.0f", 2.5)
+  neg = @sprintf("%f", -0.0078125)
+  println("%.0f 0.5 = ", repr(zero), "; documented away-from-zero would be ", repr("1"))
+  println("%.0f 2.5 = ", repr(two), "; documented away-from-zero would be ", repr("3"))
+  println("%f -0.0078125 = ", repr(neg), "; documented away-from-zero would be ", repr("-0.007813"))
+  zero == "0" && two == "2" && neg == "-0.007812" && println("REPRODUCED printf-tie-rounding-doc")
+output:
+  release: |
+    %.0f 0.5 = "0"; documented away-from-zero would be "1"
+    %.0f 2.5 = "2"; documented away-from-zero would be "3"
+    %f -0.0078125 = "-0.007812"; documented away-from-zero would be "-0.007813"
+    REPRODUCED printf-tie-rounding-doc
+  nightly: |
+    %.0f 0.5 = "0"; documented away-from-zero would be "1"
+    %.0f 2.5 = "2"; documented away-from-zero would be "3"
+    %f -0.0078125 = "-0.007812"; documented away-from-zero would be "-0.007813"
+    REPRODUCED printf-tie-rounding-doc
+reproduced: {release: true, nightly: true}
+expected: |
+  The caveat should describe rounding to even.
+promised_by: |
+  stdlib/Printf/src/Printf.jl:989-991: "Furthermore, if a floating point number is equally close to the
+  numeric values of two possible output strings, the output string further away from zero is chosen."
+  The example at Printf.jl:998-999 prints "0 0.0 -0.007812".
+cause: |
+  Ryu.writefixed and Ryu.writeexp round ties to even (base/ryu/fixed.jl, roundUp == 2 means "round only if
+  odd"); the caveat was not updated.
+possible_fix: |
+  Replace the sentence with: ties are rounded to the output with an even last digit.
+duplicates:
+  issues: []
+  queries: ["issues: printf", "issues: Printf precision", "issues/prs: printf BigFloat", "issues/prs: sprintf BigFloat", "issues/prs: Printf mpfr", "issues/prs: printf precision negative", "issues/prs: printf negative width", "issues/prs: printf dynamic width", "issues/prs: printf %g exponent", "issues/prs: printf %g style", "issues/prs: printf %.0d", "issues/prs: printf zero precision", "issues/prs: printf #x", "issues/prs: printf alternate form", "issues/prs: printf octal", "issues/prs: printf %+x", "issues/prs: printf plus unsigned", "issues/prs: printf BoundsError", "issues/prs: Printf.Format BoundsError", "issues/prs: printf %D", "issues/prs: printf textwidth", "issues/prs: printf precision unicode", "issues/prs: printf round away from zero", "issues/prs: printf ties even", "issues/prs: printf %a zero", "issues/prs: printf hex float", "issues/prs: printf InvalidFormatStringError", "issues/prs: printf C compatible"]
+lean:
+  property: JuliaLean.Printf.TiesAway
+  theorem: JuliaLean.Printf.tiesAway_refuted

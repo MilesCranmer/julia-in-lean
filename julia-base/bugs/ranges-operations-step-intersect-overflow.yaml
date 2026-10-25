@@ -1,0 +1,48 @@
+id: ranges-operations-step-intersect-overflow
+title: "StepRange intersection silently drops shared Int8 values after overflow"
+priority: P1
+kind: wrong-result
+area: Ranges
+files: [base/range.jl]
+functions: ["intersect(::StepRange, ::StepRange)"]
+summary: |
+  Intersecting two Int8 step ranges returns an upper endpoint of 110.
+  The shared value 116 is omitted even though the common step 6 fits Int8.
+  Intersecting Int8(-128):Int8(127):Int8(126) with itself drops its last value 126
+  (Lean witness JuliaLean.Ranges.intersectSelfDropsLast). A descending example,
+  intersect(Int8(120):Int8(-3):Int8(-128), Int8(-100):Int8(7):Int8(120)), starts
+  at 104, which is absent from the first input; see intersectDescendingWrongFirst.
+likelihood: |
+  Plausible for byte-sized coordinates with positive steps spanning negative
+  and positive values. Input endpoints and the correct intersection all fit Int8.
+maybe_intended: ""
+reproducer: |
+  r = Int8(-100):Int8(2):Int8(120)
+  s = Int8(-100):Int8(3):Int8(120)
+  t = intersect(r, s)
+  @assert Int8(116) in r && Int8(116) in s
+  @assert !(Int8(116) in t) && last(t) == 110
+  println("REPRODUCED ranges-operations-step-intersect-overflow")
+output:
+  release: |
+    REPRODUCED ranges-operations-step-intersect-overflow
+  nightly: |
+    REPRODUCED ranges-operations-step-intersect-overflow
+reproduced: {release: true, nightly: true}
+expected: "The common progression is -100:6:116; include 116."
+promised_by: |
+  Intersection invariant: every element belonging to both input collections
+  belongs to their intersection (intersect documentation, base/abstractset.jl).
+cause: |
+  base/range.jl:1263 computes stop1 - b and stop2 - b in the endpoint type.
+  With b=-100, the differences 220 and 219 overflow Int8 before mod by 6.
+  The resulting correction lowers the computed last shared element.
+possible_fix: |
+  Use widened or unsigned overflow-safe arithmetic for congruence differences;
+  convert only final representable endpoints back to the promoted element type.
+duplicates:
+  issues: []
+  queries: ["issues: intersect range Int8 overflow", "issues: intersect Int8", "PRs: intersect overflow range"]
+lean:
+  property: JuliaLean.Ranges.stepIntersectCompleteProp
+  theorem: JuliaLean.Ranges.stepIntersectCompleteRefuted

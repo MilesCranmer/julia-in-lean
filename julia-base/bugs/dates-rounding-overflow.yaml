@@ -1,0 +1,60 @@
+id: dates-rounding-overflow
+title: "floor(Date(-1), Day(typemax(Int64))) returns a date after its input"
+priority: P2
+kind: wrong-result
+area: Dates
+files: [stdlib/Dates/src/rounding.jl]
+functions: ["floor(::Date, ::Day)", "ceil(::TimeType, ::Period)", "epochdays2date"]
+summary: |
+  A positive Day precision can make floor return a date later than its input.
+  For Date(-1) and Day(typemax(Int64)), the mathematical lower bound is outside
+  Int64; the epoch addition wraps it into a huge positive day count.
+likelihood: |
+  This needs an extreme precision and a date before the rounding epoch.
+  Typical calendar-scale precisions do not overflow.
+maybe_intended: |
+  Date arithmetic uses wrapping integers, but the floor docstring explicitly
+  requires a result less than or equal to the input. An unrepresentable
+  rounding bound should raise an error instead of reversing the inequality.
+reproducer: |
+  using Dates
+  d = Date(-1)
+  floor(d, Day(typemax(Int64))) <= d
+output:
+  release: |
+    input day value = -730
+    precision = 9223372036854775807
+    floor day value = 9223372036854775444
+    ceil day value = -365
+    floor <= input <= ceil = false
+    REPRODUCED dates-rounding-overflow
+  nightly: |
+    input day value = -730
+    precision = 9223372036854775807
+    floor day value = 9223372036854775444
+    ceil day value = -365
+    floor <= input <= ceil = false
+    REPRODUCED dates-rounding-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  An error for the unrepresentable mathematical floor. If floor returns a
+  value, that value must be no later than Date(-1).
+promised_by: |
+  stdlib/Dates/src/rounding.jl:187-193: "Return the nearest Date, DateTime,
+  or Timestamp less than or equal to dt at resolution p."
+  Lines 3-5 set the rounding epoch to 0000-01-01.
+cause: |
+  stdlib/Dates/src/rounding.jl:75-79 subtracts mod(days, precision), then
+  epochdays2date at line 19 adds DATEEPOCH in Int64. The epoch is -365;
+  adding it to -9223372036854775807 wraps to 9223372036854775444.
+possible_fix: |
+  Compute the final bound in a wider integer and reject it when it does not
+  fit the Date instant, as the Timestamp rounding path already does.
+duplicates:
+  issues:
+    - {number: 50930, state: open, relation: related}
+  queries: ["Dates rounding overflow", "rounding", "repo:JuliaLang/julia Dates rounding overflow"]
+  notes: "No exact issue or PR found; #50930 concerns wrapping DateTime arithmetic."
+lean:
+  property: JuliaLean.Dates.RoundingBrackets
+  theorem: JuliaLean.Dates.roundingBrackets_refuted

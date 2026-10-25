@@ -1,0 +1,59 @@
+id: complex-muladd-exact
+title: "muladd(z, w, x) for complex numbers reassociates and loses exact results"
+priority: P3
+kind: wrong-result
+area: Complex
+files: [base/complex.jl]
+functions: ["muladd(::Complex, ::Complex, ::Complex)", "_mulsub"]
+summary: |
+  The complex muladd computes real(z)*real(w) - (imag(z)*imag(w) - real(x)), a
+  reassociation of z*w + x. For z = w = 2^30 + 2^30 im and x = 1 every operation in
+  z*w + x is exact and gives 1 + 2^61 im, but muladd rounds 2^60 - 1 to 2^60 and returns
+  0 + 2^61 im.
+likelihood: |
+  Needs cancellation between the two real-part products and a small addend; ordinary
+  magnitude inputs (integers near 2^30) suffice, but the absolute error is small relative to |z*w|.
+maybe_intended: |
+  muladd (base/math.jl:1248-1252) allows the add and multiply "to be merged with each
+  other or with surrounding operations" and results may differ between machines, so
+  some loss is permitted. The result is still normwise accurate. Related closed issue
+  #59684 and open PR #62005 discuss muladd not matching x*y+z for integer overflow.
+reproducer: |
+  z = complex(2.0^30, 2.0^30)
+  x = complex(1.0, 0.0)
+  m = muladd(z, z, x)
+  s = z * z + x
+  println("muladd(z, z, x) = ", m)
+  println("z * z + x       = ", s)
+  if m != s && s == complex(1.0, 2.0^61)
+      println("REPRODUCED complex-muladd-exact")
+  end
+output:
+  release: |
+    muladd(z, z, x) = 0.0 + 2.305843009213694e18im
+    z * z + x       = 1.0 + 2.305843009213694e18im
+    REPRODUCED complex-muladd-exact
+  nightly: |
+    muladd(z, z, x) = 0.0 + 2.305843009213694e18im
+    z * z + x       = 1.0 + 2.305843009213694e18im
+    REPRODUCED complex-muladd-exact
+reproduced: {release: true, nightly: true}
+expected: |
+  1.0 + 2.305843009213694e18im, equal to z*z + x, which is exact.
+promised_by: |
+  base/math.jl:1248: "Combined multiply-add: computes `x*y+z`, but allowing the add and
+  multiply to be merged". Fusing alone cannot change an exactly representable result.
+cause: |
+  base/complex.jl:303-307: muladd(real(z), real(w), -_mulsub(imag(z), imag(w), real(x)))
+  first rounds imag(z)*imag(w) - real(x), which is a reassociation, not a fusion.
+possible_fix: |
+  Compute the real part as muladd(real(z), real(w), -(imag(z)*imag(w))) + real(x), or
+  use a two-fma scheme that keeps the product difference exact before adding x.
+duplicates:
+  issues:
+    - {number: 59684, state: closed, relation: related}
+    - {number: 62005, state: open, relation: related}
+  queries: ["complex muladd", "muladd complex", "PR complex muladd"]
+lean:
+  property: JuliaLean.Complex.MuladdExact
+  theorem: JuliaLean.Complex.muladdExact_refuted

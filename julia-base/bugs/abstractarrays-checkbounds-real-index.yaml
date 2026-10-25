@@ -1,0 +1,65 @@
+id: abstractarrays-checkbounds-real-index
+title: "checkbounds accepts unsupported Bool and Float64 scalar indices that getindex rejects"
+priority: P3
+kind: wrong-result
+area: AbstractArrays
+files: [base/abstractarray.jl, base/indices.jl]
+functions: ["checkbounds(::Type{Bool}, ::AbstractArray, i)", "checkindex(::Type{Bool}, ::AbstractUnitRange, ::Real)", "to_index(::Bool)", "to_index(i)"]
+summary: |
+  For a generic AbstractVector with valid indices 1:3, checkbounds(Bool, A,
+  true) and checkbounds(Bool, A, 2.5) both return true. Indexing with either
+  value throws ArgumentError because Bool and Float64 are unsupported scalar
+  array index types. checkbounds therefore reports that invalid indices are in
+  bounds.
+likelihood: |
+  Low. A Bool commonly reaches indexing through a mask mistake, but code usually
+  indexes directly instead of calling checkbounds first. Float scalar indices
+  are also usually programming errors.
+maybe_intended: |
+  checkindex can be called independently and its Real method may have been
+  intended as a numeric interval test. The checkbounds docstring nevertheless
+  describes its arguments as array indices, and checkbounds dispatches directly
+  to this method.
+reproducer: |
+  struct GenericVector{T,A<:AbstractVector{T}} <: AbstractVector{T}
+      data::A
+  end
+  Base.size(A::GenericVector) = size(A.data)
+  Base.getindex(A::GenericVector, i::Int) = getindex(A.data, i)
+  A = GenericVector([10, 20, 30])
+  checkbounds(Bool, A, true) # true
+  A[true]                    # ArgumentError
+  checkbounds(Bool, A, 2.5)  # true
+  A[2.5]                     # ArgumentError
+output:
+  release: |
+    Bool: checkbounds=true getindex=ArgumentError("invalid index: true of type Bool")
+    Float64: checkbounds=true getindex=ArgumentError("invalid index: 2.5 of type Float64")
+    REPRODUCED abstractarrays-checkbounds-real-index
+  nightly: |
+    Bool: checkbounds=true getindex=ArgumentError("invalid index: true of type Bool")
+    Float64: checkbounds=true getindex=ArgumentError("invalid index: 2.5 of type Float64")
+    REPRODUCED abstractarrays-checkbounds-real-index
+reproduced: {release: true, nightly: true}
+expected: |
+  checkbounds(Bool, A, i) should return false whenever i is not a supported
+  array index, matching the BoundsError or invalid-index error that getindex
+  would raise.
+promised_by: |
+  base/abstractarray.jl:655-661 says checkbounds returns true if the specified
+  indices are in bounds for A. The array-indexing manual and the getindex
+  docstring at base/abstractarray.jl:1305-1312 list supported index types.
+cause: |
+  base/abstractarray.jl:690-692 sends a single scalar index to checkindex.
+  base/abstractarray.jl:751 accepts every Real and tests only its numeric value,
+  while base/indices.jl:259 rejects Bool and the fallback at lines 260-261
+  rejects Float64.
+possible_fix: |
+  Restrict the unit-range scalar method to supported Integer indices and reject
+  Bool explicitly, while preserving exact comparisons across integer types.
+duplicates:
+  issues: []
+  queries: ["checkbounds Bool index", "checkbounds Float64 invalid index", "checkindex Real", "invalid index true checkbounds", "prs: checkbounds Bool index", "prs: checkindex Real"]
+lean:
+  property: JuliaLean.AbstractArrays.CheckboundsAgreesGetindex
+  theorem: JuliaLean.AbstractArrays.checkboundsAgreesGetindex_refuted

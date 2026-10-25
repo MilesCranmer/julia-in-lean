@@ -1,0 +1,52 @@
+id: dates-week-negative
+title: "Dates.week mirrors dates before year 1 instead of returning their ISO week"
+priority: P2
+kind: wrong-result
+area: Dates
+files: [stdlib/Dates/src/accessors.jl]
+functions: ["week(::Date)", "week(days)"]
+summary: |
+  week(Date(0, 12, 31)) returns 1, although this Sunday belongs to ISO week 52
+  of year 0. The error affects dates with Rata Die day numbers at or below zero.
+likelihood: |
+  Code handling historical dates or astronomical year numbering can reach this.
+  Modern positive-year dates do not exercise the reflected branch.
+maybe_intended: ""
+reproducer: |
+  using Dates
+  d = Date(0, 12, 31)
+  week(d)
+output:
+  release: |
+    date = 0000-12-31
+    week = 1
+    Thursday rule = 52
+    weekday = 7
+    REPRODUCED dates-week-negative
+  nightly: |
+    date = 0000-12-31
+    week = 1
+    Thursday rule = 52
+    weekday = 7
+    REPRODUCED dates-week-negative
+reproduced: {release: true, nightly: true}
+expected: |
+  52. The Thursday in this date's Monday-to-Sunday week is 0000-12-28,
+  day 363 of leap year 0. Its ISO week is div(363 - 1, 7) + 1 = 52.
+promised_by: |
+  stdlib/Dates/src/accessors.jl:182-189: "Return the ISO week number";
+  the first week is the week containing the year's first Thursday.
+cause: |
+  stdlib/Dates/src/accessors.jl:39-43 computes div(abs(days - 1), 7).
+  abs reflects the earlier calendar onto the later calendar instead of continuing
+  the 400-year cycle backward with floored division and nonnegative modulus.
+possible_fix: |
+  Continue the 20871-week cycle backward using fld and mod for days below 1.
+  PR #62425 implements this correction.
+duplicates:
+  issues:
+    - {number: 62425, state: open, relation: duplicate}
+  queries: ["Dates week negative year", "week negative", "week in:title,body", "Dates in:title"]
+lean:
+  property: JuliaLean.Dates.WeekISO
+  theorem: JuliaLean.Dates.weekISO_refuted

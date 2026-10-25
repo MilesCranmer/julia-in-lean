@@ -1,0 +1,53 @@
+id: printf-incomplete-bounds
+title: "Printf.Format throws BoundsError for a specification ending in a width"
+priority: P2
+kind: wrong-exception
+area: Printf
+files: [stdlib/Printf/src/Printf.jl]
+functions: ["Printf.Format(::AbstractString)"]
+summary: |
+  Format("%1"), Format("%5") and Format("%*") throw BoundsError; so does any specification whose last
+  byte is a single width digit or the width asterisk ("%-1", "%%%9", "%-+*"). Every other incomplete
+  specification ("%", "%-", "%.", "%10.", "%10l", "%hh") throws InvalidFormatStringError.
+likelihood: |
+  Format strings built at run time can be truncated.
+maybe_intended: ""
+reproducer: |
+  using Printf
+  bad = String[]
+  for s in ["%1", "%5", "%*"]
+      e = try Printf.Format(s); nothing catch e; e end
+      println("Format(", repr(s), ") => ", typeof(e))
+      e isa BoundsError && push!(bad, s)
+  end
+  length(bad) == 3 && println("REPRODUCED printf-incomplete-bounds")
+output:
+  release: |
+    Format("%1") => BoundsError
+    Format("%5") => BoundsError
+    Format("%*") => BoundsError
+    REPRODUCED printf-incomplete-bounds
+  nightly: |
+    Format("%1") => BoundsError
+    Format("%5") => BoundsError
+    Format("%*") => BoundsError
+    REPRODUCED printf-incomplete-bounds
+reproduced: {release: true, nightly: true}
+expected: |
+  InvalidFormatStringError, as for the other incomplete specifications.
+promised_by: |
+  Invariant of Format's validation: stdlib/Printf/src/Printf.jl:143,175,203,227,231,236 and 241 check every
+  other read and throw InvalidFormatStringError; stdlib/Printf/test/runtests.jl:359-361 test this for
+  "%+", "%." and "%.0".
+cause: |
+  stdlib/Printf/src/Printf.jl:188 (after '*') and 193 (after a width digit) read bytes[pos] before
+  testing pos > len.
+possible_fix: |
+  Check pos > len before both reads (open PR #62674 does this).
+duplicates:
+  issues:
+    - {number: 62674, state: open, relation: duplicate}
+  queries: ["issues: printf", "issues: Printf precision", "issues/prs: printf BigFloat", "issues/prs: sprintf BigFloat", "issues/prs: Printf mpfr", "issues/prs: printf precision negative", "issues/prs: printf negative width", "issues/prs: printf dynamic width", "issues/prs: printf %g exponent", "issues/prs: printf %g style", "issues/prs: printf %.0d", "issues/prs: printf zero precision", "issues/prs: printf #x", "issues/prs: printf alternate form", "issues/prs: printf octal", "issues/prs: printf %+x", "issues/prs: printf plus unsigned", "issues/prs: printf BoundsError", "issues/prs: Printf.Format BoundsError", "issues/prs: printf %D", "issues/prs: printf textwidth", "issues/prs: printf precision unicode", "issues/prs: printf round away from zero", "issues/prs: printf ties even", "issues/prs: printf %a zero", "issues/prs: printf hex float", "issues/prs: printf InvalidFormatStringError", "issues/prs: printf C compatible"]
+lean:
+  property: JuliaLean.Printf.FormatErrorsAreInvalidFormat
+  theorem: JuliaLean.Printf.formatErrorsAreInvalidFormat_refuted

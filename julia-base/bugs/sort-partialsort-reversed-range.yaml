@@ -1,0 +1,57 @@
+id: sort-partialsort-reversed-range
+title: "partialsort(v, k) returns wrong values when k is a descending range"
+priority: P2
+kind: wrong-result
+area: Sort
+files: [base/sort.jl]
+functions: ["partialsort!(v, k::OrdinalRange)", "partialsort(v, k::OrdinalRange)", "partialsortperm(v, k::OrdinalRange)"]
+summary: |
+  partialsort and partialsortperm accept any OrdinalRange k, but for a
+  descending range such as 5:-1:3 they leave some of the requested positions
+  unsorted for inputs of more than 21 elements. For example
+  partialsort(w, 5:-1:3) returns [2, 2, 1] where sort(w)[5:-1:3] is [2, 2, 2].
+  Strided descending ranges such as 9:-2:3 fail too.
+likelihood: |
+  Low: descending index ranges are an unusual way to ask for order statistics,
+  but the signature accepts them and the result is silently wrong for most
+  inputs longer than 21 (161 of 200 random inputs for k = 20:-1:1, n = 22).
+maybe_intended: ""
+reproducer: |
+  w = [4, 5, 2, 1, 1, 4, 4, 4, 2, 4, 5, 5, 3, 3, 2, 2, 4, 5, 2, 2, 5, 5]
+  got = partialsort(w, 5:-1:3)
+  want = sort(w)[5:-1:3]
+  println(got, "  expected: ", want)
+  if got != want
+      println("REPRODUCED sort-partialsort-reversed-range")
+  end
+output:
+  release: |
+    [2, 2, 1]  expected: [2, 2, 2]
+    REPRODUCED sort-partialsort-reversed-range
+  nightly: |
+    [2, 2, 1]  expected: [2, 2, 2]
+    REPRODUCED sort-partialsort-reversed-range
+reproduced: {release: true, nightly: true}
+expected: |
+  [2, 2, 2], the values of the fully sorted vector at indices 5, 4, 3.
+promised_by: |
+  partialsort! docstring, base/sort.jl:116-120: "Mutate the vector v so that the
+  value at index k (or range of adjacent values if k is a range) occurs at the
+  position where it would appear if the array were fully sorted ... if k is a
+  range, an array of values at those indices is returned." The signature
+  accepts k::Union{Integer,OrdinalRange} (base/sort.jl:166).
+cause: |
+  ScratchQuickSort(r::OrdinalRange) stores (first(r), last(r)) as its (lo, hi)
+  targets (base/sort.jl:1082), which is (5, 3) for 5:-1:3. After a partition with
+  pivot position j (base/sort.jl:1132-1136), the test j <= a.lo (line 1140) skips
+  the lower part whenever j <= 5, so for j = 4 or 5 indices 3 and 4 stay
+  unsorted. Ascending ranges work because then a.lo <= a.hi.
+possible_fix: |
+  Use minimum(k) and maximum(k) instead of first(k) and last(k) in
+  ScratchQuickSort(r::OrdinalRange) (BracketedSort already uses minimum/maximum).
+duplicates:
+  issues: []
+  queries: ["issues/prs: partialsort range", "issues: partialsort reversed range", "issues/prs: partialsortperm"]
+lean:
+  property: JuliaLean.Sort.PartialsortRangeCorrect
+  theorem: JuliaLean.Sort.partialsortRangeCorrect_refuted

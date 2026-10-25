@@ -1,0 +1,69 @@
+id: bignums-digits-unsigned-negative
+title: "digits(UInt8, big(-7)) silently returns wrapped values instead of throwing InexactError"
+priority: P2
+kind: missing-error
+area: BigNums
+files: [base/gmp.jl]
+functions: ["digits!(::AbstractVector{T}, ::BigInt)", "digits(::Type{T}, ::BigInt)"]
+summary: |
+  The digits of a negative number are negative, so they do not fit an unsigned
+  element type. For machine integers digits(UInt8, -7) throws InexactError. For a
+  negative BigInt and a base from 2 to 62, the mpz_get_str fast path stores the
+  absolute digits and then negates them in place with map!(-, a, a), which wraps in
+  the unsigned type: digits(UInt8, big(-7)) returns UInt8[0xf9].
+likelihood: |
+  Needs an unsigned element type together with a negative BigInt; rare, but the
+  result is a silent wrong value rather than an error.
+maybe_intended: |
+  Asking for unsigned digits of a negative number is arguably a user error; the
+  docstring does not mention it.
+reproducer: |
+  function res(f)
+      try
+          return f()
+      catch e
+          return typeof(e)
+      end
+  end
+  a = res(() -> digits(UInt8, -7))
+  b = res(() -> digits(UInt8, big(-7)))
+  c = res(() -> digits(UInt8, big(-1000)))
+  println("digits(UInt8, -7)         = ", a)
+  println("digits(UInt8, big(-7))    = ", b)
+  println("digits(UInt8, big(-1000)) = ", c)
+  if a === InexactError && b == UInt8[0xf9]
+      println("REPRODUCED bignums-digits-unsigned-negative")
+  end
+output:
+  release: |
+    digits(UInt8, -7)         = InexactError
+    digits(UInt8, big(-7))    = UInt8[0xf9]
+    digits(UInt8, big(-1000)) = UInt8[0x00, 0x00, 0x00, 0xff]
+    REPRODUCED bignums-digits-unsigned-negative
+  nightly: |
+    digits(UInt8, -7)         = InexactError
+    digits(UInt8, big(-7))    = UInt8[0xf9]
+    digits(UInt8, big(-1000)) = UInt8[0x00, 0x00, 0x00, 0xff]
+    REPRODUCED bignums-digits-unsigned-negative
+reproduced: {release: true, nightly: true}
+expected: |
+  InexactError, as for digits(UInt8, -7); the generic digits! stores the negative
+  digit -7 into the UInt8 array, which throws.
+promised_by: |
+  base/intfuncs.jl:1170-1211 (digits docstring) defines the result as the digits of
+  n; a digit of a negative number is negative (digits(-7) == [-7]), and storing it
+  into an unsigned array must throw InexactError as Julia's convert does.
+cause: |
+  base/gmp.jl:784-799: the fast path writes the digit magnitudes into `a` and then
+  returns map!(-, a, a), wrapping each nonzero digit modulo 2^8 for UInt8. The
+  mpz_export path at base/gmp.jl:800-806 has the same final map!. Lines 797/804 on
+  1.13.2.
+possible_fix: |
+  Skip the fast paths (or throw InexactError) when n is negative and T is unsigned,
+  so the generic method's checked store runs.
+duplicates:
+  issues: []
+  queries: ["digits BigInt", "digits! BigInt", "digits BigInt unsigned", "digits!", "mpz_export digits"]
+lean:
+  property: JuliaLean.BigNums.DigitsMatchesInt
+  theorem: JuliaLean.BigNums.digitsMatchesInt_refuted

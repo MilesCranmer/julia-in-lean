@@ -1,0 +1,51 @@
+id: markdown-html-admonition-title
+title: "Markdown.html inserts admonition titles without HTML escaping"
+priority: P1
+kind: wrong-result
+area: Markdown
+files: [stdlib/Markdown/src/render/html.jl]
+functions: ["Markdown.html(::IO, ::Markdown.Admonition)"]
+summary: |
+  `Markdown.html` prints an admonition's title with `print(io, md.title)`, so `<`, `>`, `&`
+  and `"` in a title such as `!!! warning "x < y"` reach the HTML unescaped. A title
+  `"<script>alert(1)</script>"` is emitted as a live script element. All other text (paragraphs,
+  headers, code, link and image attributes, footnotes) is escaped with `htmlesc`.
+likelihood: |
+  Titles like `"a < b"` or `"Q & A"` are ordinary; they produce malformed HTML wherever
+  docstrings are rendered through `show(io, "text/html", md)` (IJulia, Pluto and other notebook
+  front ends). Script injection requires an attacker-controlled docstring or Markdown string.
+maybe_intended: ""
+reproducer: |
+  using Markdown
+  md = Markdown.parse("!!! warning \"x < y & <script>alert(1)</script>\"\n    Body.")
+  h = Markdown.html(md)
+  print(h)
+  occursin("<script>alert(1)</script>", h) && println("REPRODUCED markdown-html-admonition-title")
+output:
+  release: |
+    <div class="admonition warning"><p class="admonition-title">x < y & <script>alert(1)</script></p><p>Body.</p>
+    </div>
+    REPRODUCED markdown-html-admonition-title
+  nightly: |
+    <div class="admonition warning"><p class="admonition-title">x < y & <script>alert(1)</script></p><p>Body.</p>
+    </div>
+    REPRODUCED markdown-html-admonition-title
+reproduced: {release: true, nightly: true}
+expected: |
+  `<p class="admonition-title">x &lt; y &amp; &lt;script&gt;alert(1)&lt;/script&gt;</p>`.
+promised_by: |
+  Manual, Admonitions (stdlib/Markdown/docs/src/index.md:418): "admonition titles are parsed
+  as plain strings and do not support inline Markdown"; plain text must be escaped like every other
+  text node (`htmlinline(::IO, ::String)` escapes with `htmlesc`, stdlib/Markdown/src/render/html.jl:184-189).
+cause: |
+  stdlib/Markdown/src/render/html.jl:124: `print(io, md.title)` instead of `htmlesc(io, md.title)`.
+possible_fix: |
+  Use `htmlesc(io, md.title)` (open PR #62122 switches it to `htmlinline`, which also escapes).
+duplicates:
+  issues:
+    - {number: 62122, state: open, relation: related}
+    - {number: 62106, state: closed, relation: related}
+  queries: ["Markdown admonition", "admonition title escape", "admonition-title", "Markdown html escape", "Markdown escape"]
+lean:
+  property: JuliaLean.Markdown.HtmlTextEscaped
+  theorem: JuliaLean.Markdown.htmlTextEscaped_refuted

@@ -1,0 +1,55 @@
+id: dicts-union-max-values-break
+title: "union!/Set{T}(itr) skip converting the rest of itr once the set has max_values(T) elements"
+priority: P3
+kind: missing-error
+area: Dicts
+files: [base/abstractset.jl]
+functions: ["union!(::AbstractSet, itr)", "Set{T}(itr)"]
+summary: |
+  union!(s::AbstractSet{T}, itr) stops iterating once length(s) equals
+  max_values(T) (2 for Bool, 256 for Int8/UInt8, 1 for Nothing). Elements
+  after that point are never pushed, so invalid ones are silently accepted:
+  Set{Bool}([1, 0, 2]) returns Set([true, false]) while Set{Bool}([1, 2, 0])
+  and pushing 1, 0, 2 one at a time throw InexactError.
+likelihood: |
+  Only for element types with few values (Bool, Int8, UInt8, Nothing and
+  small unions) and an iterator that fills the type before an invalid
+  element. Rare.
+maybe_intended: |
+  The early exit is a deliberate optimization (once every value of T is
+  present no push can change s); skipping the conversion errors may be
+  considered acceptable for it.
+reproducer: |
+  Set{Bool}([1, 0, 2])   # Set(Bool[1, 0])
+  Set{Bool}([1, 2, 0])   # InexactError
+output:
+  release: |
+    Set{Bool}([1, 0, 2]) = Set(Bool[1, 0])
+    Set{Bool}([1, 2, 0]) = InexactError(:Bool, (Bool, 2))
+    push! of 1, 0, 2 into Set{Bool}() = InexactError(:Bool, (Bool, 2))
+    REPRODUCED dicts-union-max-values-break
+  nightly: |
+    Set{Bool}([1, 0, 2]) = Set(Bool[1, 0])
+    Set{Bool}([1, 2, 0]) = InexactError(:Bool, (Bool, 2))
+    push! of 1, 0, 2 into Set{Bool}() = InexactError(:Bool, (Bool, 2))
+    REPRODUCED dicts-union-max-values-break
+reproduced: {release: true, nightly: true}
+expected: |
+  InexactError for Set{Bool}([1, 0, 2]), as for the other orders.
+promised_by: |
+  union! docstring, base/abstractset.jl:65: "Construct the union of passed in
+  sets and overwrite `s` with the result"; the generic method pushes each
+  element (base/abstractset.jl:107-108), and the result should not depend on
+  the order of itr.
+cause: |
+  base/abstractset.jl:109: `length(s) == max_values(T) && break` exits the
+  loop before the remaining elements are converted by push!.
+possible_fix: |
+  Keep the early exit only when eltype(itr) <: T, so that no conversion can
+  throw.
+duplicates:
+  issues: []
+  queries: ["union! max_values", "max_values break", "Set Bool InexactError"]
+lean:
+  property: JuliaLean.Dicts.UnionPushEquiv
+  theorem: JuliaLean.Dicts.unionPushEquiv_refuted

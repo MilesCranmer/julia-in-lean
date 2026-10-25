@@ -1,0 +1,53 @@
+id: multidim-cartesianindices-empty-eq
+title: "Empty CartesianIndices of the same size compare unequal with == although isequal is true"
+priority: P3
+kind: wrong-result
+area: Multidim
+files: [base/multidimensional.jl]
+functions: ["==(a::CartesianIndices{N}, b::CartesianIndices{N})"]
+summary: |
+  CartesianIndices((1:0, 1:2)) == CartesianIndices((1:0, 3:4)) is false: the method
+  compares the component ranges pairwise, and 1:2 != 3:4. Both are empty 0x2 arrays,
+  so collect(a) == collect(b), isequal(a, b) and hash(a) == hash(b) are all true.
+  Empty ranges compare equal ((1:0) == (3:2)), so the 1-dimensional case is
+  consistent; only multidimensional empty CartesianIndices are affected.
+likelihood: |
+  Comparing index sets of empty arrays or regions; rare, and only for empty regions.
+maybe_intended: |
+  The method treats CartesianIndices as a tuple of ranges; but CartesianIndices is an
+  AbstractArray and == on arrays compares axes and elements.
+reproducer: |
+  a = CartesianIndices((1:0, 1:2)); b = CartesianIndices((1:0, 3:4))
+  a == b                       # false
+  collect(a) == collect(b)     # true
+  isequal(a, b)                # true
+output:
+  release: |
+    size: (0, 2) (0, 2)
+    a == b: false   collect(a) == collect(b): true   isequal(a, b): true   hash equal: true
+    ranges: (1:0) == (3:2) is true
+    REPRODUCED multidim-cartesianindices-empty-eq
+  nightly: |
+    size: (0, 2) (0, 2)
+    a == b: false   collect(a) == collect(b): true   isequal(a, b): true   hash equal: true
+    ranges: (1:0) == (3:2) is true
+    REPRODUCED multidim-cartesianindices-empty-eq
+reproduced: {release: true, nightly: true}
+expected: |
+  true, as for the collected arrays and for isequal.
+promised_by: |
+  Invariant: for an AbstractArray, == holds iff the axes agree and the elements are
+  ==; and isequal(a, b) and a == b agree for values without NaN, signed zeros or
+  missing (== docstring, base/operators.jl).
+cause: |
+  base/multidimensional.jl:382-383: `a == b = all(map(==, a.indices, b.indices))`
+  compares every component range, including ranges along non-empty dimensions of an
+  empty product.
+possible_fix: |
+  Return `size(a) == size(b)` when either is empty, before comparing the ranges.
+duplicates:
+  issues: []
+  queries: ["issues: CartesianIndices equality", "issues: CartesianIndices ==", "issues: CartesianIndices empty equal", "issues: CartesianIndices isequal", "prs: CartesianIndices =="]
+lean:
+  property: JuliaLean.Multidim.CartesianEqArrays
+  theorem: JuliaLean.Multidim.cartesianEqArrays_refuted

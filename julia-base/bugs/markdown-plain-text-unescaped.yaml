@@ -1,0 +1,54 @@
+id: markdown-plain-text-unescaped
+title: "Markdown.plain does not escape Markdown syntax characters in text, so its output reparses differently"
+priority: P2
+kind: wrong-result
+area: Markdown
+files: [stdlib/Markdown/src/render/plain.jl]
+functions: ["Markdown.plaininline(::IO, ::AbstractString)"]
+summary: |
+  `Markdown.parse("\\*not emphasis\\*")` is a paragraph with the literal text
+  `*not emphasis*`; `Markdown.plain` prints it as `*not emphasis*`, which reparses as italic. Text
+  nodes are printed verbatim, so escaped `*`, `_`, `` ` ``, `#`, `[`, `<`, `&` and entities lose their
+  escapes and change meaning (on master `&lt;b&gt;` even becomes a raw HTML block).
+likelihood: |
+  Any document with escaped Markdown characters; `plain` backs `show(io, "text/markdown", md)`.
+maybe_intended: ""
+reproducer: |
+  using Markdown
+  md = Markdown.parse("\\*not emphasis\\*")
+  p = Markdown.plain(md)
+  md2 = Markdown.parse(p)
+  println("plain   = ", repr(p))
+  println("html    = ", repr(Markdown.html(md)))
+  println("reparse = ", repr(Markdown.html(md2)))
+  md2 != md && println("REPRODUCED markdown-plain-text-unescaped")
+output:
+  release: |
+    plain   = "*not emphasis*\n"
+    html    = "<p>*not emphasis*</p>\n"
+    reparse = "<p><em>not emphasis</em></p>\n"
+    REPRODUCED markdown-plain-text-unescaped
+  nightly: |
+    plain   = "*not emphasis*\n"
+    html    = "<p>*not emphasis*</p>\n"
+    reparse = "<p><em>not emphasis</em></p>\n"
+    REPRODUCED markdown-plain-text-unescaped
+reproduced: {release: true, nightly: true}
+expected: |
+  `Markdown.parse(Markdown.plain(md)) == md`, e.g. plain output `\*not emphasis\*`.
+promised_by: |
+  `show(io, ::MIME"text/markdown", md::MD) = plain(io, md)` (stdlib/Markdown/src/render/plain.jl:170): the
+  text/markdown representation of `md` should be Markdown for `md`. Issue #35917 asks for exactly
+  this round trip.
+cause: |
+  stdlib/Markdown/src/render/plain.jl:142: `plaininline(io, s::AbstractString) = print(io, s)` writes text without
+  escaping.
+possible_fix: |
+  Backslash-escape the characters in `escape_chars` (stdlib/Markdown/src/Common/inline.jl) that could start inline syntax when printing text.
+duplicates:
+  issues:
+    - {number: 35917, state: open, relation: duplicate}
+  queries: ["Markdown roundtripability", "Markdown plain", "Markdown escape", "Markdown plain escape"]
+lean:
+  property: JuliaLean.Markdown.PlainTextRoundtrip
+  theorem: JuliaLean.Markdown.plainTextRoundtrip_refuted

@@ -1,0 +1,57 @@
+id: markdown-hashheader-cr-eof
+title: "Markdown.parse throws EOFError on a \"#\" line ended by a lone carriage return at end of input"
+priority: P1
+kind: crash
+area: Markdown
+files: [stdlib/Markdown/src/Common/block.jl]
+functions: ["Markdown.hashheader"]
+summary: |
+  On master, `Markdown.parse("#\r")` (and any document whose last line is an empty ATX
+  header `#` ... `######` terminated by a bare `\r`) throws `EOFError` instead of returning a
+  document. `"#\r\n"` and `"#\n"` both parse to an empty level-1 header. Affects the julia,
+  common and github flavors, since all of them use `hashheader`.
+likelihood: |
+  Needs an empty header line with old-Mac (CR-only) line endings as the very last line of
+  the input. Rare, but `Markdown.parse` is used on arbitrary user strings and should not throw;
+  regression from #60708 (Windows line ends), absent in 1.13.2.
+maybe_intended: ""
+reproducer: |
+  using Markdown
+  # A one-character header line "#" ended by a lone carriage return at the end of input.
+  for s in ["#\r\n", "#\n", "#\r"]
+      try
+          println(repr(s), " -> ", repr(Markdown.parse(s).content))
+      catch e
+          println(repr(s), " -> throws ", typeof(e))
+          s == "#\r" && e isa EOFError && println("REPRODUCED markdown-hashheader-cr-eof")
+      end
+  end
+output:
+  release: |
+    "#\r\n" -> Any[Markdown.Paragraph(Any["#"])]
+    "#\n" -> Any[Markdown.Header{1}("")]
+    "#\r" -> Any[Markdown.Paragraph(Any["#"])]
+  nightly: |
+    "#\r\n" -> Any[Markdown.Header{1}("")]
+    "#\n" -> Any[Markdown.Header{1}("")]
+    "#\r" -> throws EOFError
+    REPRODUCED markdown-hashheader-cr-eof
+reproduced: {release: false, nightly: true}
+expected: |
+  `Markdown.parse("#\r").content == [Markdown.Header{1}("")]`, as for `"#\n"` and `"#\r\n"`.
+promised_by: |
+  Invariant: the Markdown parser accepts every string (every byte sequence is some Markdown
+  document); `Markdown.parse` documents no exception (stdlib/Markdown/src/Markdown.jl:63-70). The
+  code itself guards the same peek with `!eof(stream)` in `paragraph` (stdlib/Markdown/src/Common/block.jl:21).
+cause: |
+  stdlib/Markdown/src/Common/block.jl:63-64: after reading `c == '\r'` the code calls
+  `peek(stream, Char)` without checking `eof(stream)`; `peek` of a Char at end of an IOBuffer
+  throws `EOFError`.
+possible_fix: |
+  Guard the peek: `!eof(stream) && peek(stream, Char) == '\n' && read(stream, Char)`, as in `paragraph`.
+duplicates:
+  issues: []
+  queries: ["Markdown EOFError", "Markdown carriage return", "Markdown CRLF", "Markdown Windows line endings", "hashheader", "EOFError parse"]
+lean:
+  property: JuliaLean.Markdown.HashheaderTotal
+  theorem: JuliaLean.Markdown.hashheaderTotal_refuted

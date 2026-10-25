@@ -1,0 +1,70 @@
+id: paths-splitext-dotfile-doc
+title: splitext(".bashrc") does not split although the docstring says it splits at the last dot
+priority: P3
+kind: documentation
+area: Paths
+files:
+- base/path.jl
+functions:
+- splitext(::AbstractString)
+summary: |
+  The splitext docstring says that if the last component contains a dot, the path is
+  split before the last dot. A dot that is the first character of the last component is
+  not split: splitext(".bashrc") == (".bashrc", ""). The rule is not the dotfile rule of
+  other languages either, since only the first character is protected:
+  splitext("..bashrc") == (".", ".bashrc") and splitext("a/..") == ("a/.", ".").
+likelihood: |
+  Dotfiles are common; code that follows the docstring and expects an extension for
+  ".bashrc", or no extension for "..bashrc", gets the other answer.
+maybe_intended: |
+  Not splitting ".bashrc" is the usual dotfile convention (Python's os.path.splitext
+  does the same), so the behaviour is likely intended and the docstring incomplete; but
+  Python also returns no extension for "..bashrc" and "..".
+reproducer: |
+  # splitext does not split at the last dot of a last component that starts with a dot,
+  # although its docstring says it splits whenever the last component contains a dot
+  for p in (".bashrc", "/home/user/.bashrc", "..bashrc", "a/..", ".tar.gz")
+      println("splitext(", repr(p), ") = ", repr(splitext(p)))
+  end
+  if splitext(".bashrc") == (".bashrc", "") && splitext("..bashrc") == (".", ".bashrc")
+      println("REPRODUCED paths-splitext-dotfile-doc")
+  end
+output:
+  release: |
+    splitext(".bashrc") = (".bashrc", "")
+    splitext("/home/user/.bashrc") = ("/home/user/.bashrc", "")
+    splitext("..bashrc") = (".", ".bashrc")
+    splitext("a/..") = ("a/.", ".")
+    splitext(".tar.gz") = (".tar", ".gz")
+    REPRODUCED paths-splitext-dotfile-doc
+  nightly: |
+    splitext(".bashrc") = (".bashrc", "")
+    splitext("/home/user/.bashrc") = ("/home/user/.bashrc", "")
+    splitext("..bashrc") = (".", ".bashrc")
+    splitext("a/..") = ("a/.", ".")
+    splitext(".tar.gz") = (".tar", ".gz")
+    REPRODUCED paths-splitext-dotfile-doc
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  A docstring that states the leading-dot exception (or behaviour that treats all
+  leading dots as part of the name).
+promised_by: |
+  splitext docstring, base/path.jl:335-337: "If the last component of a path contains
+  one or more dots, split the path into everything before the last dot and everything
+  including and after the dot."
+cause: |
+  base/path.jl:358-362 refuse to split only when the character before the last dot is a
+  separator or the dot is at index 1.
+possible_fix: |
+  Document the exception for a dot at the start of the last component.
+duplicates:
+  issues: []
+  queries:
+  - splitext
+  - splitext dotfile
+  - splitext hidden file
+lean:
+  property: JuliaLean.Paths.SplitextDoc
+  theorem: JuliaLean.Paths.splitextDoc_refuted

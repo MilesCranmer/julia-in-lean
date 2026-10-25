@@ -1,0 +1,63 @@
+id: floatranges-linrange-outside-endpoints
+title: 'LinRange(0.1, 0.1, 6)[2] == 0.10000000000000002: elements leave [start, stop]'
+priority: P2
+kind: wrong-result
+area: FloatRanges
+files:
+- base/range.jl
+functions:
+- getindex(::LinRange, ::Integer)
+- lerpi
+summary: |
+  lerpi computes (1-t)*a + t*b with three roundings, so elements can lie outside [a, b]: a
+  LinRange with equal endpoints is not constant, and LinRange(830.6, 830.6000000000012,
+  180)[2] is below its start.
+likelihood: |
+  Ordinary inputs: any constant LinRange of a non-dyadic value of moderate length shows
+  it.
+maybe_intended: |
+  The LinRange docstring (base/range.jl:569-587) says it "won't try to correct for
+  floating point errors", and its example shows elements off by an ulp. Escaping the
+  endpoints, even for a constant range, goes beyond inaccurate spacing.
+reproducer: |
+  r = LinRange(0.1, 0.1, 6)
+  println("collect(LinRange(0.1, 0.1, 6)) = ", collect(r))
+  println("LinRange(830.6, 830.6000000000012, 180)[2] = ", repr(LinRange(830.6, 830.6000000000012, 180)[2]))
+  r[2] > 0.1 && println("REPRODUCED floatranges-linrange-outside-endpoints")
+output:
+  release: |
+    collect(LinRange(0.1, 0.1, 6)) = [0.1, 0.10000000000000002, 0.1, 0.1, 0.1, 0.1]
+    LinRange(830.6, 830.6000000000012, 180)[2] = 830.5999999999999
+    REPRODUCED floatranges-linrange-outside-endpoints
+  nightly: |
+    collect(LinRange(0.1, 0.1, 6)) = [0.1, 0.10000000000000002, 0.1, 0.1, 0.1, 0.1]
+    LinRange(830.6, 830.6000000000012, 180)[2] = 830.5999999999999
+    REPRODUCED floatranges-linrange-outside-endpoints
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  LinRange(0.1, 0.1, 6)[i] == 0.1 for all i; 830.6 <= LinRange(830.6, 830.6000000000012,
+  180)[2].
+promised_by: |
+  LinRange docstring, base/range.jl:558: "A range with len linearly spaced elements
+  between its start and stop."
+cause: |
+  base/range.jl:992-996: lerpi rounds t = j/d, 1-t, both products and the sum; (1-t)*a +
+  t*a need not round to a.
+possible_fix: |
+  Return a when a == b and evaluate the formula the lerpi comment names, fma(t, b, -fma(t,
+  a, a)), or interpolate from the nearer endpoint.
+duplicates:
+  issues:
+  - number: 37276
+    state: open
+    relation: related
+  queries:
+  - LinRange constant
+  - LinRange equal
+  - LinRange precision
+  - lerpi
+lean:
+  property: JuliaLean.FloatRanges.LinBounded
+  theorem: JuliaLean.FloatRanges.linBounded_refuted

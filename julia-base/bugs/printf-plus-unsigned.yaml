@@ -1,0 +1,54 @@
+id: printf-plus-unsigned
+title: "Printf applies the + and space flags to unsigned conversions"
+priority: P3
+kind: wrong-result
+area: Printf
+files: [stdlib/Printf/src/Printf.jl]
+functions: ["Printf.fmt(buf, pos, arg, ::Printf.Spec{<:Printf.Ints})"]
+summary: |
+  @sprintf("%+x", 42) is "+2a" and @sprintf("% x", 42) is " 2a"; the same holds for %+u, %+o and %+X.
+  C99 applies these flags only to signed conversions, so C prints "2a".
+likelihood: |
+  Format strings shared between signed and unsigned columns, or ported from C.
+maybe_intended: |
+  stdlib/Printf/test/runtests.jl:617-621 assert "+1024" for %+u, "+777" for %+o and "+1234abcd" for %+x.
+  Julia prints a minus sign for negative values in these conversions, so it treats them as signed by design.
+reproducer: |
+  using Printf
+  for fmt in ["%+u", "%+o", "%+x", "%+X", "% x"]
+      println(rpad(fmt, 4), " 42 = ", repr(Printf.format(Printf.Format(fmt), 42)),
+              "; C99 expected ", repr(Printf.format(Printf.Format(replace(fmt, "+" => "", " " => "")), 42)))
+  end
+  @sprintf("%+x", 42) == "+2a" && @sprintf("% x", 42) == " 2a" && println("REPRODUCED printf-plus-unsigned")
+output:
+  release: |
+    %+u  42 = "+42"; C99 expected "42"
+    %+o  42 = "+52"; C99 expected "52"
+    %+x  42 = "+2a"; C99 expected "2a"
+    %+X  42 = "+2A"; C99 expected "2A"
+    % x  42 = " 2a"; C99 expected "2a"
+    REPRODUCED printf-plus-unsigned
+  nightly: |
+    %+u  42 = "+42"; C99 expected "42"
+    %+o  42 = "+52"; C99 expected "52"
+    %+x  42 = "+2a"; C99 expected "2a"
+    %+X  42 = "+2A"; C99 expected "2A"
+    % x  42 = " 2a"; C99 expected "2a"
+    REPRODUCED printf-plus-unsigned
+reproduced: {release: true, nightly: true}
+expected: |
+  "2a" (and "42", "52", "2A").
+promised_by: |
+  ISO/IEC 9899:1999 7.19.6.1 (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf) paragraph 6: "+ The result of a signed conversion always begins with a plus or minus sign"; "space
+  If the first character of a signed conversion is not a sign ... a space is prefixed". Paragraph 8 calls
+  o, u, x and X unsigned conversions. stdlib/Printf/src/Printf.jl:68 (Printf.Format docstring): "Create a C printf-compatible format object that can be used for formatting values."
+cause: |
+  stdlib/Printf/src/Printf.jl:394 and 405-411 add the sign for every integer conversion.
+possible_fix: |
+  Ignore plus and space for o, u, x and X (or document the deviation).
+duplicates:
+  issues: []
+  queries: ["issues: printf", "issues: Printf precision", "issues/prs: printf BigFloat", "issues/prs: sprintf BigFloat", "issues/prs: Printf mpfr", "issues/prs: printf precision negative", "issues/prs: printf negative width", "issues/prs: printf dynamic width", "issues/prs: printf %g exponent", "issues/prs: printf %g style", "issues/prs: printf %.0d", "issues/prs: printf zero precision", "issues/prs: printf #x", "issues/prs: printf alternate form", "issues/prs: printf octal", "issues/prs: printf %+x", "issues/prs: printf plus unsigned", "issues/prs: printf BoundsError", "issues/prs: Printf.Format BoundsError", "issues/prs: printf %D", "issues/prs: printf textwidth", "issues/prs: printf precision unicode", "issues/prs: printf round away from zero", "issues/prs: printf ties even", "issues/prs: printf %a zero", "issues/prs: printf hex float", "issues/prs: printf InvalidFormatStringError", "issues/prs: printf C compatible"]
+lean:
+  property: JuliaLean.Printf.PlusUnsigned
+  theorem: JuliaLean.Printf.plusUnsigned_refuted

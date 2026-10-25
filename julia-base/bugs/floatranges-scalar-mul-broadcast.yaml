@@ -1,0 +1,63 @@
+id: floatranges-scalar-mul-broadcast
+title: 3.0 * (0.0:0.1:0.3) and 3.0 .* (0.0:0.1:0.3) have different elements
+priority: P2
+kind: wrong-result
+area: FloatRanges
+files:
+- base/broadcast.jl
+- base/twiceprecision.jl
+functions:
+- '*(::Real, ::StepRangeLen{<:Real,<:TwicePrecision})'
+- broadcasted(::DefaultArrayStyle{1}, ::typeof(*), ::Number, ::StepRangeLen)
+summary: |
+  Multiplying a float range by a scalar with * re-truncates the twice-precision step,
+  while the broadcast methods do not, so x * r and x .* r differ: the last element is 0.9
+  for * and 0.8999999999999999 for .*.
+likelihood: |
+  Ordinary inputs; any decimal range scaled both ways.
+maybe_intended: ''
+reproducer: |
+  r = 0.0:0.1:0.3
+  println("collect(3.0 * r)  = ", collect(3.0 * r))
+  println("collect(3.0 .* r) = ", collect(3.0 .* r))
+  println("collect(r .* 3.0) = ", collect(r .* 3.0))
+  (3.0 * r)[4] != (3.0 .* r)[4] && println("REPRODUCED floatranges-scalar-mul-broadcast")
+output:
+  release: |
+    collect(3.0 * r)  = [0.0, 0.3, 0.6, 0.9]
+    collect(3.0 .* r) = [0.0, 0.3, 0.6, 0.8999999999999999]
+    collect(r .* 3.0) = [0.0, 0.3, 0.6, 0.8999999999999999]
+    REPRODUCED floatranges-scalar-mul-broadcast
+  nightly: |
+    collect(3.0 * r)  = [0.0, 0.3, 0.6, 0.9]
+    collect(3.0 .* r) = [0.0, 0.3, 0.6, 0.8999999999999999]
+    collect(r .* 3.0) = [0.0, 0.3, 0.6, 0.8999999999999999]
+    REPRODUCED floatranges-scalar-mul-broadcast
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  collect(3.0 * r) == collect(3.0 .* r).
+promised_by: |
+  base/arraymath.jl:54: *(A::Number, B::AbstractArray) is defined as broadcasting, so x *
+  r and x .* r denote the same array.
+cause: |
+  base/twiceprecision.jl:535-536 applies twiceprecision(x*r.step, nbitslen(r));
+  base/broadcast.jl:1216-1217 and 1223-1224 store x*r.step untruncated, so u*step.hi in
+  unsafe_getindex is no longer exact.
+possible_fix: |
+  Truncate the step in the broadcast methods as in base/twiceprecision.jl:535-536 (the
+  proposal in #47812).
+duplicates:
+  issues:
+  - number: 47812
+    state: open
+    relation: duplicate
+  queries:
+  - StepRangeLen
+  - twiceprecision
+  - float range
+  - broadcast StepRangeLen
+lean:
+  property: JuliaLean.FloatRanges.ScalarMulBroadcast
+  theorem: JuliaLean.FloatRanges.scalarMulBroadcast_refuted

@@ -1,0 +1,52 @@
+id: strings-reverse-malformed
+title: "reverse merges malformed characters of invalid UTF-8"
+priority: P3
+kind: wrong-result
+area: Strings
+files: [base/strings/stringview.jl]
+functions: ["reverse(::String)"]
+summary: |
+  For s = "\x82\xe2", collect(s) == ['\x82', '\xe2'] but reverse(s) has bytes e2
+  82, which decode as the single character '\xe2\x82'. collect(reverse(s)) !=
+  reverse(collect(s)).
+likelihood: |
+  Only invalid UTF-8 input; plausible when processing arbitrary bytes.
+maybe_intended: |
+  Reversing invalid data cannot always preserve character boundaries byte-for-
+  byte; the docstring does not discuss invalid strings.
+reproducer: |
+  s = "\x82\xe2"
+  a = collect(reverse(s))
+  b = reverse(collect(s))
+  println("collect(reverse(s)) = ", repr(a))
+  println("reverse(collect(s)) = ", repr(b))
+  a != b && println("REPRODUCED strings-reverse-malformed")
+output:
+  release: |
+    collect(reverse(s)) = ['\xe2\x82']
+    reverse(collect(s)) = ['\xe2', '\x82']
+    REPRODUCED strings-reverse-malformed
+  nightly: |
+    collect(reverse(s)) = ['\xe2\x82']
+    reverse(collect(s)) = ['\xe2', '\x82']
+    REPRODUCED strings-reverse-malformed
+reproduced: {release: true, nightly: true}
+expected: |
+  ['\xe2', '\x82'].
+promised_by: |
+  The reverse docstring: "this function reverses the codepoints in a string"
+  (base/strings/stringview.jl:34).
+cause: |
+  reverse(::UTF8String) (base/strings/stringview.jl:67-83) copies each
+  character's bytes in reverse character order; adjacent malformed bytes can
+  then re-decode as one character.
+possible_fix: ""
+duplicates:
+  issues: []
+  queries:
+    - "issues: reverse invalid UTF-8"
+    - "issues: reverse malformed char"
+    - "prs: reverse string invalid"
+lean:
+  property: JuliaLean.Strings.ReverseChars
+  theorem: JuliaLean.Strings.reverseChars_refuted

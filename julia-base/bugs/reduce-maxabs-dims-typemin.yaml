@@ -1,0 +1,63 @@
+id: reduce-maxabs-dims-typemin
+title: "maximum(abs, A; dims) returns 0 for [typemin(Int)] (start value 0 assumes abs(x) >= 0)"
+priority: P2
+kind: wrong-result
+area: Reduce
+files: [base/reducedim.jl]
+functions: ["maximum(abs, A; dims)", "maximum(abs2, A; dims)", "reducedim_init"]
+summary: |
+  maximum(abs, A; dims) and maximum(abs2, A; dims) start every slice from
+  zero(f(zero(T))) instead of a value from the data. For signed integers abs and
+  abs2 can be negative (abs(typemin(Int)) == typemin(Int), abs2 wraps), so the
+  result is 0, a value not produced by any element:
+  maximum(abs, [typemin(Int);;]; dims=1) == [0;;] but
+  maximum(abs, [typemin(Int)]) == typemin(Int); maximum(abs2, Int8[12]; dims=1) ==
+  [0] but maximum(abs2, Int8[12]) == -112. The same method gives #54920
+  (InexactError for Complex{Int}).
+likelihood: |
+  Low: needs typemin or an overflowing abs2; then the dims and non-dims results
+  silently differ.
+maybe_intended: |
+  One can argue 0 is the "mathematically right" answer for abs, but the dims-free
+  maximum(abs, A) returns typemin, and both cannot be right.
+reproducer: |
+  A = [typemin(Int);;]
+  maximum(abs, vec(A))          # typemin(Int)
+  maximum(abs, A; dims=1)       # [0;;]
+output:
+  release: |
+    -9223372036854775808 [0;;]
+    REPRODUCED reduce-maxabs-dims-typemin
+    maximum(abs, [typemin(Int)]; dims = 1)                       => [0]
+    maximum(abs, [typemin(Int)])                                 => -9223372036854775808
+    maximum(abs2, Int8[12]; dims = 1)                            => Int8[0]
+    maximum(abs2, Int8[12])                                      => -112
+  nightly: |
+    -9223372036854775808 [0;;]
+    REPRODUCED reduce-maxabs-dims-typemin
+    maximum(abs, [typemin(Int)]; dims = 1)                       => [0]
+    maximum(abs, [typemin(Int)])                                 => -9223372036854775808
+    maximum(abs2, Int8[12]; dims = 1)                            => Int8[0]
+    maximum(abs2, Int8[12])                                      => -112
+reproduced: {release: true, nightly: true}
+expected: |
+  The same value as maximum(abs, slice): typemin(Int) (and -112 for abs2).
+promised_by: |
+  base/reducedim.jl:641-664 (maximum(f, A; dims) docstring): "Compute the maximum
+  value by calling the function f on each element of an array over the given
+  dimensions."
+cause: |
+  base/reducedim.jl:172-173: reducedim_init(f::Union{typeof(abs),typeof(abs2)},
+  op::typeof(max), A, region) fills the result with zero(f(zero(T))) of type
+  _realtype(f, T); the other max/min inits (base/reducedim.jl:88-129) start from
+  an element of the data.
+possible_fix: |
+  Drop the abs/abs2 special case so the generic max init (first slice) applies,
+  which also fixes #54920.
+duplicates:
+  issues:
+    - {number: 54920, state: open, relation: related}
+  queries: ["maximum abs dims", "abs typemin maximum", "maximum abs typemin dims", "abs2 maximum dims", "maximum abs complex dims"]
+lean:
+  property: JuliaLean.Reduce.MaxAbsDims
+  theorem: JuliaLean.Reduce.maxAbsDims_refuted

@@ -1,0 +1,60 @@
+id: intarith-powers-negative-base-typemin
+title: "ndigits overcounts unsigned inputs when a negative base is typemin"
+priority: P1
+kind: wrong-result
+area: IntArith
+files: [base/intfuncs.jl]
+functions: [ndigits, ndigits0z, ndigits0znb]
+summary: |
+  A positive unsigned value smaller than the magnitude of a negative base
+  should occupy one digit. With a signed minimum base, ndigits returns two.
+likelihood: |
+  Plausible for code that accepts signed base types and unsigned values,
+  especially with Int8 bases. Only the signed minimum base triggers this path.
+maybe_intended: |
+  Julia normally wraps unary integer negation, but ndigits advertises all
+  bases outside [-1, 0, 1] and does not document a minimum-base exception.
+reproducer: |
+  x = UInt8(1)
+  b = typemin(Int8)
+  @assert 0 < BigInt(x) < -BigInt(b)
+  @assert Base.ndigits0z(x, b) == 2
+  @assert ndigits(x, base=b) == 2
+  println("ndigits0z = ", Base.ndigits0z(x, b))
+  println("ndigits = ", ndigits(x, base=b))
+  println("REPRODUCED intarith-powers-negative-base-typemin")
+output:
+  release: |
+    ndigits0z = 2
+    ndigits = 2
+    REPRODUCED intarith-powers-negative-base-typemin
+  nightly: |
+    ndigits0z = 2
+    ndigits = 2
+    REPRODUCED intarith-powers-negative-base-typemin
+reproduced: {release: true, nightly: true}
+expected: |
+  1: the value is a legal single digit in base -128.
+promised_by: |
+  "Compute the number of digits in integer n written in base base
+  (base must not be in [-1, 0, 1])." base/intfuncs.jl:846-850.
+cause: |
+  base/intfuncs.jl:748-750 negates b in its original type before the
+  unsigned first-division peel. Negating typemin(Int8) wraps to -128.
+  fld(UInt8(1), -128) wraps its negative quotient into an unsigned value;
+  signed conversion and negation then leave a nonzero state, so lines
+  753-755 count a second digit.
+possible_fix: |
+  Form the positive magnitude of the base in an unsigned or wider type
+  before the initial division, without negating a signed minimum in place.
+duplicates:
+  issues:
+    - {number: 29183, state: closed, relation: related}
+  queries:
+    - "issues: ndigits typemin"
+    - "issues: ndigits negative unsigned"
+    - "pull requests: ndigits typemin"
+    - "pull requests: ndigits base"
+lean:
+  property: JuliaLean.IntArith.PowersDigits.NegativeBaseSingleDigit
+  theorem: JuliaLean.IntArith.PowersDigits.negativeBaseSingleDigit_refuted

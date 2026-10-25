@@ -1,0 +1,50 @@
+id: tuples-getindex-bool-range
+title: "`t[false:true]` indexes a tuple as an integer range instead of logically"
+priority: P3
+kind: wrong-result
+area: Tuples
+files: [base/range.jl, base/tuple.jl]
+functions: ["getindex(t::Tuple, r::AbstractUnitRange)", "getindex(t::Tuple, b::AbstractArray{Bool,1})"]
+summary: |
+  A UnitRange{Bool} is an AbstractArray{Bool,1}, which tuples index logically
+  ((10, 20)[[false, true]] == (20,)), but it dispatches to the constant-folding
+  method getindex(t::Tuple, r::AbstractUnitRange), which treats it as the
+  integer range 0:1: (10, 20)[false:true] throws BoundsError (it reads t[0]) and
+  (1, 2, 3)[true:true] == (1,) where logical indexing needs a mask of length 3.
+  Vectors index UnitRange{Bool} logically ([10, 20][false:true] == [20]).
+likelihood: |
+  Very low: Bool ranges are rare as masks.
+maybe_intended: ""
+reproducer: |
+  (10, 20)[false:true]     # BoundsError((10, 20), 0)
+  (10, 20)[[false, true]]  # (20,)
+  [10, 20][false:true]     # [20]
+  (1, 2, 3)[true:true]     # (1,)
+output:
+  release: |
+    BoundsError((10, 20), 0) (20,) [20] (1,)
+    REPRODUCED tuples-getindex-bool-range
+  nightly: |
+    BoundsError((10, 20), 0) (20,) [20] (1,)
+    REPRODUCED tuples-getindex-bool-range
+reproduced: {release: true, nightly: true}
+expected: |
+  Logical indexing: (10, 20)[false:true] == (20,), and (1, 2, 3)[true:true]
+  throws BoundsError (mask length 1 for 3 elements).
+promised_by: |
+  base/tuple.jl:37 (logical indexing of tuples by AbstractArray{Bool,1});
+  base/array.jl:993 getindex(a::Array, r::AbstractUnitRange{Bool}) =
+  getindex(a, to_index(r)) treats Bool ranges logically for Vectors.
+cause: |
+  base/range.jl:451-466: getindex(t::Tuple, r::AbstractUnitRange) computes
+  t[i + first(r) - 1] for short ranges with first(r) = false, i.e. integer
+  offsets, and is selected over the AbstractArray{Bool,1} method.
+possible_fix: |
+  Restrict the range.jl method to AbstractUnitRange{<:Integer} minus Bool, or
+  add getindex(t::Tuple, r::AbstractUnitRange{Bool}) = t[collect(r)].
+duplicates:
+  issues: []
+  queries: ["issues: tuple index Bool", "issues: getindex Bool tuple", "issues: UnitRange Bool index", "prs: invalid index Bool"]
+lean:
+  property: JuliaLean.Tuples.BoolRangeLogical
+  theorem: JuliaLean.Tuples.boolRangeLogical_refuted

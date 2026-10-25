@@ -1,0 +1,65 @@
+id: hashops-annotated-non8-hash
+title: "hash(::AnnotatedString) throws for non-UInt8 AbstractString storage"
+priority: P2
+kind: wrong-exception
+area: HashOps
+files: [base/hashing.jl, base/strings/annotated.jl]
+functions: ["hash(::AbstractString, ::UInt)", "iterate(::UTF8Units)", "hash(::AnnotatedString, ::UInt)"]
+summary: |
+  AnnotatedString accepts any AbstractString, but hashing one backed by non-UInt8
+  code units throws ArgumentError. An annotation-free wrapper is isequal to its
+  underlying string, which hashes normally, so the documented hash contract
+  cannot be used for this equal pair.
+likelihood: |
+  This affects custom AbstractString implementations with UInt16 or UInt32 code
+  units when wrapped for styling. Such string implementations are uncommon,
+  but AnnotatedString explicitly supports every AbstractString subtype.
+maybe_intended: |
+  Empty annotations intentionally make an AnnotatedString equal to the
+  underlying AbstractString. No documented restriction requires UInt8 code
+  units, and the generic hashing code has a dedicated non-UInt8 path.
+reproducer: |
+  using Base: AnnotatedString
+  struct UTF32String <: AbstractString
+      chars::Vector{Char}
+  end
+  # Define the required AbstractString interface with UInt32 code units.
+  s = UTF32String(['h', 'é'])
+  a = AnnotatedString(s)
+  isequal(a, s)
+  hash(s, UInt(0))
+  hash(a, UInt(0))
+output:
+  release: |
+    hash(a, 0) error = ArgumentError: Source type for `reinterpret` must be isbits
+    isequal(a, s) = true
+    hash(s, 0) = 98426436874591437
+    REPRODUCED hashops-annotated-non8-hash
+  nightly: |
+    hash(a, 0) error = ArgumentError: Source type for `reinterpret` must be isbits
+    isequal(a, s) = true
+    hash(s, 0) = 98426436874591437
+    REPRODUCED hashops-annotated-non8-hash
+reproduced: {release: true, nightly: true}
+expected: |
+  hash(a, UInt(0)) should return the same UInt as hash(s, UInt(0)), because
+  isequal(a, s) is true.
+promised_by: |
+  The hash docstring at base/hashing.jl:12-20 says isequal(x,y) implies equal
+  hashes. AnnotatedString is parameterized by S <: AbstractString at
+  base/strings/annotated.jl:64, and its equality method at lines 232-233 makes
+  an annotation-free wrapper equal to the underlying string.
+cause: |
+  utf8units chooses UTF8Units for non-UInt8 code units at base/hashing.jl:106.
+  Iterating the AnnotatedString yields AnnotatedChar values, then UTF8Units calls
+  reinterpret(UInt32, char) at lines 115 and 138. AnnotatedChar is a non-isbits
+  struct containing an annotation vector, so reinterpret throws.
+possible_fix: |
+  Hash an AnnotatedString through its underlying string, or convert each
+  AbstractChar through its code point instead of reinterpreting the wrapper.
+duplicates:
+  issues: []
+  queries: ["AnnotatedString hash", "UTF8Units AnnotatedChar", "hash AbstractString reinterpret", "non UInt8 AbstractString hash"]
+lean:
+  property: JuliaLean.HashOps.AnnotatedStringHash
+  theorem: JuliaLean.HashOps.annotatedStringHash_refuted

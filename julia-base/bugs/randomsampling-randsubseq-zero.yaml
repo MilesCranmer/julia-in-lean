@@ -1,0 +1,53 @@
+id: randomsampling-randsubseq-zero
+title: "randsubseq indexes A[0] when randexp returns zero"
+priority: P2
+kind: wrong-exception
+area: RandomSampling
+files: [stdlib/Random/src/misc.jl, stdlib/Random/src/normal.jl]
+functions: ["randsubseq", "randsubseq!", "randexp"]
+summary: |
+  For 0 < p <= 0.15, randsubseq uses ceil(Int, randexp(rng) * L) as a
+  strictly positive skip. randexp can return exactly 0.0, so the first skip
+  can be zero and the function indexes A[0], raising BoundsError.
+likelihood: |
+  A custom AbstractRNG returning zero words reproduces deterministically.
+  An ordinary uniform 52-bit draw also permits zero, with probability 2^-52
+  per exponential proposal. This is very unlikely in ordinary runs.
+maybe_intended: ""
+reproducer: |
+  using Random
+  struct ZeroWords <: AbstractRNG end
+  Random.rng_native_52(::ZeroWords) = UInt64
+  Random.rand(::ZeroWords, ::Random.SamplerType{UInt64}) = UInt64(0)
+  randsubseq(ZeroWords(), [10, 20, 30], 0.1)
+output:
+  release: |
+    randexp = 0.0
+    BoundsError: BoundsError: attempt to access 3-element Vector{Int64} at index [0]
+    REPRODUCED randomsampling-randsubseq-zero
+  nightly: |
+    randexp = 0.0
+    BoundsError: BoundsError: attempt to access 3-element Vector{Int64} at index [0]
+    REPRODUCED randomsampling-randsubseq-zero
+reproduced: {release: true, nightly: true}
+expected: |
+  Valid probability and array inputs return a subsequence without indexing
+  outside the input. A zero exponential draw must not produce a zero skip.
+promised_by: |
+  stdlib/Random/src/misc.jl:171-175: "Return a vector consisting of a random
+  subsequence of the given array A, where each element of A is included
+  (in order) with independent probability p."
+cause: |
+  stdlib/Random/src/normal.jl:156-160 masks the random word to 52 bits and
+  returns ri*we[idx+1] on the fast path. For ri=0 this is 0.0.
+  stdlib/Random/src/misc.jl:129-134 starts i at zero, permits s=0 past the
+  upper-bound check, and adds ceil(Int,0.0)=0 before indexing A[i].
+possible_fix: |
+  Ensure that the geometric skip is at least one, or redraw an exactly
+  zero exponential proposal before computing the skip.
+duplicates:
+  issues: []
+  queries: ["randsubseq zero randexp", "randsubseq", "randsubseq BoundsError", "randexp zero", "PR randsubseq"]
+lean:
+  property: JuliaLean.RandomSampling.RandsubseqTotal
+  theorem: JuliaLean.RandomSampling.randsubseqTotal_refuted

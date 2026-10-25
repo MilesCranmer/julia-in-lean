@@ -1,0 +1,53 @@
+id: transcode-cwstring-empty-vector
+title: "Passing an empty Vector{Cwchar_t} as a Cwstring throws BoundsError instead of the NUL-termination ArgumentError"
+priority: P2
+kind: wrong-exception
+area: Transcode
+files: [base/strings/cstring.jl]
+functions: ["cconvert(::Type{Cwstring}, ::Vector{Cwchar_t})"]
+summary: |
+  cconvert(Cwstring, v) checks that v is NUL-terminated and throws
+  ArgumentError("C string data must be NUL terminated: ...") otherwise. For an
+  empty vector it evaluates v[end] first and throws BoundsError, so
+  ccall(f, T, (Cwstring,), Cwchar_t[]) reports an indexing error.
+likelihood: |
+  Low: needs an empty wchar_t buffer passed directly as a Cwstring argument.
+maybe_intended: ""
+reproducer: |
+  v = Cwchar_t[]
+  try
+      Base.cconvert(Cwstring, v)
+      println("no error")
+  catch e
+      println(typeof(e), ": ", sprint(showerror, e))
+      e isa BoundsError && println("REPRODUCED transcode-cwstring-empty-vector")
+  end
+output:
+  release: |
+    BoundsError: BoundsError: attempt to access 0-element Vector{Int32} at index [0]
+    REPRODUCED transcode-cwstring-empty-vector
+  nightly: |
+    BoundsError: BoundsError: attempt to access 0-element Vector{Int32} at index [0]
+    REPRODUCED transcode-cwstring-empty-vector
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError: C string data must be NUL terminated: Int32[]
+promised_by: |
+  base/strings/cstring.jl:97-98: the method's own check `v[end] == 0 ||
+  throw(ArgumentError("C string data must be NUL terminated: ..."))`;
+  the Cwstring docstring (cstring.jl:9): "`Cwstring`s are NUL-terminated."
+cause: |
+  base/strings/cstring.jl:97 indexes v[end] without first checking
+  isempty(v).
+possible_fix: |
+  `(!isempty(v) && v[end] == 0) || throw(ArgumentError(...))`.
+duplicates:
+  issues: []
+  queries:
+    - "issues: Cwstring"
+    - "issues: Cwstring empty vector BoundsError"
+    - "issues: C string data must be NUL terminated"
+    - "issues: embedded NULs Cwstring"
+lean:
+  property: JuliaLean.Transcode.CwstringVectorCheck
+  theorem: JuliaLean.Transcode.cwstringVectorCheck_refuted
