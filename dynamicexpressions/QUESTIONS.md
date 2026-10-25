@@ -351,10 +351,10 @@ siblings prove). The property now states that the call succeeds, allocates one
 new node whose two children are both `x`, keeps `x` alias-free, and changes no
 existing object, and is proven.
 
-## Q36 (NodeUtils): Composite round trip needs slot-local value protocols (modelling decision for PR #250; no ruling needed.)
+## Q36 (NodeUtils): Composite round trip needs slot-local value protocols (modelling decision for [PR #250](https://github.com/SymbolicML/DynamicExpressions.jl/issues/250); no ruling needed.)
 
 `nodeutils-composite-empty` quantifies over every lawful numeric-vector value
-protocol. After PR #250 the setter visits every ref (`src/NodeUtils.jl:134-139`),
+protocol. After [PR #250](https://github.com/SymbolicML/DynamicExpressions.jl/issues/250) the setter visits every ref (`src/NodeUtils.jl:134-139`),
 but the statement is still false for a protocol whose `pack_scalar_constants!`
 also overwrites slots of earlier values: each value round-trips on its own, yet
 packing a later value clobbers an earlier one, so no setter can restore it. The
@@ -363,7 +363,7 @@ unpack reads only its own slots), which every real protocol, including the
 reproducer's `Vector{Float64}` protocol (`emptyProtocolLocal_proven`),
 satisfies. With that hypothesis it is proven.
 
-## Q38 (Eval): Fused kernels and non-finite inputs under early exit (answered: documented behaviour, not fixed; PR #276 documents on `use_fused` that with `early_exit=true` fused kernels check only their outputs. Restate as that documented behaviour and prove.)
+## Q38 (Eval): Fused kernels and non-finite inputs under early exit (answered: documented behaviour, not fixed; [PR #276](https://github.com/SymbolicML/DynamicExpressions.jl/issues/276) documents on `use_fused` that with `early_exit=true` fused kernels check only their outputs. Restate as that documented behaviour and prove.)
 
 `eval-fused-flag-agree` originally required the completion flag to be the
 same for `use_fused=true` and `use_fused=false` and was refuted with `1.0 / x1`
@@ -374,7 +374,7 @@ unfused call completes with flag true, the fused call completes with the same
 output and flag true (the fused flag is never stricter), and the two flags
 agree when every input entry is finite. It is proven.
 
-## Q47 (ParamStruct): Setter input that shares memory with the parameters (answered: documented precondition; PR #274 documents on `set_scalar_constants!` that `constants` must not share memory with the expression's own parameters, e.g. a view of them. Restate with that precondition and prove.)
+## Q47 (ParamStruct): Setter input that shares memory with the parameters (answered: documented precondition; [PR #274](https://github.com/SymbolicML/DynamicExpressions.jl/issues/274) documents on `set_scalar_constants!` that `constants` must not share memory with the expression's own parameters, e.g. a view of them. Restate with that precondition and prove.)
 
 `paramstruct-overlapping-parameter-input` and
 `paramstruct-overlapping-structured-input` originally required the setters to
@@ -385,10 +385,10 @@ that the input shares no memory with the destination parameters
 (`src/NodeUtils.jl:123-124`) and are proven; the reversed-view reproducer lies
 outside the precondition.
 
-## Q48 (ParamStruct): What empty-class evaluation should return (modelling decision for PR #246; no ruling needed.)
+## Q48 (ParamStruct): What empty-class evaluation should return (modelling decision for [PR #246](https://github.com/SymbolicML/DynamicExpressions.jl/issues/246); no ruling needed.)
 
 `paramstruct-empty-classes` originally required evaluation on a zero-column
-matrix with empty classes to return an empty array with flag `true`. PR #246
+matrix with empty classes to return an empty array with flag `true`. [PR #246](https://github.com/SymbolicML/DynamicExpressions.jl/issues/246)
 removes the `maximum(classes)` failure, so the call now reaches the ordinary
 evaluator. That evaluator still reports flag `false` for zero-sample trees with
 an invalid constant subtree (for example `inv(0.0)`), which the
@@ -398,18 +398,18 @@ class-handling error and passes the converted tree and a
 `(size(parameters, 1) + size(X, 1)) x 0` augmented matrix to the ordinary
 evaluator. It is proven.
 
-## Q40 (StringsParse): Unary `+` power bases after PR #228 (answered: not a bug; unary `+` is the identity, so `+(x1) ^ x2` and `+(x1 ^ x2)` have equal values and only the tree shape differs; printed constants never start with `+`.)
+## Q40 (StringsParse): Unary `+` power bases after [PR #228](https://github.com/SymbolicML/DynamicExpressions.jl/issues/228) (answered: not a bug; unary `+` is the identity, so `+(x1) ^ x2` and `+(x1 ^ x2)` have equal values and only the tree shape differs; printed constants never start with `+`.)
 
-PR #228 brackets a `^` base whose rendering starts with `-`, so negative
+[PR #228](https://github.com/SymbolicML/DynamicExpressions.jl/issues/228) brackets a `^` base whose rendering starts with `-`, so negative
 constants and unary `-` calls now roundtrip exactly. A unary `+` base still
 prints as `+(c) ^ b`, which Julia parses as `+(c ^ b)`. Following Miles's
-ruling on #228, stringsparse-negative-power states that power trees without a
+ruling on [#228](https://github.com/SymbolicML/DynamicExpressions.jl/issues/228), stringsparse-negative-power states that power trees without a
 unary `+` base reparse to their expected tree, and that every clean tree keeps
 its value when unary `+` operators are the identity. Both clauses are proven.
 
 ## Q41 (StringsParse): Variables named `NaN` or `Inf` (modelling decision by analogy with Q21.)
 
-PR #229 normalizes the symbols `NaN` and `Inf` to constants unless they are
+[PR #229](https://github.com/SymbolicML/DynamicExpressions.jl/issues/229) normalizes the symbols `NaN` and `Inf` to constants unless they are
 declared in `variable_names`. A declared `Inf` makes the printed `Inf` a feature
 reference, and without a unary `-` operator the printed `-Inf` fails to parse.
 As Q21 does for a variable named `im`, stringsparse-nonfinite requires the
@@ -425,19 +425,19 @@ of a later index. It is proven.
 ## Q43 (StringsParse): Complex constants with a variable named `im` (answered by Q21: not a bug.)
 
 stringsparse-complex-variable now states that a declared `im` shadows the
-imaginary unit while the nonfinite folds of PR #229 still apply, and that every
+imaginary unit while the nonfinite folds of [PR #229](https://github.com/SymbolicML/DynamicExpressions.jl/issues/229) still apply, and that every
 constant roundtrips when `NaN`, `Inf`, and `im` are undeclared. It is proven.
 
-## Q44 (StringsParse): Operator-name cache after PR #231 (modelling decision; no ruling needed.)
+## Q44 (StringsParse): Operator-name cache after [PR #231](https://github.com/SymbolicML/DynamicExpressions.jl/issues/231) (modelling decision; no ruling needed.)
 
-PR #231 caches names by `objectid` only for singleton callable types. The model
+[PR #231](https://github.com/SymbolicML/DynamicExpressions.jl/issues/231) caches names by `objectid` only for singleton callable types. The model
 takes as given that singleton callables with one `objectid` are one object and
 so print one name; under that assumption every sequence of `get_op_name` calls
 returns each callable's own name. stringsparse-cache-collision is proven.
 
-## Q50 (Simplify): `combine_operators!` and the deprecated `combine_operators` after PR #251 (modelling decision following the Q17 ruling; no ruling needed.)
+## Q50 (Simplify): `combine_operators!` and the deprecated `combine_operators` after [PR #251](https://github.com/SymbolicML/DynamicExpressions.jl/issues/251) (modelling decision following the Q17 ruling; no ruling needed.)
 
-`src/Simplify.jl:32-129`, `src/PatchMethods.jl:11-18`. PR #251 renamed the
+`src/Simplify.jl:32-129`, `src/PatchMethods.jl:11-18`. [PR #251](https://github.com/SymbolicML/DynamicExpressions.jl/issues/251) renamed the
 mutating function to `combine_operators!` and kept `combine_operators` as a
 `Base.@deprecate` alias. Under the Q17 ruling the bug was the missing `!`, so
 simplify-combine-input-mutated is restated as the contract the new name
@@ -450,7 +450,7 @@ calls throw instead. It is proven.
 
 ## Q51 (Simplify): `ParametricNode` contents in `combine_operators!` (modelling decision; no ruling needed.)
 
-`src/Simplify.jl:32-35`. After PR #251 the tree method accepts every
+`src/Simplify.jl:32-35`. After [PR #251](https://github.com/SymbolicML/DynamicExpressions.jl/issues/251) the tree method accepts every
 `AbstractExpressionNode{T,2}` whose type does not preserve sharing, so
 `ParametricExpression` contents get the same rewrites as `Expression`
 contents (the Q16 reading). A parameter leaf has `constant == false`, so
@@ -460,9 +460,9 @@ the companion simplify-patch-combine-parametric-identity (the old no-op) is
 replaced by simplify-patch-combine-parametric-spec, the ParametricExpression
 analogue of simplify-patch-combine-expression.
 
-## Q55 (StringsParse): Input conditions of the broadcast roundtrip after PR #230 (modelling decision; no ruling needed.)
+## Q55 (StringsParse): Input conditions of the broadcast roundtrip after [PR #230](https://github.com/SymbolicML/DynamicExpressions.jl/issues/230) (modelling decision; no ruling needed.)
 
-`src/Strings.jl:53-66,106-133`, `src/Parse.jl:304-345,389-394`. PR #230
+`src/Strings.jl:53-66,106-133`, `src/Parse.jl:304-345,389-394`. [PR #230](https://github.com/SymbolicML/DynamicExpressions.jl/issues/230)
 rewrites the printed dot call `f.(args...)` into a call of the symbol `f.` and
 matches a `Broadcast.BroadcastFunction` operator by its `get_op_name` spelling.
 The earlier statement of stringsparse-broadcast assumed only identifier
@@ -488,9 +488,9 @@ The model uses reading 2, with an explicit `broadcast` flag on each operator
 for `op isa Broadcast.BroadcastFunction`. stringsparse-broadcast is proven:
 every such tree renders, and its text parses to some tree.
 
-## Q56 (EvalCache, PR #219): New contents behind the same identity of X or of the operators (modelling decision; no ruling needed.)
+## Q56 (EvalCache, [PR #219](https://github.com/SymbolicML/DynamicExpressions.jl/issues/219)): New contents behind the same identity of X or of the operators (modelling decision; no ruling needed.)
 
-`src/Evaluate.jl:151-153,613-622` at PR #219 head 5e2f3b8c. The cache keys its
+`src/Evaluate.jl:151-153,613-622` at [PR #219](https://github.com/SymbolicML/DynamicExpressions.jl/issues/219) head 5e2f3b8c. The cache keys its
 entries by `cX === cache.X` and `operators === cache.operators`. The
 `EvalContext` docstring says the input matrix must not be mutated in place
 between evaluations with the same context. Two readings:
@@ -509,9 +509,9 @@ uncached evaluation when contents are stable per identity
 cases; reading 1 makes them documented limits, reading 2 bugs. The docstring
 mentions only the first case.
 
-## Q57 (EvalCache, PR #219): One `UnaryFeatureCache` shared by contexts with different `early_exit` (modelling decision; no ruling needed.)
+## Q57 (EvalCache, [PR #219](https://github.com/SymbolicML/DynamicExpressions.jl/issues/219)): One `UnaryFeatureCache` shared by contexts with different `early_exit` (modelling decision; no ruling needed.)
 
-`src/Evaluate.jl:634-640` at PR #219 head 5e2f3b8c. A cache is a separate
+`src/Evaluate.jl:634-640` at [PR #219](https://github.com/SymbolicML/DynamicExpressions.jl/issues/219) head 5e2f3b8c. A cache is a separate
 object passed as `unary_cache`, so two contexts can hold the same one. Under
 `early_exit=false` the miss path stores entries even when the feature row is
 non-finite; a context with `early_exit=true` that later hits such an entry
@@ -522,9 +522,9 @@ docstring does not state). The model allows sharing: evalcache-sequence proves
 it safe when all sharing contexts use the same `early_exit`, and
 evalcache-shared-early-exit is refuted otherwise.
 
-## Q58 (EvalCache, PR #219): Thread safety of a shared context with a cache (modelling decision; no ruling needed.)
+## Q58 (EvalCache, [PR #219](https://github.com/SymbolicML/DynamicExpressions.jl/issues/219)): Thread safety of a shared context with a cache (modelling decision; no ruling needed.)
 
-`src/Evaluate.jl:596-642` at PR #219 head 5e2f3b8c. The cache has no lock and
+`src/Evaluate.jl:596-642` at [PR #219](https://github.com/SymbolicML/DynamicExpressions.jl/issues/219) head 5e2f3b8c. The cache has no lock and
 the docstring says nothing about threads. The Lean model is sequential, so the
 race is modelled explicitly: each thread's `cached_deg1_eval` is split into
 atomic steps (identity check and reset, entry read, store) interleaved by a

@@ -164,7 +164,7 @@ Each confirmed bug gets a YAML file `bugs/<id>.yaml`, validated by `scripts/chec
 
 ### Duplicate search
 
-Before filing, each bug is searched for duplicates in JuliaLang/julia issues and pull requests, and the YAML records what was found or which searches were tried. Many findings were already known, for example #58245 (`collect(typemin(Int):typemax(Int))` segfault), #62906 (nested `SubArray` offset), and #63399 (range search overflow, with an open PR that fixes it).
+Before filing, each bug is searched for duplicates in JuliaLang/julia issues and pull requests, and the YAML records what was found or which searches were tried. Many findings were already known, for example [#58245](https://github.com/JuliaLang/julia/issues/58245) (`collect(typemin(Int):typemax(Int))` segfault), [#62906](https://github.com/JuliaLang/julia/issues/62906) (nested `SubArray` offset), and [#63399](https://github.com/JuliaLang/julia/issues/63399) (range search overflow, with an open PR that fixes it).
 
 Filing is never automated. After the first two reports, the Julia community was asked how it preferred to receive findings in bulk, and the answer was individual issues. Each issue is drafted from its YAML, checked again for duplicates, and shown to a person, who approves it or sends it back before it is posted. Issues are posted from a separate bot account so they read as ordinary bug reports; each ends with a short italic note saying it was found through a Lean formalization and tagging the person responsible. Selection favours distinct bugs that are severe and that real code might hit, so most write-ups are never filed. Findings that may be security-relevant are held back and raised privately before anything is posted.
 
@@ -216,7 +216,7 @@ Lean 4.34.1 (`lean-toolchain`: `leanprover/lean4:v4.34.1`), no Mathlib.
 | Refuted | 400 |
 | Bug write-ups | 401 |
 
-There is one write-up per refuted entry, plus one for a compiler bug (`compiler-isa-flag-loop`, #64183) found while checking Markdown; the compiler is outside the Lean model, so it has no registry entry. Bug write-ups by priority:
+There is one write-up per refuted entry, plus one for a compiler bug (`compiler-isa-flag-loop`, [#64183](https://github.com/JuliaLang/julia/issues/64183)) found while checking Markdown; the compiler is outside the Lean model, so it has no registry entry. Bug write-ups by priority:
 
 | Priority | Count |
 | --- | --- |
@@ -227,23 +227,23 @@ There is one write-up per refuted entry, plus one for a compiler bug (`compiler-
 
 Coverage: parts of about 90 files in `base/`, plus the stdlib packages Printf, Dates, Base64, UUIDs, CRC32c, TOML, Markdown, Sockets, Serialization, Artifacts, Random and Unicode.
 
-After the first two reports (including #64121), 75 issues were filed on JuliaLang/julia, numbered #64123 to #64207. A few numbers in that range come from a separate C-runtime/GC project that is not in this repository. Selected filed issues, all open:
+After the first two reports (including [#64121](https://github.com/JuliaLang/julia/issues/64121)), 75 issues were filed on JuliaLang/julia ([full list](https://github.com/JuliaLang/julia/issues?q=is%3Aissue%20author%3AMilesCranmerBot)), numbered [#64123](https://github.com/JuliaLang/julia/issues/64123) to [#64207](https://github.com/JuliaLang/julia/issues/64207). A few numbers in that range come from a separate C-runtime/GC project that is not in this repository. Selected filed issues, all open:
 
-- #64183: 1.14 regression. A stale `isa` refinement across loop iterations miscompiles code: inference folds `w && el isa String` to false when `w = el isa C` was set in the previous iteration. Found because `Markdown.rst` printed wrong output on master.
-- #64147: BitArrays. Resizing `vec(M)` or `reshape(M, n)` corrupts the original `BitArray` (memory unsafe).
-- #64175: `selectdim` with a `CartesianIndex` can create an out-of-bounds view.
-- #64185: Printf. A large `BigFloat` after preceding output can write past the buffer.
-- #64202: Printf. Negative dynamic precision writes integer digits out of bounds.
-- #64204: Printf. Exact-fit `BigFloat` conversion replaces the last character with NUL.
-- #64193: Artifacts. Slash lookup allows paths outside the artifact directory.
-- #64131: 1.14 regression. `intersect` can return values absent from an input.
-- #64123: `intersect` can omit shared values.
-- #64143: `first(s, typemax(Int))` returns empty for non-ASCII strings.
-- #64136: `range` can miss a tiny nonzero endpoint (`last(range(1.0, 1e-300; length=24))`).
-- #64142: `round(floatmax(); sigdigits=1)` returns `0.0`; `sigdigits` turns large finite values into zero.
-- #64170: TOML. A later value can silently overwrite an existing table.
-- #64200: `uuid5` unescapes the name before hashing.
-- #64192: shell. Line continuation can drop characters after non-ASCII text.
+- [#64183](https://github.com/JuliaLang/julia/issues/64183): 1.14 regression. A stale `isa` refinement across loop iterations miscompiles code: inference folds `w && el isa String` to false when `w = el isa C` was set in the previous iteration. Found because `Markdown.rst` printed wrong output on master.
+- [#64147](https://github.com/JuliaLang/julia/issues/64147): BitArrays. Resizing `vec(M)` or `reshape(M, n)` corrupts the original `BitArray` (memory unsafe).
+- [#64175](https://github.com/JuliaLang/julia/issues/64175): `selectdim` with a `CartesianIndex` can create an out-of-bounds view.
+- [#64185](https://github.com/JuliaLang/julia/issues/64185): Printf. A large `BigFloat` after preceding output can write past the buffer.
+- [#64202](https://github.com/JuliaLang/julia/issues/64202): Printf. Negative dynamic precision writes integer digits out of bounds.
+- [#64204](https://github.com/JuliaLang/julia/issues/64204): Printf. Exact-fit `BigFloat` conversion replaces the last character with NUL.
+- [#64193](https://github.com/JuliaLang/julia/issues/64193): Artifacts. Slash lookup allows paths outside the artifact directory.
+- [#64131](https://github.com/JuliaLang/julia/issues/64131): 1.14 regression. `intersect` can return values absent from an input.
+- [#64123](https://github.com/JuliaLang/julia/issues/64123): `intersect` can omit shared values.
+- [#64143](https://github.com/JuliaLang/julia/issues/64143): `first(s, typemax(Int))` returns empty for non-ASCII strings.
+- [#64136](https://github.com/JuliaLang/julia/issues/64136): `range` can miss a tiny nonzero endpoint (`last(range(1.0, 1e-300; length=24))`).
+- [#64142](https://github.com/JuliaLang/julia/issues/64142): `round(floatmax(); sigdigits=1)` returns `0.0`; `sigdigits` turns large finite values into zero.
+- [#64170](https://github.com/JuliaLang/julia/issues/64170): TOML. A later value can silently overwrite an existing table.
+- [#64200](https://github.com/JuliaLang/julia/issues/64200): `uuid5` unescapes the name before hashing.
+- [#64192](https://github.com/JuliaLang/julia/issues/64192): shell. Line continuation can drop characters after non-ASCII text.
 
 Some confirmed bugs are held back from this repository until they have been reported.
 
@@ -280,23 +280,23 @@ Areas: Deriv, Eval, EvalCache, Expressions, Model, NoAlias, NodeBase, NodeUtils,
 
 Maintainer rulings on ambiguous cases are in `QUESTIONS.md`.
 
-The bugs were fixed upstream, one pull request per bug, with bugs that share a root cause fixed together. 38 Lean-derived fix PRs were merged into SymbolicML/DynamicExpressions.jl (numbers from #221 onward), and each refutation flipped to proven as its fix landed. Examples of merged fixes:
+The bugs were fixed upstream, one pull request per bug, with bugs that share a root cause fixed together. 38 Lean-derived fix PRs were merged into SymbolicML/DynamicExpressions.jl (numbers from [#221](https://github.com/SymbolicML/DynamicExpressions.jl/issues/221) onward), and each refutation flipped to proven as its fix landed. Examples of merged fixes:
 
-- #249: `is_valid_array` accepts finite arrays whose sum overflows.
-- #241: `GraphNode` equality must match shared nodes to each other.
-- #242: break sharing when converting `GraphNode` to `Node`.
-- #264: throw `BoundsError` for feature indices beyond the input rows.
-- #268: fused unary kernels apply the outer operator when early exit is off.
-- #270: the fused branch kernel checks constant subtrees like the unfused path.
-- #259: reject negative and non-finite `NodeSampler` weights.
-- #229: parse `NaN`, `Inf` and `-Inf` constants.
-- #228: parenthesize signed power bases when printing.
+- [#249](https://github.com/SymbolicML/DynamicExpressions.jl/issues/249): `is_valid_array` accepts finite arrays whose sum overflows.
+- [#241](https://github.com/SymbolicML/DynamicExpressions.jl/issues/241): `GraphNode` equality must match shared nodes to each other.
+- [#242](https://github.com/SymbolicML/DynamicExpressions.jl/issues/242): break sharing when converting `GraphNode` to `Node`.
+- [#264](https://github.com/SymbolicML/DynamicExpressions.jl/issues/264): throw `BoundsError` for feature indices beyond the input rows.
+- [#268](https://github.com/SymbolicML/DynamicExpressions.jl/issues/268): fused unary kernels apply the outer operator when early exit is off.
+- [#270](https://github.com/SymbolicML/DynamicExpressions.jl/issues/270): the fused branch kernel checks constant subtrees like the unfused path.
+- [#259](https://github.com/SymbolicML/DynamicExpressions.jl/issues/259): reject negative and non-finite `NodeSampler` weights.
+- [#229](https://github.com/SymbolicML/DynamicExpressions.jl/issues/229): parse `NaN`, `Inf` and `-Inf` constants.
+- [#228](https://github.com/SymbolicML/DynamicExpressions.jl/issues/228): parenthesize signed power bases when printing.
 
 The remaining refutations include `eval-noearly-denote`: with `early_exit=false` and no fusion, `x1 + inv(inv(0.0))` still stops early.
 
-Four further refutations concern an open performance PR, #219, which adds a cache of unary operators applied to features. The formalization was extended with the cache before the PR was merged. It shows that cached and uncached evaluation differ in three situations: when the input array or the operators are mutated in place (`evalcache-mutate-x`, `evalcache-mutate-op`); when callers with different `early_exit` settings share a cache (`evalcache-shared-early-exit`); and when threads share one context (`evalcache-threads`). These are findings about the PR as it stands, recorded so the design can take them into account.
+Four further refutations concern an open performance PR, [#219](https://github.com/SymbolicML/DynamicExpressions.jl/issues/219), which adds a cache of unary operators applied to features. The formalization was extended with the cache before the PR was merged. It shows that cached and uncached evaluation differ in three situations: when the input array or the operators are mutated in place (`evalcache-mutate-x`, `evalcache-mutate-op`); when callers with different `early_exit` settings share a cache (`evalcache-shared-early-exit`); and when threads share one context (`evalcache-threads`). These are findings about the PR as it stands, recorded so the design can take them into account.
 
-Downstream, a separate Lean formalization of SymbolicRegression.jl imports the DynamicExpressions.jl Lean package as a dependency. It led to three SymbolicRegression.jl fixes: #786 (count shared `GraphNode` subtrees once in weighted complexity), #789 (optimize a child in the optimize mutation instead of the parent) and #790 (keep NaN losses off the Pareto frontier). That formalization is not in this repository.
+Downstream, a separate Lean formalization of SymbolicRegression.jl imports the DynamicExpressions.jl Lean package as a dependency. It led to three SymbolicRegression.jl fixes: [#786](https://github.com/MilesCranmer/SymbolicRegression.jl/issues/786) (count shared `GraphNode` subtrees once in weighted complexity), [#789](https://github.com/MilesCranmer/SymbolicRegression.jl/issues/789) (optimize a child in the optimize mutation instead of the parent) and [#790](https://github.com/MilesCranmer/SymbolicRegression.jl/issues/790) (keep NaN losses off the Pareto frontier). That formalization is not in this repository.
 
 ## Formalizing your own package
 
@@ -358,7 +358,7 @@ bash scripts/audit.sh             # lake build, forbidden-token scan, audit; end
 JULIA=/path/to/julia scripts/run-repros.sh   # runs the reproducer of every refuted entry
 ```
 
-For `julia-base/`, run the reproducers against both the 1.13.2 release and Julia master; each refuted entry reproduces on at least one of them, and most on both. The DynamicExpressions.jl reproducers use `repro/Project.toml`, which pins the package at the modelled commit; the `evalcache-*` reproducers need the PR #219 branch instead.
+For `julia-base/`, run the reproducers against both the 1.13.2 release and Julia master; each refuted entry reproduces on at least one of them, and most on both. The DynamicExpressions.jl reproducers use `repro/Project.toml`, which pins the package at the modelled commit; the `evalcache-*` reproducers need the [PR #219](https://github.com/SymbolicML/DynamicExpressions.jl/issues/219) branch instead.
 
 ## Limits
 

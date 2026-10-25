@@ -13,7 +13,7 @@ real package).
 | Source | Version | Commit |
 |---|---|---|
 | `master` of SymbolicML/DynamicExpressions.jl | 2.13.0 | `2c8f6d1868221ca062241884208c6eefcb5b3f75` |
-| PR #219 (`perf/unary-feature-cache`), modelled only by the `EvalCache` slice | | `5e2f3b8c83e1c46ce348ddd52d52a8872edfa60a` |
+| [PR #219](https://github.com/SymbolicML/DynamicExpressions.jl/issues/219) (`perf/unary-feature-cache`), modelled only by the `EvalCache` slice | | `5e2f3b8c83e1c46ce348ddd52d52a8872edfa60a` |
 
 Citations of the form `src/<file>.jl:<line>` refer to the master commit unless
 an entry says otherwise.
