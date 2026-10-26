@@ -41,7 +41,7 @@ def sinpiKernelWith (c1 c1lo c3 : F64) (rest : List F64) (x : F64) : F64 :=
 
 /-- `_cospi_kernel(x, sch)` after the negations `c₂ = -c₂`, `c₂_lo = -c₂_lo`, so `c2`, `c2lo`
 are the negated stored coefficients; `base/special/trig.jl:771-783`. The compiled code
-(x86-64, `code_llvm`/`code_native` of `Base.Math._cospi_kernel` on master) merges the
+(x86, `code_llvm`/`code_native` of `Base.Math._cospi_kernel` on master) merges the
 multiplication inside `muladd(c₂, x², -a_x²)` with `a_x² = c₂ * x²`, so that `muladd` is not
 fused and evaluates `a_x² - a_x²`; the other `muladd`s are fused. -/
 def cospiKernelWith (c0 c2 c2lo : F64) (rest : List F64) (x : F64) : F64 :=

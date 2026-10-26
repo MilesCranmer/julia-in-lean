@@ -1,0 +1,187 @@
+file	line	endline	name	signature	status	entry	note
+base/bitarray.jl	28	41	BitArray{N}	BitArray{N}(::UndefInitializer, dims::Vararg{Int,N}) where N	modelled	bitsetscov-bitarray-construct	
+base/bitarray.jl	68	68	BitArray	BitArray(::UndefInitializer, dims::Integer...)	modelled	bitsetscov-bitarray-construct	
+base/bitarray.jl	69	69	BitArray{N}	BitArray{N}(::UndefInitializer, dims::Integer...) where {N}	modelled	bitsetscov-bitarray-construct	
+base/bitarray.jl	70	70	BitArray	BitArray(::UndefInitializer, dims::NTuple{N,Integer}) where {N}	modelled	bitsetscov-bitarray-construct	
+base/bitarray.jl	71	71	BitArray{N}	BitArray{N}(::UndefInitializer, dims::NTuple{N,Integer}) where {N}	modelled	bitsetscov-bitarray-construct	
+base/bitarray.jl	76	76	BitVector	BitVector()	modelled	bitsetscov-bitarray-construct	
+base/bitarray.jl	95	98	BitVector	BitVector(nt::Tuple{Vararg{Bool}})	modelled	bitsetscov-bitarray-construct	
+base/bitarray.jl	102	102	length	length(B::BitArray)	modelled	bitsetscov-bitarray-construct	
+base/bitarray.jl	103	103	size	size(B::BitVector)	modelled	bitsetscov-bitarray-construct	
+base/bitarray.jl	104	104	size	size(B::BitArray)	modelled	bitsetscov-bitarray-construct	
+base/bitarray.jl	106	106	isassigned	isassigned(B::BitArray, i::Int)	modelled	bitsetscov-bitarray-construct	
+base/bitarray.jl	108	108	IndexStyle	IndexStyle(::Type{<:BitArray})	modelled	bitsetscov-bitarray-construct	
+base/bitarray.jl	110	110	dataids	dataids(B::BitArray)	modelled	bitsetscov-bitarray-construct	
+base/bitarray.jl	115	115	_div64	_div64(l)	modelled	bitsetscov-bitarray-chunks	
+base/bitarray.jl	116	116	_mod64	_mod64(l)	modelled	bitsetscov-bitarray-chunks	
+base/bitarray.jl	117	117	_blsr	_blsr(x)	modelled	bitsetscov-bitarray-chunks	
+base/bitarray.jl	118	118	_msk_end	_msk_end(l::Int)	modelled	bitsetscov-bitarray-chunks	
+base/bitarray.jl	119	119	_msk_end	_msk_end(B::BitArray)	modelled	bitsetscov-bitarray-chunks	
+base/bitarray.jl	120	120	num_bit_chunks	num_bit_chunks(n::Int)	modelled	bitsetscov-bitarray-chunks	
+base/bitarray.jl	122	122	get_chunks_id	get_chunks_id(i::Int)	modelled	bitsetscov-bitarray-chunks	
+base/bitarray.jl	124	133	glue_src_bitchunks	glue_src_bitchunks(src::Vector{UInt64}, k::Int, ks1::Int, msk_s0::UInt64, ls0::Int)	modelled	bitsetscov-bitarray-chunks	
+base/bitarray.jl	135	187	copy_chunks!	copy_chunks!(dest::Vector{UInt64}, pos_d::Int, src::Vector{UInt64}, pos_s::Int, numbits::Int)	modelled	bitarrays-append-prepend,bitarrays-deleteat-range-inside,bitarrays-reverse-dims	
+base/bitarray.jl	189	233	copy_chunks_rtol!	copy_chunks_rtol!(chunks::Vector{UInt64}, pos_d::Int, pos_s::Int, numbits::Int)	modelled	bitarrays-append-prepend	
+base/bitarray.jl	235	259	fill_chunks!	fill_chunks!(Bc::Array{UInt64}, x::Bool, pos::Int, numbits::Int)	modelled	bitsetscov-bitarray-chunks	
+base/bitarray.jl	261	262	copy_to_bitarray_chunks!	copy_to_bitarray_chunks!(dest::Vector{UInt64}, pos_d::Int, src::BitArray, pos_s::Int, numbits::Int)	modelled	bitsetscov-bitarray-chunks	
+base/bitarray.jl	266	272	pack8bools	pack8bools(z::UInt64)	modelled	bitsetscov-bitarray-chunks	
+base/bitarray.jl	274	337	copy_to_bitarray_chunks!	copy_to_bitarray_chunks!(Bc::Vector{UInt64}, pos_d::Int, C::Array{Bool}, pos_s::Int, numbits::Int)	modelled	bitsetscov-bitarray-chunks	
+base/bitarray.jl	347	348	dumpbitcache	dumpbitcache(Bc::Vector{UInt64}, bind::Int, C::Vector{Bool})	modelled	bitsetscov-bitarray-chunks	
+base/bitarray.jl	352	355	iterate	iterate(B::BitArray, i::Int=0)	modelled	bitsetscov-bitarray-chunks	
+base/bitarray.jl	359	359	similar	similar(B::BitArray)	modelled	bitsetscov-bitarray-shape	
+base/bitarray.jl	360	360	similar	similar(B::BitArray, dims::Int...)	modelled	bitsetscov-bitarray-shape	
+base/bitarray.jl	361	361	similar	similar(B::BitArray, dims::Dims)	modelled	bitsetscov-bitarray-shape	
+base/bitarray.jl	363	363	similar	similar(B::BitArray, T::Type{Bool}, dims::Dims)	modelled	bitsetscov-bitarray-shape	
+base/bitarray.jl	366	366	similar	similar(B::BitArray, T::Type, dims::Dims)	modelled	bitsetscov-bitarray-shape	
+base/bitarray.jl	368	379	fill!	fill!(B::BitArray, x)	modelled	bitarrays-fill	
+base/bitarray.jl	394	394	falses	falses(dims::DimOrInd...)	modelled	bitsetscov-bitarray-shape	
+base/bitarray.jl	395	395	falses	falses(dims::NTuple{N, Union{Integer, OneTo}}) where {N}	modelled	bitsetscov-bitarray-shape	
+base/bitarray.jl	396	396	falses	falses(dims::NTuple{N, Integer}) where {N}	modelled	bitsetscov-bitarray-shape	
+base/bitarray.jl	397	397	falses	falses(dims::Tuple{})	modelled	bitsetscov-bitarray-shape	
+base/bitarray.jl	398	398	falses	falses(dims::NTuple{N, DimOrInd}) where {N}	modelled	bitsetscov-bitarray-shape	
+base/bitarray.jl	413	413	trues	trues(dims::DimOrInd...)	modelled	bitsetscov-bitarray-shape	
+base/bitarray.jl	414	414	trues	trues(dims::NTuple{N, Union{Integer, OneTo}}) where {N}	modelled	bitsetscov-bitarray-shape	
+base/bitarray.jl	415	415	trues	trues(dims::NTuple{N, Integer}) where {N}	modelled	bitsetscov-bitarray-shape	
+base/bitarray.jl	416	416	trues	trues(dims::Tuple{})	modelled	bitsetscov-bitarray-shape	
+base/bitarray.jl	417	417	trues	trues(dims::NTuple{N, DimOrInd}) where {N}	modelled	bitsetscov-bitarray-shape	
+base/bitarray.jl	419	427	one	one(x::BitMatrix)	modelled	bitsetscov-bitarray-shape	
+base/bitarray.jl	429	447	copyto!	copyto!(dest::BitArray, src::BitArray)	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	449	452	unsafe_copyto!	unsafe_copyto!(dest::BitArray, doffs::Integer, src::Union{BitArray,Array}, soffs::Integer, n::Integer)	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	454	455	copyto!	copyto!(dest::BitArray, doffs::Integer, src::Union{BitArray,Array}, soffs::Integer, n::Integer)	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	456	464	_copyto_int!	_copyto_int!(dest::BitArray, doffs::Int, src::Union{BitArray,Array}, soffs::Int, n::Int)	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	466	470	copyto!	copyto!(dest::BitArray, src::Array)	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	472	474	reshape	reshape(B::BitArray{N}, dims::NTuple{N,Int}) where N	modelled	bitarrays-vec-resize-alias	
+base/bitarray.jl	475	475	reshape	reshape(B::BitArray, dims::Tuple{Vararg{Int}})	modelled	bitarrays-vec-resize-alias	
+base/bitarray.jl	476	485	_bitreshape	_bitreshape(B::BitArray, dims::NTuple{N,Int}) where N	modelled	bitarrays-vec-resize-alias	
+base/bitarray.jl	489	496	Array{T,N}	Array{T,N}(B::BitArray{N}) where {T,N}	modelled	bitsetscov-bitarray-shape	
+base/bitarray.jl	498	498	BitArray	BitArray(A::AbstractArray{<:Any,N}) where {N}	modelled	bitsetscov-bitarray-shape	
+base/bitarray.jl	500	505	BitArray{N}	BitArray{N}(A::AbstractArray{T,N}) where N where T	modelled	bitsetscov-bitarray-shape	
+base/bitarray.jl	507	533	_copyto_bitarray!	_copyto_bitarray!(B::BitArray, A::AbstractArray)	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	535	535	(::Type{T})	(::Type{T})(x::T) where {T<:BitArray}	modelled	bitsetscov-bitarray-shape	
+base/bitarray.jl	536	536	BitArray	BitArray(x::BitArray)	modelled	bitsetscov-bitarray-shape	
+base/bitarray.jl	566	566	BitArray	BitArray(itr)	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	567	567	BitArray{N}	BitArray{N}(itr) where N	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	569	569	convert	convert(::Type{T}, a::AbstractArray) where {T<:BitArray}	modelled	bitsetscov-bitarray-shape	
+base/bitarray.jl	573	573	gen_bitarray	gen_bitarray(isz::IteratorSize, itr)	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	576	582	gen_bitarray	gen_bitarray(::HasShape, itr)	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	585	588	gen_bitarray	gen_bitarray(::HasShape, itr::Generator)	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	589	592	gen_bitarray	gen_bitarray(::HasLength, itr)	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	594	594	gen_bitarray	gen_bitarray(::IsInfinite, itr)	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	596	596	gen_bitarrayN	gen_bitarrayN(::Type{BitVector}, itsz, itr)	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	597	597	gen_bitarrayN	gen_bitarrayN(::Type{BitVector}, itsz::HasShape{1}, itr)	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	598	598	gen_bitarrayN	gen_bitarrayN(::Type{BitArray{N}}, itsz::HasShape{N}, itr) where N	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	600	600	gen_bitarrayN	gen_bitarrayN(::Type{BitVector}, itsz::HasShape{N}, itr) where N	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	601	601	gen_bitarrayN	gen_bitarrayN(@nospecialize(T::Type), itsz::HasShape{N}, itr) where N	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	602	602	gen_bitarrayN	gen_bitarrayN(@nospecialize(T::Type), itsz, itr)	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	607	632	gen_bitarray_from_itr	gen_bitarray_from_itr(itr)	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	634	656	fill_bitarray_from_itr!	fill_bitarray_from_itr!(B::BitArray, itr)	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	661	666	unsafe_bitgetindex	unsafe_bitgetindex(Bc::Vector{UInt64}, i::Int)	modelled	bitarrays-scalar-index	
+base/bitarray.jl	668	671	getindex	getindex(B::BitArray, i::Int)	modelled	bitarrays-scalar-index	
+base/bitarray.jl	675	678	unsafe_bitsetindex!	unsafe_bitsetindex!(Bc::Array{UInt64}, x::Bool, i::Int)	modelled	bitarrays-scalar-index	
+base/bitarray.jl	680	686	_unsafe_bitsetindex!	_unsafe_bitsetindex!(Bc::Array{UInt64}, x::Bool, i1::Int, i2::Int)	modelled	bitarrays-scalar-index	
+base/bitarray.jl	688	692	setindex!	setindex!(B::BitArray, x, i::Int)	modelled	bitarrays-scalar-index	
+base/bitarray.jl	694	694	indexoffset	indexoffset(i)	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	695	695	indexoffset	indexoffset(::Colon)	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	697	699	setindex!	setindex!(B::BitArray, X::AbstractArray, J0::Union{Colon,AbstractUnitRange{Int}})	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	703	706	setindex!	setindex!(B::BitArray, X::AbstractArray, I::BitArray)	modelled	bitarrays-setindex-mask-partial	
+base/bitarray.jl	707	735	_unsafe_setindex!	_unsafe_setindex!(B::BitArray, X::AbstractArray, I::BitArray)	modelled	bitarrays-setindex-mask-partial	
+base/bitarray.jl	739	755	push!	push!(B::BitVector, item)	modelled	bitarrays-deque,bitarrays-vec-resize-alias	
+base/bitarray.jl	757	772	append!	append!(B::BitVector, items::BitVector)	modelled	bitarrays-append-prepend	
+base/bitarray.jl	774	774	append!	append!(B::BitVector, items)	modelled	bitarrays-append-prepend	
+base/bitarray.jl	775	775	append!	append!(A::Vector{Bool}, items::BitVector)	modelled	bitarrays-append-prepend	
+base/bitarray.jl	777	793	prepend!	prepend!(B::BitVector, items::BitVector)	modelled	bitarrays-append-prepend	
+base/bitarray.jl	795	795	prepend!	prepend!(B::BitVector, items)	modelled	bitarrays-append-prepend	
+base/bitarray.jl	796	796	prepend!	prepend!(A::Vector{Bool}, items::BitVector)	modelled	bitarrays-append-prepend	
+base/bitarray.jl	798	801	sizehint!	sizehint!(B::BitVector, sz::Integer)	modelled	bitsetscov-sizehint-bitvector-integer	
+base/bitarray.jl	803	803	resize!	resize!(B::BitVector, n::Integer; first::Bool=false)	modelled	bitarrays-resize-negative,bitarrays-resize-nonneg	
+base/bitarray.jl	804	825	_resize_int!	_resize_int!(B::BitVector, n::Int, first::Bool)	modelled	bitarrays-resize-negative,bitarrays-resize-nonneg	
+base/bitarray.jl	827	837	pop!	pop!(B::BitVector)	modelled	bitarrays-deque,bitarrays-vec-resize-alias	
+base/bitarray.jl	839	859	pushfirst!	pushfirst!(B::BitVector, item)	modelled	bitarrays-deque	
+base/bitarray.jl	861	882	popfirst!	popfirst!(B::BitVector)	modelled	bitarrays-deque	
+base/bitarray.jl	884	884	insert!	insert!(B::BitVector, i::Integer, item)	modelled	bitarrays-insert-deleteat	
+base/bitarray.jl	885	911	_insert_int!	_insert_int!(B::BitVector, i::Int, item)	modelled	bitarrays-insert-deleteat	
+base/bitarray.jl	913	944	_deleteat!	_deleteat!(B::BitVector, i::Int)	modelled	bitarrays-insert-deleteat	
+base/bitarray.jl	946	953	deleteat!	deleteat!(B::BitVector, i::Integer)	modelled	bitarrays-insert-deleteat	
+base/bitarray.jl	955	977	deleteat!	deleteat!(B::BitVector, r::AbstractUnitRange{Int})	modelled	bitarrays-deleteat-empty-range,bitarrays-deleteat-range-inside	
+base/bitarray.jl	979	1020	deleteat!	deleteat!(B::BitVector, inds)	modelled	bitsetscov-bitarray-mutation	
+base/bitarray.jl	1022	1061	deleteat!	deleteat!(B::BitVector, inds::AbstractVector{Bool})	modelled	bitsetscov-bitarray-mutation	
+base/bitarray.jl	1063	1063	keepat!	keepat!(B::BitVector, inds)	modelled	bitsetscov-bitarray-mutation	
+base/bitarray.jl	1064	1064	keepat!	keepat!(B::BitVector, inds::AbstractVector{Bool})	modelled	bitsetscov-bitarray-mutation	
+base/bitarray.jl	1066	1078	splice!	splice!(B::BitVector, i::Integer)	modelled	bitsetscov-bitarray-mutation	
+base/bitarray.jl	1082	1085	splice!	splice!(B::BitVector, r::Union{AbstractUnitRange{Int}, Integer}, ins::AbstractArray = _default_bit_splice)	modelled	bitsetscov-bitarray-mutation	
+base/bitarray.jl	1087	1124	_splice_int!	_splice_int!(B::BitVector, r, ins)	modelled	bitsetscov-bitarray-mutation	
+base/bitarray.jl	1126	1134	splice!	splice!(B::BitVector, r::Union{AbstractUnitRange{Int}, Integer}, ins)	modelled	bitsetscov-bitarray-mutation	
+base/bitarray.jl	1137	1141	empty!	empty!(B::BitVector)	modelled	bitsetscov-bitarray-copy-generate	
+base/bitarray.jl	1145	1172	-	(-)(B::BitArray)	modelled	bitsetscov-bitarray-arithmetic	
+base/bitarray.jl	1177	1189	$f	($f)(A::BitArray, B::BitArray)	modelled	bitsetscov-bitarray-arithmetic	generated-loop: f in (:+, :-)
+base/bitarray.jl	1194	1194	$f	($f)(A::Union{BitMatrix,BitVector}, B::Union{BitMatrix,BitVector})	modelled	bitsetscov-bitarray-arithmetic	generated-loop: f in (:/, :\)
+base/bitarray.jl	1197	1197	/	(/)(B::BitArray, x::Number)	modelled	bitsetscov-bitarray-arithmetic	
+base/bitarray.jl	1198	1198	/	(/)(x::Number, B::BitArray)	modelled	bitsetscov-bitarray-arithmetic	
+base/bitarray.jl	1206	1209	==	(==)(A::BitArray, B::BitArray)	modelled	bitsetscov-bitarray-arithmetic	
+base/bitarray.jl	1216	1216	_reverse	_reverse(A::BitArray, d::Tuple{Integer})	modelled	bitarrays-reverse-dims-empty,bitarrays-reverse-dims	
+base/bitarray.jl	1217	1261	_reverse	_reverse(A::BitArray, d::Int)	modelled	bitarrays-reverse-dims,bitarrays-reverse-dims-empty	
+base/bitarray.jl	1263	1315	_reverse!	_reverse!(B::BitVector, ::Colon)	modelled	bitarrays-reverse	
+base/bitarray.jl	1317	1323	<<	(<<)(B::BitVector, i::UInt)	modelled	bitarrays-shift	
+base/bitarray.jl	1325	1331	>>>	(>>>)(B::BitVector, i::UInt)	modelled	bitarrays-shift	
+base/bitarray.jl	1368	1368	>>	(>>)(B::BitVector, i::Union{Int, UInt})	modelled	bitarrays-shift	
+base/bitarray.jl	1406	1406	<<	(<<)(B::BitVector, i::Int)	modelled	bitarrays-shift	
+base/bitarray.jl	1414	1414	>>>	(>>>)(B::BitVector, i::Int)	modelled	bitarrays-shift	
+base/bitarray.jl	1416	1416	circshift!	circshift!(dest::BitVector, src::BitVector, i::Integer)	modelled	bitarrays-circshift-empty,bitarrays-circshift-nonempty	
+base/bitarray.jl	1417	1433	_circshift_int!	_circshift_int!(dest::BitVector, src::BitVector, i::Int)	modelled	bitarrays-circshift-empty,bitarrays-circshift-nonempty	
+base/bitarray.jl	1435	1435	circshift!	circshift!(B::BitVector, i::Integer)	modelled	bitarrays-circshift-empty,bitarrays-circshift-nonempty	
+base/bitarray.jl	1439	1445	bitcount	bitcount(Bc::Vector{UInt64}; init::T=0) where {T}	modelled	bitarrays-count-init-wrap	
+base/bitarray.jl	1447	1447	_count	_count(::typeof(identity), B::BitArray, ::Colon, init)	modelled	bitarrays-count-init-wrap	
+base/bitarray.jl	1449	1466	unsafe_bitfindnext	unsafe_bitfindnext(Bc::Vector{UInt64}, start::Int)	modelled	bitarrays-find	
+base/bitarray.jl	1469	1474	findnext	findnext(B::BitArray, start::Integer)	modelled	bitarrays-find	
+base/bitarray.jl	1479	1507	findnextnot	findnextnot(B::BitArray, start::Int)	modelled	bitarrays-find	
+base/bitarray.jl	1508	1508	findfirstnot	findfirstnot(B::BitArray)	modelled	bitarrays-find	
+base/bitarray.jl	1511	1517	findnext	findnext(pred::Fix2{<:Union{typeof(isequal),typeof(==)},Bool}, B::BitArray, start::Integer)	modelled	bitarrays-find	
+base/bitarray.jl	1521	1521	findnext	findnext(testf::Function, B::BitArray, start::Integer)	modelled	bitarrays-find	
+base/bitarray.jl	1522	1532	_findnext_int	_findnext_int(testf::Function, B::BitArray, start::Int)	modelled	bitarrays-find	
+base/bitarray.jl	1535	1551	unsafe_bitfindprev	unsafe_bitfindprev(Bc::Vector{UInt64}, start::Int)	modelled	bitarrays-find	
+base/bitarray.jl	1554	1559	findprev	findprev(B::BitArray, start::Integer)	modelled	bitarrays-find	
+base/bitarray.jl	1561	1583	findprevnot	findprevnot(B::BitArray, start::Int)	modelled	bitarrays-find	
+base/bitarray.jl	1584	1584	findlastnot	findlastnot(B::BitArray)	modelled	bitarrays-find	
+base/bitarray.jl	1587	1593	findprev	findprev(pred::Fix2{<:Union{typeof(isequal),typeof(==)},Bool}, B::BitArray, start::Integer)	modelled	bitarrays-find	
+base/bitarray.jl	1597	1597	findprev	findprev(testf::Function, B::BitArray, start::Integer)	modelled	bitarrays-find	
+base/bitarray.jl	1598	1608	_findprev_int	_findprev_int(testf::Function, B::BitArray, start::Int)	modelled	bitarrays-find	
+base/bitarray.jl	1611	1622	findmax	findmax(a::BitArray)	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1624	1639	findmin	findmin(a::BitArray)	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1643	1649	allindices!	allindices!(I, B::BitArray)	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1652	1654	allindices!	allindices!(I, B::BitVector)	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1657	1663	allindices!	allindices!(I, B::BitMatrix)	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1665	1665	_overflowind	_overflowind(i1, irest::Tuple{}, size)	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1666	1674	_overflowind	_overflowind(i1, irest, size)	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1676	1676	_toind	_toind(i1, irest::Tuple{})	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1677	1677	_toind	_toind(i1, irest)	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1679	1705	findall	findall(B::BitArray)	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1708	1708	findall	findall(::typeof(!iszero), B::BitArray)	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1712	1712	_sum	_sum(A::BitArray, dims)	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1713	1713	_sum	_sum(B::BitArray, ::Colon)	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1715	1725	all	all(B::BitArray)	modelled	bitarrays-count-any-all	
+base/bitarray.jl	1727	1736	any	any(B::BitArray)	modelled	bitarrays-count-any-all	
+base/bitarray.jl	1738	1738	minimum	minimum(B::BitArray)	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1739	1739	maximum	maximum(B::BitArray)	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1747	1747	map	map(::Union{typeof(~), typeof(!)}, A::BitArray)	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1748	1748	map	map(::typeof(zero), A::BitArray)	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1749	1749	map	map(::typeof(one), A::BitArray)	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1750	1750	map	map(::typeof(identity), A::BitArray)	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1752	1752	map!	map!(::Union{typeof(~), typeof(!)}, dest::BitArray, A::BitArray)	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1753	1753	map!	map!(::typeof(zero), dest::BitArray, A::BitArray)	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1754	1754	map!	map!(::typeof(one), dest::BitArray, A::BitArray)	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1755	1755	map!	map!(::typeof(identity), dest::BitArray, A::BitArray)	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1767	1767	map	map(::$T, A::BitArray, B::BitArray)	modelled	bitsetscov-bitarray-reduce-map	generated-loop: (T, f) in ((:(Union{typeof(&), typeof(*), typeof(min)}), :(&)), (:(Union{typeof(|), typeof(max)}), :(|)), (:(Union{typeof(xor), typeof(!=)}), :xor), (:(typeof(nand)), :nand), (:(typeof(nor)), :nor), (:(Union{typeof(>=), typeof(^)}), :((p, q) -> p | ~q)), (:(typeof(<=)), :((p, q) -> ~p | q)), (:(typeof(==)), :((p, q) -> ~xor(p, q))), (:(typeof(<)), :((p, q) -> ~p & q)), (:(typeof(>)), :((p, q) -> p & ~q)))
+base/bitarray.jl	1768	1768	map!	map!(::$T, dest::BitArray, A::BitArray, B::BitArray)	modelled	bitsetscov-bitarray-reduce-map	generated-loop: (T, f) in ((:(Union{typeof(&), typeof(*), typeof(min)}), :(&)), (:(Union{typeof(|), typeof(max)}), :(|)), (:(Union{typeof(xor), typeof(!=)}), :xor), (:(typeof(nand)), :nand), (:(typeof(nor)), :nor), (:(Union{typeof(>=), typeof(^)}), :((p, q) -> p | ~q)), (:(typeof(<=)), :((p, q) -> ~p | q)), (:(typeof(==)), :((p, q) -> ~xor(p, q))), (:(typeof(<)), :((p, q) -> ~p & q)), (:(typeof(>)), :((p, q) -> p & ~q)))
+base/bitarray.jl	1774	1778	bit_map	bit_map(f::F, A::BitArray, B::BitArray) where F	modelled	bitarrays-map	
+base/bitarray.jl	1780	1784	bit_map_constant!	bit_map_constant!(dest::BitArray, A::BitArray, x::Bool)	modelled	bitarrays-map	
+base/bitarray.jl	1786	1804	bit_map!	bit_map!(f::F, dest::BitArray, A::BitArray) where F	modelled	bitarrays-map	candidates:bitarrays-map
+base/bitarray.jl	1805	1826	bit_map!	bit_map!(f::F, dest::BitArray, A::BitArray, B::BitArray) where F	modelled	bitarrays-map	candidates:bitarrays-map
+base/bitarray.jl	1830	1833	filter	filter(f, Bs::BitArray)	modelled	bitsetscov-bitarray-reduce-map	
+base/bitarray.jl	1838	1849	hcat	hcat(B::BitVector...)	modelled	bitsetscov-bitarray-cat	
+base/bitarray.jl	1851	1863	vcat	vcat(V::BitVector...)	modelled	bitsetscov-bitarray-cat	
+base/bitarray.jl	1865	1887	hcat	hcat(A::Union{BitMatrix,BitVector}...)	modelled	bitsetscov-bitarray-cat	
+base/bitarray.jl	1889	1912	vcat	vcat(A::BitMatrix...)	modelled	bitsetscov-bitarray-cat	
+base/bitarray.jl	1915	1915	_cat	_cat(dims::Integer, X::Union{BitArray, Bool}...)	modelled	bitsetscov-bitarray-cat	
+base/bitarray.jl	1916	1922	_cat	_cat(dims::Int, X::Union{BitArray, Bool}...)	modelled	bitsetscov-bitarray-cat	
+base/bitarray.jl	1930	1930	sizeof	sizeof(B::BitArray)	modelled	bitsetscov-bitarray-cat	
+base/bitarray.jl	1932	1937	_split_rest	_split_rest(a::Union{Vector, BitVector}, n::Int)	modelled	tuples-split-rest-negative	

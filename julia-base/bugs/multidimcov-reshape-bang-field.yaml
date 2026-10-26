@@ -1,0 +1,40 @@
+id: multidimcov-reshape-bang-field
+title: "Base.reshape! always throws FieldError because Array has no dims field"
+priority: P2
+kind: wrong-exception
+area: MultidimCov
+files: [base/reshapedarray.jl]
+functions: ["Base.reshape!(::Array, ::NTuple)"]
+summary: |
+  Base.reshape! passes its length checks and then writes the nonexistent Array field :dims. Every valid same-rank call therefore throws FieldError instead of mutating and returning the array.
+likelihood: |
+  The method is internal and unexported, so ordinary code is unlikely to call it directly. Any direct valid call reaches the failure.
+maybe_intended: |
+  The source comment explicitly says reshape! returns the original array with new dimensions, so the exception is not intended.
+reproducer: |
+  a = [1, 2, 3, 4]
+  Base.reshape!(a, (4,))
+output:
+  release: |
+    error = FieldError(Vector{Int64}, :dims)
+    array = [1, 2, 3, 4]
+    REPRODUCED multidimcov-reshape-bang-field
+  nightly: |
+    error = FieldError(Vector{Int64}, :dims)
+    array = [1, 2, 3, 4]
+    REPRODUCED multidimcov-reshape-bang-field
+reproduced: {release: true, nightly: true}
+expected: |
+  The call should return the identical array object after updating its one-dimensional size to (4,).
+promised_by: |
+  base/reshapedarray.jl:53 says reshape!(::Array, ::Dims) returns the original array, and lines 55-61 implement that contract.
+cause: |
+  base/reshapedarray.jl:60 calls setfield!(a, :dims, dims), but Array stores its shape in the :size field. Julia reports that the available fields are :ref and :size.
+possible_fix: |
+  Set the Array :size field instead of :dims, subject to confirming the internal field representation expected by Array.
+duplicates:
+  issues: []
+  queries: ["reshape! FieldError dims", "reshape! Array no field dims", "reshape! setfield size"]
+lean:
+  property: JuliaLean.MultidimCov.ReshapedFaithfulA.P55
+  theorem: JuliaLean.MultidimCov.ReshapedFaithfulA.p55_refuted

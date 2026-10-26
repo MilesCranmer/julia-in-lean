@@ -4,5 +4,5 @@ defaultTargets = ["JuliaLean"]
 [[lean_lib]]
 name = "JuliaLean"
 # Per-file memory cap (MB), so a runaway elaboration fails instead of
-# exhausting the machine's memory.
+# exhausting the shared allocation.
 moreLeanArgs = ["-M8000"]

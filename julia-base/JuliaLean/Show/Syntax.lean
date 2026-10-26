@@ -1599,7 +1599,7 @@ theorem parse_binary_ident (op : String) (hop : op ∈ ["+", "-", "*", "/", "^"]
 
 end Syntax
 
-/-! ## Concrete checks (outputs of `Meta.parse` in Julia) -/
+/-! ## Concrete checks against Julia outputs -/
 
 example : parse "-1".toUTF8.toList = .ok (.int (-1)) := by decide +kernel
 example : parse [45, 49] = .ok (.int (-1)) := by decide

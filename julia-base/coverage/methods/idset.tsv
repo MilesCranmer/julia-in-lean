@@ -1,0 +1,22 @@
+file	line	endline	name	signature	status	entry	note
+base/idset.jl	34	34	IdSet{T}	IdSet{T}() where {T}	modelled	bitsetscov-idset-basic	
+base/idset.jl	35	35	IdSet{T}	IdSet{T}(s::IdSet{T}) where {T}	modelled	bitsetscov-idset-basic	
+base/idset.jl	37	37	IdSet{T}	IdSet{T}(itr) where {T}	modelled	bitsetscov-idset-basic	
+base/idset.jl	38	38	IdSet	IdSet()	modelled	bitsetscov-idset-basic	
+base/idset.jl	40	40	copymutable	copymutable(s::IdSet)	modelled	bitsetscov-idset-basic	
+base/idset.jl	41	41	emptymutable	emptymutable(s::IdSet{T}, ::Type{U}=T) where {T,U}	modelled	bitsetscov-idset-basic	
+base/idset.jl	42	42	copy	copy(s::IdSet)	modelled	bitsetscov-idset-basic	
+base/idset.jl	44	44	haskey	haskey(s::IdSet, @nospecialize(key))	modelled	bitsetscov-idset-basic	
+base/idset.jl	45	45	isempty	isempty(s::IdSet)	modelled	bitsetscov-idset-basic	
+base/idset.jl	46	46	length	length(s::IdSet)	modelled	iddicts-idset-ops-agree	
+base/idset.jl	47	47	in	in(@nospecialize(x), s::IdSet)	modelled	iddicts-idset-ops-agree	
+base/idset.jl	48	70	push!	push!(s::IdSet, @nospecialize(x))	modelled	iddicts-idset-eltype,iddicts-idset-ops-agree	
+base/idset.jl	71	80	_pop!	_pop!(s::IdSet, @nospecialize(x))	modelled	bitsetscov-idset-pop	
+base/idset.jl	81	81	pop!	pop!(s::IdSet, @nospecialize(x))	modelled	bitsetscov-idset-pop	candidates:iddicts-idset-ops-agree
+base/idset.jl	82	82	pop!	pop!(s::IdSet, @nospecialize(x), @nospecialize(default))	modelled	bitsetscov-idset-pop	candidates:iddicts-idset-ops-agree
+base/idset.jl	83	83	delete!	delete!(s::IdSet, @nospecialize(x))	modelled	iddicts-idset-ops-agree	
+base/idset.jl	85	97	sizehint!	sizehint!(s::IdSet, newsz::Integer)	modelled	iddicts-idset-ops-agree	
+base/idset.jl	99	106	_zero!	_zero!(a::Memory{<:BitInteger})	modelled	bitsetscov-idset-memory	
+base/idset.jl	108	117	empty!	empty!(s::IdSet)	modelled	iddicts-idset-ops-agree	
+base/idset.jl	119	119	filter!	filter!(f, d::IdSet)	modelled	bitsetscov-idset-memory	
+base/idset.jl	121	127	iterate	iterate(s::IdSet{S}, state=0) where {S}	modelled	iddicts-idset-eltype,iddicts-idset-ops-agree	

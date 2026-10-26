@@ -1,0 +1,16 @@
+file	line	endline	name	signature	status	entry	note
+base/strings/lazy.jl	41	41	_LazyString	_LazyString(parts, str)	modelled	stringscova-lazy-private-ctor-faithful	
+base/strings/lazy.jl	42	42	LazyString	LazyString(args...; compact::Bool=false)	modelled	stringscova-lazy-ctor-faithful	
+base/strings/lazy.jl	73	87	lazy_str	lazy_str(text, flags...)	modelled	stringscova-lazy-macro-faithful	
+base/strings/lazy.jl	89	101	String	String(l::LazyString)	modelled	stringscova-lazy-string-faithful	
+base/strings/lazy.jl	103	103	hash	hash(s::LazyString, h::UInt64)	modelled	stringscova-lazy-hash-faithful	
+base/strings/lazy.jl	104	104	lastindex	lastindex(s::LazyString)	modelled	stringscova-lazy-lastindex-faithful	
+base/strings/lazy.jl	105	105	iterate	iterate(s::LazyString)	modelled	stringscova-lazy-iterate0-faithful	
+base/strings/lazy.jl	106	106	iterate	iterate(s::LazyString, i::Integer)	modelled	stringscova-lazy-iterate-faithful	
+base/strings/lazy.jl	107	107	isequal	isequal(a::LazyString, b::LazyString)	modelled	stringscova-lazy-isequal-faithful	
+base/strings/lazy.jl	108	108	==	==(a::LazyString, b::LazyString)	modelled	stringscova-lazy-eq-faithful	
+base/strings/lazy.jl	109	109	ncodeunits	ncodeunits(s::LazyString)	modelled	stringscova-lazy-ncodeunits-faithful	
+base/strings/lazy.jl	110	110	codeunit	codeunit(s::LazyString)	modelled	stringscova-lazy-codeunit-type-faithful	
+base/strings/lazy.jl	111	111	codeunit	codeunit(s::LazyString, i::Integer)	modelled	stringscova-lazy-codeunit-faithful	
+base/strings/lazy.jl	112	112	codeunits	codeunits(s::LazyString)	modelled	stringscova-lazy-codeunits-faithful	
+base/strings/lazy.jl	113	113	isvalid	isvalid(s::LazyString, i::Integer)	modelled	stringscova-lazy-isvalid-faithful	

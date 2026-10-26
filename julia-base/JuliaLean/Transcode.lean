@@ -106,6 +106,16 @@ def entries : List Entry := [
     prop := ``CwstringNulTerminated
     thm := some ``cwstringNulTerminated_proven
     notes := "Because the check runs on the transcoded data, an overlong NUL such as \"a\\xc0\\x80b\" is rejected with ArgumentError on Windows and on master; Julia 1.13.2 on Linux throws InvalidCharError for it instead (transcode-utf32-invalid)." },
+  { id := "transcode-cwstring-overlong-nul"
+    juliaFile := "base/strings/cstring.jl"
+    juliaFns := ["Base.cwstring(::AbstractString)"]
+    statement := "Base.cwstring(s) returns UTF-16 data whose only NUL is the terminator."
+    source := "base/strings/cstring.jl:112-113: \"Convert a string s to a NUL-terminated Vector{Cwchar_t}, suitable for passing to C functions\"; the embedded-NUL check at :121"
+    status := .refuted
+    prop := ``CwstringNoEmbeddedNul
+    thm := some ``cwstringNoEmbeddedNul_refuted
+    issue := "none found; related #25452 (overlong decoding), #56795 (cwstring NUL check) (queries: cwstring, Cwstring, cwstring overlong, cwstring NUL, overlong NUL transcode, transcode overlong; prs: transcode)"
+    notes := "cwstring(\"\\xc0\\x80\") == UInt16[0, 0]: the NUL check looks at the UTF-8 bytes, but transcode(UInt16, ...) decodes the overlong forms c0 80, e0 80 80 and f0 80 80 80 to 0x0000. Windows only (ENV, longpath, homedir lookup, clipboard use cwstring); the reproducer runs cwstring's body on Linux." },
   { id := "transcode-cwstring-empty-vector"
     juliaFile := "base/strings/cstring.jl"
     juliaFns := ["cconvert(::Type{Cwstring}, ::Vector{Cwchar_t})"]

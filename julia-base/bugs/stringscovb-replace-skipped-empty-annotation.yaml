@@ -1,0 +1,61 @@
+id: stringscovb-replace-skipped-empty-annotation
+title: replace(::AnnotatedString) annotates text after a skipped empty match with the replacement's annotations
+priority: P2
+kind: wrong-result
+area: StringsCovB
+files:
+- base/strings/annotated_io.jl
+functions:
+- replace(out::AnnotatedIOBuffer, str::AnnotatedString, pat_f::Pair...; count)
+- replace(str::AnnotatedString, pat_f::Pair...; count)
+summary: |
+  _replace_once skips (writes nothing for) an empty match directly after the previous
+  match, returning newbytes = 0, but the annotated replace still inserts the replacement's
+  annotations at that output position. They land on the following original text:
+  replace(AnnotatedString("abc"), r"b*" => AnnotatedString("X", [(1:1, :z, 1)])) gives
+  "XaXcX" with :z on 3:4, covering the original 'c'.
+likelihood: |
+  Regex patterns that can match empty (`*`, `?`) with annotated replacements.
+maybe_intended: ''
+reproducer: |
+  using Base: AnnotatedString, annotations
+  X = AnnotatedString("X", [(1:1, :z, 1)])
+  r = replace(AnnotatedString("abc"), r"b*" => X)
+  println("replace(\"abc\", r\"b*\" => X) = ", repr(r.string), " ", [(a.region, a.label) for a in annotations(r)])
+  println("plain replace = ", repr(replace("abc", r"b*" => "X")))
+  # the 'c' at code unit 4 is not part of any replacement
+  any(a -> 4 in a.region, annotations(r)) && println("REPRODUCED stringscovb-replace-skipped-empty-annotation")
+output:
+  release: |
+    replace("abc", r"b*" => X) = "XaXcX" Tuple{UnitRange{Int64}, Symbol}[(1:1, :z), (3:4, :z)]
+    plain replace = "XaXcX"
+    REPRODUCED stringscovb-replace-skipped-empty-annotation
+  nightly: |
+    replace("abc", r"b*" => X) = "XaXcX" Tuple{UnitRange{Int64}, Symbol}[(1:1, :z), (3:4, :z)]
+    plain replace = "XaXcX"
+    REPRODUCED stringscovb-replace-skipped-empty-annotation
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Annotations only on the written replacements: "XaXcX" with :z on 1:1, 3:3 and 5:5.
+promised_by: |
+  AnnotatedString docstring base/strings/annotated.jl:32-35 (conserve which characters an
+  annotation applies to); the plain replace result "XaXcX" shows which characters are replacements.
+cause: |
+  base/strings/annotated_io.jl:265-272: the annotations of `replacers[ridx]` are inserted even when
+  newbytes == 0 because _replace_once did not write the replacement.
+possible_fix: |
+  Insert the replacement's annotations only when `newbytes > 0` (or when _replace_once reports that it wrote).
+duplicates:
+  issues: []
+  queries:
+  - 'issues: replace AnnotatedString'
+  - 'prs: replace AnnotatedString'
+  - 'issues: AnnotatedString replace annotations'
+  - 'issues: replace AnnotatedIOBuffer'
+  - 'prs: replace AnnotatedIOBuffer'
+  - 'issues: styled replace regex empty'
+lean:
+  property: JuliaLean.StringsCovB.AIOR.ReplaceAnnotsInside
+  theorem: JuliaLean.StringsCovB.AIOR.replaceAnnotsInside_refuted

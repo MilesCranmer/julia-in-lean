@@ -1,0 +1,149 @@
+import JuliaLean.MathCov.Fmt
+
+/-!
+Floating-point constants of the `base/special/*.jl` and `base/math.jl` models at Julia master
+`bbfa0ce4150`, as exact bit patterns, obtained from the literals of the Julia source
+(evaluated by Julia nightly), so each value is the one Base uses.
+-/
+
+namespace JuliaLean.MathCov.C
+
+open JuliaLean.Promotion JuliaLean.MathCov.FP
+
+def maxExp32Two : FV .f32 := lit .f32 0x43000000  -- 128.0f0
+def minExp32Two : FV .f32 := lit .f32 0xc3160000  -- -150.0f0
+def subnormExp32Two : FV .f32 := lit .f32 0x42fc0001  -- 126.00001f0
+def logBInv32Two : FV .f32 := lit .f32 0x3f800000  -- 1.0f0
+def logBU32Two : FV .f32 := lit .f32 0xbf800000  -- -1.0f0
+def logBL32Two : FV .f32 := lit .f32 0x0  -- 0.0f0
+def logB16Two : FV .f32 := lit .f32 0xbf800000  -- -1.0f0
+def maxExp32E : FV .f32 := lit .f32 0x42b17218  -- 88.72284f0
+def minExp32E : FV .f32 := lit .f32 0xc2cff1b4  -- -103.97208f0
+def subnormExp32E : FV .f32 := lit .f32 0x42aeac50  -- 87.33655f0
+def logBInv32E : FV .f32 := lit .f32 0x3fb8aa3b  -- 1.442695f0
+def logBU32E : FV .f32 := lit .f32 0xbf317200  -- -0.69314575f0
+def logBL32E : FV .f32 := lit .f32 0xb5bfbe8e  -- -1.4286068f-6
+def logB16E : FV .f32 := lit .f32 0xbf317218  -- -0.6931472f0
+def maxExp32Ten : FV .f32 := lit .f32 0x421a209b  -- 38.53184f0
+def minExp32Ten : FV .f32 := lit .f32 0xc2349e35  -- -45.1545f0
+def subnormExp32Ten : FV .f32 := lit .f32 0x4217b818  -- 37.92978f0
+def logBInv32Ten : FV .f32 := lit .f32 0x40549a78  -- 3.321928f0
+def logBU32Ten : FV .f32 := lit .f32 0xbe9a2000  -- -0.3010254f0
+def logBL32Ten : FV .f32 := lit .f32 0xb69a84fc  -- -4.605039f-6
+def logB16Ten : FV .f32 := lit .f32 0xbe9a209b  -- -0.30103f0
+def magic32 : FV .f32 := lit .f32 0x4b200000  -- 1.048576f7
+def expbKernel32Two : List (FV .f32) := [lit .f32 0x3f800000, lit .f32 0x3f317218, lit .f32 0x3e75fdf0, lit .f32 0x3d635847, lit .f32 0x3c1d94ec, lit .f32 0x3aaec38b, lit .f32 0x3922363f, lit .f32 0x37807bdb]
+def expbKernel32E : List (FV .f32) := [lit .f32 0x3f800000, lit .f32 0x3f800000, lit .f32 0x3f000000, lit .f32 0x3e2aaaab, lit .f32 0x3d2aaa32, lit .f32 0x3c08882e, lit .f32 0x3ab6d3ab, lit .f32 0x3950eb8a]
+def expbKernel32Ten : List (FV .f32) := [lit .f32 0x3f800000, lit .f32 0x40135d8e, lit .f32 0x4029a926, lit .f32 0x4002382d, lit .f32 0x3f95eb47, lit .f32 0x3f0a14a4, lit .f32 0x3e54dfee, lit .f32 0x3d8c0798]
+def expm1Max32 : FV .f32 := lit .f32 0x42b17218  -- 88.72284f0
+def expm1Min32 : FV .f32 := lit .f32 0xc18aa123  -- -17.32868f0
+def expm1Max16 : FV .f16 := lit .f16 0x498c  -- Float16(11.09)
+def expm1Min16 : FV .f16 := lit .f16 0xc829  -- Float16(-8.32)
+def ln2Inv64 : FV .f64 := lit .f64 0x3ff71547652b82fe  -- 1.4426950408889634
+def ln2Neg64 : FV .f64 := lit .f64 0xbfe62e42fefa39ef  -- -0.6931471805599453
+def ln2Inv32 : FV .f32 := lit .f32 0x3fb8aa3b  -- 1.442695f0
+def ln2Neg32 : FV .f32 := lit .f32 0xbf317218  -- -0.6931472f0
+def expm1SmallP32 : List (FV .f32) := [lit .f32 0x3e2aaaaa, lit .f32 0x3d2aaaa0, lit .f32 0x3c0889ff, lit .f32 0x3ab64de5, lit .f32 0x394ab327]
+def expm1Lo32 : FV .f32 := lit .f32 0xbe934b11  -- -0.2876821f0
+def expm1Hi32 : FV .f32 := lit .f32 0x3e647fbe  -- 0.22314355f0
+def expm1Poly64For32 : List (FV .f64) := [lit .f64 0x3ff0000000000000, lit .f64 0x3fe0000000000000, lit .f64 0x3fc55555683b0d0f, lit .f64 0x3fa555451ad5f015, lit .f64 0x3f8110e3fd4928ed, lit .f64 0x3f56e1f74853b4b7, lit .f64 0x3f2a446eb9d24154]
+def expm1SmallPoly16 : List (FV .f32) := [lit .f32 0x3f800000, lit .f32 0x3f000000, lit .f32 0x3e2aaa91, lit .f32 0x3d2aabe8, lit .f32 0x3c08d631, lit .f32 0x3ab3400f]
+def expm1Poly16 : List (FV .f32) := [lit .f32 0x3f800000, lit .f32 0x3f000000, lit .f32 0x3e2aaaab, lit .f32 0x3d2aa9d3, lit .f32 0x3c08879a, lit .f32 0x3ab74220, lit .f32 0x39518be2]
+def tLogFloat32 : List (FV .f64) := [lit .f64 0x0, lit .f64 0x3f7fe02a6b106789, lit .f64 0x3f8fc0a8b0fc03e4, lit .f64 0x3f97b91b07d5b11b, lit .f64 0x3f9f829b0e783300, lit .f64 0x3fa39e87b9febd60, lit .f64 0x3fa77458f632dcfc, lit .f64 0x3fab42dd711971bf, lit .f64 0x3faf0a30c01162a6, lit .f64 0x3fb16536eea37ae1, lit .f64 0x3fb341d7961bd1d1, lit .f64 0x3fb51b073f06183f, lit .f64 0x3fb6f0d28ae56b4c, lit .f64 0x3fb8c345d6319b21, lit .f64 0x3fba926d3a4ad563, lit .f64 0x3fbc5e548f5bc743, lit .f64 0x3fbe27076e2af2e6, lit .f64 0x3fbfec9131dbeabb, lit .f64 0x3fc0d77e7cd08e59, lit .f64 0x3fc1b72ad52f67a0, lit .f64 0x3fc29552f81ff523, lit .f64 0x3fc371fc201e8f74, lit .f64 0x3fc44d2b6ccb7d1e, lit .f64 0x3fc526e5e3a1b438, lit .f64 0x3fc5ff3070a793d4, lit .f64 0x3fc6d60fe719d21d, lit .f64 0x3fc7ab890210d909, lit .f64 0x3fc87fa06520c911, lit .f64 0x3fc9525a9cf456b4, lit .f64 0x3fca23bc1fe2b563, lit .f64 0x3fcaf3c94e80bff3, lit .f64 0x3fcbc286742d8cd6, lit .f64 0x3fcc8ff7c79a9a22, lit .f64 0x3fcd5c216b4fbb91, lit .f64 0x3fce27076e2af2e6, lit .f64 0x3fcef0adcbdc5936, lit .f64 0x3fcfb9186d5e3e2b, lit .f64 0x3fd0402594b4d041, lit .f64 0x3fd0a324e27390e3, lit .f64 0x3fd1058bf9ae4ad5, lit .f64 0x3fd1675cababa60e, lit .f64 0x3fd1c898c16999fb, lit .f64 0x3fd22941fbcf7966, lit .f64 0x3fd2895a13de86a3, lit .f64 0x3fd2e8e2bae11d31, lit .f64 0x3fd347dd9a987d55, lit .f64 0x3fd3a64c556945ea, lit .f64 0x3fd404308686a7e4, lit .f64 0x3fd4618bc21c5ec2, lit .f64 0x3fd4be5f957778a1, lit .f64 0x3fd51aad872df82d, lit .f64 0x3fd5767717455a6c, lit .f64 0x3fd5d1bdbf5809ca, lit .f64 0x3fd62c82f2b9c795, lit .f64 0x3fd686c81e9b14af, lit .f64 0x3fd6e08eaa2ba1e4, lit .f64 0x3fd739d7f6bbd007, lit .f64 0x3fd792a55fdd47a2, lit .f64 0x3fd7eaf83b82afc3, lit .f64 0x3fd842d1da1e8b17, lit .f64 0x3fd89a3386c1425b, lit .f64 0x3fd8f11e873662c7, lit .f64 0x3fd947941c2116fb, lit .f64 0x3fd99d958117e08b, lit .f64 0x3fd9f323ecbf984c, lit .f64 0x3fda484090e5bb0a, lit .f64 0x3fda9cec9a9a084a, lit .f64 0x3fdaf1293247786b, lit .f64 0x3fdb44f77bcc8f63, lit .f64 0x3fdb9858969310fb, lit .f64 0x3fdbeb4d9da71b7c, lit .f64 0x3fdc3dd7a7cdad4d, lit .f64 0x3fdc8ff7c79a9a22, lit .f64 0x3fdce1af0b85f3eb, lit .f64 0x3fdd32fe7e00ebd5, lit .f64 0x3fdd83e7258a2f3e, lit .f64 0x3fddd46a04c1c4a1, lit .f64 0x3fde24881a7c6c26, lit .f64 0x3fde744261d68788, lit .f64 0x3fdec399d2468cc0, lit .f64 0x3fdf128f5faf06ed, lit .f64 0x3fdf6123fa7028ac, lit .f64 0x3fdfaf588f78f31f, lit .f64 0x3fdffd2e0857f498, lit .f64 0x3fe02552a5a5d0ff, lit .f64 0x3fe04bdf9da926d2, lit .f64 0x3fe0723e5c1cdf40, lit .f64 0x3fe0986f4f573521, lit .f64 0x3fe0be72e4252a83, lit .f64 0x3fe0e44985d1cc8c, lit .f64 0x3fe109f39e2d4c97, lit .f64 0x3fe12f719593efbc, lit .f64 0x3fe154c3d2f4d5ea, lit .f64 0x3fe179eabbd899a1, lit .f64 0x3fe19ee6b467c96f, lit .f64 0x3fe1c3b81f713c25, lit .f64 0x3fe1e85f5e7040d0, lit .f64 0x3fe20cdcd192ab6e, lit .f64 0x3fe23130d7bebf43, lit .f64 0x3fe2555bce98f7cb, lit .f64 0x3fe2795e1289b11b, lit .f64 0x3fe29d37fec2b08b, lit .f64 0x3fe2c0e9ed448e8c, lit .f64 0x3fe2e47436e40268, lit .f64 0x3fe307d7334f10be, lit .f64 0x3fe32b1339121d71, lit .f64 0x3fe34e289d9ce1d3, lit .f64 0x3fe37117b54747b6, lit .f64 0x3fe393e0d3562a1a, lit .f64 0x3fe3b68449fffc23, lit .f64 0x3fe3d9026a7156fb, lit .f64 0x3fe3fb5b84d16f42, lit .f64 0x3fe41d8fe84672ae, lit .f64 0x3fe43f9fe2f9ce67, lit .f64 0x3fe4618bc21c5ec2, lit .f64 0x3fe48353d1ea88df, lit .f64 0x3fe4a4f85db03ebb, lit .f64 0x3fe4c679afccee3a, lit .f64 0x3fe4e7d811b75bb1, lit .f64 0x3fe50913cc01686b, lit .f64 0x3fe52a2d265bc5ab, lit .f64 0x3fe54b2467999498, lit .f64 0x3fe56bf9d5b3f399, lit .f64 0x3fe58cadb5cd7989, lit .f64 0x3fe5ad404c359f2d, lit .f64 0x3fe5cdb1dc6c1765, lit .f64 0x3fe5ee02a9241675, lit .f64 0x3fe60e32f44788d9, lit .f64 0x3fe62e42fefa39ef]
+def logb32Two : FV .f64 := lit .f64 0x3ff71547652b82fe  -- 1.4426950408889634
+def logb32E : FV .f64 := lit .f64 0x3ff0000000000000  -- 1.0
+def logb32Ten : FV .f64 := lit .f64 0x3fdbcb7b1526e50e  -- 0.4342944819032518
+def ln2For32 : FV .f64 := lit .f64 0x3fe62e42fefa39ef  -- 0.6931471805599453
+def logProc1Q32 : FV .f32 := lit .f32 0x3daaaac2  -- 0.08333351f0
+def logProc2Q32 : List (FV .f32) := [lit .f32 0x3daaaaa9, lit .f32 0x3c4d0095]
+def logLo32 : FV .f32 := lit .f32 0x3f707d5f  -- 0.939413f0
+def logHi32 : FV .f32 := lit .f32 0x3f88415b  -- 1.0644945f0
+def logShift32 : FV .f32 := lit .f32 0x47800000  -- 65536.0f0
+def log2p25 : FV .f32 := lit .f32 0x4c000000  -- 3.3554432f7
+def log1pTiny32 : FV .f32 := lit .f32 0x33800000  -- 5.9604645f-8
+def log1pLo32 : FV .f32 := lit .f32 0xbd782a03  -- -0.06058694f0
+def log1pHi32 : FV .f32 := lit .f32 0x3d8415ac  -- 0.06449446f0
+def cbrtAdj64 : FV .f64 := lit .f64 0x40854fbc49cda07d  -- 681.96693764349
+def cbrtAdj32 : FV .f64 := lit .f64 0x4055288cf917ae90  -- 84.63360431015667
+def cbrtThird32 : FV .f32 := lit .f32 0x3eaaaaab  -- 0.33333334f0
+def powMaxExp32 : FV .f32 := lit .f32 0x4ed00000  -- 1.7448305f9
+def powMaxExp16 : FV .f16 := lit .f16 0x7a00  -- Float16(4.915e4)
+def remPio2Bound32 : FV .f32 := lit .f32 0x4dc90fdb  -- 4.2165744f8
+def twoOverPi64 : FV .f64 := lit .f64 0x3fe45f306dc9c883  -- 0.6366197723675814
+def negPiOver2 : FV .f64 := lit .f64 0xbff921fb54442d18  -- -1.5707963267948966
+def pio2Tail : FV .f64 := lit .f64 0xbc91a62633145c07  -- -6.123233995736766e-17
+def piOver4_64 : FV .f64 := lit .f64 0x3fe921fb54442d18  -- 0.7853981633974483
+def piOver4_32 : FV .f32 := lit .f32 0x3f490fdb  -- 0.7853982f0
+def sqrtEps64 : FV .f64 := lit .f64 0x3e50000000000000  -- 1.4901161193847656e-8
+def sqrtEps32 : FV .f32 := lit .f32 0x39b504f3  -- 0.00034526698f0
+def sqrtHalfEps64 : FV .f64 := lit .f64 0x3e46a09e667f3bcd  -- 1.0536712127723509e-8
+def sqrtHalfEps32 : FV .f32 := lit .f32 0x39800000  -- 0.00024414062f0
+def halfSqrtEps64 : FV .f64 := lit .f64 0x3e40000000000000  -- 7.450580596923828e-9
+def halfSqrtEps32 : FV .f32 := lit .f32 0x393504f3  -- 0.00017263349f0
+def DS : List (FV .f64) := [lit .f64 0xbfc5555555555549, lit .f64 0x3f8111111110f8a6, lit .f64 0xbf2a01a019c161d5, lit .f64 0x3ec71de357b1fe7d, lit .f64 0xbe5ae5e68a2b9ceb, lit .f64 0x3de5d93a5acfd57c]
+def DC : List (FV .f64) := [lit .f64 0x3fa555555555554c, lit .f64 0xbf56c16c16c15177, lit .f64 0x3efa01a019cb1590, lit .f64 0xbe927e4f809c52ad, lit .f64 0x3e21ee9ebdb4b1c4, lit .f64 0xbda8fae9be8838d4]
+def sinK32 : List (FV .f64) := [lit .f64 0xbfc5555554cbac77, lit .f64 0x3f811110896efbb2, lit .f64 0xbf2a00f9e2cae774, lit .f64 0x3ec6cd878c3b46a7]
+def cosK32 : List (FV .f64) := [lit .f64 0xbfdffffffd0c5e81, lit .f64 0x3fa55553e1053a42, lit .f64 0xbf56c087e80f1e27, lit .f64 0x3ef99342e0ee5069]
+def tanT64 : List (FV .f64) := [lit .f64 0x3fc111111110fe7a, lit .f64 0x3f9664f48406d637, lit .f64 0x3f6d6d22c9560328, lit .f64 0x3f4344d8f2f26501, lit .f64 0x3f147e88a03792a6, lit .f64 0xbef375cbdb605373, lit .f64 0x3faba1ba1bb341fe, lit .f64 0x3f8226e3e96e8493, lit .f64 0x3f57dbc8fee08315, lit .f64 0x3f3026f71a8d1068, lit .f64 0x3f12b80f32f0a7e9, lit .f64 0x3efb2a7074bf7ad4]
+def tanMisc64 : List (FV .f64) := [lit .f64 0x3fe594af4f0d844d, lit .f64 0x3fe921fb54442d18, lit .f64 0x3c81a62633145c07, lit .f64 0x3fd5555555555563]
+def tanK32 : List (FV .f64) := [lit .f64 0x3f685dadfcecf44e, lit .f64 0x3f8362b9bf971bcd, lit .f64 0x3fab54c91d865afe, lit .f64 0x3f991df3908c33ce, lit .f64 0x3fd5554d3418c99f, lit .f64 0x3fc112fd38999f72]
+def arcP64 : List (FV .f64) := [lit .f64 0x3fc5555555555555, lit .f64 0xbfd4d61203eb6f7d, lit .f64 0x3fc9c1550e884455, lit .f64 0xbfa48228b5688f3b, lit .f64 0x3f49efe07501b288, lit .f64 0x3f023de10dfdf709]
+def arcQ64 : List (FV .f64) := [lit .f64 0x3ff0000000000000, lit .f64 0xc0033a271c8a2d4b, lit .f64 0x40002ae59c598ac8, lit .f64 0xbfe6066c1b8d0159, lit .f64 0x3fb3b8c5b12e9282]
+def arcP32 : List (FV .f32) := [lit .f32 0x3e2aaa75, lit .f32 0xbd2f13ba, lit .f32 0xbc0dd36b]
+def arcQ32 : List (FV .f32) := [lit .f32 0x3f800000, lit .f32 0xbf34e5ae]
+def asinMisc64 : List (FV .f64) := [lit .f64 0x3c91a62633145c07, lit .f64 0x3fef333333333333, lit .f64 0x3ff921fb54442d18, lit .f64 0x3fe921fb54442d18]
+def asinMin32 : FV .f32 := lit .f32 0x39800000  -- 0.00024414062f0
+def asinMin64 : FV .f64 := lit .f64 0x3e50000000000000  -- 1.4901161193847656e-8
+def atanHi32 : List (FV .f32) := [lit .f32 0x3eed6338, lit .f32 0x3f490fda, lit .f32 0x3f7b985e, lit .f32 0x3fc90fda]
+def atanLo32 : List (FV .f32) := [lit .f32 0x31ac3769, lit .f32 0x33222168, lit .f32 0x33140fb4, lit .f32 0x33a22168]
+def atanLarge32 : FV .f32 := lit .f32 0x4c800000  -- 6.7108864f7
+def atanSmall32 : FV .f32 := lit .f32 0x39800000  -- 0.00024414062f0
+def atanBreaks32 : List (FV .f32) := [lit .f32 0x3ee00000, lit .f32 0x3f300000, lit .f32 0x3f980000, lit .f32 0x401c0000, lit .f32 0x3fc00000, lit .f32 0x3fc90fdb]
+def atan2PiLo32 : FV .f32 := lit .f32 0xb3bbbd2e  -- -8.742278f-8
+def acosMin32 : FV .f32 := lit .f32 0x32800000  -- 1.4901161f-8
+def pio2Hi32 : FV .f32 := lit .f32 0x3fc90fda  -- 1.5707963f0
+def pio2Lo32 : FV .f32 := lit .f32 0x33a22168  -- 7.5497894f-8
+def acosPi32 : FV .f32 := lit .f32 0x40490fda  -- 3.1415925f0
+def piT32 : FV .f32 := lit .f32 0x40490fdb  -- 3.1415927f0
+def piOver2T32 : FV .f32 := lit .f32 0x3fc90fdb  -- 1.5707964f0
+def piOver4T32 : FV .f32 := lit .f32 0x3f490fdb  -- 0.7853982f0
+def threePiOver4T32 : FV .f32 := lit .f32 0x4016cbe4  -- 2.3561945f0
+def atanHi64 : List (FV .f64) := [lit .f64 0x3fddac670561bb4f, lit .f64 0x3fe921fb54442d18, lit .f64 0x3fef730bd281f69b, lit .f64 0x3ff921fb54442d18]
+def atanLo64 : List (FV .f64) := [lit .f64 0x3c7a2b7f222f65e2, lit .f64 0x3c81a62633145c07, lit .f64 0x3c7007887af0cbbd, lit .f64 0x3c91a62633145c07]
+def atanLarge64 : FV .f64 := lit .f64 0x4410000000000000  -- 7.378697629483821e19
+def atanSmall64 : FV .f64 := lit .f64 0x3e40000000000000  -- 7.450580596923828e-9
+def atanBreaks64 : List (FV .f64) := [lit .f64 0x3fdc000000000000, lit .f64 0x3fe6000000000000, lit .f64 0x3ff3000000000000, lit .f64 0x4003800000000000, lit .f64 0x3ff8000000000000, lit .f64 0x3ff921fb54442d18]
+def atan2PiLo64 : FV .f64 := lit .f64 0x3ca1a62633145c07  -- 1.2246467991473532e-16
+def acosMin64 : FV .f64 := lit .f64 0x3c60000000000000  -- 6.938893903907228e-18
+def pio2Hi64 : FV .f64 := lit .f64 0x3ff921fb54442d18  -- 1.5707963267948966
+def pio2Lo64 : FV .f64 := lit .f64 0x3c91a62633145c07  -- 6.123233995736766e-17
+def acosPi64 : FV .f64 := lit .f64 0x400921fb54442d18  -- 3.141592653589793
+def piT64 : FV .f64 := lit .f64 0x400921fb54442d18  -- 3.141592653589793
+def piOver2T64 : FV .f64 := lit .f64 0x3ff921fb54442d18  -- 1.5707963267948966
+def piOver4T64 : FV .f64 := lit .f64 0x3fe921fb54442d18  -- 0.7853981633974483
+def threePiOver4T64 : FV .f64 := lit .f64 0x4002d97c7f3321d2  -- 2.356194490192345
+def atanP64 : List (FV .f64) := [lit .f64 0x3fd555555555550d, lit .f64 0x3fc24924920083ff, lit .f64 0x3fb745cdc54c206e, lit .f64 0x3fb10d66a0d03d51, lit .f64 0x3fa97b4b24760deb, lit .f64 0x3f90ad3ae322da11]
+def atanQ64 : List (FV .f64) := [lit .f64 0xbfc999999998ebc4, lit .f64 0xbfbc71c6fe231671, lit .f64 0xbfb3b0f2af749a6d, lit .f64 0xbfadde2d52defd9a, lit .f64 0xbfa2b4442c6a6c2f]
+def atanP32 : List (FV .f32) := [lit .f32 0x3eaaaaa9, lit .f32 0x3e11f50d, lit .f32 0x3d7cac25]
+def atanQ32 : List (FV .f32) := [lit .f32 0xbe4cca98, lit .f32 0xbdda1247]
+def cospiPoly32 : List (FV .f32) := [lit .f32 0x3f800000, lit .f32 0xc09de9e6, lit .f32 0xb3f945b3, lit .f32 0x4081e0ef, lit .f32 0xbfaae306, lit .f32 0x3e6cf05a]
+def sinpiPoly32 : List (FV .f32) := [lit .f32 0x40490fdb, lit .f32 0xb3bc367f, lit .f32 0xc0a55de7, lit .f32 0x402335c5, lit .f32 0xbf195c2c, lit .f32 0x3da3b622]
+def cospiPoly64 : List (FV .f64) := [lit .f64 0x3ff0000000000000, lit .f64 0xc013bd3cc9be45de, lit .f64 0xbcb30f699892a25e, lit .f64 0x40103c1f081b5aae, lit .f64 0xbff55d3c7e3c9254, lit .f64 0x3fce1f5068363dd1, lit .f64 0xbf9a6d1ec7b4d288, lit .f64 0x3f5f9cc3eb9ab614, lit .f64 0xbf1b26337cdaa924]
+def sinpiPoly64 : List (FV .f64) := [lit .f64 0x400921fb54442d18, lit .f64 0x3ca1adc7bbf1b141, lit .f64 0xc014abbce625be53, lit .f64 0x400466bc6775ab4d, lit .f64 0xbfe32d2cce634924, lit .f64 0x3fb50783492dcb22, lit .f64 0xbf7e3075d7cb71a7, lit .f64 0x3f3e8fb7e22504ca, lit .f64 0xbef6fdb69126ffe7]
+def sinpiWide32 : List (FV .f64) := [lit .f64 0x400921fb5443b5c3, lit .f64 0xc014abbce56b2366, lit .f64 0x400466bbacb024a2, lit .f64 0xbfe32ca9e6bf80ea, lit .f64 0x3fb4bc899499446d]
+def sinpiWide16 : List (FV .f32) := [lit .f32 0x40490fdb, lit .f32 0xc0a55de7, lit .f32 0x402335dd, lit .f32 0xbf19654f, lit .f32 0x3da5e44d]
+def cospiWide32 : List (FV .f64) := [lit .f64 0x3ff0000000000000, lit .f64 0xc013bd3cc9be3639, lit .f64 0x40103c1f07ea6c8d, lit .f64 0xbff55d3c1c4d2f31, lit .f64 0x3fce1ec7267d1bf4, lit .f64 0xbf9a1e888f6fb6f8]
+def cospiWide16 : List (FV .f32) := [lit .f32 0x3f800000, lit .f32 0xc09de9e6, lit .f32 0x4081e0f8, lit .f32 0xbfaae9e1, lit .f32 0x3e70f639, lit .f32 0xbcd0f444]
+def deg2radExt : List (FV .f64) := [lit .f64 0x3f91df46a2529d39, lit .f64 0x3f91df46a0000000, lit .f64 0x3de294e9c8ae0ec6, lit .f64 0x41a0000002000000]
+def sincThr64 : FV .f64 := lit .f64 0x3f50624dd2f1a9fc  -- 0.001
+def sincThr32 : FV .f32 := lit .f32 0x3d4ccccd  -- 0.05f0
+def cosc32 : List (FV .f32) := [lit .f32 0x3e8a4000, lit .f32 0xc0528d33, lit .f32 0x404fce4a, lit .f32 0xbf9278c9, lit .f32 0x3e5259b1, lit .f32 0x3ee66000, lit .f32 0xc0528d18, lit .f32 0x404fcae1, lit .f32 0xbf922d6d, lit .f32 0x3e494658]
+def cosc64 : List (FV .f64) := [lit .f64 0x3fc5c40000000000, lit .f64 0xc00a51a6625307d3, lit .f64 0x4009f9cb402bc398, lit .f64 0xbff24feab5565c48, lit .f64 0x3fcac6805326b732, lit .f64 0xbf980608d10e2748, lit .f64 0x3f5d0a576dcb5d72, lit .f64 0x3fd1480000000000, lit .f64 0xc00a51a66252fcd9, lit .f64 0x4009f9cb40262ab7, lit .f64 0xbff24feab304480f, lit .f64 0x3fcac67e56f1391d, lit .f64 0xbf980524577ed4dc, lit .f64 0x3f5cb25eef2af5da, lit .f64 0x3fd5c40000000000, lit .f64 0xc00a51a66250e59b, lit .f64 0x4009f9cb3fa0530f, lit .f64 0xbff24fea97d508bc, lit .f64 0x3fcac67319ed0cf2, lit .f64 0xbf9802c5f947cb3c, lit .f64 0x3f5c4a01290c1fd2, lit .f64 0x3fd9980000000000, lit .f64 0xc00a51a6623da6e8, lit .f64 0x4009f9cb3c7bfdea, lit .f64 0xbff24fea2e06e2f3, lit .f64 0x3fcac6570d757151, lit .f64 0xbf97ff069b7db52e, lit .f64 0x3f5be29eb442a28e]
+def rad2deg16 : FV .f16 := lit .f16 0x5329  -- Float16(57.28)
+def rad2deg32 : FV .f32 := lit .f32 0x42652ee1  -- 57.29578f0
+def deg2rad16 : FV .f16 := lit .f16 0x2478  -- Float16(0.01746)
+def rad2deg64 : FV .f64 := lit .f64 0x404ca5dc1a63c1f8  -- 57.29577951308232
+def deg2rad32 : FV .f32 := lit .f32 0x3c8efa35  -- 0.017453292f0
+def deg2rad64 : FV .f64 := lit .f64 0x3f91df46a2529d39  -- 0.017453292519943295
+
+end JuliaLean.MathCov.C

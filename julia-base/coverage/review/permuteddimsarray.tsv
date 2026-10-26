@@ -1,0 +1,32 @@
+line	name	verdict	mirror	property	settled	reason
+12	PermutedDimsArray{T,N,perm,iperm,AA}	FAITHFUL	yes	yes	yes	The model performs the tuple-type, permutation, and inverse checks in source order, states the constructor invariant for every input, and is proven.
+42	PermutedDimsArray	HOLLOW	no	yes	yes	The refutation's pdaNewTyped calls pdaNew after its type check, repeating length and invperm checks that the Julia method performs only before the inner-constructor type check.
+48	Base.parent	FAITHFUL	yes	yes	yes	The model returns the stored parent field for every view and the proposition is proven.
+49	Base.size	FAITHFUL	yes	yes	yes	The model reads the parent size and permutes it using the view's valid permutation, and the quantified proposition is proven.
+50	Base.axes	FAITHFUL	yes	yes	yes	The model reads the parent axes and permutes them using the view's valid permutation, and the quantified proposition is proven.
+51	Base.has_offset_axes	FAITHFUL	yes	yes	yes	The model forwards offset-axis detection to the stored parent for every view and the proposition is proven.
+52	Base.similar	FAITHFUL	yes	yes	yes	The model forwards the exact element type and dimensions to similar on the parent, and the quantified proposition is proven.
+53	Base.dataids	FAITHFUL	yes	yes	yes	The model obtains the parent and forwards dataids for every view, and the proposition is proven.
+54	Base.unaliascopy	FAITHFUL	yes	yes	yes	The model copies the parent before reconstructing the view type, and the quantified proposition is proven.
+55	Base.cconvert	FAITHFUL	yes	yes	yes	The model forwards pointer conversion to the parent for every view and the proposition is proven.
+62	Base.pointer	FAITHFUL	yes	yes	yes	The model always returns the deliberate unsupported-pointer error for every integer offset and the proposition is proven.
+64	Base.strides	FAITHFUL	yes	yes	yes	The model reads parent strides before applying the view's valid permutation, and the quantified proposition is proven.
+68	Base.elsize	FAITHFUL	yes	yes	yes	The model forwards elsize to the parent array type for every represented type and the proposition is proven.
+70	Base.getindex	FAITHFUL	yes	yes	yes	The model checks view bounds before permuting indices and preserves failures from the parent read, and the quantified proposition is proven.
+75	Base.setindex!	FAITHFUL	yes	yes	yes	The model checks bounds, permutes indices, performs the parent write, and returns the assigned value, and the quantified proposition is proven.
+81	Base.isassigned	FAITHFUL	yes	yes	yes	The model returns false after a failed Boolean bounds check and otherwise queries the permuted parent index, and the quantified proposition is proven.
+87	genperm	FAITHFUL	yes	yes	yes	The model indexes each tuple position in permutation order with the same one-based bounds behavior, and the quantified proposition is proven.
+88	genperm	FAITHFUL	yes	yes	yes	The model consumes and splats the vector in iteration order before calling tuple genperm, preserves failures, and has a proven quantified proposition.
+198	permutedims	FAITHFUL	yes	yes	yes	The model evaluates axes, genperm, and similar before calling permutedims! and returning its result, and the quantified proposition is proven.
+203	permutedims	FAITHFUL	yes	yes	yes	The model delegates every matrix input to permutedims with the fixed permutation (2,1), and the proposition is proven.
+273	permutedims	FAITHFUL	yes	yes	yes	The model evaluates length and reshapes every vector to one row by that length, and the quantified proposition is proven.
+286	permutedims!	FAITHFUL	yes	yes	yes	The model evaluates both axes, validates dimensions, constructs the inverse view, copies, and returns dest in source order, and the proposition is proven.
+293	Base.copyto!	FAITHFUL	yes	yes	yes	The model preserves the empty fast path and otherwise checks bounds, unaliases, copies, and returns dest, and the quantified proposition is proven.
+300	_copy!	FAITHFUL	yes	yes	yes	The model finds the fixed prefix, selects direct or tiled copying, constructs all three exact axis slices, and has a proven quantified proposition.
+319	_permutedims!	FAITHFUL	yes	yes	yes	The model derives both axes and executes the jo, io, R3, R2, j, i loop nest with an empty prefix, and the quantified proposition is proven.
+333	_permutedims!	FAITHFUL	yes	yes	yes	The model derives both axes and executes the jo, io, R3, R2, j, i, R1 loop nest, and the quantified proposition is proven.
+351	Base._mapreduce_dim	FAITHFUL	yes	yes	yes	The model forwards every argument to _mapreduce_dim on the parent for all represented inputs and the proposition is proven.
+354	Base._mapreduce_dim	FAITHFUL	yes	yes	yes	The model forwards the identity product reduction to _mapreduce_dim on the parent for all represented inputs and the proposition is proven.
+358	Base.mapreducedim!	FAITHFUL	yes	yes	yes	The model constructs the inverse destination view, reduces against the parent, and returns B, and the quantified proposition is proven.
+363	Base.mapreducedim!	FAITHFUL	yes	yes	yes	The model constructs the inverse destination view for product reduction, reduces against the parent, and returns B, and the quantified proposition is proven.
+369	Base.showarg	FAITHFUL	yes	yes	yes	The model threads IO state through the opening, parent, permutation, and conditional element-type output in source order, and the proposition is proven.

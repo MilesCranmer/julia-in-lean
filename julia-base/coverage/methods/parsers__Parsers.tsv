@@ -1,0 +1,3 @@
+file	line	endline	name	signature	status	entry	note
+base/parsers/Parsers.jl	52	53	Base.show	Base.show(io::IO, x::ParseFailure)	modelled	misccov-parsers-show	
+base/parsers/Parsers.jl	91	91	parsevalue	parsevalue	excluded		no-behaviour: empty generic declaration implemented by included parser files

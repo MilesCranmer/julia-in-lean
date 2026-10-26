@@ -1,0 +1,75 @@
+id: bootcov-foldable-meta-effects
+title: "@_foldable_meta asserts :notaskstate and :inaccessiblememonly, which @assume_effects :foldable does not"
+priority: P3
+kind: documentation
+area: BootCov
+files: [base/essentials.jl, base/boot.jl]
+functions: ["Base.@_foldable_meta", "Core.@_foldable_meta"]
+summary: |
+  The internal macro @_foldable_meta is commented "can be used in place of
+  `@assume_effects :foldable`", but its purity expression also sets notaskstate and
+  inaccessiblememonly to true. A function that reads task state gets +s and +m with the
+  macro, while @assume_effects :foldable leaves them !s and !m. Core's copy
+  (base/boot.jl:347-361) has the same flags and the same comment.
+likelihood: |
+  Only Base and Compiler code can use the macro (it expands to `false` elsewhere). The
+  current users appear to be pure functions, so no miscompilation is known; the risk is a
+  future user relying on the comment.
+maybe_intended: |
+  The extra assertions may be deliberate for the bootstrapping helpers that use the macro;
+  then only the comment is wrong.
+reproducer: |
+  # Base.@_foldable_meta (base/essentials.jl:210-224) is documented as usable "in place of
+  # `@assume_effects :foldable`", but it also asserts :notaskstate and :inaccessiblememonly,
+  # which :foldable does not (base/expr.jl:1019-1021).
+  Base.eval(quote
+      function __bootcov_meta_f()
+          @_foldable_meta
+          return current_task()
+      end
+      @assume_effects :foldable function __bootcov_assume_f()
+          return current_task()
+      end
+  end)
+  e_meta = Base.infer_effects(Base.__bootcov_meta_f, ())
+  e_assume = Base.infer_effects(Base.__bootcov_assume_f, ())
+  println("@_foldable_meta            : ", e_meta)
+  println("@assume_effects :foldable  : ", e_assume)
+  println("notaskstate          meta = ", e_meta.notaskstate, ", assume = ", e_assume.notaskstate)
+  println("inaccessiblememonly  meta = ", e_meta.inaccessiblememonly, ", assume = ", e_assume.inaccessiblememonly)
+  if e_meta.notaskstate !== e_assume.notaskstate || e_meta.inaccessiblememonly !== e_assume.inaccessiblememonly
+      println("REPRODUCED bootcov-foldable-meta-effects")
+  end
+output:
+  release: |
+    @_foldable_meta            : (+c,+e,!n,+t,+s,+m,+u,+o,+r)
+    @assume_effects :foldable  : (+c,+e,!n,+t,!s,!m,+u,+o,+r)
+    notaskstate          meta = true, assume = false
+    inaccessiblememonly  meta = 0, assume = 1
+    REPRODUCED bootcov-foldable-meta-effects
+  nightly: |
+    @_foldable_meta            : (+c,+e,!re,!n,+t,+s,+m,+u,+o,+r)
+    @assume_effects :foldable  : (+c,+e,!re,!n,+t,!s,!m,+u,+o,+r)
+    notaskstate          meta = true, assume = false
+    inaccessiblememonly  meta = 0, assume = 1
+    REPRODUCED bootcov-foldable-meta-effects
+reproduced: {release: true, nightly: true}
+expected: |
+  Either the macro asserts exactly the :foldable set (consistent, effect_free,
+  terminates_globally, noub, nortcall), or the comment names the stronger set.
+promised_by: |
+  base/essentials.jl:210 (and base/boot.jl:347): "can be used in place of
+  `@assume_effects :foldable` (supposed to be used for bootstrapping)"; :foldable is
+  defined in base/expr.jl:1019-1021 as consistent, effect_free, terminates_globally, noub,
+  nortcall.
+cause: |
+  base/essentials.jl:218-219 (and base/boot.jl:355-356) set #=:notaskstate=#true and
+  #=:inaccessiblememonly=#true.
+possible_fix: |
+  Set those two flags to false, or change the comment to name the effects actually asserted.
+duplicates:
+  issues: []
+  queries: ["_foldable_meta", "foldable_meta notaskstate", "_foldable_meta inaccessiblememonly", "assume_effects foldable bootstrapping meta"]
+lean:
+  property: JuliaLean.BootCov.Macros.BaseEffectMetasMatchAssume
+  theorem: JuliaLean.BootCov.Macros.baseEffectMetasMatchAssume_refuted

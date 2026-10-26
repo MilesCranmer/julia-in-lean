@@ -1,0 +1,51 @@
+id: streams-detach-pipeline
+title: "detach rejects pipeline command objects"
+priority: P2
+kind: wrong-exception
+area: Streams
+files: [base/cmd.jl]
+functions: ["detach(::AbstractCmd)", "pipeline(::AbstractCmd, ::AbstractCmd)"]
+summary: |
+  detach works for a single Cmd but throws MethodError for a pipeline command object. Pipelines
+  are accepted everywhere else an AbstractCmd is run, and ignorestatus already recursively marks
+  the component commands of stdout pipelines and concurrent command groups.
+likelihood: |
+  Low to moderate: detached service launchers and long-running shell-style jobs plausibly use a
+  pipeline, but most detach calls contain a single executable.
+maybe_intended: |
+  Detaching a pipeline requires marking each child process. The implementation already uses that
+  recursive policy for ignorestatus, and the detach docstring does not restrict its command input.
+reproducer: |
+  cmd = pipeline(`/bin/true`, `/bin/cat`)
+  detach(cmd)  # MethodError for Base.OrCmds
+output:
+  release: |
+    typeof(cmd) = Base.OrCmds
+    detach(cmd) = MethodError(detach, (pipeline(`/bin/true`, stdout=`/bin/cat`),), 0x000000000000994d)
+    REPRODUCED streams-detach-pipeline
+  nightly: |
+    typeof(cmd) = Base.OrCmds
+    detach(cmd) = MethodError(detach, (pipeline(`/bin/true`, stdout=`/bin/cat`),), 0x000000000000b1fb)
+    REPRODUCED streams-detach-pipeline
+reproduced: {release: true, nightly: true}
+expected: |
+  detach returns a pipeline whose component Cmd objects have the detached process flag set, so
+  the pipeline can be passed to run like any other detached command object.
+promised_by: |
+  base/cmd.jl:308-310 documents detach(command) without restricting the command to one leaf.
+  base/cmd.jl:559-566 documents pipeline results as multi-stage pipelines of commands.
+cause: |
+  base/cmd.jl:312 defines detach only for Cmd. Unlike ignorestatus at lines 301-305, it has no
+  recursive methods for OrCmds, ErrOrCmds, AndCmds, or CmdRedirect.
+possible_fix: |
+  Add recursive detach methods for the composite AbstractCmd types, preserving redirect fields.
+duplicates:
+  issues: []
+  queries:
+    - "issues: detach pipeline"
+    - "issues: detach OrCmds"
+    - "prs: detach pipeline"
+    - "prs: detach OrCmds"
+lean:
+  property: JuliaLean.Streams.DetachAllCommands
+  theorem: JuliaLean.Streams.detachAllCommands_refuted

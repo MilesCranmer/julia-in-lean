@@ -1,0 +1,52 @@
+id: rangescov-unitrange-convert-empty
+title: "convert(UnitRange{UInt8}, 0:-1) throws InexactError although the range is empty"
+priority: P2
+kind: wrong-exception
+area: RangesCov
+files: ["base/range.jl"]
+functions: ["UnitRange{T}(::UnitRange)", "convert(::Type{<:AbstractRange}, ::AbstractRange)", "StepRange{T1,T2}(::AbstractRange)"]
+summary: |
+  Converting the canonical empty range 0:-1 (or 0:1:-1) to an unsigned element type throws
+  InexactError because the normalized stop -1 is converted, while converting the collected empty
+  vector works.
+likelihood: |
+  Plausible: 0:n-1 with n == 0 converted to UInt indices or lengths, e.g. UnitRange{UInt}(0:n-1).
+maybe_intended: |
+  The stop is a stored field; a strict reading converts fields, not elements.
+reproducer: |
+  r = 0:-1
+  println("isempty(0:-1) = ", isempty(r), "; convert(Vector{UInt8}, collect(r)) = ", convert(Vector{UInt8}, collect(r)))
+  bug = false
+  try
+      println("convert(UnitRange{UInt8}, 0:-1) = ", repr(convert(UnitRange{UInt8}, r)))
+  catch e
+      println("convert(UnitRange{UInt8}, 0:-1) throws ", sprint(showerror, e))
+      global bug = e isa InexactError
+  end
+  bug && println("REPRODUCED rangescov-unitrange-convert-empty")
+output:
+  release: |
+    isempty(0:-1) = true; convert(Vector{UInt8}, collect(r)) = UInt8[]
+    convert(UnitRange{UInt8}, 0:-1) throws InexactError: trunc(UInt8, -1)
+    REPRODUCED rangescov-unitrange-convert-empty
+  nightly: |
+    isempty(0:-1) = true; convert(Vector{UInt8}, collect(r)) = UInt8[]
+    convert(UnitRange{UInt8}, 0:-1) throws InexactError: trunc(UInt8, -1)
+    REPRODUCED rangescov-unitrange-convert-empty
+reproduced: {release: true, nightly: true}
+expected: |
+  An empty UnitRange{UInt8}, for example 0x00:0xff normalized to 0x01:0x00, as convert(Vector{UInt8}, Int[]) succeeds.
+promised_by: |
+  convert(T, r) for AbstractRange (base/range.jl:288) is used as an elementwise conversion of the
+  array; it should agree with converting the elements (none here).
+cause: |
+  base/range.jl:1329 UnitRange{T}(r::UnitRange) = UnitRange{T}(r.start, r.stop) converts the stop -1
+  exactly; StepRange{T1,T2}(r) (base/range.jl:1362-1363) likewise converts last(r).
+possible_fix: |
+  If isempty(r), return an empty range built from convert(T, first(r)) alone (or from oneunit(T):zero(T)).
+duplicates:
+  issues: []
+  queries: ["issues: convert UnitRange empty InexactError", "issues: UnitRange UInt empty", "prs: convert UnitRange empty InexactError", "prs: UnitRange UInt empty"]
+lean:
+  property: JuliaLean.RangesCov.Convert.UnitRangeConvertEmpty
+  theorem: JuliaLean.RangesCov.Convert.unitRangeConvertEmpty_refuted

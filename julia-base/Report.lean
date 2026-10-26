@@ -1,15 +1,8 @@
 import JuliaLean
+import JuliaLean.Registry.Print
 
-/-! Print the registry as tab-separated rows: id, status, number of universally
-quantified data variables, Julia file, issue, statement. Run with
-`lake env lean Report.lean > registry.tsv`. -/
+/-! Print the registry as tab-separated rows with columns id, status,
+quantified data variable count, Julia source file, issue, and statement (see
+`JuliaLean.Registry.printRows`). Run with `lake env lean Report.lean > registry.tsv`. -/
 
-open Lean Meta JuliaLean.Registry
-
-#eval show MetaM Unit from do
-  for e in JuliaLean.Registry.all do
-    let status := match e.status with
-      | .todo => "todo" | .proven => "proven" | .refuted => "refuted"
-    let clean (s : String) := (s.replace "\t" " ").replace "\n" " "
-    let n ← countForallData 6 (mkConst e.prop)
-    IO.println s!"{e.id}\t{status}\t{n}\t{e.juliaFile}\t{clean e.issue}\t{clean e.statement}"
+#eval JuliaLean.Registry.printRows JuliaLean.Registry.all

@@ -1,0 +1,64 @@
+id: reducecov-float-missing-abstract
+title: "float(A) for an abstract Union{T, Missing} element type rounds BigFloat and overflows BigInt to Float64"
+priority: P2
+kind: wrong-result
+area: ReduceCov
+files: [base/missing.jl]
+functions: ["float(A::AbstractArray{Union{T, Missing}}) where {T}"]
+summary: |
+  float(A) for A::AbstractArray{Union{T, Missing}} with an abstract T converts every
+  element to typeof(float(zero(T))). zero(Real) and zero(Integer) are the Int 0, so
+  the target is Float64: float(Union{Missing, Real}[big"1.1", missing]) rounds the
+  BigFloat to Float64, and float(Union{Missing, Integer}[big(10)^400, missing])
+  returns Inf. float on the same arrays without missing throws ("float not defined
+  on abstractly-typed arrays"), and float([big"1.1"]) keeps the BigFloat.
+likelihood: |
+  Low to moderate: Union{Missing, Real} and Union{Missing, Integer} element types
+  appear when data with missing values is collected into loosely typed arrays.
+  The result is silently less precise (or Inf) instead of an error.
+maybe_intended: |
+  float of an array is documented only for converting numbers; one could argue the
+  user should choose a concrete element type first, which is what the method
+  without missing demands with an error.
+reproducer: |
+  float(Union{Missing, Real}[big"1.1", missing])         # Union{Missing, Float64}[1.1, missing]
+  float(Union{Missing, Integer}[big(10)^400, missing])   # Union{Missing, Float64}[Inf, missing]
+output:
+  release: |
+    float(Union{Missing, Real}[big"1.1", missing]) = Union{Missing, Float64}[1.1, missing]
+    float(Union{Missing, Integer}[big(10)^400, missing]) = Union{Missing, Float64}[Inf, missing]
+    float([big"1.1"])[1] == big"1.1": true
+    float([big(10)^400])[1] == big(10)^400: false
+    float(Real[big"1.1"]) -> ErrorException
+    REPRODUCED reducecov-float-missing-abstract
+  nightly: |
+    float(Union{Missing, Real}[big"1.1", missing]) = Union{Missing, Float64}[1.1, missing]
+    float(Union{Missing, Integer}[big(10)^400, missing]) = Union{Missing, Float64}[Inf, missing]
+    float([big"1.1"])[1] == big"1.1": true
+    float([big(10)^400])[1] == big(10)^400: false
+    float(Real[big"1.1"]) -> ErrorException
+    REPRODUCED reducecov-float-missing-abstract
+reproduced: {release: true, nightly: true}
+expected: |
+  Either the ErrorException that float(Real[big"1.1"]) throws for an abstract
+  element type, or elementwise float(x) (BigFloat stays BigFloat, big(10)^400
+  becomes the BigFloat 1.0e400) with missing kept.
+promised_by: |
+  The float docstring (base/float.jl:357): "Convert a number or array to a floating
+  point data type"; converting an element to floating point must not change its
+  value beyond the rounding of float(x). The method without missing
+  (base/float.jl:1168-1173) rejects abstract element types for this reason.
+cause: |
+  base/missing.jl:176-179: U = typeof(float(zero(T))) for the abstract T, then
+  convert(AbstractArray{Union{U, Missing}}, A) converts each element to U. Unlike
+  float(A::AbstractArray{T}) in base/float.jl there is no isconcretetype(T) check.
+possible_fix: |
+  Throw the same error as base/float.jl when T is not concrete, or map float over
+  the non-missing elements.
+duplicates:
+  issues:
+    - {number: 29693, state: closed, relation: related}
+  queries: ["float missing abstract", "float Union Missing", "float missing array", "float Union Missing BigFloat"]
+lean:
+  property: JuliaLean.ReduceCov.MissingCov.FloatArrayExact
+  theorem: JuliaLean.ReduceCov.MissingCov.floatArrayExact_refuted

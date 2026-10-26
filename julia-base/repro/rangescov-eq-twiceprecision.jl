@@ -1,0 +1,7 @@
+r1 = range(0.0; step=0.30000000000000004, length=8)
+r2 = range(0.0; step=0.3000000000000001, length=8)
+println(typeof(r1))
+println("r1 == r2: ", r1 == r2)
+println("collect(r1) == collect(r2): ", collect(r1) == collect(r2))
+println("first differing index: ", findfirst(collect(r1) .!= collect(r2)), " values ", collect(r1)[2], " ", collect(r2)[2])
+(r1 == r2 && collect(r1) != collect(r2)) && println("REPRODUCED rangescov-eq-twiceprecision")

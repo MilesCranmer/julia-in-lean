@@ -1,0 +1,43 @@
+line	name	verdict	mirror	property	settled	reason
+73	MIME_str	HOLLOW	no	no	yes	mimeStr returns the input String and omits Symbol construction, quote-expression construction, and the MIME type AST, so its identity proposition states no macro-expansion behavior.
+78	show	HOLLOW	no	no	yes	showTextPlainFallback takes the two-argument show result as a bare String instead of calling show on io and x, so its identity proposition states neither delegation nor the observable write.
+80	MIME	HOLLOW	no	no	yes	mimeConstructor is String identity and omits Symbol conversion and construction of the parameterized MIME singleton, so its proposition does not cover the method's result or full input domain.
+81	show	FAITHFUL	yes	yes	yes	
+82	print	FAITHFUL	yes	yes	yes	
+107	showable	HOLLOW	no	no	yes	showableMime accepts a precomputed Boolean instead of applying hasmethod to the IO, MIME, and value types, so its identity proposition does not state the method's dispatch test.
+108	showable	FAITHFUL	yes	yes	yes	
+154	show	HOLLOW	no	no	yes	showStringMime discards its constructed MIME and returns a supplied shown String instead of calling show with io, MIME(m), and x, so its proposition states no delegation behavior.
+190	repr	HOLLOW	no	no	yes	reprMime selects between precomputed text and binary results instead of calling _textrepr or _binrepr with x and context, so its proposition does not cover the method's allowed inputs or helper calls.
+191	repr	HOLLOW	no	no	yes	reprString receives precomputed helper results and omits x and context, so it neither models passing the original arguments to repr nor states that delegation for all allowed inputs.
+194	_textrepr	HOLLOW	no	no	yes	textReprGeneric is identity on a predecoded String and omits both __binrepr and String conversion, so its proposition does not state the method's calls or their arguments.
+195	_textrepr	FAITHFUL	yes	yes	yes	
+196	_textrepr	HOLLOW	no	no	yes	textReprPlainString is identity on a predecoded String and omits __binrepr and String conversion, so its proposition does not state the text/plain method's behavior on x and context.
+199	__binrepr	HOLLOW	no	no	yes	binreprBuffer only selects between two supplied byte lists and omits IOBuffer creation, IOContext construction, both show calls, and take!, so its proposition states only a precomputed branch result.
+208	_binrepr	HOLLOW	no	no	yes	binreprGeneric returns a supplied buffer result instead of calling __binrepr with m, x, and context, so its identity proposition states no delegation behavior.
+209	_binrepr	FAITHFUL	yes	yes	yes	
+226	istextmime	FAITHFUL	yes	yes	yes	
+227	istextmime	HOLLOW	no	no	yes	isTextMimeString always calls the generic prefix model and misses dispatch to the generated true specializations such as application/json, so its claimed exact delegation is false for allowed strings.
+236	istextmime	HOLLOW	no	no	yes	isKnownTextMime returns true for every String and omits the fixed sixteen-value generation loop and singleton MIME restriction, so its proposition overclaims the generated methods' domain.
+259	display	HOLLOW	no	no	yes	displayBackendString discards the constructed MIME and returns a supplied result instead of calling display with d, MIME(mime), and x, so its proposition states no delegation behavior.
+260	display	HOLLOW	no	no	yes	displayGlobalString discards the constructed MIME and returns a supplied result instead of calling display with MIME(mime) and x, so its proposition states no delegation behavior.
+270	displayable	FAITHFUL	yes	yes	yes	
+271	displayable	FAITHFUL	yes	yes	yes	
+285	display	HOLLOW	no	no	yes	textDisplayPlain appends a newline to precomputed text and omits the ordered show and println calls on d.io, so its proposition does not state the method's I/O behavior for x.
+286	display	HOLLOW	no	no	yes	textDisplayDefault consumes precomputed shown text instead of calling display with d, a text/plain MIME value, and x, so its proposition does not state the source delegation.
+289	displayable	FAITHFUL	yes	yes	yes	
+290	display	HOLLOW	no	no	yes	textDisplayMime uses precomputed shown text and returns that text or a string error while omitting the show and println calls and their return behavior, so its proposition does not describe the full method.
+296	flush	HOLLOW	no	no	yes	flushTextDisplay is identity on a supplied result instead of calling flush on d.io, so its proposition states no delegation or stream effect.
+297	close	HOLLOW	no	no	yes	closeTextDisplay is identity on a supplied result instead of calling close on d.io, so its proposition states no delegation or stream effect.
+312	pushdisplay	HOLLOW	no	yes	yes	pushDisplayMethod directly constructs an appended list and omits the global displays access and push! mutation call, so it is a state specification rather than a mirror of the method body.
+324	popdisplay	HOLLOW	no	yes	yes	popDisplayMethod reimplements last-element removal instead of modelling the pop!(displays) call, so it is a hand-written specification rather than a mirror of this delegating method.
+325	popdisplay	HOLLOW	no	no	yes	popNamedDisplayMethod replaces the reverse index loop, equality checks, and splice! with contains and removeLast and omits the removed backend return value, so its proposition states only a reduced state update.
+333	reinit_displays	HOLLOW	no	no	yes	reinitDisplaysMethod directly returns a singleton String list and omits empty!, TextDisplay construction, pushdisplay, and their order, so its proposition cannot state that the final element is TextDisplay(stdout).
+338	xdisplayable	HOLLOW	no	no	yes	xdisplayable is identity on a precomputed applicable Boolean instead of calling applicable(display, D, args...), so its proposition states no behavior of the method's actual arguments.
+367	display	HOLLOW	no	no	yes	displayAny consumes precomputed applicability and outcomes instead of calling xdisplayable and display on each backend, and its proposition only equates that reduced model to the same helper.
+381	display	HOLLOW	no	no	yes	displayMime consumes precomputed applicability and outcomes instead of calling xdisplayable and display with m and x, and its proposition only equates that reduced model to the same helper.
+395	displayable	HOLLOW	no	no	yes	displayableBackendMime is identity on a precomputed Boolean instead of calling hasmethod with Tuple{D,MIME{mime},Any}, so its proposition states no dispatch-query behavior.
+398	displayable	HOLLOW	no	no	yes	displayableGlobalMime reduces a list of precomputed Booleans with any and never iterates over displays or calls displayable(d,m), so its proposition does not state the method's backend checks.
+426	redisplay	HOLLOW	no	no	yes	redisplayAny consumes precomputed applicability and outcomes instead of calling xdisplayable and redisplay on each backend, and its proposition only equates that reduced model to the same helper.
+440	redisplay	HOLLOW	no	no	yes	redisplayMime consumes precomputed applicability and outcomes instead of calling xdisplayable and redisplay with m and x, and its proposition only equates that reduced model to the same helper.
+455	redisplay	HOLLOW	no	no	yes	redisplayBackendDefault is identity on a supplied display result instead of calling display with d and x, so its proposition states no default delegation behavior.
+456	redisplay	HOLLOW	no	no	yes	redisplayBackendMimeDefault is identity on a supplied display result instead of calling display with d, m, and x, so its proposition states no default MIME delegation behavior.

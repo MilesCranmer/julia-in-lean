@@ -1,0 +1,13 @@
+file	line	endline	name	signature	status	entry	note
+base/ryu/Ryu.jl	16	16	neededdigits	neededdigits(::Type{Float64})	modelled	misccov-ryu-digit-counts	
+base/ryu/Ryu.jl	17	17	neededdigits	neededdigits(::Type{Float32})	modelled	misccov-ryu-digit-counts	
+base/ryu/Ryu.jl	18	18	neededdigits	neededdigits(::Type{Float16})	modelled	misccov-ryu-digit-counts	
+base/ryu/Ryu.jl	25	25	neededfloatdigits	neededfloatdigits(::Type{Float64})	modelled	misccov-ryu-digit-counts	
+base/ryu/Ryu.jl	26	26	neededfloatdigits	neededfloatdigits(::Type{Float32})	modelled	misccov-ryu-digit-counts	
+base/ryu/Ryu.jl	27	27	neededfloatdigits	neededfloatdigits(::Type{Float16})	modelled	misccov-ryu-digit-counts	
+base/ryu/Ryu.jl	48	64	writeshortest	writeshortest(x::T, plus::Bool=false, space::Bool=false, hash::Bool=true, precision::Integer=-1, expchar::UInt8=UInt8('e'), padexp::Bool=false, decchar::UInt8=UInt8('.'), typed::Bool=false, compact::Bool=false) where {T <: Base.IEEEFloat}	modelled	misccov-ryu-wrappers	
+base/ryu/Ryu.jl	82	94	writefixed	writefixed(x::T, precision::Integer, plus::Bool=false, space::Bool=false, hash::Bool=false, decchar::UInt8=UInt8('.'), trimtrailingzeros::Bool=false) where {T <: Base.IEEEFloat}	modelled	misccov-ryu-wrappers	
+base/ryu/Ryu.jl	113	126	writeexp	writeexp(x::T, precision::Integer, plus::Bool=false, space::Bool=false, hash::Bool=false, expchar::UInt8=UInt8('e'), decchar::UInt8=UInt8('.'), trimtrailingzeros::Bool=false) where {T <: Base.IEEEFloat}	modelled	misccov-ryu-wrappers	
+base/ryu/Ryu.jl	128	136	Base.show	Base.show(io::IO, x::T, forceuntyped::Bool=false, fromprint::Bool=false) where {T <: Base.IEEEFloat}	modelled	misccov-ryu-wrappers	
+base/ryu/Ryu.jl	138	143	Base.string	Base.string(x::T) where {T <: Base.IEEEFloat}	modelled	misccov-ryu-wrappers	
+base/ryu/Ryu.jl	145	145	Base.print	Base.print(io::IO, x::Union{Float16, Float32})	modelled	misccov-ryu-wrappers	

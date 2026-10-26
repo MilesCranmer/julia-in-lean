@@ -1,7 +1,7 @@
 import JuliaLean.RandomSampling.Model
 
 /-!
-Differential corpus for the sampling model. A Julia oracle script builds
+Differential corpus for the sampling model. The Julia reference builds
 the same splitmix64 word stream as a custom `AbstractRNG` and prints the same lines.
 Each request (`rand(rng, UInt32)`, `UInt64`, `UInt128`, `UInt52Raw()`) consumes one
 word `w`; `UInt32` answers `w % UInt32` and `UInt128` answers `(UInt128(w) << 64) | w`.

@@ -1,0 +1,50 @@
+id: sorttuplescov-legacy-sort-scratch
+title: "Legacy sort!(v, lo, hi, QuickSort, order, scratch::Vector) throws ArgumentError instead of sorting"
+priority: P2
+kind: wrong-exception
+area: Sort
+files: [base/sort.jl]
+functions: ["sort!(v::AbstractVector, lo::Integer, hi::Integer, a::Algorithm, o::Ordering, scratch::Vector)", "_sort!(v::AbstractVector, a::Algorithm, o::Ordering, kw)"]
+summary: |
+  The 6-argument legacy entry point with a Vector scratch forwards to
+  _sort!(v, a, o, (; lo, hi, scratch, legacy_dispatch_entry=a)). QuickSortAlg and
+  PartialQuickSort have no _sort! method, so the generic fallback sees
+  legacy_dispatch_entry === a and throws ArgumentError("Base.Sort._sort!(...) is
+  not defined"). The same call with scratch=nothing, and the 5-argument form, sort.
+likelihood: |
+  Low: only code still using the old internal sort! signatures with an explicit
+  scratch vector, which MergeSort accepted, reaches it.
+maybe_intended: |
+  The legacy entry points are internal; but base/sort.jl:2570 states that the 6-argument
+  version is supported for calling into the internals in the old way.
+reproducer: |
+  using Base.Order: Forward
+  sort!([5, 4, 3, 2, 1], 2, 4, QuickSort, Forward)           # [5, 2, 3, 4, 1]
+  sort!([5, 4, 3, 2, 1], 2, 4, QuickSort, Forward, nothing)  # [5, 2, 3, 4, 1]
+  sort!([5, 4, 3, 2, 1], 2, 4, QuickSort, Forward, Int[])    # ArgumentError
+output:
+  release: |
+    [5, 2, 3, 4, 1] [5, 2, 3, 4, 1] ArgumentError
+    REPRODUCED sorttuplescov-legacy-sort-scratch
+  nightly: |
+    [5, 2, 3, 4, 1] [5, 2, 3, 4, 1] ArgumentError
+    REPRODUCED sorttuplescov-legacy-sort-scratch
+reproduced: {release: true, nightly: true}
+expected: |
+  [5, 2, 3, 4, 1], as with scratch=nothing.
+promised_by: |
+  base/sort.jl:2570: "Support 3-, 5-, and 6-argument versions of sort! for calling into
+  the internals in the old way".
+cause: |
+  base/sort.jl:2578-2582 bypasses the specific 5-argument methods for QuickSortAlg
+  (sort.jl:2454) and PartialQuickSort (sort.jl:2533) and reaches the fallback at
+  sort.jl:2586-2590, which throws because legacy_dispatch_entry === a.
+possible_fix: |
+  Make the scratch::Vector method call sort!(v, lo, hi, a, o) when a has no _sort!
+  method, or give QuickSortAlg and PartialQuickSort 6-argument methods.
+duplicates:
+  issues: []
+  queries: ["issues/prs: sort! QuickSort scratch", "issues/prs: _sort! is not defined", "issues/prs: sort! lo hi QuickSort", "issues/prs: sort! six argument", "issues/prs: legacy sort! QuickSort"]
+lean:
+  property: JuliaLean.SortTuplesCov.LegacySortScratch
+  theorem: JuliaLean.SortTuplesCov.legacySortScratch_refuted

@@ -1,0 +1,161 @@
+file	line	endline	name	signature	status	entry	note
+base/complex.jl	17	17	Complex	Complex(x::Real, y::Real)	modelled	numberscov-complex-s17	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	18	18	Complex	Complex(x::Real)	modelled	numberscov-complex-s18	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	42	42	Complex{T}	Complex{T}(x::Real) where {T<:Real}	modelled	numberscov-complex-s42	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	43	43	Complex{T}	Complex{T}(z::Complex) where {T<:Real}	modelled	numberscov-complex-s43	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	44	45	(::Type{T})	(::Type{T})(z::Complex) where {T<:Real}	modelled	numberscov-complex-s44	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	47	47	Complex	Complex(z::Complex)	modelled	numberscov-complex-s47	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	49	50	promote_rule	promote_rule(::Type{Complex{T}}, ::Type{S}) where {T<:Real,S<:Real}	modelled	numberscov-complex-s49	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	51	52	promote_rule	promote_rule(::Type{Complex{T}}, ::Type{Complex{S}}) where {T<:Real,S<:Real}	modelled	numberscov-complex-s51	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	54	54	widen	widen(::Type{Complex{T}}) where {T}	modelled	numberscov-complex-s54	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	56	56	float	float(::Type{Complex{T}}) where {T<:AbstractFloat}	modelled	numberscov-complex-s56	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	57	57	float	float(::Type{Complex{T}}) where {T}	modelled	numberscov-complex-s57	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	72	72	real	real(z::Complex)	modelled	numberscov-complex-s72	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	87	87	imag	imag(z::Complex)	modelled	numberscov-complex-s87	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	88	88	real	real(x::Real)	modelled	numberscov-complex-s88	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	89	89	imag	imag(x::Real)	modelled	numberscov-complex-s89	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	102	102	reim	reim(z)	modelled	numberscov-complex-s102	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	120	120	real	real(T::Type)	modelled	numberscov-complex-s120	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	121	121	real	real(::Type{T}) where {T<:Real}	modelled	numberscov-complex-s121	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	122	122	real	real(C::Type{<:Complex})	modelled	numberscov-complex-s122	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	123	123	real	real(::Type{Union{}})	modelled	numberscov-complex-s123	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	124	124	real	real(::Type{Union{}}, slurp...)	modelled	numberscov-complex-s124	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	148	148	isreal	isreal(x::Real)	modelled	numberscov-complex-s148	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	149	149	isreal	isreal(z::Complex)	modelled	complex-isreal-doc	
+base/complex.jl	150	150	isinteger	isinteger(z::Complex)	modelled	numberscov-complex-s150	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	151	151	isfinite	isfinite(z::Complex)	modelled	numberscov-complex-s151	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	152	152	isnan	isnan(z::Complex)	modelled	numberscov-complex-s152	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	153	153	isinf	isinf(z::Complex)	modelled	numberscov-complex-s153	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	154	154	iszero	iszero(z::Complex)	modelled	numberscov-complex-s154	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	155	155	isone	isone(z::Complex)	modelled	numberscov-complex-s155	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	168	168	complex	complex(z::Complex)	modelled	numberscov-complex-s168	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	169	169	complex	complex(x::Real)	modelled	numberscov-complex-s169	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	170	170	complex	complex(x::Real, y::Real)	modelled	numberscov-complex-s170	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	190	190	complex	complex(::Type{T}) where {T<:Real}	modelled	numberscov-complex-s190	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	191	191	complex	complex(::Type{Complex{T}}) where {T<:Real}	modelled	numberscov-complex-s191	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	192	192	complex	complex(::Type{Union{}})	modelled	numberscov-complex-s192	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	195	195	complex	complex(::Type{Union{}}, slurp...)	modelled	numberscov-complex-s195	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	197	197	flipsign	flipsign(x::Complex, y::Real)	modelled	numberscov-complex-s197	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	199	218	show	show(io::IO, z::Complex)	modelled	numberscov-complex-s199	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	219	220	show	show(io::IO, z::Complex{Bool})	modelled	numberscov-complex-s219	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	222	230	show_unquoted	show_unquoted(io::IO, z::Complex, ::Int, prec::Int)	modelled	numberscov-complex-s222	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	232	236	read	read(s::IO, ::Type{Complex{T}}) where T<:Real	modelled	numberscov-complex-s232	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	237	239	write	write(s::IO, z::Complex)	modelled	numberscov-complex-s237	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	242	242	bswap	bswap(z::Complex)	modelled	numberscov-complex-s242	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	246	246	==	==(z::Complex, w::Complex)	modelled	numberscov-complex-s246	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	247	247	==	==(z::Complex, x::Real)	modelled	complex-isreal-doc	
+base/complex.jl	248	248	==	==(x::Real, z::Complex)	modelled	numberscov-complex-s248	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	250	250	isequal	isequal(z::Complex, w::Complex)	modelled	complex-isequal-hash	
+base/complex.jl	251	251	isequal	isequal(z::Complex, w::Real)	modelled	complex-isequal-hash	
+base/complex.jl	252	252	isequal	isequal(z::Real, w::Complex)	modelled	numberscov-complex-s252	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	254	254	in	in(x::Complex, r::AbstractRange{<:Real})	modelled	numberscov-complex-s254	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	259	263	hash	hash(z::Complex, h::UInt)	modelled	complex-isequal-hash	
+base/complex.jl	280	280	conj	conj(z::Complex)	modelled	complex-conj-involution	
+base/complex.jl	281	281	abs	abs(z::Complex)	modelled	complex-abs-conj-neg	
+base/complex.jl	282	282	abs2	abs2(z::Complex)	modelled	numberscov-complex-s282	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	283	287	inv	inv(z::Complex)	modelled	numberscov-complex-s283	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	288	288	inv	inv(z::Complex{<:Integer})	modelled	numberscov-complex-s288	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	290	290	+	+(z::Complex)	modelled	numberscov-complex-s290	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	291	291	-	-(z::Complex)	modelled	numberscov-complex-s291	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	292	292	+	+(z::Complex, w::Complex)	modelled	numberscov-complex-s292	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	293	293	-	-(z::Complex, w::Complex)	modelled	numberscov-complex-s293	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	294	295	*	*(z::Complex, w::Complex)	modelled	numberscov-complex-s294	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	297	297	-%	-%(z::Complex)	modelled	numberscov-complex-s297	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	298	298	+%	+%(z::Complex, w::Complex)	modelled	numberscov-complex-s298	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	299	299	-%	-%(z::Complex, w::Complex)	modelled	numberscov-complex-s299	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	300	301	*%	*%(z::Complex, w::Complex)	modelled	numberscov-complex-s300	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	303	303	_mulsub	_mulsub(a, b, c)	modelled	numberscov-complex-s303	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	304	304	_mulsub	_mulsub(a::T, b::T, c::T) where {T<:Real}	modelled	numberscov-complex-s304	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	305	307	muladd	muladd(z::Complex, w::Complex, x::Complex)	modelled	complex-muladd-exact	
+base/complex.jl	311	311	+	+(x::Bool, z::Complex{Bool})	modelled	numberscov-complex-s311	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	312	312	+	+(z::Complex{Bool}, x::Bool)	modelled	numberscov-complex-s312	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	313	313	-	-(x::Bool, z::Complex{Bool})	modelled	numberscov-complex-s313	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	314	314	-	-(z::Complex{Bool}, x::Bool)	modelled	numberscov-complex-s314	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	315	315	*	*(x::Bool, z::Complex{Bool})	modelled	numberscov-complex-s315	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	316	316	*	*(z::Complex{Bool}, x::Bool)	modelled	numberscov-complex-s316	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	318	318	+	+(x::Bool, z::Complex)	modelled	numberscov-complex-s318	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	319	319	+	+(z::Complex, x::Bool)	modelled	numberscov-complex-s319	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	320	320	-	-(x::Bool, z::Complex)	modelled	numberscov-complex-s320	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	321	321	-	-(z::Complex, x::Bool)	modelled	numberscov-complex-s321	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	322	322	*	*(x::Bool, z::Complex)	modelled	complex-false-strong-zero	
+base/complex.jl	323	323	*	*(z::Complex, x::Bool)	modelled	numberscov-complex-s323	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	325	325	+	+(x::Real, z::Complex{Bool})	modelled	numberscov-complex-s325	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	326	326	+	+(z::Complex{Bool}, x::Real)	modelled	numberscov-complex-s326	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	327	331	-	-(x::Real, z::Complex{Bool})	modelled	numberscov-complex-s327	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	332	332	-	-(z::Complex{Bool}, x::Real)	modelled	numberscov-complex-s332	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	333	333	*	*(x::Real, z::Complex{Bool})	modelled	numberscov-complex-s333	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	334	334	*	*(z::Complex{Bool}, x::Real)	modelled	numberscov-complex-s334	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	337	337	+	+(x::Real, z::Complex)	modelled	numberscov-complex-s337	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	338	338	+	+(z::Complex, x::Real)	modelled	numberscov-complex-s338	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	339	343	-	-(x::Real, z::Complex)	modelled	numberscov-complex-s339	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	344	344	-	-(z::Complex, x::Real)	modelled	numberscov-complex-s344	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	345	345	*	*(x::Real, z::Complex)	modelled	numberscov-complex-s345	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	346	346	*	*(z::Complex, x::Real)	modelled	numberscov-complex-s346	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	348	348	muladd	muladd(x::Real, z::Complex, y::Union{Real,Complex})	modelled	numberscov-complex-s348	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	349	349	muladd	muladd(z::Complex, x::Real, y::Real)	modelled	numberscov-complex-s349	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	350	351	muladd	muladd(z::Complex, x::Real, w::Complex)	modelled	numberscov-complex-s350	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	352	352	muladd	muladd(x::Real, y::Real, z::Complex)	modelled	numberscov-complex-s352	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	353	355	muladd	muladd(z::Complex, w::Complex, x::Real)	modelled	numberscov-complex-s353	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	357	357	/	/(a::R, z::S) where {R<:Real,S<:Complex}	modelled	numberscov-complex-s357	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	358	358	/	/(z::Complex, x::Real)	modelled	numberscov-complex-s358	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	360	377	/	/(a::Complex{T}, b::Complex{T}) where T<:Real	modelled	numberscov-complex-s360	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	379	392	/	/(z::Complex{T}, w::Complex{T}) where {T<:Union{Float16,Float32}}	modelled	numberscov-complex-s379	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	400	421	/	/(z::ComplexF64, w::ComplexF64)	modelled	complex-div-real-divisor,complex-div-spurious-nan,complex-div-subnormal-ratio	
+base/complex.jl	424	432	cdiv	cdiv(a::Float64, b::Float64, c::Float64, d::Float64)	modelled	numberscov-complex-s424	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	433	438	scaling_cdiv	scaling_cdiv(a::Float64, b::Float64, c::Float64, d::Float64, ab::Float64, cd::Float64)	modelled	numberscov-complex-s433	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	439	459	scaleargs_cdiv	scaleargs_cdiv(a::Float64, b::Float64, c::Float64, d::Float64, ab::Float64, cd::Float64)	modelled	numberscov-complex-s439	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	460	466	robust_cdiv1	robust_cdiv1(a::Float64, b::Float64, c::Float64, d::Float64)	modelled	complex-div-subnormal-ratio	
+base/complex.jl	467	474	robust_cdiv2	robust_cdiv2(a::Float64, b::Float64, c::Float64, d::Float64, r::Float64, t::Float64)	modelled	complex-div-spurious-nan	
+base/complex.jl	476	481	inv	inv(z::Complex{T}) where T<:Union{Float16,Float32}	modelled	numberscov-complex-s476	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	482	510	inv	inv(w::ComplexF64)	modelled	numberscov-complex-s482	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	511	517	robust_cinv	robust_cinv(c::Float64, d::Float64)	modelled	numberscov-complex-s511	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	519	531	ssqs	ssqs(x::T, y::T) where T<:Real	modelled	numberscov-complex-s519	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	533	558	sqrt	sqrt(z::Complex)	modelled	complex-sqrt-branch-cut	
+base/complex.jl	586	586	cis	cis	excluded		no-behaviour: generic function declaration at base/complex.jl:586 has no method body
+base/complex.jl	587	590	cis	cis(theta::Real)	modelled	numberscov-complex-s587	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	592	596	cis	cis(z::Complex)	modelled	numberscov-complex-s592	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	617	617	cispi	cispi	excluded		no-behaviour: generic function declaration at base/complex.jl:617 has no method body
+base/complex.jl	618	618	cispi	cispi(theta::Real)	modelled	numberscov-complex-s618	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	620	624	cispi	cispi(z::Complex)	modelled	numberscov-complex-s620	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	651	651	angle	angle(z::Complex)	modelled	numberscov-complex-s651	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	653	674	log	log(z::Complex)	modelled	numberscov-complex-s653	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	695	698	log10	log10(z::Complex)	modelled	numberscov-complex-s695	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	699	702	log2	log2(z::Complex)	modelled	numberscov-complex-s699	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	704	725	exp	exp(z::Complex)	modelled	numberscov-complex-s704	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	727	755	expm1	expm1(z::Complex{T}) where T<:Real	modelled	numberscov-complex-s727	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	757	773	log1p	log1p(z::Complex{T}) where T	modelled	numberscov-complex-s757	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	775	781	exp2	exp2(z::Complex{T}) where T	modelled	numberscov-complex-s775	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	783	789	exp10	exp10(z::Complex{T}) where T	modelled	numberscov-complex-s783	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	792	881	_cpow	_cpow(z::Union{T,Complex{T}}, p::Union{T,Complex{T}}) where T	modelled	numberscov-complex-s792	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	882	882	^	^(z::Complex{T}, p::Complex{T}) where T<:Real	modelled	numberscov-complex-s882	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	883	883	^	^(z::Complex{T}, p::T) where T<:Real	modelled	numberscov-complex-s883	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	884	884	^	^(z::T, p::Complex{T}) where T<:Real	modelled	numberscov-complex-s884	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	886	886	^	^(z::Complex, n::Bool)	modelled	numberscov-complex-s886	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	887	887	^	^(z::Complex, n::Integer)	modelled	numberscov-complex-s887	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	889	889	^	^(z::Complex{<:AbstractFloat}, n::Bool)	modelled	numberscov-complex-s889	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	890	890	^	^(z::Complex{<:Integer}, n::Bool)	modelled	numberscov-complex-s890	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	892	893	^	^(z::Complex{<:AbstractFloat}, n::Integer)	modelled	complex-pow-typemin	
+base/complex.jl	894	894	^	^(z::Complex{<:Integer}, n::Integer)	modelled	complex-int-pow-wraps	
+base/complex.jl	896	899	^	^(z::Complex{T}, p::S) where {T<:Real,S<:Real}	modelled	numberscov-complex-s896	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	900	903	^	^(z::T, p::Complex{S}) where {T<:Real,S<:Real}	modelled	numberscov-complex-s900	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	905	920	sin	sin(z::Complex{T}) where T	modelled	numberscov-complex-s905	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	923	940	cos	cos(z::Complex{T}) where T	modelled	numberscov-complex-s923	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	943	947	tan	tan(z::Complex)	modelled	numberscov-complex-s943	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	949	961	asin	asin(z::Complex)	modelled	numberscov-complex-s949	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	963	984	acos	acos(z::Complex)	modelled	numberscov-complex-s963	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	986	989	atan	atan(z::Complex)	modelled	numberscov-complex-s986	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	991	995	sinh	sinh(z::Complex)	modelled	numberscov-complex-s991	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	997	1000	cosh	cosh(z::Complex)	modelled	numberscov-complex-s997	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	1002	1022	tanh	tanh(z::Complex{T}) where T	modelled	numberscov-complex-s1002	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	1024	1027	asinh	asinh(z::Complex)	modelled	numberscov-complex-s1024	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	1029	1046	acosh	acosh(z::Complex)	modelled	numberscov-complex-s1029	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	1048	1089	atanh	atanh(z::Complex{T}) where T	modelled	numberscov-complex-s1048	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	1123	1126	round	round(z::Complex, rr::RoundingMode=RoundNearest, ri::RoundingMode=rr; kwargs...)	modelled	numberscov-complex-s1123	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	1129	1129	float	float(z::Complex{<:AbstractFloat})	modelled	numberscov-complex-s1129	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	1130	1130	float	float(z::Complex)	modelled	numberscov-complex-s1130	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	1132	1132	big	big(::Type{Complex{T}}) where {T<:Real}	modelled	numberscov-complex-s1132	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	1133	1133	big	big(z::Complex{T}) where {T<:Real}	modelled	numberscov-complex-s1133	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	1153	1153	complex	complex(A::AbstractArray{<:Complex})	modelled	numberscov-complex-s1153	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	1155	1160	complex	complex(A::AbstractArray{T}) where T	modelled	numberscov-complex-s1155	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	1164	1164	eps	eps(z::Complex{<:AbstractFloat})	modelled	numberscov-complex-s1164	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/complex.jl	1166	1166	eps	eps(::Type{Complex{T}}) where {T<:AbstractFloat}	modelled	numberscov-complex-s1166	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review

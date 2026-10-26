@@ -377,7 +377,8 @@ def checkLengthSplitRest (len : Nat) (n : JInt .i64) : R Unit :=
 
 /-- `split_rest(v::Vector, n, i)`: `rest(a, i) = a[i:end]` (`base/tuple.jl:212`),
 then `_split_rest(a::Vector, n)` (`base/bitarray.jl:1932-1937`): check the
-length, `last_n = a[end-n+1:end]`, `resize!(a, length(a) - n)`. -/
+length, `last_n = a[end-n+1:end]`, `resize!(a, length(a) - n)`. Growing with
+`resize!` leaves the new elements uninitialised (`none`). -/
 def splitRestVector {α : Type} (v : List α) (n i : JInt .i64) : R (List (Option α) × List α) := do
   let r ← if i.val ≤ v.length then (if 1 ≤ i.val then pure (v.drop (i.val - 1).toNat) else bounds)
     else pure []

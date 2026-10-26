@@ -1,0 +1,70 @@
+id: runtimecov-scan-deps-unreported-cycle
+title: "Precompilation reports only one of two connected circular dependency cycles"
+priority: P3
+kind: wrong-result
+area: RuntimeCov
+files: [base/precompilation.jl]
+functions: ["scan_pkg!", "scan_deps!", "excluded_circular_deps_explanation"]
+summary: |
+  When one dependency cycle reaches a second cycle, `scan_deps!` returns as
+  soon as the second cycle is found and drops the first cycle it already
+  recorded locally. Precompilation still skips every affected package, but its
+  diagnostic lists the first cycle's members as ordinary dependants of the
+  second cycle.
+likelihood: |
+  Low. It needs at least two dependency cycles joined by an edge, but this is
+  exactly the case where the diagnostic is needed to identify every cycle that
+  package authors must break.
+maybe_intended: |
+  The skip set is correct, but the diagnostic explicitly distinguishes cycle
+  members from packages that merely depend on a cycle.
+reproducer: |
+  X, Y, Z, W = Base.PkgId("X"), Base.PkgId("Y"), Base.PkgId("Z"), Base.PkgId("W")
+  dmap = Dict(Y => [X], X => [Y, Z], Z => [W], W => [Z])
+  stack = Base.PkgId[]
+  could_be_cycle = Dict{Base.PkgId,Bool}()
+  cycles = Vector{Base.PkgId}[]
+  Base.Precompilation.scan_pkg!(stack, could_be_cycle, cycles, Y, dmap)
+output:
+  release: |
+    cycles reported: [["Z", "W"]]
+    Circular dependency detected.
+    Precompilation will be skipped for dependencies in this cycle:
+     ┌ Z
+     └─ W
+    Precompilation will also be skipped for the following, which depend on the above cycle:
+      Y
+      X
+    REPRODUCED runtimecov-scan-deps-unreported-cycle
+  nightly: |
+    cycles reported: [["Z", "W"]]
+    Circular dependency detected.
+    Precompilation will be skipped for dependencies in this cycle:
+     ┌ Z
+     └─ W
+    Precompilation will also be skipped for the following, which depend on the above cycle:
+      Y
+      X
+    REPRODUCED runtimecov-scan-deps-unreported-cycle
+reproduced: {release: true, nightly: true}
+expected: |
+  The diagnostic should identify both cycles, `X ↔ Y` and `Z ↔ W`, rather
+  than describe `X` and `Y` as packages that only depend on the reported cycle.
+promised_by: |
+  `excluded_circular_deps_explanation` labels `cycles` as the circular
+  dependencies and labels the remaining packages as dependants of those
+  cycles; base/precompilation.jl:924-957.
+cause: |
+  In base/precompilation.jl:967-992, `scan_deps!` stores a cycle found directly
+  from the current DFS stack, but a later recursive edge that reaches another
+  cycle returns immediately at lines 979-984. That return bypasses the code at
+  lines 987-991 that would append the already-found local cycle.
+possible_fix: |
+  Before the early return for a dependency that reaches an existing cycle,
+  append any cycle already found in the current frame.
+duplicates:
+  issues: []
+  queries: ["precompilation circular dependency omitted cycle", "scan_deps cycle precompile", "excluded_circular_deps_explanation"]
+lean:
+  property: JuliaLean.RuntimeCov.Precompilation.AllCyclesReported
+  theorem: JuliaLean.RuntimeCov.Precompilation.allCyclesReported_refuted

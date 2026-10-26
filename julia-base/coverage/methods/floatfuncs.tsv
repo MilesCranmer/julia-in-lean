@@ -1,0 +1,64 @@
+file	line	endline	name	signature	status	entry	note
+base/floatfuncs.jl	5	5	copysign	copysign(x::Float64, y::Float64)	modelled	mathfuncs-copysign-float	source model and quantified behavior property
+base/floatfuncs.jl	6	6	copysign	copysign(x::Float32, y::Float32)	modelled	mathcov-floatfuncs-l6	method-specific source model and quantified behavior property
+base/floatfuncs.jl	7	7	copysign	copysign(x::Float32, y::Real)	modelled	mathcov-floatfuncs-l7	method-specific source model and quantified behavior property
+base/floatfuncs.jl	8	8	copysign	copysign(x::Float64, y::Real)	modelled	mathcov-floatfuncs-l8	method-specific source model and quantified behavior property
+base/floatfuncs.jl	10	10	flipsign	flipsign(x::Float64, y::Float64)	modelled	mathfuncs-flipsign-float	source model and quantified behavior property
+base/floatfuncs.jl	11	11	flipsign	flipsign(x::Float32, y::Float32)	modelled	mathcov-floatfuncs-l11	method-specific source model and quantified behavior property
+base/floatfuncs.jl	12	12	flipsign	flipsign(x::Float32, y::Real)	modelled	mathcov-floatfuncs-l12	method-specific source model and quantified behavior property
+base/floatfuncs.jl	13	13	flipsign	flipsign(x::Float64, y::Real)	modelled	mathcov-floatfuncs-l13	method-specific source model and quantified behavior property
+base/floatfuncs.jl	15	15	signbit	signbit(x::Float64)	modelled	mathcov-floatfuncs-l15	method-specific source model and quantified behavior property
+base/floatfuncs.jl	16	16	signbit	signbit(x::Float32)	modelled	mathcov-floatfuncs-l16	method-specific source model and quantified behavior property
+base/floatfuncs.jl	17	17	signbit	signbit(x::Float16)	modelled	mathcov-floatfuncs-l17	method-specific source model and quantified behavior property
+base/floatfuncs.jl	34	34	maxintfloat	maxintfloat(::Type{Float64})	modelled	floatfuncs-maxintfloat-spec	source model and quantified behavior property
+base/floatfuncs.jl	35	35	maxintfloat	maxintfloat(::Type{Float32})	modelled	mathcov-floatfuncs-l35	method-specific source model and quantified behavior property
+base/floatfuncs.jl	36	36	maxintfloat	maxintfloat(::Type{Float16})	modelled	mathcov-floatfuncs-l36	method-specific source model and quantified behavior property
+base/floatfuncs.jl	37	37	maxintfloat	maxintfloat(x::T) where {T<:AbstractFloat}	modelled	mathcov-floatfuncs-l37	method-specific source model and quantified behavior property
+base/floatfuncs.jl	46	46	maxintfloat	maxintfloat(::Type{S}, ::Type{T}) where {S<:AbstractFloat, T<:Integer}	modelled	mathcov-floatfuncs-l46	method-specific source model and quantified behavior property
+base/floatfuncs.jl	47	47	maxintfloat	maxintfloat()	modelled	mathcov-floatfuncs-l47	method-specific source model and quantified behavior property
+base/floatfuncs.jl	48	48	maxintfloat	maxintfloat(::Type{Union{}}, slurp...)	modelled	mathcov-floatfuncs-l48	method-specific source model and quantified behavior property
+base/floatfuncs.jl	49	49	maxintfloat	maxintfloat(x, ::Type{Union{}}, slurp...)	modelled	mathcov-floatfuncs-l49	method-specific source model and quantified behavior property
+base/floatfuncs.jl	51	51	isinteger	isinteger(x::AbstractFloat)	modelled	floatfuncs-isinteger-exact	source model and quantified behavior property
+base/floatfuncs.jl	56	79	round	round(x::Real, r::RoundingMode=RoundNearest; digits::Union{Nothing,Integer}=nothing, sigdigits::Union{Nothing,Integer}=nothing, base::Union{Nothing,Integer}=nothing)	modelled	mathcov-floatfuncs-l56	method-specific source model and quantified behavior property
+base/floatfuncs.jl	82	88	_round_invstep	_round_invstep(x, invstep, r::RoundingMode)	modelled	mathcov-floatfuncs-l82	method-specific source model and quantified behavior property
+base/floatfuncs.jl	92	98	_round_invstepsqrt	_round_invstepsqrt(x, invstepsqrt, r::RoundingMode)	modelled	mathcov-floatfuncs-l92	method-specific source model and quantified behavior property
+base/floatfuncs.jl	101	114	_round_step	_round_step(x, step, r::RoundingMode)	modelled	floatfuncs-digits-step-underflow,parseprint-round-digits-overflow-zero	source model and quantified behavior property
+base/floatfuncs.jl	116	130	_round_digits	_round_digits(x, r::RoundingMode, digits::Integer, base)	modelled	floatfuncs-sigdigits-idempotent	source model and quantified behavior property
+base/floatfuncs.jl	132	132	hidigit	hidigit(x::Integer, base)	modelled	mathcov-floatfuncs-l132	method-specific source model and quantified behavior property
+base/floatfuncs.jl	133	142	hidigit	hidigit(x::AbstractFloat, base)	modelled	mathcov-floatfuncs-l133	method-specific source model and quantified behavior property
+base/floatfuncs.jl	143	143	hidigit	hidigit(x::Real, base)	modelled	mathcov-floatfuncs-l143	method-specific source model and quantified behavior property
+base/floatfuncs.jl	145	148	_round_sigdigits	_round_sigdigits(x, r::RoundingMode, sigdigits::Integer, base)	modelled	mathcov-floatfuncs-l145	method-specific source model and quantified behavior property
+base/floatfuncs.jl	151	154	round	round(x::AbstractFloat, ::RoundingMode{:NearestTiesAway})	modelled	mathcov-floatfuncs-l151	method-specific source model and quantified behavior property
+base/floatfuncs.jl	156	158	round	round(x::T, ::RoundingMode{:NearestTiesUp}) where {T <: AbstractFloat}	modelled	mathcov-floatfuncs-l156	method-specific source model and quantified behavior property
+base/floatfuncs.jl	160	162	Base.round	Base.round(x::AbstractFloat, ::typeof(RoundFromZero))	modelled	mathcov-floatfuncs-l160	method-specific source model and quantified behavior property
+base/floatfuncs.jl	230	237	isapprox	isapprox(x::Number, y::Number; atol::Number=zero(real(x)), rtol::Real=rtoldefault(x,y,atol), nans::Bool=false, norm::Function=abs)	modelled	mathcov-floatfuncs-l230	method-specific source model and quantified behavior property
+base/floatfuncs.jl	244	244	_uabsdiff	_uabsdiff(x::Integer, y::Integer)	modelled	mathcov-floatfuncs-l244	method-specific source model and quantified behavior property
+base/floatfuncs.jl	246	246	_uabsdiff	_uabsdiff(x::Bool, y::BitInteger)	modelled	mathcov-floatfuncs-l246	method-specific source model and quantified behavior property
+base/floatfuncs.jl	247	247	_uabsdiff	_uabsdiff(x::BitInteger, y::Bool)	modelled	mathcov-floatfuncs-l247	method-specific source model and quantified behavior property
+base/floatfuncs.jl	249	252	_uabsdiff	_uabsdiff(x::BitUnsigned, y::BitUnsigned)	modelled	mathcov-floatfuncs-l249	method-specific source model and quantified behavior property
+base/floatfuncs.jl	253	257	_uabsdiff	_uabsdiff(x::BitSigned, y::BitSigned)	modelled	mathcov-floatfuncs-l253	method-specific source model and quantified behavior property
+base/floatfuncs.jl	261	267	_mixed_uabsdiff	_mixed_uabsdiff(x::BitSigned, y::BitUnsigned)	modelled	mathcov-floatfuncs-l261	method-specific source model and quantified behavior property
+base/floatfuncs.jl	269	272	_uabsdiff	_uabsdiff(x::BitSigned, y::BitUnsigned)	modelled	mathcov-floatfuncs-l269	method-specific source model and quantified behavior property
+base/floatfuncs.jl	273	273	_uabsdiff	_uabsdiff(x::BitUnsigned, y::BitSigned)	modelled	mathcov-floatfuncs-l273	method-specific source model and quantified behavior property
+base/floatfuncs.jl	275	275	_uabsdiff_le	_uabsdiff_le(x::Integer, y::Integer, b::Real)	modelled	mathcov-floatfuncs-l275	method-specific source model and quantified behavior property
+base/floatfuncs.jl	277	277	_widesum_le	_widesum_le(m::T, u::T, b::Real) where {T<:BitUnsigned}	modelled	mathcov-floatfuncs-l277	method-specific source model and quantified behavior property
+base/floatfuncs.jl	278	283	_uabsdiff_le	_uabsdiff_le(x::BitSigned, y::BitUnsigned, b::Real)	modelled	mathcov-floatfuncs-l278	method-specific source model and quantified behavior property
+base/floatfuncs.jl	284	284	_uabsdiff_le	_uabsdiff_le(x::BitUnsigned, y::BitSigned, b::Real)	modelled	mathcov-floatfuncs-l284	method-specific source model and quantified behavior property
+base/floatfuncs.jl	286	286	_scaled_rtol	_scaled_rtol(rtol::Real, scale::Integer)	modelled	mathcov-floatfuncs-l286	method-specific source model and quantified behavior property
+base/floatfuncs.jl	287	287	_scaled_rtol	_scaled_rtol(rtol::BitInteger, scale::BitInteger)	modelled	mathcov-floatfuncs-l287	method-specific source model and quantified behavior property
+base/floatfuncs.jl	289	303	isapprox	isapprox(x::Integer, y::Integer; atol::Real=0, rtol::Real=rtoldefault(x,y,atol), nans::Bool=false, norm::Function=abs)	modelled	mathcov-floatfuncs-l289	method-specific source model and quantified behavior property
+base/floatfuncs.jl	315	315	isapprox	isapprox(y; kwargs...)	modelled	mathcov-floatfuncs-l315	method-specific source model and quantified behavior property
+base/floatfuncs.jl	323	323	≉	≉(args...; kws...)	modelled	mathcov-floatfuncs-l323	method-specific source model and quantified behavior property
+base/floatfuncs.jl	326	326	rtoldefault	rtoldefault(::Type{T}) where {T<:AbstractFloat}	modelled	mathcov-floatfuncs-l326	method-specific source model and quantified behavior property
+base/floatfuncs.jl	327	327	rtoldefault	rtoldefault(::Type{<:Real})	modelled	mathcov-floatfuncs-l327	method-specific source model and quantified behavior property
+base/floatfuncs.jl	330	334	rtoldefault	rtoldefault(::Type{T}) where {T<:Number}	modelled	mathcov-floatfuncs-l330	method-specific source model and quantified behavior property
+base/floatfuncs.jl	335	338	rtoldefault	rtoldefault(x::Union{T,Type{T}}, y::Union{S,Type{S}}, atol::Number) where {T<:Number,S<:Number}	modelled	mathcov-floatfuncs-l335	method-specific source model and quantified behavior property
+base/floatfuncs.jl	349	349	fma	fma	excluded		no-behaviour: generic function declaration has no method body.
+base/floatfuncs.jl	350	361	fma_emulated	fma_emulated(a::T, b::T, c::T) where {T<:Union{Float16, Float32}}	modelled	mathcov-floatfuncs-l350	method-specific source model and quantified behavior property
+base/floatfuncs.jl	364	367	splitbits	splitbits(x::Float64)	modelled	mathcov-floatfuncs-l364	method-specific source model and quantified behavior property
+base/floatfuncs.jl	371	374	two_mul	two_mul(x::T, y::T) where {T<:Number}	modelled	mathcov-floatfuncs-l371	method-specific source model and quantified behavior property
+base/floatfuncs.jl	376	388	two_mul	two_mul(x::Float64, y::Float64)	modelled	mathcov-floatfuncs-l376	method-specific source model and quantified behavior property
+base/floatfuncs.jl	390	398	two_mul	two_mul(x::T, y::T) where T<:Union{Float16, Float32}	modelled	mathcov-floatfuncs-l390	method-specific source model and quantified behavior property
+base/floatfuncs.jl	403	411	fma_correction	fma_correction(abhi::Float64, ablo::Float64, c::Float64, r::Float64)	modelled	mathcov-floatfuncs-l403	method-specific source model and quantified behavior property
+base/floatfuncs.jl	413	460	fma_emulated	fma_emulated(a::Float64, b::Float64,c::Float64)	modelled	mathcov-floatfuncs-l413	method-specific source model and quantified behavior property
+base/floatfuncs.jl	464	466	fma	fma(x::T, y::T, z::T) where {T<:IEEEFloat}	modelled	mathcov-floatfuncs-l464	method-specific source model and quantified behavior property

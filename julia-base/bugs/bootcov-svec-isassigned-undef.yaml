@@ -1,0 +1,61 @@
+id: bootcov-svec-isassigned-undef
+title: "isassigned(::Core.SimpleVector, i) returns true for an undefined slot"
+priority: P3
+kind: wrong-result
+area: BootCov
+files: [base/essentials.jl]
+functions: ["isassigned(::Core.SimpleVector, ::Int)"]
+summary: |
+  isassigned(v::SimpleVector, i) only checks 1 <= i <= length(v) and returns true, so for
+  a SimpleVector allocated by jl_alloc_svec whose slots are still NULL it reports the slot
+  as assigned. Reading such a slot with v[i] (Core._svec_ref) then returns a null
+  reference instead of throwing, and showing the vector crashes.
+likelihood: |
+  Low: user code cannot build a SimpleVector with undefined slots without ccall into the
+  runtime (jl_alloc_svec); Base and the compiler create such vectors transiently.
+maybe_intended: |
+  SimpleVector is internal, and the runtime may consider an svec with NULL slots an
+  invalid object outside the C code that fills it.
+reproducer: |
+  # isassigned(v::SimpleVector, i) (base/essentials.jl:1141-1144) only checks bounds,
+  # so it returns true for a slot holding an undefined reference.
+  v = ccall(:jl_alloc_svec, Any, (Int,), 2)::Core.SimpleVector
+  println("length(v)        = ", length(v))
+  r = run(ignorestatus(`$(Base.julia_cmd()) --startup-file=no -e "v = ccall(:jl_alloc_svec, Any, (Int,), 2); try v[1]; println(\"v[1] returned\") catch e; println(\"v[1] throws \", typeof(e)) end"`))
+  println("child exit code for v[1]: ", r.exitcode)
+  println("isassigned(v, 1) = ", isassigned(v, 1))
+  if isassigned(v, 1)
+      println("REPRODUCED bootcov-svec-isassigned-undef")
+  end
+output:
+  release: |
+    length(v)        = 2
+    v[1] returned
+    child exit code for v[1]: 0
+    isassigned(v, 1) = true
+    REPRODUCED bootcov-svec-isassigned-undef
+  nightly: |
+    length(v)        = 2
+    v[1] returned
+    child exit code for v[1]: 0
+    isassigned(v, 1) = true
+    REPRODUCED bootcov-svec-isassigned-undef
+reproduced: {release: true, nightly: true}
+expected: |
+  isassigned(v, 1) == false for a slot holding an undefined reference.
+promised_by: |
+  isassigned docstring, base/essentials.jl:1113-1117: "Test whether the given array has a
+  value associated with index `i`. Return `false` if the index is out of bounds, or has an
+  undefined reference."
+cause: |
+  base/essentials.jl:1141-1144: the SimpleVector method returns true after the bounds check
+  without testing the slot for NULL.
+possible_fix: |
+  Return `isassigned` of the slot, e.g. via a `ccall(:jl_svecref, ...)` NULL check, after the
+  bounds check.
+duplicates:
+  issues: []
+  queries: ["isassigned SimpleVector", "isassigned svec undef", "jl_alloc_svec isassigned"]
+lean:
+  property: JuliaLean.BootCov.Arrays.SvecIsassignedCorrect
+  theorem: JuliaLean.BootCov.Arrays.svecIsassignedCorrect_refuted

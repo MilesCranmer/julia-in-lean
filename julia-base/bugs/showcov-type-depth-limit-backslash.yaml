@@ -1,0 +1,54 @@
+id: showcov-type-depth-limit-backslash
+title: "type_depth_limit loses the rest of a signature after an escaped backslash in a quoted type parameter"
+priority: P3
+kind: wrong-result
+area: ShowCov
+files: [base/show.jl]
+functions: ["type_depth_limit(::String, ::Int)"]
+summary: |
+  type_depth_limit, which shortens types in stack-trace signatures, tracks single and
+  double quotes so that braces inside Char and String literals are not counted. After an
+  escaped backslash ('\\' or "\\") it stays in the "after backslash" state, so the closing
+  quote is ignored, the rest of the string counts as quoted, and its braces no longer
+  change the depth. The output then drops everything after the quoted parameter.
+likelihood: |
+  Rare: needs a Char '\\' or a Symbol containing a backslash as a type parameter in a
+  signature long enough to be depth-limited.
+maybe_intended: ""
+reproducer: |
+  Base.type_depth_limit("A{'a'}B{C}", 0; maxdepth = 1)      # "A{…}B{…}"
+  Base.type_depth_limit("A{'\\\\'}B{C}", 0; maxdepth = 1)  # "A{…"
+  Base.type_depth_limit("f(::Val{'\\\\'}, ::Vector{Vector{Int64}})", 10)  # "f(::Val{…"
+output:
+  release: |
+    A{'a'}B{C}    -> A{…}B{…}
+    A{'\\'}B{C}  -> A{…
+    "f(::Val{'\\\\'}, ::Vector{Vector{Int64}})" -> "f(::Val{…"
+    "f(::Val{Symbol(\"\\\\\")}, ::Vector{Vector{Int64}})" -> "f(::Val{…"
+    REPRODUCED showcov-type-depth-limit-backslash
+  nightly: |
+    A{'a'}B{C}    -> A{…}B{…}
+    A{'\\'}B{C}  -> A{…
+    "f(::Val{'\\\\'}, ::Vector{Vector{Int64}})" -> "f(::Val{…"
+    "f(::Val{Symbol(\"\\\\\")}, ::Vector{Vector{Int64}})" -> "f(::Val{…"
+    REPRODUCED showcov-type-depth-limit-backslash
+reproduced: {release: true, nightly: true}
+expected: |
+  "A{…}B{…}" and "f(::Val{…}, ::Vector{…})".
+promised_by: |
+  base/show.jl:2725: "limit nesting depth of `{ }` until string textwidth is less than
+  `n`"; the quote tracking (base/show.jl:2732-2760) exists so that only real type braces
+  count.
+cause: |
+  base/show.jl:2744-2745 enters st_backslash on every backslash inside quotes, including
+  an escaped one, and base/show.jl:2780 only leaves it on a non-backslash character, so
+  the quote after "\\" is treated as escaped.
+possible_fix: |
+  Toggle instead: if stateis(st_backslash), leave it on the escaped character (whatever it
+  is); only enter it on a backslash when not already escaped.
+duplicates:
+  issues: []
+  queries: ["type_depth_limit", "stacktrace type limit backslash", "type depth limit stacktrace quote"]
+lean:
+  property: JuliaLean.ShowCov.TypeDepthLimitCharParam
+  theorem: JuliaLean.ShowCov.typeDepthLimitCharParam_refuted

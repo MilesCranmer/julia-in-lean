@@ -1,0 +1,43 @@
+file	line	endline	name	signature	status	entry	note
+base/multimedia.jl	73	75	MIME_str	MIME_str(s)	modelled	errorshow-multimedia-l73	method-specific source model:errorshow-multimedia-l73
+base/multimedia.jl	78	78	show	"show(io::IO, ::MIME""text/plain"", x)"	modelled	errorshow-multimedia-l78	method-specific source model:errorshow-multimedia-l78
+base/multimedia.jl	80	80	MIME	MIME(s)	modelled	errorshow-multimedia-l80	method-specific source model:errorshow-multimedia-l80
+base/multimedia.jl	81	81	show	show(io::IO, ::MIME{mime}) where {mime}	modelled	errorshow-multimedia-l81	method-specific source model:errorshow-multimedia-l81
+base/multimedia.jl	82	82	print	print(io::IO, ::MIME{mime}) where {mime}	modelled	errorshow-multimedia-l82	method-specific source model:errorshow-multimedia-l82
+base/multimedia.jl	107	107	showable	showable(::MIME{mime}, @nospecialize x) where {mime}	modelled	errorshow-multimedia-l107	method-specific source model:errorshow-multimedia-l107
+base/multimedia.jl	108	108	showable	showable(m::AbstractString, @nospecialize x)	modelled	errorshow-multimedia-l108	method-specific source model:errorshow-multimedia-l108
+base/multimedia.jl	154	154	show	show(io::IO, m::AbstractString, x)	modelled	errorshow-multimedia-l154	method-specific source model:errorshow-multimedia-l154
+base/multimedia.jl	190	190	repr	repr(m::MIME, x; context=nothing)	modelled	errorshow-multimedia-l190	method-specific source model:errorshow-multimedia-l190
+base/multimedia.jl	191	191	repr	repr(m::AbstractString, x; context=nothing)	modelled	errorshow-multimedia-l191	method-specific source model:errorshow-multimedia-l191
+base/multimedia.jl	194	194	_textrepr	_textrepr(m::MIME, x, context)	modelled	errorshow-multimedia-l194	method-specific source model:errorshow-multimedia-l194
+base/multimedia.jl	195	195	_textrepr	_textrepr(::MIME, x::AbstractString, context)	modelled	errorshow-multimedia-l195	method-specific source model:errorshow-multimedia-l195
+base/multimedia.jl	196	196	_textrepr	"_textrepr(m::MIME""text/plain"", x::AbstractString, context)"	modelled	errorshow-multimedia-l196	method-specific source model:errorshow-multimedia-l196
+base/multimedia.jl	199	207	__binrepr	__binrepr(m::MIME, x, context)	modelled	errorshow-multimedia-l199	method-specific source model:errorshow-multimedia-l199
+base/multimedia.jl	208	208	_binrepr	_binrepr(m::MIME, x, context)	modelled	errorshow-multimedia-l208	method-specific source model:errorshow-multimedia-l208
+base/multimedia.jl	209	209	_binrepr	_binrepr(m::MIME, x::Vector{UInt8}, context)	modelled	errorshow-multimedia-l209	method-specific source model:errorshow-multimedia-l209
+base/multimedia.jl	226	226	istextmime	istextmime(m::MIME)	modelled	errorshow-multimedia-l226	method-specific source model:errorshow-multimedia-l226
+base/multimedia.jl	227	227	istextmime	istextmime(m::AbstractString)	modelled	errorshow-multimedia-l227	method-specific source model:errorshow-multimedia-l227
+base/multimedia.jl	236	236	istextmime	istextmime(::MIME{Symbol(mime)})	modelled	errorshow-multimedia-l236	method-specific source model:errorshow-multimedia-l236
+base/multimedia.jl	259	259	display	display(d::AbstractDisplay, mime::AbstractString, @nospecialize x)	modelled	errorshow-multimedia-l259	method-specific source model:errorshow-multimedia-l259
+base/multimedia.jl	260	260	display	display(mime::AbstractString, @nospecialize x)	modelled	errorshow-multimedia-l260	method-specific source model:errorshow-multimedia-l260
+base/multimedia.jl	270	270	displayable	displayable(d::AbstractDisplay, mime::AbstractString)	modelled	errorshow-multimedia-l270	method-specific source model:errorshow-multimedia-l270
+base/multimedia.jl	271	271	displayable	displayable(mime::AbstractString)	modelled	errorshow-multimedia-l271	method-specific source model:errorshow-multimedia-l271
+base/multimedia.jl	285	285	display	"display(d::TextDisplay, M::MIME""text/plain"", @nospecialize x)"	modelled	errorshow-multimedia-l285	method-specific source model:errorshow-multimedia-l285
+base/multimedia.jl	286	286	display	display(d::TextDisplay, @nospecialize x)	modelled	errorshow-multimedia-l286	method-specific source model:errorshow-multimedia-l286
+base/multimedia.jl	289	289	displayable	displayable(d::TextDisplay, M::MIME)	modelled	errorshow-multimedia-l289	method-specific source model:errorshow-multimedia-l289
+base/multimedia.jl	290	293	display	display(d::TextDisplay, M::MIME, @nospecialize x)	modelled	errorshow-multimedia-l290	method-specific source model:errorshow-multimedia-l290
+base/multimedia.jl	296	296	flush	flush(d::TextDisplay)	modelled	errorshow-multimedia-l296	method-specific source model:errorshow-multimedia-l296
+base/multimedia.jl	297	297	close	close(d::TextDisplay)	modelled	errorshow-multimedia-l297	method-specific source model:errorshow-multimedia-l297
+base/multimedia.jl	312	315	pushdisplay	pushdisplay(d::AbstractDisplay)	modelled	errorshow-multimedia-l312	method-specific source model:errorshow-multimedia-l312
+base/multimedia.jl	324	324	popdisplay	popdisplay()	modelled	errorshow-multimedia-l324	method-specific source model:errorshow-multimedia-l324
+base/multimedia.jl	325	332	popdisplay	popdisplay(d::AbstractDisplay)	modelled	errorshow-multimedia-l325	method-specific source model:errorshow-multimedia-l325
+base/multimedia.jl	333	336	reinit_displays	reinit_displays()	modelled	errorshow-multimedia-l333	method-specific source model:errorshow-multimedia-l333
+base/multimedia.jl	338	338	xdisplayable	xdisplayable(D::AbstractDisplay, @nospecialize args...)	modelled	errorshow-multimedia-l338	method-specific source model:errorshow-multimedia-l338
+base/multimedia.jl	367	379	display	display(@nospecialize x)	modelled	errorshow-multimedia-l367	method-specific source model:errorshow-multimedia-l367
+base/multimedia.jl	381	393	display	display(m::MIME, @nospecialize x)	modelled	errorshow-multimedia-l381	method-specific source model:errorshow-multimedia-l381
+base/multimedia.jl	395	396	displayable	displayable(d::D, ::MIME{mime}) where {D<:AbstractDisplay,mime}	modelled	errorshow-multimedia-l395	method-specific source model:errorshow-multimedia-l395
+base/multimedia.jl	398	403	displayable	displayable(m::MIME)	modelled	errorshow-multimedia-l398	method-specific source model:errorshow-multimedia-l398
+base/multimedia.jl	426	438	redisplay	redisplay(@nospecialize x)	modelled	errorshow-multimedia-l426	method-specific source model:errorshow-multimedia-l426
+base/multimedia.jl	440	452	redisplay	redisplay(m::Union{MIME,AbstractString}, @nospecialize x)	modelled	errorshow-multimedia-l440	method-specific source model:errorshow-multimedia-l440
+base/multimedia.jl	455	455	redisplay	redisplay(d::AbstractDisplay, @nospecialize x)	modelled	errorshow-multimedia-l455	method-specific source model:errorshow-multimedia-l455
+base/multimedia.jl	456	456	redisplay	redisplay(d::AbstractDisplay, m::Union{MIME,AbstractString}, @nospecialize x)	modelled	errorshow-multimedia-l456	method-specific source model:errorshow-multimedia-l456

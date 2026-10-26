@@ -1,0 +1,121 @@
+id: memsafety-slices-constructor-axes
+title: "Base.Slices accepts axes outside its parent and then reads or writes out of bounds"
+priority: P2
+kind: missing-error
+area: MemSafety
+files: [base/slicearray.jl]
+functions: ["Slices(A, slicemap, ax)", "getindex(::Slices, I...)", "setindex!(::Slices, val, I...)"]
+summary: |
+  The public Base.Slices constructor checks only that slicemap has enough entries. It
+  accepts outer axes that exceed the corresponding parent axes. getindex and setindex!
+  validate against those supplied outer axes, then use @inbounds for the mapped parent
+  access. A valid outer index can therefore read or write beyond the parent allocation.
+likelihood: |
+  Most callers use eachslice, eachrow, or eachcol, which construct matching axes. Code
+  that constructs Base.Slices directly can trigger the bug with ordinary small arrays.
+maybe_intended: |
+  Slices is exported and documented, but its docstring says Slices "should typically be
+  constructed by eachslice, eachcol or eachrow", so direct construction with inconsistent
+  axes is unusual. An inconsistent constructor input should throw instead of creating an
+  array whose in-bounds indices access memory outside its parent.
+reproducer: |
+  s = Base.Slices(Int[11, 22], (1,), (Base.OneTo(3),))
+  s[3]
+  s[3] = 99
+output:
+  release: |
+    getindex child:
+    ERROR: BoundsError: attempt to access 2-element Vector{Int64} at index [3]
+    Stacktrace:
+     [1] throw_boundserror(A::Vector{Int64}, I::Tuple{Int64})
+       @ Base ./essentials.jl:14
+     [2] checkbounds
+       @ ./essentials.jl:389 [inlined]
+     [3] view
+       @ ./subarray.jl:216 [inlined]
+     [4] getindex(s::Slices{Vector{Int64}, Tuple{Int64}, Tuple{Base.OneTo{Int64}}, SubArray{Int64, 0, Vector{Int64}, Tuple{Int64}, true}, 1}, I::Int64)
+       @ Base ./slicearray.jl:242
+     [5] top-level scope
+       @ none:2
+     [6] eval(m::Module, e::Any)
+       @ Core ./boot.jl:489
+     [7] exec_options(opts::Base.JLOptions)
+       @ Base ./client.jl:310
+     [8] _start()
+       @ Base ./client.jl:577
+    child exit code = 1, signal = 0
+    setindex! child:
+    ERROR: BoundsError: attempt to access 2-element Vector{Int64} at index [3]
+    Stacktrace:
+     [1] throw_boundserror(A::Vector{Int64}, I::Tuple{Int64})
+       @ Base ./essentials.jl:14
+     [2] _setindex!
+       @ ./array.jl:1024 [inlined]
+     [3] setindex!
+       @ ./array.jl:1020 [inlined]
+     [4] setindex!(s::Slices{Vector{Int64}, Tuple{Int64}, Tuple{Base.OneTo{Int64}}, SubArray{Int64, 0, Vector{Int64}, Tuple{Int64}, true}, 1}, val::Int64, I::Int64)
+       @ Base ./slicearray.jl:246
+     [5] top-level scope
+       @ none:2
+     [6] eval(m::Module, e::Any)
+       @ Core ./boot.jl:489
+     [7] exec_options(opts::Base.JLOptions)
+       @ Base ./client.jl:310
+     [8] _start()
+       @ Base ./client.jl:577
+    child exit code = 1, signal = 0
+    REPRODUCED memsafety-slices-constructor-axes
+  nightly: |
+    getindex child:
+    ERROR: BoundsError: attempt to access 2-element Vector{Int64} at index [3]
+    Stacktrace:
+     [1] _throw_boundserror_indices(::Vector{Int64}, ::Int64)
+       @ Base essentials.jl:19
+     [2] checkbounds(A::Vector{Int64}, I::Int64)
+       @ Base essentials.jl:391 [inlined]
+     [3] view(A::Vector{Int64}, I::Int64)
+       @ Base subarray.jl:224 [inlined]
+     [4] getindex(s::Slices{Vector{Int64}, Tuple{Int64}, Tuple{Base.OneTo{Int64}}, SubArray{Int64, 0, Vector{Int64}, Tuple{Int64}, true}, 1}, I::Int64)
+       @ Base slicearray.jl:242
+     [5] top-level scope
+       @ none:2
+    child exit code = 1, signal = 0
+    setindex! child:
+    ERROR: BoundsError: attempt to access 2-element Vector{Int64} at index [3]
+    Stacktrace:
+     [1] _throw_boundserror_indices(::Vector{Int64}, ::Int64)
+       @ Base essentials.jl:19
+     [2] checkbounds(A::Vector{Int64}, I::Int64)
+       @ Base essentials.jl:391 [inlined]
+     [3] _setindex!(A::Vector{Int64}, x::Int64, i::Int64)
+       @ Base array.jl:1038 [inlined]
+     [4] setindex!(A::Vector{Int64}, x::Int64, i::Int64)
+       @ Base array.jl:1034 [inlined]
+     [5] setindex!(s::Slices{Vector{Int64}, Tuple{Int64}, Tuple{Base.OneTo{Int64}}, SubArray{Int64, 0, Vector{Int64}, Tuple{Int64}, true}, 1}, val::Int64, I::Int64)
+       @ Base slicearray.jl:246
+     [6] top-level scope
+       @ none:2
+    child exit code = 1, signal = 0
+    REPRODUCED memsafety-slices-constructor-axes
+reproduced: {release: true, nightly: true}
+expected: |
+  The constructor should reject axes that do not correspond to the mapped parent axes.
+  Every index accepted by checkbounds(s, I...) must map to an in-bounds parent index.
+promised_by: |
+  Slices docstring, base/slicearray.jl:12-36, says that it is an AbstractArray of
+  slices into a parent array and that axes contains the axes of the Slices object.
+  Invariant: an in-bounds AbstractArray index must not access outside its storage.
+cause: |
+  base/slicearray.jl:41-49 checks length(slicemap) but does not verify that ax agrees
+  with the mapped parent axes. Lines 240-246 check the user index against s.axes and
+  then apply the mapped index to s.parent under @inbounds.
+possible_fix: |
+  Validate each non-Colon slicemap entry and corresponding outer axis against the
+  mapped parent axis in the Slices constructor, or make the unchecked constructor
+  inaccessible and route public construction through validated helpers.
+duplicates:
+  issues: []
+  queries: ["Slices slicearray axes bounds", "Base.Slices constructor axes", "eachslice out of bounds slicemap", "prs: Slices slicearray axes bounds", "prs: Base.Slices constructor axes"]
+lean:
+  property: JuliaLean.MemSafety.G5.SlicesAccessesInBounds
+  theorem: JuliaLean.MemSafety.G5.slicesAccessesInBounds_refuted

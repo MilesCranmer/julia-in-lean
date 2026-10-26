@@ -1,0 +1,54 @@
+id: arraycov-wrap-memory-unsigned
+title: "wrap(Array, ::Memory, n::UInt) throws MethodError although the MemoryRef overload accepts it"
+priority: P2
+kind: wrong-exception
+area: ArrayCov
+files: [base/array.jl]
+functions: ["wrap(::Type{Array}, ::Memory, ::Integer)"]
+summary: |
+  `Base.wrap(Array, memory, UInt(2))` dispatches to its documented `Integer` overload but throws MethodError. The adjacent `MemoryRef` overload accepts the same length and returns a two-element array.
+likelihood: |
+  Low. Unsigned lengths are valid `Integer` inputs but array dimensions are usually passed as `Int`.
+maybe_intended: |
+  The method explicitly accepts `Integer`, converts the length to `Int`, and the adjacent `MemoryRef` overload works, so the failure does not appear intended.
+reproducer: |
+  m = Memory{Int}(undef, 3)
+  Base.wrap(Array, m, UInt(2))
+output:
+  release: |
+    MemoryRef result: (2,)
+    Memory result: MethodError: MethodError: no method matching _wrap(::MemoryRef{Int64}, ::Tuple{UInt64})
+    The function `_wrap` exists, but no method is defined for this combination of argument types.
+
+    Closest candidates are:
+      _wrap(::MemoryRef{T}, !Matched::NTuple{N, Int64}) where {T, N}
+       @ Base array.jl:3215
+
+    Expected: both overloads return an Array with size (2,)
+    REPRODUCED arraycov-wrap-memory-unsigned
+  nightly: |
+    MemoryRef result: (2,)
+    Memory result: MethodError: MethodError: no method matching _wrap(::MemoryRef{Int64}, ::Tuple{UInt64})
+    The function `_wrap` exists, but no method is defined for this combination of argument types.
+
+    Closest candidates are:
+      _wrap(::MemoryRef{T}, !Matched::NTuple{N, Int64}) where {T, N}
+       @ Base array.jl:3241
+
+    Expected: both overloads return an Array with size (2,)
+    REPRODUCED arraycov-wrap-memory-unsigned
+reproduced: {release: true, nightly: true}
+expected: |
+  Both overloads return an Array backed by the supplied memory with size `(2,)`.
+promised_by: |
+  The `wrap(Array, m, dims)` docstring at base/array.jl:3232-3237 promises an array of the requested size, and the method at line 3270 accepts every `Integer` length.
+cause: |
+  base/array.jl:3270-3273 computes `dims = (Int(l),)` but calls `_wrap(memoryref(m), (l,))`. `_wrap` at lines 3241-3247 accepts only `NTuple{N,Int}`, so a non-Int integer reaches no method. The MemoryRef overload at lines 3265-3268 correctly passes `dims`.
+possible_fix: |
+  Pass `dims` to `_wrap`, matching the adjacent MemoryRef overload.
+duplicates:
+  issues: []
+  queries: ["wrap Memory UInt MethodError", "_wrap MemoryRef Tuple UInt", "Base.wrap unsigned length"]
+lean:
+  property: JuliaLean.ArrayCov.WrapMemoryIntegerSpec
+  theorem: JuliaLean.ArrayCov.wrapMemoryIntegerSpec_refuted

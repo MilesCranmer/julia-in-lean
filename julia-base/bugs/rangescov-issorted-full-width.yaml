@@ -1,0 +1,48 @@
+id: rangescov-issorted-full-width
+title: "issorted(typemax(Int):-1:typemin(Int)) is true, and sort returns the descending range unchanged"
+priority: P2
+kind: wrong-result
+area: RangesCov
+files: ["base/range.jl"]
+functions: ["issorted(::AbstractRange)", "sort(::AbstractRange)", "sortperm(::AbstractRange)"]
+summary: |
+  For a descending range with 2^64 elements, length(r) wraps to 0, so issorted(r) returns true;
+  sort(r) then returns r itself (first element typemax(Int)) and sortperm(r) returns 1:1:0.
+likelihood: |
+  Needs a full-width descending range; rare but reachable with typemin/typemax endpoints.
+maybe_intended: |
+  Same root cause as the length overflow already recorded (ranges-length-overflow-silent).
+reproducer: |
+  r = typemax(Int):-1:typemin(Int)
+  println("first(r) = ", first(r), ", r[2] = ", r[2], ", last(r) = ", last(r))
+  println("issorted(r) = ", issorted(r), ", length(r) = ", length(r))
+  println("first(sort(r)) = ", first(sort(r)), " (expected typemin(Int))")
+  (issorted(r) && r[2] < first(r)) && println("REPRODUCED rangescov-issorted-full-width")
+output:
+  release: |
+    first(r) = 9223372036854775807, r[2] = 9223372036854775806, last(r) = -9223372036854775808
+    issorted(r) = true, length(r) = 0
+    first(sort(r)) = 9223372036854775807 (expected typemin(Int))
+    REPRODUCED rangescov-issorted-full-width
+  nightly: |
+    first(r) = 9223372036854775807, r[2] = 9223372036854775806, last(r) = -9223372036854775808
+    issorted(r) = true, length(r) = 0
+    first(sort(r)) = 9223372036854775807 (expected typemin(Int))
+    REPRODUCED rangescov-issorted-full-width
+reproduced: {release: true, nightly: true}
+expected: |
+  issorted(r) == false; sort(r) starts at typemin(Int).
+promised_by: |
+  issorted docstring (base/sort.jl): test whether a collection is in sorted order.
+cause: |
+  base/range.jl:1448 issorted(r) = length(r) <= 1 || step(r) >= zero(step(r)); length(r) wraps to 0
+  (base/range.jl:820-829).
+possible_fix: |
+  Test isempty(r) or first(r) == last(r) instead of length(r) <= 1.
+duplicates:
+  issues:
+    - {number: 45389, state: open, relation: related}
+  queries: ["issues: issorted range overflow", "issues: sort range typemin typemax", "prs: issorted range overflow", "prs: sort range typemin typemax"]
+lean:
+  property: JuliaLean.RangesCov.Ops.IssortedSound
+  theorem: JuliaLean.RangesCov.Ops.issortedSound_refuted

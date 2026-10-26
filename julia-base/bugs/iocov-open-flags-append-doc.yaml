@@ -1,0 +1,54 @@
+id: iocov-open-flags-append-doc
+title: "open docstring says append=true implies truncate=true by default, but open_flags gives truncate=false"
+priority: P3
+kind: documentation
+area: IOCov
+files: [base/io.jl, base/iostream.jl]
+functions: ["Base.open_flags", "open(::AbstractString; keywords...)"]
+summary: |
+  The keyword table of open documents the defaults read = !write,
+  write = truncate | append and truncate = !read & write. For open(f; append=true)
+  this gives write = true, read = false and so truncate = true, but open_flags (and
+  hence open) uses truncate = false whenever append is true and truncate is not
+  given. The behaviour is the sensible one; the table is wrong for append.
+likelihood: |
+  Anyone reading the table to decide whether open(f; append=true) or
+  open(f; write=true, append=true) keeps the existing contents.
+maybe_intended: |
+  Appending to a truncated file would be pointless, so the implementation is surely
+  intended; only the table's truncate default lacks the append condition.
+reproducer: |
+  f = Base.open_flags(append=true)
+  println("open_flags(append=true) = ", f)
+  # open docstring table: read defaults to !write, write to truncate | append,
+  # truncate to !read & write; so append=true alone documents truncate == true.
+  if f.write && !f.read && !f.truncate
+      println("REPRODUCED iocov-open-flags-append-doc")
+  end
+output:
+  release: |
+    open_flags(append=true) = (read = false, write = true, create = true, truncate = false, append = true)
+    REPRODUCED iocov-open-flags-append-doc
+  nightly: |
+    open_flags(append=true) = (read = false, write = true, create = true, truncate = false, append = true)
+    REPRODUCED iocov-open-flags-append-doc
+reproduced: {release: true, nightly: true}
+expected: |
+  The table and the code agree, for example with truncate's default documented as
+  `!read & write & !append`.
+promised_by: |
+  open docstring table, base/iostream.jl:294-300: "| `truncate` | truncate to zero size |
+  `!read & write` |", with read defaulting to `!write` and write to `truncate \| append`.
+  open_flags docstring, base/io.jl:396-399: computes the flags "for a given set of
+  keyword arguments to open".
+cause: |
+  base/io.jl:408-411: create and truncate default to true only when write === true and
+  neither read nor append is true; the table omits the append condition.
+possible_fix: |
+  Change the truncate default in the table to `!read & write & !append`.
+duplicates:
+  issues: []
+  queries: ["open_flags truncate append", "open append truncate docstring", "open_flags", "open append truncate"]
+lean:
+  property: JuliaLean.IOCov.Io.OpenFlagsDoc
+  theorem: JuliaLean.IOCov.Io.openFlagsDoc_refuted

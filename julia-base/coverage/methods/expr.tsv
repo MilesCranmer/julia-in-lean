@@ -1,0 +1,90 @@
+file	line	endline	name	signature	status	entry	note
+base/expr.jl	3	3	isexpr	isexpr(@nospecialize(ex), heads)	modelled	exprreflect-expr-row-3	method-specific mirror and property: exprreflect-expr-row-3
+base/expr.jl	4	4	isexpr	isexpr(@nospecialize(ex), heads, n::Int)	modelled	exprreflect-expr-row-4	method-specific mirror and property: exprreflect-expr-row-4
+base/expr.jl	18	18	gensym	gensym()	modelled	exprreflect-expr-row-18	method-specific mirror and property: exprreflect-expr-row-18
+base/expr.jl	20	20	gensym	gensym(s::String)	modelled	exprreflect-expr-row-20	method-specific mirror and property: exprreflect-expr-row-20
+base/expr.jl	22	22	gensym	gensym(ss::String...)	modelled	exprreflect-expr-row-22	method-specific mirror and property: exprreflect-expr-row-22
+base/expr.jl	23	23	gensym	gensym(s::Symbol)	modelled	exprreflect-expr-row-23	method-specific mirror and property: exprreflect-expr-row-23
+base/expr.jl	31	38	gensym	gensym(names...)	modelled	exprreflect-expr-row-31	method-specific mirror and property: exprreflect-expr-row-31
+base/expr.jl	42	42	isexpr	isexpr(@nospecialize(ex), head::Symbol)	modelled	exprreflect-expr-row-42	method-specific mirror and property: exprreflect-expr-row-42
+base/expr.jl	43	43	isexpr	isexpr(@nospecialize(ex), head::Symbol, n::Int)	modelled	exprreflect-expr-row-43	method-specific mirror and property: exprreflect-expr-row-43
+base/expr.jl	45	45	copy	copy(e::Expr)	modelled	exprreflect-expr-row-45	method-specific mirror and property: exprreflect-expr-row-45
+base/expr.jl	46	55	copy	copy(x::PhiNode)	modelled	exprreflect-expr-row-46	method-specific mirror and property: exprreflect-expr-row-46
+base/expr.jl	56	65	copy	copy(x::PhiCNode)	modelled	exprreflect-expr-row-56	method-specific mirror and property: exprreflect-expr-row-56
+base/expr.jl	69	78	copy_exprs	copy_exprs(@nospecialize(x))	modelled	exprreflect-expr-row-69	method-specific mirror and property: exprreflect-expr-row-69
+base/expr.jl	79	79	copy_exprargs	copy_exprargs(x::Array{Any,1})	modelled	exprreflect-expr-row-79	method-specific mirror and property: exprreflect-expr-row-79
+base/expr.jl	81	81	exprarray	exprarray(head::Symbol, arg::Array{Any,1})	modelled	exprreflect-expr-row-81	method-specific mirror and property: exprreflect-expr-row-81
+base/expr.jl	84	97	copy	copy(c::CodeInfo)	modelled	exprreflect-expr-row-84	method-specific mirror and property: exprreflect-expr-row-84
+base/expr.jl	99	115	isequal_exprarg	isequal_exprarg(@nospecialize(x), @nospecialize(y))	modelled	exprreflect-expr-row-99	method-specific mirror and property: exprreflect-expr-row-99
+base/expr.jl	118	131	isequal_exprargs	isequal_exprargs(x::Array{Any,1}, y::Array{Any,1})	modelled	exprreflect-expr-row-118	method-specific mirror and property: exprreflect-expr-row-118
+base/expr.jl	135	135	==	==(x::Expr, y::Expr)	modelled	exprreflect-expr-row-135	method-specific mirror and property: exprreflect-expr-row-135
+base/expr.jl	137	137	==	==(x::QuoteNode, y::QuoteNode)	modelled	exprreflect-expr-row-137	method-specific mirror and property: exprreflect-expr-row-137
+base/expr.jl	139	139	==	==(stmt1::Core.PhiNode, stmt2::Core.PhiNode)	modelled	exprreflect-expr-row-139	method-specific mirror and property: exprreflect-expr-row-139
+base/expr.jl	141	141	==	==(stmt1::Core.PhiCNode, stmt2::Core.PhiCNode)	modelled	exprreflect-expr-row-141	method-specific mirror and property: exprreflect-expr-row-141
+base/expr.jl	143	171	==	==(stmt1::CodeInfo, stmt2::CodeInfo)	modelled	exprreflect-expr-row-143	method-specific mirror and property: exprreflect-expr-row-143
+base/expr.jl	173	178	==	==(x::DebugInfo, y::DebugInfo)	modelled	exprreflect-expr-row-173	method-specific mirror and property: exprreflect-expr-row-173
+base/expr.jl	209	211	macroexpand	macroexpand(m::Module, @nospecialize(x); recursive=true, legacyscope=true)	modelled	exprreflect-expr-row-209	method-specific mirror and property: exprreflect-expr-row-209
+base/expr.jl	232	234	macroexpand!	macroexpand!(m::Module, @nospecialize(x); recursive=true, legacyscope=false)	modelled	exprreflect-expr-row-232	method-specific mirror and property: exprreflect-expr-row-232
+base/expr.jl	279	281	macroexpand	macroexpand(code)	modelled	exprreflect-expr-row-279	method-specific mirror and property: exprreflect-expr-row-279
+base/expr.jl	282	284	macroexpand	macroexpand(mod, code)	modelled	exprreflect-expr-row-282	method-specific mirror and property: exprreflect-expr-row-282
+base/expr.jl	291	293	macroexpand1	macroexpand1(code)	modelled	exprreflect-expr-row-291	method-specific mirror and property: exprreflect-expr-row-291
+base/expr.jl	294	296	macroexpand1	macroexpand1(mod, code)	modelled	exprreflect-expr-row-294	method-specific mirror and property: exprreflect-expr-row-294
+base/expr.jl	389	391	inline	inline(x)	modelled	exprreflect-expr-row-389	method-specific mirror and property: exprreflect-expr-row-389
+base/expr.jl	466	468	noinline	noinline(x)	modelled	exprreflect-expr-row-466	method-specific mirror and property: exprreflect-expr-row-466
+base/expr.jl	505	509	constprop	constprop(setting, ex)	modelled	exprreflect-expr-row-505	method-specific mirror and property: exprreflect-expr-row-505
+base/expr.jl	510	513	constprop	constprop(setting)	modelled	exprreflect-expr-row-510	method-specific mirror and property: exprreflect-expr-row-510
+base/expr.jl	515	524	constprop_setting	constprop_setting(@nospecialize setting)	modelled	exprreflect-expr-row-515	method-specific mirror and property: exprreflect-expr-row-515
+base/expr.jl	896	936	assume_effects	assume_effects(args...)	modelled	exprreflect-expr-row-896	method-specific mirror and property: exprreflect-expr-row-896
+base/expr.jl	938	946	compute_assumed_settings	compute_assumed_settings(settings)	modelled	exprreflect-expr-row-938	method-specific mirror and property: exprreflect-expr-row-938
+base/expr.jl	962	988	EffectsOverride	EffectsOverride( override::EffectsOverride = EffectsOverride(false, false, false, false, false, false, false, false, false, false, false); consistent::Bool = override.consistent, effect_free::Bool = override.effect_free, nothrow::Bool = override.nothrow, terminates_globally::Bool = override.terminates_globally, terminates_locally::Bool = override.terminates_locally, notaskstate::Bool = override.notaskstate, inaccessiblememonly::Bool = override.inaccessiblememonly, noub::Bool = override.noub, noub_if_noinbounds::Bool = override.noub_if_noinbounds, consistent_overlay::Bool = override.consistent_overlay, nortcall::Bool = override.nortcall)	modelled	exprreflect-expr-row-962	method-specific mirror and property: exprreflect-expr-row-962
+base/expr.jl	995	1033	compute_assumed_setting	compute_assumed_setting(override::EffectsOverride, @nospecialize(setting), val::Bool=true)	modelled	exprreflect-expr-row-995	method-specific mirror and property: exprreflect-expr-row-995
+base/expr.jl	1035	1049	encode_effects_override	encode_effects_override(eo::EffectsOverride)	modelled	exprreflect-expr-row-1035	method-specific mirror and property: exprreflect-expr-row-1035
+base/expr.jl	1051	1064	decode_effects_override	decode_effects_override(e::UInt16)	modelled	exprreflect-expr-row-1051	method-specific mirror and property: exprreflect-expr-row-1051
+base/expr.jl	1066	1072	form_purity_expr	form_purity_expr(override::EffectsOverride)	modelled	exprreflect-expr-row-1066	method-specific mirror and property: exprreflect-expr-row-1066
+base/expr.jl	1111	1113	nospecializeinfer	nospecializeinfer(ex)	modelled	exprreflect-expr-row-1111	method-specific mirror and property: exprreflect-expr-row-1111
+base/expr.jl	1148	1154	propagate_inbounds	propagate_inbounds(ex)	modelled	exprreflect-expr-row-1148	method-specific mirror and property: exprreflect-expr-row-1148
+base/expr.jl	1161	1163	polly	polly(ex)	modelled	exprreflect-expr-row-1161	method-specific mirror and property: exprreflect-expr-row-1161
+base/expr.jl	1167	1167	unwrap_macrocalls	unwrap_macrocalls(@nospecialize(x))	modelled	exprreflect-expr-row-1167	method-specific mirror and property: exprreflect-expr-row-1167
+base/expr.jl	1168	1174	unwrap_macrocalls	unwrap_macrocalls(ex::Expr)	modelled	exprreflect-expr-row-1168	method-specific mirror and property: exprreflect-expr-row-1168
+base/expr.jl	1176	1187	pushmeta!	pushmeta!(ex::Expr, tag::Union{Symbol,Expr})	modelled	exprreflect-expr-row-1176	method-specific mirror and property: exprreflect-expr-row-1176
+base/expr.jl	1189	1189	popmeta!	popmeta!(body, sym)	modelled	exprreflect-expr-row-1189	method-specific mirror and property: exprreflect-expr-row-1189
+base/expr.jl	1190	1190	peekmeta	peekmeta(body, sym)	modelled	exprreflect-expr-row-1190	method-specific mirror and property: exprreflect-expr-row-1190
+base/expr.jl	1192	1195	_getmeta	_getmeta(body::Expr, sym::Symbol, delete::Bool)	modelled	exprreflect-expr-row-1192	method-specific mirror and property: exprreflect-expr-row-1192
+base/expr.jl	1196	1196	_getmeta	_getmeta(arg, sym, delete::Bool)	modelled	exprreflect-expr-row-1196	method-specific mirror and property: exprreflect-expr-row-1196
+base/expr.jl	1197	1213	_getmeta	_getmeta(body::Array{Any,1}, sym::Symbol, delete::Bool)	modelled	exprreflect-expr-row-1197	method-specific mirror and property: exprreflect-expr-row-1197
+base/expr.jl	1216	1225	findmetaarg	findmetaarg(metaargs, sym)	modelled	exprreflect-expr-row-1216	method-specific mirror and property: exprreflect-expr-row-1216
+base/expr.jl	1227	1240	annotate_meta_def_or_block	annotate_meta_def_or_block(@nospecialize(ex), meta::Symbol)	modelled	exprreflect-expr-row-1227	method-specific mirror and property: exprreflect-expr-row-1227
+base/expr.jl	1242	1250	is_short_function_def	is_short_function_def(@nospecialize(ex))	modelled	exprreflect-expr-row-1242	method-specific mirror and property: exprreflect-expr-row-1242
+base/expr.jl	1251	1252	is_function_def	is_function_def(@nospecialize(ex))	modelled	exprreflect-expr-row-1251	method-specific mirror and property: exprreflect-expr-row-1251
+base/expr.jl	1254	1261	findmeta	findmeta(ex::Expr)	modelled	exprreflect-expr-row-1254	method-specific mirror and property: exprreflect-expr-row-1254
+base/expr.jl	1263	1263	findmeta	findmeta(ex::Array{Any,1})	modelled	exprreflect-expr-row-1263	method-specific mirror and property: exprreflect-expr-row-1263
+base/expr.jl	1265	1280	findmeta_block	findmeta_block(exargs, argsmatch=args->true)	modelled	exprreflect-expr-row-1265	method-specific mirror and property: exprreflect-expr-row-1265
+base/expr.jl	1287	1304	remove_linenums!	remove_linenums!(@nospecialize ex)	modelled	exprreflect-expr-row-1287	method-specific mirror and property: exprreflect-expr-row-1287
+base/expr.jl	1306	1306	replace_linenums!	replace_linenums!(ex, ln::LineNumberNode)	modelled	exprreflect-expr-row-1306	method-specific mirror and property: exprreflect-expr-row-1306
+base/expr.jl	1307	1324	replace_linenums!	replace_linenums!(ex::Expr, ln::LineNumberNode)	modelled	exprreflect-expr-row-1307	method-specific mirror and property: exprreflect-expr-row-1307
+base/expr.jl	1326	1328	generated	generated()	modelled	exprreflect-expr-row-1326	method-specific mirror and property: exprreflect-expr-row-1326
+base/expr.jl	1359	1375	generated	generated(f)	modelled	exprreflect-expr-row-1359	method-specific mirror and property: exprreflect-expr-row-1359
+base/expr.jl	1489	1494	atomic	atomic(ex)	modelled	exprreflect-expr-row-1489	method-specific mirror and property: exprreflect-expr-row-1489
+base/expr.jl	1495	1498	atomic	atomic(order, ex)	modelled	exprreflect-expr-row-1495	method-specific mirror and property: exprreflect-expr-row-1495
+base/expr.jl	1499	1501	atomic	atomic(a1, op, a2)	modelled	exprreflect-expr-row-1499	method-specific mirror and property: exprreflect-expr-row-1499
+base/expr.jl	1502	1505	atomic	atomic(order, a1, op, a2)	modelled	exprreflect-expr-row-1502	method-specific mirror and property: exprreflect-expr-row-1502
+base/expr.jl	1506	1554	make_atomic	make_atomic(order, ex)	modelled	exprreflect-expr-row-1506	method-specific mirror and property: exprreflect-expr-row-1506
+base/expr.jl	1555	1565	make_atomic	make_atomic(order, a1, op, a2)	modelled	exprreflect-expr-row-1555	method-specific mirror and property: exprreflect-expr-row-1555
+base/expr.jl	1615	1618	atomicswap	atomicswap(order, ex)	modelled	exprreflect-expr-row-1615	method-specific mirror and property: exprreflect-expr-row-1615
+base/expr.jl	1619	1621	atomicswap	atomicswap(ex)	modelled	exprreflect-expr-row-1619	method-specific mirror and property: exprreflect-expr-row-1619
+base/expr.jl	1622	1634	make_atomicswap	make_atomicswap(order, ex)	modelled	exprreflect-expr-row-1622	method-specific mirror and property: exprreflect-expr-row-1622
+base/expr.jl	1710	1714	atomicreplace	atomicreplace(success_order, fail_order, ex, old_new)	modelled	exprreflect-expr-row-1710	method-specific mirror and property: exprreflect-expr-row-1710
+base/expr.jl	1715	1718	atomicreplace	atomicreplace(order, ex, old_new)	modelled	exprreflect-expr-row-1715	method-specific mirror and property: exprreflect-expr-row-1715
+base/expr.jl	1719	1721	atomicreplace	atomicreplace(ex, old_new)	modelled	exprreflect-expr-row-1719	method-specific mirror and property: exprreflect-expr-row-1719
+base/expr.jl	1722	1744	make_atomicreplace	make_atomicreplace(success_order, fail_order, ex, old_new)	modelled	exprreflect-expr-row-1722	method-specific mirror and property: exprreflect-expr-row-1722
+base/expr.jl	1813	1817	atomiconce	atomiconce(success_order, fail_order, ex)	modelled	exprreflect-expr-row-1813	method-specific mirror and property: exprreflect-expr-row-1813
+base/expr.jl	1818	1821	atomiconce	atomiconce(order, ex)	modelled	exprreflect-expr-row-1818	method-specific mirror and property: exprreflect-expr-row-1818
+base/expr.jl	1822	1824	atomiconce	atomiconce(ex)	modelled	exprreflect-expr-row-1822	method-specific mirror and property: exprreflect-expr-row-1822
+base/expr.jl	1825	1837	make_atomiconce	make_atomiconce(success_order, fail_order, ex)	modelled	exprreflect-expr-row-1825	method-specific mirror and property: exprreflect-expr-row-1825
+base/expr.jl	1841	1841	is_meta_expr_head	is_meta_expr_head(head::Symbol)	modelled	exprreflect-expr-row-1841	method-specific mirror and property: exprreflect-expr-row-1841
+base/expr.jl	1842	1842	is_meta_expr	is_meta_expr(@nospecialize x)	modelled	exprreflect-expr-row-1842	method-specific mirror and property: exprreflect-expr-row-1842
+base/expr.jl	1850	1871	isa_ast_node	isa_ast_node(@nospecialize x)	modelled	exprreflect-expr-row-1850	method-specific mirror and property: exprreflect-expr-row-1850
+base/expr.jl	1873	1873	is_self_quoting	is_self_quoting(@nospecialize(x))	modelled	exprreflect-expr-row-1873	method-specific mirror and property: exprreflect-expr-row-1873
+base/expr.jl	1883	1883	quoted	quoted(@nospecialize(x))	modelled	exprreflect-expr-row-1883	method-specific mirror and property: exprreflect-expr-row-1883
+base/expr.jl	1886	1911	generated_body_to_codeinfo	generated_body_to_codeinfo(ex::Expr, defmod::Module, isva::Bool, loc::LineNumberNode)	modelled	exprreflect-expr-row-1886	method-specific mirror and property: exprreflect-expr-row-1886
+base/expr.jl	1914	1933	(g::Core.GeneratedFunctionStub)	(g::Core.GeneratedFunctionStub)(world::UInt, source::Method, @nospecialize args...)	modelled	exprreflect-expr-row-1914	method-specific mirror and property: exprreflect-expr-row-1914

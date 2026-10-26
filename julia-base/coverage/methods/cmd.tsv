@@ -1,0 +1,85 @@
+file	line	endline	name	signature	status	entry	note
+base/cmd.jl	22	23	Cmd	Cmd(exec::Vector{<:AbstractString})	modelled	iocov-cmd-exec	
+base/cmd.jl	24	26	Cmd	Cmd(cmd::Cmd, ignorestatus, flags, env, dir, cpus = nothing, uid = nothing, gid = nothing)	modelled	iocov-cmd-copy	
+base/cmd.jl	27	39	Cmd	Cmd(cmd::Cmd; ignorestatus::Bool=cmd.ignorestatus, env=cmd.env, dir::AbstractString=cmd.dir, cpus::Union{Nothing,Vector{UInt16}} = cmd.cpus, uid::Union{Nothing,UInt32} = cmd.uid, gid::Union{Nothing,UInt32} = cmd.gid, detach::Bool = 0 != cmd.flags & UV_PROCESS_DETACHED, windows_verbatim::Bool = 0 != cmd.flags & UV_PROCESS_WINDOWS_VERBATIM_ARGUMENTS, windows_hide::Bool = 0 != cmd.flags & UV_PROCESS_WINDOWS_HIDE)	modelled	iocov-cmd-keywords	
+base/cmd.jl	42	49	has_nondefault_cmd_flags	has_nondefault_cmd_flags(c::Cmd)	modelled	iocov-cmd-has-nondefault	
+base/cmd.jl	99	99	hash	hash(x::Cmd, h::UInt)	modelled	shellcmd-eq-ignores-cpus	
+base/cmd.jl	100	101	==	==(x::Cmd, y::Cmd)	modelled	shellcmd-eq-ignores-cpus	
+base/cmd.jl	106	106	OrCmds	OrCmds(a::AbstractCmd, b::AbstractCmd)	modelled	iocov-cmd-binary-constructors	
+base/cmd.jl	112	112	ErrOrCmds	ErrOrCmds(a::AbstractCmd, b::AbstractCmd)	modelled	iocov-cmd-binary-constructors	
+base/cmd.jl	118	118	AndCmds	AndCmds(a::AbstractCmd, b::AbstractCmd)	modelled	iocov-cmd-binary-constructors	
+base/cmd.jl	121	121	hash	hash(x::AndCmds, h::UInt)	modelled	iocov-cmd-and-methods	
+base/cmd.jl	122	122	==	==(x::AndCmds, y::AndCmds)	modelled	iocov-cmd-and-methods	
+base/cmd.jl	124	125	shell_escape	"shell_escape(cmd::Cmd; special::AbstractString="""")"	modelled	iocov-cmd-escape-forwarders	
+base/cmd.jl	126	127	shell_escape_posixly	shell_escape_posixly(cmd::Cmd)	modelled	iocov-cmd-escape-forwarders	
+base/cmd.jl	128	129	shell_escape_csh	shell_escape_csh(cmd::Cmd)	modelled	iocov-cmd-escape-forwarders	
+base/cmd.jl	130	131	escape_microsoft_c_args	escape_microsoft_c_args(cmd::Cmd)	modelled	iocov-cmd-escape-forwarders	
+base/cmd.jl	132	133	escape_microsoft_c_args	escape_microsoft_c_args(io::IO, cmd::Cmd)	modelled	iocov-cmd-escape-forwarders	
+base/cmd.jl	142	146	is_sensitive_env_name	is_sensitive_env_name(name::AbstractString)	modelled	iocov-cmd-sensitive-env	
+base/cmd.jl	148	160	get_show_env_mode	get_show_env_mode(io::IO)	modelled	iocov-cmd-show-env-mode	
+base/cmd.jl	162	183	show_env	show_env(io::IO, env::Vector{String})	modelled	shellcmd-show-env-nonascii-key	
+base/cmd.jl	185	225	show	show(io::IO, cmd::Cmd)	modelled	shellcmd-show-backslash-backtick,shellcmd-show-carriage-return,shellcmd-show-env-nonascii-key,shellcmd-show-invalid-utf8,shellcmd-show-lexes-plain,shellcmd-show-uid-inexact	
+base/cmd.jl	227	234	show	show(io::IO, cmds::Union{OrCmds,ErrOrCmds})	modelled	iocov-cmd-show-composites	
+base/cmd.jl	236	240	show	show(io::IO, cmds::AndCmds)	modelled	iocov-cmd-show-composites	
+base/cmd.jl	249	249	FileRedirect	FileRedirect(filename::AbstractString, append::Bool)	modelled	iocov-cmd-file-redirect	
+base/cmd.jl	250	255	FileRedirect	FileRedirect(filename::String, append::Bool)	modelled	iocov-cmd-file-redirect	
+base/cmd.jl	260	260	rawhandle	rawhandle(::DevNull)	modelled	iocov-cmd-rawhandle	
+base/cmd.jl	261	261	rawhandle	rawhandle(x::OS_HANDLE)	modelled	iocov-cmd-rawhandle	
+base/cmd.jl	263	263	rawhandle	rawhandle(x::RawFD)	modelled	iocov-cmd-rawhandle	
+base/cmd.jl	265	265	setup_stdio	setup_stdio(stdio::Union{DevNull,OS_HANDLE,RawFD}, ::Bool)	modelled	iocov-cmd-rawhandle	
+base/cmd.jl	276	276	CmdRedirect	CmdRedirect(cmd, handle, stream_no)	modelled	iocov-cmd-redirect-constructor	
+base/cmd.jl	278	294	show	show(io::IO, cr::CmdRedirect)	modelled	iocov-cmd-show-redirect	
+base/cmd.jl	301	301	ignorestatus	ignorestatus(cmd::Cmd)	modelled	iocov-cmd-ignorestatus	
+base/cmd.jl	302	303	ignorestatus	ignorestatus(cmd::Union{OrCmds,AndCmds})	modelled	iocov-cmd-ignorestatus	
+base/cmd.jl	304	305	ignorestatus	ignorestatus(cmd::CmdRedirect)	modelled	iocov-cmd-ignorestatus	
+base/cmd.jl	312	312	detach	detach(cmd::Cmd)	modelled	iocov-cmd-detach	
+base/cmd.jl	316	321	cstr	cstr(s)	modelled	iocov-cmd-cstr	
+base/cmd.jl	324	325	byteenv	byteenv(env::AbstractArray{<:AbstractString})	modelled	iocov-cmd-byteenv	
+base/cmd.jl	326	327	byteenv	byteenv(env::AbstractDict)	modelled	iocov-cmd-byteenv	
+base/cmd.jl	328	328	byteenv	byteenv(env::Nothing)	modelled	iocov-cmd-byteenv	
+base/cmd.jl	329	330	byteenv	byteenv(env::Union{AbstractVector{<:Pair{<:AbstractString}}, Tuple{Vararg{Pair{<:AbstractString}}}})	modelled	iocov-cmd-byteenv	
+base/cmd.jl	358	358	setenv	setenv(cmd::Cmd, env; dir=cmd.dir)	modelled	iocov-cmd-setenv	
+base/cmd.jl	359	360	setenv	setenv(cmd::Cmd, env::Pair{<:AbstractString}...; dir=cmd.dir)	modelled	iocov-cmd-setenv	
+base/cmd.jl	361	361	setenv	setenv(cmd::Cmd; dir=cmd.dir)	modelled	iocov-cmd-setenv	
+base/cmd.jl	364	370	splitenv	splitenv(e::String)	modelled	shellcmd-addenv-nonascii-key	
+base/cmd.jl	385	404	addenv	addenv(cmd::Cmd, env::Dict; inherit::Bool = true)	modelled	iocov-cmd-addenv-overloads	
+base/cmd.jl	406	408	addenv	addenv(cmd::Cmd, pairs::Pair{<:AbstractString}...; inherit::Bool = true)	modelled	iocov-cmd-addenv-overloads	
+base/cmd.jl	410	412	addenv	addenv(cmd::Cmd, env::Vector{<:AbstractString}; inherit::Bool = true)	modelled	iocov-cmd-addenv-overloads	
+base/cmd.jl	443	443	setcpuaffinity	setcpuaffinity	excluded		no-behaviour: generic function declaration has no method body.
+base/cmd.jl	444	444	setcpuaffinity	setcpuaffinity(cmd::Cmd, ::Nothing)	modelled	iocov-cmd-id-setters	
+base/cmd.jl	445	445	setcpuaffinity	setcpuaffinity(cmd::Cmd, cpus)	modelled	iocov-cmd-id-setters	
+base/cmd.jl	467	467	setuid	setuid	excluded		no-behaviour: generic function declaration has no method body.
+base/cmd.jl	468	468	setuid	setuid(cmd::Cmd, ::Nothing)	modelled	iocov-cmd-id-setters	
+base/cmd.jl	469	469	setuid	setuid(cmd::Cmd, uid::Integer)	modelled	shellcmd-show-uid-inexact	
+base/cmd.jl	491	491	setgid	setgid	excluded		no-behaviour: generic function declaration has no method body.
+base/cmd.jl	492	492	setgid	setgid(cmd::Cmd, ::Nothing)	modelled	iocov-cmd-id-setters	
+base/cmd.jl	493	493	setgid	setgid(cmd::Cmd, gid::Integer)	modelled	shellcmd-show-uid-inexact	
+base/cmd.jl	495	495	&	(&)(left::AbstractCmd, right::AbstractCmd)	modelled	iocov-cmd-basic-redirections	
+base/cmd.jl	496	496	redir_out	redir_out(src::AbstractCmd, dest::AbstractCmd)	modelled	iocov-cmd-basic-redirections	
+base/cmd.jl	497	497	redir_err	redir_err(src::AbstractCmd, dest::AbstractCmd)	modelled	iocov-cmd-basic-redirections	
+base/cmd.jl	500	500	redir_out	redir_out(dest::Redirectable, src::AbstractCmd)	modelled	iocov-cmd-basic-redirections	
+base/cmd.jl	501	501	redir_out	redir_out(src::AbstractCmd, dest::Redirectable)	modelled	iocov-cmd-basic-redirections	
+base/cmd.jl	502	502	redir_err	redir_err(src::AbstractCmd, dest::Redirectable)	modelled	iocov-cmd-basic-redirections	
+base/cmd.jl	505	505	redir_out	redir_out(src::AbstractCmd, dest::AbstractString)	modelled	iocov-cmd-file-redirections	
+base/cmd.jl	506	506	redir_out	redir_out(src::AbstractString, dest::AbstractCmd)	modelled	iocov-cmd-file-redirections	
+base/cmd.jl	507	507	redir_err	redir_err(src::AbstractCmd, dest::AbstractString)	modelled	iocov-cmd-file-redirections	
+base/cmd.jl	508	508	redir_out_append	redir_out_append(src::AbstractCmd, dest::AbstractString)	modelled	iocov-cmd-file-redirections	
+base/cmd.jl	509	509	redir_err_append	redir_err_append(src::AbstractCmd, dest::AbstractString)	modelled	iocov-cmd-file-redirections	
+base/cmd.jl	527	541	pipeline	pipeline(cmd::AbstractCmd; stdin=nothing, stdout=nothing, stderr=nothing, append::Bool=false)	modelled	iocov-cmd-pipeline-keywords	
+base/cmd.jl	543	543	pipeline	pipeline(cmd::AbstractCmd, dest::Union{AbstractCmd, AbstractString, Redirectable})	modelled	iocov-cmd-pipeline-overloads	
+base/cmd.jl	544	544	pipeline	pipeline(src::Union{Redirectable,AbstractString}, cmd::AbstractCmd)	modelled	iocov-cmd-pipeline-overloads	
+base/cmd.jl	556	556	pipeline	pipeline(cmd::AbstractCmd, redir::Pair{<:Integer, <:Redirectable})	modelled	iocov-cmd-pipeline-overloads	
+base/cmd.jl	576	576	pipeline	pipeline(a, b, c, d...)	modelled	iocov-cmd-pipeline-many	
+base/cmd.jl	581	581	cmd_interpolate	cmd_interpolate(xs...)	modelled	shellcmd-interp-splice	
+base/cmd.jl	582	582	cmd_interpolate1	cmd_interpolate1(x)	modelled	iocov-cmd-interpolate-methods	
+base/cmd.jl	583	583	cmd_interpolate1	cmd_interpolate1(::Nothing)	modelled	iocov-cmd-interpolate-methods	
+base/cmd.jl	585	585	cmd_redirect_target	cmd_redirect_target(x::Redirectable)	modelled	iocov-cmd-interpolate-methods	
+base/cmd.jl	586	586	cmd_redirect_target	cmd_redirect_target(x)	modelled	iocov-cmd-interpolate-methods	
+base/cmd.jl	588	588	arg_gen	arg_gen()	modelled	iocov-cmd-arg-gen-methods	
+base/cmd.jl	589	589	arg_gen	arg_gen(x::AbstractString)	modelled	iocov-cmd-arg-gen-methods	
+base/cmd.jl	590	595	arg_gen	arg_gen(cmd::Cmd)	modelled	iocov-cmd-arg-gen-methods	
+base/cmd.jl	597	607	arg_gen	arg_gen(head)	modelled	iocov-cmd-arg-gen-methods	
+base/cmd.jl	609	617	arg_gen	arg_gen(head, tail...)	modelled	iocov-cmd-arg-gen-methods	
+base/cmd.jl	619	635	cmd_gen	cmd_gen(parsed)	modelled	iocov-cmd-gen-methods	
+base/cmd.jl	637	641	cmd_gen	cmd_gen( parsed::Tuple{Vararg{Tuple{Vararg{Union{String, SubString{String}}}}}} )	modelled	iocov-cmd-gen-methods	
+base/cmd.jl	659	668	cmd	cmd(str::String)	modelled	iocov-cmd-macro	

@@ -1,0 +1,55 @@
+id: rangescov-steprangelen-sum-small-int
+title: "sum((Int8(1):Int8(100)) .* Int8(1)) throws InexactError instead of returning 5050"
+priority: P2
+kind: wrong-exception
+area: RangesCov
+files: ["base/twiceprecision.jl"]
+functions: ["sum(::StepRangeLen)"]
+summary: |
+  sum of an integer StepRangeLen with a small element type converts the exact sum back to the
+  element type and throws InexactError, while sum of the collected elements widens to Int as the
+  sum docstring promises.
+likelihood: |
+  StepRangeLen{Int8,...} arises from r .* x on small-integer ranges (see #64133) and from adding
+  two small-integer ordinal ranges; summing such a range is ordinary.
+maybe_intended: ""
+reproducer: |
+  r = (Int8(1):Int8(100)) .* Int8(1)
+  println(typeof(r), " ", r == 1:100)
+  println("sum(collect(r)) = ", sum(collect(r)))
+  bug = false
+  try
+      println("sum(r) = ", sum(r))
+  catch e
+      println("sum(r) throws ", sprint(showerror, e))
+      global bug = e isa InexactError
+  end
+  bug && println("REPRODUCED rangescov-steprangelen-sum-small-int")
+output:
+  release: |
+    StepRangeLen{Int8, Int8, Int8, Int64} true
+    sum(collect(r)) = 5050
+    sum(r) throws InexactError: trunc(Int8, 5050)
+    REPRODUCED rangescov-steprangelen-sum-small-int
+  nightly: |
+    StepRangeLen{Int8, Int8, Int8, Int64} true
+    sum(collect(r)) = 5050
+    sum(r) throws InexactError: trunc(Int8, 5050)
+    REPRODUCED rangescov-steprangelen-sum-small-int
+reproduced: {release: true, nightly: true}
+expected: |
+  5050, the same as sum(collect(r)).
+promised_by: |
+  sum docstring (base/reduce.jl): "The return type is Int for signed integers of less than system word size".
+cause: |
+  base/twiceprecision.jl:604 returns convert(eltype(r), s + ref); for Int8 elements this converts the
+  Int128 sum 5050 to Int8.
+possible_fix: |
+  Return the widened sum for integer element types (e.g. convert to Base.promote_sys_size_add(eltype(r)) or reduce_first semantics).
+duplicates:
+  issues:
+    - {number: 64133, state: open, relation: related}
+  queries: ["issues: sum StepRangeLen InexactError", "issues: sum range Int8", "prs: sum StepRangeLen InexactError", "prs: sum range Int8"]
+lean:
+  property: JuliaLean.RangesCov.Twice.SrlSumMatches
+  theorem: JuliaLean.RangesCov.Twice.srlSumMatches_refuted

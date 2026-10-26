@@ -1,0 +1,14 @@
+file	line	endline	name	signature	status	entry	note
+base/parsers/ints.jl	10	13	load8	load8(buf::Union{Vector{UInt8}, Memory{UInt8}, FastContiguousSubArray{UInt8, 1, <:Union{Vector{UInt8}, Memory{UInt8}}}}, i::Int)	modelled	misccov-parsers-helpers	
+base/parsers/ints.jl	14	15	load8	load8(buf::CodeUnits{UInt8, <:DenseUTF8String}, i::Int)	modelled	misccov-parsers-helpers	
+base/parsers/ints.jl	16	22	load8	load8(buf::AbstractVector{UInt8}, i::Int)	modelled	misccov-parsers-helpers	
+base/parsers/ints.jl	26	28	isdigits8	isdigits8(w::UInt64)	modelled	misccov-parsers-helpers	
+base/parsers/ints.jl	33	38	digits8	digits8(w::UInt64)	modelled	misccov-parsers-helpers	
+base/parsers/ints.jl	41	43	bytesin	bytesin(w::UInt64, lo::UInt8, hi::UInt8)	modelled	misccov-parsers-helpers	
+base/parsers/ints.jl	46	49	ishexdigits8	ishexdigits8(w::UInt64)	modelled	misccov-parsers-helpers	
+base/parsers/ints.jl	54	59	hexdigits8	hexdigits8(w::UInt64)	modelled	misccov-parsers-helpers	
+base/parsers/ints.jl	64	69	digitvalue	digitvalue(b::Unsigned, base::Int)	modelled	misccov-parsers-helpers	
+base/parsers/ints.jl	73	78	overflowfailure	overflowfailure(buf::AbstractVector{UInt8}, i::Int, j::Int, base::Int)	modelled	misccov-parsers-helpers	
+base/parsers/ints.jl	86	157	parseint	parseint(::Type{T}, buf::AbstractVector{UInt8}, i::Int, j::Int, base::Int, neg::Bool) where {T<:BitInteger}	modelled	parseprint-parse-overflow-detected	reuses the exact fast-prefix and checked-loop model in ParsePrint
+base/parsers/ints.jl	161	173	parseint	parseint(::Type{T}, buf::AbstractVector{UInt8}, i::Int, j::Int, base::Int, neg::Bool) where {T<:Integer}	modelled	misccov-parsers-parse,misccov-parsers-parsevalue-bool	generic Integer method, including Bool conversion
+base/parsers/ints.jl	175	190	parsevalue	parsevalue(::Type{T}, bytes::AbstractVector{UInt8}; base::Integer = 10) where {T<:Integer}	modelled	misccov-parsers-parse,misccov-parsers-parsevalue-bool	

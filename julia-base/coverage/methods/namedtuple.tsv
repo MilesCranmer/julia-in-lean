@@ -1,0 +1,84 @@
+file	line	endline	name	signature	status	entry	note
+base/namedtuple.jl	115	122	(NT::Type{NamedTuple{names,T}})	(NT::Type{NamedTuple{names,T}})(args::Tuple) where {names, T <: Tuple}	modelled	sorttuplescov-nt-construct	
+base/namedtuple.jl	124	134	(NT::Type{NamedTuple{names, T}})	(NT::Type{NamedTuple{names, T}})(nt::NamedTuple) where {names, T <: Tuple}	modelled	sorttuplescov-nt-construct	
+base/namedtuple.jl	136	146	NamedTuple{names}	NamedTuple{names}(nt::NamedTuple) where {names}	modelled	sorttuplescov-nt-construct	
+base/namedtuple.jl	148	148	(NT::Type{NamedTuple{names, T}})	(NT::Type{NamedTuple{names, T}})(itr) where {names, T <: Tuple}	modelled	sorttuplescov-nt-construct	
+base/namedtuple.jl	149	149	(NT::Type{NamedTuple{names}})	(NT::Type{NamedTuple{names}})(itr) where {names}	modelled	sorttuplescov-nt-construct	
+base/namedtuple.jl	151	151	NamedTuple	NamedTuple(itr)	modelled	sorttuplescov-nt-construct	
+base/namedtuple.jl	155	157	_new_NamedTuple	_new_NamedTuple(T::Type{NamedTuple{NTN, NTT}} where {NTN, NTT}, args::Tuple)	modelled	sorttuplescov-nt-construct	
+base/namedtuple.jl	159	159	length	length(t::NamedTuple)	modelled	sorttuplescov-nt-access	
+base/namedtuple.jl	160	160	iterate	iterate(t::NamedTuple, iter=1)	modelled	sorttuplescov-nt-access	
+base/namedtuple.jl	161	161	rest	rest(t::NamedTuple)	modelled	sorttuplescov-nt-access	
+base/namedtuple.jl	162	162	rest	rest(t::NamedTuple{names}, i) where {names}	modelled	sorttuplescov-nt-access	
+base/namedtuple.jl	163	163	firstindex	firstindex(t::NamedTuple)	modelled	sorttuplescov-nt-access	
+base/namedtuple.jl	164	164	lastindex	lastindex(t::NamedTuple)	modelled	sorttuplescov-nt-access	
+base/namedtuple.jl	165	165	getindex	getindex(t::NamedTuple, i::Int)	modelled	sorttuplescov-nt-access	
+base/namedtuple.jl	166	166	getindex	getindex(t::NamedTuple, i::Symbol)	modelled	sorttuplescov-nt-access	
+base/namedtuple.jl	167	167	getindex	getindex(t::NamedTuple, ::Colon)	modelled	sorttuplescov-nt-access	
+base/namedtuple.jl	168	168	getindex	getindex(t::NamedTuple, idxs::Tuple{Vararg{Symbol}})	modelled	tuples-namedtuple-merge	
+base/namedtuple.jl	169	169	getindex	getindex(t::NamedTuple, idxs::AbstractVector{Symbol})	modelled	sorttuplescov-nt-access	
+base/namedtuple.jl	170	170	indexed_iterate	indexed_iterate(t::NamedTuple, i::Int, state=1)	modelled	sorttuplescov-nt-access	
+base/namedtuple.jl	171	171	isempty	isempty(::NamedTuple{()})	modelled	sorttuplescov-nt-access	
+base/namedtuple.jl	172	172	isempty	isempty(::NamedTuple)	modelled	sorttuplescov-nt-access	
+base/namedtuple.jl	173	173	empty	empty(::NamedTuple)	modelled	sorttuplescov-nt-access	
+base/namedtuple.jl	175	175	prevind	prevind(@nospecialize(t::NamedTuple), i::Integer)	modelled	sorttuplescov-nt-access	
+base/namedtuple.jl	176	176	nextind	nextind(@nospecialize(t::NamedTuple), i::Integer)	modelled	sorttuplescov-nt-access	
+base/namedtuple.jl	178	178	convert	convert(::Type{NT}, nt::NT) where {names, NT<:NamedTuple{names}}	modelled	sorttuplescov-nt-construct	
+base/namedtuple.jl	179	179	convert	convert(::Type{NT}, nt::NT) where {names, T<:Tuple, NT<:NamedTuple{names,T}}	modelled	sorttuplescov-nt-construct	
+base/namedtuple.jl	180	180	convert	convert(::Type{NT}, t::Tuple) where {NT<:NamedTuple}	modelled	sorttuplescov-nt-construct	
+base/namedtuple.jl	182	185	convert	convert(::Type{NamedTuple{names,T}}, nt::NamedTuple{names}) where {names,T<:Tuple}	modelled	sorttuplescov-nt-construct	
+base/namedtuple.jl	187	193	convert	convert(::Type{NT}, nt::NamedTuple{names}) where {names, NT<:NamedTuple{names}}	modelled	sorttuplescov-nt-construct	
+base/namedtuple.jl	195	195	Tuple	Tuple(nt::NamedTuple)	modelled	sorttuplescov-nt-construct	
+base/namedtuple.jl	196	196	(::Type{T})	(::Type{T})(nt::NamedTuple) where {T <: Tuple}	modelled	sorttuplescov-nt-construct	
+base/namedtuple.jl	198	229	show	show(io::IO, t::NamedTuple)	modelled	sorttuplescov-namedtuple-show	
+base/namedtuple.jl	231	231	eltype	eltype(::Type{T}) where T<:NamedTuple	modelled	sorttuplescov-namedtuple-type-methods	
+base/namedtuple.jl	232	232	nteltype	nteltype(::Type)	modelled	sorttuplescov-namedtuple-type-methods	
+base/namedtuple.jl	233	233	nteltype	nteltype(::Type{NamedTuple{names,T}} where names) where {T}	modelled	sorttuplescov-namedtuple-type-methods	
+base/namedtuple.jl	235	235	keytype	keytype(@nospecialize nt::NamedTuple)	modelled	sorttuplescov-namedtuple-type-methods	
+base/namedtuple.jl	236	236	keytype	keytype(@nospecialize T::Type{<:NamedTuple})	modelled	sorttuplescov-namedtuple-type-methods	
+base/namedtuple.jl	238	238	valtype	valtype(@nospecialize nt::NamedTuple)	modelled	sorttuplescov-namedtuple-type-methods	
+base/namedtuple.jl	239	239	valtype	valtype(@nospecialize T::Type{<:NamedTuple})	modelled	sorttuplescov-namedtuple-type-methods	
+base/namedtuple.jl	241	241	==	==(a::NamedTuple{n}, b::NamedTuple{n}) where {n}	modelled	sorttuplescov-nt-compare	
+base/namedtuple.jl	242	242	==	==(a::NamedTuple, b::NamedTuple)	modelled	sorttuplescov-nt-compare	
+base/namedtuple.jl	244	244	isequal	isequal(a::NamedTuple{n}, b::NamedTuple{n}) where {n}	modelled	sorttuplescov-nt-compare	
+base/namedtuple.jl	245	245	isequal	isequal(a::NamedTuple, b::NamedTuple)	modelled	sorttuplescov-nt-compare	
+base/namedtuple.jl	247	247	_nt_names	_nt_names(::NamedTuple{names}) where {names}	modelled	sorttuplescov-nt-compare	
+base/namedtuple.jl	248	248	_nt_names	_nt_names(::Type{T}) where {names,T<:NamedTuple{names}}	modelled	sorttuplescov-namedtuple-type-methods	
+base/namedtuple.jl	250	250	hash	hash(x::NamedTuple, h::UInt)	modelled	sorttuplescov-namedtuple-hash	
+base/namedtuple.jl	252	252	<	(<)(a::NamedTuple{n}, b::NamedTuple{n}) where {n}	modelled	sorttuplescov-nt-compare	
+base/namedtuple.jl	253	253	isless	isless(a::NamedTuple{n}, b::NamedTuple{n}) where {n}	modelled	sorttuplescov-nt-compare	
+base/namedtuple.jl	255	255	same_names	same_names(::NamedTuple{names}...) where {names}	modelled	sorttuplescov-nt-compare	
+base/namedtuple.jl	256	256	same_names	same_names(::NamedTuple...)	modelled	sorttuplescov-nt-compare	
+base/namedtuple.jl	259	264	map	map(f::F, nt::NamedTuple{names}, nts::NamedTuple...) where {names, F}	modelled	sorttuplescov-nt-map-filter	
+base/namedtuple.jl	266	266	filter	filter(f, xs::NamedTuple)	modelled	sorttuplescov-nt-map-filter	
+base/namedtuple.jl	268	278	merge_names	merge_names(an::Tuple{Vararg{Symbol}}, bn::Tuple{Vararg{Symbol}})	modelled	tuples-namedtuple-merge	
+base/namedtuple.jl	280	285	merge_types	merge_types(names::Tuple{Vararg{Symbol}}, a::Type{<:NamedTuple}, b::Type{<:NamedTuple})	modelled	sorttuplescov-namedtuple-type-helpers	
+base/namedtuple.jl	287	300	merge_fallback	merge_fallback(a::NamedTuple, b::NamedTuple, an::Tuple{Vararg{Symbol}}, bn::Tuple{Vararg{Symbol}})	modelled	tuples-namedtuple-merge	
+base/namedtuple.jl	304	304	merge	merge	excluded		no-behaviour: declares the merge generic function; the row has no callable method body
+base/namedtuple.jl	331	340	merge	merge(a::NamedTuple{an}, b::NamedTuple{bn}) where {an, bn}	modelled	tuples-namedtuple-merge	
+base/namedtuple.jl	342	342	merge	merge(a::NamedTuple, b::NamedTuple{()})	modelled	tuples-namedtuple-merge	
+base/namedtuple.jl	343	343	merge	merge(a::NamedTuple{()}, b::NamedTuple{()})	modelled	tuples-namedtuple-merge	
+base/namedtuple.jl	344	344	merge	merge(a::NamedTuple{()}, b::NamedTuple)	modelled	tuples-namedtuple-merge	
+base/namedtuple.jl	346	346	merge	merge(a::NamedTuple, b::Iterators.Pairs{<:Any,<:Any,Nothing,<:NamedTuple})	modelled	sorttuplescov-nt-merge-itr	
+base/namedtuple.jl	348	348	merge	merge(a::NamedTuple, b::Iterators.Zip{<:Tuple{Any,Any}})	modelled	sorttuplescov-merge-zip	
+base/namedtuple.jl	350	350	merge	merge(a::NamedTuple, b::NamedTuple, cs::NamedTuple...)	modelled	sorttuplescov-nt-merge-itr	
+base/namedtuple.jl	352	352	merge	merge(a::NamedTuple)	modelled	sorttuplescov-nt-merge-itr	
+base/namedtuple.jl	364	380	merge	merge(a::NamedTuple, itr)	modelled	sorttuplescov-nt-merge-itr	
+base/namedtuple.jl	382	382	keys	keys(nt::NamedTuple{names}) where {names}	modelled	sorttuplescov-nt-access	
+base/namedtuple.jl	383	383	values	values(nt::NamedTuple)	modelled	sorttuplescov-nt-access	
+base/namedtuple.jl	384	384	haskey	haskey(nt::NamedTuple, key::Union{Integer, Symbol})	modelled	tuples-namedtuple-haskey-integer	
+base/namedtuple.jl	385	385	get	get(nt::NamedTuple, key::Union{Integer, Symbol}, default)	modelled	tuples-namedtuple-haskey-integer	
+base/namedtuple.jl	386	386	get	get(f::Callable, nt::NamedTuple, key::Union{Integer, Symbol})	modelled	tuples-namedtuple-haskey-integer	
+base/namedtuple.jl	387	387	tail	tail(t::NamedTuple{names}) where names	modelled	sorttuplescov-nt-access	
+base/namedtuple.jl	388	388	front	front(t::NamedTuple{names}) where names	modelled	sorttuplescov-nt-access	
+base/namedtuple.jl	389	389	reverse	reverse(nt::NamedTuple)	modelled	sorttuplescov-nt-access	
+base/namedtuple.jl	391	401	diff_names	diff_names(an::Tuple{Vararg{Symbol}}, bn::Tuple{Vararg{Symbol}})	modelled	tuples-namedtuple-merge	
+base/namedtuple.jl	403	407	diff_types	diff_types(a::NamedTuple, names::Tuple{Vararg{Symbol}})	modelled	sorttuplescov-namedtuple-type-helpers	
+base/namedtuple.jl	409	422	diff_fallback	diff_fallback(a::NamedTuple, an::Tuple{Vararg{Symbol}}, bn::Tuple{Vararg{Symbol}})	modelled	sorttuplescov-namedtuple-type-helpers	
+base/namedtuple.jl	437	440	delete	delete(a::NamedTuple{an}, field::Symbol) where {an}	modelled	sorttuplescov-nt-merge-itr	
+base/namedtuple.jl	448	459	structdiff	structdiff(a::NamedTuple{an}, b::Union{NamedTuple{bn}, Type{NamedTuple{bn}}}) where {an, bn}	modelled	tuples-namedtuple-merge	
+base/namedtuple.jl	461	461	structdiff	structdiff(a::NamedTuple{an}, b::Union{NamedTuple{an}, Type{NamedTuple{an}}}) where {an}	modelled	tuples-namedtuple-merge	
+base/namedtuple.jl	483	485	setindex	setindex(nt::NamedTuple, v, idx::Symbol)	modelled	tuples-namedtuple-merge	
+base/namedtuple.jl	514	523	NamedTuple	NamedTuple(ex)	modelled	sorttuplescov-namedtuple-macros	
+base/namedtuple.jl	578	583	Kwargs	Kwargs(ex)	modelled	sorttuplescov-namedtuple-macros	
+base/namedtuple.jl	585	589	split_rest	split_rest(t::NamedTuple{names}, n::Int, st...) where {names}	modelled	sorttuplescov-namedtuple-split-rest	

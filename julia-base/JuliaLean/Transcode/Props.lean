@@ -220,6 +220,19 @@ theorem cwstringNulTerminated_proven : CwstringNulTerminated := by
       obtain ⟨rfl, h1, h2⟩ := cconvertCwVec_ok _ _ h
       exact ⟨h1, h2⟩
 
+/-- `Base.cwstring(s)` returns UTF-16 data whose only NUL is the terminator. -/
+def CwstringNoEmbeddedNul : Prop :=
+  ∀ (s : JStr) (w : List UInt16), cwstring s = .ok w → (0 : UInt16) ∉ w.dropLast
+
+/-- `"\xc0\x80"`, the overlong encoding of NUL. -/
+def strC080 : JStr := ⟨[0xc0, 0x80], by decide⟩
+
+theorem cwstringNoEmbeddedNul_refuted : ¬ CwstringNoEmbeddedNul := by
+  intro h
+  have e : cwstring strC080 = .ok [0, 0] := rfl
+  have := h strC080 [0, 0] e
+  exact this (by decide)
+
 /-- `cconvert(Cwstring, v::Vector{Cwchar_t})` throws the documented
 `ArgumentError` for data that is not NUL-terminated. -/
 def CwstringVectorCheck : Prop :=

@@ -1,0 +1,59 @@
+id: nummisc-fastmath-hypot-varargs
+title: "@fastmath makes documented variadic hypot calls throw MethodError"
+priority: P2
+kind: wrong-exception
+area: NumMisc
+files: [base/fastmath.jl, base/math.jl]
+functions: ["@fastmath", "Base.FastMath.hypot_fast", "hypot(x...)"]
+summary: |
+  `hypot` documents and implements one-argument and variadic calls, but `@fastmath`
+  rewrites every `hypot` call to `Base.FastMath.hypot_fast`. That internal function
+  has only two-argument methods, so a valid call such as `hypot(3.0, 4.0, 12.0)`
+  changes from 13.0 to a MethodError when wrapped in `@fastmath`.
+likelihood: |
+  Variadic hypot is a documented public operation and is useful for Euclidean norms.
+  Any such call placed inside a larger `@fastmath` expression fails.
+maybe_intended: ""
+reproducer: |
+  x = hypot(3.0, 4.0, 12.0)
+  y = try
+      @fastmath hypot(3.0, 4.0, 12.0)
+  catch err
+      err
+  end
+  println("hypot(3.0, 4.0, 12.0) = ", x)
+  println("@fastmath hypot(3.0, 4.0, 12.0) = ", repr(y))
+  if x == 13.0 && y isa MethodError
+      println("REPRODUCED nummisc-fastmath-hypot-varargs")
+  end
+output:
+  release: |
+    hypot(3.0, 4.0, 12.0) = 13.0
+    @fastmath hypot(3.0, 4.0, 12.0) = MethodError(Base.FastMath.hypot_fast, (3.0, 4.0, 12.0), 0x000000000000994d)
+    REPRODUCED nummisc-fastmath-hypot-varargs
+  nightly: |
+    hypot(3.0, 4.0, 12.0) = 13.0
+    @fastmath hypot(3.0, 4.0, 12.0) = MethodError(Base.FastMath.hypot_fast, (3.0, 4.0, 12.0), 0x000000000000b1fb)
+    REPRODUCED nummisc-fastmath-hypot-varargs
+reproduced: {release: true, nightly: true}
+expected: |
+  13.0, as returned by the same documented variadic hypot call without `@fastmath`.
+promised_by: |
+  The `@fastmath` docstring at base/fastmath.jl:135-145 says it executes a transformed
+  version of the expression with relaxed floating-point semantics. The `hypot(x...)`
+  docstring at base/math.jl:695-697 promises the norm of any number of arguments.
+  Relaxed rounding does not make a documented call undefined as a method.
+cause: |
+  base/fastmath.jl:75 maps every `hypot` call to `hypot_fast`, but the only direct
+  implementation at line 327 takes exactly two same-typed IEEE floats. The generic
+  fallbacks at lines 371-395 cover unary math functions and selected binary functions,
+  but omit unary and variadic `hypot`.
+possible_fix: |
+  Add unary and variadic `hypot_fast` fallbacks that preserve the public method coverage,
+  while retaining the specialized two-argument IEEE-float method.
+duplicates:
+  issues: []
+  queries: ["fastmath hypot", "hypot_fast", "@fastmath MethodError hypot"]
+lean:
+  property: JuliaLean.NumMisc.FastMathCoverage
+  theorem: JuliaLean.NumMisc.fastMathCoverage_refuted

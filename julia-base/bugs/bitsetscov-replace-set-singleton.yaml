@@ -1,0 +1,56 @@
+id: bitsetscov-replace-set-singleton
+title: "replace(Set([1, missing]), missing => 0) throws MethodError instead of returning Set([1, 0])"
+priority: P2
+kind: wrong-exception
+area: BitSetsCov
+files: [base/set.jl]
+functions: ["replace(A, old_new::Pair...)", "_similar_or_copy(x::Union{AbstractDict,AbstractSet}, ::Type{T})", "_copy_oftype(x::AbstractSet, ::Type{T})"]
+summary: |
+  Without count, replace(A, old => new) drops replaced singleton types from
+  the element type (Union{Int,Missing} becomes Int). For a Set, the result
+  container is built as union!(empty(A, Int), A) before any replacement, so
+  missing is pushed into a Set{Int} and convert throws MethodError. The
+  same call works on vectors and tuples.
+likelihood: |
+  Replacing missing or nothing in a Set built from data with missing
+  values; the call always fails.
+maybe_intended: ""
+reproducer: |
+  replace([1, missing], missing => 0)       # [1, 0]
+  replace(Set([1, missing]), missing => 0)  # MethodError: Cannot convert Missing to Int64
+output:
+  release: |
+    replace([1, missing], missing => 0) = [1, 0]
+    replace((1, missing), missing => 0) = (1, 0)
+    replace(Set([1, missing]), missing => 0) = MethodError
+    replace(Set([1, nothing]), nothing => 0) = MethodError
+    REPRODUCED bitsetscov-replace-set-singleton
+  nightly: |
+    replace([1, missing], missing => 0) = [1, 0]
+    replace((1, missing), missing => 0) = (1, 0)
+    replace(Set([1, missing]), missing => 0) = MethodError
+    replace(Set([1, nothing]), nothing => 0) = MethodError
+    REPRODUCED bitsetscov-replace-set-singleton
+reproduced: {release: true, nightly: true}
+expected: |
+  Set([1, 0]) (a Set{Int}), as the docstring describes.
+promised_by: |
+  replace docstring, base/set.jl:815-820: "If count is omitted and the
+  element type of A is a Union, the element type of the result will not
+  include singleton types which are replaced with values of a different
+  type: for example, Union{T,Missing} will become T if missing is
+  replaced."
+cause: |
+  base/set.jl:845-846 compute T without the singleton type and call
+  _similar_or_copy(A, T), which for sets is _copy_oftype(A, T) =
+  union!(empty(A, T), A) (base/set.jl:721, 731): it copies the old elements
+  into the narrower set before replace_pairs! runs.
+possible_fix: |
+  For sets (and dicts), build the result from the replaced elements, e.g.
+  push!(empty(A, T), new(x)) for x in A, instead of copying A first.
+duplicates:
+  issues: []
+  queries: ["replace missing Set", "replace Set missing", "replace singleton type Set"]
+lean:
+  property: JuliaLean.BitSetsCov.ReplaceSetSingletonSpec
+  theorem: JuliaLean.BitSetsCov.replaceSetSingletonSpec_refuted

@@ -1,0 +1,71 @@
+id: stringscovb-annotatedstring-char-region
+title: annotatedstring gives an AnnotatedChar argument a one-byte region, cutting multi-byte characters
+priority: P2
+kind: wrong-result
+area: StringsCovB
+files:
+- base/strings/annotated.jl
+functions:
+- annotatedstring(xs...)
+summary: |
+  annotatedstring(xs...) gives each annotation of an AnnotatedChar argument the region
+  1+size:1+size, a single code unit, whatever the length of the character. For a
+  multi-byte character such as 'é' the annotation covers only its lead byte:
+  annotatedstring("x", AnnotatedChar('é', [(:a, 1)])) has region 2:2 instead of 2:3.
+  The one-argument method annotatedstring(c::AnnotatedChar) and write(::AnnotatedIOBuffer,
+  ::AnnotatedChar) both use 1:ncodeunits(c).
+likelihood: |
+  Any annotatedstring (or styled-string concatenation) that includes an annotated
+  non-ASCII character. The printed output is usually unaffected because eachregion rounds
+  to character boundaries, but annotations(s, i) at the continuation bytes and any code
+  that reads the regions see the wrong extent.
+maybe_intended: ''
+reproducer: |
+  using Base: AnnotatedString, AnnotatedChar, annotatedstring, annotations
+  c = AnnotatedChar('é', [(:a, 1)])        # 'é' is 2 code units
+  alone = annotatedstring(c)
+  after = annotatedstring("x", c)
+  println("annotatedstring(c) regions      = ", [a.region for a in annotations(alone)])
+  println("annotatedstring(\"x\", c) regions = ", [a.region for a in annotations(after)], " for string ", repr(after.string))
+  println("annotations(annotatedstring(\"x\", c), 3) = ", annotations(after, 3))
+  first(annotations(alone)).region == 1:2 && first(annotations(after)).region == 2:2 &&
+      println("REPRODUCED stringscovb-annotatedstring-char-region")
+output:
+  release: |
+    annotatedstring(c) regions      = UnitRange{Int64}[1:2]
+    annotatedstring("x", c) regions = UnitRange{Int64}[2:2] for string "xé"
+    annotations(annotatedstring("x", c), 3) = @NamedTuple{region::UnitRange{Int64}, label::Symbol, value}[]
+    REPRODUCED stringscovb-annotatedstring-char-region
+  nightly: |
+    annotatedstring(c) regions      = UnitRange{Int64}[1:2]
+    annotatedstring("x", c) regions = UnitRange{Int64}[2:2] for string "xé"
+    annotations(annotatedstring("x", c), 3) = @NamedTuple{region::UnitRange{Int64}, label::Symbol, value}[]
+    REPRODUCED stringscovb-annotatedstring-char-region
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Region 2:3, the code units of 'é', as annotatedstring(c) (1:2) and
+  write(io::AnnotatedIOBuffer, c) produce.
+promised_by: |
+  base/strings/annotated.jl:251-271 (annotatedstring docstring: "takes care to preserve
+  any annotations present (in the form of AnnotatedString or AnnotatedChar values)"), and
+  the AnnotatedString docstring base/strings/annotated.jl:32-35: code should conserve which
+  characters an annotation is applied to. Consistency with annotatedstring(c::AnnotatedChar),
+  base/strings/annotated.jl:309-310.
+cause: |
+  base/strings/annotated.jl:296-297: `push!(annotations, (region=1+size:1+size, annot...))`
+  uses one code unit instead of ncodeunits(x).
+possible_fix: |
+  Use `region=1+size:size+ncodeunits(x)`.
+duplicates:
+  issues: []
+  queries:
+  - 'issues: annotatedstring AnnotatedChar region'
+  - 'prs: annotatedstring AnnotatedChar region'
+  - 'issues: AnnotatedChar ncodeunits annotatedstring'
+  - 'issues: AnnotatedChar'
+  - 'issues: annotatedstring'
+lean:
+  property: JuliaLean.StringsCovB.Ann.AnnotatedstringCharRegion
+  theorem: JuliaLean.StringsCovB.Ann.annotatedstringCharRegion_refuted

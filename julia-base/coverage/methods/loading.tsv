@@ -1,0 +1,271 @@
+file	line	endline	name	signature	status	entry	note
+base/loading.jl	10	10	isfile_casesensitive	isfile_casesensitive(path)	modelled	loading-method-10	
+base/loading.jl	13	16	isfile_casesensitive	isfile_casesensitive(path)	excluded		platform: Windows-only case-preserving filename check.
+base/loading.jl	46	74	isfile_casesensitive	isfile_casesensitive(path)	excluded		platform: macOS-only getattrlist filename check.
+base/loading.jl	77	81	isfile_casesensitive	isfile_casesensitive(path)	excluded		platform: fallback for operating systems outside Linux, Windows, and macOS.
+base/loading.jl	86	93	isaccessibledir	isaccessibledir(dir)	modelled	loading-method-86	
+base/loading.jl	95	102	isaccessiblefile	isaccessiblefile(file)	modelled	loading-method-95	
+base/loading.jl	104	111	isaccessiblepath	isaccessiblepath(path)	modelled	loading-method-104	
+base/loading.jl	119	123	$name	$name(bytes::Vector{UInt8})	modelled	loading-method-119	
+base/loading.jl	124	124	$name	$name(s::AbstractString)	modelled	loading-method-124	
+base/loading.jl	125	125	parse	parse(::Type{$name}, s::AbstractString)	modelled	loading-method-125	
+base/loading.jl	126	135	tryparse	tryparse(::Type{$name}, s::AbstractString)	modelled	loading-method-126	
+base/loading.jl	137	137	string	string(hash::$name)	modelled	loading-method-137	
+base/loading.jl	138	138	print	print(io::IO, hash::$name)	modelled	loading-method-138	
+base/loading.jl	139	139	show	show(io::IO, hash::$name)	modelled	loading-method-139	
+base/loading.jl	141	141	isless	isless(a::$name, b::$name)	modelled	loading-method-141	
+base/loading.jl	142	142	hash	hash(a::$name, h::UInt)	modelled	loading-method-142	
+base/loading.jl	143	143	==	==(a::$name, b::$name)	modelled	loading-method-143	
+base/loading.jl	150	160	uuid5	uuid5(namespace::UUID, key::String)	modelled	loading-method-150	
+base/loading.jl	164	183	dummy_uuid	dummy_uuid(project_file::String)	modelled	loading-method-164	
+base/loading.jl	189	198	slug	slug(x::UInt32, p::Int)	modelled	loading-method-189	
+base/loading.jl	200	203	package_slug	package_slug(uuid::UUID, p::Int=5)	modelled	loading-method-200	
+base/loading.jl	205	209	version_slug	version_slug(uuid::UUID, sha1::SHA1, p::Int=5)	modelled	loading-method-205	
+base/loading.jl	220	234	CachedTOMLDict	CachedTOMLDict(p::TOML.Parser, path::String)	modelled	loading-method-220	
+base/loading.jl	236	254	get_updated_dict	get_updated_dict(p::TOML.Parser, f::CachedTOMLDict)	modelled	loading-method-236	
+base/loading.jl	278	287	LoadingCache	LoadingCache()	modelled	loading-method-278	
+base/loading.jl	294	294	TOMLCache	TOMLCache(p::TOML.Parser)	modelled	loading-method-294	
+base/loading.jl	295	295	TOMLCache	TOMLCache(p::TOML.Parser, d::Dict{String, Dict{String, Any}})	modelled	loading-method-295	
+base/loading.jl	299	299	parsed_toml	parsed_toml(project_file::AbstractString)	modelled	loading-method-299	
+base/loading.jl	300	322	parsed_toml	parsed_toml(project_file::AbstractString, toml_cache::TOMLCache, toml_lock::ReentrantLock)	modelled	loading-method-300	
+base/loading.jl	327	334	find_package	find_package(arg)	modelled	loading-method-327	
+base/loading.jl	337	349	is_stdlib	is_stdlib(pkgid::PkgId)	modelled	loading-method-337	
+base/loading.jl	358	358	identify_package_env	identify_package_env(where::Module, name::String)	modelled	loading-method-358	
+base/loading.jl	359	404	identify_package_env	identify_package_env(where::PkgId, name::String)	modelled	loading-method-359	
+base/loading.jl	405	430	identify_package_env	identify_package_env(where::Nothing, name::String)	modelled	loading-method-405	
+base/loading.jl	431	431	identify_package_env	identify_package_env(name::String)	modelled	loading-method-431	
+base/loading.jl	433	447	identify_stdlib_project_dep	identify_stdlib_project_dep(stdlib::PkgId, depname::String)	modelled	loading-method-433	
+base/loading.jl	449	449	_nothing_or_first	_nothing_or_first(x)	modelled	loading-method-449	
+base/loading.jl	476	476	identify_package	identify_package(where::Module, name::String)	modelled	loading-method-476	
+base/loading.jl	477	477	identify_package	identify_package(where::PkgId, name::String)	modelled	loading-method-477	
+base/loading.jl	478	478	identify_package	identify_package(name::String)	modelled	loading-method-478	
+base/loading.jl	480	537	locate_package_env	locate_package_env(pkg::PkgId, stopenv::Union{String, Nothing}=nothing)::Union{Nothing,Tuple{PkgLoadSpec, String}}	modelled	loading-method-480	
+base/loading.jl	553	559	locate_package	locate_package(pkg::PkgId, stopenv::Union{String, Nothing}=nothing)::Union{Nothing,String}	modelled	loading-method-553	
+base/loading.jl	561	567	locate_package_load_spec	locate_package_load_spec(pkg::PkgId, stopenv::Union{String, Nothing}=nothing)::Union{Nothing,PkgLoadSpec}	modelled	loading-method-561	
+base/loading.jl	580	589	pathof	pathof(m::Module)	modelled	loading-method-580	
+base/loading.jl	617	634	pkgdir	pkgdir(m::Module, paths::String...)	modelled	loading-method-617	
+base/loading.jl	636	646	get_pkgversion_from_path	get_pkgversion_from_path(path)	modelled	loading-method-636	
+base/loading.jl	663	677	pkgversion	pkgversion(m::Module)	modelled	loading-method-663	
+base/loading.jl	690	698	locate_project_file	locate_project_file(env::String)	modelled	loading-method-690	
+base/loading.jl	704	723	env_project_file	env_project_file(env::String)::Union{Bool,String}	modelled	loading-method-704	
+base/loading.jl	725	765	base_project	base_project(project_file)	modelled	loading-method-725	
+base/loading.jl	767	772	package_get_here	package_get_here(project_file, name::String)	modelled	loading-method-767	
+base/loading.jl	774	780	package_get	package_get(project_file, where::Union{Nothing, PkgId}, name::String)	modelled	loading-method-774	
+base/loading.jl	782	782	ext_may_load_weakdep	ext_may_load_weakdep(exts::String, name::String)	modelled	loading-extension-triggers	exact-method-model: extMayLoadWeakdep mirrors this overload and the property quantifies every trigger and name.
+base/loading.jl	783	783	ext_may_load_weakdep	ext_may_load_weakdep(exts::Vector{String}, name::String)	modelled	loading-extension-triggers	exact-method-model: extMayLoadWeakdep mirrors this overload and the property quantifies every trigger and name.
+base/loading.jl	785	807	package_extension_get	package_extension_get(project_file, where::PkgId, name::String)	modelled	loading-method-785	
+base/loading.jl	809	866	environment_deps_get	environment_deps_get(env::String, where::Union{Nothing,PkgId}, name::String)::Union{Nothing,PkgId}	modelled	loading-method-809	
+base/loading.jl	868	907	manifest_uuid_load_spec	manifest_uuid_load_spec(env::String, pkg::PkgId)::Union{Nothing,PkgLoadSpec,Missing}	modelled	loading-method-868	
+base/loading.jl	910	914	find_ext_path	find_ext_path(project_path::String, extname::String)	modelled	loading-method-910	
+base/loading.jl	916	927	project_file_ext_load_spec	project_file_ext_load_spec(project_file::String, ext::PkgId)	modelled	loading-method-916	
+base/loading.jl	930	936	project_file_name_uuid	project_file_name_uuid(project_file::String, name::String)::PkgId	modelled	loading-method-930	
+base/loading.jl	938	968	project_get_edition	project_get_edition(d::Dict)	modelled	loading-method-938	
+base/loading.jl	970	979	project_file_load_spec	project_file_load_spec(project_file::String, name::String)	modelled	loading-method-970	
+base/loading.jl	981	987	workspace_manifest	workspace_manifest(project_file)	modelled	loading-method-981	
+base/loading.jl	989	1000	parser_for_active_project	parser_for_active_project()	modelled	loading-method-989	
+base/loading.jl	1003	1039	project_file_manifest_path	project_file_manifest_path(project_file::String)::Union{Nothing,String}	modelled	loading-method-1003	
+base/loading.jl	1043	1052	entry_point_and_project_file_inside	entry_point_and_project_file_inside(dir::String, name::String)::Union{Tuple{Nothing,Nothing},Tuple{String,Nothing},Tuple{String,String}}	modelled	loading-method-1043	
+base/loading.jl	1056	1067	entry_point_and_project_file	entry_point_and_project_file(dir::String, name::String)::Union{Tuple{Nothing,Nothing},Tuple{String,Nothing},Tuple{String,String}}	modelled	loading-method-1056	
+base/loading.jl	1070	1080	implicit_env_project_file_extension	implicit_env_project_file_extension(dir::String, ext::PkgId)	modelled	loading-method-1070	
+base/loading.jl	1083	1087	entry_path	entry_path(path::String, name::String, entryfile::Union{Nothing,String})::String	modelled	loading-method-1083	
+base/loading.jl	1094	1107	explicit_project_deps_get	explicit_project_deps_get(project_file::String, name::String)::Union{Nothing,UUID}	modelled	loading-method-1094	
+base/loading.jl	1109	1120	is_v1_format_manifest	is_v1_format_manifest(raw_manifest::Dict{String})	modelled	loading-v1-manifest-format-name	exact-method-model: isV1FormatManifest/getDeps mirror this body; the quantified refutation uses the parsed array-of-tables case.
+base/loading.jl	1123	1130	get_deps	get_deps(raw_manifest::Dict)	modelled	loading-v1-manifest-format-name	exact-method-model: isV1FormatManifest/getDeps mirror this body; the quantified refutation uses the parsed array-of-tables case.
+base/loading.jl	1132	1140	dep_stanza_get	dep_stanza_get(stanza::Dict{String, Any}, name::String)::Union{Nothing, PkgId}	modelled	loading-method-1132	
+base/loading.jl	1142	1145	dep_stanza_get	dep_stanza_get(stanza::Vector{String}, name::String)::Union{Nothing, PkgId}	modelled	loading-method-1142	
+base/loading.jl	1147	1147	dep_stanza_get	dep_stanza_get(stanza::Nothing, name::String)	modelled	loading-method-1147	
+base/loading.jl	1149	1219	explicit_manifest_deps_get	explicit_manifest_deps_get(project_file::String, where::PkgId, name::String)::Union{Nothing,PkgId}	modelled	loading-method-1149	
+base/loading.jl	1222	1257	explicit_manifest_uuid_load_spec	explicit_manifest_uuid_load_spec(project_file::String, pkg::PkgId)::Union{Nothing,PkgLoadSpec,Missing}	modelled	loading-method-1222	
+base/loading.jl	1259	1305	explicit_manifest_entry_load_spec	explicit_manifest_entry_load_spec(manifest_file::String, pkg::PkgId, entry::Dict{String,Any})::Union{Nothing, Missing, PkgLoadSpec}	modelled	loading-method-1259	
+base/loading.jl	1308	1317	implicit_manifest_pkgid	implicit_manifest_pkgid(dir::String, name::String)::Union{Nothing,PkgId}	modelled	loading-method-1308	
+base/loading.jl	1319	1329	implicit_manifest_project	implicit_manifest_project(dir::String, pkg::PkgId)::Union{Nothing, String}	modelled	loading-method-1319	
+base/loading.jl	1332	1342	implicit_manifest_uuid_load_spec	implicit_manifest_uuid_load_spec(dir::String, pkg::PkgId)::Union{Nothing, PkgLoadSpec}	modelled	loading-method-1332	
+base/loading.jl	1346	1350	find_source_file	find_source_file(path::AbstractString)	modelled	loading-method-1346	
+base/loading.jl	1355	1364	init_debuginfo_source_paths	init_debuginfo_source_paths()	modelled	loading-method-1355	
+base/loading.jl	1366	1373	cache_file_entry	cache_file_entry(pkg::PkgId)	modelled	loading-method-1366	
+base/loading.jl	1378	1396	cachefile_candidates_in_depot	cachefile_candidates_in_depot(pkg::PkgId, depot::String)	modelled	loading-method-1378	
+base/loading.jl	1401	1415	sort_cachefile_candidates!	sort_cachefile_candidates!(paths::Vector{String}, pkgimages::Vector{Bool})	modelled	loading-method-1401	
+base/loading.jl	1403	1403	sort_by	sort_by(i)	modelled	loading-method-1403	
+base/loading.jl	1404	1409	sort_lt	sort_lt(a, b)	modelled	loading-method-1404	
+base/loading.jl	1423	1433	touch_cachefile	touch_cachefile(pkg::PkgId, path::String)	modelled	loading-method-1423	
+base/loading.jl	1435	1437	sorted_cachefile_candidates_in_depot	sorted_cachefile_candidates_in_depot(pkg::PkgId, depot::String)	modelled	loading-method-1435	
+base/loading.jl	1440	1444	cache_search_depots	cache_search_depots(sourcepath::String, DEPOT_PATH::typeof(DEPOT_PATH)=DEPOT_PATH)	modelled	loading-method-1440	
+base/loading.jl	1447	1450	lazy_cachefile_candidates	lazy_cachefile_candidates(pkg::PkgId, sourcepath::String, DEPOT_PATH::typeof(DEPOT_PATH)=DEPOT_PATH)	modelled	loading-method-1447	
+base/loading.jl	1452	1461	find_all_in_cache_path	find_all_in_cache_path(pkg::PkgId, DEPOT_PATH::typeof(DEPOT_PATH)=DEPOT_PATH)	modelled	loading-method-1452	
+base/loading.jl	1463	1463	ocachefile_from_cachefile	ocachefile_from_cachefile(cachefile)	modelled	loading-method-1463	
+base/loading.jl	1464	1464	cachefile_from_ocachefile	cachefile_from_ocachefile(cachefile)	modelled	loading-method-1464	
+base/loading.jl	1475	1543	_include_from_serialized	_include_from_serialized(pkg::PkgId, path::String, ocachepath::Union{Nothing, String}, depmods::Vector{Any}; register::Bool=true)	modelled	loading-method-1475	
+base/loading.jl	1548	1570	print_time_imports_report	print_time_imports_report( mod::Module, elapsed_time::UInt64=UInt64(1), comp_time::UInt64=UInt64(1), recomp_time::UInt64=UInt64(1) )	modelled	loading-method-1548	
+base/loading.jl	1571	1589	print_time_imports_report_init	print_time_imports_report_init( mod::Module, i::Int=1, elapsed_time::UInt64=UInt64(1), comp_time::UInt64=UInt64(1), recomp_time::UInt64=UInt64(1) )	modelled	loading-method-1571	
+base/loading.jl	1592	1610	extension_parent_name	extension_parent_name(M::Module)	modelled	loading-method-1592	
+base/loading.jl	1612	1643	register_restored_modules	register_restored_modules(sv::SimpleVector, pkg::PkgId, path::String; init_reports=nothing)	modelled	loading-method-1612	
+base/loading.jl	1645	1668	run_module_init	run_module_init(mod::Module, i::Int=1, init_reports=nothing)	modelled	loading-method-1645	
+base/loading.jl	1670	1686	run_package_callbacks	run_package_callbacks(modkey::PkgId)	modelled	loading-method-1670	
+base/loading.jl	1720	1735	maybe_fetch_cache	maybe_fetch_cache(pkg::PkgId, sourcepath::String)	modelled	loading-method-1720	
+base/loading.jl	1753	1759	insert_extension_triggers	insert_extension_triggers(pkg::PkgId)	modelled	loading-method-1753	
+base/loading.jl	1761	1836	insert_extension_triggers	insert_extension_triggers(env::String, pkg::PkgId)::Union{Nothing,Missing}	modelled	loading-method-1761	
+base/loading.jl	1807	1820	expand_deps_list	expand_deps_list(deps′::Vector{String})	modelled	loading-method-1807	
+base/loading.jl	1838	1863	_insert_extension_triggers	_insert_extension_triggers(parent::PkgId, extensions::Dict{String, Any}, totaldeps::Dict{String, Any})	modelled	loading-method-1838	
+base/loading.jl	1868	1891	run_extension_callbacks	run_extension_callbacks(extid::ExtensionId)	modelled	loading-method-1868	
+base/loading.jl	1893	1915	run_extension_callbacks	run_extension_callbacks(pkgid::PkgId)	modelled	loading-method-1893	
+base/loading.jl	1925	1937	retry_load_extensions	retry_load_extensions()	modelled	loading-method-1925	
+base/loading.jl	1944	1944	get_extension	get_extension(parent::Module, ext::Symbol)	modelled	loading-method-1944	
+base/loading.jl	1945	1949	get_extension	get_extension(parentid::PkgId, ext::Symbol)	modelled	loading-method-1945	
+base/loading.jl	1969	1970	CacheFlags	CacheFlags(use_pkgimages, debug_level, check_bounds, inline, opt_level, coverage)	modelled	loading-method-1969	
+base/loading.jl	1971	1978	CacheFlags	CacheFlags(f::UInt8, coverage::Integer=0)	modelled	loading-method-1971	
+base/loading.jl	1979	1979	CacheFlags	CacheFlags(f::Int)	modelled	loading-method-1979	
+base/loading.jl	1980	1999	CacheFlags	CacheFlags(cf::CacheFlags=CacheFlags(ccall(:jl_cache_flags, UInt8, ()), ccall(:jl_image_coverage_config, UInt8, ()), current_coverage_path()); use_pkgimages::Union{Nothing,Bool}=nothing, debug_level::Union{Nothing,Int}=nothing, check_bounds::Union{Nothing,Int}=nothing, inline::Union{Nothing,Bool}=nothing, opt_level::Union{Nothing,Int}=nothing, coverage::Union{Nothing,Int}=nothing, coverage_path::Union{Nothing,String}=cf.coverage_path )	modelled	loading-method-1980	
+base/loading.jl	2000	2001	CacheFlags	CacheFlags(f::UInt8, coverage::Integer, coverage_path::Union{Nothing,String})	modelled	loading-method-2000	
+base/loading.jl	2004	2008	current_coverage_path	current_coverage_path()	modelled	loading-method-2004	
+base/loading.jl	2012	2020	_cacheflag_to_uint8	_cacheflag_to_uint8(cf::CacheFlags)::UInt8	modelled	loading-method-2012	
+base/loading.jl	2022	2032	translate_cache_flags	translate_cache_flags(cacheflags::CacheFlags, defaultflags::CacheFlags)	modelled	loading-method-2022	
+base/loading.jl	2036	2041	coverage_cache_options	coverage_cache_options(cf::CacheFlags)	modelled	loading-method-2036	
+base/loading.jl	2044	2046	match_cache_coverage	match_cache_coverage(requested::CacheFlags, actual::CacheFlags)	modelled	loading-method-2044	
+base/loading.jl	2053	2058	can_use_plain_coverage_cache	can_use_plain_coverage_cache(requested::CacheFlags, actual::CacheFlags)	modelled	loading-method-2053	
+base/loading.jl	2062	2064	is_current_coverage_request	is_current_coverage_request(requested::CacheFlags)	modelled	loading-method-2062	
+base/loading.jl	2067	2068	accept_plain_coverage_cache	accept_plain_coverage_cache(build_id::UInt128)	modelled	loading-method-2067	
+base/loading.jl	2069	2070	plain_coverage_cache_accepted	plain_coverage_cache_accepted(build_id::UInt128)	modelled	loading-method-2069	
+base/loading.jl	2073	2074	path_is_tracked	path_is_tracked(path::String, tracked::String)	modelled	loading-method-2073	
+base/loading.jl	2096	2102	tracked_path_overlaps_sysimage	tracked_path_overlaps_sysimage(tracked::String)	modelled	loading-method-2096	
+base/loading.jl	2104	2124	show	show(io::IO, cf::CacheFlags)	modelled	loading-method-2104	
+base/loading.jl	2126	2145	Base.parse	Base.parse(::Type{CacheFlags}, s::AbstractString)	modelled	loading-method-2126	
+base/loading.jl	2156	2169	parse_image_target	parse_image_target(io::IO)	modelled	loading-method-2156	
+base/loading.jl	2171	2179	parse_image_targets	parse_image_targets(targets::Vector{UInt8})	modelled	loading-method-2171	
+base/loading.jl	2181	2184	current_image_targets	current_image_targets()	modelled	loading-method-2181	
+base/loading.jl	2186	2201	show	show(io::IO, it::ImageTarget)	modelled	loading-method-2186	
+base/loading.jl	2206	2274	compilecache_freshest_path	compilecache_freshest_path(pkg::PkgId; ignore_loaded::Bool=false, stale_cache::Dict{StaleCacheKey,Bool}=Dict{StaleCacheKey, Bool}(), cachepath_cache::Dict{PkgId, Vector{String}}=Dict{PkgId, Vector{String}}(), cachepaths::Vector{String}=get(() -> find_all_in_cache_path(pkg), cachepath_cache, pkg), sourcespec::Union{PkgLoadSpec,Nothing}=Base.locate_package_load_spec(pkg), flags::CacheFlags=CacheFlags(), # skipping the full-file corruption checks is only safe for advisory # queries (e.g. `isprecompiled`): a caller whose verdict decides what # gets loaded without further validation (like the precompilation # driver) must keep them on, so that a corrupted cache is recompiled # rather than reported as loadable verify_checksums::Bool=true, unverified::Union{Nothing,Set{String}}=nothing, reasons::Union{Dict{Symbol,Int},Nothing}=nothing)	modelled	loading-method-2206	
+base/loading.jl	2289	2292	isprecompiled	isprecompiled(pkg::PkgId; ignore_loaded::Bool=false)	modelled	loading-method-2289	
+base/loading.jl	2303	2322	isrelocatable	isrelocatable(pkg::PkgId)	modelled	loading-method-2303	
+base/loading.jl	2324	2341	parse_cache_buildid	parse_cache_buildid(cachepath::String)	modelled	loading-method-2324	
+base/loading.jl	2344	2368	_tryrequire_from_serialized	_tryrequire_from_serialized(modkey::PkgId, build_id::UInt128)	modelled	loading-method-2344	
+base/loading.jl	2372	2407	_tryrequire_from_serialized	_tryrequire_from_serialized(pkg::PkgId, path::String, ocachepath::Union{Nothing, String})	modelled	loading-method-2372	
+base/loading.jl	2411	2559	_require_search_from_serialized	_require_search_from_serialized(pkg::PkgId, sourcespec::PkgLoadSpec, build_id::UInt128, stalecheck::Bool; @nospecialize(reasons::Union{Dict{Symbol,Int},Nothing}=nothing), DEPOT_PATH::typeof(DEPOT_PATH)=DEPOT_PATH)	modelled	loading-method-2411	
+base/loading.jl	2568	2636	canstart_loading	canstart_loading(modkey::PkgId, build_id::UInt128, stalecheck::Bool)	modelled	loading-method-2568	
+base/loading.jl	2638	2651	start_loading	start_loading(modkey::PkgId, build_id::UInt128, stalecheck::Bool)	modelled	loading-method-2638	
+base/loading.jl	2653	2658	end_loading	end_loading(modkey::PkgId, @nospecialize loaded)	modelled	loading-method-2653	
+base/loading.jl	2677	2680	_include_dependency	_include_dependency(mod::Module, _path::AbstractString; track_content::Bool=true, path_may_be_dir::Bool=false)	modelled	loading-method-2677	
+base/loading.jl	2682	2709	_include_dependency!	_include_dependency!(dep_list::Vector{Any}, track_dependencies::Bool, mod::Module, _path::AbstractString, track_content::Bool, path_may_be_dir::Bool)	modelled	loading-method-2682	
+base/loading.jl	2721	2741	_record_include_mapexpr!	_record_include_mapexpr!(mod::Module, path::AbstractString, @nospecialize(mapexpr))	modelled	loading-method-2721	
+base/loading.jl	2758	2762	include_mapexprs	include_mapexprs(mod::Module)	modelled	loading-method-2758	
+base/loading.jl	2781	2784	include_dependency	include_dependency(path::AbstractString; track_content::Bool=true)	modelled	loading-method-2781	
+base/loading.jl	2788	2790	show	show(io::IO, ex::PrecompilableError)	modelled	loading-method-2788	
+base/loading.jl	2791	2791	precompilableerror	precompilableerror(ex::PrecompilableError)	modelled	loading-method-2791	
+base/loading.jl	2792	2792	precompilableerror	precompilableerror(ex::WrappedException)	modelled	loading-method-2792	
+base/loading.jl	2793	2793	precompilableerror	precompilableerror(@nospecialize ex)	modelled	loading-method-2793	
+base/loading.jl	2803	2808	__precompile__	__precompile__(isprecompilable::Bool=true)	modelled	loading-method-2803	
+base/loading.jl	2847	2853	require	require(into::Module, mod::Symbol)	modelled	loading-method-2847	
+base/loading.jl	2855	2865	check_for_hint	check_for_hint(into, mod)	modelled	loading-method-2855	
+base/loading.jl	2867	2917	__require	__require(into::Module, mod::Symbol)	modelled	loading-method-2867	
+base/loading.jl	2919	2946	find_unsuitable_manifests_versions	find_unsuitable_manifests_versions()	modelled	loading-method-2919	
+base/loading.jl	2948	2968	collect_manifest_warnings	collect_manifest_warnings()	modelled	loading-method-2948	
+base/loading.jl	2970	2976	require	require(uuidkey::PkgId)	modelled	loading-method-2970	
+base/loading.jl	2977	2987	__require	__require(uuidkey::PkgId)	modelled	loading-method-2977	
+base/loading.jl	2994	3025	_require_prelocked	_require_prelocked(uuidkey::PkgId, env=nothing)	modelled	loading-method-2994	
+base/loading.jl	3032	3032	PkgOrigin	PkgOrigin()	modelled	loading-method-3032	
+base/loading.jl	3039	3039	root_module_key	root_module_key(m::Module)	modelled	loading-method-3039	
+base/loading.jl	3041	3049	maybe_loaded_precompile	maybe_loaded_precompile(key::PkgId, buildid::UInt128)	modelled	loading-method-3041	
+base/loading.jl	3051	3054	module_build_id	module_build_id(m::Module)	modelled	loading-method-3051	
+base/loading.jl	3056	3075	register_root_module	register_root_module(m::Module)	modelled	loading-method-3056	
+base/loading.jl	3079	3083	register_reused_module	register_reused_module(m::Module)	modelled	loading-method-3079	
+base/loading.jl	3102	3102	root_module	root_module(key::PkgId)	modelled	loading-method-3102	
+base/loading.jl	3103	3107	root_module	root_module(where::Module, name::Symbol)	modelled	loading-method-3103	
+base/loading.jl	3108	3108	root_module_exists	root_module_exists(key::PkgId)	modelled	loading-method-3108	
+base/loading.jl	3109	3109	maybe_root_module	maybe_root_module(key::PkgId)	modelled	loading-method-3109	
+base/loading.jl	3111	3111	loaded_modules_array	loaded_modules_array()	modelled	loading-method-3111	
+base/loading.jl	3115	3123	unreference_module	unreference_module(key::PkgId)	modelled	loading-method-3115	
+base/loading.jl	3126	3135	set_pkgorigin_version_path	set_pkgorigin_version_path(pkg::PkgId, path::String)	modelled	loading-method-3126	
+base/loading.jl	3140	3301	__require_prelocked	__require_prelocked(pkg::PkgId, env)	modelled	loading-method-3140	
+base/loading.jl	3305	3315	_require_from_serialized	_require_from_serialized(uuidkey::PkgId, path::String, ocachepath::Union{String, Nothing}, sourcepath::String)	modelled	loading-method-3305	
+base/loading.jl	3367	3367	require_stdlib	require_stdlib(package_uuidkey::PkgId)	modelled	loading-method-3367	
+base/loading.jl	3368	3418	require_stdlib	require_stdlib(package_uuidkey::PkgId, ext::Union{Nothing, String}, from::Module)	modelled	loading-method-3368	
+base/loading.jl	3421	3430	current_trace_eval_level	current_trace_eval_level()	modelled	loading-method-3421	
+base/loading.jl	3444	3471	include_string	"include_string(mapexpr::Function, mod::Module, code::AbstractString, filename::AbstractString=""string"")"	modelled	loading-method-3444	
+base/loading.jl	3472	3473	include_string	"include_string(m::Module, txt::AbstractString, fname::AbstractString=""string"")"	modelled	loading-method-3472	
+base/loading.jl	3475	3484	source_path	"source_path(default::Union{AbstractString,Nothing}="""")"	modelled	loading-method-3475	
+base/loading.jl	3486	3489	source_dir	source_dir()	modelled	loading-method-3486	
+base/loading.jl	3512	3532	_include	_include(mapexpr::Function, mod::Module, _path::AbstractString)	modelled	loading-method-3512	
+base/loading.jl	3559	3567	evalfile	evalfile(path::AbstractString, args::Vector{String}=String[])	modelled	loading-method-3559	
+base/loading.jl	3568	3568	evalfile	evalfile(path::AbstractString, args::Vector)	modelled	loading-method-3568	
+base/loading.jl	3570	3587	load_path_setup_code	load_path_setup_code(load_path::Bool=true)	modelled	loading-method-3570	
+base/loading.jl	3593	3670	include_package_for_output	include_package_for_output(pkg::PkgId, input::String, edition::Tuple{Int, Int}, depot_path::Vector{String}, dl_load_path::Vector{String}, load_path::Vector{String}, concrete_deps::typeof(_concrete_dependencies), source::Union{Nothing,String}, preresolved::Vector{Pair{PkgId,String}}=Pair{PkgId,String}[])	modelled	loading-method-3593	
+base/loading.jl	3672	3676	check_package_module_loaded_error	check_package_module_loaded_error(pkg)	modelled	loading-method-3672	
+base/loading.jl	3679	3679	_pkg_str	_pkg_str(_pkg::PkgId)	modelled	loading-method-3679	
+base/loading.jl	3680	3680	_pkg_str	_pkg_str(_pkg::Vector)	modelled	loading-method-3680	
+base/loading.jl	3681	3681	_pkg_str	_pkg_str(_pkg::Pair{PkgId})	modelled	loading-method-3681	
+base/loading.jl	3682	3682	_pkg_str	_pkg_str(_pkg::Nothing)	modelled	loading-method-3682	
+base/loading.jl	3688	3766	create_expr_cache	create_expr_cache(pkg::PkgId, input::PkgLoadSpec, output::String, output_o::Union{Nothing, String}, concrete_deps::typeof(_concrete_dependencies), flags::Cmd=``, cacheflags::CacheFlags=CacheFlags(), internal_stderr::IO = stderr, internal_stdout::IO = stdout, loadable_exts::Union{Vector{PkgId},Nothing}=nothing; report_timing::Bool=false, preresolved::Vector{Pair{PkgId,String}} = @lock(require_lock, collect(preresolved_cachefiles)))	modelled	loading-method-3688	
+base/loading.jl	3772	3778	track_nested_precomp	track_nested_precomp(pkgs::Vector{PkgId})	modelled	loading-method-3772	
+base/loading.jl	3775	3775	list	list()	modelled	loading-method-3775	
+base/loading.jl	3782	3788	project_environment_id	project_environment_id(project_file::String)::String	modelled	loading-method-3782	
+base/loading.jl	3790	3793	compilecache_dir	compilecache_dir(pkg::PkgId)	modelled	loading-method-3790	
+base/loading.jl	3795	3821	compilecache_path	"compilecache_path(pkg::PkgId, prefs_blob::String; flags::CacheFlags=CacheFlags(), project::String=something(Base.active_project(), """"), environment_id::String=project_environment_id(project))::String"	modelled	loading-method-3795	
+base/loading.jl	3831	3836	compilecache	compilecache(pkg::PkgId, internal_stderr::IO = stderr, internal_stdout::IO = stdout; flags::Cmd=``, cacheflags::CacheFlags=CacheFlags(), loadable_exts::Union{Vector{PkgId},Nothing}=nothing, signal_channel::Union{Channel{Int32},Nothing}=nothing, report_timing::Bool=false)	modelled	loading-method-3831	
+base/loading.jl	3840	4002	compilecache	compilecache(pkg::PkgId, spec::PkgLoadSpec, internal_stderr::IO = stderr, internal_stdout::IO = stdout, keep_loaded_modules::Bool = true; flags::Cmd=``, cacheflags::CacheFlags=CacheFlags(), loadable_exts::Union{Vector{PkgId},Nothing}=nothing, signal_channel::Union{Channel{Int32},Nothing}=nothing, pid_channel::Union{Channel{Int32},Nothing}=nothing, report_timing::Bool=false, preresolved::Vector{Pair{PkgId,String}} = @lock(require_lock, collect(preresolved_cachefiles)))	modelled	loading-method-3840	
+base/loading.jl	4004	4023	rename_unique_ocachefile	rename_unique_ocachefile(tmppath_so::String, ocachefile_orig::String, ocachefile::String = ocachefile_orig, num = 0)	modelled	loading-method-4004	
+base/loading.jl	4025	4031	object_build_id	object_build_id(obj)	modelled	loading-method-4025	
+base/loading.jl	4036	4046	isvalid_cache_header	isvalid_cache_header(f::IOStream)	modelled	loading-method-4036	
+base/loading.jl	4047	4047	isvalid_file_crc	isvalid_file_crc(f::IOStream)	modelled	loading-method-4047	
+base/loading.jl	4049	4055	isvalid_pkgimage_crc	isvalid_pkgimage_crc(f::IOStream, ocachefile::String)	modelled	loading-method-4049	
+base/loading.jl	4061	4061	file_identity	file_identity(st::StatStruct)	modelled	loading-method-4061	
+base/loading.jl	4063	4066	checksum_key	checksum_key(io::IOStream, ocachefile::Union{Nothing, String})	modelled	loading-method-4063	
+base/loading.jl	4070	4083	checksums_invalid	checksums_invalid(io::IOStream, cachefile::String, ocachefile::Union{Nothing, String}, reasons; split_checksums::Bool=true)	modelled	loading-method-4070	
+base/loading.jl	4086	4116	checksums_invalid	checksums_invalid(cachefile::String, ocachefile::Union{Nothing, String}, id_build::UInt128, reasons; unverified::Union{Nothing, Set{String}}=nothing, split_checksums::Bool=true)	modelled	loading-method-4086	
+base/loading.jl	4119	4133	checksums_valid_now	checksums_valid_now(cachefile::String)	modelled	loading-method-4119	
+base/loading.jl	4144	4146	CacheHeaderIncludes	CacheHeaderIncludes(dep_tuple::Tuple{Module, String, UInt64, UInt32, Float64})	modelled	loading-method-4144	
+base/loading.jl	4148	4156	replace_depot_path	replace_depot_path(path::AbstractString, depots::Vector{String}=normalize_depots_for_relocation())	modelled	loading-method-4148	
+base/loading.jl	4158	4169	normalize_depots_for_relocation	normalize_depots_for_relocation()	modelled	loading-method-4158	
+base/loading.jl	4171	4173	restore_depot_path	restore_depot_path(path::AbstractString, depot::AbstractString)	modelled	loading-method-4171	
+base/loading.jl	4175	4186	resolve_depot	resolve_depot(inc::AbstractString, hint::Union{String, Nothing}=nothing)	modelled	loading-method-4175	
+base/loading.jl	4188	4200	read_module_list	read_module_list(f::IO, has_buildid_hi::Bool)	modelled	loading-method-4188	
+base/loading.jl	4202	4263	_parse_cache_header	_parse_cache_header(f::IO, cachefile::AbstractString)	modelled	loading-method-4202	
+base/loading.jl	4265	4357	parse_cache_header	parse_cache_header(f::IO, cachefile::AbstractString)	modelled	loading-method-4265	
+base/loading.jl	4359	4368	parse_cache_header	parse_cache_header(cachefile::String)	modelled	loading-method-4359	
+base/loading.jl	4370	4370	preferences_blob	preferences_blob(f::IO, cachefile::AbstractString)	modelled	loading-method-4370	
+base/loading.jl	4371	4381	preferences_blob	preferences_blob(cachefile::String)	modelled	loading-method-4371	
+base/loading.jl	4383	4386	cache_dependencies	cache_dependencies(f::IO, cachefile::AbstractString)	modelled	loading-method-4383	
+base/loading.jl	4388	4396	cache_dependencies	cache_dependencies(cachefile::String)	modelled	loading-method-4388	
+base/loading.jl	4398	4403	read_dependency_src	read_dependency_src(io::IO, cachefile::AbstractString, filename::AbstractString)	modelled	loading-method-4398	
+base/loading.jl	4405	4426	_read_dependency_src	_read_dependency_src(io::IO, filename::AbstractString, includes::Vector{CacheHeaderIncludes}=CacheHeaderIncludes[])	modelled	loading-method-4405	
+base/loading.jl	4428	4436	read_dependency_src	read_dependency_src(cachefile::String, filename::AbstractString)	modelled	loading-method-4428	
+base/loading.jl	4438	4451	srctext_files	srctext_files(f::IO, srctextpos::Int64, includes::Vector{CacheHeaderIncludes})	modelled	loading-method-4438	
+base/loading.jl	4456	4481	get_uuid_name	get_uuid_name(project::Dict{String, Any}, uuid::UUID)	modelled	loading-method-4456	
+base/loading.jl	4483	4486	get_uuid_name	get_uuid_name(project_toml::String, uuid::UUID)	modelled	loading-method-4483	
+base/loading.jl	4490	4496	filter_preferences	filter_preferences(prefs::Dict{String, Any}, pkg_name)	modelled	loading-method-4490	
+base/loading.jl	4498	4533	collect_preferences	collect_preferences(project_toml::String, uuid::Union{UUID,Nothing})	modelled	loading-method-4498	
+base/loading.jl	4541	4564	recursive_prefs_merge	recursive_prefs_merge(base::Dict{String, Any}, overrides::Vector{Dict{String, Any}})	modelled	loading-method-4541	
+base/loading.jl	4566	4575	get_projects_workspace_to_root	get_projects_workspace_to_root(project_file)	modelled	loading-method-4566	
+base/loading.jl	4577	4597	get_preferences	get_preferences(uuid::Union{UUID,Nothing} = nothing)	modelled	loading-method-4577	
+base/loading.jl	4604	4608	record_compiletime_preference	record_compiletime_preference(uuid::UUID, key::String)	modelled	loading-method-4604	
+base/loading.jl	4612	4640	get_preferences_blob	get_preferences_blob()	modelled	loading-method-4612	
+base/loading.jl	4642	4647	check_clone_targets	check_clone_targets(clone_targets)	modelled	loading-method-4642	
+base/loading.jl	4657	4657	compilecache_pidfile_path	compilecache_pidfile_path(pkg::PkgId; flags::CacheFlags=CacheFlags())	modelled	loading-method-4657	
+base/loading.jl	4669	4690	maybe_cachefile_lock	maybe_cachefile_lock(f, pkg::PkgId, srcpath::String; stale_age=compilecache_pidlock_stale_age)	modelled	loading-method-4669	
+base/loading.jl	4692	4694	record_reason	record_reason(reasons::Dict{Symbol,Int}, reason::Symbol)	modelled	loading-method-4692	
+base/loading.jl	4695	4695	record_reason	record_reason(::Nothing, ::Symbol)	modelled	loading-method-4695	
+base/loading.jl	4733	4742	reject_reason	reject_reason(key::Symbol)	modelled	loading-method-4733	
+base/loading.jl	4744	4767	list_reasons	list_reasons(reasons::Dict{Symbol,Int}; full::Bool=false)	modelled	loading-method-4744	
+base/loading.jl	4768	4768	list_reasons	list_reasons(::Nothing; full::Bool=false)	modelled	loading-method-4768	
+base/loading.jl	4773	4791	pkg_log_name	pkg_log_name(pkg::PkgId)	modelled	loading-method-4773	
+base/loading.jl	4792	4792	pkg_log_name	pkg_log_name(ext::PkgId, parent::PkgId)	modelled	loading-method-4792	
+base/loading.jl	4794	4800	in_package_store	in_package_store(path::String)	modelled	loading-method-4794	
+base/loading.jl	4802	4857	any_includes_stale	any_includes_stale(includes::Vector{CacheHeaderIncludes}, cachefile::String, reasons::Union{Dict{Symbol,Int},Nothing}=nothing)	modelled	loading-method-4802	
+base/loading.jl	4859	4861	cache_edition	cache_edition(ver::Tuple{Int, Int})	modelled	loading-method-4859	
+base/loading.jl	4866	4866	toml_egal	toml_egal(@nospecialize(A), @nospecialize(B))	modelled	loading-method-4866	
+base/loading.jl	4868	4874	toml_egal	toml_egal(A::AbstractArray, B::AbstractArray)	modelled	loading-method-4868	
+base/loading.jl	4876	4883	toml_egal	toml_egal(A::AbstractDict, B::AbstractDict)	modelled	loading-method-4876	
+base/loading.jl	4885	4909	stale_prefs	stale_prefs(prefs_blob::String)	modelled	loading-method-4885	
+base/loading.jl	4913	4915	stale_cachefile	stale_cachefile(modpath::String, cachefile::String; kwargs...)	modelled	loading-method-4913	
+base/loading.jl	4916	4918	stale_cachefile	stale_cachefile(modspec::PkgLoadSpec, cachefile::String; ignore_loaded::Bool = false, requested_flags::CacheFlags=CacheFlags(), reasons=nothing, verify_checksums::Bool=true)	modelled	loading-method-4916	
+base/loading.jl	4919	5139	stale_cachefile	stale_cachefile(modkey::PkgId, build_id::UInt128, modspec::PkgLoadSpec, cachefile::String; ignore_loaded::Bool=false, requested_flags::CacheFlags=CacheFlags(), reasons::Union{Dict{Symbol,Int},Nothing}=nothing, stalecheck::Bool=true, verify_checksums::Bool=true, split_checksums::Bool=true)	modelled	loading-method-4919	
+base/loading.jl	5149	5152	__FILE__	__FILE__()	modelled	loading-method-5149	
+base/loading.jl	5184	5188	__DIR__	__DIR__()	modelled	loading-method-5184	
+base/loading.jl	5190	5194	prepare_compiler_stub_image!	prepare_compiler_stub_image!()	modelled	loading-method-5190	
+base/loading.jl	5196	5198	expand_compiler_path	expand_compiler_path(tup)	modelled	loading-method-5196	
+base/loading.jl	5199	5199	compiler_chi	compiler_chi(tup::Tuple)	modelled	loading-method-5199	
+base/loading.jl	5207	5209	isprecompilable	isprecompilable(@nospecialize(f), @nospecialize(argtypes::Tuple))	modelled	loading-method-5207	
+base/loading.jl	5211	5213	isprecompilable	isprecompilable(@nospecialize(argt::Type))	modelled	loading-method-5211	
+base/loading.jl	5220	5222	precompile	precompile(@nospecialize(f), @nospecialize(argtypes::Tuple))	modelled	loading-method-5220	
+base/loading.jl	5225	5231	precompile	precompile(@nospecialize(argt::Type))	modelled	loading-method-5225	
+base/loading.jl	5234	5235	precompile	precompile(mi::MethodInstance, world::UInt=get_world_counter())	modelled	loading-method-5234	
+base/loading.jl	5244	5246	precompile	precompile(@nospecialize(f), @nospecialize(argtypes::Tuple), m::Method)	modelled	loading-method-5244	
+base/loading.jl	5248	5252	precompile	precompile(@nospecialize(argt::Type), m::Method)	modelled	loading-method-5248	

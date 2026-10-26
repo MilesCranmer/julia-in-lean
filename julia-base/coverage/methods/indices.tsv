@@ -1,0 +1,108 @@
+file	line	endline	name	signature	status	entry	note
+base/indices.jl	94	94	IndexStyle	IndexStyle(A::AbstractArray)	modelled	reducecov-indices-indexstyle	
+base/indices.jl	95	95	IndexStyle	IndexStyle(::Type{Union{}})	modelled	reducecov-indices-indexstyle	
+base/indices.jl	96	96	IndexStyle	IndexStyle(::Type{Union{}}, slurp...)	modelled	multidimcov-indices-faithful-96	row-specific faithful source-order replacement
+base/indices.jl	97	97	IndexStyle	IndexStyle(::Type{<:AbstractArray})	modelled	reducecov-indices-indexstyle	
+base/indices.jl	98	98	IndexStyle	IndexStyle(::Type{<:Array})	modelled	reducecov-indices-indexstyle	
+base/indices.jl	99	99	IndexStyle	IndexStyle(::Type{<:AbstractRange})	modelled	reducecov-indices-indexstyle	
+base/indices.jl	101	101	IndexStyle	IndexStyle(A::AbstractArray, B::AbstractArray)	modelled	reducecov-indices-indexstyle	
+base/indices.jl	102	102	IndexStyle	IndexStyle(A::AbstractArray, B::AbstractArray...)	modelled	reducecov-indices-indexstyle	
+base/indices.jl	103	103	IndexStyle	IndexStyle(::IndexLinear, ::IndexLinear)	modelled	reducecov-indices-indexstyle	
+base/indices.jl	104	104	IndexStyle	IndexStyle(::IndexStyle, ::IndexStyle)	modelled	reducecov-indices-indexstyle	
+base/indices.jl	108	108	promote_shape	promote_shape(::Tuple{}, ::Tuple{})	modelled	reducecov-indices-promote-shape	
+base/indices.jl	112	137	throw_promote_shape_mismatch	throw_promote_shape_mismatch(a::Tuple, b::Union{Nothing,Tuple}, i = nothing)	modelled	reducecov-promote-shape-message	
+base/indices.jl	119	119	_normalize	_normalize(d)	modelled	multidimcov-indices-faithful-119	row-specific faithful source-order replacement
+base/indices.jl	139	142	promote_shape	promote_shape(a::Tuple{Int,}, b::Tuple{Int,})	modelled	reducecov-indices-promote-shape	
+base/indices.jl	144	147	promote_shape	promote_shape(a::Tuple{Int,Int}, b::Tuple{Int,})	modelled	reducecov-indices-promote-shape	
+base/indices.jl	149	149	promote_shape	promote_shape(a::Tuple{Int,}, b::Tuple{Int,Int})	modelled	reducecov-indices-promote-shape	
+base/indices.jl	151	154	promote_shape	promote_shape(a::Tuple{Int, Int}, b::Tuple{Int, Int})	modelled	reducecov-indices-promote-shape	
+base/indices.jl	175	186	promote_shape	promote_shape(a::Dims, b::Dims)	modelled	reducecov-indices-promote-shape	
+base/indices.jl	188	190	promote_shape	promote_shape(a::AbstractArray, b::AbstractArray)	modelled	multidimcov-indices-faithful-188	row-specific faithful source-order replacement
+base/indices.jl	192	203	promote_shape	promote_shape(a::Indices, b::Indices)	modelled	reducecov-indices-promote-shape	
+base/indices.jl	205	212	throw_setindex_mismatch	throw_setindex_mismatch(X, I)	modelled	multidimcov-indices-faithful-205	row-specific faithful source-order replacement
+base/indices.jl	214	215	setindex_shape_check	setindex_shape_check(X::AbstractArray, i::Integer)	modelled	multidimcov-indices-faithful-214	row-specific faithful source-order replacement
+base/indices.jl	217	217	_shapes_match	_shapes_match(::Tuple{}, ::Tuple{})	modelled	reducecov-indices-setindex-shape	
+base/indices.jl	218	218	_shapes_match	_shapes_match(a::Tuple, ::Tuple{})	modelled	reducecov-indices-setindex-shape	
+base/indices.jl	219	219	_shapes_match	_shapes_match(::Tuple{}, b::Tuple)	modelled	reducecov-indices-setindex-shape	
+base/indices.jl	220	220	_shapes_match	_shapes_match(a::Tuple, b::Tuple)	modelled	reducecov-indices-setindex-shape	
+base/indices.jl	222	225	setindex_shape_check	setindex_shape_check(X::AbstractArray, shape::Tuple{Vararg{Integer}})	modelled	multidimcov-indices-faithful-222	row-specific faithful source-order replacement
+base/indices.jl	227	228	setindex_shape_check	setindex_shape_check(::Any, ::Tuple)	modelled	multidimcov-indices-faithful-227	row-specific faithful source-order replacement
+base/indices.jl	243	243	to_index	to_index(A, i)	modelled	reducecov-indices-to-index	
+base/indices.jl	247	247	to_index	to_index(A::Array, i::UInt)	modelled	arrayops-getindex-checkbounds,arrayops-index-type-exception	
+base/indices.jl	258	258	to_index	to_index(i::Integer)	modelled	arrayops-index-type-exception	
+base/indices.jl	259	259	to_index	to_index(i::Bool)	modelled	reducecov-indices-to-index	
+base/indices.jl	260	260	to_index	to_index(I::AbstractArray{Bool})	modelled	reducecov-indices-to-index	
+base/indices.jl	261	261	to_index	to_index(I::AbstractArray)	modelled	multidimcov-indices-faithful-261	row-specific faithful source-order replacement
+base/indices.jl	262	262	to_index	to_index(I::AbstractArray{Union{}})	modelled	multidimcov-indices-faithful-262	row-specific faithful source-order replacement
+base/indices.jl	263	264	to_index	to_index(I::AbstractArray{<:Union{AbstractArray, Colon}})	modelled	multidimcov-indices-faithful-263	row-specific faithful source-order replacement
+base/indices.jl	265	265	to_index	to_index(::Colon)	modelled	reducecov-indices-to-index	
+base/indices.jl	266	266	to_index	to_index(i)	modelled	multidimcov-indices-faithful-266	row-specific faithful source-order replacement
+base/indices.jl	310	310	to_indices	to_indices(A, I::Tuple)	modelled	multidimcov-indices-faithful-310	row-specific faithful source-order replacement
+base/indices.jl	311	311	to_indices	to_indices(A, I::Tuple{Any})	modelled	multidimcov-indices-faithful-311	row-specific faithful source-order replacement
+base/indices.jl	312	312	_to_indices	_to_indices(A, ::Tuple, I::Tuple)	modelled	multidimcov-indices-faithful-312	row-specific faithful source-order replacement
+base/indices.jl	313	313	_to_indices	_to_indices(A, J::Tuple{Any}, ::Tuple)	modelled	multidimcov-indices-faithful-313	row-specific faithful source-order replacement
+base/indices.jl	314	314	_drop_zerodim	_drop_zerodim(::Tuple{})	modelled	reducecov-indices-to-index	
+base/indices.jl	315	315	_drop_zerodim	_drop_zerodim(I::Tuple)	modelled	reducecov-indices-to-index	
+base/indices.jl	318	318	to_indices	to_indices(A, I::Tuple{})	modelled	reducecov-indices-to-index	
+base/indices.jl	319	319	to_indices	to_indices(A, I::Tuple{Vararg{Int}})	modelled	reducecov-indices-to-index	
+base/indices.jl	320	320	to_indices	to_indices(A, I::Tuple{Vararg{Integer}})	modelled	multidimcov-indices-faithful-320	row-specific faithful source-order replacement
+base/indices.jl	321	321	to_indices	to_indices(A, inds, ::Tuple{})	modelled	reducecov-indices-to-index	
+base/indices.jl	322	323	to_indices	to_indices(A, inds, I::Tuple{Any, Vararg})	modelled	multidimcov-indices-faithful-322	row-specific faithful source-order replacement
+base/indices.jl	340	340	Slice	Slice(S::Slice)	modelled	reducecov-indices-slice	
+base/indices.jl	341	341	Slice{T}	Slice{T}(S::Slice) where {T<:AbstractUnitRange}	modelled	multidimcov-indices-faithful-341	row-specific faithful source-order replacement
+base/indices.jl	343	343	axes	axes(S::Slice)	modelled	reducecov-indices-slice	
+base/indices.jl	344	344	axes1	axes1(S::Slice)	modelled	reducecov-indices-slice	
+base/indices.jl	345	345	axes1	axes1(S::Slice{<:AbstractOneTo{<:Integer}})	modelled	reducecov-indices-slice	
+base/indices.jl	347	347	first	first(S::Slice)	modelled	reducecov-indices-slice	
+base/indices.jl	348	348	last	last(S::Slice)	modelled	reducecov-indices-slice	
+base/indices.jl	349	349	size	size(S::Slice)	modelled	multidimcov-indices-faithful-349	row-specific faithful source-order replacement
+base/indices.jl	350	350	getindex	getindex(S::Slice, i::Int)	modelled	reducecov-indices-slice	
+base/indices.jl	351	351	getindex	getindex(S::Slice, i::AbstractUnitRange{<:Integer})	modelled	reducecov-slice-bool-range	
+base/indices.jl	352	352	getindex	getindex(S::Slice, i::StepRange{<:Integer})	modelled	reducecov-indices-slice	
+base/indices.jl	353	353	show	show(io::IO, r::Slice)	modelled	multidimcov-indices-faithful-353	row-specific faithful source-order replacement
+base/indices.jl	354	354	iterate	iterate(S::Slice, s...)	modelled	multidimcov-indices-faithful-354	row-specific faithful source-order replacement
+base/indices.jl	366	366	IdentityUnitRange	IdentityUnitRange(S::IdentityUnitRange)	modelled	reducecov-indices-identity	
+base/indices.jl	367	367	IdentityUnitRange{T}	IdentityUnitRange{T}(S::IdentityUnitRange) where {T<:AbstractUnitRange}	modelled	multidimcov-indices-faithful-367	row-specific faithful source-order replacement
+base/indices.jl	370	370	axes	axes(S::IdentityUnitRange)	modelled	reducecov-indices-identity	
+base/indices.jl	371	371	axes1	axes1(S::IdentityUnitRange)	modelled	reducecov-indices-identity	
+base/indices.jl	372	372	axes1	axes1(S::IdentityUnitRange{<:AbstractOneTo{<:Integer}})	modelled	reducecov-indices-identity	
+base/indices.jl	374	374	first	first(S::IdentityUnitRange)	modelled	reducecov-indices-identity	
+base/indices.jl	375	375	last	last(S::IdentityUnitRange)	modelled	reducecov-indices-identity	
+base/indices.jl	376	376	size	size(S::IdentityUnitRange)	modelled	multidimcov-indices-faithful-376	row-specific faithful source-order replacement
+base/indices.jl	377	377	unsafe_length	unsafe_length(S::IdentityUnitRange)	modelled	multidimcov-indices-faithful-377	row-specific faithful source-order replacement
+base/indices.jl	378	378	getindex	getindex(S::IdentityUnitRange, i::Integer)	modelled	multidimcov-indices-faithful-378	row-specific faithful source-order replacement
+base/indices.jl	379	379	getindex	getindex(S::IdentityUnitRange, i::Bool)	modelled	reducecov-indices-identity	
+base/indices.jl	380	384	getindex	getindex(S::IdentityUnitRange, i::AbstractUnitRange{<:Integer})	modelled	multidimcov-indices-faithful-380	row-specific faithful source-order replacement
+base/indices.jl	385	389	getindex	getindex(S::IdentityUnitRange, i::AbstractUnitRange{Bool})	modelled	reducecov-indices-identity	
+base/indices.jl	390	394	getindex	getindex(S::IdentityUnitRange, i::StepRange{<:Integer})	modelled	multidimcov-indices-faithful-390	row-specific faithful source-order replacement
+base/indices.jl	395	399	getindex	getindex(S::IdentityUnitRange, i::StepRange{Bool})	modelled	reducecov-identityrange-bool-step	
+base/indices.jl	404	409	getindex	getindex(S::IdentityUnitRange{<:AbstractUnitRange{<:Integer}}, i::IdentityUnitRange{<:AbstractUnitRange{<:Integer}})	modelled	multidimcov-indices-faithful-404	row-specific faithful source-order replacement
+base/indices.jl	410	415	getindex	getindex(S::Slice{<:AbstractUnitRange{<:Integer}}, i::IdentityUnitRange{<:AbstractUnitRange{<:Integer}})	modelled	multidimcov-indices-faithful-410	row-specific faithful source-order replacement
+base/indices.jl	416	416	show	show(io::IO, r::IdentityUnitRange)	modelled	multidimcov-indices-faithful-416	row-specific faithful source-order replacement
+base/indices.jl	417	417	iterate	iterate(S::IdentityUnitRange, s...)	modelled	multidimcov-indices-faithful-417	row-specific faithful source-order replacement
+base/indices.jl	423	427	getindex	getindex(S::AbstractOneTo{<:Integer}, I::IdentityUnitRange{<:AbstractUnitRange{<:Integer}})	modelled	multidimcov-indices-faithful-423	row-specific faithful source-order replacement
+base/indices.jl	479	480	convert	convert(::Type{LinearIndices{N,R}}, inds::LinearIndices{N}) where {N,R<:NTuple{N,AbstractUnitRange{Int}}}	modelled	multidimcov-indices-faithful-479	row-specific faithful source-order replacement
+base/indices.jl	482	482	LinearIndices	LinearIndices(::Tuple{})	modelled	reducecov-indices-linear-constructors	
+base/indices.jl	483	484	LinearIndices	LinearIndices(inds::NTuple{N,AbstractUnitRange{<:Integer}}) where {N}	modelled	multidimcov-indices-faithful-483	row-specific faithful source-order replacement
+base/indices.jl	485	486	LinearIndices	LinearIndices(inds::NTuple{N,Union{<:Integer,AbstractUnitRange{<:Integer}}}) where {N}	modelled	reducecov-linearindices-mixed-axes	
+base/indices.jl	487	487	LinearIndices	LinearIndices(A::Union{AbstractArray,SimpleVector})	modelled	multidimcov-indices-faithful-487	row-specific faithful source-order replacement
+base/indices.jl	489	489	_convert2ind	_convert2ind(i::Integer)	modelled	multidimcov-indices-faithful-489	row-specific faithful source-order replacement
+base/indices.jl	490	490	_convert2ind	_convert2ind(ind::AbstractUnitRange)	modelled	reducecov-indices-linear-constructors	
+base/indices.jl	492	495	indices_promote_type	indices_promote_type(::Type{Tuple{R1,Vararg{R1,N}}}, ::Type{Tuple{R2,Vararg{R2,N}}}) where {R1,R2,N}	modelled	multidimcov-indices-faithful-492	row-specific faithful source-order replacement
+base/indices.jl	497	498	promote_rule	promote_rule(::Type{LinearIndices{N,R1}}, ::Type{LinearIndices{N,R2}}) where {N,R1,R2}	modelled	multidimcov-indices-faithful-497	row-specific faithful source-order replacement
+base/indices.jl	499	500	promote_rule	promote_rule(a::Type{Slice{T1}}, b::Type{Slice{T2}}) where {T1,T2}	modelled	reducecov-slice-promote-rule	
+base/indices.jl	501	502	promote_rule	promote_rule(a::Type{IdentityUnitRange{T1}}, b::Type{IdentityUnitRange{T2}}) where {T1,T2}	modelled	reducecov-slice-promote-rule	
+base/indices.jl	505	505	IndexStyle	IndexStyle(::Type{<:LinearIndices})	modelled	reducecov-indices-indexstyle	
+base/indices.jl	506	506	axes	axes(iter::LinearIndices)	modelled	reducecov-indices-linear-values	
+base/indices.jl	507	507	size	size(iter::LinearIndices)	modelled	multidimcov-indices-faithful-507	row-specific faithful source-order replacement
+base/indices.jl	508	508	isassigned	isassigned(iter::LinearIndices, i::Int)	modelled	reducecov-indices-linear-values	
+base/indices.jl	509	513	getindex	getindex(iter::LinearIndices, i::Int)	modelled	reducecov-indices-linear-values	
+base/indices.jl	514	518	getindex	getindex(iter::LinearIndices, i::AbstractRange{<:Integer})	modelled	reducecov-linearindices-range-index	
+base/indices.jl	519	519	copy	copy(iter::LinearIndices)	modelled	reducecov-indices-linear-values	
+base/indices.jl	522	522	iterate	iterate(iter::LinearIndices{1}, s...)	modelled	multidimcov-indices-faithful-522	row-specific faithful source-order replacement
+base/indices.jl	523	523	iterate	iterate(iter::LinearIndices, i=1)	modelled	multidimcov-indices-faithful-523	row-specific faithful source-order replacement
+base/indices.jl	526	526	first	first(iter::LinearIndices)	modelled	reducecov-indices-linear-values	
+base/indices.jl	527	527	first	first(iter::LinearIndices{1})	modelled	reducecov-indices-linear-values	
+base/indices.jl	528	528	last	last(iter::LinearIndices)	modelled	multidimcov-indices-faithful-528	row-specific faithful source-order replacement
+base/indices.jl	529	529	last	last(iter::LinearIndices{1})	modelled	reducecov-indices-linear-values	
+base/indices.jl	531	533	show	show(io::IO, iter::LinearIndices)	modelled	multidimcov-indices-faithful-531	row-specific faithful source-order replacement

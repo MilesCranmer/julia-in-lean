@@ -1,0 +1,27 @@
+file	line	endline	name	signature	status	entry	note
+base/sysinfo.jl	155	177	__init__	__init__()	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	180	185	__init_build	__init_build()	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	221	221	CPUinfo	CPUinfo(model,speed,u,n,s,id,ir)	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	223	225	CPUinfo	CPUinfo(info::UV_cpu_info_t)	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	229	244	_show_cpuinfo	"_show_cpuinfo(io::IO, info::Sys.CPUinfo, header::Bool=true, prefix::AbstractString="" "")"	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	239	239	d	d(i, unit=unit)	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	246	246	show	"show(io::IO, ::MIME""text/plain"", info::CPUinfo)"	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	248	271	_cpu_summary	_cpu_summary(io::IO, cpu::AbstractVector{CPUinfo}, i, j)	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	284	295	cpu_summary	cpu_summary(io::IO=stdout, cpu::AbstractVector{CPUinfo} = cpu_info())	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	309	324	cpu_info	cpu_info()	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	342	344	sysimage_target	sysimage_target()	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	359	365	matched_sysimage_target	matched_sysimage_target()	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	372	377	uptime	uptime()	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	384	388	loadavg	loadavg()	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	396	396	free_physical_memory	free_physical_memory()	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	404	404	total_physical_memory	total_physical_memory()	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	411	411	free_memory	free_memory()	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	420	428	total_memory	total_memory()	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	435	440	get_process_title	get_process_title()	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	447	450	set_process_title	set_process_title(title::AbstractString)	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	460	460	maxrss	maxrss()	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	463	466	windows_version	windows_version()	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	468	468	windows_version	windows_version()	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	495	561	which	which(program_name::String)	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	562	562	which	which(program_name::AbstractString)	modelled	runtimecov-sysinfo	
+base/sysinfo.jl	581	585	username	username()	modelled	runtimecov-sysinfo	

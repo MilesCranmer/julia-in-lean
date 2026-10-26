@@ -1,0 +1,13 @@
+file	line	endline	name	signature	status	entry	note
+base/osinfo.jl	29	43	isunix	isunix(os::Symbol)	modelled	runtimecov-osinfo	
+base/osinfo.jl	51	51	islinux	islinux(os::Symbol)	modelled	runtimecov-osinfo	
+base/osinfo.jl	64	64	isbsd	isbsd(os::Symbol)	modelled	runtimecov-osinfo	
+base/osinfo.jl	78	78	isfreebsd	isfreebsd(os::Symbol)	modelled	runtimecov-osinfo	
+base/osinfo.jl	92	92	isopenbsd	isopenbsd(os::Symbol)	modelled	runtimecov-osinfo	
+base/osinfo.jl	106	106	isnetbsd	isnetbsd(os::Symbol)	modelled	runtimecov-osinfo	
+base/osinfo.jl	120	120	isdragonfly	isdragonfly(os::Symbol)	modelled	runtimecov-osinfo	
+base/osinfo.jl	128	128	iswindows	iswindows(os::Symbol)	modelled	runtimecov-osinfo	
+base/osinfo.jl	136	136	isapple	isapple(os::Symbol)	modelled	runtimecov-osinfo	
+base/osinfo.jl	147	147	isjsvm	isjsvm(os::Symbol)	modelled	runtimecov-osinfo	
+base/osinfo.jl	162	168	detectwsl	detectwsl()	modelled	runtimecov-osinfo	
+base/osinfo.jl	171	171	$f	$f()	modelled	runtimecov-osinfo	generated-loop: f in (:isunix, :islinux, :isbsd, :isapple, :iswindows, :isfreebsd, :isopenbsd, :isnetbsd, :isdragonfly, :isjsvm)

@@ -1,0 +1,41 @@
+line	name	verdict	mirror	property	settled	reason
+97	eltype	HOLLOW	no	no	yes	refElementType returns its tag unconditionally, so it omits the @isdefined(T) branch and Any result when T is unavailable.
+98	convert	HOLLOW	no	no	yes	RefCoreBehavior has no function or proposition clause for the identity conversion of an already matching Ref{T}.
+99	size	FAITHFUL	yes	yes	yes	refSize returns the empty shape for every represented Ref as the source method does.
+100	axes	FAITHFUL	yes	yes	yes	refAxes returns the empty axes for every represented Ref as the source method does.
+101	length	FAITHFUL	yes	yes	yes	refLength returns one for every represented Ref as the source method does.
+102	isempty	FAITHFUL	yes	yes	yes	refEmpty returns false for every represented Ref as the source method does.
+103	ndims	FAITHFUL	yes	yes	yes	refDims returns zero for every represented Ref value as the source method does.
+104	ndims	HOLLOW	no	no	yes	The only refDims clause takes a RefModel value, so it models the value method at line 103 rather than this method on Ref types.
+105	iterate	HOLLOW	no	no	yes	refIterate replaces r[] and its possible errors with a total list getD and does not represent the returned value-state tuple for every Ref subtype.
+106	iterate	HOLLOW	no	no	yes	refIterate combines initial and subsequent iteration behind a Bool and returns a value when it is false, so it does not model this method for every state s.
+107	IteratorSize	FAITHFUL	yes	yes	yes	refIteratorRank encodes HasShape{0} as rank zero and the proven proposition states that constant trait result.
+110	unsafe_convert	HOLLOW	no	no	yes	RefCoreBehavior has no model of forwarding this matching Ref{T} through unsafe_convert(Ptr{T}, x).
+111	unsafe_convert	HOLLOW	no	no	yes	RefCoreBehavior has no model of forwarding an arbitrary x through unsafe_convert(Ptr{T}, x).
+113	convert	HOLLOW	no	no	yes	RefCoreBehavior omits the RefValue{T}(x) construction, its conversion behavior, and the RefValue{T} result assertion.
+120	RefArray{T,A,R}	HOLLOW	yes	no	yes	makeRefArray mirrors the three-field construction, but the proposition restricts x and roots to lists instead of every AbstractArray{T} and root type R.
+122	RefArray	HOLLOW	no	no	yes	makeRefArray omits the typeof(x) and Any type choices, and its list-only fields do not cover every accepted abstract array and root value.
+123	RefArray	HOLLOW	no	no	yes	makeRefArray neither selects the Nothing root type nor replaces the supplied default with nothing, and its proposition covers only list roots.
+124	RefArray	HOLLOW	no	no	yes	makeRefArray accepts an Int directly and omits Int(i), its conversion failures, typeof(x), and the Any root type.
+125	RefArray	HOLLOW	no	no	yes	makeRefArray accepts an Int directly and omits Int(i), its conversion failures, the Nothing root type, and the forced nothing value.
+126	convert	HOLLOW	no	no	yes	RefCoreBehavior has no model of the RefArray(x, 1) constructor call or its behavior for every AbstractArray{T}.
+128	unsafe_convert	HOLLOW	no	no	yes	refPointerRoute puts its unionLayout route in the source's boxed branch position and omits the pointer, pointer_from_objref, pointerref, indexing, and return operations.
+139	unsafe_convert	HOLLOW	no	no	yes	RefCoreBehavior has no model of pointer(b.x, b.i) or the typed Ptr{Any} result.
+145	Ref	HOLLOW	no	no	yes	RefCoreBehavior has no model or proposition clause for the RefValue(x) constructor call.
+146	Ref{T}	HOLLOW	no	no	yes	RefCoreBehavior has no model of the uninitialized RefValue{T}() constructor or its allowed type-dependent behavior.
+147	Ref{T}	HOLLOW	no	no	yes	RefCoreBehavior has no model of RefValue{T}(x), including conversion and construction failures for arbitrary x.
+149	Ref	HOLLOW	no	yes	yes	singleRefIndex captures the all-index check but omits x and the source method's successful return of that same Ref.
+150	Ref	FAITHFUL	yes	yes	yes	refPointer calls the wrapping pointer addition on (index - 1) times the element size, and both proven propositions state that formula universally.
+154	Ref{P}	HOLLOW	no	no	yes	rootPointerArray represents only a precomputed final pointer list and roots list, omitting the first two branches, element conversions, loop, allocation, and failures.
+173	Ref	HOLLOW	no	no	yes	refArrayAt and derefArray separate construction from checking and omit RefArray dispatch, Int(i), arbitrary AbstractArray behavior, and conversion failures.
+176	cconvert	HOLLOW	no	no	yes	RefArrayTupleBehavior has no model or proposition clause for getfield(a, :ref) on this specialized pointer array.
+177	cconvert	HOLLOW	no	no	yes	RefArrayTupleBehavior has no model or proposition clause for getfield(a, :ref) on this specialized reference array.
+178	cconvert	HOLLOW	no	no	yes	rootPointerArray does not model this forwarding call to Ref{P}(a) or its three source branches for every Array.
+179	cconvert	HOLLOW	no	no	yes	rootPointerArray does not model this forwarding call to Ref{P}(a) or its three source branches for every Array.
+182	cconvert	HOLLOW	no	no	yes	tupleRoot and tupleRef merely return a List Nat, so they do not construct a rooted Ref{NTuple{N,T}} or cover arbitrary tuple element types.
+183	cconvert	HOLLOW	no	no	yes	tupleRoot is an identity on a List Nat rather than this identity method on every Ref{NTuple{N,T}}.
+184	unsafe_convert	HOLLOW	no	no	yes	RefArrayTupleBehavior has no model of the inner unsafe_convert, outer Ptr conversion, or Ref{T} target of this method.
+186	unsafe_convert	HOLLOW	no	no	yes	RefArrayTupleBehavior has no model of the inner unsafe_convert or outer Ptr{T} conversion performed by this method.
+188	unsafe_convert	HOLLOW	no	no	yes	RefArrayTupleBehavior has no model of convert(Ptr{T}, r) for a pointer to an NTuple.
+193	getindex	HOLLOW	no	no	yes	refGet uses total list getD and therefore omits arbitrary AbstractArray indexing, bounds errors, unassigned-reference behavior, and dispatched getindex calls.
+194	setindex!	HOLLOW	no	no	yes	refSet performs a total functional list update and omits array mutation, element conversion, bounds errors, aliasing, and the return of the original RefArray.

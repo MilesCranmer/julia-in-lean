@@ -1,0 +1,39 @@
+file	line	endline	name	signature	status	entry	note
+base/util.jl	73	84	with_output_color	with_output_color(@nospecialize(f::Function), color::Union{Int, Symbol}, io::IO, args...; bold::Bool = false, italic::Bool = false, underline::Bool = false, blink::Bool = false, reverse::Bool = false, hidden::Bool = false)	modelled	iocov-util-faithful-color	
+base/util.jl	86	117	output_color_string	output_color_string(buf::IOBuffer, str::String, @nospecialize(color::Union{Int, Symbol}), bold::Bool, italic::Bool, underline::Bool, blink::Bool, reverse::Bool, hidden::Bool)	modelled	iocov-util-faithful-color	
+base/util.jl	143	144	printstyled	printstyled(io::IO, msg...; bold::Bool=false, italic::Bool=false, underline::Bool=false, blink::Bool=false, reverse::Bool=false, hidden::Bool=false, color::Union{Int,Symbol}=:normal)	modelled	iocov-util-faithful-color	
+base/util.jl	145	146	printstyled	printstyled(msg...; bold::Bool=false, italic::Bool=false, underline::Bool=false, blink::Bool=false, reverse::Bool=false, hidden::Bool=false, color::Union{Int,Symbol}=:normal)	modelled	iocov-util-faithful-color	
+base/util.jl	173	258	julia_cmd	julia_cmd(julia=joinpath(Sys.BINDIR, julia_exename()); cpu_target::Union{Nothing,String} = nothing)	modelled	iocov-util-faithful-julia-command	
+base/util.jl	260	266	julia_exename	julia_exename()	modelled	iocov-util-faithful-julia-command	
+base/util.jl	276	276	securezero!	securezero!	excluded		no-behaviour: empty generic-function declaration of securezero!
+base/util.jl	277	277	securezero!	securezero!(a::AbstractArray{<:Number})	modelled	iocov-util-faithful-zero	
+base/util.jl	278	279	unsafe_securezero!	unsafe_securezero!(p::Ptr{T}, len::Integer=1) where {T}	modelled	iocov-util-faithful-zero	
+base/util.jl	280	280	unsafe_securezero!	unsafe_securezero!(p::Ptr{Cvoid}, len::Integer=1)	modelled	iocov-util-faithful-zero	
+base/util.jl	307	307	getpass	getpass	excluded		no-behaviour: empty generic-function declaration of getpass
+base/util.jl	310	316	_getch	_getch()	modelled	iocov-util-faithful-terminal	
+base/util.jl	319	319	make_termios	make_termios()	modelled	iocov-util-make-termios	
+base/util.jl	325	330	tcgetattr	tcgetattr(fd::RawFD, termios)	modelled	iocov-util-faithful-terminal	
+base/util.jl	331	336	tcsetattr	tcsetattr(fd::RawFD, termios, mode::TCSETATTR_FLAGS = TCSADRAIN)	modelled	iocov-util-faithful-terminal	
+base/util.jl	337	337	cfmakeraw	cfmakeraw(termios)	modelled	iocov-util-faithful-terminal	
+base/util.jl	339	363	with_raw_tty	with_raw_tty(f::Function, input::TTY)	modelled	iocov-util-faithful-raw-tty	
+base/util.jl	365	388	getpass	getpass(input::TTY, output::IO, prompt::AbstractString; with_suffix::Bool=true)	modelled	iocov-util-faithful-getpass	
+base/util.jl	392	392	getpass	getpass(prompt::AbstractString; with_suffix::Bool=true)	modelled	iocov-util-faithful-getpass	
+base/util.jl	413	420	prompt	"prompt(input::IO, output::IO, message::AbstractString; default::AbstractString="""")"	modelled	iocov-util-faithful-prompt	
+base/util.jl	424	424	prompt	"prompt(message::AbstractString; default::AbstractString="""")"	modelled	iocov-util-faithful-prompt	
+base/util.jl	445	511	winprompt	winprompt(message, caption, default_username; prompt_username = true)	excluded		platform: Windows-only winprompt
+base/util.jl	515	515	unsafe_crc32c	unsafe_crc32c(a, n, crc)	modelled	iocov-util-unsafe-crc32c	
+base/util.jl	517	518	_crc32c	_crc32c(a::NTuple{<:Any, UInt8}, crc::UInt32=0x00000000)	modelled	iocov-util-crc32c-tuple	
+base/util.jl	520	522	_crc32c	_crc32c(a::DenseUInt8OrInt8, crc::UInt32=0x00000000)	modelled	iocov-util-crc32c-dense	
+base/util.jl	524	526	_crc32c	_crc32c(s::Union{String, SubString{String}}, crc::UInt32=0x00000000)	modelled	iocov-util-crc32c-string	
+base/util.jl	528	539	_crc32c	_crc32c(io::IO, nb::Integer, crc::UInt32=0x00000000)	modelled	iocov-util-faithful-crc	
+base/util.jl	540	540	_crc32c	_crc32c(io::IO, crc::UInt32=0x00000000)	modelled	iocov-util-faithful-crc	
+base/util.jl	541	541	_crc32c	_crc32c(io::IOStream, crc::UInt32=0x00000000)	modelled	iocov-util-faithful-crc	
+base/util.jl	542	543	_crc32c	_crc32c(x::UInt128, crc::UInt32=0x00000000)	modelled	iocov-util-faithful-crc	
+base/util.jl	544	545	_crc32c	_crc32c(x::UInt64, crc::UInt32=0x00000000)	modelled	iocov-util-faithful-crc	
+base/util.jl	546	547	_crc32c	_crc32c(x::UInt32, crc::UInt32=0x00000000)	modelled	iocov-util-faithful-crc	
+base/util.jl	548	549	_crc32c	_crc32c(x::UInt16, crc::UInt32=0x00000000)	modelled	iocov-util-faithful-crc	
+base/util.jl	550	551	_crc32c	_crc32c(x::UInt8, crc::UInt32=0x00000000)	modelled	iocov-util-crc32c-u8	
+base/util.jl	590	642	kwdef	kwdef(expr)	modelled	iocov-util-faithful-kwdef	
+base/util.jl	646	665	extract_names_and_defvals_from_kwdef_fieldblock!	extract_names_and_defvals_from_kwdef_fieldblock!(block, names, defvals)	modelled	iocov-util-faithful-kwdef	
+base/util.jl	667	684	def_name_defval_from_kwdef_fielddef	def_name_defval_from_kwdef_fielddef(kwdef)	modelled	iocov-util-faithful-kwdef	
+base/util.jl	703	739	runtests	"runtests(tests = [""all""]; ncores::Int = ceil(Int, Sys.EFFECTIVE_CPU_THREADS / 2), exit_on_error::Bool=false, revise::Bool=false, propagate_project::Bool=false, seed::Union{BitInteger,Nothing}=nothing, julia_args::Cmd=``)"	modelled	iocov-util-faithful-runtests,iocov-runtests-propagate-doc	

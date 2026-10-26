@@ -1,0 +1,2 @@
+file	line	endline	name	signature	status	entry	note
+base/osutils.jl	24	48	static	static(ex)	modelled	misccov-osutils-static	

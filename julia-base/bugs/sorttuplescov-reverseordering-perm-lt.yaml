@@ -1,0 +1,52 @@
+id: sorttuplescov-reverseordering-perm-lt
+title: "ReverseOrdering docstring: lt(ReverseOrdering(o), a, b) == lt(o, b, a) fails for Perm orderings"
+priority: P3
+kind: documentation
+area: Sort
+files: [base/ordering.jl]
+functions: ["ReverseOrdering(perm::Perm)", "lt(p::Perm, a::Integer, b::Integer)"]
+summary: |
+  The ReverseOrdering docstring states that lt(ReverseOrdering(o), a, b) == lt(o, b, a)
+  holds for every ordering o and all a, b. ReverseOrdering(Perm(order, data)) is
+  Perm(ReverseOrdering(order), data), which keeps the ascending index tie-breaker,
+  so for equal data values the identity fails: with p = Perm(Forward, [0, 0]),
+  lt(ReverseOrdering(p), 1, 2) is true and lt(p, 2, 1) is false.
+likelihood: |
+  Low: only code that relies on the documented identity for Perm orderings, such
+  as a custom algorithm reversing a Perm order, sees the difference.
+maybe_intended: |
+  Keeping the ascending tie-breaker is what makes sortperm(v; rev=true) stable, so
+  the behaviour is deliberate and the docstring overstates the identity.
+reproducer: |
+  using Base.Order: Perm, Forward, ReverseOrdering, lt
+  p = Perm(Forward, [0, 0])
+  lt(ReverseOrdering(p), 1, 2)   # true
+  lt(p, 2, 1)                    # false
+output:
+  release: |
+    true false
+    REPRODUCED sorttuplescov-reverseordering-perm-lt
+  nightly: |
+    true false
+    REPRODUCED sorttuplescov-reverseordering-perm-lt
+reproduced: {release: true, nightly: true}
+expected: |
+  Either the identity holds, or the docstring excludes Perm (the tie-breaker of
+  Perm is not reversed).
+promised_by: |
+  ReverseOrdering docstring, base/ordering.jl:33-41: "For a given Ordering o, the
+  following holds for all a, b: lt(ReverseOrdering(o), a, b) == lt(o, b, a)".
+cause: |
+  ReverseOrdering(perm::Perm) = Perm(ReverseOrdering(perm.order), perm.data)
+  (base/ordering.jl:111), and lt(p::Perm, a, b) breaks ties by a < b
+  (base/ordering.jl:126) whatever the order.
+possible_fix: |
+  State in the docstring that ReverseOrdering of a Perm reverses the data order
+  but keeps ties in ascending index order.
+duplicates:
+  issues:
+    - {number: 46732, state: merged, relation: related}
+  queries: ["issues: ReverseOrdering Perm", "issues: ReverseOrdering docstring lt", "issues/prs: ReverseOrdering", "issues/prs: Order.Perm reverse"]
+lean:
+  property: JuliaLean.SortTuplesCov.ReverseOrderingLtSwap
+  theorem: JuliaLean.SortTuplesCov.reverseOrderingLtSwap_refuted

@@ -1,0 +1,31 @@
+file	line	endline	name	signature	status	entry	note
+base/parse.jl	37	37	parse	parse(::Type{Union{}}, slurp...; kwargs...)	modelled	docssyntaxcov-parse-union	
+base/parse.jl	39	47	parse	parse(::Type{T}, c::AbstractChar; base::Integer = 10) where T<:Integer	modelled	docssyntaxcov-parse-char	
+base/parse.jl	53	53	isspace_ascii	isspace_ascii(b::UInt8)	modelled	docssyntaxcov-parse-whitespace	
+base/parse.jl	57	60	skipspacechar	skipspacechar(s::UTF8String, i::Int)	modelled	docssyntaxcov-parse-whitespace	
+base/parse.jl	63	66	skipspacechar_back	skipspacechar_back(s::UTF8String, i::Int, j::Int)	modelled	docssyntaxcov-parse-whitespace	
+base/parse.jl	70	82	skipspace	skipspace(s::UTF8String, i::Int, j::Int)	modelled	docssyntaxcov-parse-whitespace	
+base/parse.jl	85	97	skipspace_back	skipspace_back(s::UTF8String, i::Int, j::Int)	modelled	docssyntaxcov-parse-whitespace	
+base/parse.jl	102	123	parseint_preamble	parseint_preamble(signed::Bool, base::Int, s::UTF8String, i::Int, j::Int)	modelled	docssyntaxcov-parse-whitespace	
+base/parse.jl	127	148	parseint_utf8	parseint_utf8(::Type{T}, s::UTF8String, i::Int, j::Int, base::Int, raise::Bool) where {T<:Integer}	modelled	docssyntaxcov-parse-whitespace	
+base/parse.jl	153	171	throw_parseint_error	throw_parseint_error(::Type{T}, s::UTF8String, i::Int, j::Int, sgn::Int, base::Int, d::Int) where {T}	modelled	docssyntaxcov-parse-whitespace	
+base/parse.jl	173	182	tryparse_internal	tryparse_internal(::Type{T}, s::AbstractString, startpos::Int, endpos::Int, base::Integer, raise::Bool) where T<:Integer	modelled	docssyntaxcov-parse-int-range	
+base/parse.jl	184	232	tryparse_internal	tryparse_internal(::Type{Bool}, sbuff::AbstractString, startpos::Int, endpos::Int, base::Integer, raise::Bool)	modelled	docssyntaxcov-parse-bool-leading-space,docssyntaxcov-parse-wrappers	
+base/parse.jl	234	239	check_valid_base	check_valid_base(base)	modelled	docssyntaxcov-parse-int-range,docssyntaxcov-parse-int-string	
+base/parse.jl	247	248	tryparse	tryparse(::Type{T}, s::AbstractString; base::Union{Nothing,Integer} = nothing) where {T<:Integer}	modelled	docssyntaxcov-parse-int-range,docssyntaxcov-parse-int-string	
+base/parse.jl	250	254	parse	parse(::Type{T}, s::AbstractString; base::Union{Nothing,Integer} = nothing) where {T<:Integer}	modelled	docssyntaxcov-parse-int-range,docssyntaxcov-parse-int-string	
+base/parse.jl	258	262	parseint_string	parseint_string(::Type{T}, s::AbstractString, base, raise::Bool) where {T<:Integer}	modelled	docssyntaxcov-parse-int-range,docssyntaxcov-parse-int-string	
+base/parse.jl	263	263	tryparse	tryparse(::Type{Union{}}, slurp...; kwargs...)	modelled	docssyntaxcov-parse-int-range,docssyntaxcov-parse-int-string	
+base/parse.jl	268	277	tryparse_internal	tryparse_internal(::Type{T}, s::DenseUTF8String, i::Int, j::Int) where {T<:IEEEFloat}	modelled	docssyntaxcov-parse-wrappers,docssyntaxcov-parse-real	
+base/parse.jl	278	279	tryparse	tryparse(::Type{T}, s::DenseUTF8String) where {T<:IEEEFloat}	modelled	docssyntaxcov-parse-wrappers,docssyntaxcov-parse-real	
+base/parse.jl	280	280	tryparse	tryparse(::Type{T}, s::AbstractString) where {T<:IEEEFloat}	modelled	docssyntaxcov-parse-wrappers,docssyntaxcov-parse-real	
+base/parse.jl	284	339	tryparse_internal	tryparse_internal(::Type{Complex{T}}, s::DenseUTF8String, i::Int, e::Int, raise::Bool) where {T<:Real}	modelled	docssyntaxcov-parse-complex-trailing	
+base/parse.jl	342	343	tryparse_internal	tryparse_internal(T::Type{Complex{S}}, s::AbstractString, i::Int, e::Int, raise::Bool) where S<:Real	modelled	docssyntaxcov-parse-complex-trailing	
+base/parse.jl	346	347	tryparse_internal	tryparse_internal(::Type{T}, s::AbstractString, startpos::Int, endpos::Int) where T<:Real	modelled	docssyntaxcov-parse-real,docssyntaxcov-parse-wrappers	
+base/parse.jl	348	354	tryparse_internal	tryparse_internal(::Type{T}, s::AbstractString, startpos::Int, endpos::Int, raise::Bool) where T<:Real	modelled	docssyntaxcov-parse-real,docssyntaxcov-parse-wrappers	
+base/parse.jl	355	361	tryparse_internal	tryparse_internal(::Type{T}, s::AbstractString, raise::Bool; kwargs...) where T<:Real	modelled	docssyntaxcov-parse-real,docssyntaxcov-parse-wrappers	
+base/parse.jl	362	363	_parse_failure	_parse_failure(T, s::AbstractString, startpos = firstindex(s), endpos = lastindex(s))	modelled	docssyntaxcov-parse-real,docssyntaxcov-parse-wrappers	
+base/parse.jl	365	366	tryparse_internal	tryparse_internal(::Type{T}, s::AbstractString, startpos::Int, endpos::Int, raise::Bool) where T<:Integer	modelled	docssyntaxcov-parse-real,docssyntaxcov-parse-wrappers	
+base/parse.jl	368	369	parse	parse(::Type{T}, s::AbstractString; kwargs...) where T<:Real	modelled	docssyntaxcov-parse-real,docssyntaxcov-parse-wrappers	
+base/parse.jl	370	371	parse	parse(::Type{T}, s::AbstractString) where T<:Complex	modelled	docssyntaxcov-parse-complex-trailing	
+base/parse.jl	373	374	tryparse	tryparse(T::Type{Complex{S}}, s::AbstractString) where S<:Real	modelled	docssyntaxcov-parse-complex-trailing	

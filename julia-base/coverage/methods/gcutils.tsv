@@ -1,0 +1,19 @@
+file	line	endline	name	signature	status	entry	note
+base/gcutils.jl	37	37	==	==(w::WeakRef, v::WeakRef)	todo		
+base/gcutils.jl	38	38	==	==(w::WeakRef, v)	todo		
+base/gcutils.jl	39	39	==	==(w, v::WeakRef)	todo		
+base/gcutils.jl	42	46	_check_mutable	_check_mutable(@nospecialize(o))	todo		
+base/gcutils.jl	87	91	finalizer	finalizer(@nospecialize(f), @nospecialize(o))	todo		
+base/gcutils.jl	93	98	finalizer	finalizer(f::Ptr{Cvoid}, o::T) where T	todo		
+base/gcutils.jl	105	106	finalize	finalize(@nospecialize(o))	todo		
+base/gcutils.jl	136	137	gc	gc(full::Bool=true)	todo		
+base/gcutils.jl	149	149	enable	enable(on::Bool)	todo		
+base/gcutils.jl	159	159	enable_finalizers	enable_finalizers(on::Bool)	todo		
+base/gcutils.jl	161	166	enable_finalizers	enable_finalizers()	todo		
+base/gcutils.jl	168	170	disable_finalizers	disable_finalizers()	todo		
+base/gcutils.jl	185	187	in_finalizer	in_finalizer()	todo		
+base/gcutils.jl	237	243	preserve	preserve(args...)	todo		
+base/gcutils.jl	267	267	safepoint	safepoint()	todo		
+base/gcutils.jl	274	276	enable_logging	enable_logging(on::Bool=true)	todo		
+base/gcutils.jl	283	285	logging_enabled	logging_enabled()	todo		
+base/gcutils.jl	293	295	gc_active_impl	gc_active_impl()	todo		

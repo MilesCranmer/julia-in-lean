@@ -1,0 +1,9 @@
+file	line	endline	name	signature	status	entry	note
+base/module.jl	12	56	eval_import_path	eval_import_path(at::Module, from::Union{Module, Nothing}, path::Expr, keyword::String)	modelled	misccov-module-import-path	
+base/module.jl	16	23	next!	next!()	modelled	misccov-module-import	
+base/module.jl	58	65	eval_import_path_all	eval_import_path_all(at::Module, path::Expr, keyword::String)	modelled	misccov-module-import-path	
+base/module.jl	67	76	check_macro_rename	check_macro_rename(from::Symbol, to::Symbol, keyword::String)	modelled	misccov-module-import-path	
+base/module.jl	68	68	c1	c1(sym)	modelled	misccov-module-import	
+base/module.jl	97	120	_eval_import	_eval_import(imported::Bool, to::Module, from::Union{Expr, Nothing}, paths::Expr...)	modelled	misccov-module-import	
+base/module.jl	99	99	fail	fail()	modelled	misccov-module-import	
+base/module.jl	135	142	_eval_using	_eval_using(to::Module, path::Expr, flags::UInt8=UInt8(0))	modelled	misccov-module-import-path	

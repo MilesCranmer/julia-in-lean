@@ -1,0 +1,60 @@
+id: iocov-lazylibrary-throw-error
+title: "dlopen(::LazyLibrary; throw_error=false) throws MethodError instead of returning nothing"
+priority: P2
+kind: wrong-exception
+area: IOCov
+files: [base/libdl.jl]
+functions: ["Libdl.dlopen(::LazyLibrary, ::Integer; kwargs...)"]
+summary: |
+  dlopen(ll::LazyLibrary; kwargs...) forwards its keywords to dlopen on the library
+  path. With throw_error=false and a library that cannot be loaded, that call returns
+  nothing, which is then stored into the handle::Ptr{Cvoid} field, so the call throws
+  "MethodError: Cannot convert an object of type Nothing to an object of type
+  Ptr{Nothing}" instead of returning nothing.
+likelihood: |
+  Code that probes optional libraries with a LazyLibrary and throw_error=false hits
+  it every time the library is missing.
+maybe_intended: ""
+reproducer: |
+  using Base.Libc.Libdl
+  println("dlopen(name; throw_error=false) = ", dlopen("libiocov_missing_lib"; throw_error=false))
+  ll = LazyLibrary("libiocov_missing_lib")
+  try
+      r = dlopen(ll; throw_error=false)
+      println("dlopen(::LazyLibrary; throw_error=false) = ", r)
+  catch e
+      println("dlopen(::LazyLibrary; throw_error=false) threw ", typeof(e), ": ", first(sprint(showerror, e), 90))
+      e isa MethodError && println("REPRODUCED iocov-lazylibrary-throw-error")
+  end
+output:
+  release: |
+    dlopen(name; throw_error=false) = nothing
+    dlopen(::LazyLibrary; throw_error=false) threw MethodError: MethodError: Cannot `convert` an object of type Nothing to an object of type Ptr{Nothing}
+
+    REPRODUCED iocov-lazylibrary-throw-error
+  nightly: |
+    dlopen(name; throw_error=false) = nothing
+    dlopen(::LazyLibrary; throw_error=false) threw MethodError: MethodError: Cannot `convert` an object of type Nothing to an object of type Ptr{Nothing}
+
+    REPRODUCED iocov-lazylibrary-throw-error
+reproduced: {release: true, nightly: true}
+expected: |
+  dlopen(::LazyLibrary; throw_error=false) = nothing, with the handle left as C_NULL so
+  a later call can retry.
+promised_by: |
+  dlopen docstring, base/libdl.jl:108-109: "If the library cannot be found, this method
+  throws an error, unless the keyword argument `throw_error` is set to `false`, in which
+  case this method returns `nothing`." dlopen(::LazyLibrary) accepts and forwards kwargs.
+cause: |
+  base/libdl.jl:531-532: handle = dlopen(_lazy_library_path_string(ll.path), flags;
+  kwargs...) can be nothing, and @atomic :release ll.handle = handle converts it to
+  Ptr{Cvoid}. A missing dependency with throw_error=false is likewise ignored.
+possible_fix: |
+  Return nothing (without storing it or running the callback) when the inner dlopen
+  returns nothing, and stop when a dependency returns nothing.
+duplicates:
+  issues: []
+  queries: ["LazyLibrary throw_error", "LazyLibrary dlopen nothing", "LazyLibrary dlopen"]
+lean:
+  property: JuliaLean.IOCov.LibdlFaithful.LazyDlopenNothing
+  theorem: JuliaLean.IOCov.LibdlFaithful.lazyDlopenNothing_refuted

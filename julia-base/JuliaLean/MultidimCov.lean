@@ -1,0 +1,159 @@
+import JuliaLean.MultidimCov.Reviewed
+import JuliaLean.MultidimCov.ExactBugs
+import JuliaLean.MultidimCov.SlicesExact
+import JuliaLean.MultidimCov.SlicesReviewFix
+import JuliaLean.MultidimCov.SubarrayConstruction
+import JuliaLean.MultidimCov.SubarrayTrim
+import JuliaLean.MultidimCov.SubarrayAccess
+import JuliaLean.MultidimCov.SubarrayLayout
+import JuliaLean.MultidimCov.SubarrayReviewFix
+import JuliaLean.MultidimCov.SubarrayFaithfulA
+import JuliaLean.MultidimCov.SubarrayFaithfulB
+import JuliaLean.MultidimCov.SubarrayFaithfulC
+import JuliaLean.MultidimCov.ReshapedFaithfulA
+import JuliaLean.MultidimCov.ReshapedFaithfulB
+import JuliaLean.MultidimCov.AbstractArrayTodo
+import JuliaLean.MultidimCov.CartesianSimple
+import JuliaLean.MultidimCov.CartesianSimpleMore
+import JuliaLean.MultidimCov.CartesianIndicesSimple
+import JuliaLean.MultidimCov.CartesianIndicesMore
+import JuliaLean.MultidimCov.CartesianIterExact
+import JuliaLean.MultidimCov.CartesianIterMore
+import JuliaLean.MultidimCov.IndexingExact
+import JuliaLean.MultidimCov.IndexingMore
+import JuliaLean.MultidimCov.AlgorithmsExact
+import JuliaLean.MultidimCov.AlgorithmsMore
+import JuliaLean.MultidimCov.MethodWrappers
+import JuliaLean.MultidimCov.ArrayReviewFix
+import JuliaLean.MultidimCov.BroadcastReviewFix
+import JuliaLean.MultidimCov.BroadcastStyleFaithful
+import JuliaLean.MultidimCov.BroadcastLazyFaithful
+import JuliaLean.MultidimCov.BroadcastFlattenFaithful
+import JuliaLean.MultidimCov.BroadcastShapeFaithful
+import JuliaLean.MultidimCov.BroadcastIndexFaithful
+import JuliaLean.MultidimCov.BroadcastMaterialFaithful
+import JuliaLean.MultidimCov.BroadcastBitsFaithful
+import JuliaLean.MultidimCov.BroadcastSyntaxFaithful
+import JuliaLean.MultidimCov.BroadcastRangeFaithful
+import JuliaLean.MultidimCov.MultidimensionalCartesianFaithful
+import JuliaLean.MultidimCov.MultidimensionalIndicesFaithful
+import JuliaLean.MultidimCov.MultidimensionalIteratorFaithful
+import JuliaLean.MultidimCov.MultidimensionalDispatchFaithful
+import JuliaLean.MultidimCov.MultidimensionalLogicalFaithful
+import JuliaLean.MultidimCov.MultidimensionalUnsafeFaithful
+import JuliaLean.MultidimCov.MultidimensionalArrayAlgorithmsFaithful
+import JuliaLean.MultidimCov.MultidimensionalBitsFaithful
+import JuliaLean.MultidimCov.MultidimensionalFinalFaithful
+import JuliaLean.MultidimCov.ArrayBasicsFaithful
+import JuliaLean.MultidimCov.ArrayCollectIndexFaithful
+import JuliaLean.MultidimCov.ArrayVectorFaithful
+import JuliaLean.MultidimCov.ArrayFindSetFaithful
+import JuliaLean.MultidimCov.AbstractArrayInterfaceFaithful
+import JuliaLean.MultidimCov.AbstractArrayCopyFaithful
+import JuliaLean.MultidimCov.AbstractArrayIndexFaithful
+import JuliaLean.MultidimCov.AbstractArrayAliasFaithful
+import JuliaLean.MultidimCov.AbstractArrayConcatFaithful
+import JuliaLean.MultidimCov.AbstractArrayHvncatFaithful
+import JuliaLean.MultidimCov.AbstractArrayStackFaithful
+import JuliaLean.MultidimCov.AbstractArrayOrderIndexFaithful
+import JuliaLean.MultidimCov.AbstractArrayMapFaithful
+import JuliaLean.MultidimCov.ArrayMathReview
+import JuliaLean.MultidimCov.ArrayMathFaithfulFinal
+import JuliaLean.MultidimCov.AbstractArrayMathReview
+import JuliaLean.MultidimCov.PermutedDimsReview
+import JuliaLean.MultidimCov.PermutedDimsFaithfulFinal
+import JuliaLean.MultidimCov.ReinterpretConstructReview
+import JuliaLean.MultidimCov.ReinterpretMetaReview
+import JuliaLean.MultidimCov.ReinterpretAccessReview
+import JuliaLean.MultidimCov.ReinterpretPaddingReview
+import JuliaLean.MultidimCov.ViewsReview
+import JuliaLean.MultidimCov.ViewsFaithfulFinal
+import JuliaLean.MultidimCov.ReducedimFaithfulA
+import JuliaLean.MultidimCov.ReducedimFaithfulB
+import JuliaLean.MultidimCov.IndicesFaithful
+import JuliaLean.MultidimCov.AbstractArrayMathFaithful
+import JuliaLean.MultidimCov.ReinterpretFaithful
+import JuliaLean.MultidimCov.SlicesFaithfulFinal
+import JuliaLean.Registry.Types
+
+namespace JuliaLean.MultidimCov
+
+open JuliaLean.Registry
+
+/-- Row-specific entries accepted by the strict method-coverage contract. -/
+def entries : List Entry := reviewedEntries ++ exactBugEntries ++ sliceExactEntries
+  ++ slicesReviewFixEntries
+  ++ subarrayConstructionEntries
+  ++ subarrayTrimEntries
+  ++ subarrayAccessEntries
+  ++ subarrayLayoutEntries
+  ++ subarrayReviewFixEntries
+  ++ SubarrayFaithfulA.entries
+  ++ SubarrayFaithfulB.entries
+  ++ SubarrayFaithfulC.entries
+  ++ ReshapedFaithfulA.entries
+  ++ ReshapedFaithfulB.entries
+  ++ abstractArrayTodoEntries
+  ++ cartesianSimpleEntries
+  ++ cartesianSimpleMoreEntries
+  ++ cartesianIndicesSimpleEntries
+  ++ cartesianIndicesMoreEntries
+  ++ cartesianIterEntries
+  ++ cartesianIterMoreEntries
+  ++ indexingExactEntries
+  ++ indexingMoreEntries
+  ++ algorithmsExactEntries
+  ++ algorithmsMoreEntries
+  ++ methodWrapperEntries
+  ++ arrayReviewFixEntries
+  ++ broadcastReviewFixEntries
+  ++ BroadcastStyleFaithful.entries
+  ++ BroadcastLazyFaithful.entries
+  ++ BroadcastFlattenFaithful.entries
+  ++ BroadcastShapeFaithful.entries
+  ++ BroadcastIndexFaithful.entries
+  ++ BroadcastMaterialFaithful.entries
+  ++ BroadcastBitsFaithful.entries
+  ++ BroadcastSyntaxFaithful.entries
+  ++ BroadcastRangeFaithful.entries
+  ++ MultidimensionalCartesianFaithful.entries
+  ++ MultidimensionalIndicesFaithful.entries
+  ++ MultidimensionalIteratorFaithful.entries
+  ++ MultidimensionalDispatchFaithful.entries
+  ++ MultidimensionalLogicalFaithful.entries
+  ++ MultidimensionalUnsafeFaithful.entries
+  ++ MultidimensionalArrayAlgorithmsFaithful.entries
+  ++ MultidimensionalBitsFaithful.entries
+  ++ MultidimensionalFinalFaithful.entries
+  ++ ArrayBasicsFaithful.entries
+  ++ ArrayCollectIndexFaithful.entries
+  ++ ArrayVectorFaithful.entries
+  ++ ArrayFindSetFaithful.entries
+  ++ AbstractArrayInterfaceFaithful.entries
+  ++ AbstractArrayCopyFaithful.entries
+  ++ AbstractArrayIndexFaithful.entries
+  ++ AbstractArrayAliasFaithful.entries
+  ++ AbstractArrayConcatFaithful.entries
+  ++ AbstractArrayHvncatFaithful.entries
+  ++ AbstractArrayStackFaithful.entries
+  ++ AbstractArrayOrderIndexFaithful.entries
+  ++ AbstractArrayMapFaithful.entries
+  ++ arrayMathReviewEntries
+  ++ ArrayMathFaithfulFinal.entries
+  ++ abstractArrayMathReviewEntries
+  ++ permutedDimsReviewEntries
+  ++ PermutedDimsFaithfulFinal.entries
+  ++ reinterpretConstructReviewEntries
+  ++ reinterpretMetaReviewEntries
+  ++ reinterpretAccessReviewEntries
+  ++ reinterpretPaddingReviewEntries
+  ++ viewsReviewEntries
+  ++ ViewsFaithfulFinal.entries
+  ++ ReducedimFaithfulA.entries
+  ++ ReducedimFaithfulB.entries
+  ++ IndicesFaithful.entries
+  ++ AbstractArrayMathFaithful.entries
+  ++ ReinterpretFaithful.entries
+  ++ SlicesFaithfulFinal.entries
+
+end JuliaLean.MultidimCov

@@ -1,0 +1,28 @@
+file	line	endline	name	signature	status	entry	note
+base/initdefs.jl	28	28	exit	exit(n)	modelled	runtimecov-initdefs-core	method-specific source model and settled invariant.
+base/initdefs.jl	29	29	exit	exit()	modelled	runtimecov-initdefs-core	method-specific source model and settled invariant.
+base/initdefs.jl	42	42	foreground_task	foreground_task()	modelled	runtimecov-initdefs-core	method-specific source model and settled invariant.
+base/initdefs.jl	52	66	as_foreground_task	as_foreground_task(expr)	modelled	runtimecov-initdefs-core	method-specific source model and settled invariant.
+base/initdefs.jl	75	75	isinteractive	isinteractive()	modelled	runtimecov-initdefs-core	method-specific source model and settled invariant.
+base/initdefs.jl	132	138	append_bundled_depot_path!	append_bundled_depot_path!(DEPOT_PATH)	modelled	runtimecov-initdefs-depot-append	method-specific source model and settled invariant.
+base/initdefs.jl	140	174	init_depot_path	init_depot_path()	modelled	runtimecov-depot-path-documented,runtimecov-init-depot-path-duplicate	method-specific source model and settled invariant.
+base/initdefs.jl	237	250	current_project	current_project(dir::AbstractString)	modelled	runtimecov-initdefs-current-project	method-specific source model and settled invariant.
+base/initdefs.jl	252	259	current_project	current_project()	modelled	runtimecov-initdefs-current-project	method-specific source model and settled invariant.
+base/initdefs.jl	261	279	parse_load_path	parse_load_path(str::String)	modelled	runtimecov-load-path-documented	method-specific source model and settled invariant.
+base/initdefs.jl	281	295	init_load_path	init_load_path()	modelled	runtimecov-load-path-documented	method-specific source model and settled invariant.
+base/initdefs.jl	297	306	init_active_project	init_active_project()	modelled	runtimecov-initdefs-active-init	method-specific source model and settled invariant.
+base/initdefs.jl	308	322	init_named_env!	init_named_env!(path)	modelled	runtimecov-initdefs-active-init	method-specific source model and settled invariant.
+base/initdefs.jl	325	325	cmd_suppresses_program	cmd_suppresses_program(cmd)	modelled	runtimecov-initdefs-active-init	method-specific source model and settled invariant.
+base/initdefs.jl	327	374	load_path_expand	load_path_expand(env::AbstractString)::Union{String, Nothing}	modelled	runtimecov-initdefs-expand-special,runtimecov-load-path-expand-script-prefix	method-specific source model and settled invariant.
+base/initdefs.jl	375	375	load_path_expand	load_path_expand(::Nothing)	modelled	runtimecov-initdefs-expand-special	method-specific source model and settled invariant.
+base/initdefs.jl	382	404	active_project	active_project(search_load_path::Bool=true)	modelled	runtimecov-initdefs-active-paths	method-specific source model and settled invariant.
+base/initdefs.jl	414	423	set_active_project	set_active_project(projfile::Union{AbstractString,Nothing})	modelled	runtimecov-initdefs-active-paths	method-specific source model and settled invariant.
+base/initdefs.jl	443	448	active_manifest	active_manifest(project_file::Union{AbstractString,Nothing}=nothing; search_load_path::Bool=true)	modelled	runtimecov-initdefs-active-paths	method-specific source model and settled invariant.
+base/initdefs.jl	460	469	load_path	load_path()	modelled	runtimecov-initdefs-active-paths	method-specific source model and settled invariant.
+base/initdefs.jl	502	510	atexit	atexit(f::Function)	modelled	runtimecov-initdefs-hooks	method-specific source model and settled invariant.
+base/initdefs.jl	512	533	_atexit	_atexit(exitcode::Cint)	modelled	runtimecov-initdefs-hooks	method-specific source model and settled invariant.
+base/initdefs.jl	535	567	_run_atexit_hooks	_run_atexit_hooks(exitcode::Cint)	modelled	runtimecov-initdefs-hooks	method-specific source model and settled invariant.
+base/initdefs.jl	574	574	postoutput	postoutput(f::Function)	modelled	runtimecov-initdefs-hooks	method-specific source model and settled invariant.
+base/initdefs.jl	576	587	_postoutput	_postoutput()	modelled	runtimecov-initdefs-hooks	method-specific source model and settled invariant.
+base/initdefs.jl	597	603	at_disable_library_threading	at_disable_library_threading(f)	modelled	runtimecov-initdefs-hooks	method-specific source model and settled invariant.
+base/initdefs.jl	605	617	disable_library_threading	disable_library_threading()	modelled	runtimecov-initdefs-hooks	method-specific source model and settled invariant.

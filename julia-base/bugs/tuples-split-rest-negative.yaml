@@ -1,0 +1,55 @@
+id: tuples-split-rest-negative
+title: "`Base.split_rest(v::Vector, n)` with negative `n` returns uninitialised elements"
+priority: P2
+kind: missing-error
+area: Tuples
+files: [base/bitarray.jl, base/tuple.jl]
+functions: ["split_rest(itr, n::Int, state...)", "_split_rest(a::Union{Vector, BitVector}, n::Int)"]
+summary: |
+  For a negative n, Base.split_rest(v, n) on a Vector or BitVector passes the
+  length check and calls resize!(a, length(a) - n) on the copied rest, which
+  grows it. The first returned vector therefore ends with -n uninitialised
+  elements (#undef for Vector{Any}, garbage for Vector{Int}). Strings throw
+  ArgumentError("n cannot be negative") and tuples throw BoundsError.
+likelihood: |
+  Low: split_rest is public API, but destructuring always passes a nonnegative
+  n. A negative n reaches it only through direct calls with a computed count.
+maybe_intended: |
+  A negative n is not meaningful, so any error would be acceptable; returning
+  uninitialised memory is not.
+reproducer: |
+  f, l = Base.split_rest(Any[1, 2, 3], -1)
+  length(f)            # 4
+  isassigned(f, 4)     # false
+  Base.split_rest([1, 2, 3], -1)   # ([1, 2, 3, <garbage>], Int64[])
+  Base.split_rest("abc", -1)       # ArgumentError("n cannot be negative: -1")
+output:
+  release: |
+    4 0 false
+    ArgumentError("n cannot be negative: -1")
+    REPRODUCED tuples-split-rest-negative
+  nightly: |
+    4 0 false
+    ArgumentError("n cannot be negative: -1")
+    REPRODUCED tuples-split-rest-negative
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError for n < 0, as for strings.
+promised_by: |
+  split_rest docstring, base/tuple.jl:215-221: the first collection "contains
+  all elements of the tail but the n last ones, which make up the second
+  collection"; together they are the tail. Invariant: Base never hands out
+  uninitialised elements without undef.
+cause: |
+  base/bitarray.jl:1932-1937: _split_rest(a::Union{Vector,BitVector}, n) only
+  checks length(a) < n (base/tuple.jl:255-259), so for n < 0 it computes
+  last_n = a[end-n+1:end] (empty) and resize!(a, length(a) - n) grows a.
+possible_fix: |
+  Throw ArgumentError for n < 0 in _check_length_split_rest, as
+  base/strings/basic.jl:506 does for strings.
+duplicates:
+  issues: []
+  queries: ["issues: split_rest", "issues: split_rest negative", "issues: resize! split_rest", "prs: split_rest"]
+lean:
+  property: JuliaLean.Tuples.SplitRestPartition
+  theorem: JuliaLean.Tuples.splitRestPartition_refuted

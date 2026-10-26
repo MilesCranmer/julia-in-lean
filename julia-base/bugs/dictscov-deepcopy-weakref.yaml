@@ -1,0 +1,68 @@
+id: dictscov-deepcopy-weakref
+title: "deepcopy(::WeakRef) returns an unregistered WeakRef whose value dangles after GC"
+priority: P0
+kind: crash
+area: DictsCov
+files: [base/deepcopy.jl]
+functions: ["deepcopy(x)", "deepcopy_internal(x, stackdict::IdDict)"]
+summary: |
+  deepcopy of a WeakRef (or of any object holding one, e.g. a WeakKeyDict,
+  whose ht keys are WeakRefs) goes through the generic mutable-struct path of
+  deepcopy_internal, which allocates the copy with jl_new_struct_uninit and
+  sets its field with jl_set_nth_field. Only WeakRef(x) registers a weak
+  reference with the GC, and the GC never marks through a WeakRef. The
+  deep-copied referent is reachable only through the copy, so it is freed at
+  the next collection while the copy's value field still points at it:
+  reading w2.value afterwards is a use-after-free (segfault in #62597).
+likelihood: |
+  Needs deepcopy of a WeakRef or of a structure containing one (a
+  WeakKeyDict, a cache object with a WeakRef field). Rare, but the result is
+  memory corruption.
+maybe_intended: ""
+reproducer: |
+  x = [1, 2, 3]
+  w2 = deepcopy(WeakRef(x))
+  probe = WeakRef(w2.value)
+  GC.gc(); GC.gc(true)
+  probe.value === nothing   # true: the copy was freed
+  w2.value                  # dangling pointer, not nothing
+output:
+  release: |
+    original referent alive: true
+    deep-copied referent collected by the GC: true
+    copy's WeakRef.value cleared to nothing: false
+    w2.value now points at freed memory
+    REPRODUCED dictscov-deepcopy-weakref
+  nightly: |
+    original referent alive: true
+    deep-copied referent collected by the GC: true
+    copy's WeakRef.value cleared to nothing: false
+    w2.value now points at freed memory
+    REPRODUCED dictscov-deepcopy-weakref
+reproduced: {release: true, nightly: true}
+expected: |
+  A copy that is itself a weak reference (created by WeakRef(...)), cleared
+  to nothing when its referent is collected, or a copy that keeps no dangling
+  pointer.
+promised_by: |
+  deepcopy docstring, base/deepcopy.jl:11-12: "everything is copied
+  recursively, resulting in a fully independent object"; WeakRef docstring,
+  base/gcutils.jl:9-10: "If the referenced value gets garbage-collected,
+  w.value will be set to nothing."
+cause: |
+  base/deepcopy.jl:62-80: the generic method copies every mutable object with
+  jl_new_struct_uninit and jl_set_nth_field; there is no
+  deepcopy_internal(::WeakRef). src/gc-stock.c:359-366 registers weak
+  references only in jl_gc_new_weakref_th, and src/gc-stock.c:2744 skips
+  marking the fields of WeakRef objects.
+possible_fix: |
+  Add deepcopy_internal(x::WeakRef, stackdict) that returns
+  WeakRef(deepcopy_internal(x.value, stackdict)) (registered), or one that
+  returns x unchanged.
+duplicates:
+  issues:
+    - {number: 62597, state: open, relation: duplicate}
+  queries: ["deepcopy WeakRef", "deepcopy WeakKeyDict", "WeakRef deepcopy segfault", "WeakRef", "deepcopy"]
+lean:
+  property: JuliaLean.DictsCov.DeepcopyWeakRegistered
+  theorem: JuliaLean.DictsCov.deepcopyWeakRegistered_refuted

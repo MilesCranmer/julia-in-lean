@@ -1,0 +1,50 @@
+id: rangescov-linspace-int128-overflow
+title: "range(a, b; length) with large Int128 endpoints silently returns negative elements"
+priority: P2
+kind: wrong-result
+area: RangesCov
+files: ["base/twiceprecision.jl"]
+functions: ["range(::Int128, ::Int128; length)", "_linspace(::Type{Float64}, ::Integer, ::Integer, ::Integer, ::Integer)"]
+summary: |
+  range(Int128(2)^126, Int128(2)^126 + Int128(2)^80; length=4) returns four elements near -2.8e37
+  instead of values near 8.5e37. The reference numerator is computed in Int128 and wraps.
+likelihood: |
+  Needs Int128 endpoints whose magnitude times (length - 1) exceeds 2^127, i.e. very large Int128
+  values or long ranges of moderately large Int128 values. Uncommon, but the result is silently wrong.
+maybe_intended: ""
+reproducer: |
+  a = Int128(2)^126
+  b = a + Int128(2)^80
+  r = range(a, b; length=4)
+  println("range(2^126, 2^126 + 2^80; length=4) = ", collect(r))
+  println("expected first ≈ ", Float64(a), " and last ≈ ", Float64(b))
+  (first(r) < 0 && Float64(a) > 0) && println("REPRODUCED rangescov-linspace-int128-overflow")
+output:
+  release: |
+    range(2^126, 2^126 + 2^80; length=4) = [-2.8356863910078204e37, -2.83568639100778e37, -2.83568639100774e37, -2.8356863910076995e37]
+    expected first ≈ 8.507059173023462e37 and last ≈ 8.507059173023582e37
+    REPRODUCED rangescov-linspace-int128-overflow
+  nightly: |
+    range(2^126, 2^126 + 2^80; length=4) = [-2.8356863910078204e37, -2.83568639100778e37, -2.83568639100774e37, -2.8356863910076995e37]
+    expected first ≈ 8.507059173023462e37 and last ≈ 8.507059173023582e37
+    REPRODUCED rangescov-linspace-int128-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  A Float64 range from 8.507059173023462e37 to 8.507059173023582e37 (or an OverflowError).
+promised_by: |
+  range docstring, base/range.jl:73-80: range(start, stop; length) returns length evenly spaced
+  values from start to stop.
+cause: |
+  base/twiceprecision.jl:726-729: W = widen(L) is Int128 when the length type is Int, so for Int128
+  endpoints ref_num = W(len-imin) * start_n + W(imin-1) * stop_n is computed in Int128 and wraps
+  (3 * 2^126 overflows).
+possible_fix: |
+  Widen with respect to the endpoint type as well (for example W = widen(promote_type(L, typeof(start_n))))
+  or use checked arithmetic.
+duplicates:
+  issues:
+    - {number: 58138, state: open, relation: related}
+  queries: ["issues: range Int128 length", "issues: range Int128 overflow", "issues: _linspace Int128", "prs: range Int128 length", "prs: _linspace Int128"]
+lean:
+  property: JuliaLean.RangesCov.Twice.LinspaceIntPositive
+  theorem: JuliaLean.RangesCov.Twice.linspaceIntPositive_refuted

@@ -1,0 +1,40 @@
+file	line	endline	name	signature	status	entry	note
+base/meta.jl	25	25	is_id_start_char	is_id_start_char(c::AbstractChar)	modelled	exprreflect-meta-row-25	method-specific mirror and property: exprreflect-meta-row-25
+base/meta.jl	26	26	is_id_char	is_id_char(c::AbstractChar)	modelled	exprreflect-meta-row-26	method-specific mirror and property: exprreflect-meta-row-26
+base/meta.jl	48	55	isidentifier	isidentifier(s::AbstractString)	modelled	exprreflect-meta-row-48	method-specific mirror and property: exprreflect-meta-row-48
+base/meta.jl	56	56	isidentifier	isidentifier(s::Symbol)	modelled	exprreflect-meta-row-56	method-specific mirror and property: exprreflect-meta-row-56
+base/meta.jl	58	58	is_op_suffix_char	is_op_suffix_char(c::AbstractChar)	modelled	exprreflect-meta-row-58	method-specific mirror and property: exprreflect-meta-row-58
+base/meta.jl	60	60	_isoperator	_isoperator(s)	modelled	exprreflect-meta-row-60	method-specific mirror and property: exprreflect-meta-row-60
+base/meta.jl	73	73	isoperator	isoperator(s::Union{Symbol,AbstractString})	modelled	exprreflect-meta-row-73	method-specific mirror and property: exprreflect-meta-row-73
+base/meta.jl	86	86	isunaryoperator	isunaryoperator(s::Symbol)	modelled	exprreflect-meta-row-86	method-specific mirror and property: exprreflect-meta-row-86
+base/meta.jl	87	87	is_unary_and_binary_operator	is_unary_and_binary_operator(s::Symbol)	modelled	exprreflect-meta-row-87	method-specific mirror and property: exprreflect-meta-row-87
+base/meta.jl	88	88	is_syntactic_operator	is_syntactic_operator(s::Symbol)	modelled	exprreflect-meta-row-88	method-specific mirror and property: exprreflect-meta-row-88
+base/meta.jl	101	104	isbinaryoperator	isbinaryoperator(s::Symbol)	modelled	exprreflect-meta-row-101	method-specific mirror and property: exprreflect-meta-row-101
+base/meta.jl	117	120	ispostfixoperator	ispostfixoperator(s::Union{Symbol,AbstractString})	modelled	exprreflect-meta-row-117	method-specific mirror and property: exprreflect-meta-row-117
+base/meta.jl	128	134	is_valid_identifier	is_valid_identifier(sym)	modelled	exprreflect-meta-row-128	method-specific mirror and property: exprreflect-meta-row-128
+base/meta.jl	158	158	quot	quot(ex)	modelled	exprreflect-meta-row-158	method-specific mirror and property: exprreflect-meta-row-158
+base/meta.jl	209	217	replace_sourceloc!	replace_sourceloc!(sourceloc, @nospecialize(ex))	modelled	exprreflect-meta-row-209	method-specific mirror and property: exprreflect-meta-row-209
+base/meta.jl	231	231	show_sexpr	show_sexpr(ex)	modelled	exprreflect-meta-row-231	method-specific mirror and property: exprreflect-meta-row-231
+base/meta.jl	232	232	show_sexpr	show_sexpr(io::IO, ex)	modelled	exprreflect-meta-row-232	method-specific mirror and property: exprreflect-meta-row-232
+base/meta.jl	233	233	show_sexpr	show_sexpr(io::IO, ex, indent::Int)	modelled	exprreflect-meta-row-233	method-specific mirror and property: exprreflect-meta-row-233
+base/meta.jl	237	242	show_sexpr	show_sexpr(io::IO, ex::QuoteNode, indent::Int)	modelled	exprreflect-meta-row-237	method-specific mirror and property: exprreflect-meta-row-237
+base/meta.jl	243	256	show_sexpr	show_sexpr(io::IO, ex::Expr, indent::Int)	modelled	exprreflect-meta-row-243	method-specific mirror and property: exprreflect-meta-row-243
+base/meta.jl	264	266	dump	dump(expr)	modelled	exprreflect-meta-row-264	method-specific mirror and property: exprreflect-meta-row-264
+base/meta.jl	275	275	lower	lower(m::Module, @nospecialize(x))	modelled	exprreflect-meta-row-275	method-specific mirror and property: exprreflect-meta-row-275
+base/meta.jl	284	286	lower	lower(code)	modelled	exprreflect-meta-row-284	method-specific mirror and property: exprreflect-meta-row-284
+base/meta.jl	287	289	lower	lower(mod, code)	modelled	exprreflect-meta-row-287	method-specific mirror and property: exprreflect-meta-row-287
+base/meta.jl	305	305	ParseError	ParseError(msg::AbstractString)	modelled	exprreflect-meta-row-305	method-specific mirror and property: exprreflect-meta-row-305
+base/meta.jl	307	313	parser_for_module	parser_for_module(mod::Union{Module, Nothing})	modelled	exprreflect-meta-row-307	method-specific mirror and property: exprreflect-meta-row-307
+base/meta.jl	315	326	_parse_string	_parse_string(text::AbstractString, filename::AbstractString, lineno::Integer, index::Integer, options, type, _parse=parser_for_module(nothing))	modelled	exprreflect-meta-row-315	method-specific mirror and property: exprreflect-meta-row-315
+base/meta.jl	328	329	_is_parse_error	_is_parse_error(@nospecialize(ex))	modelled	exprreflect-meta-row-328	method-specific mirror and property: exprreflect-meta-row-328
+base/meta.jl	363	377	parse	"parse(str::AbstractString, pos::Integer; filename=""none"", greedy::Bool=true, raise::Bool=true, depwarn::Bool=true, mod::Union{Nothing, Module}=nothing, type=Expr, _parse = parser_for_module(mod))"	modelled	exprreflect-meta-row-363	method-specific mirror and property: exprreflect-meta-row-363
+base/meta.jl	406	421	parse	"parse(str::AbstractString; filename=""none"", raise::Bool=true, depwarn::Bool=true, mod::Union{Nothing, Module}=nothing, type=Expr, _parse = parser_for_module(mod))"	modelled	exprreflect-meta-row-406	method-specific mirror and property: exprreflect-meta-row-406
+base/meta.jl	423	427	parseatom	"parseatom(text::AbstractString, pos::Integer; filename=""none"", lineno=1, mod::Union{Nothing, Module}=nothing, type=Expr, _parse = parser_for_module(mod))"	modelled	exprreflect-meta-row-423	method-specific mirror and property: exprreflect-meta-row-423
+base/meta.jl	429	434	parseall	"parseall(text::AbstractString; filename=""none"", lineno=1, mod::Union{Nothing, Module}=nothing, type=Expr, _parse = parser_for_module(mod))"	modelled	exprreflect-meta-row-429	method-specific mirror and property: exprreflect-meta-row-429
+base/meta.jl	463	475	partially_inline!	partially_inline!(code::Vector{Any}, slot_replacements::Vector{Any}, @nospecialize(type_signature)#=::Type{<:Tuple}=#, static_param_values::Vector{Any}, slot_offset::Int, statement_offset::Int, boundscheck::Symbol)	modelled	exprreflect-meta-row-463	method-specific mirror and property: exprreflect-meta-row-463
+base/meta.jl	477	621	_partially_inline!	_partially_inline!(@nospecialize(x), slot_replacements::Vector{Any}, @nospecialize(type_signature), static_param_values::Vector{Any}, slot_offset::Int, statement_offset::Int, boundscheck::Symbol)	modelled	exprreflect-meta-row-477	method-specific mirror and property: exprreflect-meta-row-477
+base/meta.jl	623	623	_instantiate_type_in_env	_instantiate_type_in_env(x, spsig, spvals)	modelled	exprreflect-meta-row-623	method-specific mirror and property: exprreflect-meta-row-623
+base/meta.jl	634	643	unblock	unblock(@nospecialize ex)	modelled	exprreflect-meta-row-634	method-specific mirror and property: exprreflect-meta-row-634
+base/meta.jl	651	657	unescape	unescape(@nospecialize ex)	modelled	exprreflect-meta-row-651	method-specific mirror and property: exprreflect-meta-row-651
+base/meta.jl	666	675	reescape	reescape(@nospecialize(unescaped_expr), @nospecialize(original_expr))	modelled	exprreflect-meta-row-666	method-specific mirror and property: exprreflect-meta-row-666
+base/meta.jl	682	682	uncurly	uncurly(@nospecialize ex)	modelled	exprreflect-meta-row-682	method-specific mirror and property: exprreflect-meta-row-682

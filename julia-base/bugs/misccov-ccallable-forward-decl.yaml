@@ -1,0 +1,42 @@
+id: misccov-ccallable-forward-decl
+title: "@ccallable function f end throws FieldError instead of \"expected method definition in @ccallable\""
+priority: P3
+kind: wrong-exception
+area: MiscCov
+files: [base/c.jl]
+functions: ["Base.@ccallable", "Base.expand_ccallable"]
+summary: |
+  `expand_ccallable` rejects everything that is not a method definition with ErrorException("expected method definition in @ccallable"), but for a function forward declaration `function f end` (and for `f = 1`) it reads `sig.head` on the Symbol `f` and throws `FieldError: type Symbol has no field head`.
+likelihood: |
+  Low: a user annotating a forward declaration.
+maybe_intended: ""
+reproducer: |
+  Base.@ccallable Int 1           # ErrorException: expected method definition in @ccallable
+  Base.@ccallable function f end  # FieldError: type Symbol has no field `head`
+output:
+  release: |
+    @ccallable Int 1          => ErrorException: expected method definition in @ccallable
+    @ccallable function f end => FieldError: FieldError: type Symbol has no field `head`; Symbol has no fields at all.
+    REPRODUCED misccov-ccallable-forward-decl
+  nightly: |
+    @ccallable Int 1          => ErrorException: expected method definition in @ccallable
+    @ccallable function f end => FieldError: FieldError: type Symbol has no field `head`; Symbol has no fields at all.
+    REPRODUCED misccov-ccallable-forward-decl
+reproduced: {release: true, nightly: true}
+expected: |
+  ErrorException("expected method definition in @ccallable").
+promised_by: |
+  Invariant: base/c.jl:233 is the error for a non-definition argument.
+cause: |
+  base/c.jl:204 evaluates `sig.head` without checking `sig isa Expr`.
+possible_fix: |
+  Test `sig isa Expr` before reading `sig.head` (lines 204 and 213).
+duplicates:
+  issues: []
+  queries:
+    - "issues: ccallable"
+    - "issues: ccallable FieldError"
+    - "issues: expand_ccallable"
+lean:
+  property: JuliaLean.MiscCov.CInterface.CcallableErrors
+  theorem: JuliaLean.MiscCov.CInterface.ccallableErrors_refuted

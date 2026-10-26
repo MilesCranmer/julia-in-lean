@@ -1,0 +1,54 @@
+id: multidimcov-permutedims-offset-view
+title: "permutedims rejects a valid offset-axis StridedArray with DimensionMismatch"
+priority: P2
+kind: wrong-exception
+area: MultidimCov
+files: [base/multidimensional.jl, base/permuteddimsarray.jl]
+functions: ["permutedims(::StridedArray, perm)", "permutedims!(::Array, ::StridedArray, perm)", "checkdims_perm"]
+summary: |
+  permutedims(view(A, IdentityUnitRange(2:3), :), (2, 1)) throws
+  DimensionMismatch although the view is a valid StridedArray and the requested
+  permutation is valid. Materializing the same view first returns the expected 3x2
+  matrix. The specialized StridedArray method allocates a one-based destination,
+  then rejects it because its axes do not equal the source axes in permuted order.
+likelihood: |
+  Offset-axis views are an edge case, but IdentityUnitRange is in Base and offset
+  arrays commonly use the same indexing convention. Any such view that remains a
+  StridedArray can reach this method.
+maybe_intended: ''
+reproducer: |
+  A = reshape(collect(1:12), 4, 3)
+  V = view(A, Base.IdentityUnitRange(2:3), :)
+  permutedims(V, (2, 1))
+output:
+  release: |
+    axes(V) = (Base.IdentityUnitRange(2:3), Base.OneTo(3))
+    expected = [2 3; 6 7; 10 11]
+    threw = DimensionMismatch: DimensionMismatch: destination tensor of incorrect size
+    REPRODUCED multidimcov-permutedims-offset-view
+  nightly: |
+    axes(V) = (Base.IdentityUnitRange(2:3), Base.OneTo(3))
+    expected = [2 3; 6 7; 10 11]
+    threw = DimensionMismatch: DimensionMismatch: destination tensor of incorrect size
+    REPRODUCED multidimcov-permutedims-offset-view
+reproduced: {release: true, nightly: true}
+expected: |
+  A 3x2 array equal to [2 3; 6 7; 10 11], with size (3, 2).
+promised_by: |
+  base/permuteddimsarray.jl:91-95 says permutedims permutes the dimensions of an
+  AbstractArray and requires only a permutation of ndims(A) integers. Lines 181-182
+  promise size(B, i) == size(A, perm[i]); they do not require one-based source axes.
+cause: |
+  base/multidimensional.jl:1669-1675 allocates P from the permuted sizes, so P has
+  one-based axes. Lines 1678-1684 then require axes(P)[i] == axes(B)[perm[i]]. The
+  source view retains IdentityUnitRange(2:3), so the equal-size axes differ and the
+  method throws before copying any elements.
+possible_fix: |
+  Validate corresponding axis lengths in the generated StridedArray implementation,
+  as the public size contract requires, instead of requiring equal axis values.
+duplicates:
+  issues: []
+  queries: ["issues: permutedims SubArray offset axes", "issues: permutedims IdentityUnitRange DimensionMismatch", "prs: permutedims SubArray offset axes", "prs: permutedims IdentityUnitRange DimensionMismatch"]
+lean:
+  property: JuliaLean.MultidimCov.PermutedimsOffsetCorrect
+  theorem: JuliaLean.MultidimCov.permutedimsOffsetCorrect_refuted

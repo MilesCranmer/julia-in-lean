@@ -1,13 +1,13 @@
 site	file	line	kind	group	status	entry	note	code
-arraymath:119	base/arraymath.jl	119	@inbounds	2	todo		v1 proof rejected by review (memsafety-arraymath-reverse)	for i in CartesianIndices(ntuple(k -> firstindex(A,k):firstindex(A,k)-1+@inbounds(halfsz[k]), Val{N}()))
-arraymath:122	base/arraymath.jl	122	@inbounds	2	todo		v1 proof rejected by review (memsafety-arraymath-reverse)	@inbounds A[iᵣ], A[i] = A[i], A[iᵣ]
+arraymath:119	base/arraymath.jl	119	@inbounds	2	not-unchecked		The annotation protects tuple indexing in halfsz while constructing CartesianIndices; it does not read array storage.	for i in CartesianIndices(ntuple(k -> firstindex(A,k):firstindex(A,k)-1+@inbounds(halfsz[k]), Val{N}()))
+arraymath:122	base/arraymath.jl	122	@inbounds	2	proven	memsafety-arraymath-reverse		@inbounds A[iᵣ], A[i] = A[i], A[iᵣ]
 experimental:34	base/experimental.jl	34	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck Base.checkbounds(A.a, i)
-experimental:35	base/experimental.jl	35	memoryref	2	todo		v1 proof rejected by review (memsafety-experimental-const-getindex)	return Core.const_memoryrefget(Core.memoryrefnew(getfield(A.a, :ref), i, false), :not_atomic, false)
+experimental:35	base/experimental.jl	35	memoryref	2	proven	memsafety-experimental-const-getindex		return Core.const_memoryrefget(Core.memoryrefnew(getfield(A.a, :ref), i, false), :not_atomic, false)
 experimental:39	base/experimental.jl	39	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck Base.checkbounds(A.a, i1, i2, I...) # generally _to_linear_index requires bounds checking
-experimental:40	base/experimental.jl	40	@inbounds	2	todo		v1 proof rejected by review (memsafety-experimental-const-getindex)	return @inbounds A[Base._to_linear_index(A.a, i1, i2, I...)]
-expr:50	base/expr.jl	50	@inbounds	2	todo		v1 proof rejected by review (memsafety-expr-copy)	@inbounds for i = 1:nvalues
-expr:60	base/expr.jl	60	@inbounds	2	todo		v1 proof rejected by review (memsafety-expr-copy)	@inbounds for i = 1:nvalues
-expr:79	base/expr.jl	79	@inbounds	2	todo		v1 proof rejected by review (memsafety-expr-copy)	copy_exprargs(x::Array{Any,1}) = Any[copy_exprs(@inbounds x[i]) for i in eachindex(x)]
+experimental:40	base/experimental.jl	40	@inbounds	2	proven	memsafety-experimental-const-getindex		return @inbounds A[Base._to_linear_index(A.a, i1, i2, I...)]
+expr:50	base/expr.jl	50	@inbounds	2	proven	memsafety-expr-copy		@inbounds for i = 1:nvalues
+expr:60	base/expr.jl	60	@inbounds	2	proven	memsafety-expr-copy		@inbounds for i = 1:nvalues
+expr:79	base/expr.jl	79	@inbounds	2	proven	memsafety-expr-copy		copy_exprargs(x::Array{Any,1}) = Any[copy_exprs(@inbounds x[i]) for i in eachindex(x)]
 expr:834	base/expr.jl	834	@inbounds	2	not-unchecked		Docstring or doctest text, not an executable unchecked access.	An explicit `@inbounds` annotation inside the function will also disable
 expr:1120	base/expr.jl	1120	@inbounds+@boundscheck	2	not-unchecked		Docstring or doctest text, not an executable unchecked access.	An [`@inbounds`](@ref) block only elides the [`@boundscheck`](@ref) blocks of functions that
 expr:1122	base/expr.jl	1122	@boundscheck	2	not-unchecked		Docstring or doctest text, not an executable unchecked access.	`@propagate_inbounds` makes it pass on its caller's inbounds context, so that `@boundscheck`
@@ -17,32 +17,32 @@ expr:1136	base/expr.jl	1136	@inbounds	2	not-unchecked		Docstring or doctest text
 expr:1138	base/expr.jl	1138	@inbounds	2	not-unchecked		Docstring or doctest text, not an executable unchecked access.	julia> h2(x) = @inbounds f2(x);
 gmp:39	base/gmp.jl	39	unsafe_load	2	user-contract		The GMP shared-library ABI guarantees that these cglobal symbols point to readable objects of the declared type.	_version() = unsafe_string(unsafe_load(cglobal((:__gmp_version, libgmp), Ptr{Cchar})))
 gmp:42	base/gmp.jl	42	unsafe_load	2	user-contract		The GMP shared-library ABI guarantees that these cglobal symbols point to readable objects of the declared type.	bits_per_limb() = Int(unsafe_load(cglobal((:__gmp_bits_per_limb, libgmp), Cint)))
-gmp:358	base/gmp.jl	358	unsafe_store!	2	todo		v1 proof rejected by review (memsafety-gmp-limb-access)	unsafe_store!(z.d, ux % Limb, size)
-gmp:367	base/gmp.jl	367	unsafe_load	2	todo		v1 proof rejected by review (memsafety-gmp-limb-access)	rem(x::BigInt, ::Type{Bool}) = !iszero(x) & unsafe_load(x.d) % Bool # never unsafe here
-gmp:370	base/gmp.jl	370	unsafe_load	2	todo		v1 proof rejected by review (memsafety-gmp-limb-access)	iszero(x) ? zero(T) : flipsign(unsafe_load(x.d) % T, x.size)
-gmp:375	base/gmp.jl	375	unsafe_load	2	todo		v1 proof rejected by review (memsafety-gmp-limb-access)	u += (unsafe_load(x.d, l) % T) << ((sizeof(Limb)<<3)*(l-1))
-gmp:415	base/gmp.jl	415	unsafe_load	2	todo		v1 proof rejected by review (memsafety-gmp-limb-access)	top = unsafe_load(x.d, xsize)
-gmp:432	base/gmp.jl	432	unsafe_load	2	todo		v1 proof rejected by review (memsafety-gmp-limb-access)	m = m << BITS_PER_LIMB | unsafe_load(x.d, i)
-gmp:438	base/gmp.jl	438	unsafe_load	2	todo		v1 proof rejected by review (memsafety-gmp-limb-access)	l = unsafe_load(x.d, i)
-gmp:446	base/gmp.jl	446	unsafe_load	2	todo		v1 proof rejected by review (memsafety-gmp-limb-access)	sticky = unsafe_load(x.d, i) != 0
-gmp:611	base/gmp.jl	611	unsafe_load	2	todo		v1 proof rejected by review (memsafety-gmp-limb-access)	return n * sizeof(Limb) << 3 - leading_zeros(GC.@preserve x unsafe_load(x.d, n))
-gmp:779	base/gmp.jl	779	unsafe_store!	2	todo		v1 proof rejected by review (memsafety-gmp-string)	isnegative(n) && unsafe_store!(p, UInt8('-'))
+gmp:358	base/gmp.jl	358	unsafe_store!	2	proven	memsafety-gmp-limb-convert		unsafe_store!(z.d, ux % Limb, size)
+gmp:367	base/gmp.jl	367	unsafe_load	2	refuted	memsafety-gmp-zero-bool-rem-null	Base.GMP.ZERO has d == C_NULL; eager & still executes unsafe_load(x.d), and the child terminates with signal 11.	rem(x::BigInt, ::Type{Bool}) = !iszero(x) & unsafe_load(x.d) % Bool # never unsafe here
+gmp:370	base/gmp.jl	370	unsafe_load	2	proven	memsafety-gmp-limb-convert		iszero(x) ? zero(T) : flipsign(unsafe_load(x.d) % T, x.size)
+gmp:375	base/gmp.jl	375	unsafe_load	2	proven	memsafety-gmp-limb-convert		u += (unsafe_load(x.d, l) % T) << ((sizeof(Limb)<<3)*(l-1))
+gmp:415	base/gmp.jl	415	unsafe_load	2	proven	memsafety-gmp-limb-convert		top = unsafe_load(x.d, xsize)
+gmp:432	base/gmp.jl	432	unsafe_load	2	proven	memsafety-gmp-limb-convert		m = m << BITS_PER_LIMB | unsafe_load(x.d, i)
+gmp:438	base/gmp.jl	438	unsafe_load	2	proven	memsafety-gmp-limb-convert		l = unsafe_load(x.d, i)
+gmp:446	base/gmp.jl	446	unsafe_load	2	proven	memsafety-gmp-limb-convert		sticky = unsafe_load(x.d, i) != 0
+gmp:611	base/gmp.jl	611	unsafe_load	2	proven	memsafety-gmp-bit-magnitude		return n * sizeof(Limb) << 3 - leading_zeros(GC.@preserve x unsafe_load(x.d, n))
+gmp:779	base/gmp.jl	779	unsafe_store!	2	proven	memsafety-gmp-string		isnegative(n) && unsafe_store!(p, UInt8('-'))
 gmp:885	base/gmp.jl	885	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck checkbounds(view, i)
-gmp:889	base/gmp.jl	889	unsafe_load	2	todo		v1 proof rejected by review (memsafety-gmp-limb-access)	limb = unsafe_load(view.bigint.d, limb_index)
-gmp:896	base/gmp.jl	896	@inbounds	2	todo		v1 proof rejected by review (memsafety-gmp-limb-access)	return @inbounds(view[state]), state + 1
-gmp:909	base/gmp.jl	909	unsafe_load	2	todo		v1 proof rejected by review (memsafety-gmp-limb-access)	leading_zero_bytes = div(leading_zeros(unsafe_load(n.d, us)), 8)
-gmp:923	base/gmp.jl	923	unsafe_load	2	todo		v1 proof rejected by review (memsafety-gmp-limb-access)	return hash(unsafe_load(ptr), h)
-gmp:925	base/gmp.jl	925	unsafe_load	2	todo		v1 proof rejected by review (memsafety-gmp-limb-access)	limb = unsafe_load(ptr)
-gmp:935	base/gmp.jl	935	unsafe_load	2	todo		v1 proof rejected by review (memsafety-gmp-limb-access)	limb = unsafe_load(ptr, idx)
-gmp:937	base/gmp.jl	937	unsafe_load	2	todo		v1 proof rejected by review (memsafety-gmp-limb-access)	limb1 = unsafe_load(ptr, idx)
-gmp:938	base/gmp.jl	938	unsafe_load	2	todo		v1 proof rejected by review (memsafety-gmp-limb-access)	limb2 = idx < asz ? unsafe_load(ptr, idx+1) : UInt(0)
-gmp:947	base/gmp.jl	947	unsafe_load	2	todo		v1 proof rejected by review (memsafety-gmp-limb-access)	leading_zero_bytes = div(leading_zeros(unsafe_load(x.d, asz)), 8)
+gmp:889	base/gmp.jl	889	unsafe_load	2	proven	memsafety-gmp-hash		limb = unsafe_load(view.bigint.d, limb_index)
+gmp:896	base/gmp.jl	896	@inbounds	2	proven	memsafety-gmp-hash		return @inbounds(view[state]), state + 1
+gmp:909	base/gmp.jl	909	unsafe_load	2	proven	memsafety-gmp-hash		leading_zero_bytes = div(leading_zeros(unsafe_load(n.d, us)), 8)
+gmp:923	base/gmp.jl	923	unsafe_load	2	proven	memsafety-gmp-hash		return hash(unsafe_load(ptr), h)
+gmp:925	base/gmp.jl	925	unsafe_load	2	proven	memsafety-gmp-hash		limb = unsafe_load(ptr)
+gmp:935	base/gmp.jl	935	unsafe_load	2	proven	memsafety-gmp-hash		limb = unsafe_load(ptr, idx)
+gmp:937	base/gmp.jl	937	unsafe_load	2	proven	memsafety-gmp-hash		limb1 = unsafe_load(ptr, idx)
+gmp:938	base/gmp.jl	938	unsafe_load	2	proven	memsafety-gmp-hash		limb2 = idx < asz ? unsafe_load(ptr, idx+1) : UInt(0)
+gmp:947	base/gmp.jl	947	unsafe_load	2	proven	memsafety-gmp-hash		leading_zero_bytes = div(leading_zeros(unsafe_load(x.d, asz)), 8)
 hashing:328	base/hashing.jl	328	unsafe_load	2	user-contract		Raw Ptr plus byte-count interface: the caller must provide n readable bytes starting at ptr.	a = (UInt64(unsafe_load(ptr)) << 45) | UInt64(unsafe_load(ptr, n))
 hashing:329	base/hashing.jl	329	unsafe_load	2	user-contract		Raw Ptr plus byte-count interface: the caller must provide n readable bytes starting at ptr.	b = UInt64(unsafe_load(ptr, div(n, 2) + 1))
-hashing:384	base/hashing.jl	384	@inbounds	2	todo		v1 proof rejected by review (memsafety-hashing-hash-bytes)	byte = @inbounds arr[idx + i]
-hashing:393	base/hashing.jl	393	@inbounds	2	todo		v1 proof rejected by review (memsafety-hashing-hash-bytes)	byte = @inbounds arr[idx + i]
-hashing:425	base/hashing.jl	425	@inbounds	2	todo		v1 proof rejected by review (memsafety-hashing-hash-bytes)	a = (UInt64(@inbounds arr[firstidx]) << 45) | UInt64(@inbounds arr[firstidx + n - 1])
-hashing:426	base/hashing.jl	426	@inbounds	2	todo		v1 proof rejected by review (memsafety-hashing-hash-bytes)	b = UInt64(@inbounds arr[firstidx + div(n, 2)])
+hashing:384	base/hashing.jl	384	@inbounds	2	proven	memsafety-hashing-hash-bytes		byte = @inbounds arr[idx + i]
+hashing:393	base/hashing.jl	393	@inbounds	2	proven	memsafety-hashing-hash-bytes		byte = @inbounds arr[idx + i]
+hashing:425	base/hashing.jl	425	@inbounds	2	proven	memsafety-hashing-hash-bytes		a = (UInt64(@inbounds arr[firstidx]) << 45) | UInt64(@inbounds arr[firstidx + n - 1])
+hashing:426	base/hashing.jl	426	@inbounds	2	proven	memsafety-hashing-hash-bytes		b = UInt64(@inbounds arr[firstidx + div(n, 2)])
 indices:350	base/indices.jl	350	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	getindex(S::Slice, i::Int) = (@inline; @boundscheck checkbounds(S, i); i)
 indices:351	base/indices.jl	351	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	getindex(S::Slice, i::AbstractUnitRange{<:Integer}) = (@inline; @boundscheck checkbounds(S, i); i)
 indices:352	base/indices.jl	352	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	getindex(S::Slice, i::StepRange{<:Integer}) = (@inline; @boundscheck checkbounds(S, i); i)
@@ -56,67 +56,67 @@ indices:413	base/indices.jl	413	@boundscheck	2	not-unchecked		This row is a boun
 indices:425	base/indices.jl	425	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck checkbounds(S, I)
 indices:511	base/indices.jl	511	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck checkbounds(iter, i)
 indices:516	base/indices.jl	516	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck checkbounds(iter, i)
-indices:517	base/indices.jl	517	@inbounds	2	todo		v1 proof rejected by review (memsafety-indices-linearindices-getindex)	@inbounds isa(iter, LinearIndices{1}) ? iter.indices[1][i] : (first(iter):last(iter))[i]
-loading:57	base/loading.jl	57	unsafe_load	2	todo		v1 proof rejected by review (memsafety-loading-isfile-casesensitive)	filename_length = GC.@preserve buf unsafe_load(
-missing:254	base/missing.jl	254	@inbounds	2	todo		v1 proof rejected by review (memsafety-missing-skipmissing-eachindex)	Iterators.filter(i -> !ismissing(@inbounds(itr.x[i])), eachindex(itr.x))
-missing:256	base/missing.jl	256	@inbounds	2	todo		v1 proof rejected by review (memsafety-missing-skipmissing-eachindex)	Iterators.filter(i -> !ismissing(@inbounds(itr.x[i])), keys(itr.x))
-missing:282	base/missing.jl	282	@inbounds	2	todo		v1 proof rejected by review (memsafety-missing-mapreduce)	@inbounds ai = A[i]
-missing:291	base/missing.jl	291	@inbounds	2	todo		v1 proof rejected by review (memsafety-missing-mapreduce)	@inbounds ai = A[i]
-missing:312	base/missing.jl	312	@inbounds	2	todo		v1 proof rejected by review (memsafety-missing-mapreduce)	@inbounds a1 = A[ifirst]
-missing:323	base/missing.jl	323	@inbounds	2	todo		v1 proof rejected by review (memsafety-missing-mapreduce)	@inbounds ai = A[i]
-missing:332	base/missing.jl	332	@inbounds	2	todo		v1 proof rejected by review (memsafety-missing-mapreduce)	@inbounds ai = A[i]
-missing:341	base/missing.jl	341	@inbounds	2	todo		v1 proof rejected by review (memsafety-missing-mapreduce)	@inbounds ai = A[i]
+indices:517	base/indices.jl	517	@inbounds	2	not-unchecked		Both branches index immutable range values arithmetically; no array or pointer storage is accessed.	@inbounds isa(iter, LinearIndices{1}) ? iter.indices[1][i] : (first(iter):last(iter))[i]
+loading:57	base/loading.jl	57	unsafe_load	2	proven	memsafety-loading-isfile-casesensitive		filename_length = GC.@preserve buf unsafe_load(
+missing:254	base/missing.jl	254	@inbounds	2	proven	memsafety-missing-skipmissing-eachindex		Iterators.filter(i -> !ismissing(@inbounds(itr.x[i])), eachindex(itr.x))
+missing:256	base/missing.jl	256	@inbounds	2	proven	memsafety-missing-skipmissing-keys		Iterators.filter(i -> !ismissing(@inbounds(itr.x[i])), keys(itr.x))
+missing:282	base/missing.jl	282	@inbounds	2	proven	memsafety-missing-mapreduce		@inbounds ai = A[i]
+missing:291	base/missing.jl	291	@inbounds	2	proven	memsafety-missing-mapreduce		@inbounds ai = A[i]
+missing:312	base/missing.jl	312	@inbounds	2	proven	memsafety-missing-mapreduce		@inbounds a1 = A[ifirst]
+missing:323	base/missing.jl	323	@inbounds	2	proven	memsafety-missing-mapreduce		@inbounds ai = A[i]
+missing:332	base/missing.jl	332	@inbounds	2	proven	memsafety-missing-mapreduce		@inbounds ai = A[i]
+missing:341	base/missing.jl	341	@inbounds	2	proven	memsafety-missing-mapreduce		@inbounds ai = A[i]
 multidimensional:403	base/multidimensional.jl	403	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck checkbounds(iter, I...)
-multidimensional:405	base/multidimensional.jl	405	@inbounds	2	todo		v1 proof rejected by review (memsafety-multidimensional-cartesian-getindex)	@inbounds getindex(r, i)
+multidimensional:405	base/multidimensional.jl	405	@inbounds	2	not-unchecked		The indexed object is an OrdinalRange component; getindex computes a range value without reading memory.	@inbounds getindex(r, i)
 multidimensional:415	base/multidimensional.jl	415	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck checkbounds(iter, I...)
-multidimensional:417	base/multidimensional.jl	417	@inbounds	2	todo		v1 proof rejected by review (memsafety-multidimensional-cartesian-getindex)	@inbounds getindex(r, i)
-multidimensional:637	base/multidimensional.jl	637	@inbounds	2	todo		v1 proof rejected by review (memsafety-multidimensional-cartesian-iteration)	@inbounds for a in inds
-multidimensional:686	base/multidimensional.jl	686	@inbounds	2	todo		v1 proof rejected by review (memsafety-multidimensional-cartesian-iteration)	outer = @inbounds view(roci, vl:vr)
-multidimensional:704	base/multidimensional.jl	704	@inbounds	2	todo		v1 proof rejected by review (memsafety-multidimensional-cartesian-iteration)	outer = @inbounds CartesianIndices((ci.indices[2][vl:vr],))
-multidimensional:877	base/multidimensional.jl	877	@inbounds	2	todo		v1 proof rejected by review (memsafety-multidimensional-logicalindex)	return iterate(L, (1, 1, (), @inbounds Bc[1]))
-multidimensional:883	base/multidimensional.jl	883	@inbounds	2	todo		v1 proof rejected by review (memsafety-multidimensional-logicalindex)	return iterate(L, (1, 1, irest, @inbounds Bc[1]))
-multidimensional:890	base/multidimensional.jl	890	@inbounds	2	todo		v1 proof rejected by review (memsafety-multidimensional-logicalindex)	@inbounds c = Bc[Bi+=1]
+multidimensional:417	base/multidimensional.jl	417	@inbounds	2	not-unchecked		The indexed object is an OrdinalRange component; getindex or slicing computes range metadata without reading memory.	@inbounds getindex(r, i)
+multidimensional:637	base/multidimensional.jl	637	@inbounds	2	proven	memsafety-multidimensional-cartesian-collect		@inbounds for a in inds
+multidimensional:686	base/multidimensional.jl	686	@inbounds	2	not-unchecked		The annotation suppresses validation while constructing a SubArray view; no parent element is read here.	outer = @inbounds view(roci, vl:vr)
+multidimensional:704	base/multidimensional.jl	704	@inbounds	2	not-unchecked		The annotation slices an OrdinalRange and constructs CartesianIndices metadata; no element storage is read.	outer = @inbounds CartesianIndices((ci.indices[2][vl:vr],))
+multidimensional:877	base/multidimensional.jl	877	@inbounds	2	proven	memsafety-multidimensional-logicalindex		return iterate(L, (1, 1, (), @inbounds Bc[1]))
+multidimensional:883	base/multidimensional.jl	883	@inbounds	2	proven	memsafety-multidimensional-logicalindex		return iterate(L, (1, 1, irest, @inbounds Bc[1]))
+multidimensional:890	base/multidimensional.jl	890	@inbounds	2	proven	memsafety-multidimensional-logicalindex		@inbounds c = Bc[Bi+=1]
 multidimensional:996	base/multidimensional.jl	996	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck checkbounds(A, I...)
-multidimensional:1020	base/multidimensional.jl	1020	@inbounds	2	todo		v1 proof rejected by review (memsafety-multidimensional-unsafe-indexing)	@inbounds @nloops $N j d->I[d] begin
+multidimensional:1020	base/multidimensional.jl	1020	@inbounds	2	proven	memsafety-multidimensional-unsafe-indexing		@inbounds @nloops $N j d->I[d] begin
 multidimensional:1048	base/multidimensional.jl	1048	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck checkbounds(A, I...)
-multidimensional:1060	base/multidimensional.jl	1060	@inbounds	2	todo		v1 proof rejected by review (memsafety-multidimensional-unsafe-indexing)	@inbounds @nloops $N i d->I_d begin
-multidimensional:1125	base/multidimensional.jl	1125	@inbounds	2	todo		v1 proof rejected by review (memsafety-multidimensional-diff-copyto)	return [@inbounds r[i+1] - r[i] for i in firstindex(r):lastindex(r)-1]
-multidimensional:1207	base/multidimensional.jl	1207	@inbounds	2	todo		v1 proof rejected by review (memsafety-multidimensional-diff-copyto)	@inbounds @nref($N,dest,n->Rdest.indices[n][i_n+ΔI[n]]) = @nref($N,src′,n->Rsrc.indices[n][i_n])
-multidimensional:1212	base/multidimensional.jl	1212	@inbounds	2	todo		v1 proof rejected by review (memsafety-multidimensional-diff-copyto)	@inbounds dest[Rdest[I + ΔI]] = src′[Rsrc[I]]
+multidimensional:1060	base/multidimensional.jl	1060	@inbounds	2	proven	memsafety-multidimensional-unsafe-indexing		@inbounds @nloops $N i d->I_d begin
+multidimensional:1125	base/multidimensional.jl	1125	@inbounds	2	not-unchecked		AbstractRange indexing computes range values from stored endpoints and step; this site performs no unchecked memory access.	return [@inbounds r[i+1] - r[i] for i in firstindex(r):lastindex(r)-1]
+multidimensional:1207	base/multidimensional.jl	1207	@inbounds	2	proven	memsafety-multidimensional-cartesian-copyto		@inbounds @nref($N,dest,n->Rdest.indices[n][i_n+ΔI[n]]) = @nref($N,src′,n->Rsrc.indices[n][i_n])
+multidimensional:1212	base/multidimensional.jl	1212	@inbounds	2	proven	memsafety-multidimensional-cartesian-copyto		@inbounds dest[Rdest[I + ΔI]] = src′[Rsrc[I]]
 multidimensional:1428	base/multidimensional.jl	1428	@inbounds	2	refuted	bitarrays-vec-resize-alias	A BitMatrix whose vec alias was shortened can retain a larger shape than its chunk vector; M[[65],[1]] reaches unsafe_bitgetindex here and forced bounds checks report chunk index 2 of a 1-element vector.	@nloops $N i d->I[d] d->(@inbounds offset_{d-1} = offset_d + (i_d-1)*stride_d) begin
-multidimensional:1442	base/multidimensional.jl	1442	@inbounds	2	todo		v1 proof rejected by review (memsafety-multidimensional-bitarray-copy)	@inbounds while bind ≤ lastind
-multidimensional:1460	base/multidimensional.jl	1460	@inbounds	2	todo		v1 proof rejected by review (memsafety-multidimensional-bitarray-copy)	@inbounds for i = (1:numbits) .+ (pos_s - 1)
-multidimensional:1481	base/multidimensional.jl	1481	@inbounds	2	todo		v1 proof rejected by review (memsafety-multidimensional-bitarray-copy)	@inbounds if ld0 > 0
-multidimensional:1492	base/multidimensional.jl	1492	@inbounds	2	todo		v1 proof rejected by review (memsafety-multidimensional-bitarray-copy)	@inbounds for i = 1:nc
-multidimensional:1502	base/multidimensional.jl	1502	@inbounds	2	todo		v1 proof rejected by review (memsafety-multidimensional-bitarray-copy)	@inbounds if bind ≤ kd1
+multidimensional:1442	base/multidimensional.jl	1442	@inbounds	2	refuted	bitarrays-vec-resize-alias	A BitArray whose vec alias shortened its chunk vector can pass public shape checks while this helper writes a missing destination chunk.	@inbounds while bind ≤ lastind
+multidimensional:1460	base/multidimensional.jl	1460	@inbounds	2	proven	memsafety-multidimensional-bitarray-source-scan		@inbounds for i = (1:numbits) .+ (pos_s - 1)
+multidimensional:1481	base/multidimensional.jl	1481	@inbounds	2	refuted	bitarrays-vec-resize-alias	A BitArray whose vec alias shortened its chunk vector can make kd0 name a chunk beyond Bc at the guarded partial-chunk block.	@inbounds if ld0 > 0
+multidimensional:1492	base/multidimensional.jl	1492	@inbounds	2	refuted	bitarrays-vec-resize-alias	A BitArray whose vec alias shortened its chunk vector can make the full-chunk loop write beyond Bc.	@inbounds for i = 1:nc
+multidimensional:1502	base/multidimensional.jl	1502	@inbounds	2	refuted	bitarrays-vec-resize-alias	A BitArray whose vec alias shortened its chunk vector can make kd1 name a missing final chunk.	@inbounds if bind ≤ kd1
 multidimensional:1518	base/multidimensional.jl	1518	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck checkbounds(B, I0)
 multidimensional:1530	base/multidimensional.jl	1530	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck checkbounds(B, J...)
 multidimensional:1630	base/multidimensional.jl	1630	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck 1 <= I_{d-1} <= l || return false
 multidimensional:1644	base/multidimensional.jl	1644	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck checkbounds(Bool, A, inds...) || return false
-multidimensional:1648	base/multidimensional.jl	1648	@inbounds	2	todo		v1 proof rejected by review (memsafety-multidimensional-isassigned)	return @inbounds isassigned(A, _to_linear_index(A, inds...))
-multidimensional:1650	base/multidimensional.jl	1650	@inbounds	2	todo		v1 proof rejected by review (memsafety-multidimensional-isassigned)	return @inbounds isassigned(A, _to_subscript_indices(A, inds...)...)
+multidimensional:1648	base/multidimensional.jl	1648	@inbounds	2	proven	memsafety-multidimensional-isassigned		return @inbounds isassigned(A, _to_linear_index(A, inds...))
+multidimensional:1650	base/multidimensional.jl	1650	@inbounds	2	proven	memsafety-multidimensional-isassigned		return @inbounds isassigned(A, _to_subscript_indices(A, inds...)...)
 multidimensional:1707	base/multidimensional.jl	1707	@inbounds	2	refuted	bitarrays-vec-resize-alias	permutedims! on a BitMatrix whose vec alias shortened its chunk vector reaches the missing chunk at this unchecked read.	@inbounds P[ind] = B[sumc+offset]
 multidimensional:1776	base/multidimensional.jl	1776	@inbounds	2	refuted	bitarrays-vec-resize-alias	unique(A; dims) on a BitMatrix whose vec alias shortened its chunk vector reaches the missing chunk while hashing rows here.	@inbounds hashes[k] = hash(hashes[k], hash((@nref $N A i)))
 multidimensional:1789	base/multidimensional.jl	1789	@inbounds	2	refuted	bitarrays-vec-resize-alias	The collision pass has the same unchecked reads from a BitMatrix whose public vec alias can leave too few chunks; the function already fails at line 1776 for that input.	@inbounds begin
 number:104	base/number.jl	104	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck i == 1 || throw(BoundsError(x, i))
 number:109	base/number.jl	109	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck all(isone, I) || throw(BoundsError(x, I))
 reshapedarray:281	base/reshapedarray.jl	281	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck checkbounds(Bool, A, index) || return false
-reshapedarray:283	base/reshapedarray.jl	283	@inbounds	2	todo		v1 proof rejected by review (memsafety-reshapedarray-indexing)	@inbounds ret = isassigned(parent(A), indexparent)
+reshapedarray:283	base/reshapedarray.jl	283	@inbounds	2	proven	memsafety-reshapedarray-indexing		@inbounds ret = isassigned(parent(A), indexparent)
 reshapedarray:287	base/reshapedarray.jl	287	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck checkbounds(Bool, A, indices...) || return false
-reshapedarray:291	base/reshapedarray.jl	291	@inbounds	2	todo		v1 proof rejected by review (memsafety-reshapedarray-indexing)	@inbounds isassigned(A.parent, I...)
+reshapedarray:291	base/reshapedarray.jl	291	@inbounds	2	proven	memsafety-reshapedarray-ind2sub		@inbounds isassigned(A.parent, I...)
 reshapedarray:295	base/reshapedarray.jl	295	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck checkbounds(A, index)
-reshapedarray:297	base/reshapedarray.jl	297	@inbounds	2	todo		v1 proof rejected by review (memsafety-reshapedarray-indexing)	@inbounds ret = parent(A)[indexparent]
+reshapedarray:297	base/reshapedarray.jl	297	@inbounds	2	proven	memsafety-reshapedarray-indexing		@inbounds ret = parent(A)[indexparent]
 reshapedarray:301	base/reshapedarray.jl	301	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck checkbounds(A, indices...)
 reshapedarray:305	base/reshapedarray.jl	305	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck checkbounds(parent(A), index.parentindex)
-reshapedarray:306	base/reshapedarray.jl	306	@inbounds	2	todo		v1 proof rejected by review (memsafety-reshapedarray-indexing)	@inbounds ret = parent(A)[index.parentindex]
-reshapedarray:316	base/reshapedarray.jl	316	@inbounds	2	todo		v1 proof rejected by review (memsafety-reshapedarray-indexing)	@inline _unsafe_getindex_rs(A, i::Integer) = (@inbounds ret = A[i]; ret)
-reshapedarray:317	base/reshapedarray.jl	317	@inbounds	2	todo		v1 proof rejected by review (memsafety-reshapedarray-indexing)	@inline _unsafe_getindex_rs(A, I) = (@inbounds ret = A[I...]; ret)
+reshapedarray:306	base/reshapedarray.jl	306	@inbounds	2	proven	memsafety-reshapedarray-indexing		@inbounds ret = parent(A)[index.parentindex]
+reshapedarray:316	base/reshapedarray.jl	316	@inbounds	2	proven	memsafety-reshapedarray-ind2sub		@inline _unsafe_getindex_rs(A, i::Integer) = (@inbounds ret = A[i]; ret)
+reshapedarray:317	base/reshapedarray.jl	317	@inbounds	2	proven	memsafety-reshapedarray-ind2sub		@inline _unsafe_getindex_rs(A, I) = (@inbounds ret = A[I...]; ret)
 reshapedarray:320	base/reshapedarray.jl	320	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck checkbounds(A, index)
-reshapedarray:322	base/reshapedarray.jl	322	@inbounds	2	todo		v1 proof rejected by review (memsafety-reshapedarray-indexing)	@inbounds parent(A)[indexparent] = val
+reshapedarray:322	base/reshapedarray.jl	322	@inbounds	2	proven	memsafety-reshapedarray-indexing		@inbounds parent(A)[indexparent] = val
 reshapedarray:326	base/reshapedarray.jl	326	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck checkbounds(A, indices...)
 reshapedarray:330	base/reshapedarray.jl	330	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck checkbounds(parent(A), index.parentindex)
-reshapedarray:331	base/reshapedarray.jl	331	@inbounds	2	todo		v1 proof rejected by review (memsafety-reshapedarray-indexing)	@inbounds parent(A)[index.parentindex] = val
-reshapedarray:338	base/reshapedarray.jl	338	@inbounds	2	todo		v1 proof rejected by review (memsafety-reshapedarray-indexing)	@inbounds parent(A)[ind2sub_rs(axes(A.parent), A.mi, i)...] = val
+reshapedarray:331	base/reshapedarray.jl	331	@inbounds	2	proven	memsafety-reshapedarray-indexing		@inbounds parent(A)[index.parentindex] = val
+reshapedarray:338	base/reshapedarray.jl	338	@inbounds	2	proven	memsafety-reshapedarray-ind2sub		@inbounds parent(A)[ind2sub_rs(axes(A.parent), A.mi, i)...] = val
 ryu.shortest:239	base/ryu/shortest.jl	239	@inbounds	2	user-contract		Ryu.writeshortest buffer overload docstring, base/ryu/Ryu.jl:35: callers must ensure the buffer has sufficient room for the entire decimal string.	@inbounds buf[pos] = UInt8('F')
 ryu.shortest:240	base/ryu/shortest.jl	240	@inbounds	2	user-contract		Ryu.writeshortest buffer overload docstring, base/ryu/Ryu.jl:35: callers must ensure the buffer has sufficient room for the entire decimal string.	@inbounds buf[pos + 1] = UInt8('l')
 ryu.shortest:241	base/ryu/shortest.jl	241	@inbounds	2	user-contract		Ryu.writeshortest buffer overload docstring, base/ryu/Ryu.jl:35: callers must ensure the buffer has sufficient room for the entire decimal string.	@inbounds buf[pos + 2] = UInt8('o')
@@ -174,20 +174,20 @@ ryu.shortest:419	base/ryu/shortest.jl	419	@inbounds	2	user-contract		Ryu.writesh
 ryu.shortest:425	base/ryu/shortest.jl	425	@inbounds	2	user-contract		Ryu.writeshortest buffer overload docstring, base/ryu/Ryu.jl:35: callers must ensure the buffer has sufficient room for the entire decimal string.	@inbounds buf[pos] = expchar
 ryu.shortest:429	base/ryu/shortest.jl	429	@inbounds	2	user-contract		Ryu.writeshortest buffer overload docstring, base/ryu/Ryu.jl:35: callers must ensure the buffer has sufficient room for the entire decimal string.	@inbounds buf[pos] = UInt8('-')
 ryu.shortest:433	base/ryu/shortest.jl	433	@inbounds	2	user-contract		Ryu.writeshortest buffer overload docstring, base/ryu/Ryu.jl:35: callers must ensure the buffer has sufficient room for the entire decimal string.	@inbounds buf[pos] = UInt8('+')
-ryu.shortest:439	base/ryu/shortest.jl	439	@inbounds	2	todo		v1 proof rejected by review (memsafety-ryu-exponent-table)	@inbounds d100 = DIGIT_TABLE16[(div(exp2, 10) % Int) + 1]
+ryu.shortest:439	base/ryu/shortest.jl	439	@inbounds	2	proven	memsafety-ryu-exponent-table		@inbounds d100 = DIGIT_TABLE16[(div(exp2, 10) % Int) + 1]
 ryu.shortest:440	base/ryu/shortest.jl	440	@inbounds	2	user-contract		Ryu.writeshortest buffer overload docstring, base/ryu/Ryu.jl:35: callers must ensure the buffer has sufficient room for the entire decimal string.	@inbounds buf[pos] = d100 % UInt8
 ryu.shortest:441	base/ryu/shortest.jl	441	@inbounds	2	user-contract		Ryu.writeshortest buffer overload docstring, base/ryu/Ryu.jl:35: callers must ensure the buffer has sufficient room for the entire decimal string.	@inbounds buf[pos + 1] = (d100 >> 0x8) % UInt8
 ryu.shortest:442	base/ryu/shortest.jl	442	@inbounds	2	user-contract		Ryu.writeshortest buffer overload docstring, base/ryu/Ryu.jl:35: callers must ensure the buffer has sufficient room for the entire decimal string.	@inbounds buf[pos + 2] = UInt8('0') + (c % UInt8)
-ryu.shortest:445	base/ryu/shortest.jl	445	@inbounds	2	todo		v1 proof rejected by review (memsafety-ryu-exponent-table)	@inbounds d100 = DIGIT_TABLE16[(exp2 % Int) + 1]
+ryu.shortest:445	base/ryu/shortest.jl	445	@inbounds	2	proven	memsafety-ryu-exponent-table		@inbounds d100 = DIGIT_TABLE16[(exp2 % Int) + 1]
 ryu.shortest:446	base/ryu/shortest.jl	446	@inbounds	2	user-contract		Ryu.writeshortest buffer overload docstring, base/ryu/Ryu.jl:35: callers must ensure the buffer has sufficient room for the entire decimal string.	@inbounds buf[pos] = d100 % UInt8
 ryu.shortest:447	base/ryu/shortest.jl	447	@inbounds	2	user-contract		Ryu.writeshortest buffer overload docstring, base/ryu/Ryu.jl:35: callers must ensure the buffer has sufficient room for the entire decimal string.	@inbounds buf[pos + 1] = (d100 >> 0x8) % UInt8
 ryu.shortest:451	base/ryu/shortest.jl	451	@inbounds	2	user-contract		Ryu.writeshortest buffer overload docstring, base/ryu/Ryu.jl:35: callers must ensure the buffer has sufficient room for the entire decimal string.	@inbounds buf[pos] = UInt8('0')
 ryu.shortest:454	base/ryu/shortest.jl	454	@inbounds	2	user-contract		Ryu.writeshortest buffer overload docstring, base/ryu/Ryu.jl:35: callers must ensure the buffer has sufficient room for the entire decimal string.	@inbounds buf[pos] = UInt8('0') + (exp2 % UInt8)
 ryu.shortest:459	base/ryu/shortest.jl	459	@inbounds	2	user-contract		Ryu.writeshortest buffer overload docstring, base/ryu/Ryu.jl:35: callers must ensure the buffer has sufficient room for the entire decimal string.	@inbounds buf[pos] = UInt8(')')
-special.rem_pio2:169	base/special/rem_pio2.jl	169	@inbounds	2	todo		internal helper; counterexample (memsafety-rem-pio2-paynehanek-small) calls it outside the precondition its callers enforce; needs a caller-path proof	Base.@assume_effects :nothrow :noub @inbounds if shift == 0
+special.rem_pio2:169	base/special/rem_pio2.jl	169	@inbounds	2	proven	memsafety-rem-pio2-paynehanek-callers		Base.@assume_effects :nothrow :noub @inbounds if shift == 0
 strings.stringview:130	base/strings/stringview.jl	130	@boundscheck	2	not-unchecked		This row is a bounds check, not an unchecked memory access.	@boundscheck begin
-strings.stringview:132	base/strings/stringview.jl	132	@inbounds	2	todo		v1 proof rejected by review (memsafety-stringview-indexing)	@inbounds isvalid(s, i) || string_index_err(s, i)
-strings.stringview:133	base/strings/stringview.jl	133	@inbounds	2	todo		v1 proof rejected by review (memsafety-stringview-indexing)	@inbounds isvalid(s, j) || string_index_err(s, j)
-strings.stringview:150	base/strings/stringview.jl	150	@inbounds	2	todo		v1 proof rejected by review (memsafety-stringview-indexing)	@inbounds raw_substring(s, 1, len)
-summarysize:88	base/summarysize.jl	88	@inbounds	2	todo		v1 proof rejected by review (memsafety-summarysize-memory)	if @inbounds @inline isassigned(x, idx)
-summarysize:97	base/summarysize.jl	97	@inbounds	2	todo		v1 proof rejected by review (memsafety-summarysize-memory)	if @inbounds @inline isassigned(x, i)
+strings.stringview:132	base/strings/stringview.jl	132	@inbounds	2	proven	memsafety-stringview-indexing		@inbounds isvalid(s, i) || string_index_err(s, i)
+strings.stringview:133	base/strings/stringview.jl	133	@inbounds	2	proven	memsafety-stringview-indexing		@inbounds isvalid(s, j) || string_index_err(s, j)
+strings.stringview:150	base/strings/stringview.jl	150	@inbounds	2	proven	memsafety-stringview-indexing		@inbounds raw_substring(s, 1, len)
+summarysize:88	base/summarysize.jl	88	@inbounds	2	proven	memsafety-summarysize-memory		if @inbounds @inline isassigned(x, idx)
+summarysize:97	base/summarysize.jl	97	@inbounds	2	proven	memsafety-summarysize-memory		if @inbounds @inline isassigned(x, i)

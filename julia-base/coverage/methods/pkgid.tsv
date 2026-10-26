@@ -1,0 +1,10 @@
+file	line	endline	name	signature	status	entry	note
+base/pkgid.jl	7	7	PkgId	PkgId(u::UUID, name::AbstractString)	modelled	intfuncscov-pkgid-source	
+base/pkgid.jl	8	8	PkgId	PkgId(::Nothing, name::AbstractString)	modelled	intfuncscov-pkgid-source	
+base/pkgid.jl	10	10	PkgId	PkgId(name::AbstractString)	modelled	intfuncscov-pkgid-source	
+base/pkgid.jl	12	15	PkgId	PkgId(m::Module, name::String = String(nameof(moduleroot(m))))	modelled	intfuncscov-pkgid-source	
+base/pkgid.jl	17	17	==	==(a::PkgId, b::PkgId)	modelled	intfuncscov-pkgid-source	
+base/pkgid.jl	19	24	hash	hash(pkg::PkgId, h::UInt)	modelled	intfuncscov-pkgid-source	
+base/pkgid.jl	26	27	show	"show(io::IO, ::MIME""text/plain"", pkg::PkgId)"	modelled	intfuncscov-pkgid-source	
+base/pkgid.jl	29	36	binpack	binpack(pkg::PkgId)	modelled	intfuncscov-pkgid-source	
+base/pkgid.jl	38	45	binunpack	binunpack(s::String)	modelled	intfuncscov-pkgid-source	

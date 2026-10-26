@@ -1,0 +1,75 @@
+id: iocov-skipchars-nonseekable
+title: "skipchars throws on non-seekable streams (pipes, BufferStream, PipeBuffer)"
+priority: P3
+kind: wrong-exception
+area: IOCov
+files: [base/io.jl]
+functions: ["skipchars(predicate, ::IO)"]
+summary: |
+  skipchars reads characters with readeach(io, Char) and, on the first one for which
+  the predicate is false, steps back with skip(io, -ncodeunits(c)). Non-seekable
+  streams cannot step back: a PipeBuffer or BufferStream throws "seek failed,
+  IOBuffer is not seekable and is not marked", and a process or pipe stream throws a
+  MethodError for skip. skipchars therefore only works on seekable streams, although
+  it is documented for any IO and promoted in the readuntil docstring.
+likelihood: |
+  Any use of skipchars on stdin, a pipe, a socket or a process output, for example to
+  skip leading whitespace in a parser reading from a pipe.
+maybe_intended: |
+  #21354, which generalised skipchars from IOStream to IO, described it as working on
+  "any IO type that ... supports negative skip", so the restriction may be known; but
+  the docstring says nothing about seekability, and PipeBuffer and BufferStream support
+  peek(io, Char) through mark/reset.
+reproducer: |
+  function stream(s)
+      bs = Base.BufferStream(); write(bs, s); closewrite(bs); bs
+  end
+  println("IOBuffer: ", repr(read(skipchars(isspace, IOBuffer("  x")), String)))
+  failed = false
+  for (name, io) in (("BufferStream", stream("  x")), ("PipeBuffer", PipeBuffer(collect(codeunits("  x")))),
+                     ("Process", open(`printf '  x'`)))
+      try
+          skipchars(isspace, io)
+          println(name, ": ", repr(read(io, String)))
+      catch e
+          global failed = true
+          println(name, ": threw ", typeof(e), ": ", first(sprint(showerror, e), 80))
+      end
+  end
+  if failed
+      println("REPRODUCED iocov-skipchars-nonseekable")
+  end
+output:
+  release: |
+    IOBuffer: "x"
+    BufferStream: threw ArgumentError: ArgumentError: seek failed, IOBuffer is not seekable and is not marked
+    PipeBuffer: threw ArgumentError: ArgumentError: seek failed, IOBuffer is not seekable and is not marked
+    Process: threw MethodError: MethodError: no method matching skip(::Base.Process, ::Int64)
+    The function `skip
+    REPRODUCED iocov-skipchars-nonseekable
+  nightly: |
+    IOBuffer: "x"
+    BufferStream: threw ArgumentError: ArgumentError: seek failed, IOBuffer is not seekable and is not marked
+    PipeBuffer: threw ArgumentError: ArgumentError: seek failed, IOBuffer is not seekable and is not marked
+    Process: threw MethodError: MethodError: no method matching skip(::Base.Process, ::Int64)
+    The function `skip
+    REPRODUCED iocov-skipchars-nonseekable
+reproduced: {release: true, nightly: true}
+expected: |
+  "x" for every stream: the leading spaces are skipped and the 'x' is left unread.
+promised_by: |
+  skipchars docstring (base/io.jl:1625-1626): "Advance the stream `io` such that the
+  next-read character will be the first remaining for which `predicate` returns
+  `false`." The readuntil docstring recommends skipchars(!=('x'), io) for streams.
+cause: |
+  base/io.jl:1648: skip(io, -ncodeunits(c)) needs a seekable stream.
+possible_fix: |
+  Peek at the next character (peek(io, Char), which uses mark/reset) and only consume
+  it when the predicate is true.
+duplicates:
+  issues:
+    - {number: 21354, state: closed, relation: related}
+  queries: ["skipchars", "skipchars seek"]
+lean:
+  property: JuliaLean.IOCov.Io.SkipcharsStreams
+  theorem: JuliaLean.IOCov.Io.skipcharsStreams_refuted

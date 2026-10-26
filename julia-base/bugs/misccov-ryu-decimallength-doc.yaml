@@ -1,0 +1,42 @@
+id: misccov-ryu-decimallength-doc
+title: "Ryu.decimallength is documented as the digit count of any integer but stops at 17 digits (9 for UInt32)"
+priority: P3
+kind: documentation
+area: MiscCov
+files: [base/ryu/utils.jl]
+functions: ["Base.Ryu.decimallength", "Base.Ryu.decimallength(::UInt32)"]
+summary: |
+  The docstring says decimallength(v) is "The number of decimal digits of the integer v". The generic method returns 17 for every v >= 10^16 and the UInt32 method returns 9 for every v >= 10^8, so decimallength(UInt64(10)^17) == 17 and decimallength(UInt32(10)^9) == 9 while ndigits gives 18 and 10.
+likelihood: |
+  None in Base: callers pass at most 17-digit (resp. 9-digit) values. Only a reader relying on the docstring is affected.
+maybe_intended: |
+  The caps follow the reference Ryu, whose callers never pass longer values; the docstring omits the precondition.
+reproducer: |
+  Base.Ryu.decimallength(UInt64(10)^17)  # 17, ndigits == 18
+  Base.Ryu.decimallength(UInt32(10)^9)   # 9, ndigits == 10
+output:
+  release: |
+    decimallength(100000000000000000) = 17, ndigits = 18
+    decimallength(1000000000) = 9, ndigits = 10
+    REPRODUCED misccov-ryu-decimallength-doc
+  nightly: |
+    decimallength(100000000000000000) = 17, ndigits = 18
+    decimallength(1000000000) = 9, ndigits = 10
+    REPRODUCED misccov-ryu-decimallength-doc
+reproduced: {release: true, nightly: true}
+expected: |
+  A docstring stating the bounds `v < 10^17` (generic) and `v < 10^9` (UInt32).
+promised_by: |
+  base/ryu/utils.jl:92: "The number of decimal digits of the integer `v`."
+cause: |
+  base/ryu/utils.jl:95 and 114 start the comparison chains at 10^16 and 10^8.
+possible_fix: |
+  Document the bounds.
+duplicates:
+  issues: []
+  queries:
+    - "issues: decimallength"
+    - "issues: Ryu decimallength"
+lean:
+  property: JuliaLean.MiscCov.RyuUtils.DecimallengthDoc
+  theorem: JuliaLean.MiscCov.RyuUtils.decimallengthDoc_refuted

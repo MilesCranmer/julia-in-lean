@@ -1,0 +1,116 @@
+import JuliaLean.Registry.Types
+import JuliaLean.ErrorShow.ErrorshowFaithful
+
+namespace JuliaLean.ErrorShow.ErrorshowEntries
+
+open JuliaLean.Registry
+open JuliaLean.ErrorShow.ErrorshowFaithful
+
+private def cov (id fn source statement : String) (prop thm : Lean.Name) : Entry :=
+  { id, juliaFile := "base/errorshow.jl", juliaFns := [fn], statement, source,
+    status := .proven, prop, thm := some thm }
+
+def entries : List Entry := [
+  cov "errorshow-errorshow-l30" "showerror(io,ex)" "base/errorshow.jl:30" "Generic showerror calls two-argument show for every value." ``ShowerrorFallbackExact ``showerrorFallbackExact,
+  cov "errorshow-errorshow-l32" "show_index(::Any)" "base/errorshow.jl:32" "The generic index printer calls show on every index." ``ShowIndexAnyExact ``showIndexAnyExact,
+  cov "errorshow-errorshow-l33" "show_index(::Slice)" "base/errorshow.jl:33" "Slice index printing recurses on the underlying indices." ``ShowIndexSliceExact ``showIndexSliceExact,
+  cov "errorshow-errorshow-l34" "show_index(::LogicalIndex)" "base/errorshow.jl:34" "Logical index printing emits the mask summary." ``ShowIndexLogicalExact ``showIndexLogicalExact,
+  cov "errorshow-errorshow-l35" "show_index(::OneTo)" "base/errorshow.jl:35" "OneTo index printing emits 1 followed by the stored stop." ``ShowIndexOneToExact ``showIndexOneToExact,
+  cov "errorshow-errorshow-l36" "show_index(::Colon)" "base/errorshow.jl:36" "Colon index printing emits one colon." ``ShowIndexColonExact ``showIndexColonExact,
+  cov "errorshow-errorshow-l38" "showerror(::Meta.ParseError)" "base/errorshow.jl:38-44" "ParseError printing delegates to detail when present and otherwise wraps repr(message)." ``ShowParseErrorExact ``showParseErrorExact,
+  cov "errorshow-errorshow-l46" "showerror(::Core.TypeNameError)" "base/errorshow.jl:46-53" "TypeNameError printing selects the union or ordinary fixed message." ``ShowTypeNameErrorExact ``showTypeNameErrorExact,
+  cov "errorshow-errorshow-l55" "showerror(::BoundsError)" "base/errorshow.jl:55-76" "BoundsError printing conditionally emits its collection summary and ordered indices." ``ShowBoundsErrorExact ``showBoundsErrorExact,
+  cov "errorshow-errorshow-l78" "showerror(::TypeError)" "base/errorshow.jl:78-105" "TypeError printing follows the Boolean-context, dict-key, and general context branches." ``ShowTypeErrorExact ``showTypeErrorExact,
+  cov "errorshow-errorshow-l107" "showerror(ex,bt)" "base/errorshow.jl:107-113" "The backtrace wrapper runs showerror and runs show_backtrace in the finally branch when enabled." ``ShowErrorWithBacktraceExact ``showErrorWithBacktraceExact,
+  cov "errorshow-errorshow-l115" "showerror(::LoadError,bt)" "base/errorshow.jl:115-119" "LoadError printing emits the nested error and starting file and line in order." ``ShowLoadErrorBacktraceExact ``showLoadErrorBacktraceExact,
+  cov "errorshow-errorshow-l120" "showerror(::LoadError)" "base/errorshow.jl:120" "Two-argument LoadError printing delegates with an empty backtrace." ``ShowLoadErrorExact ``showLoadErrorExact,
+  cov "errorshow-errorshow-l122" "showerror(::InitError,bt)" "base/errorshow.jl:122-126" "InitError printing emits the nested error and module initialization suffix." ``ShowInitErrorBacktraceExact ``showInitErrorBacktraceExact,
+  cov "errorshow-errorshow-l127" "showerror(::InitError)" "base/errorshow.jl:127" "Two-argument InitError printing delegates with an empty backtrace." ``ShowInitErrorExact ``showInitErrorExact,
+  cov "errorshow-errorshow-l129" "showerror(::DomainError)" "base/errorshow.jl:129-143" "DomainError printing emits its value and optional message exactly." ``ShowDomainErrorExact ``showDomainErrorExact,
+  cov "errorshow-errorshow-l145" "showerror(::SystemError)" "base/errorshow.jl:145-158" "SystemError printing selects the plain or extra-info form." ``ShowSystemErrorExact ``showSystemErrorExact,
+  cov "errorshow-errorshow-l160" "showerror(::DivideError)" "base/errorshow.jl:160" "DivideError printing emits its fixed message." ``ShowDivideErrorExact ``showDivideErrorExact,
+  cov "errorshow-errorshow-l161" "showerror(::StackOverflowError)" "base/errorshow.jl:161" "StackOverflowError printing emits its fixed message." ``ShowStackOverflowErrorExact ``showStackOverflowErrorExact,
+  cov "errorshow-errorshow-l162" "showerror(::UndefRefError)" "base/errorshow.jl:162" "UndefRefError printing emits its fixed message." ``ShowUndefRefErrorExact ``showUndefRefErrorExact,
+  cov "errorshow-errorshow-l163" "showerror(::EOFError)" "base/errorshow.jl:163" "EOFError printing emits its fixed message." ``ShowEofErrorExact ``showEofErrorExact,
+  cov "errorshow-errorshow-l164" "showerror(::ErrorException)" "base/errorshow.jl:164" "ErrorException printing emits its message field unchanged." ``ShowErrorExceptionExact ``showErrorExceptionExact,
+  cov "errorshow-errorshow-l165" "showerror(::KeyError)" "base/errorshow.jl:165-167" "KeyError printing surrounds the shown key with the fixed prefix and suffix." ``ShowKeyErrorExact ``showKeyErrorExact,
+  cov "errorshow-errorshow-l168" "showerror(::InterruptException)" "base/errorshow.jl:168" "InterruptException printing emits its fixed message." ``ShowInterruptExceptionExact ``showInterruptExceptionExact,
+  cov "errorshow-errorshow-l169" "showerror(::ArgumentError)" "base/errorshow.jl:169" "ArgumentError printing prefixes every message." ``ShowArgumentErrorExact ``showArgumentErrorExact,
+  cov "errorshow-errorshow-l170" "showerror(::DimensionMismatch)" "base/errorshow.jl:170" "DimensionMismatch printing prefixes every message." ``ShowDimensionMismatchExact ``showDimensionMismatchExact,
+  cov "errorshow-errorshow-l171" "showerror(::AssertionError)" "base/errorshow.jl:171" "AssertionError printing prefixes every message." ``ShowAssertionErrorExact ``showAssertionErrorExact,
+  cov "errorshow-errorshow-l172" "showerror(::OverflowError)" "base/errorshow.jl:172" "OverflowError printing prefixes every message." ``ShowOverflowErrorExact ``showOverflowErrorExact,
+  cov "errorshow-errorshow-l174" "showerror(::UndefKeywordError)" "base/errorshow.jl:174-175" "UndefKeywordError printing inserts the missing variable in the fixed sentence." ``ShowUndefKeywordErrorExact ``showUndefKeywordErrorExact,
+  cov "errorshow-errorshow-l177" "showerror(::UndefVarError)" "base/errorshow.jl:177-190" "UndefVarError printing follows absent, module, static-parameter, and local-scope branches." ``ShowUndefVarErrorExact ``showUndefVarErrorExact,
+  cov "errorshow-errorshow-l192" "showerror(::InexactError)" "base/errorshow.jl:192-205" "InexactError printing conditionally emits the target type and every argument in order." ``ShowInexactErrorExact ``showInexactErrorExact,
+  cov "errorshow-errorshow-l207" "showerror(::CanonicalIndexError)" "base/errorshow.jl:207-209" "CanonicalIndexError printing emits its function and type fields." ``ShowCanonicalIndexErrorExact ``showCanonicalIndexErrorExact,
+  cov "errorshow-errorshow-l213" "typesof" "base/errorshow.jl:213" "typesof preserves the runtime Core.Typeof result for every argument in order." ``TypesOfExact ``typesOfExact,
+  cov "errorshow-errorshow-l215" "print_with_compare(::DataType)" "base/errorshow.jl:215-233" "DataType comparison recurses through same-name parameters and highlights a different type as one mismatch." ``PrintWithCompareDataTypeExact ``printWithCompareDataTypeExact,
+  cov "errorshow-errorshow-l235" "print_with_compare(::Any)" "base/errorshow.jl:235-241" "Generic comparison prints normally on identity and highlights every different value." ``PrintWithCompareAnyExact ``printWithCompareAnyExact,
+  cov "errorshow-errorshow-l243" "show_convert_error" "base/errorshow.jl:243-258" "Convert-error printing selects the invalid-first-argument or source-to-target form." ``ShowConvertErrorExact ``showConvertErrorExact,
+  cov "errorshow-errorshow-l260" "showerror(::MethodError)" "base/errorshow.jl:260-409" "MethodError printing selects the source primary branch and appends its ordered hints and candidates." ``ShowMethodErrorExact ``showMethodErrorExact,
+  cov "errorshow-errorshow-l411" "showerror(::FieldError)" "base/errorshow.jl:411-415" "FieldError printing emits the type, field, and registered hint output." ``ShowFieldErrorExact ``showFieldErrorExact,
+  cov "errorshow-errorshow-l417" "striptype(::Type)" "base/errorshow.jl:417" "striptype returns the wrapped type for every type input." ``StripTypeYesExact ``stripTypeYesExact,
+  cov "errorshow-errorshow-l418" "striptype(::Any)" "base/errorshow.jl:418" "The generic striptype fallback returns nothing for every input." ``StripTypeNoExact ``stripTypeNoExact,
+  cov "errorshow-errorshow-l420" "showerror_ambiguous" "base/errorshow.jl:420-446" "Ambiguous MethodError printing emits the signature, candidates, and optional resolution text in source order." ``ShowAmbiguousErrorExact ``showAmbiguousErrorExact,
+  cov "errorshow-errorshow-l450" "showerror_nostdio" "base/errorshow.jl:450-456" "The bootstrap printer emits message, colon and newline, static error display, and final newline in order." ``ShowErrorNoStdioExact ``showErrorNoStdioExact,
+  cov "errorshow-errorshow-l458" "stacktrace_expand_basepaths" "base/errorshow.jl:458" "Base-path expansion reads its Boolean environment variable with false default." ``StacktraceExpandBasepathsExact ``stacktraceExpandBasepathsExact,
+  cov "errorshow-errorshow-l459" "stacktrace_contract_userdir" "base/errorshow.jl:459" "Home contraction reads its Boolean environment variable with true default." ``StacktraceContractUserdirExact ``stacktraceContractUserdirExact,
+  cov "errorshow-errorshow-l460" "stacktrace_linebreaks" "base/errorshow.jl:460" "Stacktrace linebreaks reads its Boolean environment variable with false default." ``StacktraceLinebreaksExact ``stacktraceLinebreaksExact,
+  cov "errorshow-errorshow-l461" "stacktrace_full_loading" "base/errorshow.jl:461" "Full loading frames reads its Boolean environment variable with false default." ``StacktraceFullLoadingExact ``stacktraceFullLoadingExact,
+  cov "errorshow-errorshow-l466" "show_type_diff" "base/errorshow.jl:466-493" "Type difference output follows the exact recursive source comparison." ``ShowTypeDiffExact ``showTypeDiffExact,
+  cov "errorshow-errorshow-l495" "show_separator" "base/errorshow.jl:495-501" "Separator output selects colored or plain comma formatting." ``ShowSeparatorFaithfulExact ``showSeparatorFaithfulExact,
+  cov "errorshow-errorshow-l503" "show_type_match" "base/errorshow.jl:503-511" "Matched type output selects colored or plain rendering." ``ShowTypeMatchExact ``showTypeMatchExact,
+  cov "errorshow-errorshow-l513" "show_namedtuple_diff" "base/errorshow.jl:513-543" "NamedTuple difference returns false for incompatible shapes and emits field differences for compatible shapes." ``ShowNamedtupleDiffExact ``showNamedtupleDiffExact,
+  cov "errorshow-errorshow-l550" "descend_params" "base/errorshow.jl:550-574" "Parameter descent returns corresponding nonempty same-outer parameters and otherwise stops." ``DescendParamsExact ``descendParamsExact,
+  cov "errorshow-errorshow-l576" "show_type_mismatch" "base/errorshow.jl:576-590" "Mismatch output selects colored, top-level, or nested notation exactly." ``ShowTypeMismatchFaithfulExact ``showTypeMismatchFaithfulExact,
+  cov "errorshow-errorshow-l592" "_resolves_to_self" "base/errorshow.jl:592-601" "TypeName resolution succeeds without a module or exactly when parent resolution reaches itself." ``ResolvesToSelfExact ``resolvesToSelfExact,
+  cov "errorshow-errorshow-l603" "show_shadowed_type_hint" "base/errorshow.jl:603-654" "Shadowed-type hints emit each qualifying TypeName at most once." ``ShowShadowedTypeHintExact ``showShadowedTypeHintExact,
+  cov "errorshow-errorshow-l656" "show_method_candidates" "base/errorshow.jl:656-869" "Method candidate output sorts by source score and emits the first three candidates." ``ShowMethodCandidatesExact ``showMethodCandidatesExact,
+  cov "errorshow-errorshow-l887" "get_stacktrace_color" "base/errorshow.jl:887-889" "Stacktrace color lookup returns an existing color or consumes the next cycle color." ``GetStacktraceColorExact ``getStacktraceColorExact,
+  cov "errorshow-errorshow-l893" "_backtrace_find_and_remove_cycles" "base/errorshow.jl:893-956" "Cycle processing returns the displayed frame counts, repeated cycles, and maximum nesting computed from the trace." ``FindAndRemoveCyclesExact ``findAndRemoveCyclesExact,
+  cov "errorshow-errorshow-l958" "_backtrace_print_repetition_closings!" "base/errorshow.jl:958-992" "Repetition closing advances counters and removes every cycle ending at the current line." ``RepetitionClosingsExact ``repetitionClosingsExact,
+  cov "errorshow-errorshow-l994" "show_processed_backtrace" "base/errorshow.jl:994-1031" "Processed backtrace display emits the header and each frame using the selected linebreak policy." ``ShowProcessedBacktraceExact ``showProcessedBacktraceExact,
+  cov "errorshow-errorshow-l1036" "print_stackframe(color lookup)" "base/errorshow.jl:1036-1045" "The color-lookup stackframe method selects its module color and delegates to the layout method." ``PrintStackframeColorLookupExact ``printStackframeColorLookupExact,
+  cov "errorshow-errorshow-l1048" "parentmodule_before_main(::Module)" "base/errorshow.jl:1048-1055" "Parent-module walking stops before Main or at the topmost self-parent module." ``ParentmoduleBeforeMainExact ``parentmoduleBeforeMainExact,
+  cov "errorshow-errorshow-l1056" "parentmodule_before_main(::Any)" "base/errorshow.jl:1056" "The generic parentmodule_before_main method first obtains parentmodule and delegates." ``ParentmoduleBeforeMainObjectExact ``parentmoduleBeforeMainObjectExact,
+  cov "errorshow-errorshow-l1059" "print_stackframe(layout)" "base/errorshow.jl:1059-1100" "Stackframe layout emits cycle brackets, aligned number, signature, location, and inline suffix in source order." ``PrintStackframeLayoutExact ``printStackframeLayoutExact,
+  cov "errorshow-errorshow-l1102" "print_module_path_file" "base/errorshow.jl:1102-1124" "Module-path printing emits optional module, directory, basename, line or question mark, and optional column." ``PrintModulePathFileExact ``printModulePathFileExact,
+  cov "errorshow-errorshow-l1145" "show_backtrace" "base/errorshow.jl:1145-1188" "Backtrace display selects empty, suppressed top-level, direct, or cycle-processing routes from source conditions." ``ShowBacktraceExact ``showBacktraceExact,
+  cov "errorshow-errorshow-l1190" "_backtrace_collapse_and_count_repeated_frames" "base/errorshow.jl:1190-1210" "Consecutive equal-location frames are collapsed and counted in source order." ``CollapseAndCountRepeatedFramesExact ``collapseAndCountRepeatedFramesExact,
+  cov "errorshow-errorshow-l1212" "_backtrace_remove_kwcall_frames!" "base/errorshow.jl:1212-1229" "Keyword-sorter and legacy kwcall frames are removed exactly when the source predicate marks them internal." ``RemoveKwcallFramesExact ``removeKwcallFramesExact,
+  cov "errorshow-errorshow-l1233" "_backtrace_simplify_include_frames!" "base/errorshow.jl:1233-1267" "Include-frame simplification retains exactly the frames selected by the source reverse scan." ``SimplifyIncludeFramesExact ``simplifyIncludeFramesExact,
+  cov "errorshow-errorshow-l1283" "_is_loading_frame" "base/errorshow.jl:1283-1301" "Loading-frame recognition returns the exact source predicate for every frame." ``IsLoadingFrameExact ``isLoadingFrameExact,
+  cov "errorshow-errorshow-l1303" "_is_loading_anchor" "base/errorshow.jl:1303" "Loading-anchor recognition returns the exact source anchor predicate." ``IsLoadingAnchorExact ``isLoadingAnchorExact,
+  cov "errorshow-errorshow-l1309" "_backtrace_simplify_loading_frames!" "base/errorshow.jl:1309-1344" "Loading simplification preserves all frames in full mode and otherwise keeps nonloading frames and run anchors."
+    ``SimplifyLoadingFramesExact ``simplifyLoadingFramesExact,
+  cov "errorshow-errorshow-l1347" "_backtrace_collapse_repeated_locations!" "base/errorshow.jl:1347-1408" "Repeated-location simplification retains exactly the source-selected useful frames."
+    ``CollapseRepeatedLocationsExact ``collapseRepeatedLocationsExact,
+  cov "errorshow-errorshow-l1410" "process_backtrace(::Vector{StackFrame})" "base/errorshow.jl:1410-1413" "Raw-frame processing first collapses repeated frames and then runs the filtering pipeline."
+    ``ProcessBacktraceFramesExact ``processBacktraceFramesExact,
+  cov "errorshow-errorshow-l1415" "process_backtrace(::Vector{Any})" "base/errorshow.jl:1415-1421" "Counted-frame processing applies keyword, include, loading, and location filters in source order."
+    ``ProcessBacktraceCountedExact ``processBacktraceCountedExact,
+  cov "errorshow-errorshow-l1423" "show_exception_stack" "base/errorshow.jl:1423-1436" "Exception-stack display reverses the stack and inserts caused-by separators."
+    ``ShowExceptionStackFaithfulExact ``showExceptionStackFaithfulExact,
+  cov "errorshow-errorshow-l1439" "show(::InterpreterIP)" "base/errorshow.jl:1439-1446" "InterpreterIP show selects top-level CodeInfo or code output and appends the statement."
+    ``ShowInterpreterIpExact ``showInterpreterIpExact,
+  cov "errorshow-errorshow-l1451" "noncallable_number_hint_handler" "base/errorshow.jl:1451-1458" "The noncallable-number hint emits exactly for numeric callees." ``NoncallableNumberHintExact ``noncallableNumberHintExact,
+  cov "errorshow-errorshow-l1468" "nonsetable_type_hint_handler" "base/errorshow.jl:1468-1483" "The setindex hint selects no hint, numeric indexing guidance, or type-construction guidance." ``NonsettableHintExact ``nonsettableHintExact,
+  cov "errorshow-errorshow-l1489" "string_concatenation_hint_handler" "base/errorshow.jl:1489-1495" "The string concatenation hint emits exactly for plus with only string argument types." ``StringConcatenationHintExact ``stringConcatenationHintExact,
+  cov "errorshow-errorshow-l1501" "string_replace_hint_handler" "base/errorshow.jl:1501-1507" "The replace hint emits exactly for _replace! with a string argument." ``StringReplaceHintExact ``stringReplaceHintExact,
+  cov "errorshow-errorshow-l1513" "methods_on_iterable" "base/errorshow.jl:1513-1532" "Iterable hints append maximum or minimum and length or size guidance in source order." ``MethodsOnIterableExact ``methodsOnIterableExact,
+  cov "errorshow-errorshow-l1537" "fielderror_dict_hint_handler" "base/errorshow.jl:1537-1546" "The dict field hint emits indexing syntax exactly for AbstractDict types." ``FieldErrorDictHintExact ``fieldErrorDictHintExact,
+  cov "errorshow-errorshow-l1550" "fielderror_listfields_hint_handler" "base/errorshow.jl:1550-1564" "Field-list hints emit declared fields and custom properties not already fields." ``FieldErrorListHintExact ``fieldErrorListHintExact,
+  cov "errorshow-errorshow-l1566" "_propertynames_bytype" "base/errorshow.jl:1566-1573" "Property-name inference returns only a custom inferred symbol tuple and otherwise nothing." ``PropertyNamesByTypeExact ``propertyNamesByTypeExact,
+  cov "errorshow-errorshow-l1577" "apply_type_unionall_hint_handler" "base/errorshow.jl:1577-1582" "The apply_type hint emits exactly when UnionAll was expected." ``ApplyTypeUnionallHintExact ``applyTypeUnionallHintExact,
+  cov "errorshow-errorshow-l1586" "UndefVarError_hint" "base/errorshow.jl:1586-1649" "UndefVarError hints append scope, Base, loaded-module, and Core or Main messages in source order." ``UndefVarErrorHintExact ``undefVarErrorHintExact,
+  cov "errorshow-errorshow-l1651" "_UndefVarError_warnfor" "base/errorshow.jl:1651-1696" "Module warning collection returns whether any qualifying module exists and its emitted warnings." ``UndefVarWarnForExact ``undefVarWarnForExact,
+  cov "errorshow-errorshow-l1701" "size(::ExceptionStack)" "base/errorshow.jl:1701" "ExceptionStack size delegates to the backing vector length." ``ExceptionStackSizeExact ``exceptionStackSizeExact,
+  cov "errorshow-errorshow-l1702" "getindex(::ExceptionStack)" "base/errorshow.jl:1702" "ExceptionStack indexing delegates to the same backing-vector index." ``ExceptionStackGetExact ``exceptionStackGetExact,
+  cov "errorshow-errorshow-l1704" "show(::MIME\"text/plain\",::ExceptionStack)" "base/errorshow.jl:1704-1708" "Plain ExceptionStack show emits count, optional header punctuation, and reversed exception stack." ``ShowExceptionStackPlainExact ``showExceptionStackPlainExact,
+  cov "errorshow-errorshow-l1709" "show(::ExceptionStack)" "base/errorshow.jl:1709" "Two-argument ExceptionStack show delegates exactly to text/plain." ``ShowExceptionStackCompactExact ``showExceptionStackCompactExact,
+  cov "errorshow-errorshow-l1714" "incomplete_tag(::Any)" "base/errorshow.jl:1714" "The generic incomplete-tag fallback returns none." ``IncompleteTagAnyExact ``incompleteTagAnyExact,
+  cov "errorshow-errorshow-l1715" "incomplete_tag(::Expr)" "base/errorshow.jl:1715-1733" "Expr incomplete-tag detection follows head, empty-argument, message category, and nested-expression branches." ``IncompleteTagExprExact ``incompleteTagExprExact,
+  cov "errorshow-errorshow-l1734" "incomplete_tag(::Meta.ParseError)" "base/errorshow.jl:1734" "ParseError incomplete-tag detection delegates to its detail expression." ``IncompleteTagParseErrorExact ``incompleteTagParseErrorExact
+]
+
+end JuliaLean.ErrorShow.ErrorshowEntries

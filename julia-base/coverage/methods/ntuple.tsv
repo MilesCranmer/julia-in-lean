@@ -1,0 +1,8 @@
+file	line	endline	name	signature	status	entry	note
+base/ntuple.jl	17	32	ntuple	ntuple(f::F, n::Int) where F	modelled	tuples-ntuple	
+base/ntuple.jl	33	33	ntuple	ntuple(f::F, n::Integer) where F	modelled	tuples-ntuple	
+base/ntuple.jl	36	40	_ntuple	_ntuple(f::F, n::Int) where F	modelled	tuples-ntuple	
+base/ntuple.jl	42	46	ntupleany	ntupleany(f, n)	modelled	sorttuplescov-ntuple-any	
+base/ntuple.jl	65	72	ntuple	ntuple(f::F, ::Val{N}) where {F,N}	modelled	tuples-ntuple	
+base/ntuple.jl	74	85	fill_to_length	fill_to_length(t::Tuple, val, ::Val{_N}) where {_N}	modelled	tuples-fill-to-length	
+base/ntuple.jl	89	93	reverse	reverse(t::NTuple{N}) where N	modelled	sorttuplescov-ntuple-reverse	

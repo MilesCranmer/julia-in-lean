@@ -1,0 +1,58 @@
+line	name	verdict	mirror	property	settled	reason
+115	rounds_to_nearest	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+116	rounds_to_nearest	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+117	rounds_to_nearest	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+118	rounds_to_nearest	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+119	rounds_away_from_zero	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+120	rounds_away_from_zero	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+121	rounds_away_from_zero	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+122	rounds_away_from_zero	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+123	tie_breaker_is_to_even	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+124	tie_breaker_is_to_even	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+125	tie_breaker_is_to_even	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+126	tie_breaker_rounds_away_from_zero	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+127	tie_breaker_rounds_away_from_zero	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+129	rounds_to_nearest	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+130	rounds_away_from_zero	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+131	tie_breaker_is_to_even	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+132	tie_breaker_rounds_away_from_zero	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+138	correct_rounding_requires_increment	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+170	to_fenv	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+171	to_fenv	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+172	to_fenv	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+173	to_fenv	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+175	from_fenv	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+219	setrounding_raw	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+220	rounding_raw	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+222	rounding	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+223	rounding	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+238	setrounding	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+247	setrounding	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+248	setrounding_raw	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+267	(::Type{T})	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+269	_convert_rounding	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+270	_convert_rounding	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+274	_convert_rounding	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+278	_convert_rounding	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+286	_convert_rounding	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+313	set_zero_subnormals	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+325	get_zero_subnormals	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+413	round	FAITHFUL	-	-	-	no-behaviour: generic function declaration has no method body.
+444	trunc	FAITHFUL	-	-	-	no-behaviour: generic function declaration has no method body.
+461	floor	FAITHFUL	-	-	-	no-behaviour: generic function declaration has no method body.
+478	ceil	FAITHFUL	-	-	-	no-behaviour: generic function declaration has no method body.
+480	trunc	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+481	floor	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+482	ceil	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+483	round	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+485	trunc	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+486	floor	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+487	ceil	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+488	round	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+490	round	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+491	_round_convert	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+492	trunc	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+493	floor	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+494	ceil	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+495	round	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+497	round	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.

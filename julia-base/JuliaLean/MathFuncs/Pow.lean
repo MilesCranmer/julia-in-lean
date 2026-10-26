@@ -44,7 +44,7 @@ def powBodyLoop : Nat → F64 → F64 → F64 → F64 → Int → F64 × F64 × 
 /-- Loop and final compensation of `pow_body(x::Float64, n::Integer)`;
 `base/special/pow.jl:119-121,130-143`. The final `ifelse(..., muladd(x, y, err), x*y)` is
 compiled with the product `x*y` shared by both branches, so that `muladd` is not fused:
-on x86-64 Julia returns `x*y + err` with two roundings (e.g. `3.0^-3` gives
+on x86 Julia returns `x*y + err` with two roundings (e.g. `3.0^-3` gives
 `0x3fa2f684bda12f69`, the fused value would be `0x3fa2f684bda12f68`). -/
 def powBodyIFinish (x xnlo : F64) (n : Int) : F64 :=
   let (x, xnlo, y, ynlo) := powBodyLoop 64 x xnlo F64.one F64.zero n

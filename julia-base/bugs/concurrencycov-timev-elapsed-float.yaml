@@ -1,0 +1,61 @@
+id: concurrencycov-timev-elapsed-float
+title: "@timev prints \"elapsed time (ns)\" as a Float64 such as 5.1156252e7"
+priority: P3
+kind: wrong-result
+area: Timing
+files: [base/timing.jl]
+functions: ["@timev", "timev_print", "padded_nonzero_print"]
+summary: |
+  @timev passes `ret.time*1e9` (a Float64 rebuilt from seconds) to timev_print, which
+  prints it with `println`. The nanosecond count therefore appears as a float in
+  scientific notation ("5.1156252e7") or with rounding noise ("491.00000000000006")
+  instead of an integer, and it is no longer the exact measured count.
+likelihood: |
+  Every @timev call shows it; anything slower than a millisecond prints in exponent
+  form.
+maybe_intended: |
+  The value is still the elapsed time in nanoseconds, only formatted as a float.
+reproducer: |
+  @timev sleep(0.05)
+output:
+  release: |
+    0.051156 seconds (13 allocations: 624 bytes)
+    elapsed time (ns):  5.1156252e7
+    gc time (ns):       0
+    bytes allocated:    624
+    pool allocs:        13
+    non-pool GC allocs: 0
+    minor collections:  0
+    full collections:   0
+    printed elapsed value: "5.1156252e7"
+    REPRODUCED concurrencycov-timev-elapsed-float
+  nightly: |
+    0.051350 seconds (10 allocations: 400 bytes)
+    elapsed time (ns):  5.1349847e7
+    gc time (ns):       0
+    bytes allocated:    400
+    pool allocs:        10
+    non-pool GC allocs: 0
+    minor collections:  0
+    full collections:   0
+    printed elapsed value: "5.1349847e7"
+    REPRODUCED concurrencycov-timev-elapsed-float
+reproduced: {release: true, nightly: true}
+expected: |
+  An integer nanosecond count, e.g. "elapsed time (ns): 51156252".
+promised_by: |
+  The @timev docstring example, base/timing.jl:450-465, shows
+  "elapsed time (ns): 546769547" and "elapsed time (ns): 9848".
+cause: |
+  base/timing.jl:478 calls `timev_print(ret.time*1e9, ...)`; `ret.time` is
+  `elapsedtime/1e9` (line 751), so the integer `time_ns` difference becomes a Float64
+  and padded_nonzero_print (lines 212-217) prints it as such.
+possible_fix: |
+  Keep the integer `elapsedtime` from @timed (or round the product back to an Int)
+  before printing the counter line.
+duplicates:
+  issues: []
+  queries: ["timev elapsed time", "timev output", "padded_nonzero_print"]
+lean:
+  property: JuliaLean.ConcurrencyCov.Timing.TimevElapsedInteger
+  theorem: JuliaLean.ConcurrencyCov.Timing.timevElapsedInteger_refuted

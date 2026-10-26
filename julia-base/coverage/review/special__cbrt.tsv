@@ -1,0 +1,7 @@
+line	name	verdict	mirror	property	settled	reason
+36	cbrt	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+63	_approx_cbrt	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+81	_improve_cbrt	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+103	_improve_cbrt	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+144	cbrt	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+152	cbrt	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.

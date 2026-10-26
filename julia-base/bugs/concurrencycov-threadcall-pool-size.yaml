@@ -1,0 +1,58 @@
+id: concurrencycov-threadcall-pool-size
+title: "@threadcall ignores UV_THREADPOOL_SIZE set for a restarted Julia process"
+priority: P3
+kind: documentation
+area: Threads
+files: [base/threadcall.jl]
+functions: ["@threadcall", "do_threadcall"]
+summary: |
+  The @threadcall docstring says restarting Julia after setting UV_THREADPOOL_SIZE
+  increases concurrency. The limiting semaphore instead keeps the value recorded
+  when the system image was built, so a process started with a larger value still
+  admits only four concurrent @threadcall operations.
+likelihood: |
+  Users who increase libuv's worker pool to run more blocking C calls still get four
+  concurrent calls. Correctness is unaffected; the result is lower concurrency than
+  documented.
+maybe_intended: |
+  Keeping a fixed semaphore size avoids oversubscribing the system-image build
+  environment, but contradicts the documented process-environment control.
+reproducer: |
+  # Parent restarts Julia with UV_THREADPOOL_SIZE=8.
+  @threadcall(:usleep, Cint, (Cuint,), 1) # warm up
+  @elapsed @sync for _ in 1:8
+      @async @threadcall(:sleep, Cuint, (Cuint,), 1)
+  end
+output:
+  release: |
+    UV_THREADPOOL_SIZE = 8
+    Base.max_ccall_threads = 4
+    threadcall semaphore size = 4
+    8 concurrent 1 s threadcalls took 2.0 s
+    REPRODUCED concurrencycov-threadcall-pool-size
+  nightly: |
+    UV_THREADPOOL_SIZE = 8
+    Base.max_ccall_threads = 4
+    threadcall semaphore size = 4
+    8 concurrent 1 s threadcalls took 2.0 s
+    REPRODUCED concurrencycov-threadcall-pool-size
+reproduced: {release: true, nightly: true}
+expected: |
+  Base.max_ccall_threads and the semaphore size should be 8, allowing the eight
+  one-second calls to finish in about one second.
+promised_by: |
+  base/threadcall.jl:8-15 says concurrency can be increased by setting
+  UV_THREADPOOL_SIZE and restarting the Julia process.
+cause: |
+  base/threadcall.jl:3-4 initializes max_ccall_threads and threadcall_restrictor as
+  top-level constants. Their values are serialized into the system image instead of
+  being recomputed from ENV during process startup.
+possible_fix: |
+  Initialize the limiter during process startup, or update the docstring to state
+  that the value is fixed by the system-image build.
+duplicates:
+  issues: []
+  queries: ["UV_THREADPOOL_SIZE threadcall", "threadcall thread pool size", "max_ccall_threads sysimage"]
+lean:
+  property: JuliaLean.ConcurrencyCov.Threadcall.ThreadcallPoolFollowsEnvironment
+  theorem: JuliaLean.ConcurrencyCov.Threadcall.threadcallPoolFollowsEnvironment_refuted

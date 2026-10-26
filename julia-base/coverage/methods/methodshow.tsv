@@ -1,0 +1,31 @@
+file	line	endline	name	signature	status	entry	note
+base/methodshow.jl	6	11	strip_gensym	strip_gensym(sym)	modelled	errorshow-methodshow-l6	method-specific source model:errorshow-methodshow-l6
+base/methodshow.jl	13	47	argtype_decl	argtype_decl(env, n, @nospecialize(sig::DataType), i::Int, nargs, isva::Bool)	modelled	errorshow-methodshow-l13	method-specific source model:errorshow-methodshow-l13
+base/methodshow.jl	49	53	method_argnames	method_argnames(m::Method)	modelled	errorshow-methodshow-l49	method-specific source model:errorshow-methodshow-l49
+base/methodshow.jl	55	77	arg_decl_parts	arg_decl_parts(m::Method, html=false)	modelled	errorshow-methodshow-l55	method-specific source model:errorshow-methodshow-l55
+base/methodshow.jl	80	123	kwarg_decl	kwarg_decl(m::Method, kwtype = nothing; world::UInt=get_world_counter())	modelled	errorshow-methodshow-l80	method-specific source model:errorshow-methodshow-l80
+base/methodshow.jl	125	143	show_method_params	show_method_params(io::IO, tv)	modelled	errorshow-methodshow-l125	method-specific source model:errorshow-methodshow-l125
+base/methodshow.jl	152	170	fixup_stdlib_path	fixup_stdlib_path(path::String)	modelled	errorshow-methodshow-l152	method-specific source model:errorshow-methodshow-l152
+base/methodshow.jl	173	183	updated_methodloc	updated_methodloc(m::Method)::Tuple{String, Int32}	modelled	errorshow-methodshow-l173	method-specific source model:errorshow-methodshow-l173
+base/methodshow.jl	185	185	functionloc	functionloc(m::Core.MethodInstance)	modelled	errorshow-methodshow-l185	method-specific source model:errorshow-methodshow-l185
+base/methodshow.jl	192	198	functionloc	functionloc(m::Method)	modelled	errorshow-methodshow-l192	method-specific source model:errorshow-methodshow-l192
+base/methodshow.jl	205	205	functionloc	functionloc(@nospecialize(f), @nospecialize(types))	modelled	errorshow-methodshow-l205	method-specific source model:errorshow-methodshow-l205
+base/methodshow.jl	206	206	functionloc	functionloc(@nospecialize(argtypes::Union{Tuple, Type{<:Tuple}}))	modelled	errorshow-methodshow-l206	method-specific source model:errorshow-methodshow-l206
+base/methodshow.jl	208	221	functionloc	functionloc(@nospecialize(f))	modelled	errorshow-methodshow-l208	method-specific source model:errorshow-methodshow-l208
+base/methodshow.jl	223	233	sym_to_string	sym_to_string(sym)	modelled	errorshow-methodshow-l223	method-specific source model:errorshow-methodshow-l223
+base/methodshow.jl	236	236	show	show(io::IO, m::Method; kwargs...)	modelled	errorshow-methodshow-l236	method-specific source model:errorshow-methodshow-l236
+base/methodshow.jl	238	238	show	"show(io::IO, ::MIME""text/plain"", m::Method; kwargs...)"	modelled	errorshow-methodshow-l238	method-specific source model:errorshow-methodshow-l238
+base/methodshow.jl	240	285	show_method	show_method(io::IO, m::Method; modulecolor = :light_black, digit_align_width = 1, print_signature_only::Bool = get(io, :print_method_signature_only, false)::Bool)	modelled	errorshow-methodshow-l240	method-specific source model:errorshow-methodshow-l240
+base/methodshow.jl	287	317	show_method_list_header	show_method_list_header(io::IO, ms::MethodList, namefmt::Function)	modelled	errorshow-methodshow-l287	method-specific source model:errorshow-methodshow-l287
+base/methodshow.jl	320	337	_modulecolor	_modulecolor(method::Method)	modelled	errorshow-methodshow-l320	method-specific source model:errorshow-methodshow-l320
+base/methodshow.jl	339	385	show_method_table	show_method_table(io::IO, ms::MethodList, max::Int=-1, header::Bool=true)	modelled	errorshow-methodshow-l339	method-specific source model:errorshow-methodshow-l339
+base/methodshow.jl	387	387	show	show(io::IO, ms::MethodList)	modelled	errorshow-methodshow-l387	method-specific source model:errorshow-methodshow-l387
+base/methodshow.jl	388	388	show	"show(io::IO, ::MIME""text/plain"", ms::MethodList)"	modelled	errorshow-methodshow-l388	method-specific source model:errorshow-methodshow-l388
+base/methodshow.jl	389	389	show	show(io::IO, mt::Core.MethodTable)	modelled	errorshow-methodshow-l389	method-specific source model:errorshow-methodshow-l389
+base/methodshow.jl	391	398	inbase	inbase(m::Module)	modelled	errorshow-methodshow-l391	method-specific source model:errorshow-methodshow-l391
+base/methodshow.jl	399	399	fileurl	fileurl(file)	modelled	errorshow-methodshow-l399	method-specific source model:errorshow-methodshow-l399
+base/methodshow.jl	401	441	url	url(m::Method)	modelled	errorshow-methodshow-l401	method-specific source model:errorshow-methodshow-l401
+base/methodshow.jl	443	482	show	"show(io::IO, ::MIME""text/html"", m::Method)"	modelled	errorshow-methodshow-l443	method-specific source model:errorshow-methodshow-l443
+base/methodshow.jl	484	493	show	"show(io::IO, mime::MIME""text/html"", ms::MethodList)"	modelled	errorshow-methodshow-l484	method-specific source model:errorshow-methodshow-l484
+base/methodshow.jl	496	512	show	"show(io::IO, mime::MIME""text/plain"", mt::AbstractVector{Method})"	modelled	errorshow-methodshow-l496	method-specific source model:errorshow-methodshow-l496
+base/methodshow.jl	514	525	show	"show(io::IO, mime::MIME""text/html"", mt::AbstractVector{Method})"	modelled	errorshow-methodshow-l514	method-specific source model:errorshow-methodshow-l514

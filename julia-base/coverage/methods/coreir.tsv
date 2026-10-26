@@ -1,0 +1,7 @@
+file	line	endline	name	signature	status	entry	note
+base/coreir.jl	3	3	Core.PhiNode	Core.PhiNode()	modelled	misccov-coreir	
+base/coreir.jl	50	66	Core.PartialStruct	Core.PartialStruct(typ::Type, undefs::Vector{Union{Nothing,Bool}}, fields::Vector{Any})	modelled	misccov-coreir	
+base/coreir.jl	69	73	Core.PartialStruct	Core.PartialStruct(@nospecialize(typ), fields::Vector{Any})	modelled	misccov-coreir	
+base/coreir.jl	75	93	partialstruct_init_undefs	partialstruct_init_undefs(@nospecialize(typ), fields::Vector{Any})	modelled	misccov-coreir	
+base/coreir.jl	95	95	==	a::PartialStruct == b::PartialStruct	modelled	misccov-coreir	
+base/coreir.jl	97	100	Base.getproperty	Base.getproperty(pstruct::Core.PartialStruct, name::Symbol)	modelled	misccov-coreir	

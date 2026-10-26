@@ -1,0 +1,60 @@
+id: nummisc-float-nan-invalid-payload
+title: "tryparse(Float64, ...) accepts non-integer NaN payloads as plain NaN"
+priority: P3
+kind: missing-error
+area: NumMisc
+files: [base/parsers/Parsers.jl, base/parsers/floats.jl]
+functions: ["tryparse(::Type{Float64}, ::AbstractString)", "Base.Parsers.parsevalue", "Base.Parsers.nanpayload"]
+summary: |
+  The documented floating grammar permits `nan(n)` when `n` is an unsigned decimal,
+  hexadecimal, or octal integer. Inputs such as `nan(foo)`, `nan(_)`, and `nan(0x)`
+  have invalid integer payloads, but tryparse accepts each one as a plain NaN instead
+  of returning nothing.
+likelihood: |
+  Low. These strings can occur in external data, but most producers use plain `nan`
+  or a numeric payload.
+maybe_intended: |
+  The source deliberately follows glibc's wider NaN character-sequence syntax and only
+  uses the payload when `strtoull` would consume it fully. If that compatibility is the
+  intended contract, the narrower Base.Parsers grammar documentation should say so.
+reproducer: |
+  inputs = ("nan(foo)", "nan(_)", "nan(0x)")
+  values = tryparse.(Float64, inputs)
+  for (input, value) in zip(inputs, values)
+      println("tryparse(Float64, ", repr(input), ") = ", repr(value))
+  end
+  if all(x -> x isa Float64 && isnan(x), values)
+      println("REPRODUCED nummisc-float-nan-invalid-payload")
+  end
+output:
+  release: |
+    tryparse(Float64, "nan(foo)") = NaN
+    tryparse(Float64, "nan(_)") = NaN
+    tryparse(Float64, "nan(0x)") = NaN
+    REPRODUCED nummisc-float-nan-invalid-payload
+  nightly: |
+    tryparse(Float64, "nan(foo)") = NaN
+    tryparse(Float64, "nan(_)") = NaN
+    tryparse(Float64, "nan(0x)") = NaN
+    REPRODUCED nummisc-float-nan-invalid-payload
+reproduced: {release: true, nightly: true}
+expected: |
+  `nothing` for each input, because none contains a complete unsigned integer payload.
+promised_by: |
+  base/parsers/Parsers.jl:66-71 defines the accepted float grammar and says that
+  `nan(n)` uses an unsigned integer `n`, with decimal, `0x` hexadecimal, or `0` octal
+  spelling. The tryparse docstring at base/parse.jl:241-246 returns nothing when a string
+  does not contain a valid number.
+cause: |
+  base/parsers/floats.jl:319-343 first accepts any ASCII letter, digit, or underscore
+  inside `nan(...)`. If parseint does not return a UInt64, line 340 silently chooses a
+  zero payload instead of returning INVALID.
+possible_fix: |
+  Return INVALID when payload parsing fails, or document the wider accepted NaN
+  character-sequence grammar and its zero-payload behavior.
+duplicates:
+  issues: []
+  queries: ["nan payload parse Float64", "nan(foo)", "parsefloat nan payload", "nanpayload invalid"]
+lean:
+  property: JuliaLean.NumMisc.FloatGrammarExact
+  theorem: JuliaLean.NumMisc.floatGrammarExact_refuted

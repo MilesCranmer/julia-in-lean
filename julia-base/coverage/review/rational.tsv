@@ -1,0 +1,138 @@
+line	name	verdict	mirror	property	settled	reason
+14	unsafe_rational	FAITHFUL	yes	yes	yes	-
+17	unsafe_rational	FAITHFUL	yes	yes	yes	-
+18	unsafe_rational	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states no promoted constructor result or error behavior.
+20	checked_den	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states neither the normalized pair nor checked-negation errors.
+27	checked_den	HOLLOW	yes	no	yes	The proposition aliases the same vacuous HasResult claim and states no checked_den behavior.
+28	checked_den	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states no promotion, normalization, or error behavior.
+30	__throw_rational_argerror_zero	HOLLOW	no	no	yes	The model accepts an arbitrary string instead of building the ArgumentError LazyString from the supplied type, so the proposition misses the method's message behavior.
+31	Rational{T}	HOLLOW	yes	no	yes	The claimed success whenever the reduced value fits T is not promised by the typed constructor documentation and is false for the reproduced Int8 case.
+48	Rational	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states no normalization, sign, or overflow behavior.
+49	Rational	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states no promotion, construction, or error behavior.
+50	Rational	FAITHFUL	yes	yes	yes	-
+59	divgcd	HOLLOW	yes	no	yes	The proposition only asserts HasResult and does not state the documented gcd quotients.
+91	//	HOLLOW	no	no	yes	The model reuses the same-type Rational constructor and omits this method's mixed-integer promotion, while its proposition only asserts HasResult.
+93	//	HOLLOW	no	no	yes	The model restricts the integer divisor to the rational component type, and the proposition states no exact-division behavior.
+102	//	HOLLOW	no	no	yes	The model restricts the integer numerator to the rational component type, and the proposition states no exact-division behavior.
+106	//	HOLLOW	no	no	yes	The model covers only equal component types although the method accepts any two Rational types, and the proposition states no quotient behavior.
+116	//	FAITHFUL	yes	yes	yes	-
+120	_complex_exact_inv	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states neither the infinity branch result nor the conjugate and abs2 pair.
+129	_complex_exact_inv	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states no reduced numerator, checked denominator, or error behavior.
+137	//	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states no result of inverse, multiplication, and rational division.
+141	//	HOLLOW	no	no	yes	The model requires x and the complex components to share one integer type, and the proposition states no quotient behavior.
+144	//	HOLLOW	no	no	yes	The model requires both complex operands to share one component type, and the proposition states no quotient behavior.
+154	//	FAITHFUL	yes	yes	yes	-
+156	show	HOLLOW	no	no	yes	The model renders a pre-extracted numerator and denominator to a String instead of performing the method's ordered IO writes and early return, while the proposition only asserts HasResult.
+167	read	HOLLOW	no	no	yes	The model replaces two ordered reads and the final r//i construction with one callback returning a pair.
+172	write	HOLLOW	no	no	yes	The model takes pre-extracted values and omits numerator and denominator calls on z and the observable IO effect.
+175	parse	HOLLOW	no	no	yes	The model receives already split parts and omits split, slash handling, parsing order, and Rational construction from the actual string.
+190	Rational{T}	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states no converted components or conversion errors.
+193	Rational{T}	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states no converted integer-over-one result or conversion errors.
+197	Rational	FAITHFUL	yes	yes	yes	-
+199	Bool	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states neither the false and true cases nor InexactError.
+201	(::Type{T})	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states neither integer conversion nor the nonintegral InexactError.
+204	AbstractFloat	HOLLOW	no	no	yes	The model calls the separate Float64 rational conversion instead of this method's two float calls, division, and AbstractFloat assertion.
+205	(::Type{T})	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states no converted floating value or conversion behavior.
+211	Float16	FAITHFUL	yes	yes	yes	-
+213	Float16	FAITHFUL	yes	yes	yes	-
+215	Float32	HOLLOW	no	no	yes	The attached model and proposition concern nearest Float64 conversion rather than this method's Float64-then-Float32 call.
+218	Rational{T}	HOLLOW	no	no	yes	Both attached entries model only Rational{T}(::Float64), so they neither mirror nor quantify over this AbstractFloat method.
+223	Rational	HOLLOW	no	no	yes	The model leaves the target integer type arbitrary and models the called typed constructor rather than this Int64-selecting wrapper.
+224	Rational	HOLLOW	no	no	yes	The model is an arbitrary callback application and omits this wrapper's fixed Int target.
+226	big	HOLLOW	no	no	yes	The model receives numerator and denominator separately and omits extracting them from q before the two big calls and unsafe construction.
+228	big	HOLLOW	no	no	yes	The model is an arbitrary conversion callback and does not model Complex{Rational{BigInt}} construction.
+230	promote_rule	FAITHFUL	yes	yes	yes	-
+231	promote_rule	FAITHFUL	yes	yes	yes	-
+232	promote_rule	FAITHFUL	yes	yes	yes	-
+234	widen	FAITHFUL	yes	yes	yes	-
+236	__throw_negate_unsigned	FAITHFUL	yes	yes	yes	-
+256	rationalize	HOLLOW	no	no	yes	The attached proposition models Rational{T}(::Float64), including its round-trip check, rather than this tolerance-driven continued-fraction method.
+320	rationalize	HOLLOW	no	no	yes	The attached proposition models Rational{T}(::Float64) rather than this keyword wrapper and its eps default.
+321	rationalize	HOLLOW	no	no	yes	The model omits the fixed Int target and keyword forwarding and merely applies an arbitrary callback.
+322	rationalize	HOLLOW	no	no	yes	The model omits the target type and forwarded keywords from both component calls.
+323	rationalize	HOLLOW	no	no	yes	The model reuses the typed-complex shape and omits this wrapper's fixed Int target and keyword forwarding.
+324	rationalize	HOLLOW	no	no	yes	The model omits computation of the default tolerance and merely applies an arbitrary two-argument callback.
+325	rationalize	HOLLOW	no	no	yes	The model omits selection of the rational's component type and keyword forwarding and merely applies an arbitrary callback.
+326	rationalize	HOLLOW	no	no	yes	The model takes all branch tests as supplied booleans instead of computing the source checks, while HasResult states no outcome.
+334	rationalize	HOLLOW	no	no	yes	The model hardcodes an untyped mathematical pair and omits the Rational(x) call and its type-preserving construction.
+335	rationalize	HOLLOW	no	yes	yes	The model omits the leading unsigned-negative error check, so it does not mirror the method for all allowed target types.
+343	rationalize	FAITHFUL	yes	yes	yes	-
+360	numerator	FAITHFUL	yes	yes	yes	-
+361	numerator	FAITHFUL	yes	yes	yes	-
+362	numerator	HOLLOW	no	no	yes	The model receives the common denominator as an input instead of computing denominator(z), and its proposition only asserts HasResult.
+383	denominator	FAITHFUL	yes	yes	yes	-
+384	denominator	FAITHFUL	yes	yes	yes	-
+385	denominator	FAITHFUL	yes	yes	yes	-
+387	sign	HOLLOW	no	no	yes	The model replaces oftype(x, sign(x.num)) with a hand-written canonical rational, and the proposition only asserts HasResult.
+388	signbit	FAITHFUL	yes	yes	yes	-
+390	abs	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states neither the checked absolute-value result nor typemin overflow.
+392	typemin	HOLLOW	no	no	yes	The model combines signed and unsigned typemin methods and the proposition quantifies over all integer types while stating only HasResult.
+393	typemin	HOLLOW	no	no	yes	The reused model includes signed types dispatched to the preceding method, and the proposition states only HasResult.
+394	typemax	FAITHFUL	yes	yes	yes	-
+396	isinteger	FAITHFUL	yes	yes	yes	-
+397	ispow2	FAITHFUL	yes	yes	yes	-
+399	+	HOLLOW	no	yes	yes	The model replaces the source's unary-plus call and unsafe_rational construction with a direct component pair.
+400	-	FAITHFUL	yes	yes	yes	-
+402	-	HOLLOW	no	no	yes	The model and proposition combine signed and unsigned negation without restricting T to BitSigned, and HasResult states no overflow behavior.
+406	__throw_rational_numerator_typemin	HOLLOW	no	no	yes	The model accepts an arbitrary string and omits interpolation of the supplied type into the required OverflowError message.
+408	-	HOLLOW	no	no	yes	The reused proposition covers signed types as well as Unsigned and only asserts HasResult, so it neither isolates nor states this method's behavior.
+413	-%	FAITHFUL	yes	yes	yes	-
+415	+	HOLLOW	yes	no	yes	The property assumes a helper conversion error rather than using only type invariants or documented method preconditions.
+424	+%	HOLLOW	no	no	yes	The model covers only equal component types although the method accepts mixed Rational types, and its proposition only asserts HasResult.
+433	-	HOLLOW	no	no	yes	The infinity property uses a same-type model and the conversion-order property assumes a helper error, so the entries do not cover all allowed inputs under documented preconditions.
+442	-%	HOLLOW	no	no	yes	The model covers only equal component types although the method accepts mixed Rational types, and its proposition only asserts HasResult.
+453	$op	HOLLOW	no	no	yes	The model omits mixed-type denominator promotion for the generated rem and mod methods, and its proposition only asserts HasResult.
+462	$op	HOLLOW	no	no	yes	The model requires the Rational and Integer operands to share one component type, and its proposition only asserts HasResult.
+469	$op	HOLLOW	no	no	yes	The model requires the Integer and Rational operands to share one component type, and its proposition only asserts HasResult.
+476	$op	HOLLOW	no	no	yes	The model requires the Integer and Rational operands to share one component type, and its proposition only asserts HasResult.
+482	*	HOLLOW	no	no	yes	The model covers only equal component types although the method accepts mixed Rational types, and its proposition only asserts HasResult.
+487	*	HOLLOW	no	no	yes	The model requires the integer multiplier to match the Rational component type, and its proposition only asserts HasResult.
+491	*	HOLLOW	no	no	yes	The model requires the integer multiplier to match the Rational component type, and its proposition only asserts HasResult.
+497	*	HOLLOW	no	no	yes	The model replaces ifelse and copysign(zero(y), y) with a fixed zero rational and its proposition only asserts HasResult.
+500	*	HOLLOW	no	no	yes	The model calls the Bool multiplication model directly instead of dispatching x * y, and its proposition only asserts HasResult.
+501	/	HOLLOW	no	no	yes	The model covers only the same-type Rational-by-Integer case and omits the Rational divisor alternative, while its proposition only asserts HasResult.
+502	/	HOLLOW	no	no	yes	The model requires the integer numerator to match the Rational component type, and its proposition only asserts HasResult.
+503	inv	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states neither checked denominator normalization nor its errors.
+505	fma	HOLLOW	no	no	yes	The model requires all three Rational operands to share one component type, and its proposition only asserts HasResult.
+507	==	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states no component equality result.
+508	<	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states neither the equal-denominator nor widened-cross-product comparison.
+510	<=	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states neither the equal-denominator nor widened-cross-product comparison.
+514	==	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states no denominator-one and numerator equality result.
+515	==	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states no reversed rational-integer equality result.
+516	<	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states no widened cross-product comparison result.
+517	<	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states no widened cross-product comparison result.
+518	<=	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states no widened cross-product comparison result.
+519	<=	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states no widened cross-product comparison result.
+521	==	HOLLOW	no	no	yes	The model receives decomposed components and a top-bit callback instead of subtracting one and calling top_set_bit, while its proposition only asserts HasResult.
+529	==	FAITHFUL	yes	yes	yes	-
+533	$rel	HOLLOW	no	no	yes	The model is a bare relation callback and omits every NaN, decomposition, sign, scaling, and comparison branch in the generated methods.
+583	==	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states no isreal and real-component equality result.
+584	==	HOLLOW	yes	no	yes	The proposition reuses the same vacuous HasResult claim and states no equality behavior for this argument order.
+586	div	HOLLOW	no	no	yes	The model requires the Rational and Integer operands to share one component type, and its proposition only asserts HasResult.
+590	div	HOLLOW	no	no	yes	The model requires the Integer and Rational operands to share one component type, and its proposition only asserts HasResult.
+594	div	HOLLOW	no	no	yes	The model covers only equal Rational component types, and its proposition only asserts HasResult.
+602	div	HOLLOW	no	no	yes	The model expands the invoked generic implementation instead of mirroring this method's invoke call, and its proposition only asserts HasResult.
+606	div	HOLLOW	no	no	yes	The model covers only Rational-by-Rational inputs from the generated three-pair family, and its proposition only asserts HasResult.
+607	fld	HOLLOW	no	no	yes	The model covers only Rational-by-Rational inputs from the generated three-pair family, and its proposition only asserts HasResult.
+608	cld	HOLLOW	no	no	yes	The model covers only Rational-by-Rational inputs from the generated three-pair family, and its proposition only asserts HasResult.
+612	round	HOLLOW	no	no	yes	The model rounds to the component integer type instead of forwarding to round(typeof(x), x, r), and its proposition only asserts HasResult.
+614	round	HOLLOW	no	no	yes	The model restricts targets to integer types and omits the zero-denominator noninteger branch, while its proposition only asserts HasResult.
+621	round	HOLLOW	no	no	yes	The model takes both source checks as supplied booleans instead of evaluating denominator(x) and the target type, while its proposition only asserts HasResult.
+628	^	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states no branch-selected power_by_squaring result.
+632	^	FAITHFUL	yes	yes	yes	-
+633	^	HOLLOW	no	no	yes	The entry reuses numerator-over-denominator exponentiation, while this method converts the whole Rational exponent to the floating type.
+634	^	FAITHFUL	yes	yes	yes	-
+636	^	FAITHFUL	yes	yes	yes	-
+637	^	FAITHFUL	yes	yes	yes	-
+641	iszero	FAITHFUL	yes	yes	yes	-
+642	isone	FAITHFUL	yes	yes	yes	-
+644	lerpi	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states no interpolation equation.
+648	float	FAITHFUL	yes	yes	yes	-
+650	gcd	HOLLOW	no	no	yes	The model requires equal Rational component types although the method accepts mixed types, and its proposition only asserts HasResult.
+656	lcm	HOLLOW	no	no	yes	The model requires equal Rational component types although the method accepts mixed types, and its proposition only asserts HasResult.
+662	gcdx	HOLLOW	no	no	yes	The model requires equal Rational component types although the method accepts mixed types, and its proposition only asserts HasResult.
+670	idiv	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states no product of the two integer quotients.
+678	decompose	FAITHFUL	yes	yes	yes	-
+679	hash	HOLLOW	no	no	yes	The model's trailing-zero helper disagrees with fixed-width trailing_zeros at zero, and the proposition only asserts HasResult.
+707	length	HOLLOW	no	no	yes	The model receives endpoints directly and omits first and last calls on the range, while its proposition only asserts HasResult.
+713	checked_length	HOLLOW	no	no	yes	The model receives endpoints and emptiness directly and omits first, last, and isempty calls, while its proposition only asserts HasResult.

@@ -1,0 +1,39 @@
+line	name	verdict	mirror	property	settled	reason
+8	uv_sizeof_handle	HOLLOW	no	no	yes	The model takes the foreign size as a bare variable and replaces the fixed libuv tag constants with parameters, so the proposition neither mirrors the ccall nor relates its result to uv_handle_size.
+15	uv_sizeof_req	HOLLOW	no	no	yes	The model takes the foreign size as a bare variable and replaces the fixed libuv request constants with parameters, so the proposition neither mirrors the ccall nor relates its result to uv_req_size.
+29	uv_handle_data	HOLLOW	no	no	yes	The model omits the handle and uv_handle_get_data call and proves only that a bare foreign-result variable equals itself.
+30	uv_req_data	HOLLOW	no	no	yes	The model omits the handle and uv_req_get_data call and proves only that a bare foreign-result variable equals itself.
+31	uv_req_set_data	HOLLOW	no	no	yes	The model ignores req, omits the uv_req_set_data call and its Cvoid effect, and proves that the supplied data value is returned even though the Julia method returns nothing.
+32	uv_req_set_data	HOLLOW	no	no	yes	The model ignores req, omits the uv_handle_set_data call and its Cvoid effect, and proves that the supplied pointer is returned even though the Julia method returns nothing.
+34	handle_as	HOLLOW	no	no	yes	The model starts from an already decoded Option object, omitting handle evaluation, uv_handle_data, the null return, unsafe_pointer_to_objref, and the type assertion, so its Option identity does not cover allowed macro inputs.
+42	_uv_hook_close	FAITHFUL	-	-	-	The exclusion applies because this line declares an empty generic function and supplies no method body.
+44	associate_julia_struct	HOLLOW	no	no	yes	The model merely returns three supplied flags and omits the @cfunction compilation trigger, the association ccall, their order, and the method's Cvoid result.
+51	disassociate_julia_struct	HOLLOW	no	no	yes	The model accepts and returns a bare handle value instead of reading uv.handle and delegating to the pointer overload, so its identity proposition states no behavior of this method.
+52	disassociate_julia_struct	HOLLOW	no	no	yes	The Boolean conjunction neither short-circuits a modeled runtime call nor represents the source's false-or-nothing result, so the proposition does not establish conditional disassociation.
+55	iolock_begin	HOLLOW	no	no	yes	The model returns a supplied depth unchanged and omits jl_iolock_begin and its effect, leaving only an identity proposition over a bare variable.
+56	iolock_end	HOLLOW	no	no	yes	The model returns a supplied depth unchanged and omits jl_iolock_end and its effect, leaving only an identity proposition over a bare variable.
+62	preserve_handle	HOLLOW	no	yes	yes	The universal count property captures the increment, but the model omits lock, dictionary lookup and update, unlock, and the final nothing in their source order.
+69	unpreserve_handle	HOLLOW	no	yes	yes	The universal count property captures the zero, one, and larger-count outcomes, but the model omits locking, dictionary operations, and the required unlock before the zero-count error.
+89	IOError	HOLLOW	no	no	yes	The model accepts an already normalized String and unbounded Int and stores them unchanged, omitting the AbstractString-to-String and Integer-to-Int32 conversions required for all constructor inputs.
+92	showerror	HOLLOW	no	no	yes	The model returns a String instead of performing the ordered writes to the supplied IO, so the proposition cannot state the method's IO effects or print result.
+100	_UVError	HOLLOW	no	no	yes	The model accepts precomputed description and name strings and an already normalized prefix and code, omitting Int32 conversion and both libuv text calls, so the proposition does not cover all allowed inputs.
+104	_UVError	HOLLOW	no	no	yes	The model replaces the variadic AbstractString suffixes with one precombined String and accepts precomputed libuv text, omitting the conversions and calls needed to cover every allowed invocation.
+109	struverror	HOLLOW	no	no	yes	The model omits the error code, uv_strerror call, and unsafe_string conversion and proves only that a bare foreign-text variable equals itself.
+110	uverrorname	HOLLOW	no	no	yes	The model omits the error code, uv_err_name call, and unsafe_string conversion and proves only that a bare foreign-text variable equals itself.
+112	uv_error	HOLLOW	no	no	yes	The model starts from pre-stringified text and directly invents an error result, omitting Symbol conversion and delegation to the AbstractString overload, so it does not cover every Symbol input.
+113	uv_error	HOLLOW	no	no	yes	The model replaces the _uv_error call with an invented Except value and restricts AbstractString to String, so its sign split does not specify every allowed prefix or the actual thrown error.
+114	uv_error	HOLLOW	no	yes	yes	The universal property establishes rejection of every Bool with the source message, but the model represents error(...) as LibuvErr.argument rather than the source ErrorException call.
+115	_uv_error	HOLLOW	no	no	yes	The model omits the _UVError construction and throw, restricts the accepted prefix and code types, and records only an unformatted synthetic error value.
+119	eventloop	HOLLOW	no	no	yes	The model omits jl_global_event_loop and proves only that a bare foreign-loop value equals itself.
+121	uv_unref	HOLLOW	no	yes	yes	The post-state property universally captures the reference bit being cleared, but the model omits iolock_begin, the uv_unref ccall, iolock_end, and their required order.
+127	uv_ref	HOLLOW	no	yes	yes	The post-state property universally captures the reference bit being set, but the model omits iolock_begin, the uv_ref ccall, iolock_end, and their required order.
+133	process_events	HOLLOW	no	no	yes	The model omits jl_process_events and proves only that a bare foreign-result variable equals itself.
+137	uv_alloc_buf	FAITHFUL	-	-	-	The exclusion applies because this line declares an empty generic callback function and supplies no method body.
+138	uv_readcb	FAITHFUL	-	-	-	The exclusion applies because this line declares an empty generic callback function and supplies no method body.
+139	uv_writecb_task	FAITHFUL	-	-	-	The exclusion applies because this line declares an empty generic callback function and supplies no method body.
+140	uv_shutdowncb_task	FAITHFUL	-	-	-	The exclusion applies because this line declares an empty generic callback function and supplies no method body.
+141	uv_return_spawn	FAITHFUL	-	-	-	The exclusion applies because this line declares an empty generic callback function and supplies no method body.
+142	uv_asynccb	FAITHFUL	-	-	-	The exclusion applies because this line declares an empty generic callback function and supplies no method body.
+143	uv_timercb	FAITHFUL	-	-	-	The exclusion applies because this line declares an empty generic callback function and supplies no method body.
+145	reinit_stdio	HOLLOW	no	no	yes	The model omits the call to _reinit_stdio and proves only that a bare variable standing for its result equals itself.
+148	_reinit_stdio	HOLLOW	no	no	yes	The model starts from preinitialized stream kinds and precomputed TTY and color facts, omits every ccall, init_stdio call, global assignment, and IOContext value, and returns a record although Julia returns nothing.

@@ -1,0 +1,62 @@
+id: stringscovb-aio-write-aio-drops-spanning
+title: write(::AnnotatedIOBuffer, ::AnnotatedIOBuffer) drops annotations that start before the source position
+priority: P2
+kind: wrong-result
+area: StringsCovB
+files:
+- base/strings/annotated_io.jl
+functions:
+- write(dest::AnnotatedIOBuffer, src::AnnotatedIOBuffer)
+summary: |
+  write(dest, src) copies the bytes of src from position(src) on, but keeps only the
+  annotations whose region starts at or after position(src). An annotation that starts
+  before the read position and extends into the copied bytes is dropped, so the copied
+  text loses its styling. The clamp `max(1 + srcpos, first(annot.region))` in the same
+  line shows the intent to keep and truncate such annotations.
+likelihood: |
+  Any partial read of an AnnotatedIOBuffer followed by copying the rest into another
+  buffer, for example after a seek or skip. A source read from the start is unaffected.
+maybe_intended: ''
+reproducer: |
+  using Base: AnnotatedString, AnnotatedIOBuffer, annotations
+  src = AnnotatedIOBuffer(); write(src, AnnotatedString("abcde", [(1:5, :s, 1)])); seek(src, 2)
+  dst = AnnotatedIOBuffer(); write(dst, AnnotatedString("XY", [(1:2, :d, 2)]))
+  nb = write(dst, src)                      # copies "cde", which carries :s
+  println("bytes written = ", nb, ", dst = ", repr(String(take!(copy(dst.io)))))
+  println("annotations(dst) = ", [(a.region, a.label) for a in annotations(dst)])
+  [(a.region, a.label) for a in annotations(dst)] == [(1:2, :d)] &&
+      println("REPRODUCED stringscovb-aio-write-aio-drops-spanning")
+output:
+  release: |
+    bytes written = 3, dst = "XYcde"
+    annotations(dst) = Tuple{UnitRange{Int64}, Symbol}[(1:2, :d)]
+    REPRODUCED stringscovb-aio-write-aio-drops-spanning
+  nightly: |
+    bytes written = 3, dst = "XYcde"
+    annotations(dst) = Tuple{UnitRange{Int64}, Symbol}[(1:2, :d)]
+    REPRODUCED stringscovb-aio-write-aio-drops-spanning
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  [(1:2, :d), (3:5, :s)]: the copied bytes "cde" keep :s.
+promised_by: |
+  AnnotatedString docstring base/strings/annotated.jl:32-35 (code should conserve
+  which characters an annotation is applied to); read(io::AnnotatedIOBuffer,
+  AnnotatedString) at a nonzero position keeps annotations with last(region) > start
+  (base/strings/annotated_io.jl:85-88).
+cause: |
+  base/strings/annotated_io.jl:56-57: the comprehension filters with
+  `first(annot.region) >= srcpos` instead of `last(annot.region) > srcpos`.
+possible_fix: |
+  Filter on `last(annot.region) > srcpos` and keep the existing clamp of the start.
+duplicates:
+  issues: []
+  queries:
+  - 'issues: AnnotatedIOBuffer write AnnotatedIOBuffer'
+  - 'prs: AnnotatedIOBuffer write AnnotatedIOBuffer'
+  - 'issues: AnnotatedIOBuffer annotations lost'
+  - 'issues: AnnotatedIOBuffer'
+lean:
+  property: JuliaLean.StringsCovB.AIO.WriteAioCarries
+  theorem: JuliaLean.StringsCovB.AIO.writeAioCarries_refuted

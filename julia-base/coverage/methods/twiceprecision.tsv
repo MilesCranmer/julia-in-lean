@@ -1,0 +1,114 @@
+file	line	endline	name	signature	status	entry	note
+base/twiceprecision.jl	22	26	splitprec	splitprec(::Type{F}, i::Integer) where {F<:AbstractFloat}	modelled	floatranges-splitprec-typemax	
+base/twiceprecision.jl	28	30	truncmask	truncmask(x::F, mask) where {F<:IEEEFloat}	modelled	rangescov-truncbits-identity	
+base/twiceprecision.jl	31	31	truncmask	truncmask(x, mask)	modelled	rangescov-trunc-generic-identity	
+base/twiceprecision.jl	33	35	truncbits	truncbits(x::F, nb) where {F<:IEEEFloat}	modelled	rangescov-truncbits-identity	
+base/twiceprecision.jl	36	36	truncbits	truncbits(x, nb)	modelled	rangescov-trunc-generic-identity	
+base/twiceprecision.jl	48	51	canonicalize2	canonicalize2(big, little)	modelled	rangescov-canonicalize2-hi	
+base/twiceprecision.jl	83	86	add12	add12(x::T, y::T) where {T}	modelled	rangescov-t83-add12	
+base/twiceprecision.jl	87	87	add12	add12(x, y)	modelled	rangescov-t87-add12	
+base/twiceprecision.jl	114	117	mul12	mul12(x::T, y::T) where {T<:AbstractFloat}	modelled	rangescov-mul12-hi	
+base/twiceprecision.jl	118	118	mul12	mul12(x::T, y::T) where {T}	modelled	rangescov-mul12-int	
+base/twiceprecision.jl	119	119	mul12	mul12(x, y)	modelled	rangescov-t119-mul12	
+base/twiceprecision.jl	146	154	div12	div12(x::T, y::T) where {T<:AbstractFloat}	modelled	rangescov-t146-div12	
+base/twiceprecision.jl	155	155	div12	div12(x::T, y::T) where {T}	modelled	rangescov-t155-div12	
+base/twiceprecision.jl	156	156	div12	div12(x, y)	modelled	rangescov-t156-div12	
+base/twiceprecision.jl	201	201	TwicePrecision{T}	TwicePrecision{T}(x::T) where {T}	modelled	rangescov-t201-tp	
+base/twiceprecision.jl	203	203	TwicePrecision{T}	TwicePrecision{T}(x::TwicePrecision{T}) where {T}	modelled	rangescov-t203-tp	
+base/twiceprecision.jl	205	209	TwicePrecision{T}	TwicePrecision{T}(x) where {T}	modelled	rangescov-t205-tp	
+base/twiceprecision.jl	211	212	TwicePrecision{T}	TwicePrecision{T}(i::Integer) where {T<:AbstractFloat}	modelled	floatranges-splitprec-typemax	
+base/twiceprecision.jl	214	214	TwicePrecision	TwicePrecision(x)	modelled	rangescov-t214-tp	
+base/twiceprecision.jl	217	220	TwicePrecision{T}	TwicePrecision{T}(nd::Tuple{Integer,Integer}) where {T<:Union{Float16,Float32}}	modelled	rangescov-t217-tp-ratio	
+base/twiceprecision.jl	222	225	TwicePrecision{T}	TwicePrecision{T}(nd::Tuple{Any,Any}) where {T}	modelled	rangescov-t222-tp-ratio	
+base/twiceprecision.jl	227	229	TwicePrecision{T}	TwicePrecision{T}(nd::Tuple{I,I}, nb::Integer) where {T,I}	modelled	rangescov-t227-tp-ratio-bits	
+base/twiceprecision.jl	235	237	TwicePrecision{T}	TwicePrecision{T}(nd::Tuple{Integer,Integer}, nb::Integer) where T	modelled	rangescov-t235-tp-ratio-bits	
+base/twiceprecision.jl	241	244	twiceprecision	twiceprecision(val::T, nb::Integer) where {T<:IEEEFloat}	modelled	rangescov-t241-twiceprecision	
+base/twiceprecision.jl	246	249	twiceprecision	twiceprecision(val::TwicePrecision{T}, nb::Integer) where {T<:IEEEFloat}	modelled	rangescov-t246-twiceprecision	
+base/twiceprecision.jl	251	251	nbitslen	nbitslen(r::StepRangeLen)	modelled	rangescov-t251-nbitslen	
+base/twiceprecision.jl	252	253	nbitslen	nbitslen(::Type{T}, len, offset) where {T<:IEEEFloat}	modelled	rangescov-nbitslen-bound	
+base/twiceprecision.jl	256	256	nbitslen	nbitslen(len, offset)	modelled	rangescov-nbitslen-bound	
+base/twiceprecision.jl	258	258	eltype	eltype(::Type{TwicePrecision{T}}) where {T}	modelled	rangescov-t258-eltype	
+base/twiceprecision.jl	260	261	promote_rule	promote_rule(::Type{TwicePrecision{R}}, ::Type{TwicePrecision{S}}) where {R,S}	modelled	rangescov-t260-promote	
+base/twiceprecision.jl	262	263	promote_rule	promote_rule(::Type{TwicePrecision{R}}, ::Type{S}) where {R,S<:Number}	modelled	rangescov-t262-promote	
+base/twiceprecision.jl	265	265	(::Type{T})	(::Type{T})(x::TwicePrecision) where {T<:Number}	modelled	rangescov-t265-number	
+base/twiceprecision.jl	267	267	convert	convert(::Type{TwicePrecision{T}}, x::TwicePrecision{T}) where {T}	modelled	rangescov-t267-convert	
+base/twiceprecision.jl	268	269	convert	convert(::Type{TwicePrecision{T}}, x::TwicePrecision) where {T}	modelled	rangescov-t268-convert	
+base/twiceprecision.jl	271	271	convert	convert(::Type{T}, x::TwicePrecision) where {T<:Number}	modelled	rangescov-t271-convert	
+base/twiceprecision.jl	272	272	convert	convert(::Type{TwicePrecision{T}}, x::Number) where {T}	modelled	rangescov-t272-convert	
+base/twiceprecision.jl	274	274	float	float(x::TwicePrecision{<:AbstractFloat})	modelled	rangescov-t274-float	
+base/twiceprecision.jl	275	275	float	float(x::TwicePrecision)	modelled	rangescov-t275-float	
+base/twiceprecision.jl	277	277	big	big(x::TwicePrecision)	modelled	rangescov-t277-big	
+base/twiceprecision.jl	279	279	-	-(x::TwicePrecision)	modelled	rangescov-tp-neg-involution	
+base/twiceprecision.jl	281	281	zero	zero(x::TwicePrecision)	modelled	rangescov-t281-zero	
+base/twiceprecision.jl	282	285	zero	zero(::Type{TwicePrecision{T}}) where {T}	modelled	rangescov-t282-zero	
+base/twiceprecision.jl	289	292	+	+(x::TwicePrecision, y::Number)	modelled	rangescov-t289-add-number	
+base/twiceprecision.jl	293	293	+	+(x::Number, y::TwicePrecision)	modelled	rangescov-t293-add-number-left	
+base/twiceprecision.jl	295	299	+	+(x::TwicePrecision{T}, y::TwicePrecision{T}) where T	modelled	rangescov-t295-add-tp	
+base/twiceprecision.jl	300	300	+	+(x::TwicePrecision, y::TwicePrecision)	modelled	rangescov-t300-add-promote	
+base/twiceprecision.jl	302	302	-	-(x::TwicePrecision, y::TwicePrecision)	modelled	rangescov-t302-sub-tp	
+base/twiceprecision.jl	303	303	-	-(x::TwicePrecision, y::Number)	modelled	rangescov-t303-sub-number	
+base/twiceprecision.jl	304	304	-	-(x::Number, y::TwicePrecision)	modelled	rangescov-t304-sub-number-left	
+base/twiceprecision.jl	306	309	*	*(x::TwicePrecision, v::Number)	modelled	rangescov-t306-mul-number	
+base/twiceprecision.jl	310	315	*	*(x::TwicePrecision{<:IEEEFloat}, v::Integer)	modelled	rangescov-t310-mul-int	
+base/twiceprecision.jl	316	316	*	*(v::Number, x::TwicePrecision)	modelled	rangescov-t316-mul-number-left	
+base/twiceprecision.jl	318	322	*	*(x::TwicePrecision{T}, y::TwicePrecision{T}) where {T}	modelled	rangescov-t318-mul-tp	
+base/twiceprecision.jl	323	323	*	*(x::TwicePrecision, y::TwicePrecision)	modelled	rangescov-t323-mul-promote	
+base/twiceprecision.jl	325	327	/	/(x::TwicePrecision, v::Number)	modelled	rangescov-t325-div-number	
+base/twiceprecision.jl	329	335	/	/(x::TwicePrecision, y::TwicePrecision)	modelled	rangescov-t329-div-tp	
+base/twiceprecision.jl	342	347	steprangelen_hp	steprangelen_hp(::Type{Float64}, ref::Tuple{Integer,Integer}, step::Tuple{Integer,Integer}, nb::Integer, len::Integer, offset::Integer)	modelled	rangescov-hp-ratio-length	
+base/twiceprecision.jl	349	353	steprangelen_hp	steprangelen_hp(::Type{T}, ref::Tuple{Integer,Integer}, step::Tuple{Integer,Integer}, nb::Integer, len::Integer, offset::Integer) where {T<:IEEEFloat}	modelled	rangescov-t349-hp-tuple	
+base/twiceprecision.jl	357	357	asF64	asF64(x::AbstractFloat)	modelled	rangescov-t357-asf64	
+base/twiceprecision.jl	358	358	asF64	asF64(x::Tuple{AbstractFloat,AbstractFloat})	modelled	rangescov-t358-asf64	
+base/twiceprecision.jl	360	365	steprangelen_hp	steprangelen_hp(::Type{Float64}, ref::F_or_FF, step::F_or_FF, nb::Integer, len::Integer, offset::Integer)	modelled	rangescov-hp-float-length	
+base/twiceprecision.jl	367	371	steprangelen_hp	steprangelen_hp(::Type{T}, ref::F_or_FF, step::F_or_FF, nb::Integer, len::Integer, offset::Integer) where {T<:IEEEFloat}	modelled	rangescov-t367-hp-float	
+base/twiceprecision.jl	375	377	StepRangeLen	StepRangeLen(ref::TwicePrecision{T}, step::TwicePrecision{T}, len::Integer, offset::Integer=1) where {T}	modelled	rangescov-srl-tp-constructor	
+base/twiceprecision.jl	380	392	floatrange	floatrange(::Type{T}, start_n::Integer, step_n::Integer, len::Integer, den::Integer) where T	modelled	rangescov-floatrange-length	
+base/twiceprecision.jl	394	436	:	(:)(start::T, step::T, stop::T) where T<:IEEEFloat	modelled	floatranges-colon-decimal-threshold,floatranges-colon-infinite-step,floatranges-colon-nonfinite-error,floatranges-colon-overshoot-stop,floatranges-colon-signed-zero,floatranges-colon-underflow-nonempty	
+base/twiceprecision.jl	438	438	step	step(r::StepRangeLen{T,TwicePrecision{T},TwicePrecision{T}}) where {T<:AbstractFloat}	modelled	rangescov-t438-step	
+base/twiceprecision.jl	439	439	step	step(r::StepRangeLen{T,TwicePrecision{T},TwicePrecision{T}}) where {T}	modelled	rangescov-t439-step	
+base/twiceprecision.jl	441	442	range_start_step_length	range_start_step_length(a::Real, st::IEEEFloat, len::Integer)	modelled	rangescov-rssl-promote-length	
+base/twiceprecision.jl	444	445	range_start_step_length	range_start_step_length(a::IEEEFloat, st::Real, len::Integer)	modelled	rangescov-rssl-promote-length	
+base/twiceprecision.jl	447	448	range_start_step_length	range_start_step_length(a::IEEEFloat, st::IEEEFloat, len::Integer)	modelled	rangescov-t447-rssl-promote	
+base/twiceprecision.jl	450	466	range_start_step_length	range_start_step_length(a::T, st::T, len::Integer) where T<:IEEEFloat	modelled	rangescov-rssl-length	
+base/twiceprecision.jl	468	469	range_step_stop_length	range_step_stop_length(step::Real, stop::IEEEFloat, len::Integer)	modelled	rangescov-rstsl-promote-length	
+base/twiceprecision.jl	471	472	range_step_stop_length	range_step_stop_length(step::IEEEFloat, stop::Real, len::Integer)	modelled	rangescov-rstsl-promote-length	
+base/twiceprecision.jl	474	477	range_step_stop_length	range_step_stop_length(step::IEEEFloat, stop::IEEEFloat, len::Integer)	modelled	rangescov-rstsl-length	
+base/twiceprecision.jl	480	486	unsafe_getindex	unsafe_getindex(r::StepRangeLen{T,<:TwicePrecision,<:TwicePrecision}, i::Integer) where T	modelled	floatranges-start-step-overflow-nan	
+base/twiceprecision.jl	488	495	_getindex_hiprec	_getindex_hiprec(r::StepRangeLen{<:Any,<:TwicePrecision,<:TwicePrecision}, i::Integer)	modelled	rangescov-hiprec-bool	
+base/twiceprecision.jl	497	533	getindex	getindex(r::StepRangeLen{T,<:TwicePrecision,<:TwicePrecision}, s::OrdinalRange{S}) where {T, S<:Integer}	modelled	rangescov-t497-getindex	
+base/twiceprecision.jl	535	536	*	*(x::Real, r::StepRangeLen{<:Real,<:TwicePrecision})	modelled	rangescov-scalar-mul-length	
+base/twiceprecision.jl	537	537	*	*(r::StepRangeLen{<:Real,<:TwicePrecision}, x::Real)	modelled	rangescov-scalar-mul-length	
+base/twiceprecision.jl	538	539	/	/(r::StepRangeLen{<:Real,<:TwicePrecision}, x::Real)	modelled	rangescov-scalar-div-length	
+base/twiceprecision.jl	541	541	StepRangeLen{T,R,S,L}	StepRangeLen{T,R,S,L}(r::StepRangeLen{T,R,S,L}) where {T<:AbstractFloat,R<:TwicePrecision,S<:TwicePrecision,L}	modelled	rangescov-t541-srl-same	
+base/twiceprecision.jl	543	544	StepRangeLen{T,R,S,L}	StepRangeLen{T,R,S,L}(r::StepRangeLen) where {T<:AbstractFloat,R<:TwicePrecision,S<:TwicePrecision,L}	modelled	rangescov-t543-srl-convert	
+base/twiceprecision.jl	546	547	StepRangeLen{Float64}	StepRangeLen{Float64}(r::StepRangeLen)	modelled	rangescov-t546-srl-f64	
+base/twiceprecision.jl	548	549	StepRangeLen{T}	StepRangeLen{T}(r::StepRangeLen) where {T<:IEEEFloat}	modelled	rangescov-t548-srl-ieee	
+base/twiceprecision.jl	551	552	StepRangeLen{Float64}	StepRangeLen{Float64}(r::AbstractRange)	modelled	rangescov-t551-srl-f64-range	
+base/twiceprecision.jl	553	554	StepRangeLen{T}	StepRangeLen{T}(r::AbstractRange) where {T<:IEEEFloat}	modelled	rangescov-t553-srl-ieee-range	
+base/twiceprecision.jl	556	558	_convertSRL	_convertSRL(::Type{StepRangeLen{T,R,S,L}}, r::StepRangeLen{<:Integer}) where {T,R,S,L}	modelled	rangescov-t556-convert-srl-int	
+base/twiceprecision.jl	560	562	_convertSRL	_convertSRL(::Type{StepRangeLen{T,R,S,L}}, r::AbstractRange{<:Integer}) where {T,R,S,L}	modelled	rangescov-t560-convert-range-int	
+base/twiceprecision.jl	564	582	_convertSRL	_convertSRL(::Type{StepRangeLen{T,R,S,L}}, r::AbstractRange{U}) where {T,R,S,L,U}	modelled	rangescov-t564-convert-srl-float	
+base/twiceprecision.jl	584	586	__convertSRL	__convertSRL(::Type{StepRangeLen{T,R,S,L}}, r::StepRangeLen{U}) where {T,R,S,L,U}	modelled	rangescov-t584-convert-srl-fallback	
+base/twiceprecision.jl	587	589	__convertSRL	__convertSRL(::Type{StepRangeLen{T,R,S,L}}, r::AbstractRange{U}) where {T,R,S,L,U}	modelled	rangescov-t587-convert-range-fallback	
+base/twiceprecision.jl	591	605	sum	sum(r::StepRangeLen)	modelled	rangescov-steprangelen-sum-small-int	
+base/twiceprecision.jl	606	622	sum	sum(r::StepRangeLen{<:Any,<:TwicePrecision,<:TwicePrecision})	modelled	rangescov-t606-sum-tp	
+base/twiceprecision.jl	625	625	sumpair	sumpair(n::Integer)	modelled	rangescov-sumpair-product	
+base/twiceprecision.jl	627	642	+	+(r1::StepRangeLen{T,R}, r2::StepRangeLen{T,R}) where T where R<:TwicePrecision	modelled	rangescov-add-srl-length	
+base/twiceprecision.jl	647	668	range_start_stop_length	range_start_stop_length(start::T, stop::T, len::Integer) where {T<:IEEEFloat}	modelled	rangescov-start-stop-length-float	
+base/twiceprecision.jl	670	713	_linspace	_linspace(start::T, stop::T, len::Integer) where {T<:IEEEFloat}	modelled	rangescov-linspace-float-method	
+base/twiceprecision.jl	717	717	_linspace	_linspace(::Type{T}, start::Integer, stop::Integer, len::Integer) where {T<:IEEEFloat}	modelled	rangescov-linspace-int-imin-inexact,rangescov-linspace-int-length	
+base/twiceprecision.jl	718	734	_linspace	_linspace(::Type{T}, start_n::Integer, stop_n::Integer, len::Integer, den::Integer) where T<:IEEEFloat	modelled	rangescov-linspace-int-imin-inexact,rangescov-linspace-int128-overflow	
+base/twiceprecision.jl	737	750	_linspace1	_linspace1(::Type{T}, start, stop, len::Integer) where T<:IEEEFloat	modelled	rangescov-linspace1-method	
+base/twiceprecision.jl	757	772	rat	rat(x)	modelled	floatranges-colon-decimal-threshold	
+base/twiceprecision.jl	775	775	lcm_unchecked	lcm_unchecked(a::T, b::T) where T<:Integer	modelled	rangescov-t775-lcm	
+base/twiceprecision.jl	777	777	narrow	narrow(::Type{T}) where {T<:AbstractFloat}	modelled	rangescov-t777-narrow	
+base/twiceprecision.jl	778	778	narrow	narrow(::Type{Float64})	modelled	rangescov-t778-narrow	
+base/twiceprecision.jl	779	779	narrow	narrow(::Type{Float32})	modelled	rangescov-t779-narrow	
+base/twiceprecision.jl	780	780	narrow	narrow(::Type{Float16})	modelled	rangescov-t780-narrow	
+base/twiceprecision.jl	782	785	_tp_prod	_tp_prod(t::TwicePrecision, x, y...)	modelled	rangescov-t782-tp-prod	
+base/twiceprecision.jl	786	786	_tp_prod	_tp_prod(t::TwicePrecision)	modelled	rangescov-t786-tp-prod	
+base/twiceprecision.jl	787	788	<	<(x::TwicePrecision{T}, y::TwicePrecision{T}) where {T}	modelled	rangescov-tp-lt-irrefl	
+base/twiceprecision.jl	790	790	isbetween	isbetween(a, x, b)	modelled	rangescov-isbetween-symmetric	
+base/twiceprecision.jl	794	794	_exp_allowing_twice64	_exp_allowing_twice64(x::Number)	modelled	rangescov-t794-exp	
+base/twiceprecision.jl	795	795	_exp_allowing_twice64	_exp_allowing_twice64(x::TwicePrecision{Float64})	modelled	rangescov-t795-exp	
+base/twiceprecision.jl	798	806	_log_twice64_unchecked	_log_twice64_unchecked(x::Float64)	modelled	rangescov-t798-log	

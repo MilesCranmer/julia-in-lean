@@ -1,0 +1,39 @@
+line	name	verdict	mirror	property	settled	reason
+73	with_output_color	HOLLOW	no	no	yes	withOutputColor starts from a bare pre-rendered text value and omits callback invocation, IOContext buffering, finally printing, and the allowed colored-IO branch.
+86	output_color_string	HOLLOW	no	no	yes	outputColorString ignores the supplied IOBuffer, and ColorCorrect_3 covers only nonempty single-line strings under undocumented restrictions.
+143	printstyled	HOLLOW	no	no	yes	The Lean function accepts a bare pre-rendered text value and omits message printing and IO effects, so the proposition does not quantify over every allowed msg input.
+145	printstyled	HOLLOW	no	no	yes	The stdout model accepts a bare pre-rendered text value and omits stdout, message printing, and IO effects, so the proposition does not cover every allowed msg input.
+173	julia_cmd	HOLLOW	no	yes	yes	juliaCmd omits the coverage, allocation, native-sysimage, and compressed-sysimage branches, although its universal command-prefix property is valid.
+260	julia_exename	HOLLOW	no	no	yes	juliaExename omits the Windows branch, and JuliaCmdCorrect_6 lacks a platform hypothesis while omitting the required .exe suffix there.
+276	securezero!	FAITHFUL	-	-	-	no-behaviour: the empty generic-function declaration installs no method body.
+277	securezero!	HOLLOW	no	no	yes	securezero returns a new List Int instead of mutating every allowed numeric AbstractArray, so its proposition omits the documented in-place behavior and input domain.
+278	unsafe_securezero!	HOLLOW	no	no	yes	unsafeSecurezero clips a byte list with natural-number arithmetic and returns memory instead of a pointer, while its property adds an undocumented in-bounds hypothesis.
+280	unsafe_securezero!	HOLLOW	no	no	yes	unsafeSecurezeroVoid only equates byte-list transformers over natural lengths and omits both pointer casts, the pointer return value, and other Integer inputs.
+307	getpass	FAITHFUL	-	-	-	no-behaviour: the empty generic-function declaration installs no method body.
+310	_getch	HOLLOW	no	no	yes	getch models only the POSIX stdin read and omits the Windows ccall branch, while GetchCorrect lacks a platform hypothesis.
+319	make_termios	FAITHFUL	yes	yes	yes	makeTermios mirrors zero-byte allocation at the supplied termios size, and its theorem proves the universal length invariant.
+325	tcgetattr	HOLLOW	no	yes	yes	tcgetattr replaces the ccall and its IOError payload with a return-code parameter and a different abstract error, although the success condition holds for every return code.
+331	tcsetattr	HOLLOW	no	yes	yes	tcsetattr replaces the ccall and its IOError payload with a return-code parameter and a different abstract error, although the success condition holds for every return code.
+337	cfmakeraw	HOLLOW	no	no	yes	cfmakeraw substitutes an arbitrary list transformer for the mutating Cvoid ccall, making its theorem a tautology without the method's mutation or return behavior.
+339	with_raw_tty	HOLLOW	no	no	yes	withRawTty omits the Windows branch, terminal calls, copied mode, callback invocation, failures, and finally restoration, and its property treats the callback result as a bare value.
+365	getpass	HOLLOW	no	no	yes	getpass omits input validation, prompt and suffix output, flushing, raw-terminal setup, and SecretBuffer behavior, while its properties use undocumented ASCII or length restrictions.
+392	getpass	HOLLOW	no	no	yes	getpassStdin aliases a supplied key list to the reduced loop and omits stdin, stdout, prompt, and with_suffix, so its equality does not establish this wrapper's behavior.
+413	prompt	HOLLOW	yes	no	yes	prompt mirrors message construction, IO, newline handling, chomp, and the return branches, while PromptDoc_1 covers only inputs beginning with a newline instead of every allowed input.
+424	prompt	FAITHFUL	yes	yes	yes	promptStdin delegates every modeled stdin state, message, and default to the full prompt model, and PromptDoc_4 proves that wrapper equality universally.
+445	winprompt	FAITHFUL	-	-	-	The platform exclusion applies because the method is defined inside the Sys.iswindows() branch.
+515	unsafe_crc32c	FAITHFUL	yes	yes	yes	unsafeCrc32c calls the imported jl_crc32c model on the first n bytes, and the theorem states that invariant for every valid byte region.
+517	_crc32c	FAITHFUL	yes	yes	yes	crc32cTuple forwards every tuple byte and its full length to unsafeCrc32c, and the theorem proves the documented checksum composition for all byte tuples.
+520	_crc32c	FAITHFUL	yes	yes	yes	crc32cDense forwards every dense-array byte and its full length to unsafeCrc32c, and the theorem proves the documented checksum composition universally.
+524	_crc32c	FAITHFUL	yes	yes	yes	crc32cString forwards every string code unit and its byte length to unsafeCrc32c, and the theorem proves the documented checksum composition universally.
+528	_crc32c	HOLLOW	yes	no	yes	crc32cIoNb mirrors the checks, block loop, arithmetic, and final read for a list stream, while Crc32cIo covers only that IOBuffer-like model and excludes negative counts accepted by the generic IO method.
+540	_crc32c	HOLLOW	yes	no	yes	crc32cIo mirrors delegation with typemax Int64, while Crc32cIo covers only an IOBuffer-like list and therefore omits other allowed IO implementations.
+541	_crc32c	HOLLOW	yes	no	yes	crc32cIOStream mirrors filesize minus position delegation, while Crc32cStreamAll assumes position does not exceed content length even though IOStream permits seeking past the end.
+542	_crc32c	HOLLOW	no	no	yes	crc32cU128 uses little-endian bytes without modeling native byte order, and its proposition lacks the platform hypothesis required for the source's Ref memory representation.
+544	_crc32c	HOLLOW	no	no	yes	crc32cU64 uses little-endian bytes without modeling native byte order, and its proposition lacks the platform hypothesis required for the source's Ref memory representation.
+546	_crc32c	HOLLOW	no	no	yes	crc32cU32 uses little-endian bytes without modeling native byte order, and its proposition lacks the platform hypothesis required for the source's Ref memory representation.
+548	_crc32c	HOLLOW	no	no	yes	crc32cU16 uses little-endian bytes without modeling native byte order, and its proposition lacks the platform hypothesis required for the source's Ref memory representation.
+550	_crc32c	FAITHFUL	yes	yes	yes	crc32cU8 mirrors the one-byte Ref call without an endian assumption, and its theorem proves the checksum-of-that-byte invariant universally.
+590	kwdef	HOLLOW	no	no	yes	kwParams is only the identity on a supplied name-default list, so it omits macro expansion, validation, field extraction, constructor generation, and the registered constructor claim.
+646	extract_names_and_defvals_from_kwdef_fieldblock!	HOLLOW	no	no	yes	extractFields handles only a flat list and omits recursive blocks, wrapper propagation, AST mutation, and default-value correspondence across every allowed field block.
+667	def_name_defval_from_kwdef_fielddef	HOLLOW	no	no	yes	defNameDefval omits Meta.unescape and exact Expr handling, while KwdefCorrect_3 covers only the simple Symbol-equals-value form instead of every allowed field definition.
+703	runtests	HOLLOW	no	no	yes	The Lean functions model only argument and command fragments while omitting environment setup, execution, and error handling, and one entry states only the exit-on-error branch rather than behavior for every keyword combination.

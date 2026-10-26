@@ -1,0 +1,26 @@
+file	line	endline	name	signature	status	entry	note
+base/special/log.jl	141	141	logb	logb(::Type{Float32},::Val{2})	modelled	mathcov-special-log-l141	method-specific source model and quantified behavior property
+base/special/log.jl	142	142	logb	logb(::Type{Float32},::Val{:ℯ})	modelled	mathcov-special-log-l142	method-specific source model and quantified behavior property
+base/special/log.jl	143	143	logb	logb(::Type{Float32},::Val{10})	modelled	mathcov-special-log-l143	method-specific source model and quantified behavior property
+base/special/log.jl	144	144	logbU	logbU(::Type{Float64},::Val{2})	modelled	mathcov-special-log-l144	method-specific source model and quantified behavior property
+base/special/log.jl	145	145	logbL	logbL(::Type{Float64},::Val{2})	modelled	mathcov-special-log-l145	method-specific source model and quantified behavior property
+base/special/log.jl	146	146	logbU	logbU(::Type{Float64},::Val{:ℯ})	modelled	mathcov-special-log-l146	method-specific source model and quantified behavior property
+base/special/log.jl	147	147	logbL	logbL(::Type{Float64},::Val{:ℯ})	modelled	mathcov-special-log-l147	method-specific source model and quantified behavior property
+base/special/log.jl	148	148	logbU	logbU(::Type{Float64},::Val{10})	modelled	mathcov-special-log-l148	method-specific source model and quantified behavior property
+base/special/log.jl	149	149	logbL	logbL(::Type{Float64},::Val{10})	modelled	mathcov-special-log-l149	method-specific source model and quantified behavior property
+base/special/log.jl	152	181	log_proc1	log_proc1(y::Float64,mf::Float64,F::Float64,f::Float64,base=Val(:ℯ))	modelled	mathcov-special-log-l152	method-specific source model and quantified behavior property
+base/special/log.jl	184	207	log_proc2	log_proc2(f::Float64,base=Val(:ℯ))	modelled	mathcov-special-log-l184	method-specific source model and quantified behavior property
+base/special/log.jl	210	230	log_proc1	log_proc1(y::Float32,mf::Float32,F::Float32,f::Float32,base=Val(:ℯ))	modelled	mathcov-special-log-l210	method-specific source model and quantified behavior property
+base/special/log.jl	233	249	log_proc2	log_proc2(f::Float32,base=Val(:ℯ))	modelled	mathcov-special-log-l233	method-specific source model and quantified behavior property
+base/special/log.jl	251	251	log2	log2(x::Float32)	modelled	mathcov-special-log-l251	method-specific source model and quantified behavior property
+base/special/log.jl	252	252	log	log(x::Float32)	modelled	mathcov-special-log-l252	method-specific source model and quantified behavior property
+base/special/log.jl	253	253	log10	log10(x::Float32)	modelled	mathcov-special-log-l253	method-specific source model and quantified behavior property
+base/special/log.jl	254	254	log2	log2(x::Float64)	modelled	mathfuncs-log-domain,mathfuncs-log-one,mathfuncs-log-zero,mathfuncs-log2-pow2	source model and quantified behavior property
+base/special/log.jl	255	255	log	log(x::Float64)	modelled	mathfuncs-log-domain,mathfuncs-log-one,mathfuncs-log-zero	source model and quantified behavior property
+base/special/log.jl	256	256	log10	log10(x::Float64)	modelled	mathfuncs-log-domain,mathfuncs-log-one,mathfuncs-log-zero	source model and quantified behavior property
+base/special/log.jl	258	292	_log	_log(x::Float64, base, func::Symbol)	modelled	mathcov-special-log-l258	method-specific source model and quantified behavior property
+base/special/log.jl	294	327	_log	_log(x::Float32, base, func::Symbol)	modelled	mathcov-special-log-l294	method-specific source model and quantified behavior property
+base/special/log.jl	330	362	log1p	log1p(x::Float64)	modelled	mathfuncs-log-one,mathfuncs-log-zero,mathfuncs-log1p-domain	source model and quantified behavior property
+base/special/log.jl	364	394	log1p	log1p(x::Float32)	modelled	mathcov-special-log-l364	method-specific source model and quantified behavior property
+base/special/log.jl	542	546	log_tab_unpack	log_tab_unpack(t::UInt64)	modelled	mathcov-special-log-l542	method-specific source model and quantified behavior property
+base/special/log.jl	555	583	_log_ext	_log_ext(xu::UInt64)	modelled	mathcov-special-log-l555	method-specific source model and quantified behavior property

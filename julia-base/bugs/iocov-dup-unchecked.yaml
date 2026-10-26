@@ -1,0 +1,52 @@
+id: iocov-dup-unchecked
+title: "Libc.dup(fd) returns RawFD(-1) instead of throwing when dup fails"
+priority: P3
+kind: missing-error
+area: IOCov
+files: [base/libc.jl]
+functions: ["Libc.dup(::RawFD)", "Libc.FILE(::IO)"]
+summary: |
+  dup(x::RawFD) returns the result of the C call unchecked, so an invalid or exhausted
+  descriptor gives RawFD(-1), while dup(src, target) throws a SystemError on failure.
+  Callers such as Libc.FILE(s::IO) then pass -1 on to fdopen.
+likelihood: |
+  Only on failure (closed descriptor, too many open files). The -1 then surfaces
+  later as a confusing error, or is used as a descriptor.
+maybe_intended: ""
+reproducer: |
+  r = Libc.dup(Libc.RawFD(12345))
+  println("dup(RawFD(12345)) = ", r)
+  try
+      Libc.dup(Libc.RawFD(12345), Libc.RawFD(12346))
+  catch e
+      println("dup(RawFD(12345), RawFD(12346)) threw ", typeof(e))
+  end
+  if r == Libc.RawFD(-1)
+      println("REPRODUCED iocov-dup-unchecked")
+  end
+output:
+  release: |
+    dup(RawFD(12345)) = RawFD(-1)
+    dup(RawFD(12345), RawFD(12346)) threw SystemError
+    REPRODUCED iocov-dup-unchecked
+  nightly: |
+    dup(RawFD(12345)) = RawFD(-1)
+    dup(RawFD(12345), RawFD(12346)) threw SystemError
+    REPRODUCED iocov-dup-unchecked
+reproduced: {release: true, nightly: true}
+expected: |
+  A SystemError("dup") for dup(RawFD(12345)), like the two-argument method.
+promised_by: |
+  Consistency with dup(src, target) (base/libc.jl:47-49), which checks the result with
+  systemerror; dup docstring (base/libc.jl:40-43): "Duplicate the file descriptor `src`
+  so that the duplicate refers to the same OS resource".
+cause: |
+  base/libc.jl:46: dup(x::RawFD) = ccall(:dup, RawFD, (RawFD,), x) without systemerror.
+possible_fix: |
+  Check the result: r = ccall(...); systemerror("dup", r == RawFD(-1)); r.
+duplicates:
+  issues: []
+  queries: ["Libc.dup", "dup RawFD"]
+lean:
+  property: JuliaLean.IOCov.Libc.DupChecked
+  theorem: JuliaLean.IOCov.Libc.dupChecked_refuted

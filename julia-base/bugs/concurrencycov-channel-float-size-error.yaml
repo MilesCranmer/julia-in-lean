@@ -1,0 +1,54 @@
+id: concurrencycov-channel-float-size-error
+title: "Channel(-Inf), Channel(NaN) and Channel(2.5) throw InexactError instead of the size ArgumentError"
+priority: P3
+kind: wrong-exception
+area: Channels
+files: [base/channels.jl]
+functions: ["Channel{T}(sz::Float64)", "Channel(sz)"]
+summary: |
+  The Float64 constructor maps Inf to typemax(Int) and otherwise calls
+  convert(Int, sz). A negative integral float reaches the size check and throws the
+  documented ArgumentError, but -Inf, NaN and non-integral sizes fail in the
+  conversion with InexactError.
+likelihood: |
+  Only invalid sizes are affected, typically a computed float size; valid sizes work.
+maybe_intended: |
+  InexactError is a natural error for a non-integral size, and the docstring does not
+  name the exception type.
+reproducer: |
+  Channel(-1.0)   # ArgumentError: Channel size must be either 0, a positive integer or Inf
+  Channel(-Inf)   # InexactError
+  Channel(NaN)    # InexactError
+  Channel(2.5)    # InexactError
+output:
+  release: |
+    Channel(-1.0) throws ArgumentError: Channel size must be either 0, a positive integer or Inf
+    Channel(-Inf) throws InexactError
+    Channel(NaN) throws InexactError
+    Channel(2.5) throws InexactError
+    REPRODUCED concurrencycov-channel-float-size-error
+  nightly: |
+    Channel(-1.0) throws ArgumentError: Channel size must be either 0, a positive integer or Inf
+    Channel(-Inf) throws InexactError
+    Channel(NaN) throws InexactError
+    Channel(2.5) throws InexactError
+    REPRODUCED concurrencycov-channel-float-size-error
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError("Channel size must be either 0, a positive integer or Inf") for every
+  size that is not 0, a positive integer or Inf.
+promised_by: |
+  base/channels.jl:43-46 rejects invalid sizes with that ArgumentError, and the
+  docstring at lines 13-27 lists the accepted sizes (0, positive integers, Inf).
+cause: |
+  base/channels.jl:55 runs `convert(Int, sz)` for every Float64 other than Inf before
+  the `sz < 0` check at line 44 can run.
+possible_fix: |
+  Check `isinteger(sz) && sz >= 0 || sz == Inf` in the Float64 method and throw the
+  same ArgumentError otherwise.
+duplicates:
+  issues: []
+  queries: ["Channel InexactError size", "Channel(Inf) size float", "Channel size NaN"]
+lean:
+  property: JuliaLean.ConcurrencyCov.ChannelsCov.FloatSizeArgumentError
+  theorem: JuliaLean.ConcurrencyCov.ChannelsCov.floatSizeArgumentError_refuted

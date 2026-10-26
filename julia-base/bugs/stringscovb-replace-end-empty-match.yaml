@@ -1,0 +1,64 @@
+id: stringscovb-replace-end-empty-match
+title: replace(::AnnotatedString, pat => AnnotatedString) drops the annotations of a replacement made by an empty match at the end
+priority: P2
+kind: wrong-result
+area: StringsCovB
+files:
+- base/strings/annotated_io.jl
+functions:
+- replace(out::AnnotatedIOBuffer, str::AnnotatedString, pat_f::Pair...; count)
+- replace(str::AnnotatedString, pat_f::Pair...; count)
+summary: |
+  When a pattern matches the empty string at the end of the subject (r"$", r"b*", "" ...),
+  _replace_once writes the replacement there, but the annotated replace loop then sees
+  first(xspan) >= e1 and breaks before recording that replacement. The annotations of an
+  annotated replacement inserted at the end are therefore lost: replace(AnnotatedString("ab"),
+  r"$" => AnnotatedString("X", [(1:1, :z, 1)])) is "abX" without :z, while the same
+  replacement at the start (r"^") keeps it.
+likelihood: |
+  Appending styled text with r"$" or replacing with patterns that can match empty strings.
+maybe_intended: ''
+reproducer: |
+  using Base: AnnotatedString, annotations
+  X = AnnotatedString("X", [(1:1, :z, 1)])
+  r1 = replace(AnnotatedString("ab"), r"$" => X)
+  r2 = replace(AnnotatedString("ab"), r"^" => X)
+  println("replace(\"ab\", r\"\$\" => X) = ", repr(r1.string), " ", [(a.region, a.label) for a in annotations(r1)])
+  println("replace(\"ab\", r\"^\" => X) = ", repr(r2.string), " ", [(a.region, a.label) for a in annotations(r2)])
+  isempty(annotations(r1)) && r1.string == "abX" && !isempty(annotations(r2)) &&
+      println("REPRODUCED stringscovb-replace-end-empty-match")
+output:
+  release: |
+    replace("ab", r"$" => X) = "abX" Tuple{UnitRange{Int64}, Symbol}[]
+    replace("ab", r"^" => X) = "Xab" Tuple{UnitRange{Int64}, Symbol}[(1:1, :z)]
+    REPRODUCED stringscovb-replace-end-empty-match
+  nightly: |
+    replace("ab", r"$" => X) = "abX" Tuple{UnitRange{Int64}, Symbol}[]
+    replace("ab", r"^" => X) = "Xab" Tuple{UnitRange{Int64}, Symbol}[(1:1, :z)]
+    REPRODUCED stringscovb-replace-end-empty-match
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  "abX" with [(3:3, :z)].
+promised_by: |
+  Consistency with the replacement at other positions, and the AnnotatedString docstring
+  (base/strings/annotated.jl:32-35: operations should conserve annotations); replace(str::AnnotatedString,
+  ...) is meant to carry the replacement's annotations (base/strings/annotated_io.jl:263-272).
+cause: |
+  base/strings/annotated_io.jl:252-253: `first(xspan) >= e1 && break` also breaks for an empty match at
+  e1, which _replace_once (base/strings/util.jl:1068-1104) has already written.
+possible_fix: |
+  Break only when `first(xspan) > e1`, or record the replacement before breaking when the match is empty at e1.
+duplicates:
+  issues: []
+  queries:
+  - 'issues: replace AnnotatedString'
+  - 'prs: replace AnnotatedString'
+  - 'issues: AnnotatedString replace annotations'
+  - 'issues: replace AnnotatedIOBuffer'
+  - 'prs: replace AnnotatedIOBuffer'
+  - 'issues: styled replace regex empty'
+lean:
+  property: JuliaLean.StringsCovB.AIOR.ReplaceEndAnnotated
+  theorem: JuliaLean.StringsCovB.AIOR.replaceEndAnnotated_refuted

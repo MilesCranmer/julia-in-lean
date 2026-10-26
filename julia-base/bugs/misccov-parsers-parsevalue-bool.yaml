@@ -1,0 +1,49 @@
+id: misccov-parsers-parsevalue-bool
+title: "Base.Parsers.parsevalue(Bool, bytes) throws InexactError for every digit string"
+priority: P2
+kind: wrong-exception
+area: MiscCov
+files: [base/parsers/ints.jl, base/parsers/Parsers.jl]
+functions: ["Base.Parsers.parsevalue", "Base.Parsers.parseint(::Type{T}, ...) where T<:Integer"]
+summary: |
+  `parsevalue(T, bytes)` is documented to return a value or a ParseFailure "instead of throwing" for integer types. For `T = Bool` the generic `parseint` method computes `T(base)`, which throws InexactError for every base from 2 to 62, so `parsevalue(Bool, codeunits("1"))` and even `parsevalue(Bool, codeunits("0"); base = 2)` throw.
+likelihood: |
+  Low: Base.Parsers is new on master and not yet public; `parse(Bool, s)` uses a separate method and works.
+maybe_intended: ""
+reproducer: |
+  Base.Parsers.parsevalue(Bool, codeunits("1"))           # InexactError: Bool(10)
+  Base.Parsers.parsevalue(Bool, codeunits("0"); base = 2) # InexactError: Bool(2)
+output:
+  release: |
+    parsevalue(Bool, codeunits("1"); base = 10) => UndefVarError: `Parsers` not defined in `Base`
+    Suggestion: check for spelling errors or missing imports.
+    parsevalue(Bool, codeunits("0"); base = 10) => UndefVarError: `Parsers` not defined in `Base`
+    Suggestion: check for spelling errors or missing imports.
+    parsevalue(Bool, codeunits("1"); base = 2) => UndefVarError: `Parsers` not defined in `Base`
+    Suggestion: check for spelling errors or missing imports.
+    parse(Bool, "1") => true
+  nightly: |
+    parsevalue(Bool, codeunits("1"); base = 10) => InexactError: Bool(10)
+    parsevalue(Bool, codeunits("0"); base = 10) => InexactError: Bool(10)
+    parsevalue(Bool, codeunits("1"); base = 2) => InexactError: Bool(2)
+    parse(Bool, "1") => true
+    REPRODUCED misccov-parsers-parsevalue-bool
+reproduced: {release: false, nightly: true}
+expected: |
+  true / false (as `parse(Bool, "1")`), or a ParseFailure; never an exception.
+promised_by: |
+  base/parsers/Parsers.jl:58-63: "Parse all of `bytes` ... as a `T`, or return a ParseFailure instead of throwing ... For integer types, the bytes are an optional `-` or `+` (signed types only) followed by digits in `base`".
+cause: |
+  base/parsers/ints.jl:168: `mul_with_overflow(n, T(base))` converts the base to T. Master only; 1.13.2 has no Base.Parsers.
+possible_fix: |
+  A Bool method of parsevalue, as open PR #63971 adds.
+duplicates:
+  issues:
+    - {number: 63971, state: open, relation: duplicate}
+  queries:
+    - "issues: parsevalue"
+    - "issues: Parsers Bool InexactError"
+    - "prs: Parsers"
+lean:
+  property: JuliaLean.MiscCov.Parsers.ParsevalueNoThrow
+  theorem: JuliaLean.MiscCov.Parsers.parsevalueNoThrow_refuted

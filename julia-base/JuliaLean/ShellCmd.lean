@@ -41,6 +41,13 @@ def entries : List Entry := [
     prop := ``PosixlyNoReservedWord, thm := some ``posixlyNoReservedWord_refuted
     issue := "none found (queries: shell_escape_posixly, posixly reserved word, shell escape reserved word)"
     notes := "shell_escape_posixly(\"done\", \"x\") == \"done x\", a syntax error in sh. Same on 1.13.2." },
+  { id := "shellcmd-csh-posix-backslash", juliaFile := "base/shell.jl"
+    juliaFns := ["Base.shell_escape_csh"]
+    statement := "POSIX sh splits shell_escape_csh(xs...) back into xs when no argument contains a linefeed."
+    source := "base/shell.jl:539-540 (shell_escape_csh docstring)", status := .refuted
+    prop := ``CshPosixRoundTrip, thm := some ``cshPosixRoundTrip_refuted
+    issue := "none found (queries: shell_escape_csh, csh escape)"
+    notes := "shell_escape_csh(\"'\\\\\\\\\") == \"\\\"'\\\\\\\\\\\"\", which sh reads as '\\\\; with a following argument this allows command injection. Same on 1.13.2." },
   { id := "shellcmd-escape-empty-args", juliaFile := "base/shell.jl"
     juliaFns := ["Base.shell_escape_csh", "Base.escape_microsoft_c_args"]
     statement := "shell_escape_csh(xs...) and escape_microsoft_c_args(xs...) return a string for every argument list, including none and the empty Cmd."

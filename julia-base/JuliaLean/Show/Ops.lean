@@ -20,7 +20,7 @@ isunaryoperator: true for + - ! ~ <: >: .+ √; false for the other symbols abov
 is_syntactic_operator: true for = && || .&& . ... -> += .=; false for the others
 ```
 
-Julia 1.13.2 and master printed, for each of
+On 1.13.2 and master, the observed output for each of
 `a b f k T y Symbol Core @cmd`: `_isoperator` false, `isunaryoperator` false,
 `is_syntactic_operator` false, `operator_precedence` 0; and for `.-`:
 `_isoperator` true, `isunaryoperator` true, `is_syntactic_operator` false,

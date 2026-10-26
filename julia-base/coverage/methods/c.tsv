@@ -1,0 +1,17 @@
+file	line	endline	name	signature	status	entry	note
+base/c.jl	22	22	unsafe_convert	unsafe_convert(::Type{Ptr{Cvoid}}, cf::CFunction)	modelled	misccov-cfunction	
+base/c.jl	50	65	cfunction	cfunction(f, rt, at)	modelled	misccov-cfunction	
+base/c.jl	131	131	sigatomic_begin	sigatomic_begin()	modelled	misccov-c-sigint	
+base/c.jl	132	132	sigatomic_end	sigatomic_end()	modelled	misccov-c-sigint	
+base/c.jl	149	160	disable_sigint	disable_sigint(f::Function)	modelled	misccov-c-sigint	
+base/c.jl	168	174	reenable_sigint	reenable_sigint(f::Function)	modelled	misccov-c-sigint	
+base/c.jl	193	195	exit_on_sigint	exit_on_sigint(on::Bool)	modelled	misccov-c-sigint	
+base/c.jl	197	199	_ccallable	_ccallable(name::Union{Nothing, String}, rt::Type, sigt::Type)	modelled	misccov-ccallable-expand,misccov-ccallable-forward-decl	
+base/c.jl	201	234	expand_ccallable	expand_ccallable(name, rt, def)	modelled	misccov-ccallable-expand,misccov-ccallable-forward-decl	
+base/c.jl	244	246	ccallable	ccallable(def)	modelled	misccov-ccallable-expand,misccov-ccallable-forward-decl	
+base/c.jl	247	253	ccallable	ccallable(rt, def)	modelled	misccov-ccallable-expand,misccov-ccallable-forward-decl	
+base/c.jl	268	369	ccall_macro_parse	ccall_macro_parse(exprs)	modelled	misccov-ccall-parse,misccov-ccall-macro-parse-doc	
+base/c.jl	346	352	pusharg!	pusharg!(arg)	modelled	misccov-ccall-parse,misccov-ccall-macro-parse-doc	
+base/c.jl	372	401	ccall_macro_lower	ccall_macro_lower(convention, func, rettype, types, args, gc_safe, cancel, nreq)	modelled	misccov-ccall-lower	
+base/c.jl	537	539	ccall	ccall(exprs...)	modelled	misccov-ccall-lower	
+base/c.jl	541	543	ccall_effects	ccall_effects(effects::UInt16, exprs...)	modelled	misccov-ccall-lower	

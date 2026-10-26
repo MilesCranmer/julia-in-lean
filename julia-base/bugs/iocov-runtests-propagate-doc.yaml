@@ -1,0 +1,52 @@
+id: iocov-runtests-propagate-doc
+title: "Base.runtests docstring says propagate_project defaults to true, but the default is false"
+priority: P3
+kind: documentation
+area: IOCov
+files: [base/util.jl]
+functions: ["Base.runtests"]
+summary: |
+  The runtests signature in its docstring lists propagate_project=true, but the method
+  declares propagate_project::Bool=false, so by default the current project is not
+  passed to the test process.
+likelihood: |
+  Anyone relying on the docstring to run Base tests within the active project.
+maybe_intended: |
+  The keyword was added with default false; the docstring line is the outlier.
+reproducer: |
+  # The positional method runtests(tests) calls the keyword body with the keyword
+  # defaults in declaration order: ncores, exit_on_error, revise, propagate_project, ...
+  doc = string(@doc(Base.runtests))
+  println("docstring signature mentions: ", match(r"propagate_project=\w+", doc).match)
+  ci = code_lowered(Base.runtests, Tuple{Vector{String}})[1]
+  call = only(filter(ex -> Meta.isexpr(ex, :call) && length(ex.args) == 9, ci.code))
+  defaults = call.args[3:5]
+  println("lowered defaults of exit_on_error, revise, propagate_project: ", defaults)
+  if occursin("propagate_project=true", doc) && defaults[3] === false
+      println("REPRODUCED iocov-runtests-propagate-doc")
+  end
+output:
+  release: |
+    docstring signature mentions: propagate_project=true
+    lowered defaults of exit_on_error, revise, propagate_project: Any[false, false, false]
+    REPRODUCED iocov-runtests-propagate-doc
+  nightly: |
+    docstring signature mentions: propagate_project=true
+    lowered defaults of exit_on_error, revise, propagate_project: Any[false, false, false]
+    REPRODUCED iocov-runtests-propagate-doc
+reproduced: {release: true, nightly: true}
+expected: |
+  The docstring and the code give the same default.
+promised_by: |
+  runtests docstring, base/util.jl:689-690: "Base.runtests(tests=["all"]; ncores=...,
+  exit_on_error=false, revise=false, propagate_project=true, [seed], [julia_args::Cmd])".
+cause: |
+  base/util.jl:706: propagate_project::Bool=false.
+possible_fix: |
+  Change the docstring to propagate_project=false (or the default to true).
+duplicates:
+  issues: []
+  queries: ["runtests propagate_project", "propagate_project"]
+lean:
+  property: JuliaLean.IOCov.UtilFaithful.RuntestsDefaultPropagates
+  theorem: JuliaLean.IOCov.UtilFaithful.runtestsDefaultPropagates_refuted

@@ -1,0 +1,51 @@
+file	line	endline	name	signature	status	entry	note
+base/client.jl	16	21	repl_color	repl_color(key, default)	modelled	runtimecov-client	
+base/client.jl	23	23	error_color	error_color()	modelled	runtimecov-client	
+base/client.jl	24	24	warn_color	warn_color()	modelled	runtimecov-client	
+base/client.jl	25	25	info_color	info_color()	modelled	runtimecov-client	
+base/client.jl	26	26	debug_color	debug_color()	modelled	runtimecov-client	
+base/client.jl	28	28	input_color	input_color()	modelled	runtimecov-client	
+base/client.jl	29	29	answer_color	answer_color()	modelled	runtimecov-client	
+base/client.jl	31	31	stackframe_lineinfo_color	stackframe_lineinfo_color()	modelled	runtimecov-client	
+base/client.jl	32	32	stackframe_function_color	stackframe_function_color()	modelled	runtimecov-client	
+base/client.jl	34	88	repl_cmd	repl_cmd(cmd::AbstractCmd, out)	modelled	runtimecov-client	
+base/client.jl	90	91	repl_cmd	repl_cmd(@nospecialize(cmd), out)	modelled	runtimecov-client	
+base/client.jl	94	102	ip_matches_func	ip_matches_func(ip, func::Symbol)	modelled	runtimecov-client	
+base/client.jl	104	104	__script_entry_include	__script_entry_include(mod::Module, path::String)	modelled	runtimecov-client	
+base/client.jl	105	106	__script_entry_include_string	__script_entry_include_string(mod::Module, code::String, filename::String)	modelled	runtimecov-client	
+base/client.jl	107	107	__script_entry_eval	__script_entry_eval(mod::Module, @nospecialize(ex))	modelled	runtimecov-client	
+base/client.jl	109	111	is_driver_entry	is_driver_entry(frame)	modelled	runtimecov-client	
+base/client.jl	115	120	is_driver_machinery	is_driver_machinery(frame)	modelled	runtimecov-client	
+base/client.jl	122	135	scrub_repl_backtrace	scrub_repl_backtrace(bt)	modelled	runtimecov-client	
+base/client.jl	136	137	scrub_repl_backtrace	scrub_repl_backtrace(stack::ExceptionStack)	modelled	runtimecov-client	
+base/client.jl	139	140	istrivialerror	istrivialerror(stack::ExceptionStack)	modelled	runtimecov-client	
+base/client.jl	143	147	display_error	display_error(io::IO, stack::ExceptionStack)	modelled	runtimecov-client	
+base/client.jl	148	148	display_error	display_error(stack::ExceptionStack)	modelled	runtimecov-client	
+base/client.jl	151	155	display_error	display_error(io::IO, er, bt)	modelled	runtimecov-client	
+base/client.jl	156	156	display_error	display_error(er, bt=nothing)	modelled	runtimecov-client	
+base/client.jl	159	159	__repl_entry_client_eval	__repl_entry_client_eval(mod::Module, @nospecialize(ast))	modelled	runtimecov-client	
+base/client.jl	161	213	eval_user_input	eval_user_input(errio, @nospecialize(ast), show_value::Bool)	modelled	runtimecov-client	
+base/client.jl	215	231	_parse_input_line_core	_parse_input_line_core(s::String, filename::String, mod::Union{Module, Nothing}, type)	modelled	runtimecov-client	
+base/client.jl	233	243	parse_input_line	"parse_input_line(s::String; filename::String=""none"", depwarn=true, mod::Union{Module, Nothing}=nothing, type=Expr)"	modelled	runtimecov-client	
+base/client.jl	244	244	parse_input_line	parse_input_line(s::AbstractString; kwargs...)	modelled	runtimecov-client	
+base/client.jl	246	361	exec_options	exec_options(opts)	modelled	runtimecov-client	
+base/client.jl	363	377	_global_julia_startup_file	_global_julia_startup_file()	modelled	runtimecov-client	
+base/client.jl	379	385	_local_julia_startup_file	_local_julia_startup_file()	modelled	runtimecov-client	
+base/client.jl	387	393	load_julia_startup	load_julia_startup()	modelled	runtimecov-client	
+base/client.jl	405	405	atreplinit	atreplinit(f::Function)	modelled	runtimecov-client	
+base/client.jl	407	416	__atreplinit	__atreplinit(repl)	modelled	runtimecov-client	
+base/client.jl	417	417	_atreplinit	_atreplinit(repl)	modelled	runtimecov-client	
+base/client.jl	419	433	load_InteractiveUtils	load_InteractiveUtils(mod::Module=Main)	modelled	runtimecov-client	
+base/client.jl	435	443	load_REPL	load_REPL()	modelled	runtimecov-client	
+base/client.jl	448	494	run_fallback_repl	run_fallback_repl(interactive::Bool)	modelled	runtimecov-client	
+base/client.jl	496	524	run_std_repl	run_std_repl(REPL::Module, quiet::Bool, banner::Symbol, history_file::Bool)	modelled	runtimecov-client	
+base/client.jl	527	546	run_main_repl	run_main_repl(interactive::Bool, quiet::Bool, banner::Symbol, history_file::Bool)	modelled	runtimecov-client	
+base/client.jl	568	570	"var""#_internal_julia_parse"""	"var""#_internal_julia_parse""(args...)"	modelled	runtimecov-client	
+base/client.jl	580	585	should_use_main_entrypoint	should_use_main_entrypoint()	modelled	runtimecov-client	
+base/client.jl	603	615	session_cancel_source!	session_cancel_source!()	modelled	runtimecov-client	
+base/client.jl	619	620	new_evaluation_cancel_source!	new_evaluation_cancel_source!()	modelled	runtimecov-client	
+base/client.jl	630	642	cancel_session_work!	cancel_session_work!()	modelled	runtimecov-client	
+base/client.jl	644	651	init_frontend	init_frontend()	modelled	runtimecov-client	
+base/client.jl	653	719	_start	_start()	modelled	runtimecov-client	
+base/client.jl	721	733	repl_main	repl_main(_)	modelled	runtimecov-client	
+base/client.jl	786	802	main	main(args...)	modelled	runtimecov-client	

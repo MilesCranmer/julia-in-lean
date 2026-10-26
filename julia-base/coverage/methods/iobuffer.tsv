@@ -1,0 +1,76 @@
+file	line	endline	name	signature	status	entry	note
+base/iobuffer.jl	96	107	_new_generic_iobuffer	_new_generic_iobuffer( ::Type{T}, data::T, readable::Bool, writable::Bool, seekable::Bool, append::Bool, maxsize::Int, ) where T<:AbstractVector{UInt8}	modelled	iocov-iobuffer-new	
+base/iobuffer.jl	110	130	GenericIOBuffer{T}	GenericIOBuffer{T}( data::T, readable::Bool, writable::Bool, seekable::Bool, append::Bool, maxsize::Integer, truncate::Bool, ) where T<:AbstractVector{UInt8}	modelled	iocov-iobuffer-generic-constructors	
+base/iobuffer.jl	134	137	GenericIOBuffer	GenericIOBuffer(data::T, readable::Bool, writable::Bool, seekable::Bool, append::Bool, maxsize::Integer, truncate::Bool) where T<:AbstractVector{UInt8}	modelled	iocov-iobuffer-generic-constructors	
+base/iobuffer.jl	141	161	GenericIOBuffer	GenericIOBuffer(data::Vector{UInt8}, readable::Bool, writable::Bool, seekable::Bool, append::Bool, maxsize::Integer, truncate::Bool)	modelled	iocov-iobuffer-vector-constructor	
+base/iobuffer.jl	163	163	get_offset	get_offset(io::GenericIOBuffer)	modelled	iocov-iobuffer-offset-accessors	
+base/iobuffer.jl	164	164	get_compacted	get_compacted(io::GenericIOBuffer)	modelled	iocov-iobuffer-offset-accessors	
+base/iobuffer.jl	167	167	StringMemory	StringMemory(n::Integer)	modelled	iocov-iobuffer-string-allocators	
+base/iobuffer.jl	168	168	StringVector	StringVector(n::Integer)	modelled	iocov-iobuffer-string-allocators	
+base/iobuffer.jl	230	244	IOBuffer	IOBuffer( data::AbstractVector{UInt8}; read::Union{Bool,Nothing}=nothing, write::Union{Bool,Nothing}=nothing, append::Union{Bool,Nothing}=nothing, truncate::Union{Bool,Nothing}=nothing, maxsize::Integer=typemax(Int), sizehint::Union{Integer,Nothing}=nothing)	modelled	iocov-iobuffer-public-constructors	
+base/iobuffer.jl	246	270	IOBuffer	IOBuffer(; read::Union{Bool,Nothing}=true, write::Union{Bool,Nothing}=true, append::Union{Bool,Nothing}=nothing, truncate::Union{Bool,Nothing}=true, maxsize::Integer=typemax(Int), sizehint::Union{Integer,Nothing}=nothing, )	modelled	iocov-iobuffer-public-constructors	
+base/iobuffer.jl	284	285	PipeBuffer	PipeBuffer(data::AbstractVector{UInt8}=Memory{UInt8}(); maxsize::Int = typemax(Int))	modelled	iocov-iobuffer-public-constructors	
+base/iobuffer.jl	286	286	PipeBuffer	PipeBuffer(maxsize::Integer)	modelled	iobuffers-pipebuffer-maxsize-type	
+base/iobuffer.jl	289	294	_truncated_pipebuffer	_truncated_pipebuffer(data::AbstractVector{UInt8}=Memory{UInt8}(); maxsize::Int = typemax(Int))	modelled	iocov-iobuffer-truncated-pipe	
+base/iobuffer.jl	296	296	_similar_data	_similar_data(b::GenericIOBuffer, len::Int)	modelled	iobuffers-view-grow	
+base/iobuffer.jl	297	297	_similar_data	_similar_data(b::IOBuffer, len::Int)	modelled	iocov-iobuffer-similar-data	
+base/iobuffer.jl	302	332	copy	copy(b::GenericIOBuffer{T}) where T	modelled	iocov-iobuffer-copy	
+base/iobuffer.jl	334	342	show	show(io::IO, b::GenericIOBuffer)	modelled	iocov-iobuffer-show-compacted,iocov-iobuffer-show	
+base/iobuffer.jl	344	347	_throw_not_readable	_throw_not_readable()	modelled	iocov-iobuffer-not-readable	
+base/iobuffer.jl	349	359	unsafe_read	unsafe_read(from::GenericIOBuffer, p::Ptr{UInt8}, nb::UInt)	modelled	iobuffers-no-out-of-bounds	
+base/iobuffer.jl	361	365	unsafe_read!	unsafe_read!(dest::Ptr{UInt8}, src::AbstractVector{UInt8}, so::Integer, nbytes::UInt)	modelled	iocov-iobuffer-unsafe-read-bodies	
+base/iobuffer.jl	375	378	unsafe_read!	unsafe_read!(dest::Ptr{UInt8}, src::DenseBytes, so::Integer, nbytes::UInt)	modelled	iocov-iobuffer-unsafe-read-bodies	
+base/iobuffer.jl	394	404	load_from_array	load_from_array(T::MultiByteBitNumberType, data::AbstractArray{UInt8}, from::Int)	modelled	iocov-iobuffer-load-array	
+base/iobuffer.jl	406	414	peek	peek(from::GenericIOBuffer, T::MultiByteBitNumberType)	modelled	iocov-iobuffer-peek-multibyte	
+base/iobuffer.jl	418	430	peek	peek(from::GenericIOBuffer{<:MutableDenseArrayType}, T::MultiByteBitNumberType)	modelled	iocov-iobuffer-peek-multibyte	
+base/iobuffer.jl	432	436	read	read(from::GenericIOBuffer, T::MultiByteBitNumberType)	modelled	iocov-iobuffer-read-multibyte	
+base/iobuffer.jl	438	448	read	read(from::GenericIOBuffer, ::Type{UInt8})	modelled	iobuffers-no-out-of-bounds,iobuffers-pipe-fifo,iobuffers-read	
+base/iobuffer.jl	450	456	peek	peek(from::GenericIOBuffer, ::Type{UInt8})	modelled	iobuffers-read	
+base/iobuffer.jl	458	458	read	read(from::GenericIOBuffer, ::Type{Ptr{T}}) where {T}	modelled	iocov-iobuffer-read-ptr	
+base/iobuffer.jl	460	460	isreadable	isreadable(io::GenericIOBuffer)	modelled	iocov-iobuffer-read-write-flags	
+base/iobuffer.jl	461	461	iswritable	iswritable(io::GenericIOBuffer)	modelled	iocov-iobuffer-read-write-flags	
+base/iobuffer.jl	464	464	filesize	filesize(io::GenericIOBuffer)	modelled	iobuffers-invariant	
+base/iobuffer.jl	467	467	bytesavailable	bytesavailable(io::GenericIOBuffer)	modelled	iobuffers-invariant	
+base/iobuffer.jl	470	473	position	position(io::GenericIOBuffer)	modelled	iobuffers-invariant	
+base/iobuffer.jl	475	477	skip	skip(io::GenericIOBuffer, n::Integer)	modelled	iobuffers-skip	
+base/iobuffer.jl	479	494	skip	skip(io::GenericIOBuffer, n::Int)	modelled	iocov-iobuffer-seek-methods	
+base/iobuffer.jl	496	498	seek	seek(io::GenericIOBuffer, n::Integer)	modelled	iobuffers-seek	
+base/iobuffer.jl	500	510	translate_seek_position	translate_seek_position(io::GenericIOBuffer, n::Int)	modelled	iocov-iobuffer-seek-methods	
+base/iobuffer.jl	512	524	seek	seek(io::GenericIOBuffer, n::Int)	modelled	iocov-iobuffer-seek-methods	
+base/iobuffer.jl	526	529	seekend	seekend(io::GenericIOBuffer)	modelled	iocov-iobuffer-seek-methods	
+base/iobuffer.jl	536	556	_resize!	_resize!(io::GenericIOBuffer, new_size::Int, exact::Bool)	modelled	iobuffers-no-out-of-bounds	
+base/iobuffer.jl	558	593	truncate	truncate(io::GenericIOBuffer, n::Integer)	modelled	iobuffers-truncate,iobuffers-truncate-mark	
+base/iobuffer.jl	597	597	ensureroom	ensureroom(io::GenericIOBuffer, nshort::Int)	modelled	iocov-iobuffer-ensure-room	
+base/iobuffer.jl	599	615	ensureroom	ensureroom(io::GenericIOBuffer, nshort::UInt)	modelled	iocov-iobuffer-ensure-room	
+base/iobuffer.jl	618	624	ensureroom_reallocate	ensureroom_reallocate(io::GenericIOBuffer, nshort::UInt)	modelled	iocov-iobuffer-ensure-room	
+base/iobuffer.jl	627	659	ensureroom_slowpath	ensureroom_slowpath(io::GenericIOBuffer, nshort::UInt, available_bytes::Int)	modelled	iobuffers-view-grow	
+base/iobuffer.jl	662	673	get_used_span	get_used_span(io::IOBuffer)	modelled	iobuffers-pipe-mark-reset,iobuffers-view-grow	
+base/iobuffer.jl	677	689	compact!	compact!(io::GenericIOBuffer)::Int	modelled	iobuffers-invariant,iobuffers-no-out-of-bounds,iobuffers-pipe-mark-reset	
+base/iobuffer.jl	691	691	eof	eof(io::GenericIOBuffer)	modelled	iobuffers-invariant	
+base/iobuffer.jl	693	696	closewrite	closewrite(io::GenericIOBuffer)	modelled	iobuffers-take-closewrite	
+base/iobuffer.jl	698	711	close	close(io::GenericIOBuffer{T}) where T	modelled	iocov-iobuffer-close-method	
+base/iobuffer.jl	713	713	isopen	isopen(io::GenericIOBuffer)	modelled	iocov-iobuffer-isopen-method	
+base/iobuffer.jl	731	753	take!	take!(io::GenericIOBuffer)	modelled	iocov-iobuffer-take-methods	
+base/iobuffer.jl	758	786	take!	take!(io::IOBuffer)	modelled	iobuffers-take,iobuffers-take-closewrite,iobuffers-take-readonly-reset	
+base/iobuffer.jl	795	809	unsafe_takestring!	unsafe_takestring!(io::IOBuffer)	modelled	iocov-iobuffer-unsafe-take	
+base/iobuffer.jl	835	859	takestring!	takestring!(io::IOBuffer)	modelled	iobuffers-takestring-mark	
+base/iobuffer.jl	862	862	takestring!	takestring!(io::GenericIOBuffer)	modelled	iocov-iobuffer-take-methods	
+base/iobuffer.jl	876	884	_unsafe_take!	_unsafe_take!(io::IOBuffer)	modelled	iocov-iobuffer-unsafe-take	
+base/iobuffer.jl	886	897	write	write(to::IO, from::GenericIOBuffer)	modelled	iocov-iobuffer-write-from-buffer	
+base/iobuffer.jl	902	921	unsafe_write	unsafe_write(to::GenericIOBuffer, p::Ptr{UInt8}, nb::UInt; cancel::CancelTokenArg=DEFAULT_CANCEL)	todo		
+base/iobuffer.jl	923	928	_unsafe_write	_unsafe_write(data::AbstractVector{UInt8}, p::Ptr{UInt8}, from::Int, nb::UInt)	modelled	iocov-iobuffer-unsafe-write-bodies	
+base/iobuffer.jl	930	946	_unsafe_write	_unsafe_write(data::MutableDenseArrayType{UInt8}, p::Ptr{UInt8}, from::Int, nb::UInt)	modelled	iocov-iobuffer-unsafe-write-bodies	
+base/iobuffer.jl	948	963	write	write(to::GenericIOBuffer, a::UInt8)	modelled	iocov-iobuffer-byte-read-write	
+base/iobuffer.jl	965	965	readbytes!	readbytes!(io::GenericIOBuffer, b::MutableDenseArrayType{UInt8}, nb=length(b))	modelled	iocov-iobuffer-byte-read-write	
+base/iobuffer.jl	967	976	readbytes!	readbytes!(io::GenericIOBuffer, b::MutableDenseArrayType{UInt8}, nb::Int)	modelled	iocov-iobuffer-byte-read-write	
+base/iobuffer.jl	977	977	read	read(io::GenericIOBuffer)	modelled	iobuffers-pipe-fifo,iobuffers-read,iobuffers-write-read-roundtrip	
+base/iobuffer.jl	980	980	readavailable	readavailable(io::GenericIOBuffer)	modelled	iocov-iobuffer-byte-read-write	
+base/iobuffer.jl	982	982	read	read(io::GenericIOBuffer, nb::Integer)	modelled	iocov-iobuffer-byte-read-write	
+base/iobuffer.jl	984	986	occursin	occursin(delim::UInt8, buf::GenericIOBuffer)	modelled	iobuffers-occursin	
+base/iobuffer.jl	993	1008	copyuntil	copyuntil(out::IO, io::GenericIOBuffer, delim::UInt8; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iobuffers-readuntil,iobuffers-readuntil-unreadable	
+base/iobuffer.jl	1010	1055	copyline	copyline(out::GenericIOBuffer, s::IO; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-iobuffer-copyline-methods	
+base/iobuffer.jl	1057	1074	_copyline	_copyline(out::IO, io::GenericIOBuffer; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iobuffers-readuntil,iobuffers-readuntil-unreadable	
+base/iobuffer.jl	1079	1079	copyline	copyline(out::IO, io::GenericIOBuffer; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-iobuffer-copyline-methods	
+base/iobuffer.jl	1080	1080	copyline	copyline(out::GenericIOBuffer, io::GenericIOBuffer; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-iobuffer-copyline-methods	
+base/iobuffer.jl	1084	1092	_crc32c	_crc32c(io::IOBuffer, nb::Integer, crc::UInt32=0x00000000)	modelled	iocov-iobuffer-crc32c	
+base/iobuffer.jl	1093	1093	_crc32c	_crc32c(io::IOBuffer, crc::UInt32=0x00000000)	modelled	iocov-iobuffer-crc32c	

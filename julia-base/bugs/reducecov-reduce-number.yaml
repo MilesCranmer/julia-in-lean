@@ -1,0 +1,55 @@
+id: reducecov-reduce-number
+title: "reduce(op, x::Number) returns x without reduce_first: reduce(+, true) === true, reduce(hcat, 5) === 5"
+priority: P3
+kind: wrong-result
+area: ReduceCov
+files: [base/reduce.jl]
+functions: ["reduce(op, a::Number)"]
+summary: |
+  A number iterates as a one-element collection, and every other single-element
+  reduction applies reduce_first: mapreduce(identity, +, true) === 1,
+  foldl(+, true) === 1, reduce(+, (true,)) === 1 and reduce(hcat, (5,)) is a 1x1
+  Matrix. reduce(op, x::Number) returns x unchanged, so reduce(+, true) === true,
+  reduce(hcat, 5) === 5 and reduce(Base.add_sum, Int8(1)) is an Int8.
+likelihood: |
+  Low: reducing over a scalar happens in generic code that accepts numbers as
+  collections; the result then has a different type than for (x,) or [x].
+maybe_intended: |
+  The method carries the comment "# Do we want this?", so its authors were unsure.
+  For most op the result is the same value.
+reproducer: |
+  reduce(+, true)                  # true
+  mapreduce(identity, +, true)     # 1
+  reduce(hcat, 5), reduce(hcat, (5,))   # 5, [5;;]
+output:
+  release: |
+    reduce(+, true) = true; mapreduce(identity, +, true) = 1; reduce(+, (true,)) = 1; foldl(+, true) = 1
+    reduce(hcat, 5) = 5; reduce(hcat, (5,)) = [5;;]
+    reduce(Base.add_sum, Int8(1)) = 1; sum(Int8(1)) = 1
+    REPRODUCED reducecov-reduce-number
+  nightly: |
+    reduce(+, true) = true; mapreduce(identity, +, true) = 1; reduce(+, (true,)) = 1; foldl(+, true) = 1
+    reduce(hcat, 5) = 5; reduce(hcat, (5,)) = [5;;]
+    reduce(Base.add_sum, Int8(1)) = 1; sum(Int8(1)) = 1
+    REPRODUCED reducecov-reduce-number
+reproduced: {release: true, nightly: true}
+expected: |
+  reduce_first(op, x): reduce(+, true) === 1, reduce(hcat, 5) == [5;;], matching
+  mapreduce(identity, op, x) (base/reduce.jl:459) and reduce(op, (x,)).
+promised_by: |
+  The reduce_first docstring (base/reduce.jl:397-407): "The value to be returned when
+  calling reduce, foldl or foldr with reduction op over an iterator which contains a
+  single element x." The mapreduce docstring (base/reduce.jl:287-289): mapreduce is
+  "functionally equivalent to calling reduce(op, map(f, itr))".
+cause: |
+  base/reduce.jl:500: reduce(op, a::Number) = a, while mapreduce(f, op, a::Number) =
+  mapreduce_first(f, op, a) (base/reduce.jl:459).
+possible_fix: |
+  Define reduce(op, a::Number) = reduce_first(op, a), or delete the method so that
+  reduce falls through to mapreduce.
+duplicates:
+  issues: []
+  queries: ["reduce number reduce_first", "reduce(+, true)", "reduce Number scalar"]
+lean:
+  property: JuliaLean.ReduceCov.Fold.ReduceNumberFirst
+  theorem: JuliaLean.ReduceCov.Fold.reduceNumberFirst_refuted

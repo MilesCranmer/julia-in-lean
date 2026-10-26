@@ -1,0 +1,341 @@
+line	name	verdict	mirror	property	settled	reason
+56	map	HOLLOW	yes	no	yes	The registered proposition only models construction through `generatorMany` and does not establish the documented `map` behavior for every accepted iterator.
+58	_min_length	HOLLOW	yes	no	yes	`LengthHelpersSpec` only covers iterator traits and lengths satisfying `Counted`, so it does not establish behavior for all inputs to this method.
+59	_min_length	HOLLOW	yes	no	yes	`LengthHelpersSpec` only covers iterator traits and lengths satisfying `Counted`, so it does not establish behavior for all inputs to this method.
+60	_min_length	HOLLOW	yes	no	yes	`LengthHelpersSpec` only covers iterator traits and lengths satisfying `Counted`, so it does not establish behavior for all inputs to this method.
+61	_min_length	HOLLOW	yes	no	yes	`LengthHelpersSpec` only covers iterator traits and lengths satisfying `Counted`, so it does not establish behavior for all inputs to this method.
+63	_diff_length	HOLLOW	yes	no	yes	`LengthHelpersSpec` only covers iterator traits and lengths satisfying `Counted`, so it does not establish behavior for all inputs to this method.
+64	_diff_length	HOLLOW	yes	no	yes	`LengthHelpersSpec` only covers iterator traits and lengths satisfying `Counted`, so it does not establish behavior for all inputs to this method.
+65	_diff_length	HOLLOW	yes	no	yes	For an infinite `a`, the body calls `length(a)`, which errors, so it does not return a nonnegative remaining count.
+66	_diff_length	HOLLOW	yes	no	yes	`LengthHelpersSpec` only covers finite lengths satisfying `Counted`, so it does not establish behavior for all inputs to this method.
+71	and_iteratorsize	FAITHFUL	yes	yes	yes	The `Traits.andIsz` cases mirror this dispatch and `AndTraitsSpec` establishes the stated trait behavior.
+72	and_iteratorsize	FAITHFUL	yes	yes	yes	The `Traits.andIsz` cases mirror this dispatch and `AndTraitsSpec` establishes the stated trait behavior.
+73	and_iteratorsize	FAITHFUL	yes	yes	yes	The `Traits.andIsz` cases mirror this dispatch and `AndTraitsSpec` establishes the stated trait behavior.
+74	and_iteratorsize	FAITHFUL	yes	yes	yes	The `Traits.andIsz` cases mirror this dispatch and `AndTraitsSpec` establishes the stated trait behavior.
+75	and_iteratorsize	FAITHFUL	yes	yes	yes	The `Traits.andIsz` cases mirror this dispatch and `AndTraitsSpec` establishes the stated trait behavior.
+76	and_iteratorsize	FAITHFUL	yes	yes	yes	The `Traits.andIsz` cases mirror this dispatch and `AndTraitsSpec` establishes the stated trait behavior.
+78	and_iteratoreltype	FAITHFUL	yes	yes	yes	`Traits.andIel` and `AndTraitsSpec` capture the equal-trait and fallback cases.
+79	and_iteratoreltype	FAITHFUL	yes	yes	yes	`Traits.andIel` and `AndTraitsSpec` capture the equal-trait and fallback cases.
+113	reverse	HOLLOW	no	no	yes	`ReverseYields` is proved only for the restricted `Obj` domain, while this fallback accepts any iterator.
+128	eltype	HOLLOW	yes	no	yes	`ReverseTraits` only proves traits for the restricted array-like `Obj` domain, not every `Reverse{T}`.
+129	length	HOLLOW	yes	no	yes	`ReverseTraits` only proves traits for the restricted array-like `Obj` domain, not every `Reverse` value.
+130	size	HOLLOW	yes	no	yes	`ReverseTraits` only proves traits for the restricted array-like `Obj` domain, not every `Reverse` value.
+131	IteratorSize	HOLLOW	yes	no	yes	`ReverseTraits` only proves traits for the restricted array-like `Obj` domain, not every `Reverse{T}`.
+132	IteratorEltype	HOLLOW	yes	no	yes	`ReverseTraits` only proves traits for the restricted array-like `Obj` domain, not every `Reverse{T}`.
+133	last	HOLLOW	yes	no	yes	`ReverseTraits` only proves `last` for the restricted array-like `Obj` domain, not every `Reverse` value.
+136	iterate	HOLLOW	no	no	yes	`revArrIt` covers vectors and modeled ranges, not every `AbstractArray` with arbitrary axes and indexing.
+145	iterate	HOLLOW	no	no	yes	`revArrIt` models only restricted arrays and ranges, so it does not mirror the generic method for every `Reverse`.
+153	iterate	FAITHFUL	yes	yes	yes	`revBottomIt` mirrors the `ArgumentError` result for this zero-argument method.
+154	iterate	FAITHFUL	yes	yes	yes	`revBottomIt` mirrors the `ArgumentError` result for this stateful method.
+156	reverse	HOLLOW	no	no	yes	`itReverse` models unit-step ranges, while this method dispatches on every `AbstractRange`.
+157	reverse	HOLLOW	no	no	yes	`itReverse` models generators over restricted `Obj` inputs, not generators over every iterator.
+158	reverse	FAITHFUL	yes	yes	yes	`itReverse` maps a reversed wrapper directly to its wrapped object.
+159	reverse	HOLLOW	no	no	yes	`itReverse` represents numbers but does not model the `AbstractChar` branch.
+160	reverse	FAITHFUL	yes	yes	yes	`itReverse` swaps the pair components as this method requires.
+162	iterate	HOLLOW	no	no	yes	`revTupIt` models tuples but omits the `NamedTuple` branch of this method.
+207	enumerate	HOLLOW	yes	no	yes	`EnumerateSound` restricts yielded sequence lengths, so it does not establish the stated numbering behavior for all accepted iterators.
+209	length	HOLLOW	yes	no	yes	`EnumerateSound` only establishes length preservation under its restricted iterator model and length bound.
+210	size	HOLLOW	yes	no	yes	`EnumerateSound` only establishes size preservation under its restricted iterator model and length bound.
+211	iterate	HOLLOW	yes	no	yes	`EnumerateSound` restricts sequence length and iterator representation, so it does not establish this method for all accepted inputs.
+217	last	HOLLOW	yes	no	yes	`EnumerateSound` establishes `last` only when length and last-value assumptions hold in its restricted iterator model.
+219	eltype	HOLLOW	yes	no	yes	`EnumerateSound` only proves eltype truthfulness for the modeled `It` representation.
+221	IteratorSize	HOLLOW	yes	no	yes	`EnumerateSound` only proves size-trait preservation for the modeled `It` representation.
+222	IteratorEltype	HOLLOW	yes	no	yes	`EnumerateSound` only proves eltype-trait preservation for the modeled `It` representation.
+224	iterate	HOLLOW	yes	no	yes	`EnumerateSound` limits reverse enumeration to modeled iterators with lengths below `2^62`.
+228	iterate	HOLLOW	yes	no	yes	`EnumerateSound` limits reverse enumeration to modeled iterators with lengths below `2^62`.
+281	pairs	HOLLOW	no	no	yes	`PairsSemantics` uses a restricted `PairView` model and does not cover every array index style accepted here.
+285	pairs	HOLLOW	no	no	yes	`PairsSemantics` models tuple pairs through `PairView` and does not establish the method for every tuple value.
+286	pairs	HOLLOW	no	no	yes	`PairsSemantics` does not represent `NamedTuple` data and its `nothing` key behavior.
+287	pairs	HOLLOW	no	no	yes	`PairsSemantics` does not model `Core.SimpleVector` inputs.
+288	pairs	HOLLOW	no	no	yes	`PairsSemantics` models vectors through `PairView` and does not cover all vector implementations.
+291	pairs	HOLLOW	no	no	yes	`PairsSemantics` does not cover arbitrary Cartesian axes and indexing for all `AbstractArray` values.
+292	pairs	HOLLOW	no	no	yes	`PairsSemantics` does not cover arbitrary `AbstractArray` index styles and axes.
+294	length	HOLLOW	yes	no	yes	`PairsSemantics` proves length only for the restricted `PairView` representation.
+295	axes	HOLLOW	yes	no	yes	`PairsSemantics` proves axes only for the restricted `PairView` representation.
+296	size	HOLLOW	yes	no	yes	`PairsSemantics` proves size only for the restricted `PairView` representation.
+298	_pairs_elt	HOLLOW	no	no	yes	`pairElt` constructs pairs from list-indexed keys and values but does not model the generated type-specialized field access.
+302	iterate	HOLLOW	no	no	yes	`pairsIterate` uses list positions and omits arbitrary key iterators and state values.
+309	iterate	HOLLOW	no	no	yes	`reversePairsIterate` uses an integer position and does not model iteration over reversed arbitrary keys.
+316	isdone	HOLLOW	no	no	yes	`pairsIsdone` uses key-list length directly, while Julia delegates to `isdone(keys(v), state...)` for arbitrary key iterators and states.
+318	IteratorSize	HOLLOW	no	no	yes	`pairsIteratorSize` models trait pass-through, but `PairsSemantics` does not establish the source method for arbitrary iterator types.
+319	IteratorSize	HOLLOW	no	no	yes	`pairsTupleIteratorSize` covers a tuple trait, but the proposition does not model the `AbstractUnitRange` and `Tuple` specialization.
+321	last	HOLLOW	no	no	yes	`pairsLast` selects the final positional key, while Julia calls `last(keys(v))` and then indexes by that key.
+326	haskey	HOLLOW	no	no	yes	`pairsHasKey` compares printed representations, while Julia tests membership using the key iterator's equality semantics.
+327	keys	HOLLOW	no	no	yes	`pairsKeys` returns a stored list and omits Julia's conditional choice between `itr` and `keys(data)`.
+328	values	HOLLOW	no	no	yes	`pairsValues` returns a modeled field, but `PairsSemantics` does not establish behavior for Julia's full `Pairs` representation.
+329	getindex	HOLLOW	no	no	yes	`pairsGetindex` accepts a natural-number position, while Julia indexes `values(v)` by the supplied key.
+330	setindex!	HOLLOW	no	no	yes	`pairsSetindex` returns a copied view, while Julia mutates `values(v)` and returns the original `Pairs`.
+331	get	HOLLOW	no	no	yes	`pairsGet` restricts keys to natural-number positions, while Julia delegates key lookup to `get(values(v), key, default)`.
+332	get	HOLLOW	no	no	yes	`pairsGetCall` restricts keys to natural-number positions, while Julia delegates to `get(f, values(v), key)`.
+379	zip	HOLLOW	no	no	yes	`ZipCorrect` covers two vector inputs, and the paired `TakeIsemptyCorrect` proposition concerns `take` rather than the `zip` constructor.
+380	length	HOLLOW	no	no	yes	`ZipCorrect` proves length only for two vectors, so it does not cover `length(::Zip)` for arbitrary component iterators.
+385	_zip_min_length	FAITHFUL	yes	yes	yes	`zipMinLength` mirrors the recursive trait check, length calls, and minimum calculation, and `ZipMetadata` states its behavior for all modeled iterators.
+394	_zip_min_length	FAITHFUL	yes	yes	yes	The empty-list branch of `zipMinLength` returns `none`, matching the Julia base case and the metadata proposition.
+401	_zip_lengths_finite_equal	FAITHFUL	yes	yes	yes	`zipLFE` mirrors the trait checks, recursive length comparisons, and returned length, as stated for all modeled iterators in `ZipMetadata`.
+411	_zip_lengths_finite_equal	FAITHFUL	yes	yes	yes	The empty-list branch of `zipLFE` returns `(true, none)`, matching Julia's base case and the metadata proposition.
+412	size	HOLLOW	no	no	yes	`ZipMetadata` only specifies the modeled `zipSize` equation and does not establish Julia's shape-promotion behavior for all allowed size tuples.
+413	axes	HOLLOW	no	no	yes	`ZipMetadata` models `size` but does not model the separate `axes` calls made by Julia.
+414	_promote_tuple_shape	HOLLOW	no	no	yes	The model reduces axes to integer lengths and does not establish the `OneTo` intersection specialization.
+415	_promote_tuple_shape	FAITHFUL	yes	yes	yes	`pts2` mirrors the integer-tuple overload's minimum calculation, and `ZipMetadata` states that equation for all modeled integers.
+416	_promote_tuple_shape	HOLLOW	no	no	yes	`ZipMetadata` does not establish the fallback overload's `promote_shape` behavior for all shape tuples.
+417	_promote_tuple_shape	HOLLOW	no	no	yes	`pts` models recursive argument promotion, but `ZipMetadata` does not establish that variadic overload's behavior for all argument lists.
+418	_promote_tuple_shape	FAITHFUL	yes	yes	yes	`pts` returns its sole tuple unchanged, and `ZipMetadata` states that behavior for every modeled tuple.
+425	eltype	HOLLOW	no	no	yes	`ZipMetadata` records a modeled tuple element type but does not establish Julia's `ntuple` and `fieldtype` calculation for all type parameters.
+430	isdone	HOLLOW	no	no	yes	`ZipProtocol` covers selected answers from `_zip_any_isdone`, but does not establish `isdone(z::Zip)` for every component result.
+431	isdone	HOLLOW	no	no	yes	`ZipProtocol` covers selected answers from `_zip_any_isdone`, but does not establish the stateful `isdone(z::Zip, ss)` method for every result.
+433	_zip_any_isdone	HOLLOW	no	no	yes	`ZipProtocol` omits the general `missing` propagation behavior of `_zip_any_isdone`.
+438	_zip_any_isdone	FAITHFUL	yes	yes	yes	The empty-list case returns false, and the proposition's all-false property applies to the empty component list.
+440	iterate	HOLLOW	no	no	yes	`ZipProtocol` proves iteration only when every component is live and reports `missing` from `isdone`.
+441	iterate	HOLLOW	no	no	yes	`ZipProtocol` proves iteration only for live components and does not cover all supplied state tuples.
+448	_zip_iterate_all	HOLLOW	no	no	yes	`ZipProtocol` covers only the live, all-missing iteration path, leaving the unknown and early-exhaustion branches unproved.
+462	_zip_all_missing	HOLLOW	no	no	yes	`ZipProtocol` does not state the result of `_zip_all_missing` for arbitrary mixtures of missing and Boolean answers.
+463	_zip_all_missing	FAITHFUL	yes	yes	yes	The empty-list case returns true, matching the source base case and the proposition's all-missing condition.
+465	_zip_iterate_in_order	HOLLOW	no	no	yes	`ZipProtocol` establishes this helper only for live components and does not cover its exhaustion branch for all inputs.
+472	_zip_iterate_in_order	FAITHFUL	yes	yes	yes	The empty-tuple case returns an empty result, matching the source base case and the live-component proposition.
+478	_zip_iterate_unknown	HOLLOW	no	no	yes	`ZipProtocol` does not establish the helper's behavior for unknown answers mixed with false answers or exhausted components.
+485	_zip_iterate_unknown	HOLLOW	no	no	yes	`ZipProtocol` does not state the empty-tuple result for `_zip_iterate_unknown`.
+487	_zip_iterate_rest	HOLLOW	no	no	yes	`ZipProtocol` does not establish the skipped-component iteration branch or its exhaustion behavior.
+494	_zip_iterate_rest	HOLLOW	no	no	yes	`ZipProtocol` does not state the empty-tuple result for `_zip_iterate_rest`.
+496	_zip_isdone	HOLLOW	no	no	yes	`ZipProtocol` concerns `_zip_any_isdone`, not `_zip_isdone`'s eager scan and collected answers.
+501	_zip_isdone	HOLLOW	no	no	yes	`ZipProtocol` does not state the empty-tuple result of `_zip_isdone`.
+503	IteratorSize	FAITHFUL	yes	yes	yes	`zipTypeIsz` uses the modeled trait recursion, and `ZipTraitsSound` proves agreement with the shortest component count for all modeled traits.
+504	IteratorEltype	FAITHFUL	yes	yes	yes	`zipTypeIel` mirrors the recursive eltype trait combination, and `ZipTraitsSound` states the result for every component-trait list.
+506	zip_iteratorsize	FAITHFUL	yes	yes	yes	`zipIsz` mirrors the zero-argument, unary, and variadic source branches, and `ZipTraitsSound` proves its count agreement.
+507	zip_iteratorsize	FAITHFUL	yes	yes	yes	The unary `zipIsz` case returns its sole trait, matching the source method and `ZipTraitsSound`.
+508	zip_iteratorsize	FAITHFUL	yes	yes	yes	`zipIsz2` uses the modeled binary trait combination, and `ZipTraitsSound` proves its behavior for all modeled trait pairs.
+509	zip_iteratorsize	FAITHFUL	yes	yes	yes	`zipIsz2` returns `HasLength` for this trait pair, matching Julia and preserving finite-count agreement.
+510	zip_iteratorsize	FAITHFUL	yes	yes	yes	`zipIsz2` returns `HasLength` for this trait pair, matching Julia and preserving finite-count agreement.
+511	zip_iteratorsize	FAITHFUL	yes	yes	yes	`zipIsz2` mirrors the infinite-first recursive swap, and `ZipTraitsSound` covers all modeled trait pairs.
+512	zip_iteratorsize	FAITHFUL	yes	yes	yes	`zipIsz2` returns `IsInfinite` for two infinite traits, matching Julia and the count-agreement proposition.
+513	zip_iteratorsize	FAITHFUL	yes	yes	yes	`zipIsz` mirrors the variadic recursive call, and `ZipTraitsSound` proves agreement for every modeled trait list.
+515	zip_iteratoreltype	FAITHFUL	yes	yes	yes	`zipIel` returns true for no component traits, matching the source method and the proposition's all-components rule.
+516	zip_iteratoreltype	FAITHFUL	yes	yes	yes	The unary `zipIel` case returns its sole trait, matching the source method and the proposition's all-components rule.
+517	zip_iteratoreltype	FAITHFUL	yes	yes	yes	`zipIel` mirrors the variadic conjunction, and `ZipTraitsSound` states the result for every component-trait list.
+519	last	HOLLOW	no	no	yes	`ZipMetadata` states `zipLast` as a model equation but does not establish that `last(z)` returns the last shared tuple for all allowed iterators.
+521	reverse	HOLLOW	no	no	yes	`ZipReverse` covers only two vector inputs and does not establish the method's behavior for arbitrary arity, unknown-length, or infinite iterators.
+576	filter	HOLLOW	no	no	yes	filterLoop adds a fuel cutoff and omits the Julia method's tuple type check at lines 583–587.
+578	iterate	HOLLOW	no	no	yes	filterLoop adds a fuel cutoff and omits the Julia method's tuple type check at lines 583–587; FilterSound covers only outputs shorter than that cutoff.
+594	eltype	HOLLOW	yes	no	yes	FilterSound only claims eltype truth when the wrapped iterator already has truthful eltype, and it bounds iteration by undocumented fuel.
+595	IteratorEltype	HOLLOW	yes	no	yes	FilterSound only claims eltype truth when the wrapped iterator already has truthful eltype, and it bounds iteration by undocumented fuel.
+596	IteratorSize	HOLLOW	yes	no	yes	FilterSound does not state the size trait returned by this method.
+598	reverse	HOLLOW	no	no	yes	FilterSound uses a supplied reversed iterator but does not model this method's call to reverse(f.itr).
+599	last	HOLLOW	yes	no	yes	FilterSound assumes the reversed iterator yields the original elements backwards and bounds iteration by undocumented fuel.
+641	accumulate	FAITHFUL	yes	yes	yes	accIt represents the Accumulate object and AccumulateSound states its reduction and metadata behavior.
+643	iterate	FAITHFUL	yes	yes	yes	accFirst follows the empty check, BottomRF call, and returned accumulator-state pair.
+652	iterate	FAITHFUL	yes	yes	yes	accNext and accCont follow the next-iterate check, function call, and returned accumulator-state pair.
+661	length	FAITHFUL	yes	yes	yes	accIt preserves the wrapped length and AccumulateSound proves the resulting length behavior.
+662	size	FAITHFUL	yes	yes	yes	accIt preserves the wrapped size and AccumulateSound proves its finite-size behavior.
+664	IteratorSize	FAITHFUL	yes	yes	yes	accIt preserves the wrapped size trait and AccumulateSound proves its finite-size behavior.
+665	IteratorEltype	FAITHFUL	yes	yes	yes	accIt sets the element-type trait to unknown as this method does.
+696	rest	FAITHFUL	yes	yes	yes	mkRest represents both constructors, and RestSound covers the reached-state precondition and resulting behavior.
+697	rest	FAITHFUL	yes	yes	yes	mkRest rebases a Rest argument onto its wrapped iterator and the supplied state.
+698	rest	FAITHFUL	yes	yes	yes	rest1 returns the input iterator unchanged as this method does.
+725	peel	HOLLOW	no	no	yes	`PeelRestIsempty` states a property of the returned `Rest`, but does not model `peel`'s iterate, construction, and return sequence for every iterator.
+732	iterate	FAITHFUL	yes	yes	yes	RestObj.it starts iteration at the supplied state and uses the wrapped iterator's next method.
+733	isdone	HOLLOW	no	no	yes	`PeelRestIsempty` states a property of the returned `Rest`, but does not model this method's delegation to `isdone(i.itr, st...)` for every wrapped iterator.
+735	eltype	FAITHFUL	yes	yes	yes	RestObj.it preserves the wrapped element type and RestSound establishes its truthfulness.
+736	IteratorEltype	FAITHFUL	yes	yes	yes	RestObj.it preserves the wrapped element-type trait and RestSound establishes its truthfulness.
+737	rest_iteratorsize	FAITHFUL	yes	yes	yes	restIsz returns SizeUnknown for every trait other than IsInfinite, matching this method and its specialization.
+738	rest_iteratorsize	FAITHFUL	yes	yes	yes	restIsz preserves IsInfinite, matching this specialization.
+739	IteratorSize	FAITHFUL	yes	yes	yes	RestObj.it applies restIsz to the wrapped trait and RestSound establishes size truthfulness.
+764	countfrom	HOLLOW	no	no	yes	countfrom2 models only Bool, Int64, and Char rather than the Julia method's generic type parameters; CountfromEltype is refuted by the Bool counterexample.
+765	countfrom	HOLLOW	no	no	yes	countfrom2 models only Bool, Int64, and Char and omits Julia's general promote call; CountfromEltype is refuted by the Bool counterexample.
+766	countfrom	HOLLOW	no	no	yes	countfrom1 models only Bool, Int64, and Char rather than every supported start type; CountfromEltype is refuted by the Bool counterexample.
+767	countfrom	HOLLOW	no	no	yes	CountfromEltype does not state this default overload's behavior or IteratorSize.
+770	eltype	HOLLOW	no	no	yes	`CountfromEltype` is restricted to Bool, Int64, and Char, so it does not establish this method's eltype behavior for every `Count` type.
+772	iterate	HOLLOW	no	no	yes	`CountfromEltype` is restricted to Bool, Int64, and Char, and `countRun` omits Julia's general `state + step` behavior.
+774	IteratorSize	HOLLOW	no	no	yes	CountfromEltype does not state this method's IteratorSize behavior.
+781	Take	HOLLOW	no	no	yes	mkTake accepts only JInt64 and does not model the constructor's conversion from arbitrary Integer values to Int.
+815	take	HOLLOW	no	no	yes	take models only JInt64 and omits this method's Int(n) conversion for arbitrary Integer inputs.
+816	take	HOLLOW	no	no	yes	takeTake models only JInt64 and omits this method's Int(n) conversion for arbitrary Integer inputs.
+818	eltype	FAITHFUL	yes	yes	yes	takeIt preserves the wrapped element type and TakeSound establishes its truthfulness.
+819	IteratorEltype	FAITHFUL	yes	yes	yes	takeIt preserves the wrapped element-type trait and TakeSound establishes its truthfulness.
+820	take_iteratorsize	FAITHFUL	yes	yes	yes	takeIsz maps SizeUnknown to SizeUnknown and every other size trait to HasLength.
+821	take_iteratorsize	FAITHFUL	yes	yes	yes	takeIsz preserves SizeUnknown as this specialization does.
+822	IteratorSize	FAITHFUL	yes	yes	yes	takeIt applies takeIsz to the wrapped trait and TakeSound establishes size truthfulness.
+823	length	HOLLOW	no	no	yes	`CycleFirstN` states the cycle output promise but does not model this method's `_min_length` calculation or establish `length(::Take)`.
+824	isdone	HOLLOW	no	yes	yes	`TakeIsemptyCorrect` states the zero-count emptiness promise and is refuted with a reproducer, but it does not model this no-state `isdone` method's delegation to `isdone(t.xs)`.
+825	isdone	FAITHFUL	yes	yes	yes	takeDoneS combines the countdown check with the wrapped stateful isdone result as this method does.
+827	iterate	FAITHFUL	yes	yes	yes	takeNext and takeCont check the countdown, request the wrapped next value, and return the decremented state.
+840	Drop	HOLLOW	no	no	yes	mkDrop accepts only JInt64 and does not model the constructor's conversion from arbitrary Integer values to Int.
+871	drop	HOLLOW	no	no	yes	drop models only JInt64 and omits this method's Int(n) conversion for arbitrary Integer inputs.
+872	drop	HOLLOW	no	no	yes	The model has no function for this Take overload's nested drop, Int conversion, subtraction, and max operation.
+873	drop	HOLLOW	no	no	yes	The model has no function for this Drop overload's Int conversion and addition of the existing count.
+875	eltype	FAITHFUL	yes	yes	yes	dropIt preserves the wrapped element type and DropSound establishes its truthfulness.
+876	IteratorEltype	FAITHFUL	yes	yes	yes	dropIt preserves the wrapped element-type trait and DropSound establishes its truthfulness.
+877	drop_iteratorsize	FAITHFUL	yes	yes	yes	dropIsz maps SizeUnknown to SizeUnknown as this specialization does.
+878	drop_iteratorsize	FAITHFUL	yes	yes	yes	dropIsz maps HasShape and HasLength to HasLength as this specialization does.
+879	drop_iteratorsize	FAITHFUL	yes	yes	yes	dropIsz preserves IsInfinite as this specialization does.
+880	IteratorSize	FAITHFUL	yes	yes	yes	dropIt applies dropIsz to the wrapped trait and DropSound establishes size truthfulness.
+881	length	HOLLOW	no	no	yes	The linked iterators-drop property covers vector inputs only and does not establish length behavior for every Drop iterator.
+883	iterate	FAITHFUL	yes	yes	yes	dropLoop matches the initial iterate and loop checks, advances, and returns the resulting state.
+891	iterate	FAITHFUL	yes	yes	yes	dropIt.next delegates directly to the wrapped iterator's next method as this overload does.
+892	isdone	HOLLOW	no	yes	yes	DropSound models the wrapper's done-state invariant, but no proposition equates this method to forwarding isdone(it.xs, state).
+928	takewhile	HOLLOW	no	yes	yes	WhileSound models yielded values, but no proposition models the TakeWhile constructor.
+930	iterate	HOLLOW	no	yes	yes	WhileSound models the resulting prefix, but it does not model this method's iterate call, branch order, or returned state.
+937	IteratorSize	HOLLOW	no	yes	yes	WhileSound does not model the SizeUnknown() trait method.
+938	eltype	HOLLOW	no	yes	yes	WhileSound models element-type soundness, but no proposition equates this method to eltype(I).
+939	IteratorEltype	HOLLOW	no	yes	yes	WhileSound models element-type soundness, but no proposition equates this method to IteratorEltype(I).
+976	dropwhile	HOLLOW	no	yes	yes	WhileSound models yielded values, but no proposition models the DropWhile constructor.
+978	iterate	HOLLOW	no	yes	yes	WhileSound does not model this stateful iterate method's direct delegation to iterate(ibl.xs, itr).
+979	iterate	HOLLOW	no	yes	yes	WhileSound models the suffix values, but it does not model the loop's calls, predicate checks, or return order.
+988	IteratorSize	HOLLOW	no	yes	yes	WhileSound does not model the SizeUnknown() trait method.
+989	eltype	HOLLOW	no	yes	yes	WhileSound models element-type soundness, but no proposition equates this method to eltype(I).
+990	IteratorEltype	HOLLOW	no	yes	yes	WhileSound models element-type soundness, but no proposition equates this method to IteratorEltype(I).
+1016	findeach	HOLLOW	no	yes	yes	CycleRepeatedSemantics models filtered keys, but not this method's generator construction over pairs(it).
+1018	findeach	HOLLOW	no	yes	yes	CycleRepeatedSemantics models identity filtering, but not this overload's delegation to findeach(identity, it).
+1058	cycle	HOLLOW	no	yes	yes	CycleRepeatedSemantics models cycle iteration, but no proposition equates this constructor to Cycle(xs).
+1059	cycle	HOLLOW	no	no	yes	`cycleN` models finite list replication; it does not model `cycle(xs, n) = flatten(repeated(xs, n))` for every iterator and integer count.
+1061	eltype	HOLLOW	no	yes	yes	CycleRepeatedSemantics models the cycle element type field, but no proposition equates this method to eltype(I).
+1062	IteratorEltype	FAITHFUL	yes	yes	yes	
+1063	IteratorSize	FAITHFUL	yes	yes	yes	
+1065	iterate	FAITHFUL	yes	yes	yes	
+1066	isdone	HOLLOW	no	yes	yes	CycleRepeatedSemantics omits the no-state isdone delegation to isdone(it.xs).
+1067	isdone	FAITHFUL	yes	yes	yes	
+1068	iterate	FAITHFUL	yes	yes	yes	
+1074	reverse	HOLLOW	no	no	yes	`reverseCycle` accepts an already reversed inner iterator, so the proposition does not model this method's call to `reverse(it.xs)`.
+1075	last	FAITHFUL	yes	yes	yes	
+1083	repeated	FAITHFUL	yes	yes	yes	
+1111	repeated	HOLLOW	no	no	yes	`repeatedN` models list replication for a natural count; it does not model `take(repeated(x), Int(n))` for every value and integer count.
+1113	eltype	HOLLOW	no	yes	yes	CycleRepeatedSemantics omits the eltype(::Type{Repeated{O}}) method returning O.
+1115	iterate	FAITHFUL	yes	yes	yes	
+1117	IteratorSize	FAITHFUL	yes	yes	yes	
+1118	IteratorEltype	FAITHFUL	yes	yes	yes	
+1120	reverse	FAITHFUL	yes	yes	yes	
+1121	last	FAITHFUL	yes	yes	yes	
+1148	product	FAITHFUL	yes	yes	yes	
+1150	IteratorSize	FAITHFUL	yes	yes	yes	
+1151	IteratorSize	FAITHFUL	yes	yes	yes	
+1154	prod_iteratorsize	FAITHFUL	yes	yes	yes	
+1155	prod_iteratorsize	FAITHFUL	yes	yes	yes	
+1157	prod_iteratorsize	FAITHFUL	yes	yes	yes	
+1158	prod_iteratorsize	FAITHFUL	yes	yes	yes	
+1159	prod_iteratorsize	FAITHFUL	yes	yes	yes	
+1160	prod_iteratorsize	FAITHFUL	yes	yes	yes	
+1163	prod_iteratorsize	FAITHFUL	yes	yes	yes	
+1164	prod_iteratorsize	FAITHFUL	yes	yes	yes	`prodIsz2` mirrors this trait branch, and `ProductSizeSound` states the element-count invariant for all modeled trait and length lists; its refutation with a reproducer settles the failure.
+1165	prod_iteratorsize	FAITHFUL	yes	yes	yes	
+1166	prod_iteratorsize	FAITHFUL	yes	yes	yes	
+1167	prod_iteratorsize	FAITHFUL	yes	yes	yes	
+1169	size	FAITHFUL	yes	yes	yes	
+1170	_prod_size	FAITHFUL	yes	yes	yes	
+1171	_prod_size	FAITHFUL	yes	yes	yes	
+1172	_prod_size1	FAITHFUL	yes	yes	yes	
+1173	_prod_size1	FAITHFUL	yes	yes	yes	
+1174	_prod_size1	HOLLOW	no	yes	yes	Model.prodSize records the fallback error category, but not this method's LazyString construction or error message.
+1177	axes	HOLLOW	no	yes	yes	ProductMethodSemantics models size and axes data, but no proposition equates axes(P) to _prod_indices(P.iterators).
+1178	_prod_indices	HOLLOW	no	yes	yes	ProductMethodSemantics omits the empty-tuple _prod_indices method returning ().
+1179	_prod_indices	HOLLOW	no	yes	yes	ProductMethodSemantics omits the recursive _prod_indices call and tuple construction order.
+1180	_prod_axes1	HOLLOW	no	yes	yes	ProductMethodSemantics omits this HasShape dispatch to axes(a).
+1181	_prod_axes1	HOLLOW	no	no	yes	The Lean model's productAxes copies component axes and omits the OneTo(length(a)) branch.
+1182	_prod_axes1	HOLLOW	no	no	yes	The proposition omits the ArgumentError branch for factors without HasLength.
+1185	ndims	HOLLOW	no	no	yes	The proposition does not model ndims(p) calling length(axes(p)).
+1186	length	HOLLOW	yes	no	yes	`ProductLengthExact` covers products of unit ranges only, so it does not establish this method's length behavior for every `ProductIterator`.
+1188	IteratorEltype	FAITHFUL	yes	yes	yes	ProductMethodSemantics includes the empty-product HasEltype result.
+1189	IteratorEltype	FAITHFUL	yes	yes	yes	ProductMethodSemantics includes delegation to the single factor's eltype trait.
+1191	IteratorEltype	HOLLOW	no	yes	yes	productIelExpected reduces the method to Boolean traits and omits its ntuple, any, and final-trait return path.
+1197	eltype	HOLLOW	no	yes	yes	The proposition gives a tuple eltype result but does not model this method's _prod_eltype dispatch.
+1198	_prod_eltype	FAITHFUL	yes	yes	yes	eltypeList [] and eltype (.product []) model the empty tuple result.
+1199	_prod_eltype	HOLLOW	no	yes	yes	The proposition uses eltypeList and omits TupleOrBottom and the method's type-level ntuple.
+1201	iterate	HOLLOW	no	yes	yes	The proposition covers empty-product iteration through iter, but not this method's direct return body.
+1202	iterate	HOLLOW	no	yes	yes	The proposition covers empty-product termination through iter, but not this method's direct return body.
+1204	isdone	HOLLOW	no	no	yes	ProductMethodSemantics does not state the no-state any(isdone, P.iterators) behavior.
+1205	_pisdone	HOLLOW	no	no	yes	ProductMethodSemantics omits _pisdone's state checks and recursion.
+1213	isdone	HOLLOW	no	no	yes	ProductMethodSemantics omits this empty-tuple stateful isdone result.
+1214	isdone	HOLLOW	no	no	yes	ProductMethodSemantics does not state the stateful isdone dispatch to _pisdone.
+1216	_piterate	HOLLOW	no	no	yes	The proposition omits the zero-argument helper's empty-tuple return.
+1217	_piterate	HOLLOW	no	no	yes	The proposition omits the helper's recursive iteration and early termination branches.
+1226	iterate	HOLLOW	no	no	yes	ProductCorrect covers two vector factors only and omits this method's checks and calls for general factors.
+1233	_piterate1	HOLLOW	no	no	yes	The proposition omits the helper's empty-state termination branch.
+1234	_piterate1	HOLLOW	no	no	yes	The proposition omits the helper's state advancement, restart, and recursion branches.
+1248	iterate	HOLLOW	no	no	yes	ProductCorrect covers two vector factors only and omits this method's stateful iteration path.
+1255	reverse	FAITHFUL	yes	yes	yes	ProductMethodSemantics states the same componentwise reverseList transformation.
+1256	last	HOLLOW	yes	no	yes	`ProductLastNonempty` covers products of unit ranges only, so it does not establish this method's `last` behavior for every `ProductIterator`.
+1257	intersect	FAITHFUL	yes	yes	yes	productIntersect models tuple broadcasting and the proposition records the refuted arity claim with a reproducer.
+1291	flatten	HOLLOW	no	yes	yes	The proposition models .flatten as an iterator value but omits this constructor method's call to Flatten.
+1293	eltype	FAITHFUL	yes	yes	yes	FlattenMethodSemantics states the same nested-eltype result for the general method.
+1298	eltype	HOLLOW	no	no	yes	The proposition's nested-eltype rule omits the tuple-specific promote_typejoin fold.
+1301	eltype	HOLLOW	no	no	yes	The proposition's nested-eltype rule omits the named-tuple-specific promote_typejoin fold.
+1305	IteratorEltype	HOLLOW	no	yes	yes	The proposition states the trait result but does not model the method's call to _flatteneltype.
+1306	IteratorEltype	HOLLOW	no	yes	yes	The proposition omits this method's delegation to IteratorEltype(Tuple{}).
+1307	_flatteneltype	HOLLOW	no	yes	yes	The proposition states the resulting trait but omits this helper method's delegation to IteratorEltype(eltype(I)).
+1308	_flatteneltype	HOLLOW	no	yes	yes	The proposition states the resulting unknown trait but omits this helper method's generic fallback.
+1310	flatten_iteratorsize	HOLLOW	no	yes	yes	The proposition states overall flatten size behavior but omits this Union{} dispatch method.
+1311	flatten_iteratorsize	HOLLOW	no	yes	yes	The proposition omits the slurp... branch that throws MethodError.
+1313	flatten_iteratorsize	HOLLOW	no	yes	yes	The proposition omits the NTuple dispatch method's specific size-trait result.
+1314	flatten_iteratorsize	HOLLOW	no	yes	yes	The proposition omits the general tuple dispatch method's SizeUnknown result.
+1315	flatten_iteratorsize	HOLLOW	no	yes	yes	The proposition omits the number-type dispatch method's specific size-trait result.
+1316	flatten_iteratorsize	HOLLOW	no	yes	yes	The proposition omits the fallback dispatch method's SizeUnknown result.
+1318	_flatten_iteratorsize	HOLLOW	no	yes	yes	The proposition states overall flatten size behavior but does not model this helper dispatch method.
+1319	_flatten_iteratorsize	HOLLOW	no	yes	yes	The proposition states overall flatten size behavior but does not model this helper dispatch method.
+1320	_flatten_iteratorsize	HOLLOW	no	yes	yes	The proposition omits the empty-tuple helper dispatch result.
+1322	IteratorSize	HOLLOW	no	yes	yes	The proposition states the resulting trait but does not model this method's helper call and dispatch.
+1324	flatten_length	HOLLOW	no	no	yes	FlattenMethodSemantics does not state this empty-element-type length result.
+1325	flatten_length	HOLLOW	no	no	yes	FlattenMethodSemantics omits the vararg branch that throws MethodError.
+1326	flatten_length	FAITHFUL	yes	yes	yes	FlattenTupleLength models checked multiplication and its overflow behavior for tuple elements.
+1329	flatten_length	HOLLOW	no	no	yes	FlattenMethodSemantics does not state the number-element-type length result.
+1330	flatten_length	HOLLOW	no	no	yes	FlattenMethodSemantics omits the fallback ArgumentError behavior.
+1332	length	HOLLOW	no	no	yes	FlattenTupleLength covers tuple element types only, not this generic length method's full dispatch.
+1333	length	HOLLOW	no	no	yes	FlattenMethodSemantics omits the specialized empty-tuple length result.
+1335	iterate	HOLLOW	no	no	yes	FlattenCorrect covers concatenation for vector inputs but does not model this method's initial outer and inner iteration branches.
+1354	iterate	HOLLOW	no	no	yes	FlattenCorrect covers concatenation for vector inputs but does not model this method's saved-state and loop branches.
+1379	reverse	FAITHFUL	yes	yes	yes	FlattenMethodSemantics states the same reverse-and-wrap transformation.
+1380	last	FAITHFUL	yes	yes	yes	flattenLastModel states the same first(reverse(f)) implementation.
+1421	flatmap	HOLLOW	no	no	yes	flatMapLists models list mapping and flattening but not the method's variadic map(f, c...) call.
+1436	partition	HOLLOW	no	yes	yes	Funs.partition accepts only JInt64 and omits the source method's general Integer conversion path.
+1446	PartitionIterator	HOLLOW	no	no	yes	The proposition does not cover array vectorization or constructor behavior.
+1447	PartitionIterator	HOLLOW	no	no	yes	The proposition does not state what this constructor returns.
+1449	eltype	FAITHFUL	yes	yes	yes	The model gives the generic partition element type for its non-array iterator cases.
+1451	eltype	HOLLOW	no	no	yes	The model has no AbstractArray-specific element type corresponding to AbstractVector{eltype(T)}.
+1453	eltype	HOLLOW	no	no	yes	The model has no Vector-specific SubArray element type.
+1455	IteratorEltype	FAITHFUL	yes	yes	yes	The model delegates the generic partition eltype trait to the wrapped iterator.
+1456	IteratorEltype	HOLLOW	no	no	yes	The model does not represent the AbstractArray specialization's EltypeUnknown result.
+1457	IteratorEltype	FAITHFUL	yes	yes	yes	The model delegates the Vector specialization's eltype trait to the wrapped vector.
+1459	partition_iteratorsize	FAITHFUL	yes	yes	yes	The model maps HasShape to HasLength as this method does.
+1460	partition_iteratorsize	FAITHFUL	yes	yes	yes	The model preserves other iterator size traits as this fallback does.
+1461	IteratorSize	FAITHFUL	yes	yes	yes	The model applies the partition size transformation to the wrapped iterator's size trait.
+1465	length	HOLLOW	yes	no	yes	`PartitionVectorCorrect` covers vectors only, while `length(::PartitionIterator)` accepts every wrapped iterator with a length.
+1470	iterate	HOLLOW	yes	no	yes	`PartitionRangeChunks` covers `IdentityUnitRange` only, while this method accepts every `AbstractRange`.
+1476	iterate	HOLLOW	no	no	yes	The model returns a copied vector slice and does not model this method's Base.view result.
+1484	iterate	HOLLOW	yes	no	yes	`PartitionFirstChunk` covers nonempty tuples only, while this generic method accepts other iterators.
+1566	Stateful{<:Any, Any}	HOLLOW	no	yes	yes	The model does not represent this constructor's Any-typed nextvalstate allocation.
+1569	Stateful	HOLLOW	no	yes	yes	The model omits the constructor's approx_iter_type call and typed iterate result assertion.
+1575	reset!	HOLLOW	no	yes	yes	The model resets its abstract position but does not mirror setfield! of the recomputed iteration state.
+1579	reset!	HOLLOW	no	yes	yes	The model omits assignment of the replacement iterator before recomputing its state.
+1589	approx_iter_type	HOLLOW	no	no	yes	The model's finite approximation enum does not model Base._return_type on Julia iterator types.
+1592	doiterate	HOLLOW	no	no	yes	The model has no doiterate function implementing the nil check and resumed iterate call.
+1597	_approx_iter_type	HOLLOW	no	no	yes	The model's approxIterType omits the recursive return-type computation and its type-subtyping checks.
+1605	Stateful	FAITHFUL	yes	yes	yes	The identity model function matches this identity constructor.
+1606	convert	HOLLOW	no	yes	yes	The model identifies conversion with the input instead of constructing Stateful(itr).
+1607	isdone	HOLLOW	yes	no	yes	`StatefulConsistent` covers list-backed state only, so it does not establish this method for every `Stateful` wrapping an iterator.
+1609	popfirst!	HOLLOW	no	yes	yes	The model returns a new abstract iterator instead of mutating the same Stateful object with setfield!.
+1620	peek	HOLLOW	yes	no	yes	`StatefulConsistent` covers list-backed state only, so it does not establish `peek` for every `Stateful` wrapping an iterator.
+1624	iterate	HOLLOW	no	no	yes	The model's Stateful iteration does not call popfirst! or return the method's nothing iteration state.
+1625	IteratorSize	HOLLOW	no	no	yes	`StatefulMethodSemantics` gives every modeled `Stateful` a `SizeUnknown` trait, but this method preserves `IsInfinite` for infinite wrapped iterators.
+1626	eltype	FAITHFUL	yes	yes	yes	The model returns the wrapped iterator's element type.
+1627	IteratorEltype	HOLLOW	no	no	yes	`StatefulMethodSemantics` gives every modeled `Stateful` a known eltype trait, but this method delegates to the wrapped iterator's trait.
+1659	only	HOLLOW	no	no	yes	The proposition covers vectors and tuples but does not establish only's behavior for every iterable input.
+1661	_only	HOLLOW	no	no	yes	The proposition covers vectors and tuples but does not establish this generic helper's behavior for every iterable input.
+1673	_only	HOLLOW	no	no	yes	The proposition does not model the length check followed by first(x) in this helper.
+1680	only	HOLLOW	no	no	yes	The model has no IdDict representation or first-based only specialization.
+1683	only	FAITHFUL	yes	yes	yes	The model returns the sole element of a one-element tuple directly.
+1684	only	FAITHFUL	yes	yes	yes	The model rejects tuples with cardinality other than one.
+1687	only	HOLLOW	no	no	yes	The model has no NamedTuple representation or corresponding first specialization.
+1688	only	HOLLOW	no	no	yes	The model has no NamedTuple representation or cardinality-error specialization.
+1704	IteratorSize	FAITHFUL	yes	yes	yes	The model returns the wrapped iterator's size trait.
+1705	length	FAITHFUL	yes	yes	yes	The model returns the wrapped iterable's length.
+1706	Base.eltype	FAITHFUL	yes	yes	yes	The model constructs a pair type from Any keys and the wrapped value type.
+1708	iterate	HOLLOW	no	yes	yes	The model does not implement the explicit state-to-value pairing and next-state return.
+1714	reverse	HOLLOW	no	yes	yes	The model does not construct reversed IterableStatePairs around Iterators.reverse(x.x).
+1715	reverse	HOLLOW	no	yes	yes	The model does not implement this specialization's unwrap of the reversed inner iterator.
+1717	iterate	HOLLOW	no	yes	yes	The model does not implement this reversed iterator's starting key or state-to-value pairing.
+1725	pairs	HOLLOW	no	yes	yes	The model has no AbstractString iterator or pairs constructor.
+1753	nth	HOLLOW	no	no	yes	The proposition does not cover nth on arbitrary iterators or its IteratorSize dispatch.
+1754	nth	HOLLOW	no	no	yes	`NthCycleCorrect` covers list-backed integer cycles and `Int64` indices only; this method dispatches for every `Cycle` and `Integer` index.
+1755	nth	HOLLOW	no	no	yes	`NthCycleCorrect` covers list-backed integer cycles and `Int64` indices only; this method dispatches for every matching `Flatten` and `Integer` index.
+1756	nth	HOLLOW	no	no	yes	`NthAnyIntegerType` covers `IdentityUnitRange` only, while this method accepts every `AbstractArray`.
+1758	_nth	HOLLOW	no	no	yes	`NthCycleCorrect` covers list-backed integer cycles and `Int64` indices only; this helper accepts every matching cycle and `Integer` index.
+1767	_nth	HOLLOW	no	no	yes	`NthCycleCorrect` covers list-backed integer cycles and `Int64` indices only; this helper accepts every matching repeated-cycle iterator and `Integer` index.
+1777	_nth	HOLLOW	yes	no	yes	The linked proposition does not cover this generic iterator loop or its bounds errors.
+1789	_nth	HOLLOW	no	no	yes	`NthZipNonpositive` covers list-backed zips and `Int64` indices only; this helper accepts every `Zip` and `Integer` index.
+1810	nth	FAITHFUL	yes	yes	yes	The model's nthFix delegates directly to nth as this curried method does.

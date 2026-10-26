@@ -1,0 +1,45 @@
+id: reducecov-promote-shape-message
+title: "promote_shape reports identical axes for two axes that do not match"
+priority: P3
+kind: documentation
+area: ReduceCov
+files: [base/indices.jl]
+functions: ["throw_promote_shape_mismatch", "promote_shape(::Indices, ::Indices)"]
+summary: |
+  promote_shape((Base.OneTo(3),), (2:4,)) correctly throws DimensionMismatch,
+  but the exception says both arguments have axes (1:3,). The second axis is
+  2:4, so the diagnostic hides the mismatch it is meant to explain.
+likelihood: |
+  Low: this affects diagnostics for shape mismatches involving offset axes.
+maybe_intended: |
+  The exception itself is intended, but the source comment explicitly says the
+  helper provides a consistent mismatch message while hiding only type details.
+reproducer: |
+  promote_shape((Base.OneTo(3),), (2:4,))
+output:
+  release: |
+    DimensionMismatch: a has axes (1:3,), b has axes (1:3,), mismatch at dim 1
+    REPRODUCED reducecov-promote-shape-message
+  nightly: |
+    DimensionMismatch: a has axes (1:3,), b has axes (1:3,), mismatch at dim 1
+    REPRODUCED reducecov-promote-shape-message
+reproduced: {release: true, nightly: true}
+expected: |
+  The message should identify the second axis as 2:4, for example:
+  "a has axes (Base.OneTo(3),), b has axes (2:4,), mismatch at dim 1".
+promised_by: |
+  The comment at base/indices.jl:110-111 says throw_promote_shape_mismatch gives
+  a consistent mismatch message while hiding type details such as OneTo.
+cause: |
+  base/indices.jl:119 defines _normalize(d) as
+  map(x -> firstindex(x):lastindex(x), d). For the offset axis 2:4 this produces
+  1:3, which describes positions within the range rather than the axis values.
+possible_fix: |
+  Normalize only Base.OneTo axes, or print each non-OneTo axis from first(x) to
+  last(x) instead of from firstindex(x) to lastindex(x).
+duplicates:
+  issues: []
+  queries: ["promote_shape error message axes mismatch", "throw_promote_shape_mismatch firstindex lastindex"]
+lean:
+  property: JuliaLean.ReduceCov.Indices.PromoteShapeMessage
+  theorem: JuliaLean.ReduceCov.Indices.promoteShapeMessage_refuted

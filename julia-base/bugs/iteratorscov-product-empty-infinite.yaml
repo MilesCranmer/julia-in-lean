@@ -1,0 +1,74 @@
+id: iteratorscov-product-empty-infinite
+title: "IteratorSize(product(1:0, countfrom())) is IsInfinite, so zip and take with it return uninitialised elements"
+priority: P2
+kind: wrong-result
+area: IteratorsCov
+files:
+- base/iterators.jl
+functions:
+- prod_iteratorsize(a, ::IsInfinite)
+- prod_iteratorsize(::IsInfinite, b)
+- IteratorSize(::Type{ProductIterator})
+summary: |
+  prod_iteratorsize returns IsInfinite as soon as one factor is infinite, even
+  when another factor is empty, in which case the product yields nothing. The
+  wrappers then trust the trait: length(zip(product(1:0, countfrom()), 1:3)) is
+  3 although the zip yields nothing, collect of it returns three uninitialised
+  tuples, and collect(take(product(countfrom(), 1:0), 2)) returns two garbage
+  tuples. collect(product(1:0, countfrom())) itself throws MethodError.
+likelihood: |
+  Low: it needs an empty factor next to an infinite one (for example a filtered
+  or computed empty collection). The result is then silently wrong memory.
+maybe_intended: |
+  The same simplification as IteratorSize(Cycle) (#53169), which the source marks
+  with "XXX: this is false if iterator ever becomes empty".
+reproducer: |
+  p = Iterators.product(1:0, Iterators.countfrom())
+  Base.IteratorSize(p), isempty(p)       # (IsInfinite(), true)
+  z = zip(p, 1:3)
+  length(z)                              # 3, but z yields nothing
+  length(collect(z))                     # 3 uninitialised tuples
+output:
+  release: |
+    IteratorSize = Base.IsInfinite(), isempty = true
+    zip yields 0 elements, length(z) = 3
+    length(collect(z)) = 3
+    REPRODUCED iteratorscov-product-empty-infinite
+  nightly: |
+    IteratorSize = Base.IsInfinite(), isempty = true
+    zip yields 0 elements, length(z) = 3
+    length(collect(z)) = 3
+    REPRODUCED iteratorscov-product-empty-infinite
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  An IteratorSize that does not claim infinitely many elements (for example
+  SizeUnknown when a finite factor may be empty), so that collect(zip(p, 1:3))
+  is empty.
+promised_by: |
+  IteratorSize docstring, base/generator.jl:79: IsInfinite() "if the iterator
+  yields values forever".
+cause: |
+  base/iterators.jl:1163-1165: prod_iteratorsize(a, ::IsInfinite) and
+  prod_iteratorsize(::IsInfinite, b) return IsInfinite() regardless of a or b.
+  length(::Zip) (lines 380-393) and length(::Take) (line 823) then use the finite
+  partner's length, and collect allocates that many slots.
+possible_fix: |
+  Return SizeUnknown() when a finite factor's length is not known to be nonzero,
+  as proposed for Cycle in PR #54187.
+duplicates:
+  issues:
+  - number: 53169
+    state: open
+    relation: related
+  queries:
+  - product IteratorSize
+  - product infinite empty
+  - ProductIterator IsInfinite
+  - product countfrom
+  - prod_iteratorsize
+  - cycle IteratorSize
+lean:
+  property: JuliaLean.IteratorsCov.ProductSizeSound
+  theorem: JuliaLean.IteratorsCov.productSizeSound_refuted

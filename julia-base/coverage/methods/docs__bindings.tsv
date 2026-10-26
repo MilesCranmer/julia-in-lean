@@ -1,0 +1,15 @@
+file	line	endline	name	signature	status	entry	note
+base/docs/bindings.jl	7	25	Binding	Binding(m::Module, v::Symbol)	modelled	docssyntaxcov-bindings-normalise,docssyntaxcov-bindings-import	
+base/docs/bindings.jl	28	28	bindingexpr	bindingexpr(x)	modelled	docssyntaxcov-bindings-split	
+base/docs/bindings.jl	30	30	defined	defined(b::Binding)	modelled	docssyntaxcov-bindings-split	
+base/docs/bindings.jl	31	31	resolve	resolve(b::Binding)	modelled	docssyntaxcov-bindings-split	
+base/docs/bindings.jl	33	35	splitexpr	splitexpr(x::Expr)	modelled	docssyntaxcov-bindings-split	
+base/docs/bindings.jl	36	36	splitexpr	splitexpr(s::Symbol)	modelled	docssyntaxcov-bindings-split	
+base/docs/bindings.jl	37	37	splitexpr	splitexpr(r::GlobalRef)	modelled	docssyntaxcov-bindings-split	
+base/docs/bindings.jl	38	38	splitexpr	splitexpr(other)	modelled	docssyntaxcov-bindings-split	
+base/docs/bindings.jl	40	53	Base.show	Base.show(io::IO, b::Binding)	modelled	docssyntaxcov-bindings-accessors	
+base/docs/bindings.jl	55	55	aliasof	aliasof(b::Binding)	modelled	docssyntaxcov-bindings-alias	
+base/docs/bindings.jl	56	56	aliasof	aliasof(d::DataType, b)	modelled	docssyntaxcov-bindings-alias	
+base/docs/bindings.jl	57	57	aliasof	aliasof(λ::Function, b)	modelled	docssyntaxcov-bindings-alias	
+base/docs/bindings.jl	58	58	aliasof	aliasof(m::Module, b)	modelled	docssyntaxcov-bindings-alias	
+base/docs/bindings.jl	59	59	aliasof	aliasof(other, b)	modelled	docssyntaxcov-bindings-alias	

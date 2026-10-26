@@ -1,0 +1,52 @@
+line	name	verdict	mirror	property	settled	reason
+27	isseparator	FAITHFUL	yes	yes	yes	The entry uses the distinct character method, states the POSIX separator rule for every character, and is proven.
+28	isseparator	FAITHFUL	yes	yes	yes	The entry uses the distinct byte method, states the POSIX separator rule for every byte value, and is proven.
+30	splitdrive	FAITHFUL	yes	yes	yes	The entry mirrors the POSIX method's empty-drive pair for every path and is proven.
+33	isseparator	FAITHFUL	-	-	-	The exclusion applies because this method is defined only inside the Sys.iswindows branch.
+34	isseparator	FAITHFUL	-	-	-	The exclusion applies because this method is defined only inside the Sys.iswindows branch.
+36	isdriveletter	FAITHFUL	-	-	-	The exclusion applies because this method is defined only inside the Sys.iswindows branch.
+37	isdriveletter	FAITHFUL	-	-	-	The exclusion applies because this method is defined only inside the Sys.iswindows branch.
+42	_split_longunc	FAITHFUL	-	-	-	The exclusion applies because this method is defined only inside the Sys.iswindows branch.
+75	_split_longdriveletter	FAITHFUL	-	-	-	The exclusion applies because this method is defined only inside the Sys.iswindows branch.
+93	_split_uncpath	FAITHFUL	-	-	-	The exclusion applies because this method is defined only inside the Sys.iswindows branch.
+119	splitdrive	FAITHFUL	-	-	-	The exclusion applies because this method is defined only inside the Sys.iswindows branch.
+184	homedir	HOLLOW	no	yes	yes	The Lean function omits the initial buffer allocation and size, the libuv call, and the required-size resize arithmetic on UV_ENOBUFS.
+200	isabspath	HOLLOW	no	no	yes	The POSIX-only model omits the method's static Windows drive-letter branch, so its proposition does not cover this method on every supported platform.
+255	isdirpath	HOLLOW	no	yes	yes	The model folds away the source's splitdrive call before _splitdir_nodrive, so it does not preserve every call in this method body.
+273	splitdir	HOLLOW	no	no	yes	The model folds away the splitdrive call, and JoinSplitdir adds the undocumented noDoubleSep hypothesis.
+279	_splitdir_nodrive	HOLLOW	no	no	yes	The cited propositions never invoke or state a property of this one-argument delegation method.
+280	_splitdir_nodrive	HOLLOW	yes	no	yes	The exact two-argument helper is modelled, but the cited propositions exercise it only with an empty drive and therefore omit allowed drive inputs.
+308	dirname	HOLLOW	no	no	yes	The Lean function hard-wires the String splitdir model, while this AbstractString method dynamically dispatches splitdir and the proposition omits allowed subtype-specific methods.
+330	basename	HOLLOW	no	no	yes	The Lean function hard-wires the String splitdir model, while this AbstractString method dynamically dispatches splitdir and the proposition omits allowed subtype-specific methods.
+351	splitext	HOLLOW	no	yes	yes	The model folds away the source's splitdrive call and tuple destructuring before the dot and separator checks.
+371	pathsep	FAITHFUL	yes	yes	yes	The model returns the POSIX path separator and the proven proposition states that behavior exactly.
+393	splitpath	HOLLOW	no	no	yes	The Lean wrapper omits String conversion and its asserted String result, and quantifies only already-converted PathText values instead of every AbstractString input.
+395	splitpath	HOLLOW	no	no	yes	The model removes splitdrive and the drive-restoration branch, while SplitpathJoinpath restricts inputs with undocumented Canonical and ComponentList hypotheses.
+415	joinpath	FAITHFUL	-	-	-	The exclusion applies because this collection method is defined only inside the Windows branch.
+416	assertstring	FAITHFUL	-	-	-	The exclusion applies because this local helper belongs to the Windows-only joinpath implementation.
+465	joinpath	HOLLOW	no	no	yes	The model restricts components to strings and omits both assertstring checks and collection indexing, while two cited properties rely on undocumented noDoubleSep, Canonical, or ComponentList hypotheses.
+466	assertstring	HOLLOW	no	no	yes	The model receives a precomputed Boolean and returns Unit instead of the source expression's value, while the proposition never quantifies over the helper's actual x input.
+487	joinpath	HOLLOW	no	no	yes	The Lean wrapper fixes every component to PathText and delegates to a string-only list model, omitting allowed AbstractString subtypes and tuple dispatch.
+516	_split_at_separators	HOLLOW	no	no	yes	The listed propositions only constrain normpath, while splitAtSeps replaces this method's findnext, index, view, and left-to-right loop with a right-recursive delimiter specification and states no output contract for _split_at_separators itself.
+555	normpath	HOLLOW	no	yes	yes	The normpath model omits the source splitdrive call and relies on splitAtSeps, which does not mirror the called helper's findnext, index, view, and loop sequence.
+595	normpath	HOLLOW	no	yes	yes	The wrapper equation has the documented composition, but it depends on the incomplete normpath mirror that omits splitdrive and the source-order separator scan.
+613	abspath	HOLLOW	no	no	yes	The model omits pwd, both splitdrive calls, the drive branch, and joinpath, while RelpathRoundtrip assumes a successful relpath result and leaves allowed error inputs unstated.
+633	abspath	HOLLOW	no	yes	yes	The wrapper equation has the documented composition, but it depends on the incomplete abspath mirror that omits the source method's pwd, splitdrive, drive-branch, and joinpath call sequence.
+637	longpath	FAITHFUL	-	-	-	The method is inside the Sys.iswindows() branch and implements the stated GetLongPathNameW canonical-case wrapper.
+663	realpath	HOLLOW	no	yes	yes	The model takes resolved as a bare success result and omits the jl_uv_fs_t_ptr, unsafe_string, uv_error, and repr calls, so it does not mirror the full source body.
+683	homedir	FAITHFUL	-	-	-	The method is inside the Sys.iswindows() branch and performs the stated Windows user-profile lookup.
+708	_win_profile_from_registry	FAITHFUL	-	-	-	The method is inside the Sys.iswindows() branch and performs the stated Windows registry profile lookup.
+756	contractuser	FAITHFUL	-	-	-	The method is inside the Sys.iswindows() branch and implements the stated Windows contractuser behavior.
+781	homedir	HOLLOW	no	no	yes	The model omits buffer growth, getpwnam_r, pointer checks, UID loading, and getpwuid, and its preclassified replies state no property over every username and system response.
+809	contractuser	HOLLOW	no	no	yes	The model omits path scanning, stat calls, UID caching, getpwuid, and homedir calls, and its preclassified candidates state no property over every path and filesystem state.
+854	expanduser	HOLLOW	no	no	yes	The model replaces the source-ordered string calls with list operations, while ExpanduserDoc leaves the documented successful expansion of an existing named user's home unstated.
+896	expanduser	HOLLOW	no	no	yes	The wrapper omits String conversion and quantifies only PathText inputs, so it neither mirrors the body nor covers every allowed AbstractString subtype.
+908	contractuser	HOLLOW	no	no	yes	The entry uses a bare result variable and identity function, so it models neither String conversion and delegation nor a behavior guarantee for this AbstractString method.
+921	relpath	HOLLOW	no	no	yes	The model depends on incomplete abspath and splitAtSeps mirrors, while RelpathRoundtrip assumes success and states nothing about allowed empty inputs that raise ArgumentError.
+958	relpath	HOLLOW	no	no	yes	The wrapper omits both String conversions and quantifies only PathText inputs, so it neither mirrors the body nor covers every allowed AbstractString input pair.
+962	$f	HOLLOW	no	no	yes	The generated wrapper model omits String conversion and uses incomplete String-method models, so it neither mirrors every generated body nor covers all AbstractString inputs.
+965	encode_uri_component	HOLLOW	no	no	yes	The model starts from supplied natural-number bytes and omits utf8units, buffer allocation, and String construction, so it does not state the promised encoding for every AbstractString input.
+1002	uripath	FAITHFUL	-	-	-	The exclusion applies because this line only declares the uripath generic function and has no method body or observable behavior.
+1005	uripath	FAITHFUL	-	-	-	The method is defined only inside the Sys.iswindows() branch and implements the stated Windows URI behavior.
+1018	uripath	HOLLOW	no	no	yes	The model maps Unicode characters directly to natural numbers and takes WSL and hostname observations as inputs, omitting Julia's UTF-8 units and environment calls and therefore its promised RFC encoding for all paths.
+1030	uripath	HOLLOW	no	no	yes	The entry uses a bare result variable and identity function, so it models neither String conversion and delegation nor a behavior guarantee for this AbstractString method.

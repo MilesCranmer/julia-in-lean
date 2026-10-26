@@ -1,0 +1,56 @@
+file	line	endline	name	signature	status	entry	note
+base/hashing.jl	40	40	hash	hash(data::Any)	modelled	intfuncscov-hash-primitives	
+base/hashing.jl	41	41	hash	hash(w::WeakRef, h::UInt)	modelled	intfuncscov-hash-primitives	
+base/hashing.jl	44	44	_jl_type_hash	_jl_type_hash(T::Type)	modelled	intfuncscov-hash-primitives	
+base/hashing.jl	45	45	hash	hash(T::Type, h::UInt)	modelled	intfuncscov-hash-primitives	
+base/hashing.jl	46	46	hash	hash(@nospecialize(data), h::UInt)	modelled	intfuncscov-hash-primitives	
+base/hashing.jl	48	51	mul_parts	mul_parts(a::UInt64, b::UInt64)	modelled	intfuncscov-hash-primitives	
+base/hashing.jl	52	52	hash_mix	hash_mix(a::UInt64, b::UInt64)	modelled	intfuncscov-hash-primitives	
+base/hashing.jl	55	55	hash_mix_linear	hash_mix_linear(x::Union{UInt64, UInt32}, h::UInt)	modelled	ranges-hash-mix-wrapping	
+base/hashing.jl	56	61	hash_finalizer	hash_finalizer(x::UInt64)	modelled	intfuncscov-hash-primitives	
+base/hashing.jl	63	63	hash_64_64	hash_64_64(data::UInt64)	modelled	intfuncscov-hash-primitives	
+base/hashing.jl	64	64	hash_64_32	hash_64_32(data::UInt64)	modelled	intfuncscov-hash-primitives	
+base/hashing.jl	65	65	hash_32_32	hash_32_32(data::UInt32)	modelled	intfuncscov-hash-primitives	
+base/hashing.jl	75	75	hash	hash(x::UInt64, h::UInt)	modelled	hashops-small-integer-hash	
+base/hashing.jl	76	76	hash	hash(x::Int64, h::UInt)	modelled	hashops-small-integer-hash	
+base/hashing.jl	77	77	hash	hash(x::Union{Bool, Int8, UInt8, Int16, UInt16, Int32, UInt32}, h::UInt)	modelled	hashops-small-integer-hash	
+base/hashing.jl	84	89	IntegerCodeUnits	IntegerCodeUnits(x::T) where {T<:Integer}	modelled	intfuncscov-hash-numeric	
+base/hashing.jl	91	91	size	size(units::IntegerCodeUnits)	modelled	intfuncscov-hash-numeric	
+base/hashing.jl	92	92	length	length(units::IntegerCodeUnits)	modelled	intfuncscov-hash-numeric	
+base/hashing.jl	93	93	getindex	getindex(units::IntegerCodeUnits, i::Int)	modelled	intfuncscov-hash-numeric	
+base/hashing.jl	94	94	load_le_array	load_le_array(::Type{UInt64}, units::IntegerCodeUnits, idx)	modelled	intfuncscov-hash-numeric	
+base/hashing.jl	95	95	load_le_array	load_le_array(::Type{UInt32}, units::IntegerCodeUnits, idx)	modelled	intfuncscov-hash-numeric	
+base/hashing.jl	99	99	codeunits	codeunits(x::Integer)	modelled	hashops-string-hash	
+base/hashing.jl	106	106	utf8units	utf8units(s::AbstractString)	modelled	hashops-string-hash	
+base/hashing.jl	109	121	iterate	iterate(units::UTF8Units)	modelled	intfuncscov-hash-numeric	
+base/hashing.jl	123	145	iterate	iterate(units::UTF8Units, state)	modelled	intfuncscov-hash-numeric	
+base/hashing.jl	147	147	hash_integer	hash_integer(x::Integer, h::UInt)	modelled	hashops-decomposed-real-hash	
+base/hashing.jl	148	159	_hash_integer	_hash_integer( x::Integer, seed::UInt64, secret::NTuple{4, UInt64} = HASH_SECRET )	modelled	intfuncscov-hash-numeric	
+base/hashing.jl	165	181	hash	hash(x::Float64, h::UInt)	modelled	intfuncscov-hash-numeric	
+base/hashing.jl	183	183	hash	hash(x::Float32, h::UInt)	modelled	intfuncscov-hash-numeric	
+base/hashing.jl	185	196	hash	hash(x::Float16, h::UInt)	modelled	intfuncscov-hash-numeric	
+base/hashing.jl	199	199	_hash_shl!	_hash_shl!(x, n)	modelled	intfuncscov-hash-numeric	
+base/hashing.jl	200	245	hash	hash(x::Real, h::UInt)	modelled	hashops-decomposed-real-hash	
+base/hashing.jl	251	251	hash	hash(x::QuoteNode, h::UInt)	modelled	intfuncscov-hash-structural	
+base/hashing.jl	252	252	hash	hash(x::PhiNode, h::UInt)	modelled	intfuncscov-hash-structural	
+base/hashing.jl	253	253	hash	hash(x::PhiCNode, h::UInt)	modelled	intfuncscov-hash-structural	
+base/hashing.jl	255	255	hash	hash(x::QuoteNode, h::UInt)	modelled	intfuncscov-hash-structural	
+base/hashing.jl	256	256	hash	hash(x::PhiNode, h::UInt)	modelled	intfuncscov-hash-structural	
+base/hashing.jl	257	257	hash	hash(x::PhiCNode, h::UInt)	modelled	intfuncscov-hash-structural	
+base/hashing.jl	260	264	hash	hash(x::Expr, h::UInt)	modelled	intfuncscov-hash-structural	
+base/hashing.jl	266	272	hash	hash(x::CodeInfo, h::UInt)	modelled	intfuncscov-hash-structural	
+base/hashing.jl	274	280	hash	hash(x::DebugInfo, h::UInt)	modelled	intfuncscov-hash-structural	
+base/hashing.jl	282	282	hash	hash(x::Symbol)	modelled	intfuncscov-hash-structural	
+base/hashing.jl	286	286	hash	hash(x::GlobalRef, h::UInt)	modelled	intfuncscov-hash-structural	
+base/hashing.jl	287	293	hash	hash(x::PartialStruct, h::UInt)	modelled	intfuncscov-hash-structural	
+base/hashing.jl	296	297	load_le	load_le(::Type{T}, ptr::Ptr{UInt8}, i, align::Int=1) where {T <: Union{UInt32, UInt64}}	modelled	intfuncscov-hash-bytes	
+base/hashing.jl	301	376	hash_bytes	hash_bytes( ptr::Ptr{UInt8}, n::Int, seed::UInt64, secret::NTuple{4, UInt64}, ::Val{A}=Val(1) ) where {A}	modelled	intfuncscov-hash-bytes	
+base/hashing.jl	378	388	load_le_array	load_le_array(::Type{UInt64}, arr::AbstractArray{UInt8}, idx)	modelled	intfuncscov-hash-bytes	
+base/hashing.jl	390	397	load_le_array	load_le_array(::Type{UInt32}, arr::AbstractArray{UInt8}, idx)	modelled	intfuncscov-hash-bytes	
+base/hashing.jl	399	473	hash_bytes	hash_bytes( arr::AbstractArray{UInt8}, seed::UInt64, secret::NTuple{4, UInt64} )	modelled	intfuncscov-hash-bytes	
+base/hashing.jl	479	482	concat_shift	concat_shift(low::UInt64, high::UInt64, shift_bytes::UInt8)	modelled	intfuncscov-hash-bytes	
+base/hashing.jl	484	493	read_uint64_from_uint8_iter	read_uint64_from_uint8_iter(iter, state)	modelled	intfuncscov-hash-bytes	
+base/hashing.jl	495	507	read_uint64_from_uint8_iter	read_uint64_from_uint8_iter(iter)	modelled	intfuncscov-hash-bytes	
+base/hashing.jl	509	647	hash_bytes	hash_bytes( iter, seed::UInt64, secret::NTuple{4, UInt64} )	modelled	intfuncscov-hash-bytes	
+base/hashing.jl	649	650	hash	hash(data::AbstractString, h::UInt)	modelled	hashops-annotated-non8-hash,hashops-string-hash	
+base/hashing.jl	652	654	hash	hash(data::String, h::UInt)	modelled	hashops-string-hash	

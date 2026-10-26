@@ -1,0 +1,64 @@
+id: rangescov-linrange-integer-elements
+title: "LinRange(-90:60:90)[2] throws InexactError: Int64(-30.000000000000007)"
+priority: P2
+kind: wrong-exception
+area: RangesCov
+files: ["base/range.jl"]
+functions: ["LinRange{T,L}(::T, ::T, ::L)", "lerpi", "unsafe_getindex(::LinRange, ::Integer)", "LinRange(::AbstractRange)"]
+summary: |
+  An integer LinRange whose step is an integer passes the constructor's integer-step check, but its
+  interior elements are interpolated in Float64 and converted exactly, so r[2] throws InexactError.
+  For Int8 the check itself wraps: LinRange{Int8}(-90, 90, 4) is rejected as having a non-integer step.
+likelihood: |
+  LinRange(r) of an integer range yields LinRange{Int}; any such range with three or more
+  elements and a step that is not a power of two can fail on indexing or collect.
+maybe_intended: |
+  Integer LinRange is unusual; #35219 asked to reject non-integer steps, which the constructor now does.
+reproducer: |
+  r = LinRange(-90:60:90)
+  println("LinRange(-90:60:90) = LinRange{", eltype(r), "}(", first(r), ", ", last(r), ", ", length(r), ")")
+  bug = false
+  try
+      println("r[2] = ", r[2])
+  catch e
+      println("r[2] throws ", sprint(showerror, e))
+      global bug = e isa InexactError
+  end
+  try
+      LinRange{Int8}(Int8(-90), Int8(90), 4)
+      println("LinRange{Int8}(-90, 90, 4) constructed")
+  catch e
+      println("LinRange{Int8}(-90, 90, 4) throws ", sprint(showerror, e))
+  end
+  bug && println("REPRODUCED rangescov-linrange-integer-elements")
+output:
+  release: |
+    LinRange(-90:60:90) = LinRange{Int64}(-90, 90, 4)
+    r[2] throws InexactError: Int64(-30.000000000000007)
+    LinRange{Int8}(-90, 90, 4) throws ArgumentError: LinRange{<:Integer} cannot have non-integer step
+    REPRODUCED rangescov-linrange-integer-elements
+  nightly: |
+    LinRange(-90:60:90) = LinRange{Int64}(-90, 90, 4)
+    r[2] throws InexactError: Int64(-30.000000000000007)
+    LinRange{Int8}(-90, 90, 4) throws ArgumentError: LinRange{<:Integer} cannot have non-integer step
+    REPRODUCED rangescov-linrange-integer-elements
+reproduced: {release: true, nightly: true}
+expected: |
+  LinRange(-90:60:90) has the elements [-90, -30, 30, 90].
+promised_by: |
+  LinRange docstring, base/range.jl:556-560 (len linearly spaced elements between start and stop);
+  the constructor check at base/range.jl:605-607 accepts this range as having an integer step.
+cause: |
+  base/range.jl:992-996 (lerpi) computes T((1-t)*a + t*b) in Float64 and converts exactly; for t = 1/3
+  the rounded value is -30.000000000000007. base/range.jl:605 also computes stop-start in T, which
+  wraps for Int8.
+possible_fix: |
+  For Integer T interpolate exactly, for example a + div((b - a) * j, d) in a widened type.
+duplicates:
+  issues:
+    - {number: 35219, state: closed, relation: related}
+    - {number: 63041, state: open, relation: related}
+  queries: ["issues: LinRange integer InexactError", "issues: LinRange Int lerpi", "issues: LinRange integer step", "prs: LinRange integer InexactError", "prs: LinRange Int lerpi"]
+lean:
+  property: JuliaLean.RangesCov.Floats.LinIntElements
+  theorem: JuliaLean.RangesCov.Floats.linIntElements_refuted

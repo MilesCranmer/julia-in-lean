@@ -175,6 +175,13 @@ def VectorSearchCorrect : Prop :=
     (∃ r, searchsortedlast lt v x (JInt.lit .i64 1) (JInt.lit .i64 v.size) = .returned r ∧
         SearchPartition (notAfter lt v x) 1 (v.size + 1) (r + 1))
 
+/-- The positional methods `searchsortedlast(v, x, lo::T, hi::T, o)` never read
+outside `lo:hi` for a valid window `1 ≤ lo ≤ hi ≤ length(v)` of any integer type. -/
+def WindowSearchInBounds : Prop :=
+  ∀ (α : Type) (lt : α → α → Bool) (v : Array α) (x : α) (t : IntTy) (lo hi : JInt t),
+    1 ≤ lo.val → lo.val ≤ hi.val → hi.val ≤ v.size →
+    ∀ i, searchsortedlast lt v x lo hi ≠ .invalidAccess i
+
 /-! ### Proofs for `Int` windows -/
 
 private abbrev I (x : Int) : SearchIndex := searchIndex .i64 x
@@ -409,6 +416,20 @@ theorem vectorSearchCorrect : VectorSearchCorrect := by
     have e4 : (0 : Int) + ↑v.size + 1 = ↑v.size + 1 := by omega
     rw [e4] at hp
     simpa using hp
+
+/-! ### Refutation: the `UInt8` window `1:255` -/
+
+/-- `searchsortedlast(v, x, 0x01, 0xff, o)`: `hi + 0x01` wraps to `0x00`, so both
+sentinels are `0x00`, `lo != hi - u` holds, and `midpoint(0x00, 0x00) = 0x00` is read. -/
+theorem u8WindowReadsZero :
+    searchsortedlast (fun a b => decide (a < b)) (Array.replicate 255 (0 : Int)) 0
+      (JInt.lit .u8 1) (JInt.lit .u8 255) = .invalidAccess 0 := by
+  decide +kernel
+
+theorem windowSearchInBounds_refuted : ¬ WindowSearchInBounds := by
+  intro h
+  exact h Int (fun a b => decide (a < b)) (Array.replicate 255 0) 0 .u8 (JInt.lit .u8 1)
+    (JInt.lit .u8 255) (by decide +kernel) (by decide +kernel) (by decide +kernel) 0 u8WindowReadsZero
 
 /-! ### `issorted` -/
 

@@ -1,0 +1,85 @@
+line	name	verdict	mirror	property	settled	reason
+22	Cmd	HOLLOW	yes	no	yes	The model stores the documented defaults, but the proposition only equates the wrapper to its own cmdOf helper.
+24	Cmd	HOLLOW	no	no	yes	The model takes the dir === cmd.dir result as an independent Boolean, so it neither performs the source identity check nor states behavior for actual constructor inputs.
+27	Cmd	HOLLOW	no	no	yes	The model starts after byteenv conversion and takes the directory identity result as input, omitting both source checks and their errors.
+42	has_nondefault_cmd_flags	HOLLOW	yes	no	yes	The model tests every setting in source order, but the proposition only equates it to the helper used as its definition.
+99	hash	HOLLOW	no	no	yes	The registered proposition models Cmd equality only and contains neither the nested hash calls nor a property of hash.
+100	==	FAITHFUL	yes	yes	yes	The equality model compares the same fields in the same order, and the refuted fieldwise invariant has a reproducer.
+106	OrCmds	HOLLOW	no	no	yes	The shared BinaryCmd model erases the OrCmds result type and restricts AbstractCmd operands to leaf Cmd values.
+112	ErrOrCmds	HOLLOW	no	no	yes	The shared BinaryCmd model erases the ErrOrCmds result type and restricts AbstractCmd operands to leaf Cmd values.
+118	AndCmds	HOLLOW	no	no	yes	The shared BinaryCmd model erases the AndCmds result type and restricts AbstractCmd operands to leaf Cmd values.
+121	hash	HOLLOW	no	no	yes	The model hashes only leaf Cmd operands through a supplied callback, so it does not cover AndCmds containing arbitrary AbstractCmd values.
+122	==	HOLLOW	no	no	yes	The model compares only leaf Cmd operands, so its proposition does not cover AndCmds containing arbitrary AbstractCmd values.
+124	shell_escape	HOLLOW	yes	no	yes	The model mirrors forwarding exec and special, but the proposition only restates that helper call.
+126	shell_escape_posixly	HOLLOW	yes	no	yes	The model mirrors forwarding exec, but the proposition only restates that helper call.
+128	shell_escape_csh	HOLLOW	yes	no	yes	The model mirrors forwarding exec, but the proposition only restates that helper call.
+130	escape_microsoft_c_args	HOLLOW	yes	no	yes	The model mirrors forwarding exec, but the proposition only restates that helper call.
+132	escape_microsoft_c_args	HOLLOW	yes	no	yes	The model represents the forwarded encoder output, but the proposition only restates that helper call and gives no IO-write invariant.
+142	is_sensitive_env_name	HOLLOW	no	no	yes	The model implements ASCII-only uppercasing, while Julia uppercase handles Unicode strings before splitting and matching.
+148	get_show_env_mode	HOLLOW	no	no	yes	The model receives preclassified IO-context and environment results, uses ASCII-only lowercasing, and the proposition omits every nonempty JULIA_SHOW_ENV branch.
+162	show_env	HOLLOW	no	no	yes	The model takes the display mode as input instead of calling get_show_env_mode, and the proposition covers only a one-entry environment created through setenv.
+185	show	HOLLOW	no	no	yes	The attached models cover restricted argument, UID, or environment fragments and omit the full method's combined environment, directory, UID, GID, and CPU behavior.
+227	show	HOLLOW	no	yes	yes	The formatting property is universal, but the model replaces both dispatched show calls with an opaque renderer over leaf Cmd values.
+236	show	HOLLOW	no	yes	yes	The separator property is universal, but the model replaces both dispatched show calls with an opaque renderer over leaf Cmd values.
+249	FileRedirect	FAITHFUL	yes	yes	yes	The abstract-string constructor converts to represented String contents and delegates to the modeled inner constructor.
+250	FileRedirect	HOLLOW	no	no	yes	The model replaces the observable warning with a Boolean field and uses ASCII-only lowercasing instead of Julia lowercase.
+260	rawhandle	FAITHFUL	yes	yes	yes	The DevNull conversion maps to the null handle exactly as the method does.
+261	rawhandle	FAITHFUL	yes	yes	yes	The OS_HANDLE conversion is the identity in both the method and the proposition.
+263	rawhandle	HOLLOW	no	no	yes	The model returns the RawFD value unchanged and omits the platform condition and Libc._get_osfhandle call.
+265	setup_stdio	HOLLOW	yes	no	yes	The model mirrors the pair return, but the proposition quantifies only over non-null handles and omits the allowed DevNull input.
+276	CmdRedirect	HOLLOW	no	no	yes	The model restricts the untyped command argument to a leaf Cmd and therefore omits redirects around composite AbstractCmd values.
+278	show	HOLLOW	no	no	yes	The model restricts the command and handle fields to leaf Cmd and RawHandle values and replaces both nested show calls with supplied renderers.
+301	ignorestatus	HOLLOW	no	no	yes	The model directly changes one field and omits the keyword constructor's flag rebuilding, byteenv validation, and possible errors.
+302	ignorestatus	HOLLOW	no	no	yes	The model erases whether the composite is OrCmds or AndCmds, restricts its leaves, and bypasses keyword-constructor behavior.
+304	ignorestatus	HOLLOW	no	no	yes	The model restricts the redirected command to a leaf Cmd and bypasses the recursive dispatch and keyword-constructor behavior.
+312	detach	HOLLOW	no	no	yes	The direct record update omits the keyword constructor's byteenv validation and possible error for an existing environment.
+316	cstr	FAITHFUL	yes	yes	yes	The model checks for NUL before returning represented String contents and states both outcomes for every represented string.
+324	byteenv	FAITHFUL	yes	yes	yes	The array model applies cstr to every represented string in iteration order and states that behavior universally.
+326	byteenv	HOLLOW	no	no	yes	The dictionary model assumes String keys and values and omits Julia's string conversion of arbitrary dictionary entries.
+328	byteenv	FAITHFUL	yes	yes	yes	The Nothing overload returns nothing exactly as the method and proposition state.
+329	byteenv	HOLLOW	no	no	yes	The pair-list model assumes String values and omits Julia's string conversion of each arbitrary value.
+358	setenv	HOLLOW	no	no	yes	The model accepts only a list of strings and omits generic byteenv dispatch and conversion behavior.
+359	setenv	HOLLOW	no	no	yes	The pair model assumes String values and omits the source string conversion for arbitrary pair values.
+361	setenv	HOLLOW	no	no	yes	The model passes the existing environment through unchanged and omits the keyword constructor's byteenv revalidation and errors.
+364	splitenv	FAITHFUL	yes	yes	yes	The transitive model follows findnext, index validation, and both slices, and the refuted addenv invariant has a reproducer.
+385	addenv	HOLLOW	no	no	yes	The model restricts dictionary keys and values to represented strings and omits Julia's string conversions.
+406	addenv	HOLLOW	no	no	yes	The pair model assumes represented String values and omits Julia's string conversion before dictionary construction.
+410	addenv	FAITHFUL	yes	yes	yes	The vector model splits every entry, applies dictionary replacement semantics, and performs the documented merge for all represented vectors.
+443	setcpuaffinity	FAITHFUL	-	-	-	The no-behaviour exclusion applies because this is an empty generic-function declaration with no method body.
+444	setcpuaffinity	HOLLOW	no	no	yes	The model clears cpus directly and omits keyword-constructor rebuilding, validation, and errors.
+445	setcpuaffinity	HOLLOW	no	no	yes	The model accepts preconverted UInt16 values and omits collect(UInt16, cpus), its iteration, and conversion errors.
+467	setuid	FAITHFUL	-	-	-	The no-behaviour exclusion applies because this is an empty generic-function declaration with no method body.
+468	setuid	HOLLOW	no	no	yes	The model clears uid directly and omits keyword-constructor rebuilding, validation, and errors.
+469	setuid	HOLLOW	no	no	yes	The registry has no model of UInt32(uid) or the setter body, and its display proposition constructs the UID field directly.
+491	setgid	FAITHFUL	-	-	-	The no-behaviour exclusion applies because this is an empty generic-function declaration with no method body.
+492	setgid	HOLLOW	no	no	yes	The model clears gid directly and omits keyword-constructor rebuilding, validation, and errors.
+493	setgid	HOLLOW	no	no	yes	The registry has no model of UInt32(gid) or the setter body, and its display proposition does not exercise setgid.
+495	&	FAITHFUL	yes	yes	yes	The model constructs the conjunction node from the same two represented AbstractCmd operands.
+496	redir_out	FAITHFUL	yes	yes	yes	The model constructs the stdout command node from the same two represented AbstractCmd operands.
+497	redir_err	FAITHFUL	yes	yes	yes	The model constructs the stderr command node from the same two represented AbstractCmd operands.
+500	redir_out	HOLLOW	no	no	yes	The model accepts only RawHandle and omits the IO, IOServer, FileRedirect, and descriptor variants of Redirectable.
+501	redir_out	HOLLOW	no	no	yes	The model accepts only RawHandle and omits the IO, IOServer, FileRedirect, and descriptor variants of Redirectable.
+502	redir_err	HOLLOW	no	no	yes	The model accepts only RawHandle and omits the IO, IOServer, FileRedirect, and descriptor variants of Redirectable.
+505	redir_out	HOLLOW	no	no	yes	The model replaces the filename and FileRedirect constructor with an integer handle.
+506	redir_out	HOLLOW	no	no	yes	The model replaces the filename and FileRedirect constructor with an integer handle.
+507	redir_err	HOLLOW	no	no	yes	The model replaces the filename and FileRedirect constructor with an integer handle.
+508	redir_out_append	HOLLOW	no	no	yes	The model omits the filename and FileRedirect constructor and cannot distinguish append=true from ordinary output redirection.
+509	redir_err_append	HOLLOW	no	no	yes	The model omits the filename and FileRedirect constructor and cannot distinguish append=true from ordinary error redirection.
+527	pipeline	HOLLOW	no	no	yes	The model restricts all redirections to RawHandle and ignores append when choosing the stdout and stderr constructors.
+543	pipeline	HOLLOW	no	no	yes	The model handles only RawHandle destinations and omits command, filename, and other Redirectable destinations.
+544	pipeline	HOLLOW	no	no	yes	The model handles only RawHandle sources and omits filenames and the other Redirectable source types.
+556	pipeline	HOLLOW	no	no	yes	The model restricts the destination to RawHandle and omits the checked Int conversion of the descriptor.
+576	pipeline	HOLLOW	no	no	yes	The model hardcodes output-node construction and omits the type-directed pipeline calls at every recursive step.
+581	cmd_interpolate	HOLLOW	no	no	yes	The registered proposition models arg_gen collection splicing rather than this method's map, string conversion, and cstr check.
+582	cmd_interpolate1	HOLLOW	no	no	yes	The identity model is restricted to represented strings, while this generic method returns every allowed Julia value unchanged.
+583	cmd_interpolate1	FAITHFUL	yes	yes	yes	The Nothing overload produces the exact documented ArgumentError and has no omitted inputs.
+585	cmd_redirect_target	HOLLOW	no	no	yes	The model handles only RawHandle and omits the other members of Redirectable.
+586	cmd_redirect_target	HOLLOW	no	no	yes	The fallback model calls interp1 directly and omits cmd_interpolate's mapping, string conversion, and NUL check.
+588	arg_gen	FAITHFUL	yes	yes	yes	The zero-argument model returns an empty represented String vector exactly as the method states.
+589	arg_gen	FAITHFUL	yes	yes	yes	The string overload applies cstr and returns the checked value as a singleton vector for every represented AbstractString.
+590	arg_gen	HOLLOW	yes	no	yes	The transitive helper mirrors the branches, but the proposition only equates the wrapper to that helper instead of stating the return-or-error behavior.
+597	arg_gen	HOLLOW	no	no	yes	The model begins with an already classified Part and omits isiterable(typeof(head)), generic iteration, and string conversion.
+609	arg_gen	HOLLOW	no	no	yes	The model begins with classified Parts and omits generic cmd_interpolate calls and their type-dependent conversions in the Cartesian loop.
+619	cmd_gen	HOLLOW	no	no	yes	The model omits invokelatest and constructor validation, while the proposition only equates its wrapper with the same simplified helper.
+637	cmd_gen	HOLLOW	yes	no	yes	The model mirrors delegation on the specialization's inputs, but the proposition only equates one wrapper with another helper.
+659	cmd	HOLLOW	no	no	yes	The model starts from a parsed-result tag and omits shell_parse, Meta.isexpr, source filename handling, interpolation escaping, and returned syntax.

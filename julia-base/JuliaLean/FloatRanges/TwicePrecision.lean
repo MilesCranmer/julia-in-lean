@@ -8,7 +8,7 @@ ranges, from `base/twiceprecision.jl` at Julia master `bbfa0ce4150`.
 Every floating-point operation is the exact binary64 model `JuliaLean.Float.F64`
 (default rounding, gradual underflow). Julia `Int` values are `JInt .i64` and wrap
 where Julia wraps. `two_mul` uses the hardware-FMA branch of
-`base/floatfuncs.jl:376-380`, which x86-64 CPUs with FMA take.
+`base/floatfuncs.jl:376-380` on CPUs with hardware FMA.
 -/
 
 namespace JuliaLean.FloatRanges

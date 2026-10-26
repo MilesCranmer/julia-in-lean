@@ -1,0 +1,64 @@
+id: files-cp-force-dangling-symlink
+title: "cp with force=true follows a dangling destination symlink instead of replacing it"
+priority: P1
+kind: wrong-result
+area: Files
+files: [base/file.jl]
+functions: ["cp(::AbstractString, ::AbstractString; force=true)", "checkfor_mv_cp_cptree", "sendfile"]
+summary: |
+  When the destination is a dangling symbolic link, cp(src, dst; force=true) leaves the
+  link in place and writes the source contents to the link's missing target. The documented
+  behavior is to remove the existing destination first and create the copy at dst.
+likelihood: |
+  Dangling symlinks occur after targets are moved, deleted, or temporarily unavailable.
+  A forced copy to such a path can silently create a file at an unintended location.
+maybe_intended: ""
+reproducer: |
+  mktempdir() do dir
+      src = joinpath(dir, "src")
+      dst = joinpath(dir, "dst")
+      target = joinpath(dir, "missing-target")
+      write(src, "source contents")
+      symlink(target, dst)
+      cp(src, dst; force=true)
+      println("islink(dst) = ", islink(dst))
+      println("isfile(dst) = ", isfile(dst))
+      println("isfile(target) = ", isfile(target))
+      println("read(dst, String) = ", repr(read(dst, String)))
+      if islink(dst) && isfile(target) && read(target, String) == "source contents"
+          println("REPRODUCED files-cp-force-dangling-symlink")
+      end
+  end
+output:
+  release: |
+    islink(dst) = true
+    isfile(dst) = true
+    isfile(target) = true
+    read(dst, String) = "source contents"
+    REPRODUCED files-cp-force-dangling-symlink
+  nightly: |
+    islink(dst) = true
+    isfile(dst) = true
+    isfile(target) = true
+    read(dst, String) = "source contents"
+    REPRODUCED files-cp-force-dangling-symlink
+reproduced: {release: true, nightly: true}
+expected: |
+  dst is a regular file containing "source contents", the old symlink is gone, and
+  missing-target remains absent.
+promised_by: |
+  base/file.jl:423-431: "Copy the file, link, or directory from src to dst. force=true
+  will first remove an existing dst."
+cause: |
+  checkfor_mv_cp_cptree only removes dst when ispath(dst) is true
+  (base/file.jl:363-390). ispath is false for a dangling symlink, so cp reaches
+  sendfile (base/file.jl:447-456), whose libuv copy follows dst and creates its target.
+possible_fix: |
+  Treat islink(dst) as an existing destination in checkfor_mv_cp_cptree, so force=true
+  removes a dangling destination symlink before copying.
+duplicates:
+  issues: []
+  queries: ["cp dangling symlink", "force symlink destination", "cp force symlink"]
+lean:
+  property: JuliaLean.Files.CpForceReplaces
+  theorem: JuliaLean.Files.cpForceReplaces_refuted

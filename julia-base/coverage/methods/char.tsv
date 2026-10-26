@@ -1,0 +1,71 @@
+file	line	endline	name	signature	status	entry	note
+base/char.jl	54	54	(::Type{T})	(::Type{T})(x::Number) where {T<:AbstractChar}	modelled	intfuncscov-char-encoding	
+base/char.jl	55	55	AbstractChar	AbstractChar(x::Number)	modelled	intfuncscov-char-encoding	
+base/char.jl	56	56	(::Type{T})	(::Type{T})(x::AbstractChar) where {T<:Union{Number,AbstractChar}}	modelled	intfuncscov-char-encoding	
+base/char.jl	57	57	(::Type{T})	(::Type{T})(x::AbstractChar) where {T<:Union{Int32,Int64}}	modelled	intfuncscov-char-encoding	
+base/char.jl	58	58	(::Type{T})	(::Type{T})(x::T) where {T<:AbstractChar}	modelled	intfuncscov-char-encoding	
+base/char.jl	71	78	ncodeunits	ncodeunits(c::Char)	modelled	missingchar-ncodeunits-write	
+base/char.jl	98	98	codepoint	codepoint	excluded		no-behaviour: generic function declaration has no method body
+base/char.jl	100	100	codepoint	codepoint(c::Char)	modelled	missingchar-char-codepoint-roundtrip,missingchar-codepoint-malformed,missingchar-codepoint-wellformed,missingchar-isvalid-overlength	
+base/char.jl	108	108	throw_invalid_char	throw_invalid_char(c::AbstractChar)	modelled	intfuncscov-char-encoding	
+base/char.jl	109	109	throw_code_point_err	throw_code_point_err(u::Integer)	modelled	intfuncscov-char-encoding	
+base/char.jl	111	117	ismalformed	ismalformed(c::Char)	modelled	missingchar-char-codepoint-roundtrip,missingchar-codepoint-wellformed,missingchar-isvalid-overlength	
+base/char.jl	119	119	is_overlong_enc	is_overlong_enc(u::UInt32)	modelled	intfuncscov-char-encoding	
+base/char.jl	121	124	isoverlong	isoverlong(c::Char)	modelled	missingchar-char-codepoint-roundtrip	
+base/char.jl	146	146	ismalformed	ismalformed(c::AbstractChar)	modelled	intfuncscov-char-encoding	
+base/char.jl	156	156	isoverlong	isoverlong(c::AbstractChar)	modelled	intfuncscov-char-encoding	
+base/char.jl	158	171	UInt32	UInt32(c::Char)	modelled	missingchar-codepoint-malformed	
+base/char.jl	183	183	unsafe_codepoint	unsafe_codepoint(c::AbstractChar)	modelled	intfuncscov-char-encoding	
+base/char.jl	184	192	unsafe_codepoint	unsafe_codepoint(c::Char)	modelled	intfuncscov-char-encoding	
+base/char.jl	207	207	decode_overlong	decode_overlong	excluded		no-behaviour: generic function declaration has no method body
+base/char.jl	209	209	decode_overlong	decode_overlong(c::AbstractChar)	modelled	intfuncscov-char-encoding	
+base/char.jl	211	220	Char	Char(u::UInt32)	modelled	missingchar-char-codepoint-roundtrip	
+base/char.jl	222	222	UInt32_cold	UInt32_cold(c::Char)	modelled	intfuncscov-char-encoding	
+base/char.jl	223	226	(T::Union{Type{Int8},Type{UInt8}})	(T::Union{Type{Int8},Type{UInt8}})(c::Char)	modelled	intfuncscov-char-encoding	
+base/char.jl	228	228	Char_cold	Char_cold(b::UInt32)	modelled	intfuncscov-char-encoding	
+base/char.jl	229	231	Char	Char(b::Union{Int8,UInt8})	modelled	intfuncscov-char-encoding	
+base/char.jl	233	233	convert	convert(::Type{AbstractChar}, x::Number)	modelled	intfuncscov-char-encoding	
+base/char.jl	234	234	convert	convert(::Type{T}, x::Number) where {T<:AbstractChar}	modelled	intfuncscov-char-encoding	
+base/char.jl	235	235	convert	convert(::Type{T}, x::AbstractChar) where {T<:Number}	modelled	intfuncscov-char-encoding	
+base/char.jl	236	236	convert	convert(::Type{T}, c::AbstractChar) where {T<:AbstractChar}	modelled	intfuncscov-char-encoding	
+base/char.jl	237	237	convert	convert(::Type{T}, c::T) where {T<:AbstractChar}	modelled	intfuncscov-char-encoding	
+base/char.jl	239	239	rem	rem(x::AbstractChar, ::Type{T}) where {T<:Number}	modelled	intfuncscov-char-encoding	
+base/char.jl	241	241	typemax	typemax(::Type{Char})	modelled	intfuncscov-char-scalar	
+base/char.jl	242	242	typemin	typemin(::Type{Char})	modelled	intfuncscov-char-scalar	
+base/char.jl	244	244	size	size(c::AbstractChar)	modelled	intfuncscov-char-scalar	
+base/char.jl	245	245	size	size(c::AbstractChar, d::Integer)	modelled	intfuncscov-char-scalar	
+base/char.jl	246	246	ndims	ndims(c::AbstractChar)	modelled	intfuncscov-char-scalar	
+base/char.jl	247	247	ndims	ndims(::Type{<:AbstractChar})	modelled	intfuncscov-char-scalar	
+base/char.jl	248	248	length	length(c::AbstractChar)	modelled	intfuncscov-char-scalar	
+base/char.jl	249	249	IteratorSize	IteratorSize(::Type{<:AbstractChar})	modelled	intfuncscov-char-scalar	
+base/char.jl	250	250	firstindex	firstindex(c::AbstractChar)	modelled	intfuncscov-char-scalar	
+base/char.jl	251	251	lastindex	lastindex(c::AbstractChar)	modelled	intfuncscov-char-scalar	
+base/char.jl	252	252	getindex	getindex(c::AbstractChar)	modelled	intfuncscov-char-scalar	
+base/char.jl	253	253	getindex	getindex(c::AbstractChar, i::Integer)	modelled	intfuncscov-char-scalar	
+base/char.jl	254	254	getindex	getindex(c::AbstractChar, I::Integer...)	modelled	intfuncscov-char-scalar	
+base/char.jl	255	255	first	first(c::AbstractChar)	modelled	intfuncscov-char-scalar	
+base/char.jl	256	256	last	last(c::AbstractChar)	modelled	intfuncscov-char-scalar	
+base/char.jl	257	257	eltype	eltype(::Type{T}) where {T<:AbstractChar}	modelled	intfuncscov-char-scalar	
+base/char.jl	259	259	iterate	iterate(c::AbstractChar, done=false)	modelled	intfuncscov-char-scalar	
+base/char.jl	260	260	isempty	isempty(c::AbstractChar)	modelled	intfuncscov-char-scalar	
+base/char.jl	261	261	in	in(x::AbstractChar, y::AbstractChar)	modelled	intfuncscov-char-scalar	
+base/char.jl	263	263	==	==(x::Char, y::Char)	modelled	missingchar-char-order-codepoint	
+base/char.jl	264	264	isless	isless(x::Char, y::Char)	modelled	missingchar-char-order-codepoint	
+base/char.jl	265	266	hash	hash(x::Char, h::UInt)	modelled	intfuncscov-char-scalar	
+base/char.jl	269	269	isless	isless(x::AbstractChar, y::AbstractChar)	modelled	intfuncscov-char-scalar	
+base/char.jl	270	270	==	==(x::AbstractChar, y::AbstractChar)	modelled	intfuncscov-char-scalar	
+base/char.jl	271	271	hash	hash(x::AbstractChar, h::UInt)	modelled	intfuncscov-char-scalar	
+base/char.jl	272	272	widen	widen(::Type{T}) where {T<:AbstractChar}	modelled	intfuncscov-char-scalar	
+base/char.jl	274	274	-%	-%(x::AbstractChar, y::AbstractChar)	modelled	intfuncscov-char-scalar	
+base/char.jl	275	275	-	-(x::AbstractChar, y::AbstractChar)	modelled	intfuncscov-char-scalar	
+base/char.jl	276	285	-%	-%(x::T, y::Integer) where {T<:AbstractChar}	modelled	intfuncscov-char-scalar	
+base/char.jl	286	295	+%	+%(x::T, y::Integer) where {T<:AbstractChar}	modelled	intfuncscov-char-scalar	
+base/char.jl	296	296	+%	+%(x::Integer, y::AbstractChar)	modelled	intfuncscov-char-scalar	
+base/char.jl	298	298	-	-(x::AbstractChar, y::Integer)	modelled	intfuncscov-char-scalar	
+base/char.jl	299	299	+	+(x::AbstractChar, y::Integer)	modelled	intfuncscov-char-scalar	
+base/char.jl	300	300	+	+(x::Integer, y::AbstractChar)	modelled	intfuncscov-char-scalar	
+base/char.jl	305	305	print	print(io::IO, c::Char)	modelled	intfuncscov-char-display	
+base/char.jl	306	306	print	print(io::IO, c::AbstractChar)	modelled	intfuncscov-char-display	
+base/char.jl	313	323	show_invalid	show_invalid(io::IO, c::Char)	modelled	intfuncscov-char-display	
+base/char.jl	336	370	show	show(io::IO, c::AbstractChar)	modelled	missingchar-show-char-roundtrip	
+base/char.jl	372	392	show	"show(io::IO, ::MIME""text/plain"", c::T) where {T<:AbstractChar}"	modelled	intfuncscov-char-display	

@@ -1,0 +1,120 @@
+file	line	endline	name	signature	status	entry	note
+base/operators.jl	86	94	supertype	supertype(T::DataType)	modelled	numberscov-operators-s86	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	95	101	getproperty	getproperty(T::DataType, s::Symbol)	modelled	numberscov-operators-s95	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	102	102	supertype	supertype(T::UnionAll)	modelled	numberscov-operators-s102	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	104	104	supertype	supertype(::TypeEq)	modelled	numberscov-operators-s104	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	105	105	supertype	supertype(T::Core.TypeEgal)	modelled	numberscov-operators-s105	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	196	196	isequal	isequal(x, y)	modelled	numberscov-operators-s196	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	198	198	signequal	signequal(x, y)	modelled	numberscov-operators-s198	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	199	199	signless	signless(x, y)	modelled	numberscov-operators-s199	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	201	201	isequal	isequal(x::AbstractFloat, y::AbstractFloat)	modelled	numberscov-operators-s201	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	202	202	isequal	isequal(x::Real, y::AbstractFloat)	modelled	numberscov-operators-s202	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	203	203	isequal	isequal(x::AbstractFloat, y::Real )	modelled	promotion-mixed-isless-total-small	
+base/operators.jl	238	238	isless	isless	excluded		no-behaviour: generic function declaration has no method body
+base/operators.jl	240	240	isless	isless(x::AbstractFloat, y::AbstractFloat)	modelled	numberscov-operators-s240	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	241	241	isless	isless(x::Real, y::AbstractFloat)	modelled	promotion-mixed-isless-total-small	
+base/operators.jl	242	242	isless	isless(x::AbstractFloat, y::Real )	modelled	promotion-mixed-isless-total-small	
+base/operators.jl	248	249	isless	isless(a::Tuple{BitInteger, BitInteger}, b::Tuple{BitInteger, BitInteger})	modelled	numberscov-operators-s248	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	295	295	isgreater	isgreater(x, y)	modelled	missingchar-isgreater-missing	
+base/operators.jl	309	309	isunordered	isunordered(_)	modelled	numberscov-operators-s309	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	310	310	isunordered	isunordered(x::AbstractFloat)	modelled	numberscov-operators-s310	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	311	311	isunordered	isunordered(::Missing)	modelled	missingchar-isgreater-missing	
+base/operators.jl	313	313	==	==(T::Type, S::Type)	modelled	numberscov-operators-s313	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	314	314	==	==(T::TypeVar, S::Type)	modelled	numberscov-operators-s314	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	315	315	==	==(T::Type, S::TypeVar)	modelled	numberscov-operators-s315	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	338	338	!=	!=(x, y)	modelled	numberscov-operators-s338	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	417	417	<	<(x, y)	modelled	numberscov-operators-s417	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	443	443	>	>(x, y)	modelled	numberscov-operators-s443	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	467	467	<=	<=(x, y)	modelled	numberscov-operators-s467	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	499	499	>=	>=(x, y)	modelled	numberscov-operators-s499	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	505	505	isless	isless(x::Real, y::Real)	modelled	hashops-comparison-fallbacks	
+base/operators.jl	526	526	cmp	cmp(x, y)	modelled	numberscov-operators-s526	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	534	534	cmp	cmp(<, x, y)	modelled	numberscov-operators-s534	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	537	537	cmp	cmp(x::Integer, y::Integer)	modelled	hashops-comparison-fallbacks	
+base/operators.jl	555	555	max	max(x, y)	modelled	mathfuncs-min-isless-nan	
+base/operators.jl	573	573	min	min(x,y)	modelled	mathfuncs-min-isless-nan	
+base/operators.jl	588	588	minmax	minmax(x,y)	modelled	numberscov-operators-s588	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	605	605	identity	identity(@nospecialize x)	modelled	numberscov-operators-s605	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	607	607	+	+(x::Number)	modelled	numberscov-operators-s607	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	608	608	*	*(x::Number)	modelled	numberscov-operators-s608	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	609	609	&	(&)(x::Integer)	modelled	numberscov-operators-s609	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	610	610	|	(|)(x::Integer)	modelled	numberscov-operators-s610	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	611	611	xor	xor(x::Integer)	modelled	numberscov-operators-s611	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	622	622	afoldl	afoldl(op, a)	modelled	numberscov-operators-s622	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	623	663	afoldl	afoldl(op, a, bs...)	modelled	numberscov-operators-s623	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	671	671	$op	($op)(a, b, c, xs...)	modelled	numberscov-operators-s671	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	678	678	kron!	kron!	excluded		no-behaviour: empty generic function declaration has no method body
+base/operators.jl	709	709	\	\(x,y)	modelled	numberscov-operators-s709	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	735	740	<<	<<(x::Integer, c::Integer)	modelled	numberscov-operators-s735	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	741	747	<<	<<(x::Integer, c::Unsigned)	modelled	numberscov-operators-s741	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	748	748	<<	<<(x::Integer, c::Int)	modelled	numberscov-operators-s748	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	780	788	>>	>>(x::Integer, c::Integer)	modelled	numberscov-operators-s780	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	789	789	>>	>>(x::Integer, c::Int)	modelled	numberscov-operators-s789	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	818	821	>>>	>>>(x::Integer, c::Integer)	modelled	numberscov-operators-s818	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	822	828	>>>	>>>(x::Integer, c::Unsigned)	modelled	numberscov-operators-s822	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	829	829	>>>	>>>(x::Integer, c::Int)	modelled	numberscov-operators-s829	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	914	914	mod1	mod1(x::T, y::T) where {T<:Real}	modelled	numberscov-operators-s914	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	943	943	cldmod1	cldmod1(x, y)	modelled	numberscov-operators-s943	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	952	952	fldmod1	fldmod1(x, y)	modelled	numberscov-operators-s952	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	975	975	widen	widen(x::T) where {T}	modelled	numberscov-operators-s975	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	976	976	widen	widen(x::Type{T}) where {T}	modelled	numberscov-operators-s976	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	977	977	widen	widen(x::Type{Union{}}, slurp...)	modelled	numberscov-operators-s977	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1001	1001	|>	|>(x, f)	modelled	numberscov-operators-s1001	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1003	1003	_stable_typeof	_stable_typeof(x)	modelled	numberscov-operators-s1003	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1004	1004	_stable_typeof	_stable_typeof(::Type{T}) where {T}	modelled	numberscov-operators-s1004	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1031	1031	Returns{V}	Returns{V}(value) where {V}	modelled	numberscov-operators-s1031	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1032	1032	Returns	Returns(value)	modelled	numberscov-operators-s1032	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1035	1035	(obj::Returns)	(obj::Returns)(@nospecialize(args...); @nospecialize(kw...))	modelled	numberscov-operators-s1035	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1085	1085	∘	∘	excluded		no-behaviour: generic composition function declaration has no method body
+base/operators.jl	1121	1121	ComposedFunction{O, I}	ComposedFunction{O, I}(outer, inner) where {O, I}	modelled	numberscov-operators-s1121	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1122	1122	ComposedFunction	ComposedFunction(outer, inner)	modelled	numberscov-operators-s1122	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1125	1125	(c::ComposedFunction)	(c::ComposedFunction)(x...; kw...)	modelled	numberscov-operators-s1125	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1126	1126	unwrap_composed	unwrap_composed(c::ComposedFunction)	modelled	numberscov-operators-s1126	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1127	1127	unwrap_composed	unwrap_composed(c)	modelled	numberscov-operators-s1127	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1128	1128	call_composed	call_composed(fs, x, kw)	modelled	numberscov-operators-s1128	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1129	1129	call_composed	call_composed(fs::Tuple{Any}, x, kw)	modelled	numberscov-operators-s1129	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1132	1132	(::Constructor{F})	(::Constructor{F})(args...; kw...) where {F}	modelled	numberscov-operators-s1132	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1133	1133	maybeconstructor	maybeconstructor(::Type{F}) where {F}	modelled	numberscov-operators-s1133	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1134	1134	maybeconstructor	maybeconstructor(f)	modelled	numberscov-operators-s1134	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1136	1136	∘	∘(f)	modelled	numberscov-operators-s1136	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1137	1137	∘	∘(f, g)	modelled	numberscov-operators-s1137	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1138	1138	∘	∘(f, g, h...)	modelled	numberscov-operators-s1138	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1140	1144	show	show(io::IO, c::ComposedFunction)	modelled	numberscov-operators-s1140	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1147	1150	show	show(io::IO, c::ComposedFunction{typeof(!)})	modelled	numberscov-operators-s1147	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1152	1152	_showcomposed	_showcomposed(io::IO, x)	modelled	numberscov-operators-s1152	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1154	1154	_showcomposed	_showcomposed(io::IO, f::Function)	modelled	numberscov-operators-s1154	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1156	1156	_showcomposed	_showcomposed(io::IO, f::ComposedFunction)	modelled	numberscov-operators-s1156	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1158	1158	_showcomposed	_showcomposed(io::IO, f::ComposedFunction{typeof(!)})	modelled	numberscov-operators-s1158	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1182	1182	!	!(f::Function)	modelled	numberscov-operators-s1182	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1183	1183	!	!(f::ComposedFunction{typeof(!)})	modelled	numberscov-operators-s1183	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1206	1213	Fix{N}	Fix{N}(f::F, x) where {N,F}	modelled	numberscov-operators-s1206	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1216	1220	(f::Fix{N})	(f::Fix{N})(args::Vararg{Any,M}; kws...) where {N,M}	modelled	numberscov-operators-s1216	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1223	1223	(f::Fix{1})	(f::Fix{1})(arg; kws...)	modelled	numberscov-operators-s1223	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1224	1224	(f::Fix{2})	(f::Fix{2})(arg; kws...)	modelled	numberscov-operators-s1224	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1226	1237	Base.show	Base.show(io::IO, fix::Fix{N}) where {N}	modelled	numberscov-operators-s1226	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1259	1259	isequal	isequal(x)	modelled	numberscov-operators-s1259	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1270	1270	==	==(x)	modelled	numberscov-operators-s1270	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1283	1283	!=	!=(x)	modelled	numberscov-operators-s1283	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1296	1296	>=	>=(x)	modelled	numberscov-operators-s1296	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1309	1309	<=	<=(x)	modelled	numberscov-operators-s1309	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1322	1322	>	>(x)	modelled	numberscov-operators-s1322	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1335	1335	<	<(x)	modelled	numberscov-operators-s1335	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1366	1366	splat	splat(f)	modelled	numberscov-operators-s1366	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1384	1384	Splat	Splat(f)	modelled	numberscov-operators-s1384	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1386	1386	(s::Splat)	(s::Splat)(args)	modelled	numberscov-operators-s1386	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1387	1387	show	show(io::IO, s::Splat)	modelled	numberscov-operators-s1387	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1415	1415	unsplat	unsplat(f)	modelled	numberscov-operators-s1415	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1416	1416	unsplat	unsplat(s::Splat)	modelled	numberscov-operators-s1416	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1417	1417	splat	splat(f::ComposedFunction{<:Any,typeof(tuple)})	modelled	numberscov-operators-s1417	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1438	1438	tap	tap(f)	modelled	numberscov-operators-s1438	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1453	1453	in	in(x)	modelled	numberscov-operators-s1453	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1455	1455	in	in(x, itr::Any)	modelled	numberscov-operators-s1455	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1459	1459	in	in(x, itr::Tuple)	modelled	tuples-in	
+base/operators.jl	1463	1471	_in_tuple	_in_tuple(x, @nospecialize(itr::Tuple), result = false)	modelled	tuples-in	
+base/operators.jl	1474	1474	in	in(x, itr::Any32)	modelled	tuples-in	
+base/operators.jl	1477	1477	∉	∉(x, itr)	modelled	numberscov-operators-s1477	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1478	1478	∉	∉(itr)	modelled	numberscov-operators-s1478	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1486	1486	∋	∋(itr, x)	modelled	numberscov-operators-s1486	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1497	1497	∋	∋(x)	modelled	numberscov-operators-s1497	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1499	1499	∌	∌(itr, x)	modelled	numberscov-operators-s1499	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/operators.jl	1500	1500	∌	∌(x)	modelled	numberscov-operators-s1500	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review

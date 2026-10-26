@@ -1,0 +1,58 @@
+id: runtimecov-datatype-haspadding-doc
+title: "`Base.datatype_haspadding` docstring describes the opposite of what it returns"
+priority: P3
+kind: documentation
+area: RuntimeCov
+files: [base/runtime_internals.jl]
+functions: ["datatype_haspadding(::DataType)", "datatype_haspadding(::DataTypeLayout)"]
+summary: |
+  The docstring says the function returns "whether the fields of instances of this
+  type are packed in memory, with no intervening padding bits". It returns the
+  layout's `haspadding` flag instead: `true` for `struct WithPadding; a::Int8;
+  b::Int64; end` (7 padding bytes) and `false` for two `Int64` fields.
+likelihood: |
+  Affects readers of the internal docstring (it is used by packages that inspect
+  layouts, e.g. for reinterpretation); a reader following the text gets the meaning
+  inverted.
+maybe_intended: ""
+reproducer: |
+  struct WithPadding; a::Int8; b::Int64; end
+  struct Packed; a::Int64; b::Int64; end
+  Base.datatype_haspadding(WithPadding), Base.datatype_haspadding(Packed)  # (true, false)
+output:
+  release: |
+    Base.datatype_haspadding(dt::DataType)::Bool
+    Return whether the fields of instances of this type are packed in memory,
+    with no intervening padding bits (defined as bits whose value does not impact
+    the semantic value of the instance itself).
+    Can be called on any `isconcretetype`.
+    sizeof(WithPadding) = 16, datatype_haspadding(WithPadding) = true
+    sizeof(Packed) = 16, datatype_haspadding(Packed) = false
+    REPRODUCED runtimecov-datatype-haspadding-doc
+  nightly: |
+    Base.datatype_haspadding(dt::DataType)::Bool
+    Return whether the fields of instances of this type are packed in memory,
+    with no intervening padding bits (defined as bits whose value does not impact
+    the semantic value of the instance itself).
+    Can be called on any `isconcretetype`.
+    sizeof(WithPadding) = 16, datatype_haspadding(WithPadding) = true
+    sizeof(Packed) = 16, datatype_haspadding(Packed) = false
+    REPRODUCED runtimecov-datatype-haspadding-doc
+reproduced: {release: true, nightly: true}
+expected: |
+  A docstring saying the function returns whether instances have padding bits
+  between or after their fields (`true` for `WithPadding`).
+promised_by: |
+  base/runtime_internals.jl:693-699 (docstring of `datatype_haspadding`).
+cause: |
+  base/runtime_internals.jl:701-702 return bit 0 of the layout flags, the
+  `haspadding` bit (comment at line 637); the docstring describes its negation.
+possible_fix: |
+  Reword: "Return whether instances of this type contain padding bits ...".
+duplicates:
+  issues:
+    - {number: 49318, state: closed, relation: related}
+  queries: ["datatype_haspadding", "datatype_haspadding docstring"]
+lean:
+  property: JuliaLean.RuntimeCov.Layout.HaspaddingDoc
+  theorem: JuliaLean.RuntimeCov.Layout.haspaddingDoc_refuted

@@ -1,0 +1,75 @@
+line	name	verdict	mirror	property	settled	reason
+96	_new_generic_iobuffer	HOLLOW	yes	no	yes	The constructor model mirrors the field initialization, but NewGenericFields only equates newGeneric with its own newBuf helper and states no promised constructor behavior.
+110	GenericIOBuffer{T}	HOLLOW	no	no	yes	genericTyped delegates to genericIOBuffer, which omits require_one_based_indexing and routes Vector data through the different specialized constructor, while GenericConstructors only equates these helpers.
+134	GenericIOBuffer	HOLLOW	no	no	yes	genericUntyped delegates to the incomplete genericTyped model, and GenericConstructors only states equality between the two Lean wrappers.
+141	GenericIOBuffer	HOLLOW	yes	no	yes	genericVector mirrors the offset and size branches, but VectorConstructor only equates it with the same genericIOBuffer model and states no constructor invariant.
+163	get_offset	FAITHFUL	yes	yes	yes	getOffsetMethod mirrors max(0, offset_or_compacted), and OffsetAccessors states that behavior for every buffer.
+164	get_compacted	FAITHFUL	yes	yes	yes	getCompactedMethod mirrors max(0, -offset_or_compacted), and OffsetAccessors states that behavior for every buffer.
+167	StringMemory	HOLLOW	no	no	yes	stringMemory replaces the _string_n and unsafe_wrap calls with a zero-filled list, and StringAllocators states only that StringVector uses the same wrapper.
+168	StringVector	HOLLOW	no	no	yes	stringVectorMethod omits wrap(Array, ...), including the returned array type, and StringAllocators only equates it with stringMemoryMethod.
+230	IOBuffer	HOLLOW	no	no	yes	ioBufferDataMethod omits the sizehint argument and sizehint! call, and PublicConstructors only equates the wrapper with the same incomplete helper.
+246	IOBuffer	HOLLOW	no	no	yes	iobufferEmpty replaces StringMemory's allocation calls with a zero-filled list, and PublicConstructors only equates the wrapper with that model.
+284	PipeBuffer	HOLLOW	no	no	yes	pipeBuffer inherits genericIOBuffer's missing one-based-index check for arbitrary AbstractVector data, and PublicConstructors only equates the wrapper with that model.
+286	PipeBuffer	HOLLOW	no	yes	yes	PipeBufferMaxsizeInteger states the documented all-Integer acceptance property, but it uses pipeBuffer for the keyword method instead of pipeBufferN, which mirrors this positional constructor's allocation and size reset.
+289	_truncated_pipebuffer	HOLLOW	no	no	yes	truncatedPipeBuffer delegates to the incomplete pipeBuffer model for arbitrary AbstractVector data, and TruncatedPipeCorrect merely unfolds that same model.
+296	_similar_data	HOLLOW	no	no	yes	similarData replaces the call to similar(b.data, len) with an unconditional MethodError for every non-Memory buffer, while WriteNoMethodError is restricted to Reachable states under an undocumented size bound.
+297	_similar_data	HOLLOW	no	yes	yes	similarDataMethod delegates to a StringMemory model that omits _string_n and unsafe_wrap, although SimilarDataCorrect states the requested StringMemory result for every input.
+302	copy	HOLLOW	no	no	yes	copyBuffer depends on similarData, which rejects all non-Memory buffers instead of modelling successful similar calls, and CopyReadonlyFields covers only the read-only branch.
+334	show	HOLLOW	no	yes	yes	The Lean show model includes only the size and pointer arithmetic and omits the ordered print calls and all other displayed fields, although both registered propositions state observable claims about the printed pointer and size.
+344	_throw_not_readable	FAITHFUL	yes	yes	yes	throwNotReadableMethod mirrors the ArgumentError, and ThrowNotReadable states that result for every return type.
+349	unsafe_read	HOLLOW	no	no	yes	unsafeRead replaces the destination pointer mutation and unsafe_read! call with returned bytes, while NoOutOfBounds covers only Reachable operation traces under an undocumented 2^60 weight limit.
+361	unsafe_read!	HOLLOW	no	no	yes	unsafeReadAbstract returns a precomputed slice and omits the loop, unsafe_store! calls, destination pointer, and write order, while UnsafeReadMethods only equates it with readAt.
+375	unsafe_read!	HOLLOW	no	no	yes	unsafeReadDense returns a precomputed slice and omits GC.@preserve, pointer, unsafe_copyto!, and destination mutation, while UnsafeReadMethods only equates it with readAt.
+394	load_from_array	HOLLOW	no	no	yes	loadFromArray omits the float-versus-integer type branch, unsigned conversion, ltoh, reinterpretation, and bounds behavior, while LoadFromArrayLittleEndian merely restates its fold.
+406	peek	HOLLOW	no	no	yes	PeekMethodsDoNotAdvance mentions only peekMultiDense and never uses peekMultiGeneric, so it states no behavior for this generic-vector method.
+418	peek	HOLLOW	no	no	yes	peekMultiDense returns a byte list and omits GC.@preserve, pointer construction, unsafe_load, and the typed result, while its proposition only unfolds that abstraction.
+432	read	HOLLOW	no	no	yes	readMulti returns bytes through a type-erased readT model instead of the typed value returned by peek, and ReadMultiAdvances only equates the wrapper with that model.
+438	read	HOLLOW	yes	no	yes	readByte mirrors the readability, EOF, byte access, and pointer update, but the registered properties cover only Reachable states and operation sequences under an undocumented 2^60 weight limit.
+450	peek	HOLLOW	yes	no	yes	peekByte mirrors the readability, EOF, and byte lookup behavior, but ReadSpec applies only to Reachable states under an undocumented 2^60 operation-weight limit.
+458	read	HOLLOW	no	no	yes	readPtrMethod fixes UInt to eight bytes and omits platform word size, typed pointer conversion, and the convert call, while PtrReadIsUIntRead only unfolds that model.
+460	isreadable	FAITHFUL	yes	yes	yes	isreadableMethod mirrors the field access, and ReadWriteFlags states the result for every buffer.
+461	iswritable	FAITHFUL	yes	yes	yes	iswritableMethod mirrors the field access, and ReadWriteFlags states the result for every buffer.
+464	filesize	HOLLOW	yes	no	yes	filesize mirrors the seekable branch, but InvariantHolds states its relation only for Reachable states built under an undocumented 2^60 operation-weight limit.
+467	bytesavailable	HOLLOW	yes	no	yes	bytesavailable mirrors the source arithmetic, but InvariantHolds states its nonnegativity only for Reachable states built under an undocumented 2^60 operation-weight limit.
+470	position	HOLLOW	yes	no	yes	position mirrors the source arithmetic, but InvariantHolds states its nonnegativity only for Reachable states built under an undocumented 2^60 operation-weight limit.
+475	skip	HOLLOW	yes	no	yes	skip mirrors the Integer clamp and delegated Int behavior, but SkipSpec applies only to Reachable buffers under an undocumented 2^60 operation-weight limit.
+479	skip	HOLLOW	yes	no	yes	skipIntMethod reaches a mirror of both source branches, but SeekMethodsCorrect only equates the wrapper with that helper and states no promised skip behavior.
+496	seek	HOLLOW	yes	no	yes	seekAny mirrors the Integer clamp and delegated seek behavior, but SeekSpec applies only to Reachable buffers under an undocumented 2^60 operation-weight limit.
+500	translate_seek_position	HOLLOW	yes	no	yes	translateSeekMethod mirrors the widened addition and Int clamp, but SeekMethodsCorrect only equates the wrapper with translateSeekPosition.
+512	seek	HOLLOW	yes	no	yes	seekIntMethod reaches a mirror of the checks and clamped assignment, but SeekMethodsCorrect only equates the wrapper with that helper.
+526	seekend	HOLLOW	yes	no	yes	seekendMethod mirrors the pointer assignment and return state, but SeekMethodsCorrect only equates the wrapper with seekend.
+536	_resize!	HOLLOW	no	no	yes	resize omits the applicable(resize!, ...) branch and assumes every modelled backing store reallocates, while NoOutOfBounds covers only Reachable operation traces under an undocumented size bound.
+558	truncate	HOLLOW	no	no	yes	truncate models only machine Int values although the Julia method accepts every Integer, and both properties add undocumented Reachable and isInt restrictions.
+597	ensureroom	HOLLOW	no	no	yes	ensureroomInt delegates to an ensureroom model whose resize path omits applicable resize!, and EnsureRoomMethods only equates the wrapper with that model.
+599	ensureroom	HOLLOW	no	no	yes	ensureroom reaches a resize model that omits the applicable resize! branch, and EnsureRoomMethods only equates the wrapper with that model.
+618	ensureroom_reallocate	HOLLOW	no	no	yes	ensureroomReallocate depends on similarData, which rejects all non-Memory buffers instead of modelling the source _similar_data call, and EnsureRoomMethods only unfolds the wrapper.
+627	ensureroom_slowpath	HOLLOW	no	no	yes	ensureroomSlowpath reaches the incomplete resize model and omits successful resizable-vector paths, while WriteNoMethodError is restricted to Reachable states under an undocumented size bound.
+662	get_used_span	HOLLOW	yes	no	yes	getUsedSpan mirrors the three source branches, but both registered properties quantify only over Reachable traces under an undocumented 2^60 operation-weight limit.
+677	compact!	HOLLOW	yes	no	yes	compact mirrors the span, copy, and field updates, but all three registered properties quantify only over Reachable traces under an undocumented 2^60 operation-weight limit.
+691	eof	HOLLOW	yes	no	yes	eof mirrors the pointer-size comparison, but InvariantHolds states its relation only for Reachable states under an undocumented 2^60 operation-weight limit.
+693	closewrite	HOLLOW	no	no	yes	TakeReadOnly does not apply closewrite or state its writable-field update, and its Reachable premise adds an undocumented operation-weight limit.
+698	close	HOLLOW	no	no	yes	closeMethod reaches resize, whose model omits the applicable resize! branch, and CloseMethodCorrect only equates the wrapper with that incomplete helper.
+713	isopen	FAITHFUL	yes	yes	yes	isopenMethod mirrors the four disjuncts, and IsopenCorrect states the result for every buffer.
+731	take!	HOLLOW	no	no	yes	takeGeneric depends on simplified allocation and copying models and loses the returned vector type, while TakeMethodsCorrect only equates the wrapper with take.
+758	take!	HOLLOW	no	no	yes	take collapses the writable wrap and read-only copy branches to the same byte-slice operation and omits their ownership effects, while its properties are restricted to Reachable states under an undocumented size bound.
+795	unsafe_takestring!	HOLLOW	no	no	yes	unsafeTakestring collapses the isone branch and fallback allocation-copy branch to one slice and omits both unsafe_takestring calls, while UnsafeTakeReturnsUsed restates that abstraction.
+835	takestring!	HOLLOW	no	no	yes	takestring omits the allocation, unsafe_copyto!, and unsafe_takestring calls in the read-only branch, while TakestringEqTake is restricted to Reachable states where take succeeds under an undocumented size bound.
+862	takestring!	HOLLOW	no	no	yes	takestringGeneric omits the String conversion and returns take's byte list directly, while TakeMethodsCorrect only equates that wrapper with take.
+876	_unsafe_take!	HOLLOW	no	no	yes	unsafeTake replaces the empty-memory branch, memoryref calls, and wrap(Array, ...) with a list slice, while UnsafeTakeReturnsUsed only states that simplified result.
+886	write	HOLLOW	no	no	yes	writeFromBuffer restricts the destination to IOBuf and replaces write(to, view(...)) with unsafeWrite, so its unfolding proposition omits arbitrary IO destinations and delegated write behavior.
+923	_unsafe_write	HOLLOW	no	no	yes	unsafeWriteAbstract constructs the final list directly and omits the loop, repeated unsafe_load calls, pointer increments, and ordered setindex! effects, while UnsafeWriteMethods only equates it with writeAt.
+930	_unsafe_write	HOLLOW	no	no	yes	unsafeWriteDense omits the nb < 5 branch, both loop and unsafe_copyto! paths, GC.@preserve, and pointer operations, while UnsafeWriteMethods only equates it with writeAt.
+948	write	HOLLOW	no	no	yes	writeByteMethod reaches an ensureroom model whose resize paths are incomplete, and ByteReadWriteMethods only equates the wrapper with writeByte.
+965	readbytes!	HOLLOW	no	no	yes	readbytesConvert omits the destination buffer and its default length, models nb as a supplied Int, and skips the Int conversion assertion, while ByteReadWriteMethods only unfolds that wrapper.
+967	readbytes!	HOLLOW	no	no	yes	readbytes omits destination resizing, checkbounds, pointer acquisition, and mutation of b, while ByteReadWriteMethods only equates the wrapper with that reduced model.
+977	read	HOLLOW	yes	no	yes	readAll mirrors allocation by available length followed by read!, but the three registered properties quantify only over bounded Reachable states or bounded write sequences.
+980	readavailable	HOLLOW	yes	no	yes	readavailableMethod mirrors delegation to read(io), but ByteReadWriteMethods only equates the wrapper with readAll and states no promised readavailable behavior.
+982	read	HOLLOW	no	no	yes	readCountMethod restricts the Integer argument to machine Int and omits out-of-range Integer behavior, while ByteReadWriteMethods only equates it with readN.
+984	occursin	HOLLOW	yes	no	yes	occursin mirrors membership in the available view, but OccursinSpec quantifies only over Reachable states under an undocumented 2^60 operation-weight limit.
+993	copyuntil	HOLLOW	no	no	yes	readuntil omits the output IO, both write branches, cancel handling, and output mutation, while the registered properties describe readuntil and readline rather than this copyuntil method.
+1010	copyline	HOLLOW	no	no	yes	copylineGenericOut replaces the source stream with a precomputed line and omits cancellation, copyuntil, take!, and the temporary-buffer flow, while CopylineMethods only unfolds that abstraction.
+1057	_copyline	HOLLOW	no	no	yes	readline omits the output IO, write call, and cancel branches and returns a byte list instead, while the registered properties describe readline results rather than this output-mutating method.
+1079	copyline	HOLLOW	no	no	yes	copylineGenericIn omits the out argument and its mutation and replaces the _copyline call with readline, while CopylineMethods only unfolds that abstraction.
+1080	copyline	HOLLOW	no	no	yes	copylineGenericBoth reconstructs reading and writing without the _copyline cancel path, and CopylineMethods only equates the wrapper with that reconstruction.
+1084	_crc32c	HOLLOW	no	no	yes	crc32cCount restricts nb to Int, replaces unsafe_crc32c with an unconstrained callback, and omits pointer and GC.@preserve behavior, while CrcDefaultUsesAvailable states only the other overload's default count.
+1093	_crc32c	HOLLOW	no	yes	yes	CrcDefaultUsesAvailable states the all-available default for every model input, but crc32cAll delegates to the incomplete crc32cCount model instead of a faithful mirror of the counted method.

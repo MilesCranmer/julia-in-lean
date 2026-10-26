@@ -1,0 +1,58 @@
+file	line	endline	name	signature	status	entry	note
+base/bitset.jl	18	22	BitSet	BitSet()	modelled	bitsetscov-bitset-build	
+base/bitset.jl	33	33	BitSet	BitSet(itr)	modelled	bitsetscov-bitset-build	
+base/bitset.jl	36	41	union!	union!(s::BitSet, itr)	modelled	bitsetscov-bitset-build	
+base/bitset.jl	43	43	intoffset	intoffset(s::BitSet)	modelled	bitsetscov-bitset-iteration	
+base/bitset.jl	45	45	empty	empty(s::BitSet, ::Type{Int}=Int)	modelled	bitsetscov-bitset-build	
+base/bitset.jl	46	46	emptymutable	emptymutable(s::BitSet, ::Type{Int}=Int)	modelled	bitsetscov-bitset-build	
+base/bitset.jl	48	48	copy	copy(s1::BitSet)	modelled	bitsetscov-bitset-copy	
+base/bitset.jl	49	49	copymutable	copymutable(s::BitSet)	modelled	bitsetscov-bitset-copy	
+base/bitset.jl	51	56	copy!	copy!(dest::BitSet, src::BitSet)	modelled	bitsetscov-bitset-copy	
+base/bitset.jl	58	61	sizehint!	sizehint!(s::BitSet, n::Integer; first::Bool=false, shrink::Bool=true)	modelled	bitsetscov-bitset-sizehint	
+base/bitset.jl	63	68	_bits_getindex	_bits_getindex(b::Bits, n::Int, offset::Int)	modelled	bitsetscov-bitset-in	
+base/bitset.jl	70	76	_bits_findnext	_bits_findnext(b::Bits, start::Int)	modelled	bitsetscov-bitset-find	
+base/bitset.jl	78	84	_bits_findprev	_bits_findprev(b::Bits, start::Int)	modelled	bitsetscov-bitset-find	
+base/bitset.jl	87	111	_setint!	_setint!(s::BitSet, idx::Int, b::Bool)	modelled	bitarrays-bitset-push-delete	
+base/bitset.jl	116	122	_growend0!	_growend0!(b::Bits, nchunks::Int)	modelled	bitsetscov-bitset-grow	
+base/bitset.jl	124	129	_growbeg0!	_growbeg0!(b::Bits, nchunks::Int)	modelled	bitsetscov-bitset-grow	
+base/bitset.jl	131	167	union!	union!(s::BitSet, r::AbstractUnitRange{<:Integer})	modelled	bitsetscov-bitset-union-range	
+base/bitset.jl	169	184	_matched_map!	_matched_map!(f, s1::BitSet, s2::BitSet)	modelled	bitsetscov-bitset-matched-map	
+base/bitset.jl	189	253	_matched_map!	_matched_map!(f, a1::Bits, b1::Int, a2::Bits, b2::Int, left_false_is_false::Bool, right_false_is_false::Bool)	modelled	bitsetscov-bitset-matched-map	
+base/bitset.jl	255	255	push!	push!(s::BitSet, n::Integer)	modelled	bitarrays-bitset-push-delete	
+base/bitset.jl	257	257	push!	push!(s::BitSet, ns::Integer...)	modelled	bitsetscov-bitset-build	
+base/bitset.jl	259	259	pop!	pop!(s::BitSet)	modelled	bitsetscov-bitset-iteration	
+base/bitset.jl	261	268	pop!	pop!(s::BitSet, n::Integer)	modelled	bitsetscov-bitset-delete-pop	
+base/bitset.jl	270	277	pop!	pop!(s::BitSet, n::Integer, default)	modelled	bitsetscov-bitset-delete-pop	
+base/bitset.jl	279	279	_is_convertible_Int	_is_convertible_Int(n)	modelled	bitsetscov-bitset-in	
+base/bitset.jl	280	280	delete!	delete!(s::BitSet, n::Int)	modelled	bitsetscov-bitset-delete-pop	
+base/bitset.jl	281	281	delete!	delete!(s::BitSet, n::Integer)	modelled	bitarrays-bitset-push-delete	
+base/bitset.jl	283	283	popfirst!	popfirst!(s::BitSet)	modelled	bitsetscov-bitset-iteration	
+base/bitset.jl	285	289	empty!	empty!(s::BitSet)	modelled	bitsetscov-bitset-empty	
+base/bitset.jl	291	291	isempty	isempty(s::BitSet)	modelled	bitsetscov-bitset-empty	
+base/bitset.jl	295	295	union	union(s::BitSet, sets...)	modelled	bitsetscov-bitset-union	
+base/bitset.jl	296	296	union!	union!(s1::BitSet, s2::BitSet)	modelled	bitsetscov-bitset-matched-map	
+base/bitset.jl	298	299	intersect	intersect(s1::BitSet, s2::BitSet)	modelled	bitsetscov-bitset-matched-map	
+base/bitset.jl	301	301	intersect!	intersect!(s1::BitSet, s2::BitSet)	modelled	bitsetscov-bitset-matched-map	
+base/bitset.jl	303	303	setdiff!	setdiff!(s1::BitSet, s2::BitSet)	modelled	bitsetscov-bitset-matched-map	
+base/bitset.jl	305	310	symdiff!	symdiff!(s::BitSet, ns)	modelled	bitarrays-bitset-symdiff-duplicates	
+base/bitset.jl	312	317	symdiff!	symdiff!(s::BitSet, ns::AbstractSet)	modelled	bitsetscov-bitset-symdiff-set	
+base/bitset.jl	319	324	int_symdiff!	int_symdiff!(s::BitSet, n::Integer)	modelled	bitarrays-bitset-symdiff-duplicates	
+base/bitset.jl	326	326	symdiff!	symdiff!(s1::BitSet, s2::BitSet)	modelled	bitsetscov-bitset-matched-map	
+base/bitset.jl	328	328	filter!	filter!(f, s::BitSet)	modelled	bitsetscov-bitset-filter-invariant	
+base/bitset.jl	330	330	in	in(n::Int, s::BitSet)	modelled	bitarrays-bitset-push-delete	
+base/bitset.jl	331	331	in	in(n::Integer, s::BitSet)	modelled	bitsetscov-bitset-in	
+base/bitset.jl	333	340	iterate	iterate(s::BitSet, (word, idx) = (CHK0, 0))	modelled	bitsetscov-bitset-iteration	
+base/bitset.jl	342	343	_throw_bitset_notempty_error	_throw_bitset_notempty_error()	modelled	bitsetscov-bitset-iteration	
+base/bitset.jl	345	348	first	first(s::BitSet)	modelled	bitsetscov-bitset-iteration	
+base/bitset.jl	350	353	last	last(s::BitSet)	modelled	bitsetscov-bitset-iteration	
+base/bitset.jl	355	355	length	length(s::BitSet)	modelled	bitsetscov-bitset-iteration	
+base/bitset.jl	357	366	show	show(io::IO, s::BitSet)	modelled	bitsetscov-bitset-iteration	
+base/bitset.jl	368	373	_check0	_check0(a::Vector{UInt64}, b::Int, e::Int)	modelled	bitsetscov-bitset-empty	
+base/bitset.jl	375	407	==	==(s1::BitSet, s2::BitSet)	modelled	bitsetscov-bitset-equality	
+base/bitset.jl	409	419	issubset	issubset(a::BitSet, b::BitSet)	modelled	bitsetscov-bitset-subset	
+base/bitset.jl	414	414	f	f(a, b)	modelled	bitsetscov-bitset-subset	
+base/bitset.jl	420	420	⊊	⊊(a::BitSet, b::BitSet)	modelled	bitsetscov-bitset-subset	
+base/bitset.jl	423	423	minimum	minimum(s::BitSet)	modelled	bitsetscov-bitset-iteration	
+base/bitset.jl	424	424	maximum	maximum(s::BitSet)	modelled	bitsetscov-bitset-iteration	
+base/bitset.jl	425	425	extrema	extrema(s::BitSet)	modelled	bitsetscov-bitset-iteration	
+base/bitset.jl	426	426	issorted	issorted(s::BitSet)	modelled	bitsetscov-bitset-iteration	

@@ -1,0 +1,61 @@
+id: reducecov-linearindices-range-index
+title: "LinearIndices((3:5,))[2:3] == 4:5 although LinearIndices((3:5,)) holds 1, 2, 3"
+priority: P2
+kind: wrong-result
+area: ReduceCov
+files: [base/indices.jl]
+functions: ["getindex(iter::LinearIndices, i::AbstractRange{<:Integer})"]
+summary: |
+  LinearIndices((3:5,)) has axes (Base.OneTo(3),), collects to [1, 2, 3], and
+  LinearIndices((3:5,))[2] == 2. Indexing it with a range returns elements of the
+  wrapped range instead: LinearIndices((3:5,))[2:3] == 4:5, while
+  collect(LinearIndices((3:5,)))[2:3] == [2, 3]. Any one-dimensional LinearIndices
+  built from a range that does not start at 1 (and is not an offset axis) is affected.
+likelihood: |
+  Low to moderate: LinearIndices((istart:istop,)) is a documented constructor form;
+  code that slices such an object with a range gets indices shifted by istart - 1.
+maybe_intended: |
+  The docstring is unclear about what a non-1-based range in the constructor means
+  (issue #48613), but whatever it means, scalar and range indexing of the same object
+  must agree.
+reproducer: |
+  L = LinearIndices((3:5,))
+  L[2], L[2:3]     # 2, 4:5
+output:
+  release: |
+    axes(LinearIndices((3:5,))) = (Base.OneTo(3),)
+    collect(LinearIndices((3:5,))) = [1, 2, 3]
+    LinearIndices((3:5,))[2] = 2, [3] = 3
+    LinearIndices((3:5,))[2:3] = 4:5
+    collect(LinearIndices((3:5,)))[2:3] = [2, 3]
+    REPRODUCED reducecov-linearindices-range-index
+  nightly: |
+    axes(LinearIndices((3:5,))) = (Base.OneTo(3),)
+    collect(LinearIndices((3:5,))) = [1, 2, 3]
+    LinearIndices((3:5,))[2] = 2, [3] = 3
+    LinearIndices((3:5,))[2:3] = 4:5
+    collect(LinearIndices((3:5,)))[2:3] = [2, 3]
+    REPRODUCED reducecov-linearindices-range-index
+reproduced: {release: true, nightly: true}
+expected: |
+  2:3, the values at indices 2 and 3.
+promised_by: |
+  Array indexing semantics: A[r] has the elements A[r[1]], A[r[2]], ...; the
+  LinearIndices docstring (base/indices.jl:429-477) says it holds the linear index of
+  each entry.
+cause: |
+  base/indices.jl:514-518: for LinearIndices{1} the method returns
+  iter.indices[1][i], indexing the wrapped range 3:5 by position. The scalar method
+  (base/indices.jl:509-513) returns i, and iteration uses axes1(iter.indices[1])
+  (base/indices.jl:522). The two agree only when the wrapped range is its own axis
+  (OneTo or an offset axis).
+possible_fix: |
+  Return axes1(iter.indices[1])[i] (equivalently i after the bounds check) in the
+  one-dimensional case.
+duplicates:
+  issues:
+    - {number: 48613, state: open, relation: related}
+  queries: ["LinearIndices range getindex", "LinearIndices UnitRange indices", "LinearIndices"]
+lean:
+  property: JuliaLean.ReduceCov.Indices.LinearIndicesRangeIndex
+  theorem: JuliaLean.ReduceCov.Indices.linearIndicesRangeIndex_refuted

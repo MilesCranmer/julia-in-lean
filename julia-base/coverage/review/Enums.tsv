@@ -1,0 +1,26 @@
+line	name	verdict	mirror	property	settled	reason
+8	namemap	FAITHFUL	-	yes	-	The line only declares the empty namemap generic, so the no-behaviour exclusion applies.
+17	basetype	HOLLOW	yes	no	yes	The identity body is mirrored, but IntTy covers only ten built-in bit-integer types and omits other Integer base types allowed by the signature.
+19	(::Type{T})	HOLLOW	no	no	yes	enumRow19 converts a stored mathematical integer directly and omits bitcast(T2, x), the enum input type, and Integer targets outside IntTy.
+20	Base.cconvert	HOLLOW	no	no	yes	The model delegates to the restricted row-19 model, so it omits the source enum bitcast and does not cover every allowed Integer target or base type.
+21	Base.write	HOLLOW	no	no	yes	The model replaces write on an IO with a total Int-to-Nat callback and inherits row 19's missing bitcast and restricted integer types.
+22	Base.read	HOLLOW	no	no	yes	The total reader callback cannot represent IO errors, and enumConstruct substitutes list membership for the generated constructor's source membership expression and enum conversion.
+30	_enum_hash	HOLLOW	no	no	yes	The model replaces invoke(hash, Tuple{Any, UInt}, x, h) with an unconstrained callback, and the proposition only repeats that callback's supplied result.
+31	Base.hash	HOLLOW	no	no	yes	The model replaces dispatch to the actual specialized _enum_hash method with an unconstrained callback, and the proposition only repeats that callback's supplied result.
+32	Base.isless	HOLLOW	no	no	yes	The model compares untyped stored integers directly and never states the same-enum basetype conversions and isless calls required by the source signature.
+34	Base.Symbol	HOLLOW	no	no	yes	The model takes an arbitrary association list instead of calling namemap(typeof(x)), converting x to Integer, indexing the dictionary, and asserting a Symbol result.
+36	_symbol	HOLLOW	no	no	yes	The model takes a precomputed association list instead of calling namemap and its proposition covers only the missing-name branch under an internal lookup hypothesis.
+42	Base.print	HOLLOW	no	no	yes	The model returns a String and omits the IO argument and print effect, so the proposition states a string identity instead of this method's write behavior.
+44	Base.show	HOLLOW	no	no	yes	The model replaces IO-context lookup, parentmodule, visibility, show, and ordered print calls with precomputed Booleans and string concatenation.
+57	Base.show	HOLLOW	no	no	yes	The model replaces the ordered print and show calls and compact IOContext with fixed string concatenation, which its proposition merely repeats.
+64	Base.show	HOLLOW	no	no	yes	The concrete branch omits show_datatype and per-instance IO calls, while the abstract branch returns a placeholder instead of invoking fallback show.
+79	membershiptest	HOLLOW	no	no	yes	The model drops expr entirely and the proposition covers only singleton value lists, leaving the other allowed lists and generated expression forms unstated.
+91	Base.broadcastable	HOLLOW	no	no	yes	The source constructs Ref(x) with scalar broadcast behavior, while the model constructs a one-element List and proves only that list identity.
+93	enum_argument_error	HOLLOW	no	no	yes	The model narrows the untyped typename and x arguments to String and Int and eagerly builds a String, omitting LazyString behavior for other allowed inputs.
+144	enum	HOLLOW	no	no	yes	The macro model replaces syntax, Core.eval, type checks, identifier checks, documentation, and generated code with validity flags and simplified member data.
+221	$(esc(typename))	HOLLOW	no	no	yes	The model substitutes List.contains and EnumBox construction for the generated membership expression, enum_argument_error call, conversion, bitcast, and concrete enum result.
+225	Enums.namemap	HOLLOW	no	no	yes	The model returns an arbitrary input list instead of the generated method's captured dictionary, so the proposition only repeats a bare supplied result.
+226	Base.typemin	HOLLOW	no	no	yes	The model returns a stored integer field instead of calling the generated enum constructor at lo and returning the concrete enum member.
+227	Base.typemax	HOLLOW	no	no	yes	The model returns a stored integer field instead of calling the generated enum constructor at hi and returning the concrete enum member.
+233	Enums._enum_hash	HOLLOW	no	no	yes	The model replaces both hash dispatches with unconstrained callbacks and supplies typeHash directly, so the proposition only repeats precomputed operations and data.
+236	Base.instances	HOLLOW	no	no	yes	The model returns a stored list of integers instead of the captured tuple of concrete enum instances constructed by the generated constructor.

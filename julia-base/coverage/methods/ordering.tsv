@@ -1,0 +1,27 @@
+file	line	endline	name	signature	status	entry	note
+base/ordering.jl	46	46	ReverseOrdering	ReverseOrdering(rev::ReverseOrdering)	modelled	sorttuplescov-generic-reverse-ordering	candidates:sort-order-reverse-cancellation
+base/ordering.jl	47	47	ReverseOrdering	ReverseOrdering(fwd::Fwd) where {Fwd}	modelled	sorttuplescov-generic-reverse-ordering	candidates:sort-order-reverse-cancellation
+base/ordering.jl	48	48	ReverseOrdering	ReverseOrdering()	modelled	sorttuplescov-reverse-ordering	candidates:sort-order-reverse-cancellation
+base/ordering.jl	56	56	reverse	reverse(o::Ordering)	modelled	sorttuplescov-generic-reverse-ordering	
+base/ordering.jl	86	86	By	By(by)	modelled	sorttuplescov-reverse-ordering	
+base/ordering.jl	110	110	ReverseOrdering	ReverseOrdering(by::By)	modelled	sorttuplescov-generic-reverse-ordering	candidates:sort-order-reverse-cancellation
+base/ordering.jl	111	111	ReverseOrdering	ReverseOrdering(perm::Perm)	modelled	sorttuplescov-reverseordering-perm-lt	candidates:sort-order-reverse-cancellation
+base/ordering.jl	118	118	lt	lt(o::ForwardOrdering, a, b)	modelled	sorttuplescov-lt-methods	candidates:sort-order-combinations
+base/ordering.jl	119	119	lt	lt(o::ReverseOrdering, a, b)	modelled	sorttuplescov-lt-methods	candidates:sort-order-combinations
+base/ordering.jl	120	120	lt	lt(o::By, a, b)	modelled	sorttuplescov-lt-methods	candidates:sort-order-combinations
+base/ordering.jl	121	121	lt	lt(o::Lt, a, b)	modelled	sorttuplescov-lt-methods	candidates:sort-order-combinations
+base/ordering.jl	123	127	lt	lt(p::Perm, a::Integer, b::Integer)	modelled	sorttuplescov-perm-lt-evaluation	candidates:sort-order-combinations
+base/ordering.jl	130	130	_ord	_ord(lt::typeof(isless), by, order::Ordering)	modelled	sorttuplescov-generic-ord	candidates:sort-order-combinations
+base/ordering.jl	131	131	_ord	_ord(lt::typeof(isless), by, order::ForwardOrdering)	modelled	sorttuplescov-ord	candidates:sort-order-combinations
+base/ordering.jl	132	132	_ord	_ord(lt::typeof(isless), by, order::ReverseOrdering{ForwardOrdering})	modelled	sorttuplescov-ord	candidates:sort-order-combinations
+base/ordering.jl	133	133	_ord	_ord(lt, by, order::ForwardOrdering)	modelled	sorttuplescov-ord	candidates:sort-order-combinations
+base/ordering.jl	134	134	_ord	_ord(lt, by, order::ReverseOrdering{ForwardOrdering})	modelled	sorttuplescov-ord	candidates:sort-order-combinations
+base/ordering.jl	135	135	_ord	_ord(lt, by, order::Ordering)	modelled	sorttuplescov-generic-ord	candidates:sort-order-combinations
+base/ordering.jl	136	136	_by	_by(by, order::Ordering)	modelled	sorttuplescov-generic-ord	candidates:sort-order-combinations
+base/ordering.jl	137	137	_by	_by(::typeof(identity), order::Ordering)	modelled	sorttuplescov-generic-ord	candidates:sort-order-combinations
+base/ordering.jl	155	155	ord	ord(lt, by, rev::Nothing, order::Ordering=Forward)	modelled	sorttuplescov-generic-ord	candidates:sort-order-combinations
+base/ordering.jl	157	160	ord	ord(lt, by, rev::Bool, order::Ordering=Forward)	modelled	sorttuplescov-generic-ord	candidates:sort-order-combinations
+base/ordering.jl	170	170	ordtype	ordtype(o::ReverseOrdering, vs::AbstractArray)	modelled	sorttuplescov-generic-ordtype	
+base/ordering.jl	171	171	ordtype	ordtype(o::Perm, vs::AbstractArray)	modelled	sorttuplescov-generic-ordtype	
+base/ordering.jl	173	173	ordtype	ordtype(o::By, vs::AbstractArray)	modelled	sorttuplescov-generic-ordtype	
+base/ordering.jl	174	174	ordtype	ordtype(o::Ordering, vs::AbstractArray)	modelled	sorttuplescov-ordtype	

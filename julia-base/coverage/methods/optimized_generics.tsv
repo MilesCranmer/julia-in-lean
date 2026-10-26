@@ -1,0 +1,5 @@
+file	line	endline	name	signature	status	entry	note
+base/optimized_generics.jl	45	45	set	set	excluded		no-behaviour: empty compiler-recognized generic declaration
+base/optimized_generics.jl	54	54	get	get	excluded		no-behaviour: empty compiler-recognized generic declaration
+base/optimized_generics.jl	75	75	typeinf	typeinf	excluded		no-behaviour: empty compiler-recognized generic declaration
+base/optimized_generics.jl	80	80	typeinf_edge	typeinf_edge	excluded		no-behaviour: empty compiler-recognized generic declaration

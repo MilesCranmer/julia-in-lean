@@ -1,0 +1,42 @@
+id: arraycov-reshaped-iterator-exhaustion
+title: "ReshapedArrayIterator throws MethodError at normal iteration exhaustion"
+priority: P2
+kind: wrong-exception
+area: ArrayCov
+files: [base/reshapedarray.jl]
+functions: ["iterate(::ReshapedArrayIterator, ...)"]
+summary: |
+  `ReshapedArrayIterator` declares `length` and `eltype`, but collecting a valid two-element instance throws `MethodError: iterate(::Nothing)` after yielding its elements. Empty instances throw on the first call.
+likelihood: |
+  Low today because `eachindex(::ReshapedArray)` is commented out. Direct users of the internal iterator, or enabling the adjacent planned method, hit the failure on every finite input.
+maybe_intended: |
+  The type is internal and its intended `eachindex` caller is marked TODO, so it may be unfinished infrastructure rather than a supported interface.
+reproducer: |
+  A = reshape(1:2, 2, 1)
+  collect(Base.ReshapedArrayIterator(A))
+output:
+  release: |
+    Iterator length: 2
+    Result type: MethodError
+    Expected: collection succeeds with two ReshapedIndex values
+    REPRODUCED arraycov-reshaped-iterator-exhaustion
+  nightly: |
+    Iterator length: 2
+    Result type: MethodError
+    Expected: collection succeeds with two ReshapedIndex values
+    REPRODUCED arraycov-reshaped-iterator-exhaustion
+reproduced: {release: true, nightly: true}
+expected: |
+  Iteration yields two `ReshapedIndex` values and then returns `nothing`, so `collect` succeeds.
+promised_by: |
+  The iterator protocol requires `iterate(iter, state)` to return `nothing` at exhaustion. base/reshapedarray.jl:15 calls this the fast iterator, and lines 35-36 define its length and element type.
+cause: |
+  base/reshapedarray.jl:31-34 immediately destructures `iterate(R.iter, i...)` as `item, inext`. At exhaustion the parent returns `nothing`, so destructuring attempts `iterate(nothing)` and throws MethodError.
+possible_fix: |
+  Store the parent result, return `nothing` when it is `nothing`, and destructure only the nonempty result.
+duplicates:
+  issues: []
+  queries: ["ReshapedArrayIterator iterate Nothing", "ReshapedArrayIterator collect MethodError", "reshape iterator exhaustion"]
+lean:
+  property: JuliaLean.ArrayCov.ReshapedIteratorProtocol
+  theorem: JuliaLean.ArrayCov.reshapedIteratorProtocol_refuted

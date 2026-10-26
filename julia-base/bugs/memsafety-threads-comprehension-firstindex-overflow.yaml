@@ -1,0 +1,87 @@
+id: memsafety-threads-comprehension-firstindex-overflow
+title: "Threaded comprehension reads out of bounds when firstindex is typemax(Int)"
+priority: P0
+kind: crash
+area: MemSafety
+files: [base/threadingconstructs.jl]
+functions: ["Threads.@threads comprehension", "_comprehension_result", "_comprehension_widened_eltype"]
+summary: |
+  A threaded comprehension over a one-element AbstractVector whose only index is
+  typemax(Int) completes its parallel write, then widens the inferred element type.
+  The widening scan wraps firstindex(result) + 1 to typemin(Int) and reads that index
+  under @inbounds. With normal bounds settings, the read is outside the allocation.
+likelihood: |
+  The failure requires a custom array with an extreme offset axis and a comprehension
+  whose inferred element type is non-concrete. Offset arrays are common, but an axis at
+  typemax(Int) is contrived. Threaded comprehensions are new on master.
+maybe_intended: |
+  Custom AbstractArrays may use non-one-based axes, and the fast comprehension path
+  explicitly preserves their index space. A legal one-element axis should not make
+  type widening access a different index.
+reproducer: |
+  items = ExtremeVector([typemax(Int)])
+  Threads.@threads [i == typemax(Int) ? i : string(i) for i in items]
+output:
+  release: |
+    ERROR: LoadError: ArgumentError: @threads requires a `for` loop expression
+    Stacktrace:
+     [1] var"@threads"(__source__::LineNumberNode, __module__::Module, args::Vararg{Any})
+       @ Base.Threads ./threadingconstructs.jl:445
+     [2] fl_lower(ex::Expr, mod::Module, filename::String, lineno::UInt64, world::UInt64, warn::Bool)
+       @ Base ./flfrontend.jl:24
+     [3] eval(m::Module, e::Any)
+       @ Core ./boot.jl:489
+     [4] top-level scope
+       @ <julia>/repro/memsafety-threads-comprehension-firstindex-overflow.jl:31
+     [5] include(mod::Module, _path::String)
+       @ Base ./Base.jl:309
+     [6] exec_options(opts::Base.JLOptions)
+       @ Base ./client.jl:344
+     [7] _start()
+       @ Base ./client.jl:577
+    in expression starting at none:1
+    in expression starting at <julia>/repro/memsafety-threads-comprehension-firstindex-overflow.jl:31
+    child exit code = 1, signal = 0
+  nightly: |
+    ERROR: LoadError: BoundsError: attempt to access 1-element ExtremeVector{Union{Int64, String}} with indices 9223372036854775807:9223372036854775807 at index [-9223372036854775808]
+    Stacktrace:
+     [1] getindex(a::ExtremeVector{Union{Int64, String}}, i::Int64)
+       @ Main <julia>/repro/memsafety-threads-comprehension-firstindex-overflow.jl:22 [inlined]
+     [2] _comprehension_widened_eltype(result::ExtremeVector{Union{Int64, String}}, ::Core.TypeEgal{Int64}, i::Int64)
+       @ Base.Threads threadingconstructs.jl:370
+     [3] _comprehension_result(result::ExtremeVector{Union{Int64, String}}, ET::Any)
+       @ Base.Threads threadingconstructs.jl:362
+     [4] macro expansion
+       @ threadingconstructs.jl:421 [inlined]
+     [5] top-level scope
+       @ none:403
+     [6] eval(m::Module, e::Any)
+       @ Core boot.jl:620
+     [7] top-level scope
+       @ <julia>/repro/memsafety-threads-comprehension-firstindex-overflow.jl:31
+    in expression starting at <julia>/repro/memsafety-threads-comprehension-firstindex-overflow.jl:31
+    child exit code = 1, signal = 0
+    REPRODUCED memsafety-threads-comprehension-firstindex-overflow
+reproduced: {release: false, nightly: true}
+expected: |
+  The comprehension should return a one-element array indexed at typemax(Int), without
+  reading any other index. The widening scan should treat firstindex == lastindex as
+  having no remaining elements.
+promised_by: |
+  base/threadingconstructs.jl:391-421 says the fast path uses AbstractArrays directly
+  to preserve their index space and allocates the result with axes(items). The @threads
+  docstring at lines 567-575 says that the iteration space is distributed to tasks.
+cause: |
+  _comprehension_result at base/threadingconstructs.jl:356-364 calls the widening helper
+  with firstindex(result) + 1. Machine-Int addition wraps at typemax(Int). The helper at
+  lines 368-373 then treats typemin(Int):typemax(Int) as nonempty and reads result[j]
+  under @inbounds at line 370.
+possible_fix: |
+  Return typeof(first(result)) immediately when firstindex(result) == lastindex(result),
+  or advance the index without overflowing before entering the unchecked scan.
+duplicates:
+  issues: []
+  queries: ["threaded comprehension firstindex overflow", "_comprehension_widened_eltype", "typemax firstindex @threads", "prs: threaded comprehension firstindex overflow", "prs: _comprehension_widened_eltype", "prs: typemax firstindex @threads"]
+lean:
+  property: JuliaLean.MemSafety.G5.ComprehensionWidenAccessesInBounds
+  theorem: JuliaLean.MemSafety.G5.comprehensionWidenAccessesInBounds_refuted

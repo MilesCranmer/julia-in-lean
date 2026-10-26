@@ -82,7 +82,7 @@ def ntOf (names : List String) : NT Int := names.zip ((List.range names.length).
 def splitCases : List String := Id.run do
   let mut out := []
   for len in [0, 1, 2, 3, 4] do
-    for n in [0, 1, 2, 3, 5] do
+    for n in [-1, 0, 1, 2, 3, 5] do
       for i in (List.range (len + 2)).map (fun (k : Nat) => k + 1) do
         let n' := JInt.lit .i64 n
         let i' := JInt.lit .i64 (i : Int)

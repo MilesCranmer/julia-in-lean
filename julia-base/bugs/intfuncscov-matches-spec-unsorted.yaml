@@ -1,0 +1,65 @@
+id: intfuncscov-matches-spec-unsorted
+title: "matches_spec_range! misses versions in unsorted lists, contrary to its comment"
+priority: P3
+kind: documentation
+area: IntFuncsCov
+files: [base/version.jl]
+functions: ["matches_spec_range!"]
+summary: |
+  The comment of Base.matches_spec_range! says it is "Optimized for sorted version lists
+  (but works correctly even if unsorted)". For the unsorted list [v"2.0.0", v"1.2.0"] and
+  the spec "1.0 - 1.5" it leaves dest[2] false although v"1.2.0" is in the spec: the scan
+  for each range stops at the first version above the range.
+likelihood: |
+  Low: the only caller in Pkg passes a sorted list. A future caller relying on the
+  comment would silently get wrong results.
+maybe_intended: |
+  The comment above the loop also says "Assumes versions are sorted", so the algorithm
+  is meant for sorted input; only the header comment promises more.
+reproducer: |
+  if !isdefined(Base, :matches_spec_range!)
+      println("Base.matches_spec_range! is not defined in this version")
+  else
+      spec = Base.VersionSpec("1.0 - 1.5")
+      versions = [v"2.0.0", v"1.2.0"]
+      dest = falses(2)
+      Base.matches_spec_range!(dest, versions, spec, 2)
+      expected = [v in spec for v in versions]
+      println("versions = ", versions)
+      println("matches_spec_range! = ", collect(dest))
+      println("in(v, spec)        = ", expected)
+      if collect(dest) != expected
+          println("REPRODUCED intfuncscov-matches-spec-unsorted")
+      else
+          println("not reproduced")
+      end
+  end
+output:
+  release: |
+    Base.matches_spec_range! is not defined in this version
+  nightly: |
+    versions = VersionNumber[v"2.0.0", v"1.2.0"]
+    matches_spec_range! = Bool[0, 0]
+    in(v, spec)        = Bool[0, 1]
+    REPRODUCED intfuncscov-matches-spec-unsorted
+reproduced: {release: false, nightly: true}
+expected: |
+  dest == [false, true], the membership of each version in the spec, as the comment
+  promises for unsorted lists; or a comment that requires sorted input.
+promised_by: |
+  base/version.jl:530-533: "Fills dest[1:n] indicating which versions are in the
+  VersionSpec / Optimized for sorted version lists (but works correctly even if
+  unsorted)".
+cause: |
+  base/version.jl:546-556: for each range the first loop skips versions below the lower
+  bound and the second marks versions until the first one above the upper bound, so a
+  version after an out-of-range one is never examined.
+possible_fix: |
+  Change the comment to state that versions must be sorted, or fall back to
+  dest[i] = versions[i] in spec when the list is not sorted.
+duplicates:
+  issues: []
+  queries: ["matches_spec_range", "VersionSpec", "VersionBound"]
+lean:
+  property: JuliaLean.IntFuncsCov.Version.MatchesSpecRangeUnsorted
+  theorem: JuliaLean.IntFuncsCov.Version.matchesSpecRangeUnsorted_refuted

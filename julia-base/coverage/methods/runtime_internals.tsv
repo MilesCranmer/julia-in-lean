@@ -1,0 +1,203 @@
+file	line	endline	name	signature	status	entry	note
+base/runtime_internals.jl	21	21	parentmodule	parentmodule(m::Module)	modelled	runtimecov-modules	
+base/runtime_internals.jl	23	23	is_root_module	is_root_module(m::Module)	modelled	runtimecov-modules	
+base/runtime_internals.jl	32	40	moduleroot	moduleroot(m::Module)	modelled	runtimecov-modules	
+base/runtime_internals.jl	48	50	__MODULE__	__MODULE__()	modelled	runtimecov-modules	
+base/runtime_internals.jl	66	77	fullname	fullname(m::Module)	modelled	runtimecov-modules	
+base/runtime_internals.jl	84	88	moduleloc	moduleloc(m::Module)	modelled	runtimecov-modules	
+base/runtime_internals.jl	122	122	names	names(m::Module; kwargs...)	modelled	runtimecov-modules	
+base/runtime_internals.jl	123	125	unsorted_names	unsorted_names(m::Module; all::Bool=false, imported::Bool=false, usings::Bool=false, world::UInt=tls_world_age())	modelled	runtimecov-modules	
+base/runtime_internals.jl	151	151	isexported	isexported(m::Module, s::Symbol)	modelled	runtimecov-modules	
+base/runtime_internals.jl	182	182	ispublic	ispublic(m::Module, s::Symbol)	modelled	runtimecov-modules	
+base/runtime_internals.jl	220	222	__FUNCTION__	__FUNCTION__()	modelled	runtimecov-modules	
+base/runtime_internals.jl	227	227	isdeprecated	isdeprecated(m::Module, s::Symbol)	modelled	runtimecov-modules	
+base/runtime_internals.jl	229	233	binding_module	binding_module(m::Module, s::Symbol)	modelled	runtimecov-modules	
+base/runtime_internals.jl	237	246	_fieldnames	_fieldnames(@nospecialize t)	modelled	runtimecov-fields	
+base/runtime_internals.jl	275	275	is_defined_const_binding	is_defined_const_binding(kind::UInt8)	modelled	runtimecov-modules	
+base/runtime_internals.jl	276	276	is_some_const_binding	is_some_const_binding(kind::UInt8)	modelled	runtimecov-modules	
+base/runtime_internals.jl	277	277	is_some_imported	is_some_imported(kind::UInt8)	modelled	runtimecov-modules	
+base/runtime_internals.jl	278	278	is_some_implicit	is_some_implicit(kind::UInt8)	modelled	runtimecov-modules	
+base/runtime_internals.jl	279	279	is_some_explicit_imported	is_some_explicit_imported(kind::UInt8)	modelled	runtimecov-modules	
+base/runtime_internals.jl	280	280	is_some_binding_imported	is_some_binding_imported(kind::UInt8)	modelled	runtimecov-modules	
+base/runtime_internals.jl	281	281	is_some_guard	is_some_guard(kind::UInt8)	modelled	runtimecov-modules	
+base/runtime_internals.jl	283	283	is_some_global	is_some_global(kind::UInt8)	modelled	runtimecov-modules	
+base/runtime_internals.jl	285	287	lookup_binding_partition	lookup_binding_partition(world::UInt, b::Core.Binding)	modelled	runtimecov-modules	
+base/runtime_internals.jl	289	291	lookup_binding_partition	lookup_binding_partition(world::UInt, b::Core.Binding, previous_partition::Core.BindingPartition)	modelled	runtimecov-modules	
+base/runtime_internals.jl	293	299	convert	convert(::Type{Core.Binding}, gr::Core.GlobalRef)	modelled	runtimecov-modules	
+base/runtime_internals.jl	301	304	lookup_binding_partition	lookup_binding_partition(world::UInt, gr::Core.GlobalRef)	modelled	runtimecov-modules	
+base/runtime_internals.jl	306	306	partition_restriction	partition_restriction(bpart::Core.BindingPartition)	modelled	runtimecov-modules	
+base/runtime_internals.jl	311	317	partition_owner	partition_owner(bpart::Core.BindingPartition)	modelled	runtimecov-modules	
+base/runtime_internals.jl	319	319	binding_kind	binding_kind(bpart::Core.BindingPartition)	modelled	runtimecov-modules	
+base/runtime_internals.jl	320	320	binding_kind	binding_kind(m::Module, s::Symbol)	modelled	runtimecov-modules	
+base/runtime_internals.jl	334	336	delete_binding	delete_binding(mod::Module, sym::Symbol)	modelled	runtimecov-modules	
+base/runtime_internals.jl	363	370	set_binding_visibility!	set_binding_visibility!(mod::Module, sym::Symbol, vis::Symbol)	modelled	runtimecov-modules	
+base/runtime_internals.jl	391	405	fieldname	fieldname(t::DataType, i::Integer)	modelled	runtimecov-fields	
+base/runtime_internals.jl	392	392	throw_not_def_field	throw_not_def_field()	modelled	runtimecov-fields	
+base/runtime_internals.jl	393	396	throw_field_access	throw_field_access(t, i, n_fields)	modelled	runtimecov-fields	
+base/runtime_internals.jl	397	397	throw_need_pos_int	throw_need_pos_int(i)	modelled	runtimecov-fields	
+base/runtime_internals.jl	407	407	fieldname	fieldname(t::UnionAll, i::Integer)	modelled	runtimecov-fields	
+base/runtime_internals.jl	408	408	fieldname	fieldname(t::Core.TypeEgal, i::Integer)	modelled	runtimecov-fields	
+base/runtime_internals.jl	409	409	fieldname	fieldname(::TypeEq, ::Integer)	modelled	runtimecov-fields	
+base/runtime_internals.jl	410	411	fieldname	fieldname(t::Type{<:Tuple}, i::Integer)	modelled	runtimecov-fields	
+base/runtime_internals.jl	435	436	fieldnames	fieldnames(t::DataType)	modelled	runtimecov-fields	
+base/runtime_internals.jl	437	437	fieldnames	fieldnames(t::UnionAll)	modelled	runtimecov-fields	
+base/runtime_internals.jl	438	438	fieldnames	fieldnames(t::Core.TypeEgal)	modelled	runtimecov-fields	
+base/runtime_internals.jl	439	439	fieldnames	fieldnames(::TypeEq)	modelled	runtimecov-fields	
+base/runtime_internals.jl	440	441	fieldnames	fieldnames(::Core.TypeofBottom)	modelled	runtimecov-fields	
+base/runtime_internals.jl	442	442	fieldnames	fieldnames(t::Type{<:Tuple})	modelled	runtimecov-fields	
+base/runtime_internals.jl	467	467	hasfield	hasfield(T::Type, name::Symbol)	modelled	runtimecov-fields,runtimecov-hasfield-kind-types	
+base/runtime_internals.jl	487	487	nameof	nameof(t::DataType)	modelled	runtimecov-fields	
+base/runtime_internals.jl	488	488	nameof	nameof(t::UnionAll)	modelled	runtimecov-fields	
+base/runtime_internals.jl	509	509	parentmodule	parentmodule(t::DataType)	modelled	runtimecov-fields	
+base/runtime_internals.jl	510	510	parentmodule	parentmodule(t::UnionAll)	modelled	runtimecov-fields	
+base/runtime_internals.jl	522	523	isconst	isconst(m::Module, s::Symbol)	modelled	runtimecov-isconst-globals	method-specific runtime-query model and settled invariant.
+base/runtime_internals.jl	525	527	isconst	isconst(g::GlobalRef)	modelled	runtimecov-isconst-globals	method-specific runtime-query model and settled invariant.
+base/runtime_internals.jl	538	543	isconst	isconst(@nospecialize(t::Type), s::Symbol)	modelled	runtimecov-fields	
+base/runtime_internals.jl	544	555	isconst	isconst(@nospecialize(t::Type), s::Int)	modelled	runtimecov-fields	
+base/runtime_internals.jl	562	567	isfieldatomic	isfieldatomic(@nospecialize(t::Type), s::Symbol)	modelled	runtimecov-fields	
+base/runtime_internals.jl	568	579	isfieldatomic	isfieldatomic(@nospecialize(t::Type), s::Int)	modelled	runtimecov-fields	
+base/runtime_internals.jl	616	618	locals	locals()	modelled	runtimecov-modules	
+base/runtime_internals.jl	622	622	datatype_fieldtypes	datatype_fieldtypes(x::DataType)	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	642	646	DataTypeLayout	DataTypeLayout(dt::DataType)	modelled	runtimecov-layout	
+base/runtime_internals.jl	655	655	datatype_alignment	datatype_alignment(dt::DataType)	modelled	runtimecov-layout	
+base/runtime_internals.jl	656	656	datatype_alignment	datatype_alignment(dtl::DataTypeLayout)	modelled	runtimecov-layout	
+base/runtime_internals.jl	658	663	uniontype_layout	uniontype_layout(@nospecialize T::Type)	modelled	runtimecov-layout	
+base/runtime_internals.jl	665	665	LLT_ALIGN	LLT_ALIGN(x, sz)	modelled	runtimecov-layout	
+base/runtime_internals.jl	668	688	aligned_sizeof	aligned_sizeof(@nospecialize T::Type)	modelled	runtimecov-layout	
+base/runtime_internals.jl	690	690	gc_alignment	gc_alignment(sz::Integer)	modelled	runtimecov-layout	
+base/runtime_internals.jl	691	691	gc_alignment	gc_alignment(T::Type)	modelled	runtimecov-layout	
+base/runtime_internals.jl	701	701	datatype_haspadding	datatype_haspadding(dt::DataType)	modelled	runtimecov-layout,runtimecov-datatype-haspadding-doc	
+base/runtime_internals.jl	702	702	datatype_haspadding	datatype_haspadding(dtl::DataTypeLayout)	modelled	runtimecov-layout,runtimecov-datatype-haspadding-doc	
+base/runtime_internals.jl	712	712	datatype_isbitsegal	datatype_isbitsegal(dt::DataType)	modelled	runtimecov-layout	
+base/runtime_internals.jl	713	713	datatype_isbitsegal	datatype_isbitsegal(dtl::DataTypeLayout)	modelled	runtimecov-layout	
+base/runtime_internals.jl	722	722	datatype_nfields	datatype_nfields(dt::DataType)	modelled	runtimecov-layout	
+base/runtime_internals.jl	723	723	datatype_nfields	datatype_nfields(dtl::DataTypeLayout)	modelled	runtimecov-layout	
+base/runtime_internals.jl	730	730	datatype_npointers	datatype_npointers(dt::DataType)	modelled	runtimecov-layout,runtimecov-datatype-npointers-return-type	
+base/runtime_internals.jl	731	731	datatype_npointers	datatype_npointers(dtl::DataTypeLayout)	modelled	runtimecov-layout,runtimecov-datatype-npointers-return-type	
+base/runtime_internals.jl	739	742	datatype_pointerfree	datatype_pointerfree(dt::DataType)	modelled	runtimecov-layout	
+base/runtime_internals.jl	753	753	datatype_fielddesc_type	datatype_fielddesc_type(dt::DataType)	modelled	runtimecov-layout,runtimecov-datatype-fielddesc-type-doc	
+base/runtime_internals.jl	754	754	datatype_fielddesc_type	datatype_fielddesc_type(dtl::DataTypeLayout)	modelled	runtimecov-layout,runtimecov-datatype-fielddesc-type-doc	
+base/runtime_internals.jl	766	766	datatype_arrayelem	datatype_arrayelem(dt::DataType)	modelled	runtimecov-layout	
+base/runtime_internals.jl	767	767	datatype_arrayelem	datatype_arrayelem(dtl::DataTypeLayout)	modelled	runtimecov-layout	
+base/runtime_internals.jl	769	769	datatype_layoutsize	datatype_layoutsize(dt::DataType)	modelled	runtimecov-layout	
+base/runtime_internals.jl	770	770	datatype_layoutsize	datatype_layoutsize(dtl::DataTypeLayout)	modelled	runtimecov-layout	
+base/runtime_internals.jl	785	787	FieldDesc	FieldDesc(fd::FieldDescStorage{T}) where {T}	modelled	runtimecov-layout	
+base/runtime_internals.jl	791	794	DataTypeFieldDesc	DataTypeFieldDesc(dt::DataType)	modelled	runtimecov-layout	
+base/runtime_internals.jl	797	813	getindex	getindex(dtfd::DataTypeFieldDesc, i::Int)	modelled	runtimecov-layout	
+base/runtime_internals.jl	840	840	ismutable	ismutable(@nospecialize(x))	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	854	859	ismutabletype	ismutabletype(@nospecialize t)	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	861	861	ismutabletypename	ismutabletypename(tn::Core.TypeName)	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	870	876	isstructtype	isstructtype(@nospecialize t)	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	885	891	isprimitivetype	isprimitivetype(@nospecialize t)	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	917	917	isbitstype	isbitstype(@nospecialize t)	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	924	924	isbits	isbits(@nospecialize x)	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	936	939	objectid	objectid(@nospecialize(x))	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	990	990	isdispatchtuple	isdispatchtuple(@nospecialize(t))	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	992	992	datatype_ismutationfree	datatype_ismutationfree(dt::DataType)	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1003	1015	ismutationfree	ismutationfree(@nospecialize(t))	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1017	1017	datatype_isidentityfree	datatype_isidentityfree(dt::DataType)	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1026	1038	isidentityfree	isidentityfree(@nospecialize(t))	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1049	1049	iskindtype	iskindtype(@nospecialize t)	modelled	runtimecov-typepreds,runtimecov-iskindtype-abstract-kind	
+base/runtime_internals.jl	1074	1074	isconcretedispatch	isconcretedispatch(@nospecialize t)	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1080	1083	isdispatchelem	isdispatchelem(@nospecialize v)	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1095	1095	isType	isType(@nospecialize t)	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1102	1102	isTypeEq	isTypeEq(@nospecialize t)	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1109	1109	isTypeEgal	isTypeEgal(@nospecialize t)	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1111	1111	type_parameter	type_parameter(t::TypeEq)	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1112	1112	type_parameter	type_parameter(t::Core.TypeEgal)	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1161	1161	isconcretetype	isconcretetype(@nospecialize(t))	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1186	1192	isabstracttype	isabstracttype(@nospecialize(t))	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1194	1196	is_datatype_layoutopaque	is_datatype_layoutopaque(dt::DataType)	modelled	runtimecov-layout	
+base/runtime_internals.jl	1198	1203	is_valid_intrinsic_elptr	is_valid_intrinsic_elptr(@nospecialize(ety))	modelled	runtimecov-layout	
+base/runtime_internals.jl	1212	1212	issingletontype	issingletontype(@nospecialize(t))	modelled	runtimecov-layout	
+base/runtime_internals.jl	1223	1223	typeintersect	typeintersect(@nospecialize(a), @nospecialize(b))	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1225	1225	morespecific	morespecific(@nospecialize(a), @nospecialize(b))	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1226	1226	morespecific	morespecific(a::Method, b::Method)	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1273	1273	fieldoffset	fieldoffset(x::DataType, idx::Integer)	modelled	runtimecov-fields	
+base/runtime_internals.jl	1274	1274	fieldoffset	fieldoffset(x::DataType, name::Symbol)	modelled	runtimecov-fields	
+base/runtime_internals.jl	1275	1275	fieldoffset	fieldoffset(x::Core.TypeEgal, idx::Union{Integer,Symbol})	modelled	runtimecov-fields	
+base/runtime_internals.jl	1326	1328	fieldindex	fieldindex(T::DataType, name::Symbol, err::Bool=true)	modelled	runtimecov-fields	
+base/runtime_internals.jl	1330	1334	_fieldindex_maythrow	_fieldindex_maythrow(T::DataType, name::Symbol)	modelled	runtimecov-fields	
+base/runtime_internals.jl	1336	1340	_fieldindex_nothrow	_fieldindex_nothrow(T::DataType, name::Symbol)	modelled	runtimecov-fields	
+base/runtime_internals.jl	1342	1344	fieldindex	fieldindex(t::UnionAll, name::Symbol, err::Bool=true)	modelled	runtimecov-fields	
+base/runtime_internals.jl	1346	1348	fieldindex	fieldindex(t::Union, name::Symbol, err::Bool=true)	modelled	runtimecov-fields	
+base/runtime_internals.jl	1350	1362	_fieldindex	_fieldindex(@nospecialize(t), name::Symbol, err::Bool)	modelled	runtimecov-fields	
+base/runtime_internals.jl	1364	1368	argument_datatype	argument_datatype(@nospecialize t)	modelled	runtimecov-fields	
+base/runtime_internals.jl	1370	1374	argument_datatypename	argument_datatypename(@nospecialize t)	modelled	runtimecov-fields	
+base/runtime_internals.jl	1376	1396	datatype_fieldcount	datatype_fieldcount(t::DataType)	modelled	runtimecov-fields	
+base/runtime_internals.jl	1398	1409	_typename_noerror	_typename_noerror(@nospecialize(t))	modelled	runtimecov-fields	
+base/runtime_internals.jl	1411	1424	_fieldindex_error_type	_fieldindex_error_type(@nospecialize(t))	modelled	runtimecov-fields	
+base/runtime_internals.jl	1426	1438	_fieldindex_noerror	_fieldindex_noerror(@nospecialize(t), name::Symbol)	modelled	runtimecov-fields	
+base/runtime_internals.jl	1440	1454	_fieldcount_noerror	_fieldcount_noerror(@nospecialize(t))	modelled	runtimecov-fields	
+base/runtime_internals.jl	1462	1487	fieldcount	fieldcount(@nospecialize t)	modelled	runtimecov-fields	
+base/runtime_internals.jl	1489	1491	fieldcount_noerror	fieldcount_noerror(@nospecialize t)	modelled	runtimecov-fields	
+base/runtime_internals.jl	1513	1513	fieldtypes	fieldtypes(@nospecialize T::Type)	modelled	runtimecov-fields	
+base/runtime_internals.jl	1514	1514	fieldtypes	fieldtypes(T::Core.TypeEgal)	modelled	runtimecov-fields	
+base/runtime_internals.jl	1532	1532	instances	instances	excluded		no-behaviour: declares the generic function `instances` without a method body.
+base/runtime_internals.jl	1534	1552	to_tuple_type	to_tuple_type(@nospecialize(t))	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1554	1561	signature_type	signature_type(@nospecialize(f), @nospecialize(argtypes))	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1563	1569	get_methodtable	get_methodtable(m::Method)	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1576	1591	has_bottom_parameter	has_bottom_parameter(@nospecialize(t::Core.AnyType))	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1592	1592	has_bottom_parameter	has_bottom_parameter(t::TypeVar)	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1593	1593	has_bottom_parameter	has_bottom_parameter(::Any)	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1595	1597	find_free_typevars	find_free_typevars(@nospecialize(t))	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1612	1629	rewrap_free_typevars	rewrap_free_typevars(@nospecialize(t), pre=Core.svec())	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1631	1634	typeintersect_env	typeintersect_env(@nospecialize(a), @nospecialize(b))	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1636	1636	min_world	min_world(m::Core.CodeInstance)	modelled	runtimecov-modules	
+base/runtime_internals.jl	1637	1637	max_world	max_world(m::Core.CodeInstance)	modelled	runtimecov-modules	
+base/runtime_internals.jl	1638	1638	min_world	min_world(m::Core.CodeInfo)	modelled	runtimecov-modules	
+base/runtime_internals.jl	1639	1639	max_world	max_world(m::Core.CodeInfo)	modelled	runtimecov-modules	
+base/runtime_internals.jl	1653	1653	get_world_counter	get_world_counter()	modelled	runtimecov-modules	
+base/runtime_internals.jl	1660	1660	tls_world_age	tls_world_age()	modelled	runtimecov-modules	
+base/runtime_internals.jl	1662	1662	get_require_world	get_require_world()	modelled	runtimecov-modules	
+base/runtime_internals.jl	1679	1679	propertynames	propertynames(x)	modelled	runtimecov-fields	
+base/runtime_internals.jl	1680	1680	propertynames	propertynames(m::Module)	modelled	runtimecov-fields	
+base/runtime_internals.jl	1681	1681	propertynames	propertynames(x, private::Bool)	modelled	runtimecov-fields	
+base/runtime_internals.jl	1682	1682	propertynames	propertynames(x::Array)	modelled	runtimecov-fields	
+base/runtime_internals.jl	1694	1694	hasproperty	hasproperty(x, s::Symbol)	modelled	runtimecov-fields	
+base/runtime_internals.jl	1701	1703	delete_method	delete_method(m::Method)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1712	1712	size	size(m::MethodList)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1713	1713	getindex	getindex(m::MethodList, i::Integer)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1715	1721	MethodList	MethodList(mt::Core.MethodTable)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1723	1731	matches_to_methods	matches_to_methods(ms::Array{Any,1}, tn::Core.TypeName, mod)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1751	1757	methods	methods(@nospecialize(f), @nospecialize(t), mod::Union{Tuple{Module},AbstractArray{Module},AbstractSet{Module},Nothing}=nothing)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1758	1758	methods	methods(@nospecialize(f), @nospecialize(t), mod::Module)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1760	1768	methods_including_ambiguous	methods_including_ambiguous(@nospecialize(f), @nospecialize(t))	modelled	runtimecov-methods	
+base/runtime_internals.jl	1770	1774	methods	methods(@nospecialize(f), mod::Union{Module,AbstractArray{Module},AbstractSet{Module},Nothing}=nothing)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1778	1778	unionlen	unionlen(@nospecialize(x))	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1780	1788	_uniontypes	_uniontypes(@nospecialize(x), ts::Array{Any,1})	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1789	1789	uniontypes	uniontypes(@nospecialize(x))	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	1791	1794	_methods	_methods(@nospecialize(f), @nospecialize(t), lim::Int, world::UInt)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1796	1798	_methods_by_ftype	_methods_by_ftype(@nospecialize(t), lim::Int, world::UInt)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1799	1801	_methods_by_ftype	_methods_by_ftype(@nospecialize(t), mt::Union{Core.MethodTable, Nothing}, lim::Int, world::UInt)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1802	1804	_methods_by_ftype	_methods_by_ftype(@nospecialize(t), mt::Union{Core.MethodTable, Nothing}, lim::Int, world::UInt, ambig::Bool, min::Ref{UInt}, max::Ref{UInt}, has_ambig::Ref{Int32})	modelled	runtimecov-methods	
+base/runtime_internals.jl	1806	1806	hasgenerator	hasgenerator(m::Method)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1807	1807	hasgenerator	hasgenerator(m::Core.MethodInstance)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1809	1815	_uncompressed_ir	_uncompressed_ir(m::Method)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1817	1818	_uncompressed_ir	_uncompressed_ir(codeinst::CodeInstance, s::String)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1820	1827	get_ci_mi	get_ci_mi(codeinst::CodeInstance)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1841	1847	generating_output	generating_output(incremental::Union{Bool,Nothing}=nothing)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1850	1850	ast_slotflag	ast_slotflag(@nospecialize(code), i)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1867	1869	may_invoke_generator	may_invoke_generator(mi::MethodInstance)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1870	1925	may_invoke_generator	may_invoke_generator(method::Method, @nospecialize(atype), sparams::SimpleVector)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1930	1947	subst_trivial_bounds	subst_trivial_bounds(@nospecialize(atype))	modelled	runtimecov-methods	
+base/runtime_internals.jl	1953	1960	normalize_typevars	normalize_typevars(method::Method, @nospecialize(atype), sparams::SimpleVector)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1962	1966	get_nospecializeinfer_sig	get_nospecializeinfer_sig(method::Method, @nospecialize(atype), sparams::SimpleVector)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1968	1968	is_nospecialized	is_nospecialized(method::Method)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1969	1969	is_nospecializeinfer	is_nospecializeinfer(method::Method)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1979	1993	specialize_method	specialize_method(method::Method, @nospecialize(atype), sparams::SimpleVector; preexisting::Bool=false)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1995	1997	specialize_method	specialize_method(match::Core.MethodMatch; kwargs...)	modelled	runtimecov-methods	
+base/runtime_internals.jl	1999	1999	hasintersect	hasintersect(@nospecialize(a), @nospecialize(b))	modelled	runtimecov-typepreds	
+base/runtime_internals.jl	2007	2010	visit	visit(f, mt::Core.MethodTable)	modelled	runtimecov-methods	
+base/runtime_internals.jl	2011	2043	visit	visit(f, mc::Core.TypeMapLevel)	modelled	runtimecov-methods	
+base/runtime_internals.jl	2012	2027	avisit	avisit(f, e::Memory{Any})	modelled	runtimecov-methods	
+base/runtime_internals.jl	2044	2050	visit	visit(f, d::Core.TypeMapEntry)	modelled	runtimecov-methods	
+base/runtime_internals.jl	2059	2059	specializations	specializations(m::Method)	modelled	runtimecov-methods	
+base/runtime_internals.jl	2060	2065	iterate	iterate(specs::MethodSpecializations)	modelled	runtimecov-methods	
+base/runtime_internals.jl	2066	2066	iterate	iterate(specs::MethodSpecializations, ::Nothing)	modelled	runtimecov-methods	
+base/runtime_internals.jl	2067	2077	iterate	iterate(specs::MethodSpecializations, i::Int)	modelled	runtimecov-methods	
+base/runtime_internals.jl	2078	2078	length	length(specs::MethodSpecializations)	modelled	runtimecov-methods	
+base/runtime_internals.jl	2080	2086	length	length(mt::Core.MethodTable)	modelled	runtimecov-methods	
+base/runtime_internals.jl	2087	2087	isempty	isempty(mt::Core.MethodTable)	modelled	runtimecov-methods	
+base/runtime_internals.jl	2089	2091	uncompressed_ir	uncompressed_ir(m::Method)	modelled	runtimecov-methods	
+base/runtime_internals.jl	2093	2093	has_image_globalref	has_image_globalref(m::Method)	modelled	runtimecov-methods	

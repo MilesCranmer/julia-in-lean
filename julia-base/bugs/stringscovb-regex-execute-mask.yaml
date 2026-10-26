@@ -1,0 +1,62 @@
+id: stringscovb-regex-execute-mask
+title: Regex accepts PCRE.NO_START_OPTIMIZE as a match option, which every match then rejects
+priority: P3
+kind: wrong-exception
+area: StringsCovB
+files:
+- base/pcre.jl
+- base/regex.jl
+functions:
+- Regex(pattern::AbstractString, compile_options::Integer, match_options::Integer)
+- PCRE.EXECUTE_MASK
+summary: |
+  The Regex constructor validates match_options against PCRE.EXECUTE_MASK, which lists
+  NO_START_OPTIMIZE (0x00010000). That is a pcre2_compile option; as a pcre2_match option the
+  bit is not in PCRE2's PUBLIC_MATCH_OPTIONS, so every match, occursin, findnext or eachmatch
+  with such a Regex throws "PCRE.exec error: bad option value". The constructor's check,
+  whose purpose is to reject unusable options up front, lets it through.
+likelihood: |
+  Only code that passes match options explicitly; NO_START_OPTIMIZE is a plausible choice for someone disabling optimizations.
+maybe_intended: ''
+reproducer: |
+  using Base: PCRE
+  # NO_START_OPTIMIZE is listed in PCRE.EXECUTE_MASK, so the Regex constructor accepts it as a match option
+  r = Regex("a", Base.DEFAULT_COMPILER_OPTS, Base.DEFAULT_MATCH_OPTS | PCRE.NO_START_OPTIMIZE)
+  println("constructed: ", r)
+  res = try match(r, "a") catch e e end
+  println("match(r, \"a\") -> ", repr(res))
+  res isa ErrorException && occursin("bad option value", res.msg) &&
+      println("REPRODUCED stringscovb-regex-execute-mask")
+output:
+  release: |
+    constructed: Regex("a", 0x040a0002, 0x40010000)
+    match(r, "a") -> ErrorException("PCRE.exec error: bad option value")
+    REPRODUCED stringscovb-regex-execute-mask
+  nightly: |
+    constructed: Regex("a", 0x040a0002, 0x40010000)
+    match(r, "a") -> ErrorException("PCRE.exec error: bad option value")
+    REPRODUCED stringscovb-regex-execute-mask
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  ArgumentError("invalid regex match options: ...") from the constructor, or a working match (if the option should be passed to pcre2_compile instead).
+promised_by: |
+  base/regex.jl:36-41 rejects match options outside EXECUTE_MASK, so a constructed Regex is meant to
+  have usable match options; pcre2api "Option bits for pcre2_match()" lists the accepted bits
+  (PCRE2_NO_START_OPTIMIZE is only a compile option).
+cause: |
+  base/pcre.jl:119-130: EXECUTE_MASK includes NO_START_OPTIMIZE, a compile-time option.
+possible_fix: |
+  Remove NO_START_OPTIMIZE from EXECUTE_MASK (it is already in COMPILE_MASK); optionally add NO_JIT, which pcre2_match does accept.
+duplicates:
+  issues: []
+  queries:
+  - 'issues: EXECUTE_MASK'
+  - 'prs: EXECUTE_MASK'
+  - 'issues: NO_START_OPTIMIZE'
+  - 'prs: NO_START_OPTIMIZE'
+  - 'issues: match_options bad option value'
+lean:
+  property: JuliaLean.StringsCovB.Rx.MatchOptionsUsable
+  theorem: JuliaLean.StringsCovB.Rx.matchOptionsUsable_refuted

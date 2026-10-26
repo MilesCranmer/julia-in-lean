@@ -1,0 +1,81 @@
+file	line	endline	name	signature	status	entry	note
+base/toml/parser.jl	23	24	DateTime	DateTime(y, m, d, h, mi, s, ms)	modelled	docssyntaxcov-toml-datetime-constructor	
+base/toml/parser.jl	45	45	CommentBlock	CommentBlock()	modelled	docssyntaxcov-toml-containers	
+base/toml/parser.jl	60	60	Comments	Comments()	modelled	docssyntaxcov-toml-containers	
+base/toml/parser.jl	62	62	Base.isempty	Base.isempty(c::Comments)	modelled	docssyntaxcov-toml-containers	
+base/toml/parser.jl	63	67	Base.empty!	Base.empty!(c::Comments)	modelled	docssyntaxcov-toml-containers	
+base/toml/parser.jl	68	68	Base.:(==)	Base.:(==)(a::CommentBlock, b::CommentBlock)	modelled	docssyntaxcov-toml-containers	
+base/toml/parser.jl	69	69	Base.:(==)	Base.:(==)(a::Comments, b::Comments)	modelled	docssyntaxcov-toml-containers	
+base/toml/parser.jl	136	165	Parser{Dates}	Parser{Dates}(str::String; filepath=nothing, comments::Union{Comments, Nothing}=nothing) where {Dates}	modelled	docssyntaxcov-toml-parser-construction	
+base/toml/parser.jl	167	175	startup	startup(l::Parser)	modelled	docssyntaxcov-toml-parser-construction	
+base/toml/parser.jl	177	177	Parser{Dates}	Parser{Dates}() where {Dates}	modelled	docssyntaxcov-toml-parser-construction	
+base/toml/parser.jl	178	178	Parser{Dates}	Parser{Dates}(io::IO) where {Dates}	modelled	docssyntaxcov-toml-parser-construction	
+base/toml/parser.jl	182	209	reinit!	reinit!(p::Parser, str::String; filepath::Union{Nothing, String}=nothing, comments::Union{Comments, Nothing}=nothing)	modelled	docssyntaxcov-toml-parser-construction	
+base/toml/parser.jl	219	225	"$(:var""try"")"	"$(:var""try"")(expr)"	modelled	docssyntaxcov-toml-try-macro	
+base/toml/parser.jl	340	340	ParserError	ParserError(type, data)	modelled	docssyntaxcov-toml-error-constructors	
+base/toml/parser.jl	341	341	ParserError	ParserError(type)	modelled	docssyntaxcov-toml-error-constructors	
+base/toml/parser.jl	350	357	format_error_message_for_err_type	format_error_message_for_err_type(error::ParserError)	modelled	docssyntaxcov-toml-errors	
+base/toml/parser.jl	365	385	point_to_line	point_to_line(str::AbstractString, a::Int, b::Int, context)	modelled	docssyntaxcov-toml-point-line	
+base/toml/parser.jl	387	406	Base.showerror	Base.showerror(io::IO, err::ParserError)	modelled	docssyntaxcov-toml-showerror	
+base/toml/parser.jl	413	425	next_char	next_char(l::Parser)::Char	modelled	docssyntaxcov-toml-lexer-char	
+base/toml/parser.jl	427	431	eat_char	eat_char(l::Parser)::Char	modelled	docssyntaxcov-toml-eat-char	
+base/toml/parser.jl	433	433	peek	peek(l::Parser)	modelled	docssyntaxcov-toml-peek	
+base/toml/parser.jl	437	448	accept	accept(l::Parser, f::Union{Function, Char})::Bool	modelled	docssyntaxcov-toml-lexer-accept-one	
+base/toml/parser.jl	451	457	accept_batch	accept_batch(l::Parser, f::F)::Bool where {F}	modelled	docssyntaxcov-toml-lexer-accept	
+base/toml/parser.jl	460	467	accept_n	accept_n(l::Parser, n, f::F)::Bool where {F}	modelled	docssyntaxcov-toml-lexer-accept-n	
+base/toml/parser.jl	469	469	iswhitespace	iswhitespace(c::Char)	modelled	docssyntaxcov-toml-whitespace-predicates	
+base/toml/parser.jl	470	470	isnewline	isnewline(c::Char)	modelled	docssyntaxcov-toml-whitespace-predicates	
+base/toml/parser.jl	472	472	skip_ws	skip_ws(l::Parser)	modelled	docssyntaxcov-toml-whitespace	
+base/toml/parser.jl	474	474	skip_ws_nl_no_comment	skip_ws_nl_no_comment(l::Parser)::Bool	modelled	docssyntaxcov-toml-whitespace	
+base/toml/parser.jl	476	490	skip_ws_nl	skip_ws_nl(l::Parser)::Bool	modelled	docssyntaxcov-toml-skip-wsnl	
+base/toml/parser.jl	493	524	skip_ws_nl_toplevel	skip_ws_nl_toplevel(l::Parser)::Bool	modelled	docssyntaxcov-toml-toplevel-comments	
+base/toml/parser.jl	527	539	skip_comment	skip_comment(l::Parser)::Bool	modelled	docssyntaxcov-toml-comments	
+base/toml/parser.jl	541	544	skip_ws_comment	skip_ws_comment(l::Parser)::Bool	modelled	docssyntaxcov-toml-skip-ws-comment	
+base/toml/parser.jl	546	555	flush_pending_comments!	flush_pending_comments!(l::Parser)	modelled	docssyntaxcov-toml-flush-comments	
+base/toml/parser.jl	557	563	attach_pending_comments!	attach_pending_comments!(l::Parser, path::CommentPath)	modelled	docssyntaxcov-toml-comment-state	
+base/toml/parser.jl	565	571	attach_inline_comment!	attach_inline_comment!(l::Parser)	modelled	docssyntaxcov-toml-comment-state	
+base/toml/parser.jl	573	582	path_traverses_array	path_traverses_array(l::Parser, keys::AbstractVector{String})	modelled	docssyntaxcov-toml-path-marker	
+base/toml/parser.jl	584	584	set_marker!	set_marker!(l::Parser)	modelled	docssyntaxcov-toml-marker	
+base/toml/parser.jl	585	585	take_substring	take_substring(l::Parser)	modelled	docssyntaxcov-toml-marker	
+base/toml/parser.jl	593	597	parse	parse(l::Parser)::TOMLDict	modelled	docssyntaxcov-toml-value-methods,toml-duplicate-keys,toml-table-headers	
+base/toml/parser.jl	599	616	tryparse	tryparse(l::Parser)::Err{TOMLDict}	modelled	docssyntaxcov-toml-value-methods,toml-duplicate-keys,toml-table-headers	
+base/toml/parser.jl	620	642	parse_toplevel	parse_toplevel(l::Parser)::Err{Nothing}	modelled	docssyntaxcov-toml-value-methods,toml-duplicate-keys,toml-table-headers	
+base/toml/parser.jl	644	667	recurse_dict!	recurse_dict!(l::Parser, d::Dict, dotted_keys::AbstractVector{String}, check=true, define_implicit=false)::Err{TOMLDict}	modelled	docssyntaxcov-toml-value-methods,toml-duplicate-keys,toml-table-headers	
+base/toml/parser.jl	669	678	check_allowed_add_key	check_allowed_add_key(l::Parser, d, check_defined=true)::Err{Nothing}	modelled	docssyntaxcov-toml-value-methods,toml-duplicate-keys,toml-table-headers	
+base/toml/parser.jl	681	709	parse_table	parse_table(l)	modelled	docssyntaxcov-toml-value-methods,toml-duplicate-keys,toml-table-headers	
+base/toml/parser.jl	711	746	parse_array_table	parse_array_table(l)::Union{Nothing, ParserError}	modelled	docssyntaxcov-toml-value-methods,toml-duplicate-keys,toml-table-headers	
+base/toml/parser.jl	748	789	parse_entry	parse_entry(l::Parser, d)::Union{Nothing, ParserError}	modelled	docssyntaxcov-toml-value-methods,toml-duplicate-keys,toml-table-headers	
+base/toml/parser.jl	800	804	isvalid_barekey_char	isvalid_barekey_char(c::Char)	modelled	toml-bare-key-charset	
+base/toml/parser.jl	807	810	parse_key	parse_key(l::Parser)	modelled	toml-bare-key-charset	
+base/toml/parser.jl	813	845	_parse_key	_parse_key(l::Parser)	modelled	toml-bare-key-charset	
+base/toml/parser.jl	852	872	parse_value	parse_value(l::Parser)	modelled	docssyntaxcov-toml-value-methods,toml-small-integer-literals	
+base/toml/parser.jl	879	884	copyto_typed!	copyto_typed!(a::Vector{T}, b::Vector) where T	modelled	docssyntaxcov-toml-datetime-copy	
+base/toml/parser.jl	886	936	parse_array	parse_array(l::Parser{Dates})::Err{Vector} where Dates	modelled	docssyntaxcov-toml-value-methods,toml-duplicate-keys	
+base/toml/parser.jl	943	961	parse_inline_table	parse_inline_table(l::Parser)::Err{TOMLDict}	modelled	docssyntaxcov-toml-value-methods,toml-duplicate-keys	
+base/toml/parser.jl	968	968	parse_inf	parse_inf(l::Parser, sgn::Int)	modelled	docssyntaxcov-toml-value-methods,toml-small-integer-literals	
+base/toml/parser.jl	969	969	parse_nan	parse_nan(l::Parser)	modelled	docssyntaxcov-toml-value-methods,toml-small-integer-literals	
+base/toml/parser.jl	971	976	parse_bool	parse_bool(l::Parser, v::Bool)::Union{Bool, Nothing}	modelled	docssyntaxcov-toml-value-methods,toml-small-integer-literals	
+base/toml/parser.jl	978	978	isvalid_hex	isvalid_hex(c::Char)	modelled	docssyntaxcov-toml-value-methods,toml-small-integer-literals	
+base/toml/parser.jl	979	979	isvalid_oct	isvalid_oct(c::Char)	modelled	docssyntaxcov-toml-value-methods,toml-small-integer-literals	
+base/toml/parser.jl	980	980	isvalid_binary	isvalid_binary(c::Char)	modelled	docssyntaxcov-toml-value-methods,toml-small-integer-literals	
+base/toml/parser.jl	985	1014	accept_batch_underscore	accept_batch_underscore(l::Parser, f::ValidSigs, fail_if_underscore=true)::Err{Tuple{Bool, Bool}}	modelled	docssyntaxcov-toml-value-methods,toml-small-integer-literals	
+base/toml/parser.jl	1016	1112	parse_number_or_date_start	parse_number_or_date_start(l::Parser)	modelled	docssyntaxcov-toml-value-methods,toml-small-integer-literals	
+base/toml/parser.jl	1115	1120	take_string_or_substring	take_string_or_substring(l, contains_underscore)::SubString	modelled	docssyntaxcov-toml-value-methods,toml-small-integer-literals	
+base/toml/parser.jl	1122	1127	parse_float	parse_float(l::Parser, contains_underscore)::Err{Float64}	modelled	docssyntaxcov-toml-value-methods,toml-small-integer-literals	
+base/toml/parser.jl	1129	1138	parse_int	parse_int(l::Parser, contains_underscore, base=nothing)::Err{Int64}	modelled	docssyntaxcov-toml-value-methods,toml-small-integer-literals	
+base/toml/parser.jl	1145	1161	"$(Symbol(""parse_"", name))"	"$(Symbol(""parse_"", name))(l::Parser, contains_underscore, base=nothing)::Err{Union{$(T1), $(T2), BigInt}}"	modelled	docssyntaxcov-toml-value-methods,toml-small-integer-literals	
+base/toml/parser.jl	1169	1170	ok_end_value	ok_end_value(c::Char)	modelled	docssyntaxcov-toml-value-methods,toml-small-integer-literals	
+base/toml/parser.jl	1197	1197	accept_two	accept_two(l, f::F) where {F}	modelled	docssyntaxcov-toml-date-methods,toml-local-date-valid	
+base/toml/parser.jl	1198	1250	parse_datetime	parse_datetime(l)	modelled	docssyntaxcov-toml-date-methods,toml-local-date-valid	
+base/toml/parser.jl	1252	1263	try_return_datetime	try_return_datetime(::Parser{Dates}, year, month, day, h, m, s, ms) where Dates	modelled	docssyntaxcov-toml-date-methods,toml-local-date-valid	
+base/toml/parser.jl	1265	1276	try_return_date	try_return_date(::Parser{Dates}, year, month, day) where Dates	modelled	docssyntaxcov-toml-date-methods,toml-local-date-valid	
+base/toml/parser.jl	1278	1287	parse_local_time	parse_local_time(l::Parser)	modelled	docssyntaxcov-toml-date-methods,toml-local-date-valid	
+base/toml/parser.jl	1289	1300	try_return_time	try_return_time(::Parser{Dates}, h, m, s, ms) where Dates	modelled	docssyntaxcov-toml-date-methods,toml-local-date-valid	
+base/toml/parser.jl	1302	1353	_parse_local_time	_parse_local_time(l::Parser, skip_hour=false)::Err{NTuple{4, Int64}}	modelled	docssyntaxcov-toml-date-methods,toml-local-date-valid	
+base/toml/parser.jl	1360	1376	parse_string_start	parse_string_start(l::Parser, quoted::Bool; allow_multiline::Bool=true)::Err{String}	modelled	docssyntaxcov-toml-string-methods,toml-escape-table	
+base/toml/parser.jl	1378	1378	stop_candidates_multiline	stop_candidates_multiline(x)	modelled	docssyntaxcov-toml-string-methods,toml-escape-table	
+base/toml/parser.jl	1379	1379	stop_candidates_singleline	stop_candidates_singleline(x)	modelled	docssyntaxcov-toml-string-methods,toml-escape-table	
+base/toml/parser.jl	1380	1380	stop_candidates_multiline_quoted	stop_candidates_multiline_quoted(x)	modelled	docssyntaxcov-toml-string-methods,toml-escape-table	
+base/toml/parser.jl	1381	1381	stop_candidates_singleline_quoted	stop_candidates_singleline_quoted(x)	modelled	docssyntaxcov-toml-string-methods,toml-escape-table	
+base/toml/parser.jl	1383	1445	parse_string_continue	parse_string_continue(l::Parser, multiline::Bool, quoted::Bool)::Err{String}	modelled	docssyntaxcov-toml-string-methods,toml-escape-table	
+base/toml/parser.jl	1447	1462	take_chunks	take_chunks(l::Parser, unescape::Bool)::String	modelled	docssyntaxcov-toml-string-methods,toml-escape-table	

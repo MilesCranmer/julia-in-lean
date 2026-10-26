@@ -4,8 +4,7 @@ import JuliaLean.MathFuncs.Cbrt
 /-!
 Differential corpus for the `sinpi`/`cospi`/`sincospi`/`tanpi`/`cbrt` models. Run with
 `lake env lean --run JuliaLean/MathFuncs/CheckTrig.lean nightly|release [start] [count]`
-and compare with `julia repro/mathfuncs-differential-trig.jl` run on the matching Julia
-version (`release` is 1.13.2, `nightly` is master).
+and compare with `julia repro/mathfuncs-differential-trig.jl`.
 The integer-method lines are printed when `start` is 0.
 -/
 

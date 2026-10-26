@@ -1,0 +1,94 @@
+file	line	endline	name	signature	status	entry	note
+base/file.jl	54	68	pwd	pwd()	modelled	files-method-pwd	
+base/file.jl	91	95	cd	cd(dir::AbstractString)	modelled	files-method-cd	
+base/file.jl	96	96	cd	cd()	modelled	files-method-cd	
+base/file.jl	99	107	cd	cd(f::Function, dir::AbstractString)	excluded		platform: Windows callback cd saves and restores a path string; the active POSIX method saves a directory descriptor.
+base/file.jl	109	119	cd	cd(f::Function, dir::AbstractString)	modelled	files-method-cd	
+base/file.jl	149	149	cd	cd(f::Function)	modelled	files-method-cd	
+base/file.jl	151	156	checkmode	checkmode(mode::Integer)	modelled	files-method-checkmode	
+base/file.jl	179	194	mkdir	mkdir(path::AbstractString; mode::Integer = 0o777)	modelled	files-method-mkdir	
+base/file.jl	239	256	mkpath	mkpath(path::AbstractString; mode::Integer = 0o777)	modelled	files-method-mkpath	
+base/file.jl	260	260	delayed_delete_ref	delayed_delete_ref()	modelled	files-method-delayed-delete-ref	
+base/file.jl	283	326	rm	rm(path::AbstractString; force::Bool=false, recursive::Bool=false, allow_delayed_delete::Bool=true)	modelled	files-method-rm	
+base/file.jl	331	343	delayed_delete_dll	delayed_delete_dll(path)	excluded		platform: Windows-only delayed deletion for loaded DLL files.
+base/file.jl	348	357	_resolved_path	_resolved_path(path::AbstractString, keep_link::Bool)	modelled	files-method-resolved-path	
+base/file.jl	359	360	_is_within	_is_within(inner::AbstractString, outer::AbstractString)	modelled	files-method-is-within	
+base/file.jl	363	391	checkfor_mv_cp_cptree	checkfor_mv_cp_cptree(src::AbstractString, dst::AbstractString, txt::AbstractString; force::Bool=false, follow_symlinks::Bool=false)	modelled	files-method-check-copy	
+base/file.jl	393	398	cptree	cptree(src::String, dst::String; force::Bool=false, follow_symlinks::Bool=false)	modelled	files-method-cptree	
+base/file.jl	402	418	_cptree	_cptree(src::String, dst::String, follow_symlinks::Bool)	modelled	files-method-cptree	
+base/file.jl	419	420	cptree	cptree(src::AbstractString, dst::AbstractString; kwargs...)	modelled	files-method-cptree	
+base/file.jl	447	458	cp	cp(src::AbstractString, dst::AbstractString; force::Bool=false, follow_symlinks::Bool=false)	modelled	files-method-cp	
+base/file.jl	505	511	mv	mv(src::AbstractString, dst::AbstractString; force::Bool=false)	modelled	files-method-mv	
+base/file.jl	513	542	_mv_replace	_mv_replace(src::AbstractString, dst::AbstractString)	modelled	files-method-mv-replace	
+base/file.jl	544	558	_mv_noreplace	_mv_noreplace(src::AbstractString, dst::AbstractString)	modelled	files-method-mv-noreplace	
+base/file.jl	586	594	touch	touch(path::AbstractString)	modelled	files-method-touch-path	
+base/file.jl	605	632	tempdir	tempdir()	modelled	files-method-tempdir	
+base/file.jl	643	664	prepare_for_deletion	prepare_for_deletion(path::AbstractString)	modelled	files-method-prepare-deletion	
+base/file.jl	671	683	temp_cleanup_later	temp_cleanup_later(path::AbstractString; asap::Bool=false)	modelled	files-method-cleanup-later	
+base/file.jl	685	688	temp_cleanup_forget	temp_cleanup_forget(path::AbstractString)	modelled	files-method-cleanup-forget	
+base/file.jl	690	709	temp_cleanup_purge_prelocked	temp_cleanup_purge_prelocked(force::Bool)	modelled	files-method-cleanup-purge	
+base/file.jl	711	729	temp_cleanup_purge_all	temp_cleanup_purge_all()	modelled	files-method-cleanup-purge-all	
+base/file.jl	732	732	temp_cleanup_purge	temp_cleanup_purge(; force=false)	excluded		deprecated: compatibility wrapper retained for packages using the old temporary-cleanup entry point.
+base/file.jl	734	754	temp_cleanup_postprocess	temp_cleanup_postprocess(cleanup_dirs)	modelled	files-method-cleanup-postprocess	
+base/file.jl	756	759	temp_cleanup_atexit	temp_cleanup_atexit()	modelled	files-method-cleanup-atexit	
+base/file.jl	761	763	__postinit__	__postinit__()	modelled	files-method-file-postinit	
+base/file.jl	768	775	_rand_filename	_rand_filename(len = 10)	modelled	files-method-rand-filename	
+base/file.jl	779	783	tempname	"tempname(parent::AbstractString=tempdir(); max_tries::Int = 100, cleanup::Bool=true, suffix::AbstractString="""")"	modelled	files-tempname-contract	
+base/file.jl	785	804	_tempname	_tempname(parent::AbstractString, suffix::AbstractString, max_tries::Int = 100)	modelled	files-tempname-contract	
+base/file.jl	811	823	_win_mkstemp	_win_mkstemp(temppath::AbstractString)	excluded		platform: Windows-only temporary-file creation implementation.
+base/file.jl	825	829	mktemp	mktemp(parent::AbstractString=tempdir(); cleanup::Bool=true)	excluded		platform: Windows-only temporary-file creation implementation.
+base/file.jl	834	840	mktemp	mktemp(parent::AbstractString=tempdir(); cleanup::Bool=true)	modelled	files-method-mktemp-unix	
+base/file.jl	916	941	mktempdir	mktempdir(parent::AbstractString=tempdir(); prefix::AbstractString=temp_prefix, cleanup::Bool=true)	modelled	files-method-mktempdir	
+base/file.jl	952	967	mktemp	mktemp(fn::Function, parent::AbstractString=tempdir())	modelled	files-method-mktemp-callback	
+base/file.jl	980	998	mktempdir	mktempdir(fn::Function, parent::AbstractString=tempdir(); prefix::AbstractString=temp_prefix)	modelled	files-method-mktempdir-callback	
+base/file.jl	1081	1081	readdir	readdir(; join::Bool=false, kwargs...)	modelled	files-method-readdir	
+base/file.jl	1082	1082	readdir	readdir(dir::AbstractString; kwargs...)	modelled	files-method-readdir	
+base/file.jl	1122	1122	basename	basename(obj::DirEntry)	modelled	files-method-direntry	
+base/file.jl	1123	1123	dirname	dirname(obj::DirEntry)	modelled	files-method-direntry	
+base/file.jl	1124	1124	joinpath	joinpath(obj::DirEntry, args...)	modelled	files-method-direntry	
+base/file.jl	1125	1125	Base.isless	Base.isless(a::DirEntry, b::DirEntry)	modelled	files-method-direntry	
+base/file.jl	1126	1126	Base.hash	Base.hash(o::DirEntry, h::UInt)	modelled	files-method-direntry	
+base/file.jl	1127	1127	Base.:(==)	Base.:(==)(a::DirEntry, b::DirEntry)	modelled	files-method-direntry	
+base/file.jl	1128	1128	isunknown	isunknown(obj::DirEntry)	modelled	files-method-direntry	
+base/file.jl	1129	1129	islink	islink(obj::DirEntry)	modelled	files-method-direntry	
+base/file.jl	1130	1130	isfile	isfile(obj::DirEntry)	modelled	files-method-direntry	
+base/file.jl	1131	1131	isdir	isdir(obj::DirEntry)	modelled	files-method-direntry	
+base/file.jl	1132	1132	isfifo	isfifo(obj::DirEntry)	modelled	files-method-direntry	
+base/file.jl	1133	1133	issocket	issocket(obj::DirEntry)	modelled	files-method-direntry	
+base/file.jl	1134	1134	ischardev	ischardev(obj::DirEntry)	modelled	files-method-direntry	
+base/file.jl	1135	1135	isblockdev	isblockdev(obj::DirEntry)	modelled	files-method-direntry	
+base/file.jl	1136	1136	realpath	realpath(obj::DirEntry)	modelled	files-method-direntry	
+base/file.jl	1171	1171	readdir	readdir(dir::AbstractString, ::Type{DirEntry}; sort::Bool=true)	modelled	files-method-readdir	
+base/file.jl	1172	1172	readdir	readdir(::Type{DirEntry}; sort::Bool=true)	modelled	files-method-readdir	
+base/file.jl	1173	1173	readdir	readdir(entry::DirEntry, ::Type{DirEntry}; sort::Bool=true)	modelled	files-method-readdir	
+base/file.jl	1174	1174	readdir	readdir(entry::DirEntry; kwargs...)	modelled	files-method-readdir	
+base/file.jl	1176	1207	_readdir	_readdir(dir::AbstractString; return_objects::Bool=false, join::Bool=false, sort::Bool=true)	modelled	files-method-readdir	
+base/file.jl	1235	1238	DirEntryIterator{T}	DirEntryIterator{T}(dir::AbstractString, join::Bool=false) where {T}	modelled	files-method-direntry-iterator	
+base/file.jl	1241	1254	_eachentry_open!	_eachentry_open!(it::DirEntryIterator)	modelled	files-method-direntry-iterator	
+base/file.jl	1256	1264	Base.close	Base.close(it::DirEntryIterator)	modelled	files-method-direntry-iterator	
+base/file.jl	1266	1266	Base.IteratorSize	Base.IteratorSize(::Type{<:DirEntryIterator})	modelled	files-method-direntry-iterator	
+base/file.jl	1267	1267	Base.eltype	Base.eltype(::Type{DirEntryIterator{T}}) where {T}	modelled	files-method-direntry-iterator	
+base/file.jl	1268	1268	Base.isdone	Base.isdone(it::DirEntryIterator, _=nothing)	modelled	files-method-direntry-iterator	
+base/file.jl	1270	1283	Base.iterate	Base.iterate(it::DirEntryIterator{T}, _=nothing) where {T}	modelled	files-method-direntry-iterator	
+base/file.jl	1331	1331	eachentry	eachentry(dir::AbstractString=pwd(); join::Bool=false)	modelled	files-method-eachentry	
+base/file.jl	1332	1332	eachentry	eachentry(entry::DirEntry; join::Bool=false)	modelled	files-method-eachentry	
+base/file.jl	1333	1333	eachentry	eachentry(dir::AbstractString, ::Type{DirEntry})	modelled	files-method-eachentry	
+base/file.jl	1334	1334	eachentry	eachentry(::Type{DirEntry})	modelled	files-method-eachentry	
+base/file.jl	1335	1335	eachentry	eachentry(entry::DirEntry, ::Type{DirEntry})	modelled	files-method-eachentry	
+base/file.jl	1336	1343	eachentry	eachentry(f, dir; join::Bool=false)	modelled	files-method-eachentry	
+base/file.jl	1344	1351	eachentry	eachentry(f, dir, ::Type{DirEntry})	modelled	files-method-eachentry	
+base/file.jl	1403	1406	walkdir	walkdir(path = pwd(); topdown=true, follow_symlinks=false, onerror=throw)	modelled	files-method-walkdir	
+base/file.jl	1408	1443	_walkdir	_walkdir(chnl, path, topdown, follow_symlinks, onerror)	modelled	files-method-walkdir	
+base/file.jl	1409	1419	tryf	tryf(f, p)	modelled	files-method-walkdir	
+base/file.jl	1445	1449	unlink	unlink(p::AbstractString)	modelled	files-method-unlink	
+base/file.jl	1477	1483	rename	rename(oldpath::AbstractString, newpath::AbstractString)	modelled	files-method-rename	
+base/file.jl	1488	1494	sendfile	sendfile(src::AbstractString, dst::AbstractString; force::Bool=true)	modelled	files-method-sendfile-path	
+base/file.jl	1513	1520	hardlink	hardlink(src::AbstractString, dst::AbstractString)	modelled	files-method-hardlink	
+base/file.jl	1555	1596	symlink	symlink(target::AbstractString, link::AbstractString; dir_target::Bool = false)	modelled	files-method-symlink	
+base/file.jl	1603	1620	readlink	readlink(path::AbstractString)	modelled	files-method-readlink	
+base/file.jl	1635	1646	chmod	chmod(path::AbstractString, mode::Integer; recursive::Bool=false)	modelled	files-method-chmod	
+base/file.jl	1655	1659	chown	chown(path::AbstractString, owner::Integer, group::Integer=-1)	modelled	files-method-chown	
+base/file.jl	1680	1687	Base.getproperty	Base.getproperty(stats::DiskStat, field::Symbol)	modelled	files-method-diskstat	
+base/file.jl	1689	1690	Base.propertynames	Base.propertynames(stats::DiskStat)	modelled	files-method-diskstat	
+base/file.jl	1692	1693	Base.show	Base.show(io::IO, x::DiskStat)	modelled	files-method-diskstat	
+base/file.jl	1705	1713	diskstat	diskstat(path::AbstractString=pwd())	modelled	files-method-diskstat	

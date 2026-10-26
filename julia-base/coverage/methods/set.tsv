@@ -1,0 +1,102 @@
+file	line	endline	name	signature	status	entry	note
+base/set.jl	42	42	_Set	_Set(dict::Dict{T,Nothing}) where {T}	modelled	bitsetscov-set-basic	
+base/set.jl	45	45	Set{T}	Set{T}() where {T}	modelled	bitsetscov-set-basic	
+base/set.jl	46	46	Set{T}	Set{T}(s::Set{T}) where {T}	modelled	bitsetscov-set-basic	
+base/set.jl	47	47	Set{T}	Set{T}(itr) where {T}	modelled	bitsetscov-set-basic	
+base/set.jl	48	48	Set	Set()	modelled	bitsetscov-set-basic	
+base/set.jl	50	56	Set{T}	Set{T}(s::KeySet{T, <:Dict{T}}) where {T}	modelled	bitsetscov-set-basic	
+base/set.jl	58	58	Set	Set(itr)	modelled	bitsetscov-set-basic	
+base/set.jl	59	59	_Set	_Set(itr, ::HasEltype)	modelled	bitsetscov-set-basic	
+base/set.jl	61	65	_Set	_Set(itr, ::EltypeUnknown)	modelled	bitsetscov-set-basic	
+base/set.jl	67	67	empty	empty(s::AbstractSet{T}, ::Type{U}=T) where {T,U}	modelled	bitsetscov-set-basic	
+base/set.jl	71	71	emptymutable	emptymutable(s::AbstractSet{T}, ::Type{U}=T) where {T,U}	modelled	bitsetscov-set-basic	
+base/set.jl	73	73	_similar_for	_similar_for(c::AbstractSet, ::Type{T}, itr, isz, len) where {T}	modelled	bitsetscov-set-basic	
+base/set.jl	75	88	show	show(io::IO, s::Set)	modelled	bitsetscov-set-mutable	
+base/set.jl	90	90	isempty	isempty(s::Set)	modelled	bitsetscov-set-mutable	
+base/set.jl	91	91	length	length(s::Set)	modelled	bitsetscov-set-mutable	
+base/set.jl	92	92	in	in(x, s::Set)	modelled	bitsetscov-set-mutable	
+base/set.jl	125	127	in!	in!(x, s::AbstractSet)	modelled	bitsetscov-set-mutable	
+base/set.jl	129	135	in!	in!(x, s::Set)	modelled	dicts-set-in-bang-convert	
+base/set.jl	137	137	push!	push!(s::Set, x)	modelled	bitsetscov-set-mutable	
+base/set.jl	139	149	pop!	pop!(s::Set, x, default)	modelled	bitsetscov-set-mutable	
+base/set.jl	151	157	pop!	pop!(s::Set, x)	modelled	bitsetscov-set-mutable	
+base/set.jl	159	162	pop!	pop!(s::Set)	modelled	bitsetscov-set-mutable	
+base/set.jl	164	164	delete!	delete!(s::Set, x)	modelled	bitsetscov-set-mutable	
+base/set.jl	166	166	copy	copy(s::Set)	modelled	bitsetscov-set-mutable	
+base/set.jl	168	168	copymutable	copymutable(s::Set{T}) where {T}	modelled	bitsetscov-set-mutable	
+base/set.jl	170	170	copymutable	copymutable(s::AbstractSet{T}) where {T}	modelled	bitsetscov-set-mutable	
+base/set.jl	172	172	sizehint!	sizehint!(s::Set, newsz::Integer; shrink::Bool=true)	modelled	bitsetscov-set-mutable	
+base/set.jl	173	173	empty!	empty!(s::Set)	modelled	bitsetscov-set-mutable	
+base/set.jl	174	174	rehash!	rehash!(s::Set)	modelled	bitsetscov-set-mutable	
+base/set.jl	176	176	iterate	iterate(s::Set, i...)	modelled	bitsetscov-set-mutable	
+base/set.jl	178	178	Iterators.only	Iterators.only(s::Set)	modelled	bitsetscov-set-mutable	
+base/set.jl	187	198	setdiff!	setdiff!(s::Set, t::Set)	modelled	dicts-set-setdiff	
+base/set.jl	224	241	unique	unique(itr)	modelled	arrayops-unique	
+base/set.jl	243	243	_unique_from	_unique_from(itr, out, seen, i)	modelled	bitsetscov-set-unique	
+base/set.jl	244	260	unique_from	unique_from(itr, out::Vector{T}, seen, i) where T	modelled	bitsetscov-set-unique	
+base/set.jl	262	262	unique	unique(r::AbstractRange)	modelled	dicts-range-allunique-subulp	
+base/set.jl	301	321	unique	unique(f, C; seen::Union{Nothing,Set}=nothing)	modelled	bitsetscov-set-unique	
+base/set.jl	323	342	_unique!	_unique!(f, out::AbstractVector, C, seen::Set, i)	modelled	bitsetscov-set-unique	
+base/set.jl	373	386	unique!	unique!(f, A::AbstractVector; seen::Union{Nothing,Set}=nothing)	modelled	bitsetscov-set-unique	
+base/set.jl	388	406	_unique!	_unique!(f, A::AbstractVector, seen::Set, current::Integer, i::Integer)	modelled	bitsetscov-set-unique	
+base/set.jl	411	411	_unique!	_unique!(A::AbstractVector)	modelled	bitsetscov-set-unique	
+base/set.jl	417	434	_groupedunique!	_groupedunique!(A::AbstractVector)	modelled	bitsetscov-set-unique	
+base/set.jl	470	478	unique!	unique!(itr)	modelled	bitsetscov-set-unique	
+base/set.jl	515	521	allunique	allunique(C)	modelled	bitsetscov-set-predicates	
+base/set.jl	523	523	allunique	allunique(f, xs)	modelled	bitsetscov-set-predicates	
+base/set.jl	525	542	_hashed_allunique	_hashed_allunique(C)	modelled	arrayops-unique	
+base/set.jl	544	544	allunique	allunique(::Union{AbstractSet,AbstractDict})	modelled	bitsetscov-allunique-idset	
+base/set.jl	546	546	allunique	allunique(r::AbstractRange)	modelled	dicts-range-allunique-subulp	
+base/set.jl	549	551	allunique	allunique(s::AbstractString)	modelled	bitsetscov-set-predicates	
+base/set.jl	553	577	allunique	allunique(A::StridedArray)	modelled	arrayops-unique	
+base/set.jl	579	592	_indexed_allunique	_indexed_allunique(A)	modelled	arrayops-unique	
+base/set.jl	594	600	allunique	allunique(t::Tuple)	modelled	bitsetscov-set-predicates	
+base/set.jl	601	601	allunique	allunique(t::Tuple{})	modelled	bitsetscov-set-predicates	
+base/set.jl	603	607	allunique	allunique(f::F, t::Tuple) where {F}	modelled	bitsetscov-set-predicates	
+base/set.jl	648	656	allequal	allequal(itr)	modelled	bitsetscov-set-predicates	candidates:arrayops-unique
+base/set.jl	658	658	allequal	allequal(c::Union{AbstractSet,AbstractDict})	modelled	bitsetscov-allunique-idset	
+base/set.jl	660	660	allequal	allequal(r::AbstractRange)	modelled	dicts-range-allunique-subulp	
+base/set.jl	662	662	allequal	allequal(f, xs)	modelled	bitsetscov-set-predicates	candidates:arrayops-unique
+base/set.jl	664	670	_allequal_loop	_allequal_loop(f, xs::Tuple)	modelled	bitsetscov-set-predicates	
+base/set.jl	672	690	allequal	allequal(f, xs::Tuple)	modelled	bitsetscov-set-predicates	
+base/set.jl	692	692	allequal	allequal(f, ::Tuple{})	modelled	bitsetscov-set-predicates	
+base/set.jl	693	693	allequal	allequal(xs::Tuple)	modelled	bitsetscov-set-predicates	
+base/set.jl	695	695	filter!	filter!(f, s::Set)	modelled	bitsetscov-set-helpers	
+base/set.jl	698	704	hash	hash(s::AbstractSet, h::UInt)	modelled	bitsetscov-set-helpers	
+base/set.jl	706	706	convert	convert(::Type{T}, s::T) where {T<:AbstractSet}	modelled	bitsetscov-set-helpers	
+base/set.jl	707	707	convert	convert(::Type{T}, s::AbstractSet) where {T<:AbstractSet}	modelled	bitsetscov-set-helpers	
+base/set.jl	712	715	check_count	check_count(count::Integer)	modelled	bitsetscov-set-helpers	
+base/set.jl	718	718	_copy_oftype	_copy_oftype(x, ::Type{T}) where {T}	modelled	bitsetscov-set-helpers	
+base/set.jl	720	720	_copy_oftype	_copy_oftype(x::AbstractDict, ::Type{Pair{K,V}}) where {K,V}	modelled	bitsetscov-set-helpers	
+base/set.jl	721	721	_copy_oftype	_copy_oftype(x::AbstractSet, ::Type{T}) where {T}	modelled	bitsetscov-set-helpers	
+base/set.jl	723	723	_copy_oftype	_copy_oftype(x::AbstractArray{T}, ::Type{T}) where {T}	modelled	bitsetscov-set-helpers	
+base/set.jl	724	724	_copy_oftype	_copy_oftype(x::AbstractDict{K,V}, ::Type{Pair{K,V}}) where {K,V}	modelled	bitsetscov-set-helpers	
+base/set.jl	725	725	_copy_oftype	_copy_oftype(x::AbstractSet{T}, ::Type{T}) where {T}	modelled	bitsetscov-set-helpers	
+base/set.jl	727	727	_similar_or_copy	_similar_or_copy(x::Any)	modelled	bitsetscov-set-helpers	
+base/set.jl	728	728	_similar_or_copy	_similar_or_copy(x::Any, ::Type{T}) where {T}	modelled	bitsetscov-set-helpers	
+base/set.jl	730	730	_similar_or_copy	_similar_or_copy(x::Union{AbstractDict,AbstractSet})	modelled	bitsetscov-set-helpers	
+base/set.jl	731	731	_similar_or_copy	_similar_or_copy(x::Union{AbstractDict,AbstractSet}, ::Type{T}) where {T}	modelled	bitsetscov-set-helpers	
+base/set.jl	762	763	replace!	replace!(A, old_new::Pair...; count::Integer=typemax(Int))	modelled	bitsetscov-set-replace	
+base/set.jl	765	773	replace_pairs!	replace_pairs!(res, A, count::Int, old_new::Tuple{Vararg{Pair}})	modelled	bitsetscov-set-replace	
+base/set.jl	766	771	new	new(x)	modelled	bitsetscov-set-replace	
+base/set.jl	804	805	replace!	replace!(new::Callable, A; count::Integer=typemax(Int))	modelled	bitsetscov-set-replace	
+base/set.jl	842	851	replace	replace(A, old_new::Pair...; count::Union{Integer,Nothing}=nothing)	modelled	bitsetscov-replace-set-singleton	
+base/set.jl	853	853	promote_valuetype	promote_valuetype(x::Pair{K, V}) where {K, V}	modelled	bitsetscov-set-replace	
+base/set.jl	854	855	promote_valuetype	promote_valuetype(x::Pair{K, V}, y::Pair...) where {K, V}	modelled	bitsetscov-set-replace	
+base/set.jl	858	864	subtract_singletontype	subtract_singletontype(::Type{T}, x::Pair{K}) where {T, K}	modelled	bitsetscov-set-replace	
+base/set.jl	865	866	subtract_singletontype	subtract_singletontype(::Type{T}, x::Pair{K}, y::Pair...) where {T, K}	modelled	bitsetscov-set-replace	
+base/set.jl	895	896	replace	replace(new::Callable, A; count::Integer=typemax(Int))	modelled	bitsetscov-replace-generic-set	
+base/set.jl	899	899	replace!	replace!(a::Callable, b::Pair; count::Integer=-1)	modelled	bitsetscov-set-replace	
+base/set.jl	900	900	replace!	replace!(a::Callable, b::Pair, c::Pair; count::Integer=-1)	modelled	bitsetscov-set-replace	
+base/set.jl	901	901	replace	replace(a::Callable, b::Pair; count::Integer=-1)	modelled	bitsetscov-set-replace	
+base/set.jl	902	902	replace	replace(a::Callable, b::Pair, c::Pair; count::Integer=-1)	modelled	bitsetscov-set-replace	
+base/set.jl	906	906	askey	askey(k, ::AbstractDict)	modelled	bitsetscov-set-replace	
+base/set.jl	907	907	askey	askey(k, ::AbstractSet)	modelled	bitsetscov-set-replace	
+base/set.jl	909	943	_replace!	_replace!(new::Callable, res::Union{AbstractDict,AbstractSet}, A::Union{AbstractDict,AbstractSet}, count::Int)	modelled	bitsetscov-replace-generic-set	
+base/set.jl	947	976	_replace!	_replace!(new::Callable, res::AbstractArray, A::AbstractArray, count::Int)	modelled	bitsetscov-set-replace	
+base/set.jl	980	1010	_replace!	_replace!(new::Callable, t::Dict{K,V}, A::AbstractDict, count::Int) where {K,V}	modelled	bitsetscov-set-replace	
+base/set.jl	1012	1019	_replace!	_replace!(new::Callable, t::Set{T}, ::AbstractSet, count::Int) where {T}	modelled	bitsetscov-set-replace	
+base/set.jl	1023	1030	_replace	_replace(f::Callable, t::Tuple, count::Int)	modelled	bitsetscov-set-replace	
+base/set.jl	1032	1033	replace	replace(f::Callable, t::Tuple; count::Integer=typemax(Int))	modelled	bitsetscov-set-replace	
+base/set.jl	1035	1043	_replace	_replace(t::Tuple, count::Int, old_new::Tuple{Vararg{Pair}})	modelled	bitsetscov-set-replace	
+base/set.jl	1045	1046	replace	replace(t::Tuple, old_new::Pair...; count::Integer=typemax(Int))	modelled	bitsetscov-set-replace	

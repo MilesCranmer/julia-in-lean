@@ -1,0 +1,48 @@
+id: memsafety-gmp-zero-bool-rem-null
+title: "rem(Base.GMP.ZERO, Bool) dereferences a null limb pointer and segfaults"
+priority: P1
+kind: crash
+area: MemSafety
+files: [base/gmp.jl]
+functions: ["rem(::BigInt, ::Type{Bool})"]
+summary: |
+  Base.GMP.ZERO is a valid zero-valued BigInt whose limb pointer is deliberately
+  set to C_NULL during GMP initialization. rem(x, Bool) uses eager &, so it calls
+  unsafe_load(x.d) even when iszero(x) is true and crashes on this singleton.
+likelihood: |
+  Ordinary zero BigInts allocate one readable limb, so the crash needs the
+  internal Base.GMP.ZERO singleton. That value is reachable from Julia code but
+  is unlikely to appear unless code explicitly uses GMP internals.
+maybe_intended: |
+  Base.GMP.ZERO is internal, but it is a live BigInt maintained by Base itself.
+  A public rem method should not dereference its documented null limb pointer.
+reproducer: |
+  rem(Base.GMP.ZERO, Bool)
+output:
+  release: |
+    call: rem(Base.GMP.ZERO, Bool)
+    child exit code: 0
+    child termination signal: 11
+    REPRODUCED memsafety-gmp-zero-bool-rem-null
+  nightly: |
+    call: rem(Base.GMP.ZERO, Bool)
+    child exit code: 0
+    child termination signal: 11
+    REPRODUCED memsafety-gmp-zero-bool-rem-null
+reproduced: {release: true, nightly: true}
+expected: |
+  rem(Base.GMP.ZERO, Bool) should return false without loading a limb.
+promised_by: |
+  Memory-safety invariant. base/gmp.jl:129 sets ZERO.d to C_NULL and line 367
+  defines rem(::BigInt, ::Type{Bool}) without an input precondition.
+cause: |
+  base/gmp.jl:367 combines !iszero(x) with unsafe_load(x.d) % Bool using eager
+  Boolean &, so the unsafe_load executes for zero. Base.GMP.ZERO has d == C_NULL.
+possible_fix: |
+  Use short-circuit &&, or return false before loading x.d when x is zero.
+duplicates:
+  issues: []
+  queries: ["BigInt ZERO rem Bool segfault", "GMP ZERO unsafe_load rem"]
+lean:
+  property: JuliaLean.MemSafety.G2.GmpBoolRemInBounds
+  theorem: JuliaLean.MemSafety.G2.gmpBoolRemInBounds_refuted

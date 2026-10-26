@@ -1,0 +1,69 @@
+file	line	endline	name	signature	status	entry	note
+base/abstractset.jl	3	3	eltype	eltype(::Type{<:AbstractSet{T}}) where {T}	modelled	bitsetscov-abstractset-basic	
+base/abstractset.jl	4	4	sizehint!	sizehint!(s::AbstractSet, n)	modelled	bitsetscov-abstractset-basic	
+base/abstractset.jl	6	9	copy!	copy!(dst::AbstractSet, src::AbstractSet)	modelled	bitsetscov-abstractset-basic	
+base/abstractset.jl	55	55	union	union	excluded		no-behaviour: generic function declaration only
+base/abstractset.jl	57	57	union	union(s, sets...)	modelled	bitsetscov-abstractset-union	
+base/abstractset.jl	58	58	union	union(s::AbstractSet)	modelled	bitsetscov-abstractset-union	
+base/abstractset.jl	85	90	union!	union!(s::AbstractSet, sets...)	modelled	dicts-union-max-values-break	
+base/abstractset.jl	92	92	max_values	max_values(::Type)	modelled	bitsetscov-abstractset-union	
+base/abstractset.jl	93	93	max_values	max_values(T::Union{map(X -> Type{X}, BitIntegerSmall_types)...})	modelled	bitsetscov-abstractset-union	
+base/abstractset.jl	95	101	max_values	max_values(T::Union)	modelled	bitsetscov-abstractset-union	
+base/abstractset.jl	102	102	max_values	max_values(::Type{Bool})	modelled	bitsetscov-abstractset-union	
+base/abstractset.jl	103	103	max_values	max_values(::Type{Nothing})	modelled	bitsetscov-abstractset-union	
+base/abstractset.jl	105	112	union!	union!(s::AbstractSet{T}, itr) where T	modelled	bitsetscov-abstractset-union	
+base/abstractset.jl	155	172	intersect	intersect(s::AbstractSet, itr, itrs...)	modelled	bitsetscov-abstractset-intersect	
+base/abstractset.jl	173	173	intersect	intersect(s)	modelled	bitsetscov-abstractset-intersect	
+base/abstractset.jl	174	180	intersect	intersect(s::AbstractSet, itr)	modelled	bitsetscov-abstractset-intersect	
+base/abstractset.jl	192	197	intersect!	intersect!(s::AbstractSet, itrs...)	modelled	bitsetscov-abstractset-intersect	
+base/abstractset.jl	198	198	intersect!	intersect!(s::AbstractSet, s2::AbstractSet)	modelled	bitsetscov-abstractset-intersect	
+base/abstractset.jl	199	200	intersect!	intersect!(s::AbstractSet, itr)	modelled	bitsetscov-abstractset-intersect	
+base/abstractset.jl	222	222	setdiff	setdiff(s::AbstractSet, itrs...)	modelled	bitsetscov-abstractset-setdiff	
+base/abstractset.jl	223	223	setdiff	setdiff(s)	modelled	bitsetscov-abstractset-setdiff	
+base/abstractset.jl	244	249	setdiff!	setdiff!(s::AbstractSet, itrs...)	modelled	bitsetscov-abstractset-setdiff	
+base/abstractset.jl	250	255	setdiff!	setdiff!(s::AbstractSet, itr)	modelled	bitsetscov-abstractset-setdiff	
+base/abstractset.jl	278	278	symdiff	symdiff(s, sets...)	modelled	bitsetscov-abstractset-symdiff	
+base/abstractset.jl	279	279	symdiff	symdiff(s)	modelled	bitsetscov-abstractset-symdiff	
+base/abstractset.jl	290	295	symdiff!	symdiff!(s::AbstractSet, itrs...)	modelled	bitsetscov-abstractset-symdiff	candidates:iddicts-idset-symdiff
+base/abstractset.jl	297	297	symdiff!	symdiff!(s::AbstractSet, itr)	modelled	bitsetscov-abstractset-symdiff	candidates:iddicts-idset-symdiff
+base/abstractset.jl	299	304	symdiff!	symdiff!(s::AbstractSet, itr::AbstractSet)	modelled	bitsetscov-abstractset-symdiff	
+base/abstractset.jl	309	309	⊇	⊇	excluded		no-behaviour: generic function declaration only
+base/abstractset.jl	335	352	issubset	issubset(a, b)	modelled	bitsetscov-abstractset-subset	candidates:iddicts-idset-issubset
+base/abstractset.jl	367	367	hasfastin	hasfastin(::Type)	modelled	bitsetscov-abstractset-subset	
+base/abstractset.jl	368	368	hasfastin	hasfastin(::Union{Type{<:AbstractSet},Type{<:AbstractDict},Type{<:AbstractRange}})	modelled	bitsetscov-abstractset-subset	
+base/abstractset.jl	369	369	hasfastin	hasfastin(x)	modelled	bitsetscov-abstractset-subset	
+base/abstractset.jl	371	371	⊇	⊇(a, b)	modelled	bitsetscov-abstractset-subset	
+base/abstractset.jl	384	384	issubset	issubset(a)	modelled	bitsetscov-abstractset-subset	candidates:iddicts-idset-issubset
+base/abstractset.jl	397	397	⊇	⊇(a)	modelled	bitsetscov-abstractset-subset	
+base/abstractset.jl	400	400	⊊	⊊	excluded		no-behaviour: generic function declaration only
+base/abstractset.jl	401	401	⊋	⊋	excluded		no-behaviour: generic function declaration only
+base/abstractset.jl	421	421	⊊	⊊(a::AbstractSet, b::AbstractSet)	modelled	bitsetscov-abstractset-subset	
+base/abstractset.jl	422	422	⊊	⊊(a::AbstractSet, b)	modelled	bitsetscov-abstractset-subset	
+base/abstractset.jl	423	423	⊊	⊊(a, b::AbstractSet)	modelled	bitsetscov-abstractset-subset	
+base/abstractset.jl	424	424	⊊	⊊(a, b)	modelled	bitsetscov-abstractset-subset	
+base/abstractset.jl	425	425	⊋	⊋(a, b)	modelled	bitsetscov-abstractset-subset	
+base/abstractset.jl	438	438	⊋	⊋(a)	modelled	bitsetscov-abstractset-subset	
+base/abstractset.jl	450	450	⊊	⊊(a)	modelled	bitsetscov-abstractset-subset	
+base/abstractset.jl	452	452	⊈	⊈	excluded		no-behaviour: generic function declaration only
+base/abstractset.jl	453	453	⊉	⊉	excluded		no-behaviour: generic function declaration only
+base/abstractset.jl	473	473	⊈	⊈(a, b)	modelled	bitsetscov-abstractset-subset	
+base/abstractset.jl	474	474	⊉	⊉(a, b)	modelled	bitsetscov-abstractset-subset	
+base/abstractset.jl	487	487	⊉	⊉(a)	modelled	bitsetscov-abstractset-subset	
+base/abstractset.jl	500	500	⊈	⊈(a)	modelled	bitsetscov-abstractset-subset	
+base/abstractset.jl	521	521	issetequal	issetequal(a::AbstractSet, b::AbstractSet)	modelled	bitsetscov-abstractset-issetequal	
+base/abstractset.jl	522	522	issetequal	issetequal(a::AbstractSet, b)	modelled	bitsetscov-abstractset-issetequal	candidates:iddicts-idset-issetequal
+base/abstractset.jl	524	530	issetequal	issetequal(a, b::AbstractSet)	modelled	bitsetscov-abstractset-issetequal	candidates:iddicts-idset-issetequal
+base/abstractset.jl	532	536	issetequal	issetequal(a, b)	modelled	bitsetscov-abstractset-issetequal	
+base/abstractset.jl	549	549	issetequal	issetequal(a)	modelled	bitsetscov-abstractset-issetequal	
+base/abstractset.jl	572	584	isdisjoint	isdisjoint(a, b)	modelled	bitsetscov-isdisjoint-threshold	
+base/abstractset.jl	573	579	_isdisjoint	_isdisjoint(a, b)	modelled	bitsetscov-isdisjoint-threshold	
+base/abstractset.jl	586	595	isdisjoint	isdisjoint(a::AbstractRange{T}, b::AbstractRange{T}) where T	modelled	bitsetscov-abstractset-disjoint-filter	
+base/abstractset.jl	608	608	isdisjoint	isdisjoint(a)	modelled	bitsetscov-abstractset-disjoint-filter	
+base/abstractset.jl	610	610	_overlapping_range_isdisjoint	_overlapping_range_isdisjoint(a::AbstractRange{T}, b::AbstractRange{T}) where T	modelled	bitsetscov-abstractset-disjoint-filter	
+base/abstractset.jl	612	618	_overlapping_range_isdisjoint	_overlapping_range_isdisjoint(a::AbstractRange{T}, b::AbstractRange{T}) where T<:Integer	modelled	bitsetscov-isdisjoint-zero-step	
+base/abstractset.jl	622	622	==	==(a::AbstractSet, b::AbstractSet)	modelled	dicts-set-compare,iddicts-idset-issetequal	
+base/abstractset.jl	625	625	<	<( a::AbstractSet, b::AbstractSet)	modelled	bitsetscov-abstractset-disjoint-filter	
+base/abstractset.jl	626	626	<=	<=(a::AbstractSet, b::AbstractSet)	modelled	bitsetscov-abstractset-disjoint-filter	
+base/abstractset.jl	630	630	filter	filter(pred, s::AbstractSet)	modelled	bitsetscov-abstractset-disjoint-filter	
+base/abstractset.jl	633	633	unsafe_filter!	unsafe_filter!(pred, s::AbstractSet)	modelled	bitsetscov-abstractset-disjoint-filter	
+base/abstractset.jl	636	641	mapfilter	mapfilter(pred, f, itr, res)	modelled	bitsetscov-abstractset-disjoint-filter	

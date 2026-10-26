@@ -1,0 +1,238 @@
+line	name	verdict	mirror	property	settled	reason
+44	version	HOLLOW	no	no	yes	The proposition does not model version parsing or the returned VersionNumber.
+45	patches	HOLLOW	no	no	yes	The proposition does not model patch-string splitting or the returned patch list.
+47	__init__	HOLLOW	no	no	yes	The model omits __init__'s ordered try/catch, warning, and nothing result.
+75	convert	HOLLOW	no	no	yes	The proposition omits this rounding-mode conversion branch.
+76	convert	HOLLOW	no	no	yes	The proposition has no method-specific Lean model for convert and states no promised all-input behavior for this method.
+77	convert	HOLLOW	no	no	yes	The proposition has no method-specific Lean model for convert and states no promised all-input behavior for this method.
+78	convert	HOLLOW	no	no	yes	The proposition has no method-specific Lean model for convert and states no promised all-input behavior for this method.
+79	convert	HOLLOW	no	no	yes	The proposition has no method-specific Lean model for convert and states no promised all-input behavior for this method.
+81	convert	HOLLOW	no	no	yes	The proposition omits the reverse conversion's five branches and invalid-code error.
+97	rounds_to_nearest	FAITHFUL	yes	yes	yes	roundsToNearest models the relevant behavior and the source branch is stated for all allowed inputs.
+98	rounds_away_from_zero	FAITHFUL	yes	yes	yes	roundsAwayFromZero models the relevant behavior and the source branch is stated for all allowed inputs.
+110	tie_breaker_is_to_even	HOLLOW	no	no	yes	The proposition omits tie_breaker_is_to_even's constant true result.
+149	_BigFloat	HOLLOW	no	no	yes	The model omits pointer initialization before _BigFloat returns the allocation.
+154	BigFloat	HOLLOW	no	no	yes	The model omits allocation sizing, memory allocation, and pointer-field initialization.
+183	Base.getproperty	HOLLOW	no	no	yes	The model omits the :sign, :exp, :d, and invalid-field branches of getproperty.
+201	Base.setproperty!	HOLLOW	no	no	yes	The model covers only sign mutation and omits :exp storage and invalid-field handling.
+214	Base.unsafe_convert	HOLLOW	no	no	yes	The model gives ArgumentError, while this method throws ErrorException.
+215	Base.unsafe_convert	HOLLOW	no	no	yes	The model gives ArgumentError, while this method throws ErrorException.
+216	Base.cconvert	HOLLOW	no	no	yes	The proposition omits cconvert's direct return of x.d.
+217	Base.cconvert	HOLLOW	no	no	yes	The proposition omits Number-to-BigFloat conversion and its data return.
+218	Base.cconvert	HOLLOW	no	no	yes	The proposition omits Ref dereferencing and the returned data field.
+219	Base.unsafe_convert	HOLLOW	no	no	yes	The model omits the pointer recomputation check and conditional store.
+229	Base.unsafe_convert	HOLLOW	no	no	yes	The proposition omits the data pointer offset calculation.
+230	Base.setindex!	HOLLOW	no	no	yes	dataSet restricts the Julia index to Nat and the proposition proves only invalid-index errors, omitting successful writes and other allowed index inputs.
+236	Base.getindex	HOLLOW	no	no	yes	dataGet restricts the Julia index to Nat and the proposition proves only invalid-index errors, omitting successful reads and other allowed index inputs.
+241	Base.length	HOLLOW	no	no	yes	The proposition omits the payload-length calculation.
+242	Base.copyto!	HOLLOW	no	no	yes	The proposition omits copyto!'s destination offset and return.
+246	rounding_raw	FAITHFUL	yes	yes	yes	roundingRaw models the relevant behavior and the source branch is stated for all allowed inputs.
+247	setrounding_raw	HOLLOW	no	no	yes	setRawRounding returns the new mode but does not model assignment to the global rounding reference or its resulting state.
+248	setrounding_raw	HOLLOW	no	no	yes	The model omits scoped-value installation, callback execution, and restoration.
+252	rounding	HOLLOW	no	no	yes	The proposition omits conversion from the current raw mode.
+253	setrounding	HOLLOW	no	no	yes	The proposition omits mode conversion and the global assignment.
+254	setrounding	HOLLOW	no	no	yes	The model omits conversion and scoped mode installation around f().
+299	widen	HOLLOW	no	no	yes	The proposition has no model for widen(::Type{Float64}).
+300	widen	HOLLOW	no	no	yes	The proposition has no model for widen(::Type{BigFloat}).
+302	BigFloat	HOLLOW	no	no	yes	copyAtPrecision collapses allocation and mpfr_set into an opaque callback and establishes no changed-precision copy result.
+313	_duplicate	HOLLOW	no	no	yes	The proposition omits duplicate allocation and the mpfr_set call.
+322	BigFloat	HOLLOW	no	no	yes	The proposition omits the typed integer conversion, allocation, and MPFR call.
+330	BigFloat	HOLLOW	no	no	yes	The model omits the precision branch, special values, significand arithmetic, and limb loops.
+374	BigFloat	HOLLOW	no	no	yes	The proposition omits allocation and mpfr_set_z routing.
+380	BigFloat	HOLLOW	no	no	yes	The proposition omits integer conversion and the delegated constructor call.
+382	BigFloat	HOLLOW	no	no	yes	The proposition omits integer conversion and the delegated constructor call.
+385	BigFloat	HOLLOW	no	no	yes	The proposition omits the signed machine conversion and delegated constructor call.
+387	BigFloat	HOLLOW	no	no	yes	The proposition omits the unsigned machine conversion and delegated constructor call.
+390	BigFloat	HOLLOW	no	no	yes	The proposition omits conversion to Float64 and delegated construction.
+393	BigFloat	HOLLOW	no	no	yes	The model omits scoped precision and rounding and numerator and denominator conversion.
+401	_opposite_round	HOLLOW	no	no	yes	The proposition uses oppositeRound as an input but does not state its source branch behavior.
+407	tryparse	HOLLOW	no	no	yes	tryparseBF omits precision and rounding inputs, allocation, and the MPFR status mapping, so its claims do not cover every allowed method input.
+414	BigFloat	HOLLOW	no	no	yes	The proposition omits parse dispatch and its precision and rounding arguments.
+417	Rational	HOLLOW	no	no	yes	The proposition omits Rational conversion from BigFloat.
+418	AbstractFloat	HOLLOW	no	no	yes	The proposition omits AbstractFloat conversion from BigInt.
+420	float	HOLLOW	no	no	yes	The proposition omits the BigInt float type alias.
+422	BigFloat	HOLLOW	no	no	yes	The proposition omits conversion from public RoundingMode and Real dispatch.
+424	BigFloat	HOLLOW	no	no	yes	The proposition omits conversion from public RoundingMode and string parsing.
+428	_unchecked_cast	HOLLOW	no	no	yes	The proposition omits conversion from RoundingMode to MPFRRoundingMode.
+430	_unchecked_cast	HOLLOW	no	no	yes	The proposition omits the mpfr_get_sj primitive call.
+434	_unchecked_cast	HOLLOW	no	no	yes	The proposition omits the mpfr_get_uj primitive call.
+438	_unchecked_cast	HOLLOW	no	no	yes	The proposition omits BigInt allocation and mpfr_get_z.
+444	_unchecked_cast	HOLLOW	no	no	yes	The proposition omits signedness selection and width-based cast routing.
+449	round	HOLLOW	no	no	yes	The proposition omits flag clearing, unchecked cast, range checks, and unsafe_trunc.
+458	round	HOLLOW	no	no	yes	The proposition omits flag clearing, BigInt conversion, and range-flag handling.
+465	round	HOLLOW	no	yes	yes	The proposition states the relevant behavior but omits a Lean function mirroring round's Julia body.
+467	round	HOLLOW	no	no	yes	The proposition omits the invoke-based BigInt rounding dispatch.
+471	unsafe_trunc	HOLLOW	no	no	yes	The proposition omits the RoundToZero conversion and delegated unsafe_trunc.
+472	unsafe_trunc	HOLLOW	no	no	yes	The proposition omits the RoundToZero BigInt conversion.
+474	round	HOLLOW	no	no	yes	The proposition omits current-mode lookup and delegated round call.
+476	round	HOLLOW	no	no	yes	The proposition omits the invoke-based BigInt dispatch.
+477	round	HOLLOW	no	no	yes	The proposition omits the invoke-based BigInt dispatch.
+479	Bool	HOLLOW	no	no	yes	boolOfBigFloat takes iszero and isone outcomes as free booleans without modeling those calls or connecting them to x.
+484	BigInt	HOLLOW	no	no	yes	integralCast takes isinteger and trunc results as free inputs, so it models neither the method calls nor the returned value.
+489	(::Type{T})	HOLLOW	no	no	yes	integralCast takes isinteger and trunc results as free inputs, so it models neither the method calls nor the returned value.
+494	to_ieee754	HOLLOW	no	no	yes	The model omits IEEE exponent and significand construction, rounding, and reinterpretation.
+550	Float16	HOLLOW	no	no	yes	The proposition omits this Float16 constructor's to_ieee754 call.
+551	Float32	HOLLOW	no	no	yes	The proposition omits this Float32 constructor's to_ieee754 call.
+552	Float64	HOLLOW	no	no	yes	The proposition omits this Float64 constructor's to_ieee754 call.
+553	Float16	HOLLOW	no	no	yes	The proposition omits this RoundingMode overload's to_ieee754 call.
+554	Float32	HOLLOW	no	no	yes	The proposition omits this RoundingMode overload's to_ieee754 call.
+555	Float64	HOLLOW	no	no	yes	The proposition omits this RoundingMode overload's to_ieee754 call.
+557	promote_rule	HOLLOW	no	no	yes	The proposition omits promote_rule's type result.
+558	promote_rule	HOLLOW	no	no	yes	The proposition omits promote_rule's type result.
+559	promote_rule	HOLLOW	no	no	yes	The proposition omits promote_rule's type result.
+561	big	HOLLOW	no	no	yes	The proposition omits the big type conversion.
+563	big	HOLLOW	no	no	yes	The proposition omits conversion of an AbstractFloat value.
+565	Rational{BigInt}	HOLLOW	no	no	yes	The proposition models only Float64 and therefore does not cover this AbstractFloat method across all allowed input types.
+577	$fJ	FAITHFUL	yes	yes	yes	MpfrWrapperCorrect models the relevant behavior and the source branch is stated for all allowed inputs.
+584	$fJ	FAITHFUL	yes	yes	yes	MpfrWrapperCorrect models the relevant behavior and the source branch is stated for all allowed inputs.
+589	$fJ	HOLLOW	no	no	yes	This method forwards to the opposite operand order, while MpfrWrapperCorrect models a direct allocating primitive call.
+592	$fJ	FAITHFUL	yes	yes	yes	MpfrWrapperCorrect models the relevant behavior and the source branch is stated for all allowed inputs.
+597	$fJ	HOLLOW	no	no	yes	This method forwards to the opposite operand order, while MpfrWrapperCorrect models a direct allocating primitive call.
+600	$fJ	FAITHFUL	yes	yes	yes	MpfrWrapperCorrect models the relevant behavior and the source branch is stated for all allowed inputs.
+605	$fJ	HOLLOW	no	no	yes	This method forwards to the opposite operand order, while MpfrWrapperCorrect models a direct allocating primitive call.
+608	$fJ	FAITHFUL	yes	yes	yes	MpfrWrapperCorrect models the relevant behavior and the source branch is stated for all allowed inputs.
+613	$fJ	HOLLOW	no	no	yes	This method forwards to the opposite operand order, while MpfrWrapperCorrect models a direct allocating primitive call.
+620	$fJ	FAITHFUL	yes	yes	yes	MpfrWrapperCorrect models the relevant behavior and the source branch is stated for all allowed inputs.
+627	$fJ	FAITHFUL	yes	yes	yes	MpfrWrapperCorrect models the relevant behavior and the source branch is stated for all allowed inputs.
+632	$fJ	FAITHFUL	yes	yes	yes	MpfrWrapperCorrect models the relevant behavior and the source branch is stated for all allowed inputs.
+639	$fJ	FAITHFUL	yes	yes	yes	MpfrWrapperCorrect models the relevant behavior and the source branch is stated for all allowed inputs.
+644	$fJ	FAITHFUL	yes	yes	yes	MpfrWrapperCorrect models the relevant behavior and the source branch is stated for all allowed inputs.
+651	$fJ	FAITHFUL	yes	yes	yes	MpfrWrapperCorrect models the relevant behavior and the source branch is stated for all allowed inputs.
+656	$fJ	FAITHFUL	yes	yes	yes	MpfrWrapperCorrect models the relevant behavior and the source branch is stated for all allowed inputs.
+663	$fJ	FAITHFUL	yes	yes	yes	MpfrWrapperCorrect models the relevant behavior and the source branch is stated for all allowed inputs.
+672	-	FAITHFUL	yes	yes	yes	MpfrWrapperCorrect models the relevant behavior and the source branch is stated for all allowed inputs.
+678	inv	HOLLOW	no	no	yes	The proposition omits inv's one(Clong) / x routing.
+680	fma	FAITHFUL	yes	yes	yes	MpfrWrapperCorrect models the relevant behavior and the source branch is stated for all allowed inputs.
+686	muladd	HOLLOW	no	no	yes	The proposition omits muladd's delegation to fma.
+690	div	HOLLOW	no	no	yes	The proposition omits division's truncation call after MPFR division.
+698	div	HOLLOW	no	no	yes	The proposition omits the two-call MPFR division and truncation sequence.
+704	div	HOLLOW	no	no	yes	The proposition omits the two-call MPFR division and truncation sequence.
+712	div	HOLLOW	no	no	yes	The proposition omits the two-call MPFR division and truncation sequence.
+718	div	HOLLOW	no	no	yes	The proposition omits the two-call MPFR division and truncation sequence.
+726	div	HOLLOW	no	no	yes	The proposition omits the two-call MPFR division and truncation sequence.
+732	div	HOLLOW	no	no	yes	The proposition omits the two-call MPFR division and truncation sequence.
+740	div	HOLLOW	no	no	yes	The proposition omits the two-call MPFR division and truncation sequence.
+751	$fJ	FAITHFUL	yes	yes	yes	GeneratedFoldCorrect models the relevant behavior and the source branch is stated for all allowed inputs.
+757	$fJ	FAITHFUL	yes	yes	yes	GeneratedFoldCorrect models the relevant behavior and the source branch is stated for all allowed inputs.
+764	$fJ	FAITHFUL	yes	yes	yes	GeneratedFoldCorrect models the relevant behavior and the source branch is stated for all allowed inputs.
+775	-	FAITHFUL	yes	yes	yes	MpfrWrapperCorrect models the relevant behavior and the source branch is stated for all allowed inputs.
+781	sqrt	HOLLOW	no	yes	yes	domainCheckedUnary states the NaN behavior but does not compose allocation, the MPFR call, and the post-call check in source order.
+789	sqrt	HOLLOW	no	no	yes	The proposition omits conversion from BigInt before sqrt.
+791	^	FAITHFUL	yes	yes	yes	Mpfr.MpfrTranscendentalRoutingCorrect / comparison and classification helpers models the relevant behavior and the source branch is stated for all allowed inputs.
+797	^	FAITHFUL	yes	yes	yes	Mpfr.MpfrTranscendentalRoutingCorrect / comparison and classification helpers models the relevant behavior and the source branch is stated for all allowed inputs.
+803	^	FAITHFUL	yes	yes	yes	Mpfr.MpfrTranscendentalRoutingCorrect / comparison and classification helpers models the relevant behavior and the source branch is stated for all allowed inputs.
+809	^	FAITHFUL	yes	yes	yes	Mpfr.MpfrTranscendentalRoutingCorrect / comparison and classification helpers models the relevant behavior and the source branch is stated for all allowed inputs.
+815	^	HOLLOW	no	no	yes	The proposition omits the signedness and Clong-range dispatch.
+816	^	HOLLOW	no	no	yes	The proposition omits the Culong-range dispatch.
+819	$f	FAITHFUL	yes	yes	yes	Mpfr.MpfrTranscendentalRoutingCorrect / comparison and classification helpers models the relevant behavior and the source branch is stated for all allowed inputs.
+826	sincos_fast	HOLLOW	no	no	yes	The proposition omits the paired allocation and single mpfr_sin_cos call.
+832	sincos	HOLLOW	no	no	yes	The proposition omits the sincos alias to sincos_fast.
+835	big_ln2	HOLLOW	no	no	yes	The proposition omits BigFloat allocation and mpfr_const_log2.
+841	ldexp	HOLLOW	no	no	yes	scaledUnary omits allocation and does not encode the MPFR call's rounding mode or destination return.
+846	ldexp	HOLLOW	no	no	yes	scaledUnary omits allocation and does not encode the MPFR call's rounding mode or destination return.
+851	ldexp	HOLLOW	no	no	yes	The proposition omits the ClongMax conversion and delegated ldexp call.
+852	ldexp	HOLLOW	no	no	yes	The proposition omits the CulongMax conversion and delegated ldexp call.
+853	ldexp	HOLLOW	no	no	yes	The proposition omits the integer-to-BigFloat conversion and multiplication.
+855	factorial	HOLLOW	no	no	yes	The model omits factorial's validation, conversion, allocation, and primitive call.
+865	hypot	FAITHFUL	yes	yes	yes	Mpfr.MpfrTranscendentalRoutingCorrect / comparison and classification helpers models the relevant behavior and the source branch is stated for all allowed inputs.
+872	$f	HOLLOW	no	no	yes	The model omits the negative-input DomainError branch before the MPFR call.
+884	log1p	HOLLOW	no	no	yes	The proposition asserts NaN checks absent from this method and omits its exact body.
+897	minmax	HOLLOW	no	yes	yes	minmaxModel states the branch results but takes isnan and _isless outcomes as free flags instead of making those calls.
+903	Base._extrema_rf	HOLLOW	no	no	yes	The proposition omits _extrema_rf's two tuple branches and element ordering.
+912	modf	HOLLOW	no	no	yes	The proposition omits the two output allocations and reversed tuple result order.
+919	rem	FAITHFUL	yes	yes	yes	Mpfr.MpfrTranscendentalRoutingCorrect / comparison and classification helpers models the relevant behavior and the source branch is stated for all allowed inputs.
+925	rem	FAITHFUL	yes	yes	yes	Mpfr.MpfrTranscendentalRoutingCorrect / comparison and classification helpers models the relevant behavior and the source branch is stated for all allowed inputs.
+932	rem2pi	HOLLOW	no	no	yes	The proposition omits multiplication by 2*BigFloat(pi) and rem dispatch.
+934	sum	FAITHFUL	yes	yes	yes	Mpfr.MpfrTranscendentalRoutingCorrect / comparison and classification helpers models the relevant behavior and the source branch is stated for all allowed inputs.
+946	$f	HOLLOW	no	yes	yes	domainCheckedUnary states the NaN behavior but does not compose allocation, the MPFR call, and the post-call check in source order.
+955	sincospi	FAITHFUL	yes	yes	yes	Mpfr.MpfrTranscendentalRoutingCorrect / comparison and classification helpers models the relevant behavior and the source branch is stated for all allowed inputs.
+957	atan	FAITHFUL	yes	yes	yes	Mpfr.MpfrTranscendentalRoutingCorrect / comparison and classification helpers models the relevant behavior and the source branch is stated for all allowed inputs.
+966	$(Symbol(f,:d))	HOLLOW	no	yes	yes	The proposition states the NaN behavior but does not compose allocation, the fixed 360 argument, the MPFR call, and the result check.
+973	$(Symbol(:a,f,:d))	HOLLOW	no	yes	yes	The proposition states the NaN behavior but does not compose allocation, the fixed 360 argument, the MPFR call, and the result check.
+982	atand	HOLLOW	no	no	yes	The proposition omits atan2u's two inputs and degree scale argument.
+990	==	HOLLOW	no	no	yes	The proposition omits the same-type mpfr_equal_p call.
+991	<=	HOLLOW	no	no	yes	The proposition omits the same-type mpfr_lessequal_p call.
+992	<	HOLLOW	no	no	yes	The proposition omits the same-type mpfr_less_p call.
+994	cmp	HOLLOW	no	no	yes	compareMixed takes the primitive comparison result as a bare value and establishes neither this method's calls nor the documented order property.
+998	cmp	HOLLOW	no	no	yes	compareMixed takes the primitive comparison result as a bare value and establishes neither this method's calls nor the documented order property.
+1002	cmp	HOLLOW	no	no	yes	compareMixed takes the primitive comparison result as a bare value and establishes neither this method's calls nor the documented order property.
+1006	cmp	HOLLOW	no	no	yes	The proposition covers cmp with Float64, not this Integer delegation.
+1007	cmp	HOLLOW	no	no	yes	The proposition omits negated reverse-operand delegation.
+1009	cmp	HOLLOW	no	no	yes	compareMixed uses a bare primitive result, and the refuted total-order proposition does not mirror this Julia method's body.
+1014	cmp	HOLLOW	no	no	yes	The proposition omits negated reverse-operand delegation.
+1016	==	HOLLOW	no	yes	yes	numericEqual states the unordered-result formula but takes isnan and cmp results as placeholders instead of making the Julia calls.
+1017	==	HOLLOW	no	no	yes	The proposition omits equality's reverse delegation to y == x.
+1018	==	HOLLOW	no	yes	yes	numericEqual states the unordered-result formula but takes isnan and cmp results as placeholders instead of making the Julia calls.
+1019	==	HOLLOW	no	no	yes	The proposition omits equality's reverse delegation to y == x.
+1021	<	HOLLOW	no	yes	yes	numericLess states the unordered-result formula but takes isnan and cmp results as placeholders instead of making the Julia calls.
+1022	<	HOLLOW	no	no	yes	The proposition omits the reversed cmp operands and greater-than check.
+1023	<	HOLLOW	no	yes	yes	numericLess states the unordered-result formula but takes isnan and cmp results as placeholders instead of making the Julia calls.
+1024	<	HOLLOW	no	no	yes	The proposition omits the reversed cmp operands and greater-than check.
+1026	<=	HOLLOW	no	no	yes	The proposition has no method-specific Lean model for <= and states no promised all-input behavior for this method.
+1027	<=	HOLLOW	no	no	yes	The proposition omits the reversed cmp operands and greater-than-or-equal check.
+1028	<=	HOLLOW	no	no	yes	The proposition has no method-specific Lean model for <= and states no promised all-input behavior for this method.
+1029	<=	HOLLOW	no	no	yes	The proposition omits the reversed cmp operands and greater-than-or-equal check.
+1033	signbit	HOLLOW	no	no	yes	The proposition omits the sign-field signbit computation.
+1035	sign	HOLLOW	no	no	yes	signModel takes cmp, NaN, zero, and sign outcomes as free values and does not model the BigFloat cmp and one calls.
+1041	_precision_with_base_2	HOLLOW	no	no	yes	The proposition omits the mpfr_get_prec call.
+1044	precision	HOLLOW	no	no	yes	The proposition omits the _precision(x, base) delegation.
+1047	_convert_precision_from_base	HOLLOW	no	no	yes	The model treats converted precision as a bare input and omits ceil(precision*log2(base)).
+1050	_precision_with_base_2	HOLLOW	no	no	yes	The proposition omits scoped/default precision lookup.
+1069	setprecision	HOLLOW	no	yes	yes	The proposition states the relevant behavior but omits a Lean function mirroring setprecision's Julia body.
+1076	setprecision	HOLLOW	no	no	yes	The proposition omits delegation to the BigFloat type setter.
+1078	maxintfloat	HOLLOW	no	no	yes	The proposition omits construction of BigFloat(2) and precision(x).
+1079	maxintfloat	HOLLOW	no	no	yes	The proposition omits type-level precision lookup and BigFloat construction.
+1081	copysign	HOLLOW	no	no	yes	The proposition omits allocation and the mpfr_copysign call.
+1087	exponent	HOLLOW	no	no	yes	exponentModel takes zero, finite, and MPFR exponent results as free inputs instead of deriving them from x through the Julia calls.
+1095	frexp	HOLLOW	no	no	yes	frexpRoute returns an opaque primitive pair and omits output allocation and exponent-reference assembly.
+1102	significand	HOLLOW	no	yes	yes	significandRoute states the factor-two result but omits allocation and the two concrete MPFR calls.
+1111	isinteger	FAITHFUL	yes	yes	yes	Mpfr.MpfrTranscendentalRoutingCorrect / comparison and classification helpers models the relevant behavior and the source branch is stated for all allowed inputs.
+1121	round	HOLLOW	no	no	yes	roundedValue is an opaque primitive result and omits allocation plus the generated MPFR function selection.
+1129	isinf	HOLLOW	no	no	yes	The model tests a FloatClass tag instead of x.exp against the MPFR infinity code.
+1133	isnan	HOLLOW	no	no	yes	The model tests a FloatClass tag instead of x.exp against the MPFR NaN code.
+1137	issubnormal	FAITHFUL	yes	yes	yes	Mpfr.MpfrTranscendentalRoutingCorrect / comparison and classification helpers models the relevant behavior and the source branch is stated for all allowed inputs.
+1139	isfinite	FAITHFUL	yes	yes	yes	Mpfr.MpfrTranscendentalRoutingCorrect / comparison and classification helpers models the relevant behavior and the source branch is stated for all allowed inputs.
+1141	iszero	HOLLOW	no	no	yes	The model tests a FloatClass tag instead of x.exp against the MPFR zero code.
+1142	isone	HOLLOW	no	no	yes	The proposition omits equality with Clong(1).
+1145	ispositive	FAITHFUL	yes	yes	yes	Mpfr.MpfrTranscendentalRoutingCorrect / comparison and classification helpers models the relevant behavior and the source branch is stated for all allowed inputs.
+1146	isnegative	FAITHFUL	yes	yes	yes	Mpfr.MpfrTranscendentalRoutingCorrect / comparison and classification helpers models the relevant behavior and the source branch is stated for all allowed inputs.
+1148	typemax	HOLLOW	no	no	yes	The proposition omits the fixed positive-infinity typemax value.
+1149	typemin	HOLLOW	no	no	yes	The proposition omits the fixed negative-infinity typemin value.
+1151	nextfloat!	HOLLOW	no	no	yes	The proposition models Int64 abs overflow but omits the recursive call and stepping loop.
+1159	prevfloat!	HOLLOW	no	no	yes	The proposition models Int64 abs overflow but omits the recursive call and stepping loop.
+1167	nextfloat	HOLLOW	no	no	yes	neighborValue covers only Int64 counts while Julia accepts every Integer, and the other entry models the mutating callee rather than this wrapper.
+1168	prevfloat	HOLLOW	no	no	yes	neighborValue covers only Int64 counts while Julia accepts every Integer, and the other entry models the mutating callee rather than this wrapper.
+1170	eps	HOLLOW	no	no	yes	The proposition omits eps's nextfloat(BigFloat(1)) - BigFloat(1) computation.
+1172	floatmin	HOLLOW	no	no	yes	The proposition omits floatmin's zero(BigFloat) input to nextfloat.
+1173	floatmax	HOLLOW	no	no	yes	The proposition omits floatmax's BigFloat(Inf) input to prevfloat.
+1200	setprecision	FAITHFUL	-	yes	-	The note accurately identifies the deprecated generic fallback retained for package overloads.
+1214	setprecision	HOLLOW	no	no	yes	The model omits converted-precision scoping, though it does model callback execution and restoration elsewhere.
+1217	setprecision	HOLLOW	no	no	yes	emptyPrecisionCall reduces the overload to an argument count and omits the actual f, Union{}, slurp, keyword, and MethodError argument construction.
+1219	setprecision	HOLLOW	no	no	yes	The model omits forwarding the base keyword to the BigFloat overload.
+1221	string_mpfr	HOLLOW	no	no	yes	The proposition omits MPFR formatting allocation, string conversion, and freeing.
+1239	_prettify_bigfloat	HOLLOW	no	no	yes	The proposition models the exponent cutoff but omits mantissa normalization and fixed-format arithmetic.
+1267	_string	HOLLOW	no	no	yes	The model states the finite/nonfinite branch but omits Float64 conversion and string_mpfr formatting calls.
+1271	_string	HOLLOW	no	no	yes	The proposition omits this default-format _string alias.
+1272	_string	HOLLOW	no	no	yes	The proposition omits precision-format construction for k.
+1274	string	HOLLOW	no	no	yes	The proposition omits string(b)'s delegation to _string.
+1276	print	HOLLOW	no	no	yes	The proposition omits printing the formatted BigFloat to io.
+1277	show	HOLLOW	no	no	yes	showRoute chooses between precomputed strings and omits get(io, :compact), both _string calls, and the print side effect.
+1286	get_emax	FAITHFUL	yes	yes	yes	scalarPrimitive models the relevant behavior and the source branch is stated for all allowed inputs.
+1287	get_emax_min	FAITHFUL	yes	yes	yes	scalarPrimitive models the relevant behavior and the source branch is stated for all allowed inputs.
+1288	get_emax_max	FAITHFUL	yes	yes	yes	scalarPrimitive models the relevant behavior and the source branch is stated for all allowed inputs.
+1290	get_emin	FAITHFUL	yes	yes	yes	scalarPrimitive models the relevant behavior and the source branch is stated for all allowed inputs.
+1291	get_emin_min	FAITHFUL	yes	yes	yes	scalarPrimitive models the relevant behavior and the source branch is stated for all allowed inputs.
+1292	get_emin_max	FAITHFUL	yes	yes	yes	scalarPrimitive models the relevant behavior and the source branch is stated for all allowed inputs.
+1294	check_exponent_err	FAITHFUL	yes	yes	yes	checkExponentResult models the relevant behavior and the source branch is stated for all allowed inputs.
+1295	set_emax!	HOLLOW	no	no	yes	The proposition models the result check but omits mpfr_set_emax and check_exponent_err composition.
+1296	set_emin!	HOLLOW	no	no	yes	The proposition models the result check but omits mpfr_set_emin and check_exponent_err composition.
+1298	Base.deepcopy_internal	HOLLOW	no	no	yes	The model omits stackdict memoization, limb copying, and _BigFloat construction.
+1307	decompose	HOLLOW	no	yes	yes	The proposition covers special-value decomposition only and omits finite limb copying and exponent arithmetic.
+1320	lerpi	FAITHFUL	yes	yes	yes	lerpRoute models the relevant behavior and the source branch is stated for all allowed inputs.
+1326	clear_flags	HOLLOW	no	no	yes	The proposition omits clear_flags's MPFR call.
+1327	had_underflow	HOLLOW	no	no	yes	flagRaised takes the C call's integer result as a bare input and does not model the method-specific MPFR flag call.
+1328	had_overflow	HOLLOW	no	no	yes	flagRaised takes the C call's integer result as a bare input and does not model the method-specific MPFR flag call.
+1329	had_divbyzero	HOLLOW	no	no	yes	flagRaised takes the C call's integer result as a bare input and does not model the method-specific MPFR flag call.
+1330	had_nan	HOLLOW	no	no	yes	flagRaised takes the C call's integer result as a bare input and does not model the method-specific MPFR flag call.
+1331	had_inexact_exception	HOLLOW	no	no	yes	flagRaised takes the C call's integer result as a bare input and does not model the method-specific MPFR flag call.
+1332	had_range_exception	HOLLOW	no	no	yes	flagRaised takes the C call's integer result as a bare input and does not model the method-specific MPFR flag call.

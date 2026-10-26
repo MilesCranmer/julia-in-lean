@@ -1,0 +1,75 @@
+id: files-rm-recursive-symlink-slash
+title: "rm on a directory symlink with a trailing slash deletes target contents and then fails"
+priority: P1
+kind: wrong-result
+area: Files
+files: [base/file.jl]
+functions: ["rm(::AbstractString; recursive=true)"]
+summary: |
+  rm("link/"; recursive=true), where link points to a directory, traverses the link and
+  deletes the target directory's contents. It then throws ENOTDIR while removing link/,
+  leaving the symlink and emptied target directory behind.
+likelihood: |
+  Directory paths commonly acquire trailing separators through configuration or path
+  construction. Applying recursive cleanup to such a symlink causes destructive partial work.
+maybe_intended: |
+  A trailing slash can require directory resolution at the operating-system level. Even under
+  that interpretation, deleting the children and then deterministically failing to remove the
+  directory does not satisfy rm's documented deletion.
+reproducer: |
+  mktempdir() do sandbox
+      cd(sandbox) do
+          mkpath("target")
+          write("target/child", "contents")
+          symlink(abspath("target"), "link")
+          result = try
+              rm("link/"; recursive=true)
+              nothing
+          catch err
+              err
+          end
+          print("result = ")
+          showerror(stdout, result)
+          println()
+          println("islink(link) = ", islink("link"))
+          println("isdir(target) = ", isdir("target"))
+          println("isfile(target/child) = ", isfile("target/child"))
+          if result isa Base.IOError && islink("link") && isdir("target") && !isfile("target/child")
+              println("REPRODUCED files-rm-recursive-symlink-slash")
+          end
+      end
+  end
+output:
+  release: |
+    result = IOError: rm("link/"): not a directory (ENOTDIR)
+    islink(link) = true
+    isdir(target) = true
+    isfile(target/child) = false
+    REPRODUCED files-rm-recursive-symlink-slash
+  nightly: |
+    result = IOError: rm("link/"): not a directory (ENOTDIR)
+    islink(link) = true
+    isdir(target) = true
+    isfile(target/child) = false
+    REPRODUCED files-rm-recursive-symlink-slash
+reproduced: {release: true, nightly: true}
+expected: |
+  Recursive removal of a symlink must not traverse and delete its target. The link should be
+  removed, as for the same path without the trailing slash, or the operation should reject the
+  path before changing the target.
+promised_by: |
+  base/file.jl:263-267: "Delete the file, link, or empty directory at the given path. If
+  recursive=true is passed and the path is a directory, then all contents are removed recursively."
+cause: |
+  At base/file.jl:285, islink("link/") is false while isdir("link/") is true. The recursive
+  branch at lines 301-312 reads through the symlink and removes each child. The final
+  uv_fs_rmdir call at lines 314-320 rejects the symlink path with ENOTDIR.
+possible_fix: |
+  Detect the final path component as a symlink even when the input has trailing separators,
+  and unlink it without traversing the target.
+duplicates:
+  issues: []
+  queries: ["rm symlink trailing slash", "rm recursive symlink", "rm symlink directory contents"]
+lean:
+  property: JuliaLean.Files.RmSymlinkSafe
+  theorem: JuliaLean.Files.rmSymlinkSafe_refuted

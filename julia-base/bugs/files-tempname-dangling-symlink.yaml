@@ -1,0 +1,64 @@
+id: files-tempname-dangling-symlink
+title: "tempname can return the path of an existing dangling symlink"
+priority: P2
+kind: wrong-result
+area: Files
+files: [base/file.jl]
+functions: ["tempname", "_tempname"]
+summary: |
+  _tempname checks candidate collisions with ispath, which is false for a dangling
+  symbolic link. When the generated candidate names such a link, tempname returns the
+  already occupied path despite documenting that the name differs from every existing file.
+likelihood: |
+  An accidental ten-character collision is remote. The generator is controlled by
+  Base.Libc.srand, so a caller or another process that predicts the state can arrange it.
+maybe_intended: |
+  The docstring warns that another process can create the path after tempname returns.
+  This case differs because the symlink already exists when tempname checks the candidate.
+reproducer: |
+  function reset_filename_rng()
+      Base.Libc.srand(0x12345678)
+  end
+  mktempdir() do dir
+      reset_filename_rng()
+      candidate = joinpath(dir, "jl_" * Base.Filesystem._rand_filename())
+      symlink("missing-target", candidate)
+      reset_filename_rng()
+      generated = tempname(dir; max_tries=1, cleanup=false)
+      println("generated == candidate = ", generated == candidate)
+      println("islink(generated) = ", islink(generated))
+      println("ispath(generated) = ", ispath(generated))
+      if generated == candidate && islink(generated) && !ispath(generated)
+          println("REPRODUCED files-tempname-dangling-symlink")
+      end
+  end
+output:
+  release: |
+    generated == candidate = true
+    islink(generated) = true
+    ispath(generated) = false
+    REPRODUCED files-tempname-dangling-symlink
+  nightly: |
+    generated == candidate = true
+    islink(generated) = true
+    ispath(generated) = false
+    REPRODUCED files-tempname-dangling-symlink
+reproduced: {release: true, nightly: true}
+expected: |
+  With max_tries=1, tempname should reject the occupied candidate and throw the
+  max-tries-exhausted error. With more tries, it should generate another candidate.
+promised_by: |
+  base/file.jl:848-852: "The name is guaranteed to differ from all files already
+  existing at the time of the call to tempname."
+cause: |
+  _tempname uses ispath(filename) at base/file.jl:790-796. ispath follows symbolic
+  links and returns false when the target is missing, even though islink(filename) is true.
+possible_fix: |
+  Treat islink(filename) as a collision too, or use lstat to test whether any directory
+  entry already occupies the candidate path.
+duplicates:
+  issues: []
+  queries: ["tempname dangling symlink", "tempname existing symlink", "_tempname ispath"]
+lean:
+  property: JuliaLean.Files.TempnameUnused
+  theorem: JuliaLean.Files.tempnameUnused_refuted

@@ -1,0 +1,38 @@
+line	name	verdict	mirror	property	settled	reason
+68	Atomic{T}	HOLLOW	no	no	yes	The model hard-codes a BitVec 64 zero cell instead of mirroring new(zero(T)) and therefore does not cover every allowed T.
+69	Atomic{T}	HOLLOW	no	no	yes	The proposition has no constructor from the supplied value, so it neither mirrors new(value) nor states this constructor's behavior.
+72	Atomic	HOLLOW	no	yes	yes	The zero-value claim matches the nullary constructor's behavior, but atomicDefault is a hand-written result rather than a model of the call to Atomic{Int}().
+75	lock_profiling	HOLLOW	no	no	yes	The proposition contains no state branch or atomic_add!/atomic_sub! call and states nothing about lock-profiling updates.
+76	lock_profiling	HOLLOW	no	no	yes	The proposition contains no atomic load or greater-than-zero check and states nothing about the returned profiling state.
+79	inc_lock_conflict_count	HOLLOW	no	no	yes	The proposition contains no model or property for incrementing LOCK_CONFLICT_COUNT through atomic_add!.
+114	atomic_cas!	FAITHFUL	yes	-	-	The no-behaviour exclusion applies because this line declares an empty generic function and supplies no method body.
+138	atomic_xchg!	FAITHFUL	yes	-	-	The no-behaviour exclusion applies because this line declares an empty generic function and supplies no method body.
+162	atomic_add!	FAITHFUL	yes	-	-	The no-behaviour exclusion applies because this line declares an empty generic function and supplies no method body.
+186	atomic_sub!	FAITHFUL	yes	-	-	The no-behaviour exclusion applies because this line declares an empty generic function and supplies no method body.
+209	atomic_and!	FAITHFUL	yes	-	-	The no-behaviour exclusion applies because this line declares an empty generic function and supplies no method body.
+232	atomic_nand!	FAITHFUL	yes	-	-	The no-behaviour exclusion applies because this line declares an empty generic function and supplies no method body.
+255	atomic_or!	FAITHFUL	yes	-	-	The no-behaviour exclusion applies because this line declares an empty generic function and supplies no method body.
+278	atomic_xor!	FAITHFUL	yes	-	-	The no-behaviour exclusion applies because this line declares an empty generic function and supplies no method body.
+301	atomic_max!	FAITHFUL	yes	-	-	The no-behaviour exclusion applies because this line declares an empty generic function and supplies no method body.
+324	atomic_min!	FAITHFUL	yes	-	-	The no-behaviour exclusion applies because this line declares an empty generic function and supplies no method body.
+327	nand	HOLLOW	no	no	yes	AtomicStorageBodies never uses the bnand action or another nand model, so the proposition neither mirrors nor states this method's result.
+329	getindex	HOLLOW	no	yes	yes	The universal load-value claim matches the observable result, but atomicLoad is a plain field projection that omits the source atomic acquire operation.
+337	getindex_atomic	HOLLOW	no	no	yes	The proposition has no model of getfield with the supplied memory order and states no order-sensitive behavior for this method.
+338	setindex_atomic!	HOLLOW	no	no	yes	AtomicStorageBodies never uses atomicStore, and atomicStore itself omits the isa/convert branch, type assertion, order, and setfield! call.
+341	swapindex_atomic!	HOLLOW	no	no	yes	atomicSwap omits the isa/convert branch, type assertion, order, and swapfield! call, while the property covers only equal-typed BitVec 64 values.
+344	modifyindex_atomic!	HOLLOW	no	no	yes	The proposition has no model or behavioral claim for modifyfield!, its operator argument, or its memory order.
+346	replaceindex_atomic!	HOLLOW	no	no	yes	atomicReplace is a BitVec 64 specification that omits desired-value conversion, both memory orders, and the replacefield! call.
+349	setindexonce_atomic!	HOLLOW	no	no	yes	AtomicStorageBodies never uses atomicSetOnce, and that helper omits conversion, both memory orders, and the setfieldonce! call.
+352	atomic_cas!	HOLLOW	no	no	yes	The Lean entries use a hand-written BitVec 64 update and omit the @atomicreplace call and memory orders, so they do not cover all allowed Atomic types.
+353	atomic_add!	HOLLOW	no	no	yes	The Lean entries use a hand-written BitVec 64 update and omit the @atomic call and memory order, so they do not cover all allowed Atomic types.
+354	atomic_sub!	HOLLOW	no	no	yes	The Lean entries use a hand-written BitVec 64 update and omit the @atomic call and memory order, so they do not cover all allowed Atomic types.
+355	atomic_and!	HOLLOW	no	no	yes	The Lean entries use a hand-written BitVec 64 update and omit the @atomic call and memory order, so they do not cover all allowed Atomic types.
+356	atomic_or!	HOLLOW	no	no	yes	The Lean entries use a hand-written BitVec 64 update and omit the @atomic call and memory order, so they do not cover all allowed Atomic types.
+357	atomic_xor!	HOLLOW	no	no	yes	The Lean entries use a hand-written BitVec 64 update and omit the @atomic call and memory order, so they do not cover all allowed Atomic types.
+358	atomic_nand!	HOLLOW	no	no	yes	The Lean entries use a hand-written BitVec 64 update and omit the @atomic call, nand dispatch, and memory order, so they do not cover all allowed Atomic types.
+359	atomic_xchg!	HOLLOW	no	no	yes	The Lean entries use a hand-written BitVec 64 update and omit the @atomicswap call and memory order, so they do not cover all allowed Atomic types.
+360	atomic_min!	HOLLOW	no	no	yes	The Lean entries use a hand-written signed BitVec 64 update and omit the @atomic call and memory order, so they do not cover all allowed Atomic types.
+361	atomic_max!	HOLLOW	no	no	yes	The Lean entries use a hand-written signed BitVec 64 update and omit the @atomic call and memory order, so they do not cover all allowed Atomic types.
+378	atomic_fence	HOLLOW	no	no	yes	fenceBody is a hand-written label and the proposition proves only that it is nonempty, not that the intrinsic is called with system scope.
+393	atomic_fence_light	HOLLOW	no	no	yes	fenceBody is a hand-written label and the proposition proves only that it is nonempty, not that the intrinsic is called with single-thread scope.
+402	atomic_fence_heavy	HOLLOW	no	no	yes	fenceBody is a hand-written label and the proposition proves only that it is nonempty, not that jl_membarrier is called.

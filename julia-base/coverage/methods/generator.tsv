@@ -1,0 +1,26 @@
+file	line	endline	name	signature	status	entry	note
+base/generator.jl	37	37	Generator	Generator(f, I1, I2, Is...)	modelled	iteratorscov-generator-semantics	
+base/generator.jl	39	40	Generator	Generator(::Type{T}, iter::I) where {T,I}	modelled	iteratorscov-generator-semantics	
+base/generator.jl	42	42	Generator	Generator(::Type{T}, I1, I2, Is...) where {T}	modelled	iteratorscov-generator-semantics	
+base/generator.jl	44	50	iterate	iterate(g::Generator, s...)	modelled	iteratorscov-generator-semantics	
+base/generator.jl	52	52	length	length(g::Generator)	modelled	iteratorscov-generator-semantics	
+base/generator.jl	53	53	size	size(g::Generator)	modelled	iteratorscov-generator-semantics	
+base/generator.jl	54	54	axes	axes(g::Generator)	modelled	iteratorscov-generator-semantics	
+base/generator.jl	55	55	ndims	ndims(g::Generator)	modelled	iteratorscov-generator-semantics	
+base/generator.jl	56	56	keys	keys(g::Generator)	modelled	iteratorscov-generator-semantics	
+base/generator.jl	57	57	last	last(g::Generator)	modelled	iteratorscov-generator-semantics	
+base/generator.jl	58	58	isempty	isempty(g::Generator)	modelled	iteratorscov-generator-semantics	
+base/generator.jl	59	59	isdone	isdone(g::Generator, state...)	modelled	iteratorscov-generator-semantics	
+base/generator.jl	95	95	IteratorSize	IteratorSize(x)	modelled	iteratorscov-generator-semantics	
+base/generator.jl	96	96	IteratorSize	IteratorSize(::Type)	modelled	iteratorscov-generator-semantics	
+base/generator.jl	97	97	IteratorSize	IteratorSize(::Type{Union{}}, slurp...)	modelled	iteratorscov-generator-semantics	
+base/generator.jl	98	98	IteratorSize	IteratorSize(::Type{Any})	modelled	iteratorscov-generator-semantics	
+base/generator.jl	100	100	IteratorSize	IteratorSize(::Type{<:Tuple})	modelled	iteratorscov-generator-semantics	
+base/generator.jl	101	101	IteratorSize	IteratorSize(::Type{<:AbstractArray{<:Any,N}}) where {N}	modelled	iteratorscov-generator-semantics	
+base/generator.jl	102	102	IteratorSize	IteratorSize(::Type{<:Generator{I}}) where {I}	modelled	iteratorscov-generator-semantics	
+base/generator.jl	104	104	haslength	haslength(iter)	modelled	iteratorscov-generator-semantics	
+base/generator.jl	129	129	IteratorEltype	IteratorEltype(x)	modelled	iteratorscov-generator-semantics	
+base/generator.jl	130	130	IteratorEltype	IteratorEltype(::Type)	modelled	iteratorscov-generator-semantics	
+base/generator.jl	131	131	IteratorEltype	IteratorEltype(::Type{Union{}}, slurp...)	modelled	iteratorscov-generator-semantics	
+base/generator.jl	132	132	IteratorEltype	IteratorEltype(::Type{Any})	modelled	iteratorscov-generator-semantics	
+base/generator.jl	134	134	IteratorEltype	IteratorEltype(::Type{Generator{I,T}}) where {I,T}	modelled	iteratorscov-generator-semantics	

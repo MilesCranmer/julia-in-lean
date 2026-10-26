@@ -1,0 +1,47 @@
+id: sorttuplescov-float-range-search-overflow
+title: "searchsortedfirst/last on a float range throw InexactError when the range spans more than floatmax"
+priority: P2
+kind: wrong-exception
+area: Sort
+files: [base/sort.jl]
+functions: ["searchsortedlast(a::AbstractRange{<:Real}, x::Real, o::FastRangeOrderings)", "searchsortedfirst(a::AbstractRange{<:Real}, x::Real, o::FastRangeOrderings)", "searchsorted(a::AbstractRange{<:Real}, x::Real, o::FastRangeOrderings)"]
+summary: |
+  The float range methods estimate the index as round(Integer, (x - f) / h + 1).
+  When x - first(a) overflows to Inf, round throws InexactError. For
+  r = range(-1e308, 1e308, length=3), searchsortedlast(r, 9e307) throws while
+  searchsortedlast(collect(r), 9e307) == 2; insorted(9e307, r) also throws.
+likelihood: |
+  Low: needs a range whose span exceeds floatmax(Float64) (or the analogous bound for
+  Float32), such as ranges between large negative and positive extremes.
+maybe_intended: ""
+reproducer: |
+  r = range(-1e308, 1e308, length=3)
+  searchsortedlast(collect(r), 9e307)   # 2
+  searchsortedlast(r, 9e307)            # InexactError: Int64(Inf)
+output:
+  release: |
+    2 InexactError
+    REPRODUCED sorttuplescov-float-range-search-overflow
+  nightly: |
+    2 InexactError
+    REPRODUCED sorttuplescov-float-range-search-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  The same index as on collect(r): 2 for searchsortedlast, 3 for searchsortedfirst.
+promised_by: |
+  base/sort.jl:353-357 and 392-396 (searchsortedfirst/searchsortedlast docstrings):
+  return the first/last index of a value not ordered before/after x; range methods
+  are optimized implementations of the same functions.
+cause: |
+  base/sort.jl:250 and 263: n = round(Integer, (x - f) / h + 1) with no guard against
+  x - f overflowing to Inf.
+possible_fix: |
+  Compute (x - f) / h as x / h - f / h when x - f is not finite, or fall back to the
+  generic binary search when the estimate is not finite.
+duplicates:
+  issues:
+    - {number: 34408, state: open, relation: related}
+  queries: ["issues: searchsorted float range InexactError", "issues: searchsortedlast range Inf", "issues: searchsorted range overflow float", "issues/prs: searchsorted Float64 range", "issues/prs: searchsortedfirst StepRangeLen"]
+lean:
+  property: JuliaLean.SortTuplesCov.FloatRangeSearchNoThrow
+  theorem: JuliaLean.SortTuplesCov.floatRangeSearchNoThrow_refuted

@@ -1,0 +1,54 @@
+id: stringscova-stringview-empty-constructor
+title: "typemin and one fail for StringView types whose backing vector has no zero-argument constructor"
+priority: P2
+kind: wrong-exception
+area: StringsCovA
+files: [base/strings/stringview.jl]
+functions: ["typemin(::Type{StringView{V}})", "typemin(::StringView)", "one(::Union{StringView,Type{StringView}})", "oneunit(::Union{StringView,Type{StringView}})"]
+summary: |
+  The generic empty-value methods construct `V()` for a `StringView{V}`. Ordinary
+  backing vectors such as `SubArray` have no zero-argument constructor, so `typemin`,
+  `one`, and `oneunit` all throw `MethodError` instead of returning an empty string view.
+likelihood: |
+  A view of a byte vector is a normal zero-copy input to `StringView`. Calling
+  `typemin`, `one`, or `oneunit` on string types is uncommon, but these methods are
+  explicitly defined for every `StringView` type.
+maybe_intended: |
+  Some backing-vector types cannot be constructed without an existing parent, so no
+  empty value of the exact `StringView{V}` type may be available from the type alone.
+  If that limitation is intended, the generic methods should not claim all `V`.
+reproducer: |
+  data = @view UInt8[0x61][1:1]
+  s = Base.StringView(data)
+  typemin(typeof(s))
+  one(typeof(s))
+  oneunit(typeof(s))
+output:
+  release: |
+    StringView is unavailable on Julia 1.13.2
+  nightly: |
+    backing type = SubArray{UInt8, 1, Vector{UInt8}, Tuple{UnitRange{Int64}}, true}
+    typemin(typeof(s)) = MethodError(SubArray{UInt8, 1, Vector{UInt8}, Tuple{UnitRange{Int64}}, true}, (), 0x000000000000b1fe)
+    one(typeof(s)) = MethodError(SubArray{UInt8, 1, Vector{UInt8}, Tuple{UnitRange{Int64}}, true}, (), 0x000000000000b1fe)
+    oneunit(typeof(s)) = MethodError(SubArray{UInt8, 1, Vector{UInt8}, Tuple{UnitRange{Int64}}, true}, (), 0x000000000000b1fe)
+    REPRODUCED stringscova-stringview-empty-constructor
+reproduced: {release: false, nightly: true}
+expected: |
+  Each operation returns an empty `StringView` as stated by the source, or the
+  over-broad methods are removed so unsupported backing types do not advertise them.
+promised_by: |
+  base/strings/stringview.jl:97 says, "Typemin and one is the empty string", and
+  lines 99-102 define `typemin`, `one`, and `oneunit` for every `StringView{V}`.
+cause: |
+  base/strings/stringview.jl:99 implements `typemin(::Type{StringView{V}})` as
+  `StringView(V())`. `SubArray` and many other concrete `AbstractVector{UInt8}`
+  implementations require constructor arguments, so `V()` throws `MethodError`.
+possible_fix: |
+  Restrict the type-level methods to backing types with a valid empty constructor, or
+  redesign the empty-value methods so they do not require constructing arbitrary `V`.
+duplicates:
+  issues: []
+  queries: ["StringView typemin", "StringView one empty", "StringView SubArray MethodError"]
+lean:
+  property: JuliaLean.StringsCovA.StringView.EmptyOperations
+  theorem: JuliaLean.StringsCovA.StringView.emptyOperations_refuted

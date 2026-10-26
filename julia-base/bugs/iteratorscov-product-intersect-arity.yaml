@@ -1,0 +1,69 @@
+id: iteratorscov-product-intersect-arity
+title: "intersect(product(1:3), product(1:2, 1:2)) returns four 2-tuples instead of nothing"
+priority: P2
+kind: wrong-result
+area: IteratorsCov
+files:
+- base/iterators.jl
+functions:
+- intersect(::ProductIterator, ::ProductIterator)
+summary: |
+  intersect of two Iterators.product objects is computed factor by factor with
+  broadcasting, intersect.(a.iterators, b.iterators). When the two products have
+  different numbers of factors and one has a single factor, broadcasting repeats
+  that factor, so intersect(product(1:3), product(1:2, 1:2)) is product(1:2, 1:2):
+  four 2-tuples, although the first product yields only 1-tuples and the two share
+  no element. With 2 and 3 factors it throws DimensionMismatch instead of
+  returning an empty result.
+likelihood: |
+  Low: intersecting products of different dimension is unusual, but the result is
+  silently wrong when it happens.
+maybe_intended: |
+  The method was added for CartesianIndices-like products of ranges of equal
+  dimension (#39943, #39949); products of different dimension may not have been
+  considered.
+reproducer: |
+  a = Iterators.product(1:3)
+  b = Iterators.product(1:2, 1:2)
+  collect(intersect(a, b))               # [(1, 1) (1, 2); (2, 1) (2, 2)]
+  intersect(collect(a), collect(b))      # empty
+output:
+  release: |
+    collect(intersect(product(1:3), product(1:2, 1:2))) = [(1, 1) (1, 2); (2, 1) (2, 2)]
+    intersect(collect(a), collect(b)) = Tuple{Int64, Vararg{Int64}}[]
+    REPRODUCED iteratorscov-product-intersect-arity
+  nightly: |
+    collect(intersect(product(1:3), product(1:2, 1:2))) = [(1, 1) (1, 2); (2, 1) (2, 2)]
+    intersect(collect(a), collect(b)) = Tuple{Int64, Vararg{Int64}}[]
+    REPRODUCED iteratorscov-product-intersect-arity
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  An empty result (no 1-tuple equals a 2-tuple), as intersect(collect(a),
+  collect(b)) gives.
+promised_by: |
+  intersect docstring, base/abstractset.jl: "Construct the set containing those
+  elements which appear in all of the arguments."
+cause: |
+  base/iterators.jl:1257: intersect(a::ProductIterator, b::ProductIterator) =
+  ProductIterator(intersect.(a.iterators, b.iterators)) broadcasts over tuples of
+  different lengths.
+possible_fix: |
+  Return an empty product (or fall back to the generic intersect) when the
+  numbers of factors differ.
+duplicates:
+  issues:
+  - number: 39943
+    state: closed
+    relation: related
+  - number: 39949
+    state: merged
+    relation: related
+  queries:
+  - product intersect
+  - ProductIterator intersect
+  - intersect product
+lean:
+  property: JuliaLean.IteratorsCov.ProductIntersect
+  theorem: JuliaLean.IteratorsCov.productIntersect_refuted

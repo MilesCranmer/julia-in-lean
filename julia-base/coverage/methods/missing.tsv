@@ -1,0 +1,98 @@
+file	line	endline	name	signature	status	entry	note
+base/missing.jl	5	5	show	show(io::IO, x::Missing)	modelled	reducecov-missing-l5	
+base/missing.jl	18	19	showerror	showerror(io::IO, ex::MissingException)	modelled	reducecov-missing-l18	
+base/missing.jl	39	39	nonmissingtype	nonmissingtype(@nospecialize(T::Type))	modelled	reducecov-missing-l39	
+base/missing.jl	41	46	nonmissingtype_checked	nonmissingtype_checked(T::Type)	modelled	reducecov-missing-l41	
+base/missing.jl	48	48	promote_rule	promote_rule(T::Type{Missing}, S::Type)	modelled	reducecov-missing-l48	
+base/missing.jl	49	49	promote_rule	promote_rule(T::Type{Union{Nothing, Missing}}, S::Type)	modelled	reducecov-missing-l49	
+base/missing.jl	50	59	promote_rule	promote_rule(T::Type{>:Union{Nothing, Missing}}, S::Type)	modelled	reducecov-missing-l50	
+base/missing.jl	60	66	promote_rule	promote_rule(T::Type{>:Missing}, S::Type)	modelled	reducecov-missing-l60	
+base/missing.jl	68	68	convert	convert(::Type{T}, x::T) where {T>:Missing}	modelled	reducecov-missing-l68	
+base/missing.jl	69	69	convert	convert(::Type{T}, x::T) where {T>:Union{Missing, Nothing}}	modelled	reducecov-missing-l69	
+base/missing.jl	70	70	convert	convert(::Type{T}, x) where {T>:Missing}	modelled	reducecov-missing-l70	
+base/missing.jl	71	71	convert	convert(::Type{T}, x) where {T>:Union{Missing, Nothing}}	modelled	reducecov-missing-l71	
+base/missing.jl	74	74	==	==(::Missing, ::Missing)	modelled	reducecov-missing-l74	
+base/missing.jl	75	75	==	==(::Missing, ::Any)	modelled	missingchar-comparison-propagates	
+base/missing.jl	76	76	==	==(::Any, ::Missing)	modelled	reducecov-missing-l76	
+base/missing.jl	78	78	==	==(::Missing, ::WeakRef)	modelled	reducecov-missing-l78	
+base/missing.jl	79	79	==	==(::WeakRef, ::Missing)	modelled	reducecov-missing-l79	
+base/missing.jl	80	80	isequal	isequal(::Missing, ::Missing)	modelled	missingchar-isequal-missing	
+base/missing.jl	81	81	isequal	isequal(::Missing, ::Any)	modelled	missingchar-isequal-missing,missingchar-isless-trichotomy	
+base/missing.jl	82	82	isequal	isequal(::Any, ::Missing)	modelled	reducecov-missing-l82	
+base/missing.jl	83	83	<	<(::Missing, ::Missing)	modelled	reducecov-missing-l83	
+base/missing.jl	84	84	<	<(::Missing, ::Any)	modelled	missingchar-comparison-propagates	
+base/missing.jl	85	85	<	<(::Any, ::Missing)	modelled	reducecov-missing-l85	
+base/missing.jl	86	86	isless	isless(::Missing, ::Missing)	modelled	reducecov-missing-l86	
+base/missing.jl	87	87	isless	isless(::Missing, ::Any)	modelled	missingchar-isless-missing-last,missingchar-isless-strict-weak,missingchar-isless-trichotomy	
+base/missing.jl	88	88	isless	isless(::Any, ::Missing)	modelled	missingchar-isless-missing-last,missingchar-isless-strict-weak	
+base/missing.jl	89	89	ispositive	ispositive(::Missing)	modelled	reducecov-missing-l89	
+base/missing.jl	90	90	isnegative	isnegative(::Missing)	modelled	reducecov-missing-l90	
+base/missing.jl	91	91	isapprox	isapprox(::Missing, ::Missing; kwargs...)	modelled	reducecov-missing-l91	
+base/missing.jl	92	92	isapprox	isapprox(::Missing, ::Any; kwargs...)	modelled	reducecov-missing-l92	
+base/missing.jl	93	93	isapprox	isapprox(::Any, ::Missing; kwargs...)	modelled	reducecov-missing-l93	
+base/missing.jl	103	103	$f	($f)(::Missing)	modelled	reducecov-missing-l103	
+base/missing.jl	106	106	$f	($f)(::Type{Any})	modelled	reducecov-missing-l106	
+base/missing.jl	107	107	$f	($f)(::Type{Missing})	modelled	reducecov-missing-l107	
+base/missing.jl	108	108	$f	($f)(::Type{T}) where {T>:Missing}	modelled	reducecov-missing-l108	
+base/missing.jl	111	111	$f	($f)(::Type{Any})	modelled	reducecov-missing-l111	
+base/missing.jl	112	112	$f	($f)(::Type{T}) where {T>:Missing}	modelled	reducecov-missing-l112	
+base/missing.jl	119	119	$f	($f)(::Missing, ::Missing)	modelled	reducecov-missing-l119	
+base/missing.jl	120	120	$f	($f)(::Missing, ::Number)	modelled	reducecov-missing-l120	
+base/missing.jl	121	121	$f	($f)(::Number, ::Missing)	modelled	reducecov-missing-l121	
+base/missing.jl	125	125	div	div(::Missing, ::Missing, r::RoundingMode)	modelled	reducecov-missing-l125	
+base/missing.jl	126	126	div	div(::Missing, ::Number, r::RoundingMode)	modelled	reducecov-missing-l126	
+base/missing.jl	127	127	div	div(::Number, ::Missing, r::RoundingMode)	modelled	reducecov-missing-l127	
+base/missing.jl	131	131	$f	$f(::Missing, ::Missing)	modelled	reducecov-missing-l131	
+base/missing.jl	132	132	$f	$f(::Missing, ::Any)	modelled	reducecov-missing-l132	
+base/missing.jl	133	133	$f	$f(::Any, ::Missing)	modelled	reducecov-missing-l133	
+base/missing.jl	134	134	$f	$f(::Missing)	modelled	reducecov-missing-l134	
+base/missing.jl	137	137	clamp	clamp(::Missing, lo, hi)	modelled	reducecov-missing-l137	
+base/missing.jl	139	140	missing_conversion_msg	missing_conversion_msg(@nospecialize T)	modelled	reducecov-missing-l139	
+base/missing.jl	143	143	round	round(::Missing, ::RoundingMode=RoundNearest; sigdigits::Integer=0, digits::Integer=0, base::Integer=0)	modelled	reducecov-missing-l143	
+base/missing.jl	144	144	round	round(::Type{>:Missing}, ::Missing, ::RoundingMode=RoundNearest)	modelled	reducecov-missing-l144	
+base/missing.jl	145	146	round	round(::Type{T}, ::Missing, ::RoundingMode=RoundNearest) where {T}	modelled	reducecov-missing-l145	
+base/missing.jl	147	147	round	round(::Type{T}, x::Any, r::RoundingMode=RoundNearest) where {T>:Missing}	modelled	reducecov-missing-l147	
+base/missing.jl	149	149	round	round(::Type{T}, x::Real, r::RoundingMode=RoundNearest) where {T>:Missing}	modelled	reducecov-missing-l149	
+base/missing.jl	150	150	round	round(::Type{T}, x::Rational{Tr}, r::RoundingMode=RoundNearest) where {T>:Missing,Tr}	modelled	reducecov-missing-l150	
+base/missing.jl	151	151	round	round(::Type{T}, x::Rational{Bool}, r::RoundingMode=RoundNearest) where {T>:Missing}	modelled	reducecov-missing-l151	
+base/missing.jl	154	154	^	(^)(::Missing, ::Integer)	modelled	reducecov-missing-l154	
+base/missing.jl	157	157	&	(&)(::Missing, ::Missing)	modelled	reducecov-missing-l157	
+base/missing.jl	158	158	&	(&)(a::Missing, b::Bool)	modelled	missingchar-logic-algebra,missingchar-three-valued-logic	
+base/missing.jl	159	159	&	(&)(b::Bool, a::Missing)	modelled	reducecov-missing-l159	
+base/missing.jl	160	160	&	(&)(::Missing, ::Integer)	modelled	reducecov-missing-l160	
+base/missing.jl	161	161	&	(&)(::Integer, ::Missing)	modelled	reducecov-missing-l161	
+base/missing.jl	162	162	|	(|)(::Missing, ::Missing)	modelled	reducecov-missing-l162	
+base/missing.jl	163	163	|	(|)(a::Missing, b::Bool)	modelled	missingchar-logic-algebra,missingchar-three-valued-logic	
+base/missing.jl	164	164	|	(|)(b::Bool, a::Missing)	modelled	reducecov-missing-l164	
+base/missing.jl	165	165	|	(|)(::Missing, ::Integer)	modelled	reducecov-missing-l165	
+base/missing.jl	166	166	|	(|)(::Integer, ::Missing)	modelled	reducecov-missing-l166	
+base/missing.jl	167	167	xor	xor(::Missing, ::Missing)	modelled	reducecov-missing-l167	
+base/missing.jl	168	168	xor	xor(a::Missing, b::Bool)	modelled	missingchar-three-valued-logic	
+base/missing.jl	169	169	xor	xor(b::Bool, a::Missing)	modelled	reducecov-missing-l169	
+base/missing.jl	170	170	xor	xor(::Missing, ::Integer)	modelled	reducecov-missing-l170	
+base/missing.jl	171	171	xor	xor(::Integer, ::Missing)	modelled	reducecov-missing-l171	
+base/missing.jl	173	173	*	*(d::Missing, x::Union{AbstractString,AbstractChar})	modelled	reducecov-missing-l173	
+base/missing.jl	174	174	*	*(d::Union{AbstractString,AbstractChar}, x::Missing)	modelled	reducecov-missing-l174	
+base/missing.jl	176	179	float	float(A::AbstractArray{Union{T, Missing}}) where {T}	modelled	reducecov-float-missing-abstract	
+base/missing.jl	180	180	float	float(A::AbstractArray{Missing})	modelled	reducecov-missing-l180	
+base/missing.jl	231	231	skipmissing	skipmissing(itr)	modelled	reducecov-missing-l231	
+base/missing.jl	236	236	IteratorSize	IteratorSize(::Type{<:SkipMissing})	modelled	reducecov-missing-l236	
+base/missing.jl	237	237	IteratorEltype	IteratorEltype(::Type{SkipMissing{T}}) where {T}	modelled	reducecov-missing-l237	
+base/missing.jl	238	238	eltype	eltype(::Type{SkipMissing{T}}) where {T}	modelled	reducecov-missing-l238	
+base/missing.jl	240	250	iterate	iterate(itr::SkipMissing, state...)	modelled	missingchar-skipmissing-iterate	
+base/missing.jl	252	252	IndexStyle	IndexStyle(::Type{<:SkipMissing{T}}) where {T}	modelled	reducecov-missing-l252	
+base/missing.jl	253	254	eachindex	eachindex(itr::SkipMissing)	modelled	missingchar-skipmissing-keys	
+base/missing.jl	255	256	keys	keys(itr::SkipMissing)	modelled	missingchar-skipmissing-keys	
+base/missing.jl	257	261	getindex	getindex(itr::SkipMissing, I...)	modelled	missingchar-skipmissing-getindex-nonscalar,missingchar-skipmissing-keys	
+base/missing.jl	263	267	show	show(io::IO, s::SkipMissing)	modelled	reducecov-missing-l263	
+base/missing.jl	272	273	mapreduce	mapreduce(f, op, itr::SkipMissing{<:AbstractArray})	modelled	missingchar-skipmissing-mapreduce	
+base/missing.jl	275	297	_mapreduce	_mapreduce(f, op, ::IndexLinear, itr::SkipMissing{<:AbstractArray})	modelled	reducecov-missing-l275	
+base/missing.jl	299	299	_mapreduce	_mapreduce(f, op, ::IndexCartesian, itr::SkipMissing)	modelled	reducecov-missing-l299	
+base/missing.jl	303	304	_mapreduce_impl_skipmissing	_mapreduce_impl_skipmissing(f, op, A::SkipMissing, ifirst::Integer, ilast::Integer)	modelled	reducecov-missing-l303	
+base/missing.jl	306	362	_mapreduce_impl_skipmissing	_mapreduce_impl_skipmissing(f, op, itr::SkipMissing{<:AbstractArray}, ifirst::Integer, ilast::Integer, blksize::Int)	modelled	reducecov-missing-l306	
+base/missing.jl	385	393	filter	filter(f, itr::SkipMissing{<:AbstractArray})	modelled	missingchar-skipmissing-filter	
+base/missing.jl	418	418	coalesce	coalesce	excluded		no-behaviour: generic function declaration installs no callable method
+base/missing.jl	420	420	coalesce	coalesce()	modelled	reducecov-missing-l420	
+base/missing.jl	421	421	coalesce	coalesce(x::Missing, y...)	modelled	reducecov-missing-l421	
+base/missing.jl	422	422	coalesce	coalesce(x::Any, y...)	modelled	reducecov-missing-l422	
+base/missing.jl	451	457	coalesce	coalesce(args...)	modelled	reducecov-missing-l451	

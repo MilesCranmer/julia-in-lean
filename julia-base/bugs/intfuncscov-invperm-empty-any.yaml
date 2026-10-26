@@ -1,0 +1,85 @@
+id: intfuncscov-invperm-empty-any
+title: "invperm(Any[]) throws MethodError although the empty vector is a valid permutation"
+priority: P2
+kind: wrong-exception
+area: IntFuncsCov
+files: [base/combinatorics.jl]
+functions: ["invperm(a::AbstractVector)"]
+summary: |
+  isperm(Any[]) returns true, but invperm(Any[]) throws MethodError because it asks for
+  zero(Any) before iterating. invperm(()) returns (), and invperm(Int[]) returns Int[].
+likelihood: |
+  Empty vectors with abstract element type arise from untyped collection pipelines and
+  empty comprehensions. Permutations are usually integer-typed, but the empty input has
+  no elements that violate the permutation contract.
+maybe_intended: |
+  invperm uses a zero-filled output buffer for nonempty inputs. Requiring an element type
+  with zero is an implementation detail and is not documented; isperm accepts the same
+  empty vector.
+reproducer: |
+  v = Any[]
+  tuple_result = invperm(())
+  vector_result = try
+      invperm(v)
+  catch e
+      e
+  end
+  println("isperm(Any[]) = ", isperm(v))
+  println("invperm(()) = ", tuple_result)
+  println("invperm(Any[]) = ", vector_result isa Exception ? sprint(showerror, vector_result) : vector_result)
+  if isperm(v) && tuple_result == () && vector_result isa MethodError
+      println("REPRODUCED intfuncscov-invperm-empty-any")
+  else
+      println("not reproduced")
+  end
+output:
+  release: |
+    isperm(Any[]) = true
+    invperm(()) = ()
+    invperm(Any[]) = MethodError: no method matching zero(::Type{Any})
+    This error has been manually thrown, explicitly, so the method may exist but be intentionally marked as unimplemented.
+
+    Closest candidates are:
+      zero(::Type{Any})
+       @ Base missing.jl:106
+      zero(::Type{T}) where T>:Missing
+       @ Base missing.jl:108
+      zero(!Matched::Type{Union{}}, Any...)
+       @ Base number.jl:359
+      ...
+
+    REPRODUCED intfuncscov-invperm-empty-any
+  nightly: |
+    isperm(Any[]) = true
+    invperm(()) = ()
+    invperm(Any[]) = MethodError: no method matching zero(::Core.TypeEgal{Any})
+    This error has been manually thrown, explicitly, so the method may exist but be intentionally marked as unimplemented.
+
+    Closest candidates are:
+      zero(::Type{Any})
+       @ Base missing.jl:106
+      zero(::Type{T}) where T>:Missing
+       @ Base missing.jl:108
+      zero(::Type{!Matched{Union{}}}, Any...)
+       @ Base number.jl:365
+      ...
+
+    REPRODUCED intfuncscov-invperm-empty-any
+reproduced: {release: true, nightly: true}
+expected: |
+  An empty vector of the corresponding output type, since the empty vector is a valid
+  permutation and its inverse is empty.
+promised_by: |
+  base/combinatorics.jl:246-249: invperm returns the inverse permutation, satisfying
+  A == B[invperm(v)] when B = A[v]. The empty permutation satisfies this invariant.
+cause: |
+  base/combinatorics.jl:288 evaluates zero(eltype(a)) while allocating the output buffer,
+  before the loop can observe that a is empty. zero(Any) and zero(Union{}) throw.
+possible_fix: |
+  Return similar(a) immediately when a is empty, before requesting zero(eltype(a)).
+duplicates:
+  issues: []
+  queries: ["invperm empty Any", "invperm zero eltype", "invperm empty vector"]
+lean:
+  property: JuliaLean.IntFuncsCov.Combinatorics.InvpermEmptyTotal
+  theorem: JuliaLean.IntFuncsCov.Combinatorics.invpermEmptyTotal_refuted

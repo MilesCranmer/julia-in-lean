@@ -1,0 +1,53 @@
+id: sorttuplescov-insorted-range-equivalence
+title: "insorted(x, ::AbstractRange) uses == instead of the sort-order equivalence and can return missing"
+priority: P2
+kind: wrong-result
+area: Sort
+files: [base/sort.jl]
+functions: ["insorted(x, r::AbstractRange)", "insorted(x, v::AbstractVector; kw...)"]
+summary: |
+  insorted is documented to test whether v contains a value equivalent to x under
+  the sort order, and the vector method does so with searchsorted. The range method
+  is in(x, r), which uses ==. So insorted(-0.0, 0.0:1.0) is true while
+  insorted(-0.0, [0.0, 1.0]) is false, and insorted(missing, 1:3) returns missing
+  although the docstring declares a Bool result.
+likelihood: |
+  Low to moderate: signed zeros and missing values in float data are common, but
+  calling insorted on a range with them is rarer.
+maybe_intended: |
+  The docstring says there are "optimized implementations for some inputs", which
+  could be read as permitting in(x, r); but optimizations should not change results.
+reproducer: |
+  insorted(-0.0, [0.0, 1.0])   # false
+  insorted(-0.0, 0.0:1.0)      # true
+  insorted(missing, [1, 2, 3]) # false
+  insorted(missing, 1:3)       # missing
+output:
+  release: |
+    false true false missing
+    REPRODUCED sorttuplescov-insorted-range-equivalence
+  nightly: |
+    false true false missing
+    REPRODUCED sorttuplescov-insorted-range-equivalence
+reproduced: {release: true, nightly: true}
+expected: |
+  insorted(-0.0, 0.0:1.0) == false and insorted(missing, 1:3) == false, as for the
+  collected vectors.
+promised_by: |
+  base/sort.jl:426-433: "insorted(x, v; by=identity, lt=isless, rev=false)::Bool
+  Determine whether a vector v contains any value equivalent to x ... Refer to sort!
+  for the meaning of the keywords and the definition of equivalence."
+cause: |
+  base/sort.jl:466 defines insorted(x, r::AbstractRange) = in(x, r); in uses ==,
+  which identifies -0.0 and 0.0 and propagates missing, while isless does neither.
+possible_fix: |
+  Drop the range method (the vector method already uses the O(1) range searchsorted),
+  or define it as !isempty(searchsorted(r, x)).
+duplicates:
+  issues:
+    - {number: 48388, state: closed, relation: related}
+    - {number: 44102, state: closed, relation: related}
+  queries: ["issues: insorted", "issues: insorted range", "issues: insorted missing", "issues: insorted -0.0", "issues/prs: insorted AbstractRange"]
+lean:
+  property: JuliaLean.SortTuplesCov.InsortedRangeAgrees
+  theorem: JuliaLean.SortTuplesCov.insortedRangeAgrees_refuted

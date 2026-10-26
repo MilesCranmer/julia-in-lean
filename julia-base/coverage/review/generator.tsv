@@ -1,0 +1,26 @@
+line	name	verdict	mirror	property	settled	reason
+37	Generator	HOLLOW	yes	no	yes	`generatorMany` mirrors the constructor expression, but the proposition does not establish the documented mapped iteration of the resulting multi-input generator for every accepted iterator.
+39	Generator	HOLLOW	no	no	yes	`generatorTypeTag` receives `has_free_typevars(T)` as a Boolean and records only a tag, omitting the call, the type and iterator fields, and construction of `Generator{I,F}`.
+42	Generator	HOLLOW	no	no	yes	`generatorMany` has only an arbitrary value function and does not represent the `Type{T}` argument or its `splat(T)` call, so the proposition does not state this overload's behavior.
+44	iterate	HOLLOW	no	yes	yes	`generatorStep` maps a statically valid `Step` and omits the source method's `Tuple{Any,Any}` assertion and its failure behavior.
+52	length	FAITHFUL	yes	yes	yes	
+53	size	FAITHFUL	yes	yes	yes	
+54	axes	HOLLOW	no	no	yes	`generatorAxes` receives the wrapped iterator's axes result as a bare value, and no generator model or proposition links that value to an `axes(g.iter)` call.
+55	ndims	HOLLOW	no	no	yes	`generatorNdims` receives the wrapped iterator's dimension result as a bare value, and no generator model or proposition links that value to an `ndims(g.iter)` call.
+56	keys	HOLLOW	no	no	yes	`generatorKeys` receives the wrapped iterator's keys result as a bare value, and no generator model or proposition links that value to a `keys(g.iter)` call.
+57	last	FAITHFUL	yes	yes	yes	
+58	isempty	HOLLOW	no	no	yes	`generatorIsempty` receives a precomputed Boolean, and `generatorIt` has no emptiness operation connecting it to the source call `isempty(g.iter)`.
+59	isdone	FAITHFUL	yes	yes	yes	
+95	IteratorSize	FAITHFUL	yes	yes	yes	
+96	IteratorSize	FAITHFUL	yes	yes	yes	
+97	IteratorSize	FAITHFUL	yes	yes	yes	
+98	IteratorSize	FAITHFUL	yes	yes	yes	
+100	IteratorSize	FAITHFUL	yes	yes	yes	
+101	IteratorSize	FAITHFUL	yes	yes	yes	
+102	IteratorSize	HOLLOW	no	no	yes	The generator case stores a precomputed successful inner trait in `Option Isz`, so it omits the `IteratorSize(I)` call and cannot represent that call throwing.
+104	haslength	HOLLOW	no	no	yes	`hasLengthTrait` accepts a precomputed trait result and turns errors into `false`, while Julia calls `IteratorSize(iter)` and propagates any exception.
+129	IteratorEltype	FAITHFUL	yes	yes	yes	
+130	IteratorEltype	FAITHFUL	yes	yes	yes	
+131	IteratorEltype	FAITHFUL	yes	yes	yes	
+132	IteratorEltype	FAITHFUL	yes	yes	yes	
+134	IteratorEltype	FAITHFUL	yes	yes	yes	

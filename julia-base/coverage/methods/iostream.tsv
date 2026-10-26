@@ -1,0 +1,52 @@
+file	line	endline	name	signature	status	entry	note
+base/iostream.jl	21	21	IOStream	IOStream(name::AbstractString, buf::Vector{UInt8})	modelled	streams-method-iostream-l21	method-specific source model and quantified all-input behavior property
+base/iostream.jl	24	31	IOStream	IOStream(name::AbstractString, finalize::Bool)	modelled	streams-method-iostream-l24	method-specific source model and quantified all-input behavior property
+base/iostream.jl	32	32	IOStream	IOStream(name::AbstractString)	modelled	streams-method-iostream-l32	method-specific source model and quantified all-input behavior property
+base/iostream.jl	34	34	unsafe_convert	unsafe_convert(T::Type{Ptr{Cvoid}}, s::IOStream)	modelled	streams-method-iostream-l34	method-specific source model and quantified all-input behavior property
+base/iostream.jl	35	35	show	show(io::IO, s::IOStream)	modelled	streams-method-iostream-l35	method-specific source model and quantified all-input behavior property
+base/iostream.jl	37	47	_lock_ios	_lock_ios(s, expr)	modelled	streams-method-iostream-l37	method-specific source model and quantified all-input behavior property
+base/iostream.jl	74	74	fd	fd(s::IOStream)	modelled	streams-method-iostream-l74	method-specific source model and quantified all-input behavior property
+base/iostream.jl	76	76	stat	stat(s::IOStream)	modelled	streams-method-iostream-l76	method-specific source model and quantified all-input behavior property
+base/iostream.jl	88	88	isopen	isopen(s::IOStream)	modelled	streams-method-iostream-l88	method-specific source model and quantified all-input behavior property
+base/iostream.jl	90	93	close	close(s::IOStream)	modelled	streams-method-iostream-l90	method-specific source model and quantified all-input behavior property
+base/iostream.jl	95	95	closewrite	closewrite(s::IOStream)	modelled	streams-method-iostream-l95	method-specific source model and quantified all-input behavior property
+base/iostream.jl	97	102	flush	flush(s::IOStream)	modelled	streams-method-iostream-l97	method-specific source model and quantified all-input behavior property
+base/iostream.jl	104	104	iswritable	iswritable(s::IOStream)	modelled	streams-method-iostream-l104	method-specific source model and quantified all-input behavior property
+base/iostream.jl	106	106	isreadable	isreadable(s::IOStream)	modelled	streams-method-iostream-l106	method-specific source model and quantified all-input behavior property
+base/iostream.jl	137	141	truncate	truncate(s::IOStream, n::Integer)	modelled	streams-method-iostream-l137	method-specific source model and quantified all-input behavior property
+base/iostream.jl	158	163	seek	seek(s::IOStream, n::Integer)	modelled	streams-method-iostream-l158	method-specific source model and quantified all-input behavior property
+base/iostream.jl	185	185	seekstart	seekstart(s::IO)	modelled	streams-method-iostream-l185	method-specific source model and quantified all-input behavior property
+base/iostream.jl	192	196	seekend	seekend(s::IOStream)	modelled	streams-method-iostream-l192	method-specific source model and quantified all-input behavior property
+base/iostream.jl	215	220	skip	skip(s::IOStream, delta::Integer)	modelled	streams-method-iostream-l215	method-specific source model and quantified all-input behavior property
+base/iostream.jl	247	251	position	position(s::IOStream)	modelled	streams-method-iostream-l247	method-specific source model and quantified all-input behavior property
+base/iostream.jl	253	260	filesize	filesize(s::IOStream)	modelled	streams-method-iostream-l253	method-specific source model and quantified all-input behavior property
+base/iostream.jl	262	262	_eof_nolock	_eof_nolock(s::IOStream)	modelled	streams-method-iostream-l262	method-specific source model and quantified all-input behavior property
+base/iostream.jl	263	268	eof	eof(s::IOStream; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-iostream-l263	method-specific source model and quantified all-input behavior property
+base/iostream.jl	281	286	fdio	fdio(name::AbstractString, fd::Integer, own::Bool=false)	modelled	streams-method-iostream-l281	method-specific source model and quantified all-input behavior property
+base/iostream.jl	287	287	fdio	fdio(fd::Integer, own::Bool=false)	modelled	streams-method-iostream-l287	method-specific source model and quantified all-input behavior property
+base/iostream.jl	316	345	open	open(fname::String; lock = true, read :: Union{Bool,Nothing} = nothing, write :: Union{Bool,Nothing} = nothing, create :: Union{Bool,Nothing} = nothing, truncate :: Union{Bool,Nothing} = nothing, append :: Union{Bool,Nothing} = nothing, )	modelled	streams-method-iostream-l316	method-specific source model and quantified all-input behavior property
+base/iostream.jl	346	346	open	open(fname::AbstractString; kwargs...)	modelled	streams-method-iostream-l346	method-specific source model and quantified all-input behavior property
+base/iostream.jl	399	407	open	open(fname::AbstractString, mode::AbstractString; lock = true)	modelled	streams-method-iostream-l399	method-specific source model and quantified all-input behavior property
+base/iostream.jl	411	414	write	write(s::IOStream, b::UInt8)	modelled	streams-method-iostream-l411	method-specific source model and quantified all-input behavior property
+base/iostream.jl	416	426	unsafe_write	unsafe_write(s::IOStream, p::Ptr{UInt8}, nb::UInt; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-iostream-l416	method-specific source model and quantified all-input behavior property
+base/iostream.jl	429	429	bytesavailable	bytesavailable(s::IOStream)	modelled	streams-method-iostream-l429	method-specific source model and quantified all-input behavior property
+base/iostream.jl	431	447	readavailable	readavailable(s::IOStream; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-iostream-l431	method-specific source model and quantified all-input behavior property
+base/iostream.jl	449	455	read	read(s::IOStream, ::Type{UInt8})	modelled	streams-method-iostream-l449	method-specific source model and quantified all-input behavior property
+base/iostream.jl	458	470	read	read(s::IOStream, T::Union{Type{Int16},Type{UInt16},Type{Int32},Type{UInt32},Type{Int64},Type{UInt64}})	modelled	streams-method-iostream-l458	method-specific source model and quantified all-input behavior property
+base/iostream.jl	472	472	read	read(s::IOStream, ::Type{Float16})	modelled	streams-method-iostream-l472	method-specific source model and quantified all-input behavior property
+base/iostream.jl	473	473	read	read(s::IOStream, ::Type{Float32})	modelled	streams-method-iostream-l473	method-specific source model and quantified all-input behavior property
+base/iostream.jl	474	474	read	read(s::IOStream, ::Type{Float64})	modelled	streams-method-iostream-l474	method-specific source model and quantified all-input behavior property
+base/iostream.jl	477	483	unsafe_read	unsafe_read(s::IOStream, p::Ptr{UInt8}, nb::UInt)	modelled	streams-method-iostream-l477	method-specific source model and quantified all-input behavior property
+base/iostream.jl	487	488	take!	take!(s::IOStream)	modelled	streams-method-iostream-l487	method-specific source model and quantified all-input behavior property
+base/iostream.jl	490	493	readuntil	readuntil(s::IOStream, delim::UInt8; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-iostream-l490	method-specific source model and quantified all-input behavior property
+base/iostream.jl	496	498	readuntil_string	readuntil_string(s::IOStream, delim::UInt8, keep::Bool)	modelled	streams-method-iostream-l496	method-specific source model and quantified all-input behavior property
+base/iostream.jl	499	503	readuntil	readuntil(s::IOStream, delim::AbstractChar; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-iostream-l499	method-specific source model and quantified all-input behavior property
+base/iostream.jl	505	508	readline	readline(s::IOStream; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-iostream-l505	method-specific source model and quantified all-input behavior property
+base/iostream.jl	510	533	copyuntil	copyuntil(out::IOBuffer, s::IOStream, delim::UInt8; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-iostream-l510	method-specific source model and quantified all-input behavior property
+base/iostream.jl	535	540	copyuntil	copyuntil(out::IOStream, s::IOStream, delim::UInt8; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-iostream-l535	method-specific source model and quantified all-input behavior property
+base/iostream.jl	542	568	readbytes_all!	readbytes_all!(s::IOStream, b::MutableDenseArrayType{UInt8}, nb::Integer)	modelled	streams-method-iostream-l542	method-specific source model and quantified all-input behavior property
+base/iostream.jl	570	585	readbytes_some!	readbytes_some!(s::IOStream, b::MutableDenseArrayType{UInt8}, nb::Integer)	modelled	streams-method-iostream-l570	method-specific source model and quantified all-input behavior property
+base/iostream.jl	599	603	readbytes!	readbytes!(s::IOStream, b::MutableDenseArrayType{UInt8}, nb=length(b); all::Bool=true, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-iostream-l599	method-specific source model and quantified all-input behavior property
+base/iostream.jl	605	634	read	read(s::IOStream)	modelled	streams-method-iostream-l605	method-specific source model and quantified all-input behavior property
+base/iostream.jl	646	654	read	read(s::IOStream, nb::Integer; all::Bool=true, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-iostream-l646	method-specific source model and quantified all-input behavior property
+base/iostream.jl	658	664	peek	peek(s::IOStream, ::Type{UInt8})	modelled	streams-method-iostream-l658	method-specific source model and quantified all-input behavior property

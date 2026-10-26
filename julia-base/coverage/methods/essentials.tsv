@@ -1,0 +1,147 @@
+file	line	endline	name	signature	status	entry	note
+base/essentials.jl	9	9	blackbox	blackbox(x)	modelled	bootcov-ess-barriers	
+base/essentials.jl	12	12	size	size(a::Array)	modelled	bootcov-ess-access	
+base/essentials.jl	13	13	length	length(t::AbstractArray)	modelled	bootcov-ess-length-abstract	
+base/essentials.jl	14	14	size	size(a::GenericMemory)	modelled	bootcov-ess-access	
+base/essentials.jl	15	15	throw_boundserror	throw_boundserror(A)	modelled	bootcov-ess-throw-boundserror	
+base/essentials.jl	16	16	throw_boundserror	throw_boundserror(A, I)	modelled	bootcov-ess-throw-boundserror	
+base/essentials.jl	17	17	throw_boundserror	throw_boundserror(A, i1, i2, I...)	modelled	bootcov-ess-throw-boundserror	
+base/essentials.jl	18	18	_throw_boundserror_indices	_throw_boundserror_indices(A)	modelled	bootcov-ess-throw-boundserror	
+base/essentials.jl	19	19	_throw_boundserror_indices	_throw_boundserror_indices(A, i1, I...)	modelled	bootcov-ess-throw-boundserror	
+base/essentials.jl	23	23	==	==(a::GlobalRef, b::GlobalRef)	modelled	bootcov-ess-globalref-eq	
+base/essentials.jl	46	48	_gc_preserve_begin	_gc_preserve_begin(arg1)	modelled	bootcov-ess-markers	
+base/essentials.jl	50	52	_gc_preserve_end	_gc_preserve_end(token)	modelled	bootcov-ess-markers	
+base/essentials.jl	125	134	nospecialize	nospecialize(vars...)	modelled	bootcov-ess-markers	
+base/essentials.jl	142	151	specialize	specialize(vars...)	modelled	bootcov-ess-markers	
+base/essentials.jl	184	186	isdefined	isdefined(s::Symbol)	modelled	bootcov-ess-markers	
+base/essentials.jl	188	188	_nameof	_nameof(m::Module)	modelled	bootcov-foldable-meta-effects	
+base/essentials.jl	190	193	_is_internal	_is_internal(__module__)	modelled	bootcov-foldable-meta-effects	
+base/essentials.jl	196	209	_total_meta	_total_meta()	modelled	bootcov-foldable-meta-effects	
+base/essentials.jl	211	224	_foldable_meta	_foldable_meta()	modelled	bootcov-foldable-meta-effects	
+base/essentials.jl	226	239	_terminates_locally_meta	_terminates_locally_meta()	modelled	bootcov-foldable-meta-effects	
+base/essentials.jl	241	254	_terminates_globally_meta	_terminates_globally_meta()	modelled	bootcov-foldable-meta-effects	
+base/essentials.jl	256	269	_terminates_globally_notaskstate_meta	_terminates_globally_notaskstate_meta()	modelled	bootcov-foldable-meta-effects	
+base/essentials.jl	271	284	_terminates_globally_noub_meta	_terminates_globally_noub_meta()	modelled	bootcov-foldable-meta-effects	
+base/essentials.jl	286	299	_effect_free_terminates_locally_meta	_effect_free_terminates_locally_meta()	modelled	bootcov-foldable-meta-effects	
+base/essentials.jl	301	314	_nothrow_noub_meta	_nothrow_noub_meta()	modelled	bootcov-foldable-meta-effects	
+base/essentials.jl	316	329	_nothrow_meta	_nothrow_meta()	modelled	bootcov-foldable-meta-effects	
+base/essentials.jl	331	344	_noub_meta	_noub_meta()	modelled	bootcov-foldable-meta-effects	
+base/essentials.jl	346	359	_notaskstate_meta	_notaskstate_meta()	modelled	bootcov-foldable-meta-effects	
+base/essentials.jl	361	374	_noub_if_noinbounds_meta	_noub_if_noinbounds_meta()	modelled	bootcov-foldable-meta-effects	
+base/essentials.jl	377	379	_propagate_inbounds_meta	_propagate_inbounds_meta()	modelled	bootcov-ess-markers	
+base/essentials.jl	380	382	_nospecializeinfer_meta	_nospecializeinfer_meta()	modelled	bootcov-ess-markers	
+base/essentials.jl	385	388	checkbounds	checkbounds(::Type{Bool}, A::Union{Array, Memory}, i::Int)	modelled	bootcov-ess-checkbounds	
+base/essentials.jl	389	393	checkbounds	checkbounds(A::AbstractArray, I...)	modelled	bootcov-ess-access	
+base/essentials.jl	395	395	default_access_order	default_access_order(::GenericMemory{:not_atomic})	modelled	bootcov-ess-access	
+base/essentials.jl	396	396	default_access_order	default_access_order(::GenericMemory{:atomic})	modelled	bootcov-ess-access	
+base/essentials.jl	397	397	default_access_order	default_access_order(::GenericMemoryRef{:not_atomic})	modelled	bootcov-ess-access	
+base/essentials.jl	398	398	default_access_order	default_access_order(::GenericMemoryRef{:atomic})	modelled	bootcov-ess-access	
+base/essentials.jl	400	404	getindex	getindex(A::GenericMemory, i::Int)	modelled	bootcov-ess-access	
+base/essentials.jl	406	406	getindex	getindex(A::GenericMemoryRef)	modelled	bootcov-ess-access	
+base/essentials.jl	419	419	nameof	nameof(m::Module)	modelled	bootcov-foldable-meta-effects	
+base/essentials.jl	421	421	iterate	iterate	excluded		no-behaviour: declares the generic function without a method body.
+base/essentials.jl	471	471	convert	convert	excluded		no-behaviour: declares the generic function without a method body.
+base/essentials.jl	474	474	convert	convert(::Type{Union{}}, _...)	modelled	bootcov-ess-identity	
+base/essentials.jl	476	476	convert	convert(::Type{Type}, x::Type)	modelled	bootcov-ess-identity	
+base/essentials.jl	480	480	convert	convert(::Type{String}, x::String)	modelled	bootcov-ess-identity	
+base/essentials.jl	488	494	eval	eval(ex)	modelled	bootcov-ess-markers	
+base/essentials.jl	495	501	eval	eval(mod, ex)	modelled	bootcov-ess-markers	
+base/essentials.jl	508	508	Pairs{K, V, I, A}	Pairs{K, V, I, A}(data, itr) where {K, V, I, A}	modelled	bootcov-ess-pairs-colon-val	
+base/essentials.jl	509	509	Pairs{K, V}	Pairs{K, V}(data::A, itr::I) where {K, V, I, A}	modelled	bootcov-ess-pairs-colon-val	
+base/essentials.jl	510	510	Pairs{K}	Pairs{K}(data::A, itr::I) where {K, I, A}	modelled	bootcov-ess-pairs-colon-val	
+base/essentials.jl	511	511	Pairs	Pairs(data::A, itr::I) where {I, A}	modelled	bootcov-ess-pairs-colon-val	
+base/essentials.jl	513	513	pairs	pairs(::Type{NamedTuple})	modelled	bootcov-ess-pairs-colon-val	
+base/essentials.jl	523	523	argtail	argtail(_, rest...)	modelled	bootcov-ess-tuples	
+base/essentials.jl	541	541	tail	tail(x::Tuple)	modelled	bootcov-ess-tuples	
+base/essentials.jl	542	542	tail	tail(::Tuple{})	modelled	bootcov-ess-tuples	
+base/essentials.jl	544	550	unwrap_unionall	unwrap_unionall(@nospecialize(a))	modelled	bootcov-ess-unwrap-rewrap	
+base/essentials.jl	552	558	rewrap_unionall	rewrap_unionall(@nospecialize(t), @nospecialize(u))	modelled	bootcov-ess-unwrap-rewrap	
+base/essentials.jl	560	571	rewrap_unionall	rewrap_unionall(t::Core.TypeofVararg, @nospecialize(u))	modelled	bootcov-ess-unwrap-rewrap	
+base/essentials.jl	574	582	rename_unionall	rename_unionall(@nospecialize(u))	modelled	bootcov-ess-rename	
+base/essentials.jl	585	587	widen_diagonal	widen_diagonal(@nospecialize(t), troot::UnionAll)	modelled	bootcov-ess-rename	
+base/essentials.jl	589	591	isvarargtype	isvarargtype(@nospecialize(t))	modelled	bootcov-ess-vararg	
+base/essentials.jl	593	601	isvatuple	isvatuple(@nospecialize(t))	modelled	bootcov-ess-vararg	
+base/essentials.jl	603	606	unwrapva	unwrapva(@nospecialize(t))	modelled	bootcov-ess-vararg	
+base/essentials.jl	608	613	unconstrain_vararg_length	unconstrain_vararg_length(va::Core.TypeofVararg)	modelled	bootcov-ess-vararg	
+base/essentials.jl	617	646	datatype_min_ninitialized	datatype_min_ninitialized(@nospecialize t0)	modelled	bootcov-ess-min-ninit	
+base/essentials.jl	650	650	_tuple_error	_tuple_error(T::Type, x)	modelled	bootcov-ess-tuples	
+base/essentials.jl	652	652	convert	convert(::Type{T}, x::T) where {T<:Tuple}	modelled	bootcov-ess-identity	
+base/essentials.jl	653	667	convert	convert(::Type{T}, x::NTuple{N,Any}) where {N, T<:Tuple}	modelled	bootcov-ess-tuples	
+base/essentials.jl	659	665	cvt1	cvt1(n)	modelled	bootcov-ess-tuples	
+base/essentials.jl	718	718	oftype	oftype(x, y)	modelled	bootcov-ess-oftype	
+base/essentials.jl	720	720	unsigned	unsigned(x::Int)	modelled	bootcov-ess-signed-unsigned	
+base/essentials.jl	721	721	signed	signed(x::UInt)	modelled	bootcov-ess-signed-unsigned	
+base/essentials.jl	737	737	cconvert	cconvert	excluded		no-behaviour: declares the generic function without a method body.
+base/essentials.jl	739	739	cconvert	cconvert(::Type{T}, x) where {T}	modelled	bootcov-ess-identity	
+base/essentials.jl	740	740	cconvert	cconvert(::Type{Union{}}, x...)	modelled	bootcov-ess-identity	
+base/essentials.jl	741	741	cconvert	cconvert(::Type{<:Ptr}, x)	modelled	bootcov-ess-identity	
+base/essentials.jl	742	742	unsafe_convert	unsafe_convert(::Type{T}, x::T) where {T}	modelled	bootcov-ess-identity	
+base/essentials.jl	743	743	unsafe_convert	unsafe_convert(::Type{T}, x::T) where {T<:Ptr}	modelled	bootcov-ess-identity	
+base/essentials.jl	744	744	unsafe_convert	unsafe_convert(::Type{P}, x::Ptr) where {P<:Ptr}	modelled	bootcov-ess-identity	
+base/essentials.jl	745	745	unsafe_convert	unsafe_convert(::Type{Ptr{UInt8}}, s::String)	modelled	bootcov-ess-identity	
+base/essentials.jl	746	746	unsafe_convert	unsafe_convert(::Type{Ptr{Int8}}, s::String)	modelled	bootcov-ess-identity	
+base/essentials.jl	751	751	_reinterpret	_reinterpret	excluded		no-behaviour: declares the generic function without a method body.
+base/essentials.jl	787	794	reinterpret	reinterpret(::Type{Out}, x) where {Out}	modelled	bootcov-ess-reinterpret	
+base/essentials.jl	841	841	sizeof	sizeof(x)	modelled	bootcov-ess-sizeof	
+base/essentials.jl	884	884	ifelse	ifelse(condition::Bool, x, y)	modelled	bootcov-ess-ifelse	
+base/essentials.jl	893	893	esc	esc(@nospecialize(e))	modelled	bootcov-ess-markers	
+base/essentials.jl	939	941	boundscheck	boundscheck(blk)	modelled	bootcov-ess-markers	
+base/essentials.jl	971	977	inbounds	inbounds(blk)	modelled	bootcov-ess-markers	
+base/essentials.jl	1020	1023	label	label(name::Symbol)	modelled	bootcov-ess-markers	
+base/essentials.jl	1025	1042	label	label(name::Symbol, body)	modelled	bootcov-ess-markers	
+base/essentials.jl	1044	1048	label	label(body)	modelled	bootcov-ess-markers	
+base/essentials.jl	1058	1060	goto	goto(name::Symbol)	modelled	bootcov-ess-markers	
+base/essentials.jl	1063	1067	getindex	getindex(A::Array, i::Int)	modelled	bootcov-ess-access	
+base/essentials.jl	1069	1074	setindex!	setindex!(A::Array{Any}, @nospecialize(x), i::Int)	modelled	bootcov-ess-access	
+base/essentials.jl	1075	1080	setindex!	setindex!(A::Memory{Any}, @nospecialize(x), i::Int)	modelled	bootcov-ess-access	
+base/essentials.jl	1081	1081	setindex!	setindex!(A::MemoryRef{T}, x) where {T}	modelled	bootcov-ess-access	
+base/essentials.jl	1082	1082	setindex!	setindex!(A::MemoryRef{Any}, @nospecialize(x))	modelled	bootcov-ess-access	
+base/essentials.jl	1086	1086	getindex	getindex(v::SimpleVector, i::Int)	modelled	bootcov-ess-svec	
+base/essentials.jl	1087	1089	length	length(v::SimpleVector)	modelled	bootcov-ess-svec	
+base/essentials.jl	1090	1090	firstindex	firstindex(::SimpleVector)	modelled	bootcov-ess-svec	
+base/essentials.jl	1091	1091	lastindex	lastindex(v::SimpleVector)	modelled	bootcov-ess-svec	
+base/essentials.jl	1092	1092	iterate	iterate(v::SimpleVector, i=1)	modelled	bootcov-ess-svec	
+base/essentials.jl	1093	1093	eltype	eltype(::Type{SimpleVector})	modelled	bootcov-ess-svec	
+base/essentials.jl	1094	1094	keys	keys(v::SimpleVector)	modelled	bootcov-ess-svec	
+base/essentials.jl	1095	1095	isempty	isempty(v::SimpleVector)	modelled	bootcov-ess-svec	
+base/essentials.jl	1096	1096	axes	axes(v::SimpleVector)	modelled	bootcov-ess-svec	
+base/essentials.jl	1097	1097	axes	axes(v::SimpleVector, d::Integer)	modelled	bootcov-ess-svec	
+base/essentials.jl	1099	1105	==	==(v1::SimpleVector, v2::SimpleVector)	modelled	bootcov-ess-svec	
+base/essentials.jl	1107	1107	map	map(f, v::SimpleVector)	modelled	bootcov-ess-svec	
+base/essentials.jl	1109	1109	getindex	getindex(v::SimpleVector, I::AbstractArray)	modelled	bootcov-ess-svec	
+base/essentials.jl	1111	1111	unsafe_convert	unsafe_convert(::Type{Ptr{Any}}, sv::SimpleVector)	modelled	bootcov-ess-svec	
+base/essentials.jl	1139	1139	isassigned	isassigned	excluded		no-behaviour: declares the generic function without a method body.
+base/essentials.jl	1141	1144	isassigned	isassigned(v::SimpleVector, i::Int)	modelled	bootcov-svec-isassigned-undef	
+base/essentials.jl	1160	1160	Colon	Colon()	modelled	bootcov-ess-pairs-colon-val	
+base/essentials.jl	1164	1167	show	show(io::IO, ::Colon)	modelled	bootcov-ess-pairs-colon-val	
+base/essentials.jl	1190	1190	Val{x}	Val{x}() where {x}	modelled	bootcov-ess-pairs-colon-val	
+base/essentials.jl	1193	1193	Val	Val(x)	modelled	bootcov-ess-pairs-colon-val	
+base/essentials.jl	1201	1201	inferencebarrier	inferencebarrier(@nospecialize(x))	modelled	bootcov-ess-barriers	
+base/essentials.jl	1225	1229	isempty	isempty(itr)	modelled	bootcov-ess-isempty	
+base/essentials.jl	1253	1253	values	values(itr)	modelled	bootcov-ess-barriers	
+base/essentials.jl	1257	1257	+	(+)(x::Int, y::Int)	modelled	bootcov-ess-int-add-sub	
+base/essentials.jl	1258	1258	-	(-)(x::Int, y::Int)	modelled	bootcov-ess-int-add-sub	
+base/essentials.jl	1284	1284	!	!(x::Bool)	modelled	bootcov-ess-not	
+base/essentials.jl	1286	1286	length	length(a::Array{T,1}) where {T}	modelled	bootcov-ess-access	
+base/essentials.jl	1288	1288	has_typevar	has_typevar(@nospecialize(t), v::TypeVar)	modelled	bootcov-ess-has-typevar	
+base/essentials.jl	1292	1329	_fieldtypes_constrain_typevars	_fieldtypes_constrain_typevars(tvars::Array{Any,1}, fts::Core.SimpleVector)	modelled	bootcov-ess-fieldtypes-constrain	
+base/essentials.jl	1332	1350	_defaultctor_typeinfo	_defaultctor_typeinfo(@nospecialize(ty::Type))	modelled	bootcov-ess-defaultctor-typeinfo	
+base/essentials.jl	1355	1504	_defaultctors	_defaultctors(@nospecialize(ty), functionloc)	modelled	bootcov-ess-defaultctors	
+base/essentials.jl	1532	1532	ismissing	ismissing(x)	modelled	bootcov-ess-ismissing	
+base/essentials.jl	1534	1534	popfirst!	popfirst!	excluded		no-behaviour: declares the generic function without a method body.
+base/essentials.jl	1560	1560	peek	peek	excluded		no-behaviour: declares the generic function without a method body.
+base/essentials.jl	1568	1570	__LINE__	__LINE__()	modelled	bootcov-ess-markers	
+base/essentials.jl	1591	1591	isdone	isdone(_, _...)	modelled	bootcov-ess-isdone	
+base/essentials.jl	1600	1600	iterate	iterate	excluded		no-behaviour: declares the generic function without a method body.
+base/essentials.jl	1608	1610	isiterable	isiterable(T)::Bool	modelled	bootcov-ess-isiterable	
+base/essentials.jl	1646	1660	world	world(sym, world)	modelled	bootcov-ess-markers	
+base/essentials.jl	1662	1663	_resolve_in_world	_resolve_in_world(world::Integer, gr::GlobalRef)	modelled	bootcov-ess-resolve-in-world	
+base/essentials.jl	1666	1666	+	+	excluded		no-behaviour: declares the generic function without a method body.
+base/essentials.jl	1667	1667	-	-	excluded		no-behaviour: declares the generic function without a method body.
+base/essentials.jl	1668	1668	*	*	excluded		no-behaviour: declares the generic function without a method body.
+base/essentials.jl	1669	1669	==	==	excluded		no-behaviour: declares the generic function without a method body.
+base/essentials.jl	1670	1670	!=	!=	excluded		no-behaviour: declares the generic function without a method body.
+base/essentials.jl	1671	1671	<=	<=	excluded		no-behaviour: declares the generic function without a method body.
+base/essentials.jl	1672	1672	>=	>=	excluded		no-behaviour: declares the generic function without a method body.
+base/essentials.jl	1673	1673	<	<	excluded		no-behaviour: declares the generic function without a method body.
+base/essentials.jl	1674	1674	>	>	excluded		no-behaviour: declares the generic function without a method body.

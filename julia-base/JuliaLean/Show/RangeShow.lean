@@ -15,7 +15,7 @@ range's elements.
 theorem in `JuliaLean.ParsePrint` proves this round trip, so `RangeText` records the
 printed values themselves: evaluating `repr(a):repr(s):repr(b)` is modelled as the
 Float64 colon constructor `FloatRanges.colon a s b` applied to the exact values. The
-differential test (a Julia script) reads the values back from Julia's
+differential test reads the values back from Julia's
 `repr(r)` text and checks them against this model.
 -/
 

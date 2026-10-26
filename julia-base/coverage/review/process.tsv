@@ -1,0 +1,74 @@
+line	name	verdict	mirror	property	settled	reason
+13	Process	HOLLOW	no	yes	yes	The model omits ThreadSynchronizer construction and finalizer registration, although the proposition does state constructor field invariants.
+22	pipe_reader	FAITHFUL	yes	yes	yes	The model returns the process output field exactly as the source method does, and the proposition is proven for every process.
+23	pipe_writer	FAITHFUL	yes	yes	yes	The model returns the process input field exactly as the source method does, and the proposition is proven for every process.
+32	ProcessChain	FAITHFUL	yes	yes	yes	The model constructs an empty process list with three devnull-representing fields, and the all-input proposition is proven.
+36	pipe_reader	FAITHFUL	yes	yes	yes	The model returns the chain output field exactly as the source method does, and the proposition is proven for every chain.
+37	pipe_writer	FAITHFUL	yes	yes	yes	The model returns the chain input field exactly as the source method does, and the proposition is proven for every chain.
+46	rawhandle	HOLLOW	no	no	yes	The model takes an already computed handle and returns it unchanged, so it omits the SyncCloseFD input and the rawhandle call on its fd field.
+49	uvfinalize	HOLLOW	no	yes	yes	The model captures handle clearing but omits both null checks, IO locking, disassociation, the jl_close_uv call, and their source order.
+63	uv_return_spawn	HOLLOW	no	yes	yes	The model captures the early return and stored status but omits process lookup, disassociation, handle closure, notification locking, and waiter notification.
+82	_uv_hook_close	HOLLOW	no	yes	yes	The model captures handle clearing but omits the atomic swap and freeing of the old handle.
+90	as_cpumask	HOLLOW	no	no	yes	The model replaces maximum with a fold seeded at zero and cannot reproduce the empty-vector error or the bounds error for CPU index zero.
+100	_spawn_primitive	HOLLOW	no	no	yes	The model replaces marshalling and the foreign spawn with a precomputed success flag and omits file, stdio, token, CPU mask, flags, locking, association, and cleanup behavior.
+163	_spawn	HOLLOW	no	yes	yes	The model omits the empty SpawnIOs argument and cancellation token, although its conditional spawn-order proposition states an invariant of successful calls.
+166	_spawn	HOLLOW	no	yes	yes	The model ignores the stdio vector, setup_stdios callback, cleanup, and token, although its conditional process-order proposition is a valid successful-call invariant.
+175	_spawn	HOLLOW	no	no	yes	The model omits stdio, cancellation, the first executable argument, and foreign spawn failure, and it incorrectly makes every nonempty command succeed.
+181	_spawn	HOLLOW	no	yes	yes	The model ignores stdio and the token and replaces recursive dispatch with spawnTree, although the successful process-order proposition is a valid invariant.
+186	_stdio_copy	HOLLOW	no	no	yes	The model narrows fd from Int to Nat and therefore omits the zero and negative index errors allowed by the method signature.
+194	_spawn	HOLLOW	no	yes	yes	The model omits redirect descriptor selection, setup_stdio, stdio replacement, token forwarding, and finally cleanup, although successful command order is preserved.
+205	_spawn	HOLLOW	no	yes	yes	The model omits redirect descriptor selection, setup_stdio, stdio replacement, token forwarding, and finally cleanup, although successful command order is preserved.
+216	_spawn	HOLLOW	no	yes	yes	The model omits pipe creation, descriptor replacements, stdio and token forwarding, and closing both pipe ends, although it states the successful left-to-right spawn order.
+230	_spawn	HOLLOW	no	yes	yes	The model omits pipe creation, stderr descriptor replacement, stdio and token forwarding, and closing both pipe ends, although it states the successful left-to-right spawn order.
+244	_spawn	HOLLOW	no	yes	yes	The model omits stdio and token forwarding and the two actual recursive calls, although it states their successful left-to-right process order.
+250	_spawn	HOLLOW	no	yes	yes	The model omits stdio, token forwarding, first-word selection, and foreign spawn behavior, although it states the successful append-order invariant.
+259	setup_stdios	HOLLOW	no	no	yes	The model uses precomputed opened and cleanup booleans and omits descriptor setup, callback execution, partial failure, return values, and finally cleanup order.
+276	setup_stdio	HOLLOW	no	no	yes	The model reduces endpoints to booleans and omits link_pipe, open_pipe, selected endpoint identities, both cleanup calls, and rethrow behavior.
+296	setup_stdio	HOLLOW	no	no	yes	The model returns bothInitial as the cleanup flag even though the source always returns false, and it omits pipe linking and endpoint selection.
+304	setup_stdio	HOLLOW	no	no	yes	The model returns the readable flag itself and omits pipe_reader or pipe_writer selection and the recursive setup_stdio call.
+307	setup_stdio	HOLLOW	no	yes	yes	The model takes the already computed descriptor and omits fd(stdio) and RawFD construction, although it states the descriptor and false-cleanup result invariant.
+312	setup_stdio	HOLLOW	no	no	yes	The model uses unexplained numeric flag summaries and omits the filename, Filesystem.open, exact flag operations, permissions, returned handle, and open errors.
+329	setup_stdio	HOLLOW	no	no	yes	The model replaces pipe creation and an asynchronous copy task with a precomputed copy-success flag and omits endpoint cleanup, warnings, rethrows, and task tracking.
+359	close_stdio	HOLLOW	no	no	yes	The model ignores its input and always returns true instead of calling close and preserving its result or exception.
+360	close_stdio	HOLLOW	no	no	yes	The model ignores its OS handle and always returns true instead of calling close_pipe_sync and preserving its result or exception.
+361	close_stdio	HOLLOW	no	no	yes	The model ignores the SyncCloseFD and always returns true instead of recursing on its fd field.
+373	spawn_opts_swallow	HOLLOW	no	yes	yes	The model returns its list unchanged and therefore omits splatting the fixed three-element StdIOSet into a newly allocated Redirectable vector, although it preserves the documented order.
+374	spawn_opts_inherit	HOLLOW	no	yes	yes	The model returns its list unchanged and therefore omits splatting the fixed three-element StdIOSet into a newly allocated Redirectable vector, although it preserves the documented order.
+375	spawn_opts_swallow	FAITHFUL	yes	yes	yes	The model constructs input, output, error, then every extra element in source order, and the all-input proposition is proven.
+380	spawn_opts_inherit	FAITHFUL	yes	yes	yes	The model constructs input, output, error, then every extra element in source order, and the all-input proposition is proven.
+383	eachline	HOLLOW	no	yes	yes	The model omits token resolution, output pipe and stdio routing, the completion callback, success checking, pipeline errors, and EachLine construction, although it states cancellation and successful spawn order.
+407	open	HOLLOW	no	yes	yes	The model only parses the mode into an enum and omits every delegated open call with stdio and cancellation, although its mode mapping and invalid-mode property match the docstring.
+431	open	HOLLOW	no	yes	yes	The model omits token resolution, pipe construction, exact stdio routing, process stream assignments, and spawn effects, although it states the devnull restriction and successful access-mode invariant.
+464	open	HOLLOW	no	yes	yes	The model reduces the body, EOF check, and process status to precomputed booleans and omits open, exception cleanup, stream closure, asynchronous waiting, and the body return value, although its outcome precedence matches the docstring.
+466	waitkill	HOLLOW	no	no	yes	The model accepts only chains and merely clears handles, omitting the Process case, close, timer, conditional kill, wait without synchronization, and timer cleanup.
+515	read	HOLLOW	no	yes	yes	The model takes precomputed output and process state and omits the command, token resolution, open, stream read, and their errors, although it states the successful output and process-status rule.
+529	read	HOLLOW	no	no	yes	The model returns the byte-list result of m515 and omits String construction, its type assertion, the command, and cancellation forwarding.
+553	run	HOLLOW	no	yes	yes	The model omits variadic stdio arguments, inherited versus swallowed routing, returned stream assignments, token resolution, and actual waiting, although it states the documented synchronous status and asynchronous return outcomes.
+593	test_success	HOLLOW	no	no	yes	The model adds an independent core.exited check absent from the source, so a handle-free process with zero status can produce the wrong result without an invariant tying the fields together.
+602	success	HOLLOW	no	no	yes	The model aliases test_success and omits wait, cancellation forwarding, and all cancellation or waiting behavior.
+606	success	HOLLOW	no	no	yes	The model inherits the missing wait and cancellation behavior and proves its result only under an undocumented hypothesis that every process has already exited with a nonnegative code.
+608	success	HOLLOW	no	no	yes	The model inherits the missing wait and cancellation behavior and proves its result only under an undocumented hypothesis that every process has already exited with a nonnegative code.
+618	success	HOLLOW	no	no	yes	The model takes a prebuilt chain instead of a command and omits token resolution, cancellation checking, spawning, and forwarding success to the spawned result.
+635	ProcessFailedException	FAITHFUL	yes	yes	yes	The model wraps exactly one process in a singleton list, matching the source constructor for every process.
+637	showerror	HOLLOW	no	no	yes	The model returns process id and exit-code pairs and omits IO output, the one-versus-many branch, all text, process display, indentation, and newlines.
+649	pipeline_error	FAITHFUL	yes	yes	yes	The model returns unit when ignorestatus is true and otherwise raises a single-process failure, matching both source branches for every process.
+656	pipeline_error	HOLLOW	no	no	yes	The model turns running and negative-status processes into ordinary failures, omitting the assertion and UV error behavior of each test_success call.
+675	kill	HOLLOW	no	no	yes	The model marks a live process exited and clears its handle immediately, while the source only sends a signal under the IO lock and leaves exit state to the later callback.
+687	kill	HOLLOW	no	no	yes	The model maps processes to cleared, exited states and returns the list instead of calling kill sequentially and preserving its errors and Unit result.
+688	kill	HOLLOW	no	no	yes	The model returns an updated chain built from the incorrect vector model instead of forwarding to kill and preserving its errors and Unit result.
+698	Libc.getpid	HOLLOW	no	yes	yes	The model takes the foreign pid as an input and omits IO locking and the conditional jl_uv_process_pid call, although its positive-pid and ESRCH result property matches the method contract.
+717	process_running	FAITHFUL	yes	yes	yes	The model reports the process handle-presence bit exactly as the source compares the handle with C_NULL, and the proposition is proven.
+718	process_running	FAITHFUL	yes	yes	yes	The model applies any to process handle presence exactly as the source applies process_running, and the proposition is proven for every list.
+719	process_running	FAITHFUL	yes	yes	yes	The model forwards the chain process list to the vector rule exactly as the source does, and the proposition is proven.
+726	process_exited	FAITHFUL	yes	yes	yes	The model negates process_running exactly as the source does, and the proposition is proven for every process.
+727	process_exited	FAITHFUL	yes	yes	yes	The model applies all to the per-process exited rule exactly as the source does, and the proposition is proven for every list.
+728	process_exited	FAITHFUL	yes	yes	yes	The model forwards the chain process list to the vector rule exactly as the source does, and the proposition is proven.
+730	process_signaled	FAITHFUL	yes	yes	yes	The model tests whether termsignal is positive exactly as the source does, and the proposition is proven for every process.
+732	process_status	HOLLOW	no	no	yes	When the handle is absent the model consults a separate core.exited flag and can return running, a branch the Julia method cannot take for that state.
+739	wait	HOLLOW	no	no	yes	The model replaces blocking, double-checked exit state, locking, handle preservation, notification wait, and per-task waits with a cancellation flag and a zeroed count.
+767	wait	HOLLOW	no	no	yes	The model performs one upfront cancellation branch and maps zeroed counts instead of calling wait on each process in order with the same arguments and partial-error behavior.
+770	show	HOLLOW	no	no	yes	The model returns only a ProcessStatus and omits IO output, the command, literal punctuation, status formatting, and print.
+774	$f	HOLLOW	no	no	yes	One list-returning model cannot mirror length, firstindex, lastindex, keys, first, last, and iterate, whose result types and error or iteration behavior differ.
+776	Iterators.reverse	HOLLOW	no	yes	yes	The model materializes an immutable reversed list instead of returning the reverse iterator over the mutable exec vector, although it preserves the iteration order invariant.
+777	eltype	HOLLOW	no	yes	yes	The model hard-codes the string name String and omits fieldtype and eltype, although the proposition states the correct element type for Cmd.
+779	$f	HOLLOW	no	no	yes	One zero-based optional lookup cannot mirror both iterate and one-based getindex, including iterate state, return pairs, bounds errors, and their distinct result types.

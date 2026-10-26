@@ -1,0 +1,62 @@
+id: tasks-asyncmap-negative-ntasks-function
+title: "asyncmap hangs when a dynamic ntasks function returns a negative integer"
+priority: P2
+kind: hang
+area: Tasks
+files: [base/asyncmap.jl]
+functions: ["asyncmap", "AsyncCollector", "verify_ntasks", "setup_chnl_and_tasks"]
+summary: |
+  asyncmap accepts a zero-argument function for ntasks without validating that
+  its result is nonnegative. If the function initially returns -1, setup starts
+  no workers and the driver blocks forever putting its first item on an
+  unbuffered channel.
+likelihood: |
+  This requires a dynamic worker-limit function to return a negative value.
+  That is an edge input, but resource or load calculations can cross below
+  zero, and the corresponding constant input ntasks=-1 is rejected promptly.
+maybe_intended: |
+  A negative task count is nonsensical and could be considered invalid input.
+  The issue is the missing validation and resulting hang: numeric negative
+  values throw ArgumentError, while the documented function form bypasses the
+  same check.
+reproducer: |
+  task = @async asyncmap(identity, 1:1; ntasks=() -> -1)
+  status = timedwait(() -> istaskdone(task), 1.0; pollint=0.01)
+  println("asyncmap status after one second: ", status)
+
+  if status == :timed_out
+      schedule(task, ErrorException("reproducer cleanup"); error=true)
+      wait(task; throw=false)
+      println("REPRODUCED tasks-asyncmap-negative-ntasks-function")
+  end
+output:
+  release: |
+    asyncmap status after one second: timed_out
+    REPRODUCED tasks-asyncmap-negative-ntasks-function
+  nightly: |
+    asyncmap status after one second: timed_out
+    REPRODUCED tasks-asyncmap-negative-ntasks-function
+reproduced: {release: true, nightly: true}
+expected: |
+  asyncmap should reject the negative result with ArgumentError, as it does for
+  ntasks=-1, instead of starting no workers and blocking indefinitely.
+promised_by: |
+  base/asyncmap.jl:18-21 documents a zero-argument ntasks function whose value
+  is checked before processing elements. base/asyncmap.jl:116-120 rejects a
+  negative numeric ntasks with "ntasks must be specified as a positive integer
+  or a 0-arg function." The same validity rule should apply to the function's
+  result.
+cause: |
+  base/asyncmap.jl:116-129 accepts every Function without checking its result.
+  setup_chnl_and_tasks at lines 133-150 repairs nt == 0 but leaves nt < 0;
+  iteration over 1:nt starts no workers, and the first put! at line 280 blocks
+  on the unbuffered channel.
+possible_fix: |
+  Validate every value returned by the ntasks function and throw ArgumentError
+  when it is negative. Keep zero's existing meaning of one initial worker.
+duplicates:
+  issues: []
+  queries: ["asyncmap ntasks function negative", "asyncmap hang ntasks", "asyncmap dynamic ntasks"]
+lean:
+  property: JuliaLean.Tasks.AsyncMapDynamicNTasksTerminates
+  theorem: JuliaLean.Tasks.asyncMapDynamicNTasksTerminates_refuted

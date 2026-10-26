@@ -1,0 +1,108 @@
+line	name	verdict	mirror	property	settled	reason
+94	IndexStyle	FAITHFUL	yes	yes	yes	
+95	IndexStyle	FAITHFUL	yes	yes	yes	
+96	IndexStyle	HOLLOW	no	no	yes	The Lean constant omits the slurp arguments and the MethodError argument tuple, so it neither mirrors this overload nor states its behavior for every allowed argument list.
+97	IndexStyle	FAITHFUL	yes	yes	yes	
+98	IndexStyle	FAITHFUL	yes	yes	yes	
+99	IndexStyle	FAITHFUL	yes	yes	yes	
+101	IndexStyle	FAITHFUL	yes	yes	yes	
+102	IndexStyle	FAITHFUL	yes	yes	yes	
+103	IndexStyle	FAITHFUL	yes	yes	yes	
+104	IndexStyle	FAITHFUL	yes	yes	yes	
+108	promote_shape	FAITHFUL	yes	yes	yes	
+112	throw_promote_shape_mismatch	FAITHFUL	yes	yes	yes	
+119	_normalize	HOLLOW	no	no	yes	The proposition reaches normalization only inside the larger mismatch model and has no Lean function or all-input claim for this local map of firstindex and lastindex.
+139	promote_shape	FAITHFUL	yes	yes	yes	
+144	promote_shape	FAITHFUL	yes	yes	yes	
+149	promote_shape	FAITHFUL	yes	yes	yes	
+151	promote_shape	FAITHFUL	yes	yes	yes	
+175	promote_shape	FAITHFUL	yes	yes	yes	
+188	promote_shape	HOLLOW	no	no	yes	The Lean function accepts precomputed axis lists and omits both axes calls and the array arguments, so its equation does not cover this array overload.
+192	promote_shape	FAITHFUL	yes	yes	yes	
+205	throw_setindex_mismatch	HOLLOW	no	yes	yes	The Lean function accepts a precomputed size list and omits the method's length, size, dims2string, exception-construction, and throw calls.
+214	setindex_shape_check	HOLLOW	no	yes	yes	The Lean function accepts dimensions in place of X and computes their product instead of calling length(X) before the mismatch helper.
+217	_shapes_match	FAITHFUL	yes	yes	yes	
+218	_shapes_match	FAITHFUL	yes	yes	yes	
+219	_shapes_match	FAITHFUL	yes	yes	yes	
+220	_shapes_match	FAITHFUL	yes	yes	yes	
+222	setindex_shape_check	HOLLOW	no	yes	yes	The Lean function accepts size(X) as input and omits the ordered ndims, length, prod, size, and mismatch-helper calls made by this method.
+227	setindex_shape_check	HOLLOW	no	no	yes	The Lean constant drops both arguments, omits exception construction and throwing, and truncates the required ArgumentError message.
+243	to_index	FAITHFUL	yes	yes	yes	
+247	to_index	FAITHFUL	yes	yes	yes	
+258	to_index	FAITHFUL	yes	yes	yes	
+259	to_index	FAITHFUL	yes	yes	yes	
+260	to_index	FAITHFUL	yes	yes	yes	
+261	to_index	HOLLOW	no	no	yes	The model restricts I to a list of Int64 values and returns a new arr value, so it does not preserve every AbstractArray's type, shape, axes, or identity.
+262	to_index	HOLLOW	no	no	yes	The model replaces every AbstractArray{Union{}} with one empty list and therefore loses the input array's shape, axes, storage identity, and returned object.
+263	to_index	HOLLOW	no	no	yes	The constant error model omits I, LazyString, limitrepr, typeof, and their ordered calls, and it cannot state the input-dependent ArgumentError message.
+265	to_index	FAITHFUL	yes	yes	yes	
+266	to_index	HOLLOW	no	no	yes	The constant error model omits i, LazyString, limitrepr, typeof, and their ordered calls, and it cannot state the input-dependent fallback behavior.
+310	to_indices	HOLLOW	no	no	yes	m310 omits A and replaces _drop_zerodim and _to_indices with unconstrained callbacks that cannot state the documented contextual conversion for every array.
+311	to_indices	HOLLOW	no	no	yes	m311 accepts the linear indices as a bare value and omits A, IndexLinear construction, eachindex, and the three-argument to_indices call.
+312	_to_indices	HOLLOW	no	no	yes	m312 accepts precomputed axes and an unconstrained route while omitting A, axes(A), and the actual to_indices dispatch.
+313	_to_indices	HOLLOW	no	no	yes	m313 omits A and replaces to_indices(A, J) with a callback of J alone, so it cannot cover array-specific dispatch.
+314	_drop_zerodim	FAITHFUL	yes	yes	yes	
+315	_drop_zerodim	FAITHFUL	yes	yes	yes	
+318	to_indices	FAITHFUL	yes	yes	yes	
+319	to_indices	FAITHFUL	yes	yes	yes	
+320	to_indices	HOLLOW	no	no	yes	m320 replaces to_indices(A, (), I) with a fixed built-in conversion model and reduces every array-specific to_index dispatch to one Boolean.
+321	to_indices	FAITHFUL	yes	yes	yes	
+322	to_indices	HOLLOW	no	no	yes	m322 omits inds and safe_tail(inds), reduces A to one Boolean, and sends every index through to_index instead of modelling contextual index dispatch.
+340	Slice	FAITHFUL	yes	yes	yes	
+341	Slice{T}	HOLLOW	no	no	yes	The model hard-codes T as UnitRange{Int} and omits the general T(S.indices) conversion accepted by this constructor.
+343	axes	FAITHFUL	yes	yes	yes	
+344	axes1	FAITHFUL	yes	yes	yes	
+345	axes1	FAITHFUL	yes	yes	yes	
+347	first	FAITHFUL	yes	yes	yes	
+348	last	FAITHFUL	yes	yes	yes	
+349	size	HOLLOW	yes	no	yes	The proposition uses an unbounded Nat length and omits the wrapping or exceptional length behavior of allowed full-width integer ranges.
+350	getindex	FAITHFUL	yes	yes	yes	
+351	getindex	FAITHFUL	yes	yes	yes	
+352	getindex	FAITHFUL	yes	yes	yes	
+353	show	HOLLOW	no	no	yes	The Lean function constructs a String and omits the supplied IO, ordered print calls, IO mutation, and print return value.
+354	iterate	HOLLOW	no	no	yes	The Lean function collects all values and omits the supplied iteration state, delegated iterate call, and next-value and next-state result.
+366	IdentityUnitRange	FAITHFUL	yes	yes	yes	
+367	IdentityUnitRange{T}	HOLLOW	no	no	yes	The model hard-codes T as UnitRange{Int} and omits the general T(S.indices) conversion accepted by this constructor.
+370	axes	FAITHFUL	yes	yes	yes	
+371	axes1	FAITHFUL	yes	yes	yes	
+372	axes1	FAITHFUL	yes	yes	yes	
+374	first	FAITHFUL	yes	yes	yes	
+375	last	FAITHFUL	yes	yes	yes	
+376	size	HOLLOW	yes	no	yes	The proposition uses an unbounded Nat length and omits the wrapping or exceptional length behavior of allowed full-width integer ranges.
+377	unsafe_length	HOLLOW	no	no	yes	The Lean function computes its own unbounded Nat length instead of delegating to unsafe_length(S.indices), so it misses wrapped integer behavior and custom range dispatch.
+378	getindex	HOLLOW	no	no	yes	The model takes the converted result k as an unconstrained input and therefore omits convert(eltype(S), i) and its errors.
+379	getindex	FAITHFUL	yes	yes	yes	
+380	getindex	HOLLOW	no	no	yes	The model returns only i's element list and omits convert(AbstractUnitRange{eltype(S)}, i), including the returned range type and conversion failures.
+385	getindex	FAITHFUL	yes	yes	yes	
+390	getindex	HOLLOW	no	no	yes	The model returns only i's element list and omits convert(AbstractRange{eltype(S)}, i), including the returned range type and conversion failures.
+395	getindex	FAITHFUL	yes	yes	yes	
+404	getindex	HOLLOW	no	no	yes	The model returns I's values rather than I itself, so it neither mirrors the identity return nor states the source comment's axis-preservation behavior.
+410	getindex	HOLLOW	no	no	yes	The model returns I's values rather than I itself, so it neither mirrors the identity return nor states the source comment's axis-preservation behavior.
+416	show	HOLLOW	no	no	yes	The Lean function constructs a String and omits the supplied IO, ordered print calls, IO mutation, and print return value.
+417	iterate	HOLLOW	no	no	yes	The Lean function collects all values and omits the supplied iteration state, delegated iterate call, and next-value and next-state result.
+423	getindex	HOLLOW	no	no	yes	The model returns I's values rather than the IdentityUnitRange object, so it omits the method's identity and axis-preserving result.
+479	convert	HOLLOW	no	no	yes	The model fixes R to UnitRange values and omits the general tuple conversion, target type parameter, constructor call, and result type assertion.
+482	LinearIndices	FAITHFUL	yes	yes	yes	
+483	LinearIndices	HOLLOW	no	no	yes	The model maps identity over already converted UR values and omits convert(AbstractUnitRange{Int}, r) and its type and error behavior.
+485	LinearIndices	FAITHFUL	yes	yes	yes	
+487	LinearIndices	HOLLOW	no	no	yes	The model accepts axes as a bare list and omits the array argument, axes(A), and the resulting constructor dispatch.
+489	_convert2ind	HOLLOW	no	no	yes	The model handles only Int64 and Bool cases and inlines a clamp, omitting the call to oneto for every Integer type and its dispatch behavior.
+490	_convert2ind	FAITHFUL	yes	yes	yes	
+492	indices_promote_type	HOLLOW	no	no	yes	The model promotes arbitrary heterogeneous lists elementwise instead of promoting the two homogeneous range types and constructing Tuple{R,Vararg{R,N}}.
+497	promote_rule	HOLLOW	no	no	yes	The model directly zips range-type lists and omits the call to indices_promote_type and construction of the exact LinearIndices type.
+499	promote_rule	FAITHFUL	yes	yes	yes	
+501	promote_rule	FAITHFUL	yes	yes	yes	
+505	IndexStyle	FAITHFUL	yes	yes	yes	
+506	axes	FAITHFUL	yes	yes	yes	
+507	size	HOLLOW	yes	no	yes	The proposition maps an unbounded Nat length over its axes and does not cover Julia's fixed-width length behavior for every allowed range tuple.
+508	isassigned	FAITHFUL	yes	yes	yes	
+509	getindex	FAITHFUL	yes	yes	yes	
+514	getindex	FAITHFUL	yes	yes	yes	
+519	copy	FAITHFUL	yes	yes	yes	
+522	iterate	HOLLOW	no	no	yes	The Lean function collects the complete axis and omits s, the delegated iterate call, and the method's one-step iterator result.
+523	iterate	HOLLOW	no	no	yes	The model returns zero or one collected value and omits the next state i+1 from the required nothing-or-pair result.
+526	first	FAITHFUL	yes	yes	yes	
+527	first	FAITHFUL	yes	yes	yes	
+528	last	HOLLOW	yes	no	yes	The proposition uses an unbounded Nat product for length(iter) and does not cover Julia's fixed-width length behavior for every allowed axes tuple.
+529	last	FAITHFUL	yes	yes	yes	
+531	show	HOLLOW	no	no	yes	The Lean function constructs a String and omits the supplied IO, ordered print calls, IO mutation, and print return value.

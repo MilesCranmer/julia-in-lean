@@ -3,8 +3,8 @@ import JuliaLean.Strings.Char
 /-!
 # Transcoding between UTF-8, UTF-16 and UTF-32, `base/strings/cstring.jl`
 
-Model of the `transcode` methods, the `Cstring`/`Cwstring` NUL checks and
-`containsnul` (master `bbfa0ce4150`).
+Model of the `transcode` methods, `cwstring`, the `Cstring`/`Cwstring` NUL
+checks and `containsnul` (master `bbfa0ce4150`).
 
 * Byte, code-unit and `Char` values are Lean `UInt8`/`UInt16`/`UInt32`, whose
   operators wrap exactly like Julia's unsigned operators (`+%`, `<<`, `xor`).
@@ -237,5 +237,13 @@ def cconvertCwstringWin (s : JStr) : SJl (List UInt16) := do
 def cconvertCwstringUnix (s : JStr) : SJl (List UInt32) := do
   let v ← transcode32 s
   cconvertCwVec (v ++ [0])
+
+/-- `Base.cwstring(s)` (Windows only), `base/strings/cstring.jl:119-123`. -/
+def cwstring (s : JStr) : SJl (List UInt16) :=
+  if s.bytes.contains 0 then
+    .error (.jl (.argumentError "embedded NULs are not allowed in C strings"))
+  else do
+    let w ← transcode16 s.bytes
+    .ok (w ++ [0])
 
 end JuliaLean.Transcode

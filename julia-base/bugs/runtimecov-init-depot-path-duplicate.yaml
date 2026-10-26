@@ -1,0 +1,52 @@
+id: runtimecov-init-depot-path-duplicate
+title: "`JULIA_DEPOT_PATH=\":<home>/.julia\"` puts the user depot in `DEPOT_PATH` twice"
+priority: P3
+kind: wrong-result
+area: RuntimeCov
+files: [base/initdefs.jl]
+functions: ["init_depot_path()"]
+summary: |
+  `init_depot_path` deduplicates every entry it adds from `JULIA_DEPOT_PATH` and the
+  bundled depots, except the user depot `<home>/.julia` that it prepends when the first
+  entry is empty. If `<home>/.julia` is also listed later, as in
+  `JULIA_DEPOT_PATH=":<home>/.julia"`, `DEPOT_PATH` holds it at both the first and the
+  last position.
+likelihood: |
+  Low: someone must list the default user depot explicitly after a leading empty
+  entry. The duplicate only makes depot searches visit the same directory twice.
+maybe_intended: |
+  The manual only describes leading and trailing empty entries and does not say
+  that `DEPOT_PATH` is duplicate-free; the code, however, guards every other push
+  with `path in DEPOT_PATH`.
+reproducer: |
+  ENV["JULIA_DEPOT_PATH"] = ":" * joinpath(homedir(), ".julia")
+  Base.init_depot_path()
+  DEPOT_PATH   # [<home>/.julia, <bundled>..., <home>/.julia]
+output:
+  release: |
+    JULIA_DEPOT_PATH = ":<home>/.julia"
+    DEPOT_PATH = ["<home>/.julia", "<julia>/local/share/julia", "<julia>/share/julia", "<home>/.julia"]
+    REPRODUCED runtimecov-init-depot-path-duplicate
+  nightly: |
+    JULIA_DEPOT_PATH = ":<home>/.julia"
+    DEPOT_PATH = ["<home>/.julia", "<julia>/local/share/julia", "<julia>/share/julia", "<home>/.julia"]
+    REPRODUCED runtimecov-init-depot-path-duplicate
+reproduced: {release: true, nightly: true}
+expected: |
+  Each depot once: `["<home>/.julia", <bundled depots>...]`.
+promised_by: |
+  Invariant of base/initdefs.jl:140-174: every push into `DEPOT_PATH` is guarded by
+  `path in DEPOT_PATH || push!(...)` (lines 135, 137, 157), so the list is meant
+  to be duplicate-free.
+cause: |
+  base/initdefs.jl:166-168: `pushfirst!(DEPOT_PATH, joinpath(homedir(), ".julia"))`
+  runs without the `in` check used everywhere else.
+possible_fix: |
+  Skip (or move) the default user depot when it is already in `DEPOT_PATH` before
+  `pushfirst!`.
+duplicates:
+  issues: []
+  queries: ["JULIA_DEPOT_PATH duplicate", "DEPOT_PATH duplicate entries", "prs: init_depot_path"]
+lean:
+  property: JuliaLean.RuntimeCov.InitDefs.DepotPathNoDuplicates
+  theorem: JuliaLean.RuntimeCov.InitDefs.depotPathNoDuplicates_refuted

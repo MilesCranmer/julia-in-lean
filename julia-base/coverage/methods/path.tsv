@@ -1,0 +1,52 @@
+file	line	endline	name	signature	status	entry	note
+base/path.jl	27	27	isseparator	isseparator(c::Char)	modelled	files-method-path-core	
+base/path.jl	28	28	isseparator	isseparator(c::UInt8)	modelled	files-method-path-core	
+base/path.jl	30	30	splitdrive	splitdrive(path::String)	modelled	files-method-path-core	
+base/path.jl	33	33	isseparator	isseparator(c::Char)	excluded		platform: Windows-only separator, drive-letter, UNC, and splitdrive implementation.
+base/path.jl	34	34	isseparator	isseparator(c::UInt8)	excluded		platform: Windows-only separator, drive-letter, UNC, and splitdrive implementation.
+base/path.jl	36	36	isdriveletter	isdriveletter(c::Char)	excluded		platform: Windows-only separator, drive-letter, UNC, and splitdrive implementation.
+base/path.jl	37	40	isdriveletter	isdriveletter(c::UInt8)	excluded		platform: Windows-only separator, drive-letter, UNC, and splitdrive implementation.
+base/path.jl	42	73	_split_longunc	_split_longunc(s::String)::Tuple{String, String}	excluded		platform: Windows-only separator, drive-letter, UNC, and splitdrive implementation.
+base/path.jl	75	91	_split_longdriveletter	_split_longdriveletter(s::String)::Tuple{String, String}	excluded		platform: Windows-only separator, drive-letter, UNC, and splitdrive implementation.
+base/path.jl	93	117	_split_uncpath	_split_uncpath(s::String)::Tuple{String, String}	excluded		platform: Windows-only separator, drive-letter, UNC, and splitdrive implementation.
+base/path.jl	119	147	splitdrive	splitdrive(path::String)::Tuple{String, String}	excluded		platform: Windows-only separator, drive-letter, UNC, and splitdrive implementation.
+base/path.jl	184	198	homedir	homedir()	modelled	iocov-path-faithful-homedir	
+base/path.jl	200	223	isabspath	isabspath(path::String)	modelled	iocov-path-faithful-core	
+base/path.jl	255	260	isdirpath	isdirpath(path::String)::Bool	modelled	iocov-path-faithful-core	
+base/path.jl	273	276	splitdir	splitdir(path::String)	modelled	iocov-path-faithful-core	
+base/path.jl	279	279	_splitdir_nodrive	_splitdir_nodrive(path::String)	modelled	iocov-path-faithful-core	
+base/path.jl	280	289	_splitdir_nodrive	_splitdir_nodrive(drive::String, path::String)::Tuple{String, String}	modelled	iocov-path-faithful-core	
+base/path.jl	308	308	dirname	dirname(path::AbstractString)	modelled	iocov-path-faithful-core	
+base/path.jl	330	330	basename	basename(path::AbstractString)	modelled	iocov-path-faithful-core	
+base/path.jl	351	368	splitext	splitext(path::String)::Tuple{String, String}	modelled	iocov-path-faithful-core	
+base/path.jl	371	371	pathsep	pathsep()	modelled	files-method-path-core	
+base/path.jl	393	393	splitpath	splitpath(p::AbstractString)	modelled	iocov-path-faithful-split-join	
+base/path.jl	395	411	splitpath	splitpath(p::String)	modelled	iocov-path-faithful-split-join	
+base/path.jl	415	461	joinpath	joinpath(paths::Union{Tuple, AbstractVector})::String	excluded		platform: Windows-only separator, drive-letter, UNC, and splitdrive implementation.
+base/path.jl	416	416	assertstring	assertstring(x)	excluded		platform: Windows-only separator, drive-letter, UNC, and splitdrive implementation.
+base/path.jl	465	483	joinpath	joinpath(paths::Union{Tuple, AbstractVector})::String	modelled	iocov-path-faithful-split-join	
+base/path.jl	466	466	assertstring	assertstring(x)	modelled	iocov-path-faithful-split-join	
+base/path.jl	487	487	joinpath	joinpath(paths::AbstractString...)::String	modelled	iocov-path-faithful-split-join	
+base/path.jl	516	538	_split_at_separators	_split_at_separators(path::AbstractString; keepempty = true)	modelled	iocov-path-faithful-split-separators	
+base/path.jl	555	587	normpath	normpath(path::String)	modelled	iocov-path-faithful-normalize	
+base/path.jl	595	595	normpath	normpath(a::AbstractString, b::AbstractString...)	modelled	iocov-path-faithful-normalize	
+base/path.jl	613	625	abspath	abspath(a::String)::String	modelled	iocov-path-faithful-normalize	
+base/path.jl	633	633	abspath	abspath(a::AbstractString, b::AbstractString...)	modelled	iocov-path-faithful-normalize	
+base/path.jl	637	649	longpath	longpath(path::AbstractString)	excluded		platform: Windows-only GetLongPathNameW canonical-case wrapper.
+base/path.jl	663	679	realpath	realpath(path::AbstractString)	modelled	iocov-path-faithful-realpath	
+base/path.jl	683	707	homedir	homedir(username::AbstractString)	excluded		platform: Windows-only user-profile lookup and contractuser implementation.
+base/path.jl	708	755	_win_profile_from_registry	_win_profile_from_registry(username::AbstractString)	excluded		platform: Windows-only user-profile lookup and contractuser implementation.
+base/path.jl	756	777	contractuser	contractuser(path::Union{String, SubString{String}})::String	excluded		platform: Windows-only user-profile lookup and contractuser implementation.
+base/path.jl	781	808	homedir	homedir(username::AbstractString)	modelled	iocov-path-faithful-users	
+base/path.jl	809	850	contractuser	contractuser(path::Union{String, SubString{String}})::String	modelled	iocov-path-faithful-users	
+base/path.jl	854	883	expanduser	expanduser(path::Union{String, SubString{String}})::String	modelled	iocov-path-faithful-users	
+base/path.jl	896	896	expanduser	expanduser(path::AbstractString)	modelled	iocov-path-faithful-abstract	
+base/path.jl	908	908	contractuser	contractuser(path::AbstractString)	modelled	iocov-path-faithful-abstract	
+base/path.jl	921	957	relpath	"relpath(path::String, startpath::String = ""."")"	modelled	iocov-path-faithful-relpath	
+base/path.jl	958	959	relpath	relpath(path::AbstractString, startpath::AbstractString)	modelled	iocov-path-faithful-relpath	
+base/path.jl	962	962	$f	$f(path::AbstractString)	modelled	iocov-path-faithful-abstract	generated-loop: f in (:isdirpath, :splitdir, :splitdrive, :splitext, :normpath, :abspath, :isabspath)
+base/path.jl	965	982	encode_uri_component	encode_uri_component(s::AbstractString)	modelled	iocov-path-faithful-uri	
+base/path.jl	1002	1002	uripath	uripath	excluded		no-behaviour: declares the uripath generic function without a method body.
+base/path.jl	1005	1016	uripath	uripath(path::String)	excluded		platform: Windows-only UNC and drive-letter file URI implementation.
+base/path.jl	1018	1027	uripath	uripath(path::String)	modelled	iocov-path-faithful-uri	
+base/path.jl	1030	1030	uripath	uripath(path::AbstractString)	modelled	iocov-path-faithful-abstract	

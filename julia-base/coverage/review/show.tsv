@@ -1,0 +1,277 @@
+line	name	verdict	mirror	property	settled	reason
+6	show	FAITHFUL	yes	yes	yes	
+14	show	FAITHFUL	yes	yes	yes	
+16	show	FAITHFUL	yes	yes	yes	
+23	show	FAITHFUL	yes	yes	yes	
+34	show	FAITHFUL	yes	yes	yes	
+41	_isself	FAITHFUL	yes	yes	yes	
+55	show	FAITHFUL	yes	yes	yes	
+75	show	FAITHFUL	yes	yes	yes	
+76	show	FAITHFUL	yes	yes	yes	
+77	show	FAITHFUL	yes	yes	yes	
+85	ncodeunits	FAITHFUL	yes	yes	yes	
+86	textwidth	FAITHFUL	yes	yes	yes	
+92	ANSIIterator	HOLLOW	yes	no	yes	AnsiIteratorSpec covers only escape-free strings and one reset-sequence shape, although the constructor accepts every AbstractString.
+94	IteratorSize	FAITHFUL	yes	yes	yes	
+95	eltype	FAITHFUL	yes	yes	yes	
+96	iterate	FAITHFUL	yes	yes	yes	
+102	textwidth	HOLLOW	yes	no	yes	AnsiIteratorSpec proves total width only for escape-free strings, which is not a documented precondition of textwidth(ANSIIterator).
+104	_truncate_at_width_or_chars	HOLLOW	yes	no	yes	TruncateResetOnlyWhenNeeded restricts the string to one reset with escape-free surroundings, which is not a documented precondition of the method.
+137	show	HOLLOW	no	yes	yes	The model clamps the limited value width to at least 4, while Julia clamps the column count before subtracting the two-column prefix and can therefore use width 2.
+168	show	HOLLOW	yes	no	yes	P168 specifies only the early-return and circular cases, leaving ordinary nonempty dictionary rendering unconstrained.
+235	summary	FAITHFUL	yes	yes	yes	
+241	show	FAITHFUL	yes	yes	yes	
+278	show	FAITHFUL	yes	yes	yes	
+294	show	FAITHFUL	yes	yes	yes	
+304	show	FAITHFUL	yes	yes	yes	
+322	print	FAITHFUL	yes	yes	yes	
+336	IOContext{IO_t}	FAITHFUL	yes	yes	yes	
+343	ioproperties	FAITHFUL	yes	yes	yes	
+344	ioproperties	FAITHFUL	yes	yes	yes	
+346	unwrapcontext	FAITHFUL	yes	yes	yes	
+347	unwrapcontext	FAITHFUL	yes	yes	yes	
+349	IOContext	FAITHFUL	yes	yes	yes	
+353	IOContext	FAITHFUL	yes	yes	yes	
+358	convert	FAITHFUL	yes	yes	yes	
+359	convert	FAITHFUL	yes	yes	yes	
+360	convert	FAITHFUL	yes	yes	yes	
+361	convert	FAITHFUL	yes	yes	yes	
+363	IOContext	FAITHFUL	yes	yes	yes	
+364	IOContext{IO_t}	FAITHFUL	yes	yes	yes	
+366	IOContext	FAITHFUL	yes	yes	yes	
+381	IOContext	FAITHFUL	yes	yes	yes	
+456	IOContext	FAITHFUL	yes	yes	yes	
+458	show	FAITHFUL	yes	yes	yes	
+460	pipe_reader	FAITHFUL	yes	yes	yes	
+461	pipe_writer	FAITHFUL	yes	yes	yes	
+462	lock	FAITHFUL	yes	yes	yes	
+463	unlock	HOLLOW	no	no	yes	IOContextBindings records only the wrapped stream target and does not model the call to unlock or its effect; IOContextBindings states only the target stream and never states that unlock is performed.
+465	in	FAITHFUL	yes	yes	yes	
+466	in	HOLLOW	yes	no	yes	IOContextLookup never states that membership on a plain IO is false; its only inCtx clause is a one-way implication.
+467	haskey	FAITHFUL	yes	yes	yes	
+468	haskey	FAITHFUL	yes	yes	yes	
+469	getindex	FAITHFUL	yes	yes	yes	
+470	getindex	FAITHFUL	yes	yes	yes	
+471	get	HOLLOW	yes	no	yes	IOContextLookup constrains get only when the key is absent and leaves its result unconstrained for every present key.
+472	get	FAITHFUL	yes	yes	yes	
+473	keys	FAITHFUL	yes	yes	yes	
+474	keys	FAITHFUL	yes	yes	yes	
+476	displaysize	FAITHFUL	yes	yes	yes	
+478	show_circular	FAITHFUL	yes	yes	yes	
+479	show_circular	FAITHFUL	yes	yes	yes	
+520	show	FAITHFUL	yes	yes	yes	
+522	show	FAITHFUL	yes	yes	yes	
+525	show_default	FAITHFUL	yes	yes	yes	
+527	_show_default	FAITHFUL	yes	yes	yes	
+570	active_module	FAITHFUL	yes	yes	yes	
+583	show_function	HOLLOW	yes	no	yes	P583 covers only the fallback and compact-name branches, leaving the ordinary noncompact function-display branch unconstrained.
+603	show	FAITHFUL	yes	yes	yes	
+604	print	FAITHFUL	yes	yes	yes	
+606	show	FAITHFUL	yes	yes	yes	
+613	print	FAITHFUL	yes	yes	yes	
+615	show	FAITHFUL	yes	yes	yes	
+617	print_without_params	FAITHFUL	yes	yes	yes	
+622	io_has_tvar_name	FAITHFUL	yes	yes	yes	
+630	io_has_tvar_name	FAITHFUL	yes	yes	yes	
+632	modulesof!	FAITHFUL	yes	yes	yes	
+633	modulesof!	FAITHFUL	yes	yes	yes	
+638	modulesof!	FAITHFUL	yes	yes	yes	
+639	modulesof!	HOLLOW	no	no	yes	The model stops recursive module discovery after 64 levels, while Julia has no such depth limit; P639 covers only values whose unwrapped form directly supplies a data module, leaving recursive type forms unconstrained.
+654	has_other_free_typevars	FAITHFUL	yes	yes	yes	
+674	unbounded_typealias	FAITHFUL	yes	yes	yes	
+692	reapply_unionall_env	FAITHFUL	yes	yes	yes	
+703	make_typealias	HOLLOW	no	no	yes	The model omits Julia's check that the candidate alias refers back to the module currently being searched; P703 covers only Any and tuple-subtype rejection, leaving every candidate-search result unconstrained.
+769	isgensym	FAITHFUL	yes	yes	yes	
+771	show_can_elide	HOLLOW	yes	no	yes	P771 states only the elide-equals-zero case, leaving every positive elision input unconstrained.
+786	show_typeparams	FAITHFUL	yes	yes	yes	
+789	egal_var	FAITHFUL	yes	yes	yes	
+832	show_typealias_name	FAITHFUL	yes	yes	yes	
+847	show_typealias	FAITHFUL	yes	yes	yes	
+864	make_wheres	HOLLOW	yes	no	yes	P864 states only the empty-context, empty-environment atom case, leaving ordinary where-variable construction unconstrained.
+894	show_wheres	HOLLOW	yes	no	yes	P894 states only the empty where-list case, leaving every nonempty list unconstrained.
+908	show_typealias	FAITHFUL	yes	yes	yes	
+917	make_typealiases	HOLLOW	no	no	yes	The model omits Julia's UnionAll environment recapture and the candidate alias owning-module check; P917 states only the Any input case, leaving ordinary union-alias discovery unconstrained.
+1002	show_unionaliases	FAITHFUL	yes	yes	yes	
+1046	show	HOLLOW	yes	no	yes	P1046 states only the successful-alias branch, leaving every other allowed type input unconstrained.
+1071	show_typeegal	FAITHFUL	yes	yes	yes	
+1076	show	HOLLOW	yes	no	yes	P1076 states only the bottom-type branch, leaving TypeEgal, TypeEq, and other types unconstrained.
+1091	show_typeeq	FAITHFUL	yes	yes	yes	
+1096	_show_type	HOLLOW	no	no	yes	The model searches only 64 fresh binder names and starts at the wrong counter end, while Julia starts at 1 and continues until it finds a free name; P1096 states only the TypeEgal branch, leaving every other type-dispatch branch unconstrained.
+1159	isvisible	HOLLOW	no	no	yes	The model follows at most 64 explicit-import bindings, while Julia follows the chain until it ends; P1159 states only the deprecated-symbol branch, leaving all nondeprecated visibility checks unconstrained.
+1179	is_global_function	HOLLOW	yes	no	yes	P1179 states only the absent-global-name case, leaving every supplied name unconstrained.
+1191	check_world_bounded	HOLLOW	no	no	yes	The model scans at most 64 binding partitions, while Julia scans until the partition chain ends; P1191 states only the undefined-binding case, leaving every defined partition chain unconstrained.
+1211	show_type_name	HOLLOW	no	no	yes	The model inherits fixed 64-step limits from visibility and world-bound lookup that the Julia method does not have; P1211 states only the UnionAll-name case, leaving ordinary type names unconstrained.
+1248	maybe_kws_nt	HOLLOW	yes	no	yes	P1248 states only the non-Pairs rejection case, leaving every candidate keyword NamedTuple unconstrained.
+1266	show_datatype	HOLLOW	yes	no	yes	P1266 states only the empty Tuple case, leaving every other datatype unconstrained.
+1362	show_at_namedtuple	HOLLOW	yes	no	yes	P1362 states only an empty symbol list, leaving every nonempty named-tuple field list unconstrained.
+1378	show_supertypes	HOLLOW	no	no	yes	The model stops the supertype chain after 64 steps, while Julia continues until Any; P1378 states only the Any case, leaving every nontrivial supertype chain unconstrained.
+1386	show_supertypes	HOLLOW	no	yes	yes	The wrapper calls a supertype model that stops after 64 steps, while Julia continues until Any.
+1406	show	HOLLOW	no	yes	yes	The model evaluates the last expression again to compute the return value, while Julia reuses the value evaluated for its printed line.
+1416	show	FAITHFUL	yes	yes	yes	
+1422	nonnothing_nonmissing_typeinfo	FAITHFUL	yes	yes	yes	
+1423	show	FAITHFUL	yes	yes	yes	
+1424	show	FAITHFUL	yes	yes	yes	
+1425	show	FAITHFUL	yes	yes	yes	
+1426	show	FAITHFUL	yes	yes	yes	
+1437	print	FAITHFUL	yes	yes	yes	
+1439	has_tight_type	FAITHFUL	yes	yes	yes	
+1443	isdelimited	FAITHFUL	yes	yes	yes	
+1444	isdelimited	FAITHFUL	yes	yes	yes	
+1448	isdelimited	FAITHFUL	yes	yes	yes	
+1450	gettypeinfos	FAITHFUL	yes	yes	yes	
+1457	show	HOLLOW	yes	no	yes	P1457 states only the typed-pair branch, leaving the arrow-form branch unconstrained.
+1469	show_pairtyped	FAITHFUL	yes	yes	yes	
+1474	show	HOLLOW	no	no	yes	The model bounds parent traversal by an unconstrained moduleCount field, while Julia follows parents until it reaches a root; P1474 states only root modules, leaving all nested modules unconstrained.
+1484	print_fullname	HOLLOW	no	no	yes	The model bounds parent traversal by an unconstrained moduleCount field, while Julia follows parents until it reaches a root; P1484 states only self-parent modules under a positive fuel assumption, leaving ordinary module paths unconstrained.
+1495	sourceinfo_slotnames	HOLLOW	no	no	yes	The model forces CodeInfo.slotnames to be a list and cannot represent the allowed nothing value or the resulting delegated failure; P1495 therefore does not quantify over every allowed CodeInfo.
+1496	sourceinfo_slotnames	HOLLOW	yes	no	yes	P1496 states only the empty slot-name vector, leaving all actual slot-name disambiguation unconstrained.
+1518	show	FAITHFUL	yes	yes	yes	
+1519	show	HOLLOW	yes	no	yes	P1519 states only that foreign code instances have a suffix, leaving nonforeign output and the complete prefix unconstrained.
+1533	show_mi	HOLLOW	yes	no	yes	P1533 constrains only stack-frame toplevel thunks and says True for method definitions, leaving ordinary output unconstrained.
+1562	show_delim_array	HOLLOW	no	no	yes	The model turns an out-of-range explicit i1 or l into an unassigned slot instead of Julia's bounds failure; P1562 also states only the circular-marker branch, leaving every ordinary array traversal unconstrained.
+1591	show_delim_array	HOLLOW	no	no	yes	The model truncates iteration using an unconstrained fuel field and initializes the post-skip index incorrectly when i1 is greater than 1; P1591 states only the circular-marker branch, leaving every ordinary iterator traversal unconstrained.
+1625	show	FAITHFUL	yes	yes	yes	
+1626	show	FAITHFUL	yes	yes	yes	
+1628	show	FAITHFUL	yes	yes	yes	
+1666	print	FAITHFUL	yes	yes	yes	
+1667	show	FAITHFUL	yes	yes	yes	
+1668	show_unquoted	FAITHFUL	yes	yes	yes	
+1669	show_unquoted	FAITHFUL	yes	yes	yes	
+1670	show_unquoted	FAITHFUL	yes	yes	yes	
+1671	show_unquoted	FAITHFUL	yes	yes	yes	
+1713	operator_precedence	FAITHFUL	yes	yes	yes	
+1714	operator_precedence	FAITHFUL	yes	yes	yes	
+1739	operator_associativity	HOLLOW	yes	no	yes	P1739 states only one right-associative precedence class, leaving the other allowed symbols unconstrained.
+1750	is_quoted	FAITHFUL	yes	yes	yes	
+1751	is_quoted	FAITHFUL	yes	yes	yes	
+1752	is_quoted	FAITHFUL	yes	yes	yes	
+1754	unquoted	FAITHFUL	yes	yes	yes	
+1755	unquoted	FAITHFUL	yes	yes	yes	
+1759	printstyled	FAITHFUL	-	-	-	no-behaviour: empty generic-function declaration installs no callable method body.
+1760	with_output_color	FAITHFUL	-	-	-	no-behaviour: empty generic-function declaration installs no callable method body.
+1762	emphasize	FAITHFUL	yes	yes	yes	
+1766	show_linenumber	FAITHFUL	yes	yes	yes	
+1767	show_linenumber	FAITHFUL	yes	yes	yes	
+1768	show_linenumber	FAITHFUL	yes	yes	yes	
+1771	show_block	HOLLOW	yes	no	yes	P1771 is one empty-block case, leaving blocks with arguments or statements unconstrained.
+1790	show_block	FAITHFUL	yes	yes	yes	
+1791	show_block	HOLLOW	yes	no	yes	P1791 covers only block and quote argument nodes, leaving the ordinary single-argument wrapper branch unconstrained.
+1800	show_list	HOLLOW	yes	no	yes	P1800 states only the empty-list case, leaving every nonempty list unconstrained.
+1828	show_enclosed_list	FAITHFUL	yes	yes	yes	
+1837	show_call	HOLLOW	yes	no	yes	P1837 is restricted to an empty GlobalRef call with fixed delimiters, leaving other calls unconstrained.
+1867	show_sym	HOLLOW	yes	no	yes	P1867 states only valid identifiers, leaving operators, macro names, and escaped symbols unconstrained.
+1880	show_unquoted	HOLLOW	yes	no	yes	P1880 states only out-of-range SSA values, leaving every warning-class and ordinary SSA value unconstrained.
+1895	show_unquoted	FAITHFUL	yes	yes	yes	
+1896	show_unquoted	FAITHFUL	yes	yes	yes	
+1897	show_unquoted	FAITHFUL	yes	yes	yes	
+1898	show_unquoted	FAITHFUL	yes	yes	yes	
+1899	show_unquoted	FAITHFUL	yes	yes	yes	
+1902	show_globalref	FAITHFUL	yes	yes	yes	
+1914	show_unquoted	HOLLOW	yes	no	yes	P1914 states only one zero-index error case and otherwise asserts the tautological HasResult predicate.
+1924	show_unquoted	HOLLOW	yes	no	yes	P1924 states only QuoteNodes containing symbols, leaving all other quoted values unconstrained.
+1937	show_unquoted_quote_expr	HOLLOW	yes	no	yes	P1937 states only symbols in the quoted-symbol set, leaving all other quote forms unconstrained.
+1962	show_generator	FAITHFUL	yes	yes	yes	
+1983	valid_import_path	FAITHFUL	yes	yes	yes	
+1990	show_import_path	HOLLOW	yes	no	yes	P1990 states only symbol import nodes, leaving colon, dotted, and fallback import paths unconstrained.
+2023	allow_macroname	HOLLOW	yes	no	yes	P2023 states only GlobalRef inputs, leaving symbols and dotted macro names unconstrained.
+2034	is_core_macro	FAITHFUL	yes	yes	yes	
+2035	is_core_macro	FAITHFUL	yes	yes	yes	
+2036	is_core_macro	FAITHFUL	yes	yes	yes	
+2037	is_core_macro	FAITHFUL	yes	yes	yes	
+2043	show_unquoted_expr_fallback	FAITHFUL	yes	yes	yes	
+2054	show_unquoted	HOLLOW	no	no	yes	The model collapses several distinct Expr branches and omits source checks and formatting paths from the full show_unquoted dispatcher; P2054 constrains only non-expression values, leaving the entire Expr dispatcher unconstrained.
+2608	demangle_function_name	FAITHFUL	yes	yes	yes	
+2609	demangle_function_name	FAITHFUL	yes	yes	yes	
+2620	show_signature_function	HOLLOW	yes	no	yes	P2620 states only the HTML fallback branch, leaving function, type, and plain fallback signatures unconstrained.
+2645	print_within_stacktrace	FAITHFUL	yes	yes	yes	
+2653	show_tuple_as_call	HOLLOW	yes	no	yes	P2653 states only the Tuple root case, leaving every concrete and UnionAll signature unconstrained.
+2712	type_limited_string_from_context	HOLLOW	yes	no	yes	P2712 states only contexts without a limiting flag, leaving the actual limiting branch unconstrained.
+2726	type_depth_limit	HOLLOW	yes	no	yes	The three semantic propositions cover constructed character-parameter or flat escape-free strings rather than all allowed strings under documented preconditions.
+2734	stateis	FAITHFUL	yes	yes	yes	
+2735	quoted	FAITHFUL	yes	yes	yes	
+2736	enter	FAITHFUL	yes	yes	yes	
+2737	leave	FAITHFUL	yes	yes	yes	
+2818	print_type_bicolor	FAITHFUL	yes	yes	yes	
+2823	print_type_bicolor	HOLLOW	yes	no	yes	P2823 states only the no-color branch, leaving all colored brace and ellipsis cases unconstrained.
+2840	resolvebinding	FAITHFUL	yes	yes	yes	
+2841	resolvebinding	FAITHFUL	yes	yes	yes	
+2842	resolvebinding	FAITHFUL	yes	yes	yes	
+2843	resolvebinding	HOLLOW	no	no	yes	The model resolves dotted expressions through at most 32 parents, while Julia recurses without that limit; P2843 states only nonbinding leaf nodes, leaving dotted binding resolution unconstrained.
+2852	resolvebinding	HOLLOW	yes	no	yes	P2852 states only undefined GlobalRefs, leaving defined constants and module results unconstrained.
+2860	ismodulecall	HOLLOW	no	yes	yes	The model resolves the module-call target through at most 32 dotted bindings, while Julia recurses without that limit.
+2866	show	HOLLOW	yes	no	yes	P2866 states only TypeVars already present in the environment, leaving all bound-printing branches unconstrained.
+2873	show_bound	FAITHFUL	yes	yes	yes	
+2901	show	HOLLOW	yes	no	yes	P2901 states only a Vararg with no type field, leaving typed and length-qualified Varargs unconstrained.
+2916	show	HOLLOW	no	no	yes	The model forces CodeInfo.slotnames to be a list and always calls sourceSlotnamesBody, while Julia accepts nothing and skips that call; P2916 therefore does not cover every allowed CodeInfo.
+2931	show_unquoted	FAITHFUL	yes	yes	yes	
+2933	show_unquoted	FAITHFUL	yes	yes	yes	
+2934	show_unquoted_phinode	HOLLOW	yes	no	yes	P2934 states only an empty edge list, leaving every actual PhiNode entry unconstrained.
+2949	show_unquoted	FAITHFUL	yes	yes	yes	
+2959	show_unquoted	FAITHFUL	yes	yes	yes	
+2967	show_unquoted	HOLLOW	yes	no	yes	P2967 states only an undefined Upsilon value, leaving defined values unconstrained.
+2975	show_unquoted	HOLLOW	yes	no	yes	P2975 states only an undefined ReturnNode value, leaving ordinary return values unconstrained.
+2984	show_unquoted	FAITHFUL	yes	yes	yes	
+2985	show_unquoted_gotoifnot	FAITHFUL	yes	yes	yes	
+2990	dump	HOLLOW	yes	no	yes	P2990 states only an empty SimpleVector, leaving every populated vector unconstrained.
+3010	dump	HOLLOW	yes	no	yes	P3010 states only Union{}, leaving every ordinary value and field traversal unconstrained.
+3043	dump	FAITHFUL	yes	yes	yes	
+3044	dump	FAITHFUL	yes	yes	yes	
+3045	dump	FAITHFUL	yes	yes	yes	
+3046	dump	FAITHFUL	yes	yes	yes	
+3047	dump	FAITHFUL	yes	yes	yes	
+3049	dump_elts	HOLLOW	yes	no	yes	P3049 states only an empty index interval, leaving every element dump unconstrained.
+3061	dump	HOLLOW	yes	no	yes	P3061 states only numeric arrays, leaving nonnumeric traversal, limits, and circularity unconstrained.
+3087	dump	HOLLOW	yes	no	yes	P3087 states only Any at depth zero, leaving every other datatype and field traversal unconstrained.
+3130	dump	FAITHFUL	yes	yes	yes	
+3163	dump	FAITHFUL	yes	yes	yes	
+3169	nocolor	FAITHFUL	yes	yes	yes	
+3170	alignment_from_show	FAITHFUL	yes	yes	yes	
+3172	alignment_from_show	FAITHFUL	yes	yes	yes	
+3191	alignment	FAITHFUL	yes	yes	yes	
+3192	alignment	FAITHFUL	yes	yes	yes	
+3193	alignment	FAITHFUL	yes	yes	yes	
+3194	alignment	HOLLOW	yes	no	yes	P3194 states only an empty rendered Real, leaving every numeric spelling unconstrained.
+3200	alignment	HOLLOW	yes	no	yes	P3200 states only an empty rendered Complex, leaving every complex spelling unconstrained.
+3206	alignment	HOLLOW	yes	no	yes	P3206 states only an empty rendered Rational, leaving every rational spelling unconstrained.
+3213	alignment	HOLLOW	yes	no	yes	P3213 states only already-delimited pairs, leaving the arrow-alignment branch unconstrained.
+3228	show	FAITHFUL	yes	yes	yes	
+3249	summary	FAITHFUL	yes	yes	yes	
+3250	summary	FAITHFUL	yes	yes	yes	
+3258	dims2string	HOLLOW	no	no	yes	The model restricts the untyped Julia argument to a List Nat and cannot represent other indexable, stringable dimension collections; P3258 also covers only zero-dimensional and one-dimensional inputs.
+3262	inds2string	FAITHFUL	yes	yes	yes	
+3263	_indsstring	FAITHFUL	yes	yes	yes	
+3264	_indsstring	FAITHFUL	yes	yes	yes	
+3267	summary	HOLLOW	yes	no	yes	P3267 states only arrays whose axes are all OneTo, leaving custom-index arrays unconstrained.
+3268	array_summary	FAITHFUL	yes	yes	yes	
+3272	array_summary	FAITHFUL	yes	yes	yes	
+3279	summary	FAITHFUL	yes	yes	yes	
+3287	summary	FAITHFUL	yes	yes	yes	
+3335	showarg	FAITHFUL	yes	yes	yes	
+3339	showarg	FAITHFUL	yes	yes	yes	
+3344	showarg	FAITHFUL	yes	yes	yes	
+3350	showarg	HOLLOW	yes	no	yes	P3350 fixes toplevel to false, leaving the allowed toplevel output unconstrained.
+3358	showindices	FAITHFUL	yes	yes	yes	
+3360	showindices	FAITHFUL	yes	yes	yes	
+3362	showindices	FAITHFUL	yes	yes	yes	
+3364	showarg	HOLLOW	yes	no	yes	P3364 fixes toplevel to false, leaving the allowed toplevel output unconstrained.
+3375	showarg	FAITHFUL	yes	yes	yes	
+3381	showarg	HOLLOW	yes	no	yes	P3381 fixes toplevel to false, leaving the allowed toplevel output unconstrained.
+3391	show	FAITHFUL	yes	yes	yes	
+3396	show	FAITHFUL	yes	yes	yes	
+3399	Base.showarg	FAITHFUL	yes	yes	yes	
+3403	Base.showarg	FAITHFUL	yes	yes	yes	
+3407	Base.showarg	FAITHFUL	yes	yes	yes	
+3415	print_bit_chunk	HOLLOW	no	no	yes	The model replaces the Integer length and UInt64 chunk with unrestricted Nat values, so it cannot model negative lengths and admits high chunk bits Julia cannot have; P3415 is consequently not quantified over the Julia method's allowed inputs.
+3425	print_bit_chunk	HOLLOW	no	no	yes	The model replaces the Integer length and UInt64 chunk with unrestricted Nat values, so it cannot model negative lengths and admits high chunk bits Julia cannot have; P3425 is consequently not quantified over the Julia method's allowed inputs.
+3426	print_bit_chunk	FAITHFUL	yes	yes	yes	
+3428	bitshow	HOLLOW	yes	no	yes	P3428 states only the empty BitArray case, leaving every nonempty bit traversal unconstrained.
+3438	bitshow	FAITHFUL	yes	yes	yes	
+3440	bitstring	FAITHFUL	yes	yes	yes	
+3443	show	FAITHFUL	yes	yes	yes	
+3450	show	FAITHFUL	yes	yes	yes	
+3455	print_partition	HOLLOW	yes	no	yes	P3455 states only the maximum-world branch, leaving ordinary world bounds, flags, and binding kinds unconstrained.
+3507	show	FAITHFUL	yes	yes	yes	
+3513	show	FAITHFUL	yes	yes	yes	
+3519	show	HOLLOW	no	no	yes	The model truncates the partition walk using an unconstrained fuel field, while Julia continues until the binding backreference; P3519 states only bindings without partitions, leaving every partition chain unconstrained.
+3539	show	HOLLOW	yes	no	yes	P3539 states only the module's own include binding, leaving the show_default branch unconstrained.
+3548	show	HOLLOW	yes	no	yes	P3548 states only the module's own eval binding, leaving the show_default branch unconstrained.

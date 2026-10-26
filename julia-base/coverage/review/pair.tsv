@@ -1,0 +1,19 @@
+line	name	verdict	mirror	property	settled	reason
+40	eltype	FAITHFUL	yes	yes	yes	Pair.eltype directly returns the supplied union, and the proposition proves the documented upper-bound invariant for both field types under type-order invariants.
+41	iterate	HOLLOW	yes	no	yes	The proposition only unfolds pairIterateGeneric to the same expression and never establishes the documented first-then-second iteration of a Pair.
+42	indexed_iterate	HOLLOW	yes	no	yes	The proposition only repeats pairIndexedIterateGeneric's definition and never relates index values to either Pair field or bounds behavior.
+46	hash	HOLLOW	no	no	yes	The model uses 0x0a28ce96 instead of Julia's 32-bit seed 0x1f60a087, and its exact seed-and-wrapping restatement does not prove the documented isequal/hash invariant.
+49	==	HOLLOW	no	yes	yes	The pure Ops model replaces Julia's eager & call with hand-written and3 semantics, so it cannot mirror operand evaluation order or propagated exceptions.
+50	isequal	HOLLOW	yes	no	yes	The proposition repeats pairIsequalEager's definition verbatim and proves no independent documented isequal invariant such as consistency with hash.
+52	isless	HOLLOW	yes	no	yes	The proposition repeats pairIslessEager's definition verbatim and proves no independent lexicographic-order invariant.
+54	getindex	HOLLOW	no	no	yes	The model replaces getfield with a hand-written two-index conditional, and the proposition omits every invalid Int index and its BoundsError.
+55	getindex	HOLLOW	no	no	yes	The model calls the hand-written pairGetindexInt instead of Julia's getfield, and the proposition merely unfolds that wrapper without an independent indexing invariant.
+56	reverse	FAITHFUL	yes	yes	yes	reverseHPair constructs Pair{B,A} by swapping the fields, and the proposition proves the field equations and involution for every pair.
+58	firstindex	FAITHFUL	yes	yes	yes	The model returns 1 directly and the proposition establishes that result for every Pair.
+59	lastindex	FAITHFUL	yes	yes	yes	The model returns 2 directly and the proposition establishes lastindex equals the Pair length for every Pair.
+60	length	FAITHFUL	yes	yes	yes	The model returns 2 directly and the proposition establishes that fixed length for every Pair.
+61	first	FAITHFUL	yes	yes	yes	The model reads the first field directly and the proposition establishes that result for every Pair.
+62	last	FAITHFUL	yes	yes	yes	The model reads the second field directly and the proposition establishes that result for every Pair.
+64	convert	HOLLOW	no	yes	yes	Pair.convert adds a synthetic xIsAB branch shared with another method, so no Lean function mirrors this identity method's body directly.
+65	convert	HOLLOW	no	no	yes	The model only tags arbitrary V values with A and B and omits the Pair{A,B} constructor and type assertion, while its proposition merely repeats that incomplete definition.
+73	promote_rule	FAITHFUL	yes	yes	yes	promoteRule applies promote to the two parameter positions exactly, and the proposition proves the obvious symmetry invariant when promote is symmetric.

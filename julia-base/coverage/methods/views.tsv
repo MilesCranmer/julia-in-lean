@@ -1,0 +1,14 @@
+file	line	endline	name	signature	status	entry	note
+base/views.jl	17	17	replace_ref_begin_end!	replace_ref_begin_end!(__module__::Module, @nospecialize ex)	modelled	multidimcov-views-wrapper	source-order model and quantified behavior
+base/views.jl	19	160	replace_ref_begin_end_!	replace_ref_begin_end_!(__module__::Module, ex, withex, in_quote_context::Bool, escs::Int)	modelled	multidimcov-views-faithful-19	row-specific faithful recursive replacement model
+base/views.jl	22	27	escapes	escapes(@nospecialize(ex), escs::Int)	modelled	multidimcov-views-faithful-22	row-specific faithful escape-loop model
+base/views.jl	28	102	handle_refexpr!	handle_refexpr!(__module__::Module, ref_ex::Expr, main_ex::Expr, withex, in_quote_context, escs::Int)	modelled	multidimcov-views-faithful-28	row-specific faithful three-pass reference model
+base/views.jl	210	228	view	view(ex)	modelled	multidimcov-views-faithful-210	row-specific faithful macro model
+base/views.jl	235	235	maybeview	maybeview(A, args...)	modelled	multidimcov-maybeview-overloads	source-order model and quantified behavior
+base/views.jl	236	236	maybeview	maybeview(A::AbstractArray, args...)	modelled	multidimcov-maybeview-overloads	source-order model and quantified behavior
+base/views.jl	237	237	maybeview	maybeview(A::AbstractArray, args::Union{Number,AbstractCartesianIndex}...)	modelled	multidimcov-maybeview-overloads	source-order model and quantified behavior
+base/views.jl	238	238	maybeview	maybeview(A)	modelled	multidimcov-maybeview-overloads	source-order model and quantified behavior
+base/views.jl	239	239	maybeview	maybeview(A::AbstractArray)	modelled	multidimcov-maybeview-overloads	source-order model and quantified behavior
+base/views.jl	247	247	_views	_views(x)	modelled	multidimcov-views-faithful-247	row-specific generic identity model
+base/views.jl	248	294	_views	_views(ex::Expr)	modelled	multidimcov-views-faithful-248	row-specific faithful recursive expression model
+base/views.jl	332	334	views	views(x)	modelled	multidimcov-views-macro	source-order model and quantified behavior

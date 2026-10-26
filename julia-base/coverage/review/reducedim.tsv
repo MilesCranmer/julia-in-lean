@@ -1,0 +1,91 @@
+line	name	verdict	mirror	property	settled	reason
+6	reduced_index	HOLLOW	no	no	yes	The model calls one on the range endpoint instead of the type parameter; the proposition only unfolds that model and proves no promised behavior.
+7	reduced_index	HOLLOW	no	no	yes	The model calls first once and hides both the singleton-range construction and oftype conversion in one callback; the proposition only unfolds that model and proves no promised behavior.
+8	reduced_index	HOLLOW	no	no	yes	The model appends a rendering of the input after the source message and does not model interpolation of typeof(i); the proposition only unfolds that model and proves no promised behavior.
+15	reduced_indices	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+18	reduced_indices0	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+20	reduced_indices	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+25	reduced_indices0	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+30	_check_valid_region	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+42	initarray!	HOLLOW	no	no	yes	The model receives the identity value precomputed and therefore omits the conditional zero or one call and its failure order; the proposition only unfolds that model and proves no promised behavior.
+45	initarray!	HOLLOW	no	no	yes	The model returns the callback result while Julia always returns the original mutated array; the proposition only unfolds that model and proves no promised behavior.
+49	initarray!	HOLLOW	no	no	yes	The model leaves the identity arbitrary and does not connect and_all to true or or_any to false; the proposition only unfolds that model and proves no promised behavior.
+52	reducedim_initarray	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+53	reducedim_initarray	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+59	promote_union	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+60	promote_union	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+62	_realtype	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+63	_realtype	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+64	_realtype	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+65	_realtype	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+66	_realtype	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+68	reducedim_init	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+71	reducedim_init	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+74	_reducedim_init	HOLLOW	no	no	yes	The model calls applicableZero even when the target is Any, while Julia short-circuits before applicable; the proposition only unfolds that model and proves no promised behavior.
+89	reducedim_init	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+131	reducedim_init	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+172	reducedim_init	HOLLOW	no	no	yes	The model calls eltype(A) even though Julia uses the dispatched type parameter T without that call; the proposition only unfolds that model and proves no promised behavior.
+175	reducedim_init	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+176	reducedim_init	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+179	reducedim_init	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+180	reducedim_init	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+190	reducedim_init	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+194	reducedim_init	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+202	has_fast_linear_indexing	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+203	has_fast_linear_indexing	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+205	check_reducedims	HOLLOW	no	no	yes	The model replaces both source DimensionMismatch messages and their interpolated values with generic literals; the proposition only unfolds that model and proves no promised behavior.
+239	copyfirst!	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+241	mapfirst!	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+248	_firstreducedslice	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+249	_firstreducedslice	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+250	_firstreducedslice	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+251	_firstreducedslice	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+252	_firstslice	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+253	_firstslice	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+254	_firstslice	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+256	_mapreducedim!	HOLLOW	no	no	yes	The Cartesian loop ignores the outer index when reading and writing inner elements, so it does not mirror the multidimensional accesses; the proposition only unfolds that model and proves no promised behavior.
+295	mapreducedim!	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+298	reducedim!	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+328	mapreduce	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+330	mapreduce	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+333	_mapreduce_dim	HOLLOW	no	no	yes	The model materializes all remaining elements before folding, while Julia iterates and applies f and op element by element; the proposition only unfolds that model and proves no promised behavior.
+345	_mapreduce_dim	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+348	_mapreduce_dim	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+351	_mapreduce_dim	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+354	_mapreduce_dim	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+357	_mapreduce_dim	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+392	reduce	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+425	count	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+426	count	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+428	_count	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+429	_count	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+459	count!	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+460	count!	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+996	$fname	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+997	$fname	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+1000	$_fname	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+1001	$_fname	HOLLOW	no	no	yes	The model is a generic four-argument call and omits construction of mapf and the generated fixed operator; the proposition only unfolds that model and proves no promised behavior.
+1003	$_fname	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+1007	any	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+1008	any	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+1009	all	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+1010	all	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+1020	$(fname!)	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+1022	$(fname!)	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+1024	$(_fname)	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+1025	$(_fname)	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+1032	findminmax!	HOLLOW	no	no	yes	The model evaluates both emptiness checks before the disjunction, while Julia skips isempty(A) when Rval is empty; the proposition only unfolds that model and proves no promised behavior.
+1091	findmin!	HOLLOW	no	no	yes	The model calls isempty(A) even when init is false, while Julia short-circuits before that call; the proposition only unfolds that model and proves no promised behavior.
+1116	findmin	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+1117	_findmin	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+1139	findmin	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+1141	_findmin	HOLLOW	no	no	yes	The model collapses map(length), prod, similar, and fill! into callbacks instead of preserving their calls and order; the proposition only unfolds that model and proves no promised behavior.
+1164	findmax!	HOLLOW	no	no	yes	The reused model calls isempty(A) even when init is false, while Julia short-circuits before that call; the proposition only unfolds that model and proves no promised behavior.
+1189	findmax	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+1190	_findmax	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+1212	findmax	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+1214	_findmax	HOLLOW	no	no	yes	The shared model collapses map(length), prod, similar, and fill! into callbacks instead of preserving their calls and order; the proposition only unfolds that model and proves no promised behavior.
+1228	_findminmax_inittype	HOLLOW	no	no	yes	The model reuses the first eltype result, while Julia calls eltype(A) again in the Missing branch; the proposition only unfolds that model and proves no promised behavior.
+1238	reducedim1	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+1263	argmin	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.
+1288	argmax	HOLLOW	yes	no	yes	The proposition only restates the model definition, so it proves no documented or invariant Julia behavior.

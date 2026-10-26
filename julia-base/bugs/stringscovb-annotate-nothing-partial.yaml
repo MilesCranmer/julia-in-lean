@@ -1,0 +1,57 @@
+id: stringscovb-annotate-nothing-partial
+title: annotate!(s, range, label, nothing) removes only annotations whose region equals range
+priority: P3
+kind: documentation
+area: StringsCovB
+files:
+- base/strings/annotated.jl
+functions:
+- _annotate!(annlist, region, label, value)
+- annotate!(s::AnnotatedString, range, label, val)
+- annotate!(s::AnnotatedString, label, val)
+summary: |
+  The annotate! docstring says "To remove existing label annotations, use a value of
+  nothing", but _annotate! deletes only annotations whose region is exactly the given range.
+  annotate!(s, 1:3, :face, nothing) and annotate!(s, :face, nothing) on "abc" leave the
+  annotation (1:2, :face, :red) in place.
+likelihood: |
+  Users clearing a face over a range or a whole string after partial styling.
+maybe_intended: |
+  The exact-region semantics may be intended as an undo of a specific annotate! call; then the docstring should say so.
+reproducer: |
+  using Base: AnnotatedString, annotate!, annotations
+  s = AnnotatedString("abc", [(1:2, :face, :red)])
+  annotate!(s, 1:3, :face, nothing)          # documented to remove existing :face annotations
+  println("after annotate!(s, 1:3, :face, nothing): ", [(a.region, a.label, a.value) for a in annotations(s)])
+  t = AnnotatedString("abc", [(1:2, :face, :red)])
+  annotate!(t, :face, nothing)
+  println("after annotate!(t, :face, nothing): ", [(a.region, a.label, a.value) for a in annotations(t)])
+  !isempty(annotations(s)) && !isempty(annotations(t)) && println("REPRODUCED stringscovb-annotate-nothing-partial")
+output:
+  release: |
+    after annotate!(s, 1:3, :face, nothing): Tuple{UnitRange{Int64}, Symbol, Symbol}[(1:2, :face, :red)]
+    after annotate!(t, :face, nothing): Tuple{UnitRange{Int64}, Symbol, Symbol}[(1:2, :face, :red)]
+    REPRODUCED stringscovb-annotate-nothing-partial
+  nightly: |
+    after annotate!(s, 1:3, :face, nothing): Tuple{UnitRange{Int64}, Symbol, Symbol}[(1:2, :face, :red)]
+    after annotate!(t, :face, nothing): Tuple{UnitRange{Int64}, Symbol, Symbol}[(1:2, :face, :red)]
+    REPRODUCED stringscovb-annotate-nothing-partial
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Either no :face annotation overlaps 1:3 afterwards, or the docstring states that only annotations with exactly that region are removed.
+promised_by: "base/strings/annotated.jl:372-381 (annotate! docstring): \"Annotate a range of str (or the entire\nstring) with a labeled value (label, value). To remove existing label annotations, use a value\nof nothing.\" \n"
+cause: |
+  base/strings/annotated.jl:365-366: `findall(ann -> ann.region == region && ann.label === label, annlist)`.
+possible_fix: |
+  Document the exact-region behaviour, or clear overlapping label annotations (truncating them as _clear_annotations_in_region! does).
+duplicates:
+  issues: []
+  queries:
+  - 'issues: annotate! nothing remove'
+  - 'prs: annotate! nothing'
+  - 'issues: AnnotatedString annotate!'
+lean:
+  property: JuliaLean.StringsCovB.Ann.AnnotateNothingRemoves
+  theorem: JuliaLean.StringsCovB.Ann.annotateNothingRemoves_refuted

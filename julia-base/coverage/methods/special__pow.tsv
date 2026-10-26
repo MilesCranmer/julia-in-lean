@@ -1,0 +1,10 @@
+file	line	endline	name	signature	status	entry	note
+base/special/pow.jl	1	3	use_power_by_squaring	use_power_by_squaring(n::Integer)	modelled	mathcov-special-pow-l1	method-specific source model and quantified behavior property
+base/special/pow.jl	7	30	^	^(x::Float64, y::Float64)	modelled	mathfuncs-pow-negzero-odd,mathfuncs-pow-one-base,mathfuncs-pow-one-exponent,mathfuncs-pow-zero-exponent,mathfuncs-pow-zero-neg-one	source model and quantified behavior property
+base/special/pow.jl	34	56	^	^(x::T, y::T) where T <: Union{Float16, Float32}	modelled	mathcov-special-pow-l34	method-specific source model and quantified behavior property
+base/special/pow.jl	58	76	^	^(x::Float64, n::Integer)	modelled	mathfuncs-pow-one-exponent,mathfuncs-pow-zero-exponent,mathfuncs-pow-zero-neg-one	source model and quantified behavior property
+base/special/pow.jl	80	89	^	^(x::T, n::Integer) where T <: Union{Float16, Float32}	modelled	mathcov-special-pow-l80	method-specific source model and quantified behavior property
+base/special/pow.jl	91	103	pow_body	pow_body(x::Float64, y::Float64)	modelled	mathcov-special-pow-l91	method-specific source model and quantified behavior property
+base/special/pow.jl	105	107	pow_body	pow_body(x::T, y) where T <: Union{Float16, Float32}	modelled	mathcov-special-pow-l105	method-specific source model and quantified behavior property
+base/special/pow.jl	109	114	pow_body	pow_body(x::Union{Float16, Float32}, n::Int32)	modelled	mathcov-special-pow-l109	method-specific source model and quantified behavior property
+base/special/pow.jl	118	144	pow_body	pow_body(x::Float64, n::Integer)	modelled	mathcov-special-pow-l118	method-specific source model and quantified behavior property

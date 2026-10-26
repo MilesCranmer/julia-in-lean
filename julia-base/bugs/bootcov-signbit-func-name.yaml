@@ -1,0 +1,76 @@
+id: bootcov-signbit-func-name
+title: "UInt16(Int8(-1)) reports InexactError: trunc(UInt16, -1) although nothing is truncated"
+priority: P3
+kind: wrong-exception
+area: BootCov
+files: [base/boot.jl]
+functions: ["Core.check_sign_bit", "Core.toUInt16(::Int8)", "Core.toUInt32(::Int8)", "Core.toUInt32(::Int16)", "Core.toUInt64(::Int8)", "Core.toUInt64(::Int16)", "Core.toUInt64(::Int32)", "Core.toUInt128(::Int8)", "Core.toUInt128(::Int16)", "Core.toUInt128(::Int32)", "Core.toUInt128(::Int64)"]
+summary: |
+  Converting a negative signed integer to a wider unsigned type throws an InexactError
+  whose function field is :trunc, e.g. UInt16(Int8(-1)) and convert(UInt64, Int32(-5))
+  print "InexactError: trunc(UInt64, -5)". The same failure for a same-width target
+  (UInt16(Int16(-1))) reports :convert. No truncation happens in the widening case.
+likelihood: |
+  Any failing widening signed-to-unsigned conversion shows it, but only in the error
+  message; the exception type and the decision to throw are correct.
+maybe_intended: |
+  The function name in an InexactError is informational, and Julia has long reported
+  `trunc` for narrowing conversions. The code comment in check_sign_bit
+  (base/boot.jl:1049-1050) shows the intent is `convert` unless the width shrinks,
+  but the message is cosmetic.
+reproducer: |
+  # Core.check_sign_bit (base/boot.jl:1047-1053) names :convert only when the source
+  # and target widths match, but toUInt16(::Int8) etc. call it with a narrower signed
+  # source, so a widening conversion reports `trunc`.
+  function func_of(f)
+      try
+          f()
+      catch e
+          e isa InexactError || rethrow()
+          return e.func
+      end
+      return nothing
+  end
+  a = func_of(() -> UInt16(Int16(-1)))
+  b = func_of(() -> UInt16(Int8(-1)))
+  c = func_of(() -> convert(UInt64, Int32(-5)))
+  println("UInt16(Int16(-1))          InexactError func = ", repr(a))
+  println("UInt16(Int8(-1))           InexactError func = ", repr(b))
+  println("convert(UInt64, Int32(-5)) InexactError func = ", repr(c))
+  if a === :convert && b === :trunc && c === :trunc
+      println("REPRODUCED bootcov-signbit-func-name")
+  end
+output:
+  release: |
+    UInt16(Int16(-1))          InexactError func = :convert
+    UInt16(Int8(-1))           InexactError func = :trunc
+    convert(UInt64, Int32(-5)) InexactError func = :trunc
+    REPRODUCED bootcov-signbit-func-name
+  nightly: |
+    UInt16(Int16(-1))          InexactError func = :convert
+    UInt16(Int8(-1))           InexactError func = :trunc
+    convert(UInt64, Int32(-5)) InexactError func = :trunc
+    REPRODUCED bootcov-signbit-func-name
+reproduced: {release: true, nightly: true}
+expected: |
+  InexactError: convert(UInt16, -1) for UInt16(Int8(-1)), as for UInt16(Int16(-1)):
+  the source fits in the target width, so the failing step is the sign check, not a
+  truncation.
+promised_by: |
+  Code invariant, base/boot.jl:1049-1050 (check_sign_bit): "the top bit is the sign bit
+  of x ... n.b. if x is signed, then bitsizeof(x) === bitsizeof(To), otherwise
+  bitsizeof(x) >= bitsizeof(To)". The name is chosen as
+  `bitsizeof(x) === bitsizeof(To) ? :convert : :trunc` (line 1051) on that assumption.
+cause: |
+  base/boot.jl:1137, 1148-1149, 1159-1161, 1170-1173: toUInt16(::Int8), toUInt32(::Int8/Int16),
+  toUInt64(::Int8/Int16/Int32) and toUInt128(::Int8/.../Int64) call
+  check_sign_bit(UIntN, x) with a signed x narrower than the target, violating the
+  stated invariant, so line 1051 picks :trunc.
+possible_fix: |
+  In check_sign_bit use `bitsizeof(x) <= bitsizeof(To) ? :convert : :trunc`.
+duplicates:
+  issues: []
+  queries: ["InexactError trunc UInt16 Int8", "check_sign_bit", "InexactError trunc convert widening", "InexactError: trunc negative unsigned", "InexactError trunc message misleading", "InexactError says trunc", "bitsizeof check_top_bit", "InexactError convert vs trunc"]
+lean:
+  property: JuliaLean.BootCov.IntConv.WideningErrorNamesConvert
+  theorem: JuliaLean.BootCov.IntConv.wideningErrorNamesConvert_refuted

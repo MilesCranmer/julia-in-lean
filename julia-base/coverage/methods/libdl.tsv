@@ -1,0 +1,32 @@
+file	line	endline	name	signature	status	entry	note
+base/libdl.jl	59	72	dlsym	dlsym(hnd::Ptr, s::Union{Symbol,AbstractString}; throw_error::Bool = true)	modelled	iocov-libdl-faithful-symbols	
+base/libdl.jl	80	82	dlsym_e	dlsym_e(args...)	modelled	iocov-libdl-faithful-symbols	
+base/libdl.jl	116	116	dlopen	dlopen	excluded		no-behaviour: empty generic-function declaration of dlopen
+base/libdl.jl	118	119	dlopen	dlopen(s::Symbol, flags::Integer = default_rtld_flags; kwargs...)	modelled	iocov-libdl-faithful-open	
+base/libdl.jl	121	127	dlopen	dlopen(s::AbstractString, flags::Integer = default_rtld_flags; throw_error::Bool = true)	modelled	iocov-libdl-faithful-open	
+base/libdl.jl	146	154	dlopen	dlopen(f::Function, name, args...; kwargs...)	modelled	iocov-libdl-faithful-do	
+base/libdl.jl	162	162	dlopen_e	dlopen_e(args...)	modelled	iocov-libdl-faithful-open	
+base/libdl.jl	169	171	dlclose	dlclose(p::Ptr)	modelled	iocov-libdl-dlclose	
+base/libdl.jl	189	190	dlclose	dlclose(p::Nothing)	modelled	iocov-libdl-dlclose-nothing	
+base/libdl.jl	201	218	find_library	find_library(libnames, extrapaths=String[])	modelled	iocov-libdl-faithful-find	
+base/libdl.jl	219	220	find_library	find_library(libname::Union{Symbol,AbstractString}, extrapaths=String[])	modelled	iocov-libdl-faithful-find	
+base/libdl.jl	227	233	dlpath	dlpath(handle::Ptr{Cvoid})	modelled	iocov-libdl-faithful-path	
+base/libdl.jl	245	250	dlpath	dlpath(libname::Union{AbstractString, Symbol})	modelled	iocov-libdl-faithful-path	
+base/libdl.jl	273	294	dllist	dllist()	modelled	iocov-libdl-faithful-list	
+base/libdl.jl	317	317	LazyLibraryPath	LazyLibraryPath(pieces...)	modelled	iocov-libdl-faithful-lazy-path	
+base/libdl.jl	319	319	Base.string	Base.string(llp::LazyLibraryPath)	modelled	iocov-libdl-faithful-lazy-path	
+base/libdl.jl	320	320	Base.cconvert	Base.cconvert(::Type{Cstring}, llp::LazyLibraryPath)	modelled	iocov-libdl-faithful-lazy-path	
+base/libdl.jl	322	322	Base.print	Base.print(io::IO, llp::LazyLibraryPath)	modelled	iocov-libdl-faithful-lazy-path	
+base/libdl.jl	338	338	Base.string	Base.string(::PrivateShlibdirGetter)	modelled	iocov-libdl-faithful-lazy-path	
+base/libdl.jl	356	356	BundledLazyLibraryPath	BundledLazyLibraryPath(subpath)	modelled	iocov-libdl-faithful-lazy-path	
+base/libdl.jl	358	369	Base.show	Base.show(io::IO, llp::LazyLibraryPath)	modelled	iocov-libdl-faithful-lazy-path	
+base/libdl.jl	396	396	(init::InitialDependencies)	(init::InitialDependencies)()	modelled	iocov-libdl-faithful-initdeps	
+base/libdl.jl	464	476	LazyLibrary	LazyLibrary(path; flags = default_rtld_flags, dependencies = LazyLibrary[], on_load_callback = nothing)	modelled	iocov-libdl-faithful-library	
+base/libdl.jl	480	480	_invoke_on_load_callback	_invoke_on_load_callback(@nospecialize(cb))	modelled	iocov-libdl-onload	
+base/libdl.jl	481	481	_lazy_library_path_string	_lazy_library_path_string(@nospecialize(path))	modelled	iocov-libdl-faithful-library	
+base/libdl.jl	484	488	Base.show	Base.show(io::IO, ll::LazyLibrary)	modelled	iocov-libdl-faithful-library	
+base/libdl.jl	509	513	add_dependency!	add_dependency!(ll::LazyLibrary, dep::LazyLibrary)	modelled	iocov-libdl-faithful-library	
+base/libdl.jl	519	558	dlopen	dlopen(ll::LazyLibrary, flags::Integer = ll.flags; kwargs...)	modelled	iocov-libdl-faithful-load,iocov-lazylibrary-throw-error	
+base/libdl.jl	559	559	dlopen	dlopen(x::Any)	modelled	iocov-libdl-faithful-wrappers	
+base/libdl.jl	560	560	dlsym	dlsym(ll::LazyLibrary, args...; kwargs...)	modelled	iocov-libdl-faithful-wrappers	
+base/libdl.jl	561	561	dlpath	dlpath(ll::LazyLibrary)	modelled	iocov-libdl-faithful-wrappers	

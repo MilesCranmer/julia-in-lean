@@ -1,0 +1,56 @@
+file	line	endline	name	signature	status	entry	note
+base/Terminals.jl	43	43	pipe_reader	pipe_reader(::TextTerminal)	modelled	showcov-terminals-l43	method-specific source-order model
+base/Terminals.jl	44	44	pipe_writer	pipe_writer(::TextTerminal)	modelled	showcov-terminals-l44	method-specific source-order model
+base/Terminals.jl	45	45	displaysize	displaysize(::TextTerminal)	modelled	showcov-terminals-l45	method-specific source-order model
+base/Terminals.jl	46	46	cmove	cmove(t::TextTerminal, x, y)	modelled	showcov-terminals-l46	method-specific source-order model
+base/Terminals.jl	47	47	getX	getX(t::TextTerminal)	modelled	showcov-terminals-l47	method-specific source-order model
+base/Terminals.jl	48	48	getY	getY(t::TextTerminal)	modelled	showcov-terminals-l48	method-specific source-order model
+base/Terminals.jl	49	49	pos	pos(t::TextTerminal)	modelled	showcov-terminals-l49	method-specific source-order model
+base/Terminals.jl	52	52	cmove_up	cmove_up(t::TextTerminal, n)	modelled	showcov-terminals-l52	method-specific source-order model
+base/Terminals.jl	53	53	cmove_up	cmove_up(t)	modelled	showcov-terminals-l53	method-specific source-order model
+base/Terminals.jl	55	55	cmove_down	cmove_down(t::TextTerminal, n)	modelled	showcov-terminals-l55	method-specific source-order model
+base/Terminals.jl	56	56	cmove_down	cmove_down(t)	modelled	showcov-terminals-l56	method-specific source-order model
+base/Terminals.jl	58	58	cmove_left	cmove_left(t::TextTerminal, n)	modelled	showcov-terminals-l58	method-specific source-order model
+base/Terminals.jl	59	59	cmove_left	cmove_left(t)	modelled	showcov-terminals-l59	method-specific source-order model
+base/Terminals.jl	61	61	cmove_right	cmove_right(t::TextTerminal, n)	modelled	showcov-terminals-l61	method-specific source-order model
+base/Terminals.jl	62	62	cmove_right	cmove_right(t)	modelled	showcov-terminals-l62	method-specific source-order model
+base/Terminals.jl	64	64	cmove_line_up	cmove_line_up(t::TextTerminal, n)	modelled	showcov-terminals-l64	method-specific source-order model
+base/Terminals.jl	65	65	cmove_line_up	cmove_line_up(t)	modelled	showcov-terminals-l65	method-specific source-order model
+base/Terminals.jl	67	67	cmove_line_down	cmove_line_down(t::TextTerminal, n)	modelled	showcov-terminals-l67	method-specific source-order model
+base/Terminals.jl	68	68	cmove_line_down	cmove_line_down(t)	modelled	showcov-terminals-l68	method-specific source-order model
+base/Terminals.jl	70	70	cmove_col	cmove_col(t::TextTerminal, c)	modelled	showcov-terminals-l70	method-specific source-order model
+base/Terminals.jl	73	73	hascolor	hascolor(::TextTerminal)	modelled	showcov-terminals-l73	method-specific source-order model
+base/Terminals.jl	76	76	width	width(t::TextTerminal)	modelled	showcov-terminals-l76	method-specific source-order model
+base/Terminals.jl	77	77	height	height(t::TextTerminal)	modelled	showcov-terminals-l77	method-specific source-order model
+base/Terminals.jl	80	80	flush	flush(t::TextTerminal)	modelled	showcov-terminals-l80	method-specific source-order model
+base/Terminals.jl	82	82	clear	clear(t::TextTerminal)	modelled	showcov-terminals-l82	method-specific source-order model
+base/Terminals.jl	83	83	clear_line	clear_line(t::TextTerminal, row)	modelled	showcov-terminals-l83	method-specific source-order model
+base/Terminals.jl	84	84	clear_line	clear_line(t::TextTerminal)	modelled	showcov-terminals-l84	method-specific source-order model
+base/Terminals.jl	86	86	raw!	raw!(t::TextTerminal, raw::Bool)	modelled	showcov-terminals-l86	method-specific source-order model
+base/Terminals.jl	88	88	beep	beep(t::TextTerminal)	modelled	showcov-terminals-l88	method-specific source-order model
+base/Terminals.jl	90	90	enable_bracketed_paste	enable_bracketed_paste(t::TextTerminal)	modelled	showcov-terminals-l90	method-specific source-order model
+base/Terminals.jl	91	91	disable_bracketed_paste	disable_bracketed_paste(t::TextTerminal)	modelled	showcov-terminals-l91	method-specific source-order model
+base/Terminals.jl	97	97	pipe_reader	pipe_reader(t::UnixTerminal)	modelled	showcov-terminals-l97	method-specific source-order model
+base/Terminals.jl	98	98	pipe_writer	pipe_writer(t::UnixTerminal)	modelled	showcov-terminals-l98	method-specific source-order model
+base/Terminals.jl	115	115	cmove_up	cmove_up(t::UnixTerminal, n)	modelled	showcov-terminals-l115	method-specific source-order model
+base/Terminals.jl	116	116	cmove_down	cmove_down(t::UnixTerminal, n)	modelled	showcov-terminals-l116	method-specific source-order model
+base/Terminals.jl	117	117	cmove_right	cmove_right(t::UnixTerminal, n)	modelled	showcov-terminals-l117	method-specific source-order model
+base/Terminals.jl	118	118	cmove_left	cmove_left(t::UnixTerminal, n)	modelled	showcov-terminals-l118	method-specific source-order model
+base/Terminals.jl	119	119	cmove_line_up	cmove_line_up(t::UnixTerminal, n)	modelled	showcov-terminals-l119	method-specific source-order model
+base/Terminals.jl	120	120	cmove_line_down	cmove_line_down(t::UnixTerminal, n)	modelled	showcov-terminals-l120	method-specific source-order model
+base/Terminals.jl	121	121	cmove_col	cmove_col(t::UnixTerminal, n)	modelled	showcov-terminals-l121	method-specific source-order model
+base/Terminals.jl	124	141	raw!	raw!(t::TTYTerminal,raw::Bool)	excluded		platform: Windows-only raw-mode implementation; this inventory covers the non-Windows method at line 143
+base/Terminals.jl	143	145	raw!	raw!(t::TTYTerminal, raw::Bool)	modelled	showcov-terminals-l143	method-specific source-order model
+base/Terminals.jl	149	149	enable_bracketed_paste	enable_bracketed_paste(t::UnixTerminal)	modelled	showcov-terminals-l149	method-specific source-order model
+base/Terminals.jl	150	150	disable_bracketed_paste	disable_bracketed_paste(t::UnixTerminal)	modelled	showcov-terminals-l150	method-specific source-order model
+base/Terminals.jl	151	152	end_keypad_transmit_mode	end_keypad_transmit_mode(t::UnixTerminal)	modelled	showcov-terminals-l151	method-specific source-order model
+base/Terminals.jl	154	154	clear	clear(t::UnixTerminal)	modelled	showcov-terminals-l154	method-specific source-order model
+base/Terminals.jl	155	155	clear_line	clear_line(t::UnixTerminal)	modelled	showcov-terminals-l155	method-specific source-order model
+base/Terminals.jl	156	156	beep	beep(t::UnixTerminal)	modelled	showcov-terminals-l156	method-specific source-order model
+base/Terminals.jl	158	158	Base.displaysize	Base.displaysize(t::UnixTerminal)	modelled	showcov-terminals-l158	method-specific source-order model
+base/Terminals.jl	160	160	hascolor	hascolor(t::TTYTerminal)	modelled	showcov-terminals-l160	method-specific source-order model
+base/Terminals.jl	163	163	Base.in	Base.in(key_value::Pair, t::TTYTerminal)	modelled	showcov-terminals-l163	method-specific source-order model
+base/Terminals.jl	164	164	Base.haskey	Base.haskey(t::TTYTerminal, key)	modelled	showcov-terminals-l164	method-specific source-order model
+base/Terminals.jl	165	165	Base.getindex	Base.getindex(t::TTYTerminal, key)	modelled	showcov-terminals-l165	method-specific source-order model
+base/Terminals.jl	166	166	Base.get	Base.get(t::TTYTerminal, key, default)	modelled	showcov-terminals-l166	method-specific source-order model
+base/Terminals.jl	168	168	Base.peek	Base.peek(t::TTYTerminal, ::Type{T}) where {T}	modelled	showcov-terminals-l168	method-specific source-order model

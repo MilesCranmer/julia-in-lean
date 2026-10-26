@@ -1,0 +1,7 @@
+r1 = StepRangeLen(0.0, 0.1, 4)
+r2 = StepRangeLen(0.0, nextfloat(0.1), 4)
+println("collect(r1) = ", collect(r1))
+println("collect(r2) = ", collect(r2))
+println("cmp(r1, r2) = ", cmp(r1, r2), ", cmp(collect(r1), collect(r2)) = ", cmp(collect(r1), collect(r2)))
+println("isless(r1, r2) = ", isless(r1, r2), ", isless(collect(r1), collect(r2)) = ", isless(collect(r1), collect(r2)))
+(cmp(r1, r2) == 0 && collect(r1) != collect(r2)) && println("REPRODUCED rangescov-cmp-float-ranges")

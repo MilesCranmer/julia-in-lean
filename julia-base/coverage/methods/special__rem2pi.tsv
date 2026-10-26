@@ -1,0 +1,9 @@
+file	line	endline	name	signature	status	entry	note
+base/special/rem2pi.jl	14	39	rem2pi	rem2pi(x::Float64, ::RoundingMode{:Nearest})	modelled	mathcov-special-rem2pi-l14	method-specific source model and quantified behavior property
+base/special/rem2pi.jl	40	67	rem2pi	rem2pi(x::Float64, ::RoundingMode{:ToZero})	modelled	mathcov-special-rem2pi-l40	method-specific source model and quantified behavior property
+base/special/rem2pi.jl	68	99	rem2pi	rem2pi(x::Float64, ::RoundingMode{:Down})	modelled	mathcov-special-rem2pi-l68	method-specific source model and quantified behavior property
+base/special/rem2pi.jl	100	131	rem2pi	rem2pi(x::Float64, ::RoundingMode{:Up})	modelled	mathcov-special-rem2pi-l100	method-specific source model and quantified behavior property
+base/special/rem2pi.jl	133	133	rem2pi	rem2pi(x::Float32, r::RoundingMode)	modelled	mathcov-special-rem2pi-l133	method-specific source model and quantified behavior property
+base/special/rem2pi.jl	134	134	rem2pi	rem2pi(x::Float16, r::RoundingMode)	modelled	mathcov-special-rem2pi-l134	method-specific source model and quantified behavior property
+base/special/rem2pi.jl	135	135	rem2pi	rem2pi(x::Int32, r::RoundingMode)	modelled	mathcov-special-rem2pi-l135	method-specific source model and quantified behavior property
+base/special/rem2pi.jl	138	142	rem2pi	rem2pi(x::Integer, r::RoundingMode)	modelled	mathcov-special-rem2pi-l138	method-specific source model and quantified behavior property

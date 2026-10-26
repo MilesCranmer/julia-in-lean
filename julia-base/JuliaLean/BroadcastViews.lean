@@ -100,7 +100,7 @@ def entries : List Entry := [
     source := "base/abstractarray.jl:580-582 (stride docstring), 597-607 (zero-dimensional arrays give 1); base/reinterpretarray.jl:205-206 (Arrays give length(A) past the last dimension)", status := .refuted
     prop := ``StrideTotal, thm := some ``strideTotal_refuted
     issue := "none found (queries: stride zero-dimensional view, stride SubArray BoundsError, stride 0-dimensional)"
-    notes := "stride(view(zeros(3, 4), 1, 2), 1) throws BoundsError (strides(V) == () and base/subarray.jl:446 takes strides(V)[end]); stride(fill(0.0), 1) == 1. Probed: views with zero-step StepRangeLen, negative steps and k past ndims return values. Same in 1.13.2." }
+    notes := "stride(view(zeros(3, 4), 1, 2), 1) throws BoundsError (strides(V) == () and base/subarray.jl:446 takes strides(V)[end]); stride(fill(0.0), 1) == 1. Observed: views with zero-step StepRangeLen, negative steps and k past ndims return values. Same in 1.13.2." }
 ]
 
 end JuliaLean.BroadcastViews

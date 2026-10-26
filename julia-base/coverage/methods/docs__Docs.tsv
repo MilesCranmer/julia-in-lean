@@ -1,0 +1,69 @@
+file	line	endline	name	signature	status	entry	note
+base/docs/Docs.jl	80	88	meta	meta(m::Module; autoinit::Bool=true)	modelled	docssyntaxcov-docs-meta	
+base/docs/Docs.jl	90	98	initmeta	initmeta(m::Module)	modelled	docssyntaxcov-docs-meta	
+base/docs/Docs.jl	100	128	signature!	signature!(tv::Vector{Any}, expr::Expr)	modelled	docssyntaxcov-docs-signature-forms,docssyntaxcov-docs-signature-implementation	
+base/docs/Docs.jl	129	129	signature!	signature!(tv::Vector{Any}, @nospecialize(other))	modelled	docssyntaxcov-docs-signature-forms,docssyntaxcov-docs-signature-implementation	
+base/docs/Docs.jl	130	130	signature	signature(expr::Expr)	modelled	docssyntaxcov-docs-signature-forms,docssyntaxcov-docs-signature-implementation	
+base/docs/Docs.jl	131	131	signature	signature(@nospecialize other)	modelled	docssyntaxcov-docs-signature-forms,docssyntaxcov-docs-signature-implementation	
+base/docs/Docs.jl	133	143	argtype	argtype(expr::Expr)	modelled	docssyntaxcov-docs-signature-forms,docssyntaxcov-docs-signature-implementation	
+base/docs/Docs.jl	144	144	argtype	argtype(@nospecialize other)	modelled	docssyntaxcov-docs-signature-forms,docssyntaxcov-docs-signature-implementation	
+base/docs/Docs.jl	146	146	tvar	tvar(x::Expr)	modelled	docssyntaxcov-docs-signature-forms,docssyntaxcov-docs-signature-implementation	
+base/docs/Docs.jl	147	147	tvar	tvar(s::Symbol)	modelled	docssyntaxcov-docs-signature-forms,docssyntaxcov-docs-signature-implementation	
+base/docs/Docs.jl	170	183	docstr	docstr(binding::Binding, typesig = Union{})	modelled	docssyntaxcov-docs-docstr-lookup	
+base/docs/Docs.jl	184	184	docstr	docstr(object, data = Dict{Symbol,Any}())	modelled	docssyntaxcov-docs-docstr	
+base/docs/Docs.jl	186	186	_docstr	_docstr(vec::Core.SimpleVector, data::Dict{Symbol,Any})	modelled	docssyntaxcov-docs-docstr	
+base/docs/Docs.jl	187	187	_docstr	_docstr(str::AbstractString, data::Dict{Symbol,Any})	modelled	docssyntaxcov-docs-docstr	
+base/docs/Docs.jl	188	188	_docstr	_docstr(object, data::Dict{Symbol,Any})	modelled	docssyntaxcov-docs-docstr	
+base/docs/Docs.jl	190	190	_docstr	_docstr(doc::DocStr, data::Dict{Symbol,Any})	modelled	docssyntaxcov-docs-docstr	
+base/docs/Docs.jl	192	196	ref	ref(x)	modelled	docssyntaxcov-docs-hasdoc-ref	
+base/docs/Docs.jl	198	198	docexpr	docexpr(__source__, __module__, args...)	modelled	docssyntaxcov-docs-docstr	
+base/docs/Docs.jl	225	225	MultiDoc	MultiDoc()	modelled	docssyntaxcov-docs-docstr	
+base/docs/Docs.jl	236	262	doc!	doc!(__module__::Module, b::Binding, str::DocStr, @nospecialize sig = Union{})	modelled	docssyntaxcov-docs-register	
+base/docs/Docs.jl	281	281	getdoc	getdoc	excluded		no-behaviour: generic function declaration without a method body
+base/docs/Docs.jl	283	283	getdoc	getdoc(@nospecialize(x), @nospecialize(sig))	modelled	docssyntaxcov-docs-lookup	
+base/docs/Docs.jl	284	284	getdoc	getdoc(@nospecialize(x))	modelled	docssyntaxcov-docs-lookup	
+base/docs/Docs.jl	292	292	catdoc	catdoc()	modelled	docssyntaxcov-docs-lookup	
+base/docs/Docs.jl	293	293	catdoc	catdoc(xs...)	modelled	docssyntaxcov-docs-lookup	
+base/docs/Docs.jl	297	297	namify	namify(@nospecialize x)	modelled	docssyntaxcov-docs-names	
+base/docs/Docs.jl	299	328	astname	astname(x::Expr, ismacro::Bool)	modelled	docssyntaxcov-docs-names	
+base/docs/Docs.jl	329	329	astname	astname(q::QuoteNode, ismacro::Bool)	modelled	docssyntaxcov-docs-names	
+base/docs/Docs.jl	330	330	astname	astname(s::Symbol, ismacro::Bool)	modelled	docssyntaxcov-docs-names	
+base/docs/Docs.jl	331	331	astname	astname(@nospecialize(other), ismacro::Bool)	modelled	docssyntaxcov-docs-names	
+base/docs/Docs.jl	333	333	macroname	macroname(s::Symbol)	modelled	docssyntaxcov-docs-names	
+base/docs/Docs.jl	334	334	macroname	macroname(x::Expr)	modelled	docssyntaxcov-docs-names	
+base/docs/Docs.jl	336	338	isfield	isfield(@nospecialize x)	modelled	docssyntaxcov-docs-isfield	
+base/docs/Docs.jl	355	392	metadata	metadata(__source__, __module__, expr, ismodule)	modelled	docssyntaxcov-docs-metadata,docssyntaxcov-docs-fields,docssyntaxcov-field-doc-const	
+base/docs/Docs.jl	394	398	keyworddoc	keyworddoc(__source__, __module__, str, def::Base.BaseDocs.Keyword)	modelled	docssyntaxcov-docs-builders	
+base/docs/Docs.jl	400	426	objectdoc	objectdoc(__source__, __module__, str, def, expr, sig = :(Union{}))	modelled	docssyntaxcov-docs-builders	
+base/docs/Docs.jl	428	436	calldoc	calldoc(__source__, __module__, str, def::Expr)	modelled	docssyntaxcov-docs-builders	
+base/docs/Docs.jl	437	438	callargs	callargs(ex::Expr)	modelled	docssyntaxcov-docs-builders	
+base/docs/Docs.jl	439	439	validcall	validcall(x)	modelled	docssyntaxcov-docs-builders	
+base/docs/Docs.jl	441	458	moduledoc	moduledoc(__source__, __module__, meta, def, def′::Expr)	modelled	docssyntaxcov-docs-module-multidoc	
+base/docs/Docs.jl	463	483	multidoc	multidoc(__source__, __module__, meta, ex::Expr, define::Bool)	modelled	docssyntaxcov-docs-module-multidoc	
+base/docs/Docs.jl	549	580	__doc__!	__doc__!(source, mod, meta, def, define::Bool)	modelled	docssyntaxcov-docs-finddoc	
+base/docs/Docs.jl	553	556	replace_meta_doc	replace_meta_doc(each)	modelled	docssyntaxcov-docs-finddoc	
+base/docs/Docs.jl	583	600	finddoc	finddoc(λ, mod::Module, def::Expr; expand_toplevel::Bool=false)	modelled	docssyntaxcov-docs-finddoc	
+base/docs/Docs.jl	601	601	finddoc	finddoc(λ, mod::Module, @nospecialize def; expand_toplevel::Bool=false)	modelled	docssyntaxcov-docs-finddoc	
+base/docs/Docs.jl	608	611	isquotedmacrocall	isquotedmacrocall(@nospecialize x)	modelled	docssyntaxcov-docs-predicates	
+base/docs/Docs.jl	613	613	isbasicdoc	isbasicdoc(@nospecialize x)	modelled	docssyntaxcov-docs-predicates	
+base/docs/Docs.jl	614	614	is_signature	is_signature(@nospecialize x)	modelled	docssyntaxcov-docs-predicates	
+base/docs/Docs.jl	616	637	_doc	_doc(binding::Binding, sig::Type = Union{})	modelled	docssyntaxcov-docs-lookup	
+base/docs/Docs.jl	640	640	_doc	_doc(obj::UnionAll)	modelled	docssyntaxcov-docs-targets	
+base/docs/Docs.jl	641	641	_doc	_doc(object, sig::Type = Union{})	modelled	docssyntaxcov-docs-targets	
+base/docs/Docs.jl	642	642	_doc	_doc(object, sig...)	modelled	docssyntaxcov-docs-targets	
+base/docs/Docs.jl	644	667	simple_lookup_doc	simple_lookup_doc(ex)	modelled	docssyntaxcov-docs-simple-lookup	
+base/docs/Docs.jl	669	679	docm	docm(source::LineNumberNode, mod::Module, ex)	modelled	docssyntaxcov-docs-docm	
+base/docs/Docs.jl	681	681	docm	docm(source::LineNumberNode, mod::Module, _, _, x...)	modelled	docssyntaxcov-docs-docm	
+base/docs/Docs.jl	686	686	iscallexpr	iscallexpr(ex::Expr)	modelled	docssyntaxcov-docs-docm	
+base/docs/Docs.jl	687	687	iscallexpr	iscallexpr(@nospecialize ex)	modelled	docssyntaxcov-docs-docm	
+base/docs/Docs.jl	689	695	docm	docm(source::LineNumberNode, mod::Module, meta, ex, define::Bool = true)	modelled	docssyntaxcov-docs-docm	
+base/docs/Docs.jl	697	790	_docm	_docm(source::LineNumberNode, mod::Module, meta, x, define::Bool = true)	modelled	docssyntaxcov-docs-docm	
+base/docs/Docs.jl	792	801	docerror	docerror(@nospecialize ex)	modelled	docssyntaxcov-docs-docerror	
+base/docs/Docs.jl	808	819	loaddocs	loaddocs(docs::Base.CoreDocs.DocLinkedList)	modelled	docssyntaxcov-docs-loaddocs	
+base/docs/Docs.jl	826	826	formatdoc	formatdoc	excluded		no-behaviour: generic function declaration without a method body
+base/docs/Docs.jl	827	827	parsedoc	parsedoc	excluded		no-behaviour: generic function declaration without a method body
+base/docs/Docs.jl	844	844	apropos	apropos	excluded		no-behaviour: generic function declaration without a method body
+base/docs/Docs.jl	857	857	doc	doc	excluded		no-behaviour: generic function declaration without a method body
+base/docs/Docs.jl	864	864	hasdoc	hasdoc(mod::Module, sym::Symbol)	modelled	docssyntaxcov-docs-hasdoc-ref,docssyntaxcov-docs-hasdoc-binding	
+base/docs/Docs.jl	865	875	hasdoc	hasdoc(binding::Docs.Binding, sig::Type = Union{})	modelled	docssyntaxcov-docs-hasdoc-ref,docssyntaxcov-docs-hasdoc-binding	
+base/docs/Docs.jl	888	893	undocumented_names	undocumented_names(mod::Module; private::Bool=false)	modelled	docssyntaxcov-docs-undocumented	

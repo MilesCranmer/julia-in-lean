@@ -1,0 +1,3 @@
+line	name	verdict	mirror	property	settled	reason
+7	reduce_shortest	HOLLOW	no	no	yes	reduceShortest hard-codes Float64 and omits the Float16 and Float32 branches, while both propositions quantify only Float64, so they do not cover the generic method's allowed input types.
+228	writeshortest	HOLLOW	no	no	yes	The Lean writeshortest omits buffer and position state, precision and bounds checks, mutation, typed Float16 and Float32 paths, and most option combinations, while the propositions cover only Float64 compact display or exact powers of ten with fixed options.

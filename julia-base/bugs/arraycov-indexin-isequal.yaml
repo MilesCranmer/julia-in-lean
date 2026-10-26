@@ -1,0 +1,42 @@
+id: arraycov-indexin-isequal
+title: "indexin uses isequal rather than membership equality for signed zero and NaN"
+priority: P2
+kind: wrong-result
+area: ArrayCov
+files: [base/array.jl]
+functions: ["indexin(a, b::AbstractArray)"]
+summary: |
+  `indexin(a, b)` documents the first index where each value from `a` is a member of `b`, but the implementation hashes `b` in a `Dict` and therefore uses `isequal`. It reports no index for `-0.0` in `[0.0]`, where `in` is true, and reports index 1 for `NaN` in `[NaN]`, where `in` is false.
+likelihood: |
+  Moderate. `indexin` is a common lookup operation and signed zero occurs in normal floating-point computations, though code may prefer `isequal` semantics for key lookup.
+maybe_intended: |
+  `isequal` is useful for hash-based lookup and makes `indexin` fast, but the docstring says "member" without documenting equality different from `in`.
+reproducer: |
+  indexin([-0.0], [0.0])
+  indexin([NaN], [NaN])
+output:
+  release: |
+    -0.0 in [0.0]: true; indexin: Union{Nothing, Int64}[nothing]
+    NaN in [NaN]: false; indexin: Union{Nothing, Int64}[1]
+    Expected: [1] for signed zero and [nothing] for NaN
+    REPRODUCED arraycov-indexin-isequal
+  nightly: |
+    -0.0 in [0.0]: true; indexin: Union{Nothing, Int64}[nothing]
+    NaN in [NaN]: false; indexin: Union{Nothing, Int64}[1]
+    Expected: [1] for signed zero and [nothing] for NaN
+    REPRODUCED arraycov-indexin-isequal
+reproduced: {release: true, nightly: true}
+expected: |
+  The signed-zero result is `[1]` and the NaN result is `[nothing]`, matching scalar membership in the documented collection.
+promised_by: |
+  The `indexin` docstring at base/array.jl:2861-2868 says it returns the first index in `b` for each value in `a` that is a member of `b`.
+cause: |
+  base/array.jl:2892-2900 stores `b` in a `Dict` and looks up each value from `a`. Dict keys use `isequal`, while collection membership uses `==`; those relations differ for signed zero and NaN.
+possible_fix: |
+  Document `isequal` key semantics, or avoid the Dict specialization for element types where `isequal` and `==` differ.
+duplicates:
+  issues: []
+  queries: ["indexin isequal", "indexin NaN signed zero", "indexin -0.0", "indexin equality Dict", "indexin membership"]
+lean:
+  property: JuliaLean.ArrayCov.IndexinMembershipSpec
+  theorem: JuliaLean.ArrayCov.indexinMembershipSpec_refuted

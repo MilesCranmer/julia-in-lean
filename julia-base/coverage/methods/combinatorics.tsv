@@ -1,0 +1,32 @@
+file	line	endline	name	signature	status	entry	note
+base/combinatorics.jl	21	30	factorial_lookup	factorial_lookup( n::Union{Checked.SignedInt,Checked.UnsignedInt}, table::Union{NTuple{20,Int64},NTuple{34,UInt128}}, lim::Int)	modelled	combinatorics-factorial-wide-error	
+base/combinatorics.jl	32	32	factorial	factorial(n::Int128)	modelled	intfuncscov-combinatorics-source	
+base/combinatorics.jl	33	33	factorial	factorial(n::UInt128)	modelled	intfuncscov-combinatorics-source	
+base/combinatorics.jl	34	34	factorial	factorial(n::Union{Int64,UInt64})	modelled	intfuncscov-combinatorics-source	
+base/combinatorics.jl	37	37	factorial	factorial(n::Union{Int8,UInt8,Int16,UInt16})	modelled	intfuncscov-combinatorics-source	
+base/combinatorics.jl	38	38	factorial	factorial(n::Union{Int32,UInt32})	modelled	intfuncscov-combinatorics-source	
+base/combinatorics.jl	40	40	factorial	factorial(n::Union{Int8,UInt8,Int16,UInt16,Int32,UInt32})	modelled	intfuncscov-combinatorics-source	
+base/combinatorics.jl	46	60	_foldoneto	_foldoneto(op, acc, ::Val{N}) where N	modelled	intfuncscov-combinatorics-source	
+base/combinatorics.jl	76	76	isperm	isperm(A)	modelled	intfuncscov-combinatorics-source,intfuncscov-isperm-noninteger	
+base/combinatorics.jl	78	85	_isperm	_isperm(A)	modelled	combinatorics-isperm-definition	
+base/combinatorics.jl	87	87	isperm	isperm(p::Tuple{})	modelled	intfuncscov-combinatorics-source,intfuncscov-isperm-noninteger	
+base/combinatorics.jl	88	88	isperm	isperm(p::Tuple{Int})	modelled	intfuncscov-combinatorics-source,intfuncscov-isperm-noninteger	
+base/combinatorics.jl	89	89	isperm	isperm(p::Tuple{Int,Int})	modelled	intfuncscov-combinatorics-source,intfuncscov-isperm-noninteger	
+base/combinatorics.jl	91	99	isperm	isperm(P::Tuple)	modelled	intfuncscov-combinatorics-source,intfuncscov-isperm-noninteger	
+base/combinatorics.jl	101	101	isperm	isperm(P::Any32)	modelled	intfuncscov-combinatorics-source,intfuncscov-isperm-noninteger	
+base/combinatorics.jl	104	112	swapcols!	swapcols!(a::AbstractMatrix, i, j)	modelled	combinatorics-swap-equal-bounds	
+base/combinatorics.jl	115	123	swaprows!	swaprows!(a::AbstractMatrix, i, j)	modelled	combinatorics-swap-equal-bounds	
+base/combinatorics.jl	126	144	permutecols!!	permutecols!!(a::AbstractMatrix, p::AbstractVector{<:Integer})	modelled	combinatorics-permutecols-unsigned	
+base/combinatorics.jl	147	148	permutecols!	permutecols!(a::AbstractMatrix, p::AbstractVector{<:Integer})	modelled	combinatorics-permutecols-unsigned	
+base/combinatorics.jl	149	150	permuterows!	permuterows!(a::AbstractMatrix, p::AbstractVector{<:Integer})	modelled	combinatorics-permutecols-unsigned	
+base/combinatorics.jl	151	165	_permute!	_permute!(a::AbstractMatrix, p::AbstractVector{<:Integer}, swapfun!::F) where {F}	modelled	combinatorics-permutecols-unsigned	
+base/combinatorics.jl	166	167	invpermutecols!	invpermutecols!(a::AbstractMatrix, p::AbstractVector{<:Integer})	modelled	combinatorics-permutecols-unsigned	
+base/combinatorics.jl	168	169	invpermuterows!	invpermuterows!(a::AbstractMatrix, p::AbstractVector{<:Integer})	modelled	combinatorics-permutecols-unsigned	
+base/combinatorics.jl	170	182	_invpermute!	_invpermute!(a::AbstractMatrix, p::AbstractVector{<:Integer}, swapfun!::F) where {F}	modelled	combinatorics-permutecols-unsigned	
+base/combinatorics.jl	214	214	permute!	permute!(v, p::AbstractVector)	modelled	combinatorics-permute-roundtrip,combinatorics-permute-semantics	
+base/combinatorics.jl	243	243	invpermute!	invpermute!(v, p::AbstractVector)	modelled	combinatorics-permute-roundtrip,combinatorics-permute-semantics	
+base/combinatorics.jl	286	296	invperm	invperm(a::AbstractVector)	modelled	combinatorics-invperm-offset,intfuncscov-invperm-empty-any	
+base/combinatorics.jl	298	301	invperm	invperm(p::Union{Tuple{},Tuple{Int},Tuple{Int,Int}})	modelled	intfuncscov-combinatorics-source,intfuncscov-isperm-noninteger	
+base/combinatorics.jl	303	314	invperm	invperm(P::Tuple)	modelled	intfuncscov-combinatorics-source,intfuncscov-isperm-noninteger	
+base/combinatorics.jl	316	316	invperm	invperm(P::Any32)	modelled	intfuncscov-combinatorics-source,intfuncscov-isperm-noninteger	
+base/combinatorics.jl	337	373	nextprod	nextprod(a::Union{Tuple{Vararg{Integer}},AbstractVector{<:Integer}}, x::Real)	modelled	combinatorics-nextprod-empty	

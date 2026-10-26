@@ -1,0 +1,53 @@
+id: rangescov-linspace-int-imin-inexact
+title: "range(typemax(Int)-10, typemax(Int); length=3) throws InexactError: Int64(-Inf)"
+priority: P2
+kind: wrong-exception
+area: RangesCov
+files: ["base/twiceprecision.jl"]
+functions: ["range(::Int, ::Int; length)", "_linspace(::Type{Float64}, ::Integer, ::Integer, ::Integer, ::Integer)"]
+summary: |
+  range(a, b; length=n) with distinct integer endpoints that round to the same Float64 throws
+  InexactError, because the estimate of the smallest-magnitude index divides by Float64(b) - Float64(a) == 0.
+likelihood: |
+  Needs distinct Int endpoints above 2^53 that are within one Float64 ulp of each other. Rare.
+maybe_intended: |
+  The elements cannot all be distinct in Float64, but the call should return a range (all
+  elements equal to Float64(a)) as range(Float64(a), Float64(b); length=3) does.
+reproducer: |
+  a, b = typemax(Int) - 10, typemax(Int)
+  bug = false
+  try
+      r = range(a, b; length=3)
+      println("range(typemax(Int)-10, typemax(Int); length=3) = ", collect(r))
+  catch e
+      println("range(typemax(Int)-10, typemax(Int); length=3) throws ", sprint(showerror, e))
+      global bug = e isa InexactError
+  end
+  println("Float64 endpoints: ", Float64(a), " ", Float64(b))
+  bug && println("REPRODUCED rangescov-linspace-int-imin-inexact")
+output:
+  release: |
+    range(typemax(Int)-10, typemax(Int); length=3) throws InexactError: Int64(-Inf)
+    Float64 endpoints: 9.223372036854776e18 9.223372036854776e18
+    REPRODUCED rangescov-linspace-int-imin-inexact
+  nightly: |
+    range(typemax(Int)-10, typemax(Int); length=3) throws InexactError: Int64(-Inf)
+    Float64 endpoints: 9.223372036854776e18 9.223372036854776e18
+    REPRODUCED rangescov-linspace-int-imin-inexact
+reproduced: {release: true, nightly: true}
+expected: |
+  A three-element Float64 range whose elements are all 9.223372036854776e18.
+promised_by: |
+  range docstring, base/range.jl:73-80 (range(start, stop; length) is defined for any distinct endpoints).
+cause: |
+  base/twiceprecision.jl:723-724: tmin = -start_n/(Float64(stop_n) - Float64(start_n)) is -Inf, and
+  round(typeof(len), tmin*(len-1)+1) throws before the clamp on line 725.
+possible_fix: |
+  Clamp tmin*(len-1)+1 in floating point before rounding, as for #58138.
+duplicates:
+  issues:
+    - {number: 58138, state: open, relation: related}
+  queries: ["issues: range typemax length InexactError", "issues: range integer endpoints length InexactError", "issues: _linspace Int128", "prs: range typemax length InexactError"]
+lean:
+  property: JuliaLean.RangesCov.Twice.LinspaceIntSucceeds
+  theorem: JuliaLean.RangesCov.Twice.linspaceIntSucceeds_refuted

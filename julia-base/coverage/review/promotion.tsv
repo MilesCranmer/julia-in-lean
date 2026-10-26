@@ -1,0 +1,95 @@
+line	name	verdict	mirror	property	settled	reason
+20	typejoin	FAITHFUL	yes	yes	yes	The nullary model returns Bottom and the theorem states that exact source behavior.
+21	typejoin	FAITHFUL	yes	yes	yes	The unary model returns its type argument and the theorem states that documented identity for every modeled type.
+22	typejoin	HOLLOW	no	no	yes	The nested calls use pTypejoin's fixed 64-step cutoff absent from Julia, and HasResult is a tautology that states no join behavior.
+23	typejoin	HOLLOW	no	no	yes	The fold uses pTypejoin's fixed 64-step cutoff absent from Julia, and HasResult is a tautology that states no variadic join behavior.
+25	_has_ancestor_typename	HOLLOW	no	no	yes	The model returns false instead of representing the DataType assertion failure for non-data inputs, and HasResult states no ancestry behavior.
+37	typejoin	HOLLOW	no	no	yes	The model adds a fixed 64-step recursion cutoff absent from Julia, and HasResult is a tautology that states no typejoin behavior.
+166	typesplit	HOLLOW	yes	no	yes	The recursive model follows the subtype and Union branches, but HasResult is a tautology that states no splitting invariant.
+198	promote_typejoin	HOLLOW	no	no	yes	The model omits both _promote_typesubtract calls, so its asserted union equation is not this method's behavior.
+202	_promote_typesubtract	HOLLOW	yes	no	yes	The model follows the four source branches, but HasResult is a tautology that states no subtraction behavior.
+209	promote_typejoin_union	HOLLOW	no	no	yes	The model turns unhandled inputs and the source error path into Any, while HasResult states no union-normalization behavior.
+226	typejoin_union_tuple	HOLLOW	no	no	yes	The model returns Any for non-Tuple DataType inputs accepted by the signature and does not model rewrap_unionall, while HasResult states no tuple behavior.
+256	full_va_len	HOLLOW	yes	no	yes	The model follows the empty, fixed Vararg, open Vararg, and ordinary-tail branches, but HasResult states no length result.
+270	tailjoin	HOLLOW	no	no	yes	The model replaces Int with Nat and turns invalid or empty indexing into a default Bottom, while HasResult states no tail-join behavior.
+324	promote_type	FAITHFUL	yes	-	-	The exclusion is correct because this line is a generic function declaration with no method body.
+326	promote_type	FAITHFUL	yes	yes	yes	The nullary model returns Bottom and the theorem states that exact source behavior.
+327	promote_type	FAITHFUL	yes	yes	yes	The unary model returns its type argument and the theorem states that exact source behavior.
+328	promote_type	HOLLOW	no	no	yes	The nested calls use the aggregate fixed-fuel promoteType model rather than this method's dispatched promote_type calls, and HasResult states no result.
+329	promote_type	HOLLOW	no	no	yes	The fold uses the aggregate fixed-fuel promoteType model rather than the source dispatch, and HasResult states no variadic promotion behavior.
+331	promote_type	FAITHFUL	yes	yes	yes	The model returns Bottom for the two Bottom arguments and proves that exact source equation.
+332	promote_type	FAITHFUL	yes	yes	yes	The model returns the shared type argument and proves that exact source equation universally.
+333	promote_type	FAITHFUL	yes	yes	yes	The model returns the non-Bottom type argument and proves that exact source equation universally.
+334	promote_type	FAITHFUL	yes	yes	yes	The model returns the non-Bottom type argument and proves that exact source equation universally.
+336	promote_type	HOLLOW	no	no	yes	The model replaces this method's single promote_result call with an aggregate fixed-fuel promotion algorithm, and HasResult states no behavior.
+353	promote_rule	FAITHFUL	yes	-	-	The exclusion is correct because this line is a generic function declaration with no method body.
+355	promote_rule	FAITHFUL	yes	yes	yes	The model returns Bottom for every pair of type arguments and proves the fallback equation.
+358	promote_rule	FAITHFUL	yes	yes	yes	The model returns Bottom independently of the trailing arguments and proves the exact fallback equation.
+359	promote_rule	FAITHFUL	yes	yes	yes	The model returns Bottom independently of the trailing arguments and proves the exact fallback equation.
+360	promote_rule	FAITHFUL	yes	yes	yes	The model returns T independently of the trailing arguments and proves the exact source equation.
+361	promote_rule	FAITHFUL	yes	yes	yes	The model returns T independently of the trailing arguments and proves the exact source equation.
+363	promote_result	HOLLOW	no	no	yes	The model substitutes the aggregate fixed-fuel promoteType algorithm for the dispatched promote_type call, and HasResult states no result behavior.
+366	promote_result	HOLLOW	no	no	yes	The compact typejoin helper omits Julia's full TypeEq, tuple, Vararg, and datatype logic, and HasResult states no fallback behavior.
+395	promote	FAITHFUL	yes	-	-	The exclusion is correct because this line is a generic function declaration with no method body.
+397	_promote	HOLLOW	no	no	yes	The model's common-type selection uses the compact fixed-fuel promotion algorithm rather than Julia dispatch, and HasResult states no conversion behavior.
+402	promote_typeof	FAITHFUL	yes	yes	yes	The abstract typeof callback receives the original value exactly once and the theorem states that forwarding for every input.
+403	promote_typeof	HOLLOW	no	no	yes	The model replaces the dispatched promote_type call with the compact fixed-fuel promotion algorithm, and HasResult states no type computation.
+404	promote_typeof	HOLLOW	no	no	yes	The model replaces the nested dispatched promote_type calls with the compact fixed-fuel algorithm, and HasResult states no type computation.
+405	promote_typeof	HOLLOW	no	no	yes	The fold uses the compact fixed-fuel promotion algorithm instead of Julia dispatch, and HasResult states no variadic type computation.
+406	_promote	HOLLOW	no	no	yes	The model selects the common type through the compact fixed-fuel promotion algorithm, and HasResult states no three-value conversion behavior.
+411	_promote	HOLLOW	no	no	yes	The model selects the common type through the compact fixed-fuel promotion algorithm, and HasResult states no variadic conversion behavior.
+420	promote	FAITHFUL	yes	yes	yes	The model returns the empty tuple representation and proves that exact nullary behavior.
+421	promote	FAITHFUL	yes	yes	yes	The model returns the one-element tuple representation and proves that exact behavior for every input.
+423	promote	HOLLOW	no	no	yes	The model replaces _promote and not_sametype with arbitrary callbacks and a different generic error, while HasResult states no promotion behavior.
+429	promote	HOLLOW	no	no	yes	The model replaces _promote and not_sametype with arbitrary callbacks and a different generic error, while HasResult states no promotion behavior.
+435	promote	HOLLOW	no	no	yes	The model replaces _promote and not_sametype with arbitrary list callbacks and a different generic error, while HasResult states no promotion behavior.
+441	promote	FAITHFUL	yes	yes	yes	The model preserves the two leading values and every same-typed trailing value in source order.
+443	not_sametype	HOLLOW	no	no	yes	The model skips the sametype_error call and its rendered type diagnostic, and the asserted ArgumentError differs from Julia's ErrorException.
+445	not_sametype	FAITHFUL	yes	yes	yes	The model returns Unit for differently typed arguments and proves the exact nothing result universally.
+447	sametype_error	HOLLOW	no	no	yes	The model delegates all message construction to a callback and returns ArgumentError instead of the source ErrorException, while HasResult states no diagnostic behavior.
+454	+	FAITHFUL	yes	yes	yes	The model promotes both operands and forwards them to the supplied addition operation in the exact source order.
+455	*	FAITHFUL	yes	yes	yes	The model promotes both operands and forwards them to the supplied multiplication operation in the exact source order.
+456	-	FAITHFUL	yes	yes	yes	The model promotes both operands and forwards them to the supplied subtraction operation in the exact source order.
+457	/	FAITHFUL	yes	yes	yes	The model promotes both operands and forwards them to the supplied division operation in the exact source order.
+459	+%	FAITHFUL	yes	yes	yes	The model promotes both operands and forwards them to the supplied wrapping-addition operation in the exact source order.
+460	*%	FAITHFUL	yes	yes	yes	The model promotes both operands and forwards them to the supplied wrapping-multiplication operation in the exact source order.
+461	-%	FAITHFUL	yes	yes	yes	The model promotes both operands and forwards them to the supplied wrapping-subtraction operation in the exact source order.
+507	^	FAITHFUL	yes	yes	yes	The model promotes both operands and forwards them to the supplied exponentiation operation in the exact source order.
+509	fma	HOLLOW	yes	no	yes	The ternary forwarding model mirrors promotion followed by fma, but HasResult is a tautology that states no fused-operation behavior.
+510	muladd	HOLLOW	yes	no	yes	The model preserves promotion, the original false checks, and the final muladd call, but HasResult states no strong-zero behavior.
+516	==	FAITHFUL	yes	yes	yes	The model promotes both operands and forwards them to the supplied equality operation in the exact source order.
+517	<	FAITHFUL	yes	yes	yes	The model promotes both operands and forwards them to the supplied less-than operation in the exact source order.
+518	<=	FAITHFUL	yes	yes	yes	The model promotes both operands and forwards them to the supplied less-than-or-equal operation in the exact source order.
+520	rem	FAITHFUL	yes	yes	yes	The model promotes both operands and forwards them to the supplied remainder operation in the exact source order.
+521	mod	FAITHFUL	yes	yes	yes	The model promotes both operands and forwards them to the supplied modulus operation in the exact source order.
+522	mod1	FAITHFUL	yes	yes	yes	The model promotes both operands and forwards them to the supplied one-based modulus operation in the exact source order.
+523	fld1	FAITHFUL	yes	yes	yes	The model promotes both operands and forwards them to the supplied cld operation in the exact source order.
+525	max	FAITHFUL	yes	yes	yes	The model promotes both operands and forwards them to the supplied max operation in the exact source order.
+526	min	FAITHFUL	yes	yes	yes	The model promotes both operands and forwards them to the supplied min operation in the exact source order.
+527	minmax	FAITHFUL	yes	yes	yes	The model promotes both operands and forwards them to the supplied minmax operation in the exact source order.
+529	TupleOrBottom	HOLLOW	yes	no	yes	The model preserves the Bottom scan and tuple construction, but HasResult is a tautology that states no returned-type behavior.
+641	promote_op	HOLLOW	yes	no	yes	The model preserves TupleOrBottom, the Bottom early return, and _return_type forwarding, but HasResult states no documented upper-bound behavior.
+650	no_op_err	HOLLOW	no	no	yes	The model omits the type argument and constructs MethodError instead of the source ErrorException with its rendered message.
+651	+	HOLLOW	no	no	yes	The model omits the fixed operator name and type argument passed to no_op_err and asserts a different MethodError.
+652	*	HOLLOW	no	no	yes	The model omits the fixed operator name and type argument passed to no_op_err and asserts a different MethodError.
+653	-	HOLLOW	no	no	yes	The model omits the fixed operator name and type argument passed to no_op_err and asserts a different MethodError.
+654	/	HOLLOW	no	no	yes	The model omits the fixed operator name and type argument passed to no_op_err and asserts a different MethodError.
+655	^	HOLLOW	no	no	yes	The model omits the fixed operator name and type argument passed to no_op_err and asserts a different MethodError.
+657	fma	HOLLOW	no	no	yes	The model omits the fixed fma name and type argument passed to no_op_err and asserts a different MethodError.
+658	fma	FAITHFUL	yes	yes	yes	The model multiplies x and y before adding z and proves that exact source equation for every operation result.
+659	muladd	FAITHFUL	yes	yes	yes	The model multiplies x and y before adding z and proves that exact source equation for every operation result.
+661	&	HOLLOW	no	no	yes	The model omits the fixed operator name and type argument passed to no_op_err and asserts a different MethodError.
+662	|	HOLLOW	no	no	yes	The model omits the fixed operator name and type argument passed to no_op_err and asserts a different MethodError.
+663	xor	HOLLOW	no	no	yes	The model omits the fixed xor name and type argument passed to no_op_err and asserts a different MethodError.
+665	==	FAITHFUL	yes	yes	yes	The abstract identity callback models === and the theorem states that exact same-type fallback for every input.
+666	<	HOLLOW	no	no	yes	The model omits the fixed less-than name and type argument passed to no_op_err and asserts a different MethodError.
+667	<=	HOLLOW	no	yes	yes	The Lean short-circuit disjunction can skip the less-than call, unlike Julia's eager bitwise-or body, although the theorem states the returned Boolean formula.
+669	rem	HOLLOW	no	no	yes	The model omits the fixed rem name and type argument passed to no_op_err and asserts a different MethodError.
+670	mod	HOLLOW	no	no	yes	The model omits the fixed mod name and type argument passed to no_op_err and asserts a different MethodError.
+672	min	FAITHFUL	yes	yes	yes	The model returns its sole Real argument and proves that exact source equation universally.
+673	max	FAITHFUL	yes	yes	yes	The model returns its sole Real argument and proves that exact source equation universally.
+674	minmax	FAITHFUL	yes	yes	yes	The model returns two copies of its Real argument and proves that exact source equation universally.
+676	max	FAITHFUL	yes	yes	yes	The model compares y with x and selects x or y in the same order as the source ifelse.
+677	min	FAITHFUL	yes	yes	yes	The model compares y with x and selects y or x in the same order as the source ifelse.
+678	minmax	FAITHFUL	yes	yes	yes	The model compares y with x and returns the ordered pair selected by the source conditional.
+680	flipsign	HOLLOW	no	no	yes	The model omits the fixed flipsign name and type argument passed to no_op_err and asserts a different MethodError.

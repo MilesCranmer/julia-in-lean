@@ -1,0 +1,148 @@
+file	line	endline	name	signature	status	entry	note
+base/tuple.jl	23	23	_counttuple	_counttuple(::Type{<:NTuple{N,Any}}) where {N}	modelled	sorttuplescov-tuple-type-methods	
+base/tuple.jl	24	24	_counttuple	_counttuple(::Type)	modelled	sorttuplescov-tuple-type-methods	
+base/tuple.jl	28	28	length	length(@nospecialize t::Tuple)	modelled	sorttuplescov-tuple-basics	
+base/tuple.jl	29	29	firstindex	firstindex(@nospecialize t::Tuple)	modelled	sorttuplescov-tuple-basics	
+base/tuple.jl	30	30	lastindex	lastindex(@nospecialize t::Tuple)	modelled	sorttuplescov-tuple-basics	
+base/tuple.jl	31	31	size	size(@nospecialize(t::Tuple), d::Integer)	modelled	sorttuplescov-tuple-basics	
+base/tuple.jl	32	32	axes	axes(@nospecialize t::Tuple)	modelled	sorttuplescov-tuple-basics	
+base/tuple.jl	33	33	getindex	getindex(@nospecialize(t::Tuple), i::Int)	modelled	tuples-integer-index	
+base/tuple.jl	34	34	getindex	getindex(@nospecialize(t::Tuple), i::Integer)	modelled	tuples-getindex-bool,tuples-getindex-inexact,tuples-integer-index	
+base/tuple.jl	35	35	__safe_getindex	__safe_getindex(@nospecialize(t::Tuple), i::Int)	modelled	sorttuplescov-tuple-basics	
+base/tuple.jl	36	36	getindex	getindex(t::Tuple, r::AbstractArray{<:Any,1})	modelled	sorttuplescov-tuple-index-vec	
+base/tuple.jl	37	37	getindex	getindex(t::Tuple, b::AbstractArray{Bool,1})	modelled	sorttuplescov-tuple-index-vec	
+base/tuple.jl	38	38	getindex	getindex(t::Tuple, c::Colon)	modelled	sorttuplescov-tuple-index-vec	
+base/tuple.jl	40	40	get	get(t::Tuple, i::Integer, default)	modelled	tuples-getindex-bool,tuples-integer-index	
+base/tuple.jl	41	41	get	get(f::Callable, t::Tuple, i::Integer)	modelled	sorttuplescov-tuple-index-vec	
+base/tuple.jl	55	59	setindex	setindex(x::Tuple, v, i::Integer)	modelled	tuples-getindex-bool,tuples-integer-index	
+base/tuple.jl	61	64	_setindex	_setindex(v, i::Integer, args::Vararg{Any,N}) where {N}	modelled	tuples-integer-index	
+base/tuple.jl	69	73	iterate	iterate(@nospecialize(t::Tuple), i::Int=1)	modelled	sorttuplescov-tuple-basics	
+base/tuple.jl	75	75	keys	keys(@nospecialize t::Tuple)	modelled	sorttuplescov-tuple-basics	
+base/tuple.jl	109	109	prevind	prevind	excluded		no-behaviour: declares the prevind generic function without a method body
+base/tuple.jl	143	143	nextind	nextind	excluded		no-behaviour: declares the nextind generic function without a method body
+base/tuple.jl	145	145	prevind	prevind(@nospecialize(t::Tuple), i::Integer)	modelled	sorttuplescov-tuple-basics	
+base/tuple.jl	146	146	nextind	nextind(@nospecialize(t::Tuple), i::Integer)	modelled	sorttuplescov-tuple-basics	
+base/tuple.jl	148	157	keys	keys(t::Tuple, t2::Tuple...)	modelled	sorttuplescov-tuple-iter-protocol	
+base/tuple.jl	161	161	indexed_iterate	indexed_iterate(t::Tuple, i::Int, state=1)	modelled	sorttuplescov-tuple-iter-protocol	
+base/tuple.jl	162	162	indexed_iterate	indexed_iterate(a::Union{Array,Memory}, i::Int, state=1)	modelled	sorttuplescov-tuple-iter-protocol	
+base/tuple.jl	163	167	indexed_iterate	indexed_iterate(I, i)	modelled	sorttuplescov-tuple-iter-protocol	
+base/tuple.jl	168	172	indexed_iterate	indexed_iterate(I, i, state)	modelled	sorttuplescov-tuple-iter-protocol	
+base/tuple.jl	205	205	rest	rest	excluded		no-behaviour: declares the rest generic function without a method body
+base/tuple.jl	206	206	rest	rest(t::Tuple)	modelled	sorttuplescov-rest	
+base/tuple.jl	207	211	rest	rest(t::Tuple, i)	modelled	sorttuplescov-rest	
+base/tuple.jl	212	212	rest	rest(a::Union{Array,Memory,Core.SimpleVector}, i=1)	modelled	sorttuplescov-rest	
+base/tuple.jl	213	213	rest	rest(itr, state...)	modelled	sorttuplescov-rest	
+base/tuple.jl	247	247	split_rest	split_rest	excluded		no-behaviour: declares the split_rest generic function without a method body
+base/tuple.jl	248	253	split_rest	split_rest(itr, n::Int, state...)	modelled	sorttuplescov-split-rest	
+base/tuple.jl	254	254	_split_rest	_split_rest(itr, n::Int)	modelled	sorttuplescov-split-rest	
+base/tuple.jl	255	259	_check_length_split_rest	_check_length_split_rest(len, n)	modelled	sorttuplescov-split-rest	
+base/tuple.jl	260	263	_split_rest	_split_rest(a::Union{AbstractArray, Core.SimpleVector}, n::Int)	modelled	sorttuplescov-split-rest	
+base/tuple.jl	265	265	_split_tuple	_split_tuple(t::Tuple, n::Int, i::Int=1)	modelled	tuples-split-rest-state	
+base/tuple.jl	267	267	split_rest	split_rest(t::Tuple, n::Int, i=1)	modelled	tuples-split-rest-state	
+base/tuple.jl	270	270	first	first(::Tuple{})	modelled	tuples-front-tail	
+base/tuple.jl	271	271	first	first(t::Tuple)	modelled	tuples-front-tail	
+base/tuple.jl	279	279	_eltype_ntuple	_eltype_ntuple(t::Type{<:Tuple{Vararg{E}}}) where {E}	modelled	sorttuplescov-tuple-type-methods	
+base/tuple.jl	282	290	eltype	eltype(t::Type{<:Tuple})	modelled	sorttuplescov-tuple-type-methods	
+base/tuple.jl	291	313	_compute_eltype	_compute_eltype(@nospecialize t)	modelled	sorttuplescov-tuple-type-methods	
+base/tuple.jl	316	316	keytype	keytype(@nospecialize t::Tuple)	modelled	sorttuplescov-tuple-type-methods	
+base/tuple.jl	317	317	keytype	keytype(@nospecialize T::Type{<:Tuple})	modelled	sorttuplescov-tuple-type-methods	
+base/tuple.jl	319	319	valtype	valtype(@nospecialize t::Tuple)	modelled	sorttuplescov-tuple-type-methods	
+base/tuple.jl	320	320	valtype	valtype(@nospecialize T::Type{<:Tuple})	modelled	sorttuplescov-tuple-type-methods	
+base/tuple.jl	323	323	safe_tail	safe_tail(t::Tuple)	modelled	sorttuplescov-tuple-basics	
+base/tuple.jl	324	324	safe_tail	safe_tail(t::Tuple{})	modelled	sorttuplescov-tuple-basics	
+base/tuple.jl	344	347	front	front(t::Tuple)	modelled	tuples-front-tail	
+base/tuple.jl	348	348	_front	_front()	modelled	tuples-front-tail	
+base/tuple.jl	349	349	_front	_front(v)	modelled	tuples-front-tail	
+base/tuple.jl	350	353	_front	_front(v, t...)	modelled	tuples-front-tail	
+base/tuple.jl	358	358	map	map(f, t::Tuple{})	modelled	tuples-map	
+base/tuple.jl	359	359	map	map(f, t::Tuple{Any,})	modelled	tuples-map	
+base/tuple.jl	360	360	map	map(f, t::Tuple{Any, Any})	modelled	tuples-map	
+base/tuple.jl	361	361	map	map(f, t::Tuple{Any, Any, Any})	modelled	tuples-map	
+base/tuple.jl	362	362	map	map(f, t::Tuple)	modelled	tuples-map	
+base/tuple.jl	375	378	front	front(t::NTuple{32, Any})	modelled	tuples-front-tail	
+base/tuple.jl	380	384	front	front(t::Any32)	modelled	tuples-front-tail	
+base/tuple.jl	387	392	_front_type	_front_type(@nospecialize T::Type{<:Tuple})	modelled	tuples-front-tail	
+base/tuple.jl	394	401	map	map(f, t::Any32)	modelled	tuples-map	
+base/tuple.jl	403	403	map	map(f, t::Tuple{}, s::Tuple{})	modelled	tuples-map	
+base/tuple.jl	404	404	map	map(f, t::Tuple, s::Tuple{})	modelled	tuples-map	
+base/tuple.jl	405	405	map	map(f, t::Tuple{}, s::Tuple)	modelled	tuples-map	
+base/tuple.jl	406	406	map	map(f, t::Tuple{Any,}, s::Tuple{Any,})	modelled	tuples-map	
+base/tuple.jl	407	407	map	map(f, t::Tuple{Any,Any}, s::Tuple{Any,Any})	modelled	tuples-map	
+base/tuple.jl	408	411	map	map(f, t::Tuple, s::Tuple)	modelled	tuples-map	
+base/tuple.jl	412	419	map	map(f, t::Any32, s::Any32)	modelled	tuples-map	
+base/tuple.jl	421	421	heads	heads(ts::Tuple...)	modelled	sorttuplescov-map-n-foreach	
+base/tuple.jl	422	422	tails	tails(ts::Tuple...)	modelled	sorttuplescov-map-n-foreach	
+base/tuple.jl	423	423	map	map(f, ::Tuple{}, ::Tuple{}...)	modelled	sorttuplescov-map-n-foreach	
+base/tuple.jl	424	424	anyempty	anyempty(x::Tuple{}, xs...)	modelled	sorttuplescov-map-n-foreach	
+base/tuple.jl	425	425	anyempty	anyempty(x::Tuple, xs...)	modelled	sorttuplescov-map-n-foreach	
+base/tuple.jl	426	426	anyempty	anyempty()	modelled	sorttuplescov-map-n-foreach	
+base/tuple.jl	427	431	map	map(f, t1::Tuple, t2::Tuple, ts::Tuple...)	modelled	sorttuplescov-map-n-foreach	
+base/tuple.jl	432	439	map	map(f, t1::Any32, t2::Any32, ts::Any32...)	modelled	sorttuplescov-map-n-foreach	
+base/tuple.jl	442	442	fill_to_length	fill_to_length(t::NTuple{N,Any}, val, ::Val{N}) where {N}	modelled	sorttuplescov-fill-to-length	
+base/tuple.jl	443	443	fill_to_length	fill_to_length(t::Tuple{}, val, ::Val{1})	modelled	sorttuplescov-fill-to-length	
+base/tuple.jl	444	444	fill_to_length	fill_to_length(t::Tuple{Any}, val, ::Val{2})	modelled	sorttuplescov-fill-to-length	
+base/tuple.jl	445	445	fill_to_length	fill_to_length(t::Tuple{}, val, ::Val{2})	modelled	sorttuplescov-fill-to-length	
+base/tuple.jl	453	468	tuple_type_tail	tuple_type_tail(T::Type)	modelled	sorttuplescov-tuple-type-methods	
+base/tuple.jl	470	470	(::Type{T})	(::Type{T})(x::Tuple) where {T<:Tuple}	modelled	sorttuplescov-tuple-construction	
+base/tuple.jl	472	472	Tuple	Tuple(x::Ref)	modelled	sorttuplescov-tuple-construction	
+base/tuple.jl	473	473	Tuple	Tuple(x::Array{T,0}) where {T}	modelled	sorttuplescov-tuple-construction	
+base/tuple.jl	475	475	(::Type{T})	(::Type{T})(itr) where {T<:Tuple}	modelled	sorttuplescov-tuple-construction	
+base/tuple.jl	477	477	_totuple	_totuple(::Type{Tuple{}}, itr, s...)	modelled	sorttuplescov-tuple-construction	
+base/tuple.jl	479	482	_totuple_err	_totuple_err(@nospecialize T)	modelled	sorttuplescov-tuple-construction	
+base/tuple.jl	484	495	_totuple	_totuple(::Type{T}, itr, s::Vararg{Any,N}) where {T,N}	modelled	sorttuplescov-tuple-construction	
+base/tuple.jl	498	505	_totuple	_totuple(T::Type{All32{E,N}}, itr) where {E,N}	modelled	sorttuplescov-tuple-construction	
+base/tuple.jl	509	509	_totuple	_totuple(::Type{Tuple{Vararg{E}}}, itr, s...) where {E}	modelled	sorttuplescov-tuple-construction	
+base/tuple.jl	511	511	_totuple	_totuple(::Type{Tuple}, itr, s...)	modelled	sorttuplescov-tuple-construction	
+base/tuple.jl	514	514	_totuple	_totuple(::Type{Tuple}, itr::Array)	modelled	sorttuplescov-tuple-construction	
+base/tuple.jl	515	515	_totuple	_totuple(::Type{Tuple}, itr::SimpleVector)	modelled	sorttuplescov-tuple-construction	
+base/tuple.jl	516	516	_totuple	_totuple(::Type{Tuple}, itr::NamedTuple)	modelled	sorttuplescov-tuple-construction	
+base/tuple.jl	517	517	_totuple	_totuple(::Type{Tuple}, p::Pair)	modelled	sorttuplescov-tuple-construction	
+base/tuple.jl	518	518	_totuple	_totuple(::Type{Tuple}, x::Number)	modelled	sorttuplescov-tuple-construction	
+base/tuple.jl	522	522	_findfirst_rec	_findfirst_rec(f, i::Int, ::Tuple{})	modelled	tuples-find-filter	
+base/tuple.jl	523	523	_findfirst_rec	_findfirst_rec(f, i::Int, t::Tuple)	modelled	tuples-find-filter	
+base/tuple.jl	524	529	_findfirst_loop	_findfirst_loop(f::Function, t)	modelled	tuples-find-filter	
+base/tuple.jl	530	530	findfirst	findfirst(f::Function, t::Tuple)	modelled	tuples-find-filter	
+base/tuple.jl	532	532	findlast	findlast(f::Function, t::Tuple)	modelled	tuples-find-filter	
+base/tuple.jl	533	536	_findlast_rec	_findlast_rec(f::Function, x::Tuple)	modelled	tuples-find-filter	
+base/tuple.jl	537	542	_findlast_loop	_findlast_loop(f::Function, t)	modelled	tuples-find-filter	
+base/tuple.jl	546	546	filter_rec	filter_rec(f, xs::Tuple)	modelled	tuples-find-filter	
+base/tuple.jl	549	549	filter	filter(f, t::Tuple)	modelled	tuples-find-filter	
+base/tuple.jl	553	553	isequal	isequal(t1::Tuple, t2::Tuple)	modelled	tuples-equality,tuples-hash-isequal	
+base/tuple.jl	554	554	_isequal	_isequal(::Tuple{}, ::Tuple{})	modelled	tuples-equality	
+base/tuple.jl	555	557	_isequal	_isequal(t1::Tuple{Any,Vararg{Any}}, t2::Tuple{Any,Vararg{Any}})	modelled	tuples-equality	
+base/tuple.jl	558	565	_isequal	_isequal(t1::Any32, t2::Any32)	modelled	tuples-equality	
+base/tuple.jl	567	567	==	==(t1::Tuple, t2::Tuple)	modelled	tuples-equality	
+base/tuple.jl	568	568	_eq	_eq(t1::Tuple{}, t2::Tuple{})	modelled	tuples-equality	
+base/tuple.jl	569	569	_eq_missing	_eq_missing(t1::Tuple{}, t2::Tuple{})	modelled	tuples-equality	
+base/tuple.jl	570	579	_eq	_eq(t1::Tuple, t2::Tuple)	modelled	tuples-equality	
+base/tuple.jl	580	587	_eq_missing	_eq_missing(t1::Tuple, t2::Tuple)	modelled	tuples-equality	
+base/tuple.jl	588	599	_eq	_eq(t1::Any32, t2::Any32)	modelled	tuples-equality	
+base/tuple.jl	602	602	hash	hash(::Tuple{}, h::UInt)	modelled	tuples-hash-isequal	
+base/tuple.jl	603	603	hash	hash(t::Tuple, h::UInt)	modelled	hashops-tuple-hash,tuples-hash-isequal	
+base/tuple.jl	604	610	hash	hash(t::Any32, h::UInt)	modelled	hashops-tuple-hash,tuples-hash-isequal	
+base/tuple.jl	612	612	<	<(::Tuple{}, ::Tuple{})	modelled	tuples-lt-lexicographic	
+base/tuple.jl	613	613	<	<(::Tuple{}, ::Tuple)	modelled	tuples-lt-lexicographic	
+base/tuple.jl	614	614	<	<(::Tuple, ::Tuple{})	modelled	tuples-lt-lexicographic	
+base/tuple.jl	615	624	<	<(t1::Tuple, t2::Tuple)	modelled	tuples-lt-lexicographic	
+base/tuple.jl	625	637	<	<(t1::Any32, t2::Any32)	modelled	tuples-lt-lexicographic	
+base/tuple.jl	639	639	isless	isless(::Tuple{}, ::Tuple{})	modelled	tuples-isless-order	
+base/tuple.jl	640	640	isless	isless(::Tuple{}, ::Tuple)	modelled	tuples-isless-order	
+base/tuple.jl	641	641	isless	isless(::Tuple, ::Tuple{})	modelled	tuples-isless-order	
+base/tuple.jl	648	651	isless	isless(t1::Tuple, t2::Tuple)	modelled	tuples-isless-order	
+base/tuple.jl	652	661	isless	isless(t1::Any32, t2::Any32)	modelled	tuples-isless-order	
+base/tuple.jl	665	665	isempty	isempty(x::Tuple{})	modelled	sorttuplescov-tuple-basics	
+base/tuple.jl	666	666	isempty	isempty(@nospecialize x::Tuple)	modelled	sorttuplescov-tuple-basics	
+base/tuple.jl	668	668	revargs	revargs()	modelled	tuples-reverse	
+base/tuple.jl	669	669	revargs	revargs(x, r...)	modelled	tuples-reverse	
+base/tuple.jl	671	671	reverse	reverse(t::Tuple)	modelled	tuples-reverse	
+base/tuple.jl	681	684	isassigned	isassigned(v::Tuple, i::Integer)	modelled	tuples-getindex-bool,tuples-integer-index	
+base/tuple.jl	688	688	prod	prod(x::Tuple{})	modelled	tuples-prod-empty	
+base/tuple.jl	693	693	prod	prod(x::Tuple{Int, Vararg{Int}})	modelled	tuples-prod-empty	
+base/tuple.jl	696	703	sym_in	sym_in(x::Symbol, itr::Tuple{Vararg{Symbol}})	modelled	sorttuplescov-sym-in	
+base/tuple.jl	704	704	in	in(x::Symbol, itr::Tuple{Vararg{Symbol}})	modelled	sorttuplescov-sym-in	
+base/tuple.jl	712	712	empty	empty(@nospecialize x::Tuple)	modelled	sorttuplescov-tuple-basics	
+base/tuple.jl	714	714	foreach	foreach(f, itr::Tuple)	modelled	sorttuplescov-map-n-foreach	
+base/tuple.jl	715	715	foreach	foreach(f, itr::Tuple, itrs::Tuple...)	modelled	sorttuplescov-map-n-foreach	
+base/tuple.jl	717	717	circshift	circshift((@nospecialize t::Union{Tuple{},Tuple{Any}}), @nospecialize _::Integer)	modelled	tuples-circshift	
+base/tuple.jl	718	718	circshift	circshift(t::Tuple{Any,Any}, shift::Integer)	modelled	tuples-circshift	
+base/tuple.jl	719	724	circshift	circshift(x::Tuple{Any,Any,Any,Vararg{Any,N}}, shift::Integer) where {N}	modelled	tuples-circshift	

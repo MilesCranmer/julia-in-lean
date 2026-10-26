@@ -1,0 +1,45 @@
+id: misccov-ryu-log10pow-negative
+title: "Ryu.log10pow2 and log10pow5 docstrings claim validity for all e below a bound, but they are wrong for some negative e"
+priority: P3
+kind: documentation
+area: MiscCov
+files: [base/ryu/utils.jl]
+functions: ["Base.Ryu.log10pow2", "Base.Ryu.log10pow5"]
+summary: |
+  `log10pow2(e)` is documented as "floor(log10(2^e)). This is valid for all e < 1651" and `log10pow5(e)` as valid "for all e < 2621". For e = -1651 (and -2136, -2817) log10pow2 returns -497 instead of -498, and log10pow5(-2621) returns -1832 instead of -1833. The reference Ryu states `0 <= e` as a precondition.
+likelihood: |
+  None in Base: Ryu only calls them with nonnegative exponents. Only a reader relying on the docstring is affected.
+maybe_intended: |
+  The lower bound 0 is implied by use; the docstring dropped it.
+reproducer: |
+  Base.Ryu.log10pow2(-1651)   # -497, but floor(log10(2^-1651)) == -498
+  Base.Ryu.log10pow5(-2621)   # -1832, but floor(log10(5^-2621)) == -1833
+output:
+  release: |
+    log10pow2(-1651) = -497, floor(log10(2^-1651)) == -497: false
+    log10pow5(-2621) = -1832, floor(log10(5^-2621)) == -1832: false
+    floor(log10(big(2)^-1651)) = -498
+    REPRODUCED misccov-ryu-log10pow-negative
+  nightly: |
+    log10pow2(-1651) = -497, floor(log10(2^-1651)) == -497: false
+    log10pow5(-2621) = -1832, floor(log10(5^-2621)) == -1832: false
+    floor(log10(big(2)^-1651)) = -498
+    REPRODUCED misccov-ryu-log10pow-negative
+reproduced: {release: true, nightly: true}
+expected: |
+  Docstrings that state `0 <= e < 1651` and `0 <= e < 2621`.
+promised_by: |
+  base/ryu/utils.jl:25 "Compute `floor(log10(2^e))`. This is valid for all `e < 1651`." and base/ryu/utils.jl:33 "... valid for all `e < 2621`."
+cause: |
+  base/ryu/utils.jl:27,35: the multiplier 78913/2^18 (732923/2^20) is slightly below log10(2) (log10(5)), so for negative e the error rounds the wrong way when e*log10(2) is just above an integer.
+possible_fix: |
+  Add `0 <= e` to both docstrings.
+duplicates:
+  issues: []
+  queries:
+    - "issues: log10pow2"
+    - "issues: Ryu log10pow2"
+    - "issues: Ryu docstring"
+lean:
+  property: JuliaLean.MiscCov.RyuUtils.LogApproxDoc
+  theorem: JuliaLean.MiscCov.RyuUtils.logApproxDoc_refuted

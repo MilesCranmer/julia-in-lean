@@ -1,0 +1,42 @@
+file	line	endline	name	signature	status	entry	note
+base/strings/stringview.jl	8	8	StringView	StringView(v::AbstractVector{UInt8})	modelled	stringscova-stringview-ctor-rebuilt	
+base/strings/stringview.jl	9	9	Vector{UInt8}	Vector{UInt8}(s::StringViewAndSub)	modelled	stringscova-stringview-vector-rebuilt	
+base/strings/stringview.jl	10	10	Array{UInt8}	Array{UInt8}(s::StringViewAndSub)	modelled	stringscova-stringview-array-rebuilt	
+base/strings/stringview.jl	11	11	String	String(s::StringViewAndSub)	modelled	stringscova-stringview-string-copy-rebuilt	
+base/strings/stringview.jl	12	12	copy	copy(s::StringView)	modelled	stringscova-stringview-copy-rebuilt	
+base/strings/stringview.jl	14	16	Symbol	Symbol(s::DenseStringViewAndSub)	modelled	stringscova-stringview-symbol-rebuilt	
+base/strings/stringview.jl	18	18	pointer	pointer(s::DenseStringView)	modelled	stringscova-stringview-pointer-faithful	
+base/strings/stringview.jl	19	19	pointer	pointer(s::DenseStringView, i::Integer)	modelled	stringscova-stringview-pointer-at-rebuilt	
+base/strings/stringview.jl	20	20	pointer	pointer(x::SubString{<:DenseStringView})	modelled	stringscova-stringview-sub-pointer-rebuilt	
+base/strings/stringview.jl	21	21	pointer	pointer(x::SubString{<:DenseStringView}, i::Integer)	modelled	stringscova-stringview-sub-pointer-at-rebuilt	
+base/strings/stringview.jl	23	23	unsafe_convert	unsafe_convert(::Type{Ptr{UInt8}}, s::DenseStringViewAndSub)	modelled	stringscova-stringview-unsafe-u8-faithful	
+base/strings/stringview.jl	24	24	unsafe_convert	unsafe_convert(::Type{Ptr{Int8}}, s::DenseStringViewAndSub)	modelled	stringscova-stringview-unsafe-int8-rebuilt	
+base/strings/stringview.jl	26	26	String	String(s::DenseStringViewAndSub)	modelled	stringscova-stringview-string-dense-rebuilt	
+base/strings/stringview.jl	28	28	cconvert	cconvert(::Type{Ptr{UInt8}}, s::DenseStringViewAndSub)	modelled	stringscova-stringview-cconvert-u8-faithful	
+base/strings/stringview.jl	29	29	cconvert	cconvert(::Type{Ptr{Int8}}, s::DenseStringViewAndSub)	modelled	stringscova-stringview-cconvert-i8-faithful	
+base/strings/stringview.jl	67	83	reverse	reverse(s::UTF8String)::String	modelled	stringscova-stringview-reverse-rebuilt,strings-reverse-malformed	
+base/strings/stringview.jl	85	85	sizeof	sizeof(s::StringView)	modelled	stringscova-stringview-sizeof-faithful	
+base/strings/stringview.jl	86	86	ncodeunits	ncodeunits(s::StringView)	modelled	stringscova-stringview-ncodeunits-faithful	
+base/strings/stringview.jl	87	87	codeunit	codeunit(::StringView)	modelled	stringscova-stringview-codeunit-type-rebuilt	
+base/strings/stringview.jl	88	88	codeunit	codeunit(s::StringView, i::Integer)	modelled	stringscova-stringview-codeunit-at-rebuilt	
+base/strings/stringview.jl	89	89	codeunits	codeunits(s::StringView)	modelled	stringscova-stringview-codeunits-faithful	
+base/strings/stringview.jl	90	90	codeunits	codeunits(s::SubString{<:StringView})	modelled	stringscova-stringview-codeunits-sub-rebuilt	
+base/strings/stringview.jl	94	94	cmp	cmp(a::UTF8String, b::UTF8String)	modelled	stringscova-stringview-cmp-rebuilt	
+base/strings/stringview.jl	95	95	==	==(a::UTF8String, b::UTF8String)	modelled	stringscova-stringview-eq-rebuilt	
+base/strings/stringview.jl	98	98	typemin	typemin(::Type{StringView{CodeUnits{UInt8, String}}})	modelled	stringscova-stringview-typemin-codeunits-rebuilt	
+base/strings/stringview.jl	99	99	typemin	typemin(::Type{StringView{V}}) where V	modelled	stringscova-stringview-typemin-type-rebuilt,stringscova-stringview-empty-constructor	
+base/strings/stringview.jl	100	100	typemin	typemin(::T) where {T <: StringView}	modelled	stringscova-stringview-typemin-value-rebuilt	
+base/strings/stringview.jl	101	101	one	one(::Union{T, Type{T}}) where {T <: StringView}	modelled	stringscova-stringview-one-rebuilt	
+base/strings/stringview.jl	102	102	oneunit	oneunit(::Union{T, Type{T}}) where {T <: StringView}	modelled	stringscova-stringview-oneunit-rebuilt	
+base/strings/stringview.jl	105	105	isascii	isascii(s::StringViewAndSub)	modelled	stringscova-stringview-isascii-rebuilt	
+base/strings/stringview.jl	108	110	hash	hash(s::DenseStringViewAndSub, h::UInt)	modelled	stringscova-stringview-hash-rebuilt	
+base/strings/stringview.jl	113	113	write	write(io::IO, s::StringViewAndSub)	modelled	stringscova-stringview-write-rebuilt	
+base/strings/stringview.jl	114	114	print	print(io::IO, s::StringViewAndSub)	modelled	stringscova-stringview-print-rebuilt	
+base/strings/stringview.jl	116	116	thisind	thisind(s::StringViewAndSub, i::Integer)	modelled	stringscova-stringview-thisind-integer-rebuilt	
+base/strings/stringview.jl	117	117	thisind	thisind(s::StringViewAndSub, i::Int)	modelled	stringscova-stringview-thisind-int-rebuilt	
+base/strings/stringview.jl	119	119	nextind	nextind(s::StringViewAndSub, i::Integer)	modelled	stringscova-stringview-nextind-integer-rebuilt	
+base/strings/stringview.jl	120	120	nextind	nextind(s::StringViewAndSub, i::Int)	modelled	stringscova-stringview-nextind-int-rebuilt	
+base/strings/stringview.jl	122	122	isvalid	isvalid(s::StringViewAndSub, i::Int)	modelled	stringscova-stringview-isvalid-rebuilt	
+base/strings/stringview.jl	126	137	getindex	getindex(s::StringView, r::UnitRange{Int})	modelled	stringscova-stringview-getindex-range-rebuilt	
+base/strings/stringview.jl	139	151	chomp	chomp(s::StringViewAndSub)	modelled	stringscova-stringview-chomp-rebuilt	
+base/strings/stringview.jl	153	155	replace	replace(io::IO, s::DenseStringViewAndSub, pat_f::Pair...; count = typemax(Int))	modelled	stringscova-stringview-replace-rebuilt	

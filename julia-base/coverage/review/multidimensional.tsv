@@ -1,0 +1,316 @@
+line	name	verdict	mirror	property	settled	reason
+77	CartesianIndex{N}	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+80	CartesianIndex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+81	CartesianIndex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+82	CartesianIndex{N}	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+84	CartesianIndex{N}	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+85	CartesianIndex{N}	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+86	CartesianIndex{N}	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+88	CartesianIndex{N}	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+89	CartesianIndex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+90	flatten	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+91	flatten	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+92	flatten	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+93	CartesianIndex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+94	show	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+101	length	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+102	length	HOLLOW	no	yes	yes	The proposition models the value overload from line 101 using stored coordinates, so it does not mirror this Type overload.
+105	getindex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+106	firstindex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+107	lastindex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+108	Base.get	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+109	eltype	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+112	Tuple	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+114	Base.setindex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+117	Base.:(==)	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+120	zero	HOLLOW	no	yes	yes	The Lean function constructs coordinates directly and omits this method's delegation to the corresponding type method.
+121	zero	HOLLOW	no	yes	yes	The Lean function aliases another model and omits this method's ntuple construction followed by CartesianIndex construction.
+122	oneunit	HOLLOW	no	yes	yes	The Lean function constructs coordinates directly and omits this method's delegation to the corresponding type method.
+123	oneunit	HOLLOW	no	yes	yes	The Lean function aliases another model and omits this method's ntuple construction followed by CartesianIndex construction.
+126	+	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+127	-	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+129	+	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+131	-	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+133	min	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+135	max	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+138	*	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+139	*	HOLLOW	no	yes	yes	The Lean function scales coordinates directly and omits this method's swapped-operand multiplication call.
+142	isless	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+145	convert	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+146	convert	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+150	Base.hash	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+159	Base.nextind	HOLLOW	no	yes	yes	The Lean function feeds abstract axes straight to carry arithmetic and omits the intervening CartesianIndices construction.
+165	Base.prevind	HOLLOW	no	yes	yes	The Lean function feeds abstract axes straight to carry arithmetic and omits the intervening CartesianIndices construction.
+172	Base._ind2sub	HOLLOW	no	yes	yes	The Lean function projects stored coordinates directly and omits this method's Tuple call.
+176	Base.iterate	HOLLOW	no	yes	yes	The Lean function returns an undifferentiated error and does not model the error call or its required message.
+180	Base.range_start_step_length	HOLLOW	no	yes	yes	The Lean function returns an undifferentiated error and omits the string construction and error call.
+187	show	HOLLOW	no	yes	yes	The Lean function receives first, step, and length as inputs instead of performing those calls in source order.
+192	Base.in	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+193	Base.in	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+298	CartesianIndices	HOLLOW	no	yes	yes	The Lean function returns an empty axis list directly and omits the typed CartesianIndices constructor call.
+299	CartesianIndices	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+304	CartesianIndices	HOLLOW	no	yes	yes	The Lean function constructs axes directly and omits delegation through CartesianIndices(index.I) and its conversion path.
+305	CartesianIndices	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+308	CartesianIndices	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+310	_convert2ind	HOLLOW	no	no	yes	The model converts Bool to an Int64-style axis, while Julia constructs Base.OneTo(Int8(sz)), so the returned range type is missing.
+311	_convert2ind	HOLLOW	no	no	yes	The model forces every Integer through Int64 conversion, while Base.oneto preserves the applicable integer range behavior.
+312	_convert2ind	HOLLOW	no	no	yes	The model forces endpoints to Int64 and loses the range type and promotion behavior of first(sz):last(sz).
+313	_convert2ind	HOLLOW	no	no	yes	The model forces first, step, and last to Int64 and loses the range construction and promotion behavior.
+315	show	HOLLOW	no	yes	yes	The Lean function renders stored axes directly and omits map(_xform_index, iter.indices) before show.
+320	_xform_index	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+321	_xform_index	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+322	show	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+350	:	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+352	:	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+355	promote_rule	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+358	convert	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+360	convert	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+363	convert	HOLLOW	no	yes	yes	The Lean function maps an arbitrary element converter instead of mirroring this method's single conversion to the fixed tuple type.
+365	convert	HOLLOW	no	yes	yes	The Lean function performs one generic axis conversion and omits the delegated AbstractUnitRange conversion followed by UnitRange broadcasting.
+367	convert	HOLLOW	no	yes	yes	The Lean function performs one generic axis conversion and omits the delegated AbstractUnitRange conversion followed by UnitRange broadcasting.
+369	convert	HOLLOW	no	yes	yes	The Lean function maps an arbitrary element converter instead of mirroring this method's single conversion to the fixed tuple type.
+371	convert	HOLLOW	no	yes	yes	The Lean function maps an arbitrary element converter instead of mirroring this method's delegation to the stated fixed tuple type.
+373	convert	HOLLOW	no	yes	yes	The Lean function maps an arbitrary element converter instead of mirroring this method's delegation to the stated fixed tuple type.
+375	convert	HOLLOW	no	yes	yes	The Lean function maps an arbitrary element converter instead of mirroring this method's delegation to the stated fixed tuple type.
+378	convert	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+382	Base.:(==)	HOLLOW	no	no	yes	The model uses structural equality of stored axis records, which does not model Julia range equality for all ranges, including empty ranges.
+384	Base.:(==)	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+387	Base.axes	HOLLOW	no	no	yes	The model derives range length from endpoints with a formula that gives the wrong result for empty normalized ranges.
+388	Base.has_offset_axes	HOLLOW	no	no	yes	The model tests each range's first value, while Julia tests offset axes of the range objects, which remain one-based.
+389	isassigned	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+397	Base.getindex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+400	Base.getindex	HOLLOW	no	no	yes	The model silently zip-truncates unequal lists and omits the type-level equal-rank invariant and eager checkbounds call.
+413	Base.getindex	HOLLOW	no	no	yes	The model gives every selected range the parent step and therefore misses strided selectors as well as the eager bounds check.
+421	Base.getindex	HOLLOW	no	no	yes	The model replaces selector ranges by one-based position lists, so it loses their actual values and delegated indexing behavior.
+425	Base.getindex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+428	Base.view	HOLLOW	no	no	yes	The model delegates to the inaccurate range-selection model and therefore does not state correct view behavior for strided selectors.
+431	Base.view	HOLLOW	no	no	yes	The model delegates to the inaccurate CartesianIndices selector model and therefore loses the selector ranges' actual values.
+435	eachindex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+437	eachindex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+445	iterate	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+452	iterate	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+459	inc	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+468	__inc	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+469	__inc	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+475	__inc	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+486	iterate	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+488	size	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+491	Base.step	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+493	first	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+494	last	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+497	to_indices	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+502	to_indices	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+505	in	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+506	in	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+508	copy	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+510	simd_outer_range	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+511	simd_outer_range	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+515	simd_inner_length	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+516	simd_inner_length	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+518	simd_index	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+519	simd_index	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+523	split	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+527	_split1	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+528	_splitrest	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+530	_split1	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+531	_split1	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+532	_split1	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+533	_splitrest	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+534	_splitrest	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+535	_splitrest	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+537	split	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+541	split	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+547	Base._reverse	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+551	Base._reverse	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+558	Base._reverse	HOLLOW	no	yes	yes	The model converts arbitrary dimension integers to Int64 and omits the full-dimension early delegation to reverse(iter, :).
+569	Base._reverse	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+572	iterate	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+579	iterate	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+586	dec	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+592	__dec	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+593	__dec	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+599	__dec	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+610	iterate	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+612	Base.LinearIndices	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+615	Base.LinearIndices	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+631	Base.collect	HOLLOW	no	yes	yes	The model directly enumerates Cartesian points instead of mirroring the _collect_indices delegation.
+634	Base.collect	HOLLOW	no	yes	yes	The model directly specifies Cartesian points and omits allocation, iteration, indexed writes, and the returned destination.
+644	Base.intersect	HOLLOW	no	yes	yes	The model returns lists of intersecting values and omits the broadcasted range intersections and CartesianIndices construction.
+646	Base.issubset	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+651	eltype	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+652	eltype	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+653	Iterators.IteratorEltype	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+655	eltype	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+656	eltype	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+657	Iterators.IteratorEltype	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+659	iterate	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+664	iterate	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+670	simd_outer_range	HOLLOW	no	no	yes	The proposition uses an arbitrary build function as the whole result, so the method's endpoint arithmetic, reshaping, view, and generator are absent.
+677	splitdim1	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+688	skip_len_I	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+695	simd_outer_range	HOLLOW	no	no	yes	The proposition uses an arbitrary build function as the whole result, so the method's index conversion, range selection, and generator are absent.
+706	skip_len_I	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+713	simd_inner_length	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+714	simd_index	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+735	$fn	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+739	$fn	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+743	$fn	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+757	checkbounds	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+760	checkbounds_indices	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+764	checkindex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+766	checkindex	HOLLOW	no	yes	yes	The model short-circuits on an empty range and therefore does not mirror Julia's eager bitwise-or evaluation of both endpoint checks.
+772	getindex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+774	setindex!	HOLLOW	no	no	yes	The proposition returns an arbitrary setindex result and never asserts the explicit final return of the original array.
+779	checkbounds	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+782	checkbounds_indices	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+786	checkindex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+792	index_ndims	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+793	index_ndims	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+796	index_ndims	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+799	index_ndims	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+803	index_dimsum	HOLLOW	no	no	yes	The Lean function dispatches on the head index kind and folds in behaviors belonging to other, more specific index_dimsum methods.
+804	index_dimsum	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+805	index_dimsum	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+806	index_dimsum	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+809	index_dimsum	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+812	index_lengths	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+813	index_lengths	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+814	index_lengths	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+818	index_shape	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+819	index_shape	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+820	index_shape	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+822	index_sizes	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+823	index_sizes	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+824	index_sizes	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+837	LogicalIndex{T,A}	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+839	LogicalIndex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+840	LogicalIndex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+841	LogicalIndex{Int}	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+842	size	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+843	collect	HOLLOW	no	yes	yes	The registered proposition uses a hand-written filtered-list collect specification instead of the comprehension and iterator method body.
+844	show	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+845	print_array	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+851	iterate	HOLLOW	no	yes	yes	The Lean function jumps directly to a next-true search and omits construction of the index iterator and delegation to stateful iterate.
+855	iterate	HOLLOW	no	yes	yes	The Lean function jumps directly to a next-true search and omits construction of the index iterator and delegation to stateful iterate.
+859	iterate	HOLLOW	no	yes	yes	The registered proposition concerns a hand-written collect specification and does not use a mirror of this stateful iterate body.
+874	iterate	HOLLOW	no	yes	yes	The Lean function jumps to a next-true search and omits chunk loading and construction of the specialized four-part state.
+879	iterate	HOLLOW	no	yes	yes	The Lean function aliases the linear BitArray initializer and omits construction of the Cartesian trailing state.
+885	iterate	HOLLOW	no	yes	yes	The Lean function replaces the zero-chunk loop, bit scan, overflow-index update, and returned state with a next-true specification.
+900	checkbounds	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+902	checkindex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+903	checkindex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+907	checkbounds	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+910	checkbounds	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+912	checkbounds_indices	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+916	checkindex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+917	checkindex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+918	checkindex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+919	_check_boolean_axes	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+920	_check_boolean_axes	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+922	ensure_indexable	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+923	ensure_indexable	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+924	ensure_indexable	HOLLOW	no	no	yes	The proposition takes an already processed tail and omits the recursive ensure_indexable call on the original tail.
+928	to_indices	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+929	_drop_zerodim	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+932	to_indices	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+937	to_indices	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+942	to_indices	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+947	to_indices	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+948	_maybe_linear_logical_index	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+949	_maybe_linear_logical_index	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+952	to_indices	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+955	uncolon	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+956	uncolon	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+964	_prechecked_iterate	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+965	_prechecked_iterate	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+967	_prechecked_iterate	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+968	_prechecked_iterate	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+972	_prechecked_iterate	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+973	_prechecked_iterate	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+977	_prechecked_iterate	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+978	_prechecked_iterate	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+982	_prechecked_iterate	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+983	_prechecked_iterate	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+989	getindex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+990	getindex	HOLLOW	no	no	yes	Negative coordinates are converted to Nat and can select the first element, so the proposition does not state Julia's bounds-error behavior.
+995	_getindex	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1000	_maybe_reshape	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1001	_maybe_reshape	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1002	_maybe_reshape	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1003	__maybe_reshape	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1004	__maybe_reshape	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1006	_unsafe_getindex	HOLLOW	no	yes	yes	The model calls a gather specification directly and omits shape derivation, allocation, size validation, and the unsafe fill call.
+1015	_generate_unsafe_getindex!_body	HOLLOW	no	yes	yes	The model replaces the generated loop body with a rank test and gather specification, so its loop and call order are absent.
+1030	_unsafe_getindex!	HOLLOW	no	yes	yes	The model performs a gather specification directly instead of executing the generated destination loop body used by this overload.
+1035	_unsafe_getindex!	HOLLOW	no	yes	yes	The model performs a gather specification directly instead of executing the generated destination loop body used by this overload.
+1039	_unsafe_getindex!	HOLLOW	no	yes	yes	The model performs a gather specification directly instead of executing the generated destination loop body used by this overload.
+1043	throw_checksize_error	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1046	_setindex!	HOLLOW	no	yes	yes	The model omits _maybe_reshape and the explicit final return of A, replacing the unsafe setter with direct scatter.
+1053	_generate_unsafe_setindex!_body	HOLLOW	no	yes	yes	The model replaces unaliasing, shape validation, iterator setup, and the generated write loop with a rank test and scatter specification.
+1069	_unsafe_setindex!	HOLLOW	no	yes	yes	The model calls a scatter specification directly instead of executing the generated unsafe setter body.
+1073	_unsafe_setindex!	HOLLOW	no	yes	yes	The model calls a scatter specification directly instead of executing the generated unsafe setter body.
+1077	_unsafe_setindex!	HOLLOW	no	yes	yes	The model calls a scatter specification directly instead of executing the generated unsafe setter body.
+1081	diff	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1113	diff	HOLLOW	no	yes	yes	The model replaces one-based validation, range construction, both views, and broadcast subtraction with a key-lookup specification.
+1123	diff	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1130	mightalias	HOLLOW	no	no	yes	The model merges the two distinct parent-to-index alias checks into one Boolean and therefore loses a source branch and possible result.
+1153	_parentsmatch	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1154	_parentsmatch	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1155	_parentsmatch	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1158	_indicesmightoverlap	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1159	_indicesmightoverlap	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1160	_indicesmightoverlap	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1162	_indicesmightoverlap	HOLLOW	no	yes	yes	The model computes value-list overlap directly and omits construction of intersect(A[1], B[1]) before the emptiness test.
+1166	_indicesmightoverlap	HOLLOW	no	yes	yes	The model reuses the general value-list intersection model and omits this method's endpoint max and min shortcut.
+1170	_indicesmightoverlap	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1172	_indicesmightoverlap	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1174	_indicesmightoverlap	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1177	_indicesmightoverlap	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1188	_indicesmightoverlap	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1190	copyto!	HOLLOW	no	no	yes	The model omits four bounds checks, unaliasing, translated Cartesian regions, and both copy loops, and it can succeed on out-of-bounds regions.
+1246	circshift!	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1257	circshift!	HOLLOW	no	no	yes	The model substitutes a direct coordinate rotation, conflates ArgumentError with dimension mismatch, and omits the recursive _circshift! calls.
+1265	circshift!	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1284	_circshift!	HOLLOW	no	no	yes	The recursive helper is modeled as the top-level circshift algorithm, so its range splits and two recursive calls are missing.
+1297	_circshift!	HOLLOW	no	no	yes	The base helper is modeled through an incomplete block-copy specification that omits CartesianIndices construction and required bounds behavior.
+1337	circcopy!	HOLLOW	no	no	yes	The model delegates nonzero offsets to the circshift model, which rejects differing axes even though circcopy! is defined for them.
+1349	_circcopy!	HOLLOW	no	no	yes	The recursive helper is aliased to the top-level circcopy model, so its split arithmetic and two recursive calls are absent.
+1364	_circcopy!	HOLLOW	no	no	yes	The base helper uses an incomplete block-copy model and omits construction of both CartesianIndices arguments.
+1374	_unsafe_getindex!	HOLLOW	no	yes	yes	The model replaces copy_chunks! and chunk mutation with a logical gather specification.
+1380	_unsafe_getindex!	HOLLOW	no	yes	yes	The model replaces the generated stride and nested-loop body with a logical gather specification.
+1419	_unsafe_getindex!	HOLLOW	no	yes	yes	The model replaces the generated stride and nested-loop body with a logical gather specification.
+1438	copy_to_bitarray_chunks!	HOLLOW	no	no	yes	The model accepts only Boolean source values and omits convert(Bool, C[cind]), so it does not cover all allowed StridedArray element types.
+1455	try_bool_conversion	HOLLOW	no	no	yes	Julia returns true for either valid value, while the model returns false when x equals zero.
+1457	unchecked_bool_convert	HOLLOW	no	no	yes	Julia tests x == 1, while the model negates x == 0 and is wrong for other Real values.
+1459	copy_to_bitarray_chunks!	HOLLOW	no	no	yes	The model uses zero-based drop positions and a generic sequential conversion, so it does not match Julia's one-based source positions or chunk algorithm.
+1516	setindex!	HOLLOW	no	no	yes	The model omits index conversion, bounds checking, shape checking, the empty-range return, and chunk-copy offset calculation.
+1527	setindex!	HOLLOW	no	no	yes	The model scatters directly and omits to_indices, checkbounds, and delegation to _unsafe_setindex!.
+1533	_unsafe_setindex!	HOLLOW	no	no	yes	The scatter specification omits setindex_shape_check and the generated stride and chunk-copy loops.
+1568	setindex!	HOLLOW	no	no	yes	The model performs a direct converted scatter and omits delegation through _setindex!, including its bounds and reshape behavior.
+1574	fill!	HOLLOW	no	no	yes	The model requires a Boolean value and omits conversion order, the empty-view early return, and fill_chunks!.
+1583	fill!	HOLLOW	no	no	yes	The model returns a modified BitArray directly and omits delegation to _unsafe_fill_indices! followed by return of the original view.
+1586	_unsafe_fill_indices!	HOLLOW	no	no	yes	The model accepts only a Boolean value and replaces conversion, empty checks, stride arithmetic, and generated fill loops with a direct specification.
+1621	isassigned	HOLLOW	no	yes	yes	The model states coordinate membership directly and does not mirror the generated stride arithmetic and ordered bounds checks.
+1637	isassigned	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1638	isassigned	HOLLOW	no	yes	yes	The model calls an abstract unsafe query on converted coordinates and omits CartesianIndex construction and redispatch to isassigned.
+1641	isassigned	HOLLOW	no	no	yes	The model omits IndexStyle routing and the try-catch behavior, replacing them with a single arbitrary unsafeAssigned result.
+1669	permutedims	HOLLOW	no	yes	yes	The model calls checkDims directly after allocation and omits the permutedims! body and its copy, so it does not mirror the whole method.
+1678	checkdims_perm	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1679	checkdims_perm	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1689	permutedims!	HOLLOW	no	yes	yes	The model replaces stride computation, offset arithmetic, generated loops, and linear source reads with direct key permutation.
+1723	hash	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1764	unique	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1766	_unique_dims	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1768	_unique_dims	HOLLOW	no	yes	yes	The model replaces hashing, collision resolution, repeated collision loops, and final indexed selection with stableUnique.
+1839	Base.showarg	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1842	Base.showarg	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1846	Base.showarg	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+1969	sortslices	HOLLOW	no	yes	yes	The fast and generic paths are each collapsed into arbitrary result functions, omitting their required calls and slice operations.
+1981	_sortslices!	HOLLOW	no	yes	yes	The model receives prebuilt slices and maps them functionally, omitting eachslice, vec, zip iteration, and broadcast assignment.
+1992	getindex	HOLLOW	no	yes	yes	The proposition uses the referenced value itself as the result and omits the getindex(b) call.
+1993	setindex!	HOLLOW	no	yes	yes	The proposition returns the new value directly and omits the setindex!(b, x) call and its result.
+1997	_hash_fib	HOLLOW	no	no	yes	The model uses XOR folding and list positions, omitting hash_mix_linear, key conversion maps, firstindex handling, and hash_uint.
+2077	union_split	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+2084	union_split	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.
+2086	hash_shaped	HOLLOW	no	no	yes	The model uses XOR stream folding and omits firstindex offsets, union_split routing details, hash_mix_linear, and hash_uint.
+2123	hash	FAITHFUL	yes	yes	yes	The proposition mirrors this method body, states its all-input behavior, and has a recorded proof.

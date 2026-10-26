@@ -1,0 +1,25 @@
+line	name	verdict	mirror	property	settled	reason
+5	_broadcast_preserving_zero_d	HOLLOW	yes	no	yes	The proposition only unfolds the wrapper to the same opaque broadcast call and proves no independent zero-dimensional broadcasting behavior.
+12	_broadcast_preserving_zero_d	HOLLOW	yes	no	yes	The proposition only unfolds the wrapper to the same opaque map call and proves no independent elementwise result or shape behavior.
+16	_broadcast_preserving_zero_d	HOLLOW	yes	no	yes	The proposition repeats the full model body definitionally and proves no independent elementwise or shape-preserving behavior of the method.
+27	_broadcast_preserving_zero_d	HOLLOW	yes	no	yes	The proposition only unfolds the Fix2 and map wrapper and proves no independent array-scalar arithmetic behavior.
+31	_broadcast_preserving_zero_d	HOLLOW	yes	no	yes	The proposition only unfolds the Fix1 and map wrapper and proves no independent scalar-array arithmetic behavior.
+36	$f	HOLLOW	yes	no	yes	The proposition repeats the promote-then-broadcast model body and proves no independent elementwise addition or subtraction behavior after shape validation.
+42	+	HOLLOW	yes	no	yes	The proposition only unfolds the opaque map call and proves no independent elementwise unary-plus behavior or result axes.
+44	+	HOLLOW	yes	no	yes	The proposition repeats the validation and broadcast model body and proves no independent variadic elementwise-sum behavior or result shape.
+54	$f	HOLLOW	yes	no	yes	The proposition only unfolds the opaque broadcast wrapper and proves no independent scalar-array division, left-division, or multiplication behavior.
+57	$f	HOLLOW	yes	no	yes	The proposition only unfolds the opaque broadcast wrapper and proves no independent array-scalar division or multiplication behavior.
+92	reverse	HOLLOW	yes	no	yes	The proposition only unfolds forwarding to an opaque reverse implementation and proves no promised relation between input and reversed indices.
+93	_reverse	HOLLOW	yes	no	yes	The proposition only unfolds copy-then-reverse forwarding and proves neither the reversal index relation nor preservation of the input array.
+103	reverse!	HOLLOW	yes	no	yes	The proposition only unfolds forwarding to an opaque implementation and proves no promised in-place reversal behavior.
+104	_reverse!	HOLLOW	yes	no	yes	The proposition only unfolds construction of the dimension list and proves no in-place reversal behavior across all dimensions.
+105	_reverse!	HOLLOW	yes	no	yes	The proposition repeats conversion and dispatch definitionally and proves no reversal behavior or documented invalid-dimension result.
+106	_reverse!	HOLLOW	yes	no	yes	The proposition repeats tuple conversion and dispatch definitionally and proves no reversal behavior or documented invalid-dimension result.
+107	_reverse!	HOLLOW	yes	no	yes	The proposition only aliases the method model to reverseCore and proves no independent reversed-index relation or invalid-dimension behavior.
+133	_reverse!	HOLLOW	yes	no	yes	The proposition only unfolds ambiguity-resolution dispatch and proves no promised vector reversal behavior.
+154	rotl90	HOLLOW	yes	no	yes	The proposition repeats the model body definitionally and proves no independent left-rotation index mapping or result-axis property.
+182	rotr90	HOLLOW	yes	no	yes	The proposition repeats the model body definitionally and proves no independent right-rotation index mapping or result-axis property.
+209	rot180	HOLLOW	yes	no	yes	The proposition repeats the model body definitionally and proves no independent half-turn index mapping or result-axis property.
+252	rotl90	HOLLOW	yes	no	yes	The proposition repeats modulo dispatch definitionally and proves no promised equivalence to rotating the matrix left k times.
+292	rotr90	HOLLOW	yes	no	yes	The proposition repeats negation and delegation definitionally and proves no promised equivalence to rotating the matrix right k times.
+317	rot180	HOLLOW	yes	no	yes	The proposition repeats parity dispatch definitionally and proves no promised equivalence to k half-turns or a copy for even k.

@@ -1,0 +1,7 @@
+file	line	endline	name	signature	status	entry	note
+base/special/rem_pio2.jl	48	56	cody_waite_2c_pio2	cody_waite_2c_pio2(x::Float64, fn, n)	modelled	mathcov-special-rem-pio2-l48	method-specific source model and quantified behavior property
+base/special/rem_pio2.jl	58	95	cody_waite_ext_pio2	cody_waite_ext_pio2(x::Float64, xhp)	modelled	mathcov-special-rem-pio2-l58	method-specific source model and quantified behavior property
+base/special/rem_pio2.jl	105	128	fromfraction	fromfraction(f::Int128)	modelled	mathcov-special-rem-pio2-l105	method-specific source model and quantified behavior property
+base/special/rem_pio2.jl	130	211	paynehanek	paynehanek(x::Float64)	modelled	mathcov-special-rem-pio2-l130	method-specific source model and quantified behavior property
+base/special/rem_pio2.jl	222	282	rem_pio2_kernel	rem_pio2_kernel(x::Float64)	modelled	mathfuncs-rempio2-kernel-sign	source model and quantified behavior property
+base/special/rem_pio2.jl	284	295	rem_pio2_kernel	rem_pio2_kernel(x::Float32)	modelled	mathcov-special-rem-pio2-l284	method-specific source model and quantified behavior property

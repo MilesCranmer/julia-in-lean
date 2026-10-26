@@ -1,0 +1,66 @@
+file	line	endline	name	signature	status	entry	note
+base/checked.jl	26	26	checked_add	checked_add(x::Integer, y::Integer)	modelled	floatintcov-checked-l26	
+base/checked.jl	27	27	checked_sub	checked_sub(x::Integer, y::Integer)	modelled	floatintcov-checked-l27	
+base/checked.jl	28	28	checked_mul	checked_mul(x::Integer, y::Integer)	modelled	floatintcov-checked-l28	
+base/checked.jl	29	29	checked_div	checked_div(x::Integer, y::Integer)	modelled	floatintcov-checked-l29	
+base/checked.jl	30	30	checked_rem	checked_rem(x::Integer, y::Integer)	modelled	floatintcov-checked-l30	
+base/checked.jl	31	31	checked_fld	checked_fld(x::Integer, y::Integer)	modelled	floatintcov-checked-l31	
+base/checked.jl	32	32	checked_mod	checked_mod(x::Integer, y::Integer)	modelled	floatintcov-checked-l32	
+base/checked.jl	33	33	checked_cld	checked_cld(x::Integer, y::Integer)	modelled	floatintcov-checked-l33	
+base/checked.jl	37	37	checked_abs	checked_abs(x::T) where {T<:Integer}	modelled	floatintcov-checked-l37	
+base/checked.jl	89	91	checked_neg	checked_neg(x::T) where T<:Integer	modelled	floatintcov-checked-l89	
+base/checked.jl	92	93	throw_overflowerr_negation	throw_overflowerr_negation(x)	modelled	floatintcov-checked-l92	
+base/checked.jl	95	99	checked_neg	checked_neg(x::BrokenSignedInt)	excluded		internal-bootstrap: BrokenSignedInt is Union{} on the supported 64-bit build.
+base/checked.jl	102	105	checked_neg	checked_neg(x::T) where T<:BrokenUnsignedInt	excluded		internal-bootstrap: BrokenUnsignedInt is Union{} on the supported 64-bit build.
+base/checked.jl	119	119	checked_abs	checked_abs	excluded		no-behaviour: declares the generic function without a method body.
+base/checked.jl	121	126	checked_abs	checked_abs(x::SignedInt)	modelled	floatintcov-checked-l121	
+base/checked.jl	127	127	checked_abs	checked_abs(x::UnsignedInt)	modelled	floatintcov-checked-l127	
+base/checked.jl	128	128	checked_abs	checked_abs(x::Bool)	modelled	floatintcov-checked-l128	
+base/checked.jl	135	135	add_with_overflow	add_with_overflow	excluded		no-behaviour: declares the generic function without a method body.
+base/checked.jl	136	136	add_with_overflow	add_with_overflow(x::T, y::T) where {T<:SignedInt}	modelled	floatintcov-checked-l136	
+base/checked.jl	137	137	add_with_overflow	add_with_overflow(x::T, y::T) where {T<:UnsignedInt}	modelled	floatintcov-checked-l137	
+base/checked.jl	138	138	add_with_overflow	add_with_overflow(x::Bool, y::Bool)	modelled	floatintcov-checked-l138	
+base/checked.jl	141	146	add_with_overflow	add_with_overflow(x::T, y::T) where T<:BrokenSignedInt	excluded		internal-bootstrap: BrokenSignedInt is Union{} on the supported 64-bit build.
+base/checked.jl	149	153	add_with_overflow	add_with_overflow(x::T, y::T) where T<:BrokenUnsignedInt	excluded		internal-bootstrap: BrokenUnsignedInt is Union{} on the supported 64-bit build.
+base/checked.jl	156	157	throw_overflowerr_binaryop	throw_overflowerr_binaryop(op, x, y)	modelled	floatintcov-checked-l156	
+base/checked.jl	166	175	checked_add	checked_add(x::T, y::T) where T<:Integer	modelled	floatintcov-checked-l166	
+base/checked.jl	178	178	checked_add	checked_add(x)	modelled	floatintcov-checked-l178	
+base/checked.jl	179	179	checked_add	checked_add(x::Bool)	modelled	floatintcov-checked-l179	
+base/checked.jl	181	182	checked_add	checked_add(x1::T, x2::T, x3::T) where {T}	modelled	floatintcov-checked-l181	
+base/checked.jl	183	184	checked_add	checked_add(x1::T, x2::T, x3::T, x4::T) where {T}	modelled	floatintcov-checked-l183	
+base/checked.jl	185	186	checked_add	checked_add(x1::T, x2::T, x3::T, x4::T, x5::T) where {T}	modelled	floatintcov-checked-l185	
+base/checked.jl	187	188	checked_add	checked_add(x1::T, x2::T, x3::T, x4::T, x5::T, x6::T) where {T}	modelled	floatintcov-checked-l187	
+base/checked.jl	189	190	checked_add	checked_add(x1::T, x2::T, x3::T, x4::T, x5::T, x6::T, x7::T) where {T}	modelled	floatintcov-checked-l189	
+base/checked.jl	191	192	checked_add	checked_add(x1::T, x2::T, x3::T, x4::T, x5::T, x6::T, x7::T, x8::T) where {T}	modelled	floatintcov-checked-l191	
+base/checked.jl	199	199	sub_with_overflow	sub_with_overflow	excluded		no-behaviour: declares the generic function without a method body.
+base/checked.jl	200	200	sub_with_overflow	sub_with_overflow(x::T, y::T) where {T<:SignedInt}	modelled	floatintcov-checked-l200	
+base/checked.jl	201	201	sub_with_overflow	sub_with_overflow(x::T, y::T) where {T<:UnsignedInt}	modelled	floatintcov-checked-l201	
+base/checked.jl	202	202	sub_with_overflow	sub_with_overflow(x::Bool, y::Bool)	modelled	floatintcov-checked-l202	
+base/checked.jl	205	210	sub_with_overflow	sub_with_overflow(x::T, y::T) where T<:BrokenSignedInt	excluded		internal-bootstrap: BrokenSignedInt is Union{} on the supported 64-bit build.
+base/checked.jl	213	216	sub_with_overflow	sub_with_overflow(x::T, y::T) where T<:BrokenUnsignedInt	excluded		internal-bootstrap: BrokenUnsignedInt is Union{} on the supported 64-bit build.
+base/checked.jl	226	231	checked_sub	checked_sub(x::T, y::T) where T<:Integer	modelled	floatintcov-checked-l226	
+base/checked.jl	238	238	mul_with_overflow	mul_with_overflow	excluded		no-behaviour: declares the generic function without a method body.
+base/checked.jl	239	239	mul_with_overflow	mul_with_overflow(x::T, y::T) where {T<:SignedInt}	modelled	floatintcov-checked-l239	
+base/checked.jl	240	240	mul_with_overflow	mul_with_overflow(x::T, y::T) where {T<:UnsignedInt}	modelled	floatintcov-checked-l240	
+base/checked.jl	241	241	mul_with_overflow	mul_with_overflow(x::Bool, y::Bool)	modelled	floatintcov-checked-l241	
+base/checked.jl	244	248	mul_with_overflow	mul_with_overflow(x::T, y::T) where T<:BrokenSignedIntMul	excluded		platform: this workaround adds Int64 only on 32-bit builds; Int128 uses the separate active method.
+base/checked.jl	251	255	mul_with_overflow	mul_with_overflow(x::T, y::T) where T<:BrokenUnsignedIntMul	excluded		platform: this workaround adds UInt64 only on 32-bit builds; UInt128 uses the separate active method.
+base/checked.jl	259	273	mul_with_overflow	mul_with_overflow(x::T, y::T) where T<:Int128	modelled	floatintcov-checked-l259	
+base/checked.jl	277	280	mul_with_overflow	mul_with_overflow(x::T, y::T) where T<:UInt128	modelled	floatintcov-checked-l277	
+base/checked.jl	290	295	checked_mul	checked_mul(x::T, y::T) where T<:Integer	modelled	floatintcov-checked-l290	
+base/checked.jl	298	298	checked_mul	checked_mul(x)	modelled	floatintcov-checked-l298	
+base/checked.jl	299	300	checked_mul	checked_mul(x1::T, x2::T, x3::T) where {T}	modelled	floatintcov-checked-l299	
+base/checked.jl	301	302	checked_mul	checked_mul(x1::T, x2::T, x3::T, x4::T) where {T}	modelled	floatintcov-checked-l301	
+base/checked.jl	303	304	checked_mul	checked_mul(x1::T, x2::T, x3::T, x4::T, x5::T) where {T}	modelled	floatintcov-checked-l303	
+base/checked.jl	305	306	checked_mul	checked_mul(x1::T, x2::T, x3::T, x4::T, x5::T, x6::T) where {T}	modelled	floatintcov-checked-l305	
+base/checked.jl	307	308	checked_mul	checked_mul(x1::T, x2::T, x3::T, x4::T, x5::T, x6::T, x7::T) where {T}	modelled	floatintcov-checked-l307	
+base/checked.jl	309	310	checked_mul	checked_mul(x1::T, x2::T, x3::T, x4::T, x5::T, x6::T, x7::T, x8::T) where {T}	modelled	floatintcov-checked-l309	
+base/checked.jl	319	319	checked_div	checked_div(x::T, y::T) where {T<:Integer}	modelled	floatintcov-checked-l319	
+base/checked.jl	328	328	checked_rem	checked_rem(x::T, y::T) where {T<:Integer}	modelled	floatintcov-checked-l328	
+base/checked.jl	337	337	checked_fld	checked_fld(x::T, y::T) where {T<:Integer}	modelled	floatintcov-checked-l337	
+base/checked.jl	346	346	checked_mod	checked_mod(x::T, y::T) where {T<:Integer}	modelled	floatintcov-checked-l346	
+base/checked.jl	355	355	checked_cld	checked_cld(x::T, y::T) where {T<:Integer}	modelled	floatintcov-checked-l355	
+base/checked.jl	364	364	checked_pow	checked_pow(x::Integer, y::Integer)	modelled	floatintcov-checked-l364	
+base/checked.jl	366	366	checked_power_by_squaring	checked_power_by_squaring(x_, p::Integer)	modelled	floatintcov-checked-l366	
+base/checked.jl	368	368	checked_power_by_squaring	checked_power_by_squaring(x::Bool, p::Integer)	modelled	floatintcov-checked-l368	
+base/checked.jl	376	376	checked_length	checked_length(r)	modelled	floatintcov-checked-l376	

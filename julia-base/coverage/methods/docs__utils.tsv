@@ -1,0 +1,13 @@
+file	line	endline	name	signature	status	entry	note
+base/docs/utils.jl	33	39	HTML	HTML(xs...)	modelled	docssyntaxcov-utils-render	
+base/docs/utils.jl	41	41	show	"show(io::IO, ::MIME""text/html"", h::HTML)"	modelled	docssyntaxcov-utils-render	
+base/docs/utils.jl	42	42	show	"show(io::IO, ::MIME""text/html"", h::HTML{<:Function})"	modelled	docssyntaxcov-utils-render	
+base/docs/utils.jl	55	57	html_str	html_str(s)	modelled	docssyntaxcov-utils-render	
+base/docs/utils.jl	59	65	catdoc	catdoc(xs::HTML...)	modelled	docssyntaxcov-utils-render	
+base/docs/utils.jl	91	91	print	print(io::IO, t::Text)	modelled	docssyntaxcov-utils-render	
+base/docs/utils.jl	92	92	print	print(io::IO, t::Text{<:Function})	modelled	docssyntaxcov-utils-render	
+base/docs/utils.jl	93	93	show	show(io::IO, t::Text)	modelled	docssyntaxcov-utils-render	
+base/docs/utils.jl	95	95	==	==(t1::T, t2::T) where {T<:Union{HTML,Text}}	modelled	docssyntaxcov-utils-equality,docssyntaxcov-text-hash-isequal	
+base/docs/utils.jl	96	96	hash	hash(t::T, h::UInt) where {T<:Union{HTML,Text}}	modelled	docssyntaxcov-utils-equality,docssyntaxcov-text-hash-isequal	
+base/docs/utils.jl	109	111	text_str	text_str(s)	modelled	docssyntaxcov-utils-render	
+base/docs/utils.jl	113	119	catdoc	catdoc(xs::Text...)	modelled	docssyntaxcov-utils-render	

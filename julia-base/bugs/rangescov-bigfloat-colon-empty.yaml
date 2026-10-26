@@ -1,0 +1,55 @@
+id: rangescov-bigfloat-colon-empty
+title: "big(3.0):big(1.0) throws \"length cannot be negative\" instead of returning an empty range"
+priority: P2
+kind: wrong-exception
+area: RangesCov
+files: ["base/range.jl"]
+functions: ["(:)(::T, ::T) where T<:AbstractFloat", "_colon(::Ordered, ::ArithmeticRounds, start, step, stop)"]
+summary: |
+  For floating-point types other than Float16/32/64 (for example BigFloat), a:s:b with b < a and s > 0
+  throws ArgumentError("length cannot be negative, got -1") instead of returning an empty range.
+  The same happens for a:b with b < a - 1 and for a:-s:b ascending.
+likelihood: |
+  Any code that builds BigFloat (or other non-IEEE AbstractFloat) ranges whose stop lies before
+  the start, which is the usual way to obtain an empty range, for example big(n):big(1.0):big(m) in a loop.
+maybe_intended: ""
+reproducer: |
+  # a:b with b < a should be an empty range (docstring of (:), base/range.jl:54-55)
+  println("Float64: 3.0:1.0 = ", repr(3.0:1.0), ", isempty = ", isempty(3.0:1.0))
+  bug = false
+  try
+      r = big(3.0):big(1.0)
+      println("BigFloat: big(3.0):big(1.0) = ", repr(r), ", isempty = ", isempty(r))
+  catch e
+      println("BigFloat: big(3.0):big(1.0) throws ", sprint(showerror, e))
+      global bug = e isa ArgumentError
+  end
+  bug && println("REPRODUCED rangescov-bigfloat-colon-empty")
+output:
+  release: |
+    Float64: 3.0:1.0 = 3.0:1.0:2.0, isempty = true
+    BigFloat: big(3.0):big(1.0) throws ArgumentError: length cannot be negative, got -1
+    REPRODUCED rangescov-bigfloat-colon-empty
+  nightly: |
+    Float64: 3.0:1.0 = 3.0:1.0:2.0, isempty = true
+    BigFloat: big(3.0):big(1.0) throws ArgumentError: length cannot be negative, got -1
+    REPRODUCED rangescov-bigfloat-colon-empty
+reproduced: {release: true, nightly: true}
+expected: |
+  An empty StepRangeLen, as 3.0:1.0 gives for Float64 (3.0:1.0:2.0, isempty == true).
+promised_by: |
+  (:) docstring, base/range.jl:54-55: "Otherwise, when `b < a`, an empty range will be constructed
+  and normalized to `a:a-1`."
+cause: |
+  base/range.jl:26-27 computes the length as convert(Integer, fld(stop - start, step)) + 1, which is
+  negative (-1 for big(3.0):big(1.0)) when the range is empty; the StepRangeLen inner constructor
+  (base/range.jl:538) then rejects it.
+possible_fix: |
+  Clamp the computed length at zero: max(0, convert(Integer, fld(stop - start, step)) + 1).
+duplicates:
+  issues:
+    - {number: 48654, state: merged, relation: related}
+  queries: ["issues: BigFloat colon", "issues: BigFloat range empty", "issues: range length cannot be negative", "prs: BigFloat colon", "prs: BigFloat range empty", "prs: _colon ArithmeticRounds"]
+lean:
+  property: JuliaLean.RangesCov.Floats.RoundsColonEmpty
+  theorem: JuliaLean.RangesCov.Floats.roundsColonEmpty_refuted

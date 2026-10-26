@@ -1,0 +1,9 @@
+file	line	endline	name	signature	status	entry	note
+base/refvalue.jl	7	7	RefValue{T}	RefValue{T}() where {T}	modelled	misccov-refvalue	
+base/refvalue.jl	8	8	RefValue{T}	RefValue{T}(x) where {T}	modelled	misccov-refvalue	
+base/refvalue.jl	10	10	RefValue	RefValue(x::T) where {T}	modelled	misccov-refvalue	
+base/refvalue.jl	36	36	isassigned	isassigned(x::RefValue)	modelled	misccov-refvalue	
+base/refvalue.jl	38	54	unsafe_convert	unsafe_convert(P::Union{Type{Ptr{T}},Type{Ptr{Cvoid}}}, b::RefValue{T})::P where T	modelled	misccov-refvalue	
+base/refvalue.jl	55	57	unsafe_convert	unsafe_convert(::Type{Ptr{Any}}, b::RefValue{Any})::Ptr{Any}	modelled	misccov-refvalue	
+base/refvalue.jl	59	59	getindex	getindex(b::RefValue)	modelled	misccov-refvalue	
+base/refvalue.jl	60	60	setindex!	setindex!(b::RefValue, x)	modelled	misccov-refvalue	

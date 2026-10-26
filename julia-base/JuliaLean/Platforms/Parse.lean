@@ -6,8 +6,8 @@ import JuliaLean.Platforms.Basic
 `triplet_regex` is compiled with Julia's default options (`UTF | UCP`, no
 `s`): `\d` is a Unicode decimal digit, `.` is any character but `\n`, and `$`
 also matches before a final `\n`. The alternatives of each group appear in the
-iteration order of the mapping `Dict`s, which was printed on Linux x86-64 (identical
-on 1.13.2 and master):
+iteration order of the mapping `Dict`s, which was observed to be identical
+on 1.13.2 and master:
 
     arch_mapping:     armv6l, x86_64, i686, aarch64, powerpc64le, armv7l, riscv64
     os_mapping:       macos, openbsd, linux, freebsd, windows
@@ -191,8 +191,8 @@ variable (lc : Char → Char)
 constructor is built with `tags[k] = v` and `merge!` (a later write to an
 existing key replaces it) and the constructor iterates it in hash order. That
 order matters only for `libstdcxx_version` (written as `cxxlib_version`)
-against an extended `cxxlib_version` tag; on Linux x86-64 `cxxlib_version` always
-comes first (differential test, 56 such inputs), so the model passes
+against an extended `cxxlib_version` tag; `cxxlib_version` was observed to
+come first (differential test, 56 such inputs), so the model passes
 `libstdcxx_version` last and the other keys in insertion order. -/
 def parsePlatform (validateStrict : Bool) (t : Str) : Jl Platform := do
   match matchRe tripletRe t with

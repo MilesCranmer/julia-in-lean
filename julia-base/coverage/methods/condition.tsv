@@ -1,0 +1,47 @@
+file	line	endline	name	signature	status	entry	note
+base/condition.jl	5	9	concurrency_violation	concurrency_violation()	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	19	19	lock	lock	excluded		no-behaviour: declares the abstract lock generic without defining a method.
+base/condition.jl	20	20	unlock	unlock	excluded		no-behaviour: declares the abstract unlock generic without defining a method.
+base/condition.jl	21	21	trylock	trylock	excluded		no-behaviour: declares the abstract trylock generic without defining a method.
+base/condition.jl	22	22	islocked	islocked	excluded		no-behaviour: declares the abstract islocked generic without defining a method.
+base/condition.jl	23	23	unlockall	unlockall(l::AbstractLock)	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	24	24	relockall	relockall(l::AbstractLock, state::Nothing)	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	31	31	relockall_but_one	relockall_but_one(l::AbstractLock, state::Nothing)	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	32	33	assert_havelock	assert_havelock(l::AbstractLock, tid::Integer)	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	34	35	assert_havelock	assert_havelock(l::AbstractLock, tid::Task)	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	36	36	assert_havelock	assert_havelock(l::AbstractLock, tid::Nothing)	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	53	53	AlwaysLockedST	AlwaysLockedST()	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	55	55	assert_havelock	assert_havelock(l::AlwaysLockedST)	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	56	56	lock	lock(l::AlwaysLockedST)	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	57	57	unlock	unlock(l::AlwaysLockedST)	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	58	58	trylock	trylock(l::AlwaysLockedST)	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	59	59	islocked	islocked(::AlwaysLockedST)	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	79	79	GenericCondition{L}	GenericCondition{L}() where {L<:AbstractLock}	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	80	80	GenericCondition{L}	GenericCondition{L}(l::L) where {L<:AbstractLock}	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	81	81	GenericCondition	GenericCondition(l::AbstractLock)	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	84	84	waitqueue	waitqueue(c::GenericCondition)	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	93	113	try_unlink_claimed!	try_unlink_claimed!(w::WaitEntry)	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	115	123	_try_unlink_from!	_try_unlink_from!(c::GenericCondition, w::WaitEntry)	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	125	125	show	show(io::IO, c::GenericCondition)	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	127	127	assert_havelock	assert_havelock(c::GenericCondition)	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	128	128	lock	lock(c::GenericCondition)	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	131	131	unlock	unlock(c::GenericCondition)	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	132	132	trylock	trylock(c::GenericCondition)	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	133	133	islocked	islocked(c::GenericCondition)	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	135	135	lock	lock(f, c::GenericCondition)	modelled	tasks-coverage-condition-locks	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	140	147	wait_enqueue!	wait_enqueue!(c::GenericCondition, w::WaitEntry, first::Bool)	modelled	tasks-coverage-condition-registration	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	148	165	wait_dequeue!	wait_dequeue!(c::GenericCondition, w::WaitEntry, why::UInt8)	modelled	tasks-coverage-condition-registration	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	167	168	_fresh_waiter_error	_fresh_waiter_error()	modelled	tasks-coverage-condition-registration	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	176	180	_assert_fresh_waiter	_assert_fresh_waiter(waiter::Task)	modelled	tasks-coverage-condition-registration	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	186	190	_schedule_subscription_cancelled	_schedule_subscription_cancelled(waiter::Task, src::CancellationTokenSource)	modelled	tasks-coverage-condition-registration	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	206	249	schedule_on_notify!	schedule_on_notify!(c::GenericCondition, waiter::Task, first::Bool=false)	modelled	tasks-coverage-condition-registration	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	275	275	wait	wait	excluded		no-behaviour: declares the wait generic without defining a method.
+base/condition.jl	291	309	wait	wait(c::GenericCondition; first::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	tasks-coverage-condition-wait	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	328	405	wait	wait(c::GenericCondition, tok::MaybeToken; first::Bool=false, min_severity::UInt8=0x00, cancel_value::Bool=false)	modelled	tasks-coverage-condition-wait	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	416	416	notify	notify(c::GenericCondition, @nospecialize(arg = nothing); all=true, error=false)	modelled	tasks-condition-notify-one,tasks-coverage-condition-notify	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	417	434	notify	notify(c::GenericCondition, @nospecialize(arg), all, error)	modelled	tasks-condition-notify-one,tasks-coverage-condition-notify	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	436	436	notify_error	notify_error(c::GenericCondition, err)	modelled	tasks-coverage-condition-notify	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	443	443	isempty	isempty(c::GenericCondition)	modelled	tasks-coverage-condition-notify	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	463	463	show	show(io::IO, ::Condition)	modelled	tasks-coverage-condition-notify	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	465	466	lock	lock(c::GenericCondition{AlwaysLockedST})	modelled	tasks-coverage-condition-notify	source-body: Lean model mirrors this method's branch and mutation order.
+base/condition.jl	467	468	unlock	unlock(c::GenericCondition{AlwaysLockedST})	modelled	tasks-coverage-condition-notify	source-body: Lean model mirrors this method's branch and mutation order.

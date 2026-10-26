@@ -1,0 +1,87 @@
+line	name	verdict	mirror	property	settled	reason
+107	codeunit	HOLLOW	no	no	yes	The helper accepts an already converted Int and omits Int(i), its possible conversion failure, and the source MethodError payload, so it neither mirrors the Integer fallback nor covers every allowed Integer.
+143	isvalid	HOLLOW	no	no	yes	The helper accepts an already converted Int and omits Int(i), its possible conversion failure, and the source MethodError payload, so it neither mirrors the Integer fallback nor covers every allowed Integer.
+156	iterate	HOLLOW	no	no	yes	The helper accepts an already converted Int and omits Int(i), its possible conversion failure, and the source MethodError payload, so it neither mirrors the Integer fallback nor covers every allowed Integer.
+161	eltype	FAITHFUL	yes	yes	yes	-
+178	sizeof	HOLLOW	no	no	yes	The Lean helper receives precomputed code-unit count and size values, so it omits the source ncodeunits, codeunit-type, and sizeof calls and states no property of an AbstractString input.
+179	firstindex	FAITHFUL	yes	yes	yes	-
+180	lastindex	HOLLOW	no	no	yes	The Lean helper receives an arbitrary unary function and precomputed count instead of calling thisind(s, ncodeunits(s)), so the proposition states no all-string last-index behavior.
+181	isempty	HOLLOW	no	no	yes	The Lean helper receives a precomputed count and compares it with zero instead of calling ncodeunits and iszero on a string, so the proposition is not about every AbstractString input.
+183	first	HOLLOW	no	no	yes	The Lean helper hard-codes index one and applies an arbitrary lookup callback, omitting the source firstindex call and any property of the supplied AbstractString.
+185	getindex	HOLLOW	no	no	yes	The model restricts the index to Int, replaces checkbounds, isvalid, iterate, and string_index_err with reduced callbacks and error tags, and therefore misses allowed Integer conversions and exact errors.
+190	getindex	FAITHFUL	yes	yes	yes	-
+193	getindex	HOLLOW	no	no	yes	The model maps a list through a lookup callback and omits sprint, ordered writes, sizehint, string construction, and failures for arbitrary integer vectors.
+195	getindex	FAITHFUL	yes	yes	yes	-
+198	get	HOLLOW	no	no	yes	The model restricts i to Int and replaces both string bounds checking and indexing with total callbacks, so it omits allowed Integer conversion and delegated error behavior.
+204	checkbounds	HOLLOW	no	no	yes	The model receives ncodeunits as a bare Int and restricts the index to Int, omitting the source string call and behavior for every Integer subtype.
+206	checkbounds	HOLLOW	no	no	yes	The model receives only low and high Int endpoints, so it omits isempty, minimum, maximum, descending and custom ranges, and the source ncodeunits call.
+208	checkbounds	HOLLOW	no	no	yes	The model uses a List Int and an arbitrary predicate, so it cannot represent AbstractArray{<:Real}, noninteger real indices, custom axes, or actual string bounds checks.
+210	checkbounds	HOLLOW	no	no	yes	The model uses a List Int and an arbitrary predicate, so it does not cover every AbstractArray{<:Integer}, custom axes, or actual string bounds checks.
+212	checkbounds	HOLLOW	no	no	yes	The model receives a precomputed Boolean and drops the string and index collection from BoundsError, so it neither mirrors the delegated check nor states exact throwing behavior.
+217	string	FAITHFUL	yes	yes	yes	-
+218	string	FAITHFUL	yes	yes	yes	-
+220	Vector{UInt8}	HOLLOW	no	no	yes	The model returns a conversion callback's byte list and omits String(s), unsafe_wrap, allocation or ownership behavior, and conversion failures for arbitrary AbstractString inputs.
+221	Array{UInt8}	HOLLOW	no	no	yes	The model returns a conversion callback's byte list and omits String(s), unsafe_wrap, allocation or ownership behavior, and conversion failures for arbitrary AbstractString inputs.
+222	Vector{T}	HOLLOW	no	no	yes	The model delegates to an arbitrary total collector and does not model collect(T, s), AbstractChar conversion, result typing, or failures for every allowed T and string.
+224	Symbol	HOLLOW	yes	no	yes	The ordered String conversion and interning calls are represented, but the proposition treats both as total callbacks and states no Symbol result or conversion behavior for every AbstractString.
+225	Symbol	HOLLOW	no	no	yes	The model replaces heterogeneous varargs and possibly failing string rendering with a homogeneous list and total callback, so it does not cover every allowed argument tuple.
+227	convert	FAITHFUL	yes	yes	yes	-
+228	convert	HOLLOW	no	no	yes	The model calls a total constructor callback but omits the source ::T assertion and its observable failure, so it does not cover every AbstractString conversion outcome.
+232	summary	HOLLOW	no	no	yes	The model constructs and returns a String from precomputed count and type name values, omitting isempty, ncodeunits, typeof, ordered print calls, IO mutation, and print failures.
+257	*	HOLLOW	no	no	yes	The model receives annotation status as a Boolean and both results as callbacks, omitting _isannotated, any, their evaluation order and failures, and the actual concatenation behavior.
+265	one	HOLLOW	no	no	yes	The model returns a supplied empty value directly and omits convert(T, ""), so it states no identity value or conversion behavior for every AbstractString type.
+270	_isannotated	HOLLOW	no	no	yes	The model receives the bottom and subtype-test results as precomputed Booleans, so it omits the actual type comparisons and states no property over Julia types.
+271	_isannotated	HOLLOW	no	no	yes	The model applies an arbitrary predicate directly to the value instead of calling typeof and then _isannotated on that type.
+308	cmp	HOLLOW	yes	no	yes	The JStr comparison model follows the loop, but the proposition only equates the helper to that concrete String model and does not state lexicographic behavior for every AbstractString, including annotated strings.
+335	==	HOLLOW	yes	no	yes	The wrapper mirrors comparison with zero, but its proposition is restricted to JStr and does not cover equality or annotation properties for every AbstractString pair.
+355	isless	HOLLOW	yes	no	yes	The wrapper mirrors the negative comparison test, but its proposition is restricted to JStr and does not state lexicographic ordering for every AbstractString pair.
+359	cmp	HOLLOW	yes	no	yes	The call and sign conversion are represented, but the proposition quantifies an arbitrary strcmp callback and does not relate Symbol names to the promised lexical comparison result.
+363	isless	HOLLOW	yes	no	yes	The negative comparison wrapper is represented, but the proposition reduces Symbol ordering to an arbitrary strcmp callback and states no lexical ordering property of Symbol names.
+396	length	HOLLOW	no	no	yes	The proposition delegates to the concrete String length implementation instead of mirroring this generic call to length(s, 1, ncodeunits(s)) or covering every AbstractString.
+398	length	HOLLOW	no	no	yes	The proposition uses the different concrete String range-length method instead of this generic bounds-check and isvalid loop, and it covers only JStr inputs.
+410	length	HOLLOW	no	no	yes	The proposition reuses the concrete String range-length model and omits both Int conversions and their failures for arbitrary Integer arguments.
+445	thisind	HOLLOW	no	no	yes	The proposition calls the concrete String thisind implementation instead of mirroring this Integer-to-Int conversion wrapper and its conversion outcomes.
+447	thisind	HOLLOW	no	no	yes	The proposition calls the different concrete String thisind implementation instead of this generic bounds check and isvalid rewind loop over every AbstractString.
+501	prevind	HOLLOW	no	no	yes	The proposition omits both Int conversions and dispatches directly to a JStr core model, so it misses conversion failures and every non-String AbstractString implementation.
+502	prevind	HOLLOW	no	no	yes	The proposition omits Int(i) and dispatches directly to a JStr one-step model, so it misses conversion failures and every non-String AbstractString implementation.
+503	prevind	HOLLOW	yes	no	yes	The one-step delegation is represented, but the proposition is restricted to JStr and merely unfolds the concrete prevind model instead of stating behavior for every AbstractString.
+505	prevind	HOLLOW	yes	no	yes	The JStr model preserves the checks, loop and final subtraction, but the proposition only equates two names for that concrete model and does not state the documented behavior for every AbstractString.
+560	nextind	HOLLOW	no	no	yes	The proposition omits both Int conversions and dispatches directly to a JStr core model, so it misses conversion failures and every non-String AbstractString implementation.
+561	nextind	HOLLOW	no	no	yes	The proposition omits Int(i) and dispatches directly to a JStr one-step model, so it misses conversion failures and every non-String AbstractString implementation.
+562	nextind	HOLLOW	yes	no	yes	The one-step delegation is represented, but the proposition is restricted to JStr and merely unfolds the concrete nextind model instead of stating behavior for every AbstractString.
+564	nextind	HOLLOW	yes	no	yes	The core JStr loop is used, but one registry proposition states first(s,n) rather than this method's behavior and the other covers only JStr and Int64 inputs rather than every allowed AbstractString and Integer.
+580	keys	HOLLOW	yes	no	yes	The constructor call is represented, but the proposition stores only JStr and therefore does not cover EachStringIndex construction for every AbstractString subtype.
+582	length	HOLLOW	no	no	yes	The model calls the concrete JStr length algorithm instead of generic length(e.s), so it omits custom AbstractString behavior.
+583	first	FAITHFUL	yes	yes	yes	-
+584	last	HOLLOW	yes	no	yes	The lastindex delegation is represented, but the proposition fixes e.s to JStr and therefore does not state the result for every EachStringIndex over an AbstractString.
+585	iterate	HOLLOW	no	no	yes	The model fixes the wrapped string to JStr, omits the default-state calculation, and converts nextind errors to nothing instead of preserving the source call's failures.
+586	eltype	FAITHFUL	yes	yes	yes	-
+618	isascii	FAITHFUL	yes	yes	yes	-
+619	isascii	HOLLOW	no	no	yes	The model uses the concrete String code-unit chunk algorithm instead of all(isascii, s) over characters and covers only JStr rather than every AbstractString.
+620	isascii	HOLLOW	no	no	yes	The model receives a precomputed UInt32 value and compares it directly, omitting UInt32(c) and its behavior for every AbstractChar subtype.
+622	_isascii	HOLLOW	yes	no	yes	The UInt8 list model preserves the OR scan, but the proposition excludes signed and wider CU types, negative elements, custom AbstractVector indices, and their bounds behavior.
+631	_isascii_chunks	HOLLOW	no	no	yes	The recursion is restricted to one-based UInt8 lists and uses byte-list length as fuel, so it does not mirror arbitrary chunk sizes, ranges, CU types, vector axes, or nonterminating invalid calls.
+645	isascii	HOLLOW	no	no	yes	The model replaces the threshold branch and calls to _isascii and _isascii_chunks with a direct all predicate on a one-based UInt8 list, omitting signed values and arbitrary vector axes.
+657	map	HOLLOW	no	no	yes	The model substitutes character-list mapping and encoding for allocation sizing, the result-type check, resize operations, conversion, writes and errors, and covers only JStr with a Char-returning function.
+673	filter	HOLLOW	no	no	yes	The model substitutes list filtering and encoding for IOBuffer allocation, ordered predicate calls, writes and takestring!, and covers only JStr with a total Bool predicate.
+700	first	HOLLOW	yes	no	yes	The JStr model follows nextind and the bounded slice, but the refuted property covers only JStr and Int64 rather than every allowed AbstractString and Integer input.
+719	last	HOLLOW	yes	no	yes	The JStr model follows prevind and the bounded suffix slice, but the proposition merely equates the helper to that concrete model and states no documented suffix behavior for every allowed input.
+742	reverseind	HOLLOW	yes	no	yes	The call and arithmetic are represented, but the proposition replaces the string and ncodeunits with an arbitrary callback and count and does not state the documented reverse-index relation.
+757	repeat	HOLLOW	yes	no	yes	The conversion and repeat calls are represented, but the proposition restricts the string to a JStr conversion and the count to Int64 and only unfolds the concrete repeat model.
+772	^	HOLLOW	yes	no	yes	The repeat delegation is represented, but the proposition restricts the count to Int and treats repeat as an arbitrary callback, so it does not cover every Integer or state the documented repeated result.
+775	iterate	HOLLOW	no	no	yes	The model omits the default lastindex state, hard-codes firstindex and replaces indexing and prevind with total callbacks, so it does not cover every reverse AbstractString iteration call or failure.
+776	iterate	HOLLOW	no	no	yes	The shared model omits the default lastindex state and represents the returned index through a generic get callback, so it does not mirror this EachStringIndex method or cover every wrapped AbstractString.
+788	CodeUnits	HOLLOW	no	no	yes	The model wraps only a byte list and drops the original AbstractString object and the codeunit(s) type parameter that the constructor computes and stores.
+791	sizeof	HOLLOW	no	no	yes	The model returns byte-list length and omits ncodeunits(s.s) multiplied by sizeof(T), so it is wrong for CodeUnits element types wider than UInt8.
+792	size	HOLLOW	no	no	yes	The model reads byte-list length directly instead of calling ncodeunits on the wrapped AbstractString and covers only a UInt8-list surrogate.
+793	elsize	HOLLOW	no	no	yes	The model hard-codes one byte and omits sizeof(T), so it is wrong for allowed CodeUnits element types wider than UInt8.
+794	getindex	HOLLOW	no	no	yes	The model reads a byte list with default zero and cannot preserve codeunit's bounds errors, original string dispatch, or non-UInt8 code-unit result.
+795	IndexStyle	FAITHFUL	yes	yes	yes	-
+796	checkbounds	HOLLOW	no	no	yes	The model computes bounds on a byte list instead of delegating checkbounds(Bool, s.s, i), so it omits custom AbstractString bounds behavior and arbitrary Integer types.
+798	dataids	HOLLOW	no	no	yes	The model applies an arbitrary callback to copied byte contents instead of calling dataids on the stored original string object.
+801	write	HOLLOW	no	no	yes	The model applies a total callback to byte contents and omits the IO argument, write on the stored string, IO mutation, return behavior, and errors.
+803	cconvert	HOLLOW	no	no	yes	The model applies an untyped total callback to byte contents and omits Ptr{T}, the original string object, pointer lifetime and conversion failures.
+804	cconvert	HOLLOW	no	no	yes	The shared model applies an untyped total callback to byte contents and omits the Ptr{Int8} specialization, original string object, pointer lifetime and conversion failures.
+806	similar	HOLLOW	no	no	yes	The model reduces element type and arbitrary Dims to a Nat-to-byte-list callback, omitting similar(Array{T}, dims), requested rank and dimensions, allocation, and errors.
+827	codeunits	HOLLOW	no	no	yes	The model wraps only byte contents and loses the original AbstractString object and concrete code-unit type that CodeUnits(s) preserves.
+829	_split_rest	HOLLOW	no	no	yes	The model is only an arbitrary split callback and contains none of lastindex, prevind, exception filtering, length checking, SubString construction, slicing, or their order and failures.

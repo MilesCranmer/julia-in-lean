@@ -1,0 +1,341 @@
+file	line	endline	name	signature	status	entry	note
+base/iterators.jl	56	56	map	map(f, arg, args...)	modelled	iteratorscov-cycle-repeated	
+base/iterators.jl	58	58	_min_length	_min_length(a, b, ::IsInfinite, ::IsInfinite)	modelled	iteratorscov-length-helpers	
+base/iterators.jl	59	59	_min_length	_min_length(a, b, A, ::IsInfinite)	modelled	iteratorscov-length-helpers	
+base/iterators.jl	60	60	_min_length	_min_length(a, b, ::IsInfinite, B)	modelled	iteratorscov-length-helpers	
+base/iterators.jl	61	61	_min_length	_min_length(a, b, A, B)	modelled	iteratorscov-length-helpers	
+base/iterators.jl	63	63	_diff_length	_diff_length(a, b, A, ::IsInfinite)	modelled	iteratorscov-length-helpers	
+base/iterators.jl	64	64	_diff_length	_diff_length(a, b, ::IsInfinite, ::IsInfinite)	modelled	iteratorscov-length-helpers	
+base/iterators.jl	65	65	_diff_length	_diff_length(a, b, ::IsInfinite, B)	modelled	iteratorscov-length-helpers	
+base/iterators.jl	66	69	_diff_length	_diff_length(a, b, A, B)	modelled	iteratorscov-length-helpers	
+base/iterators.jl	71	71	and_iteratorsize	and_iteratorsize(isz::T, ::T) where {T}	modelled	iteratorscov-trait-composition	
+base/iterators.jl	72	72	and_iteratorsize	and_iteratorsize(::HasLength, ::HasShape)	modelled	iteratorscov-trait-composition	
+base/iterators.jl	73	73	and_iteratorsize	and_iteratorsize(::HasShape, ::HasLength)	modelled	iteratorscov-trait-composition	
+base/iterators.jl	74	74	and_iteratorsize	and_iteratorsize(::HasShape{N}, ::HasShape{N}) where {N}	modelled	iteratorscov-trait-composition	
+base/iterators.jl	75	75	and_iteratorsize	and_iteratorsize(::HasShape, ::HasShape)	modelled	iteratorscov-trait-composition	
+base/iterators.jl	76	76	and_iteratorsize	and_iteratorsize(a, b)	modelled	iteratorscov-trait-composition	
+base/iterators.jl	78	78	and_iteratoreltype	and_iteratoreltype(iel::T, ::T) where {T}	modelled	iteratorscov-trait-composition	
+base/iterators.jl	79	79	and_iteratoreltype	and_iteratoreltype(a, b)	modelled	iteratorscov-trait-composition	
+base/iterators.jl	113	113	reverse	reverse(itr)	modelled	iteratorscov-reverse-yields	
+base/iterators.jl	128	128	eltype	eltype(::Type{Reverse{T}}) where {T}	modelled	iteratorscov-reverse-traits	
+base/iterators.jl	129	129	length	length(r::Reverse)	modelled	iteratorscov-reverse-traits	
+base/iterators.jl	130	130	size	size(r::Reverse)	modelled	iteratorscov-reverse-traits	
+base/iterators.jl	131	131	IteratorSize	IteratorSize(::Type{Reverse{T}}) where {T}	modelled	iteratorscov-reverse-traits	
+base/iterators.jl	132	132	IteratorEltype	IteratorEltype(::Type{Reverse{T}}) where {T}	modelled	iteratorscov-reverse-traits	
+base/iterators.jl	133	133	last	last(r::Reverse)	modelled	iteratorscov-reverse-traits	
+base/iterators.jl	136	141	iterate	iterate(A::Reverse{<:AbstractArray}, state=(reverse(eachindex(A.itr)),))	modelled	iteratorscov-reverse-yields	
+base/iterators.jl	145	150	iterate	iterate(A::Reverse, state=(reverse(eachindex(A.itr)),))	modelled	iteratorscov-reverse-yields	
+base/iterators.jl	153	153	iterate	iterate(r::Reverse{Union{}})	modelled	iteratorscov-reverse-yields	
+base/iterators.jl	154	154	iterate	iterate(r::Reverse{Union{}}, state)	modelled	iteratorscov-reverse-yields	
+base/iterators.jl	156	156	reverse	reverse(R::AbstractRange)	modelled	iteratorscov-reverse-yields	
+base/iterators.jl	157	157	reverse	reverse(G::Generator)	modelled	iteratorscov-reverse-yields	
+base/iterators.jl	158	158	reverse	reverse(r::Reverse)	modelled	iteratorscov-reverse-yields	
+base/iterators.jl	159	159	reverse	reverse(x::Union{Number,AbstractChar})	modelled	iteratorscov-reverse-yields	
+base/iterators.jl	160	160	reverse	reverse(p::Pair)	modelled	iteratorscov-reverse-yields	
+base/iterators.jl	162	162	iterate	iterate(r::Reverse{<:Union{Tuple, NamedTuple}}, i::Int = length(r.itr))	modelled	iteratorscov-reverse-yields	
+base/iterators.jl	207	207	enumerate	enumerate(iter)	modelled	iterators-enumerate	
+base/iterators.jl	209	209	length	length(e::Enumerate)	modelled	iterators-enumerate	
+base/iterators.jl	210	210	size	size(e::Enumerate)	modelled	iteratorscov-enumerate	
+base/iterators.jl	211	216	iterate	iterate(e::Enumerate, state=(1,))	modelled	iteratorscov-enumerate	
+base/iterators.jl	217	217	last	last(e::Enumerate)	modelled	iteratorscov-enumerate	
+base/iterators.jl	219	219	eltype	eltype(::Type{Enumerate{I}}) where {I}	modelled	iteratorscov-enumerate	
+base/iterators.jl	221	221	IteratorSize	IteratorSize(::Type{Enumerate{I}}) where {I}	modelled	iteratorscov-enumerate	
+base/iterators.jl	222	222	IteratorEltype	IteratorEltype(::Type{Enumerate{I}}) where {I}	modelled	iteratorscov-enumerate	
+base/iterators.jl	224	227	iterate	iterate(r::Reverse{<:Enumerate})	modelled	iteratorscov-enumerate	
+base/iterators.jl	228	233	iterate	iterate(r::Reverse{<:Enumerate}, state)	modelled	iteratorscov-enumerate	
+base/iterators.jl	281	281	pairs	pairs(::IndexLinear, A::AbstractArray)	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	285	285	pairs	pairs(tuple::Tuple)	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	286	286	pairs	pairs(nt::NamedTuple)	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	287	287	pairs	pairs(v::Core.SimpleVector)	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	288	288	pairs	pairs(A::AbstractVector)	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	291	291	pairs	pairs(::IndexCartesian, A::AbstractArray)	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	292	292	pairs	pairs(A::AbstractArray)	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	294	294	length	length(v::Pairs)	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	295	295	axes	axes(v::Pairs)	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	296	296	size	size(v::Pairs)	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	298	300	_pairs_elt	_pairs_elt(p::Pairs{K, V}, idx) where {K, V}	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	302	307	iterate	iterate(p::Pairs{K, V}, state...) where {K, V}	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	309	314	iterate	iterate(r::Reverse{<:Pairs}, state=(reverse(keys(r.itr)),))	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	316	316	isdone	isdone(v::Pairs, state...)	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	318	318	IteratorSize	IteratorSize(::Type{<:Pairs{<:Any, <:Any, I}}) where {I}	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	319	319	IteratorSize	IteratorSize(::Type{<:Pairs{<:Any, <:Any, <:AbstractUnitRange, <:Tuple}})	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	321	324	last	last(v::Pairs{K, V}) where {K, V}	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	326	326	haskey	haskey(v::Pairs, key)	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	327	327	keys	keys(v::Pairs)	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	328	328	values	values(v::Pairs)	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	329	329	getindex	getindex(v::Pairs, key)	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	330	330	setindex!	setindex!(v::Pairs, value, key)	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	331	331	get	get(v::Pairs, key, default)	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	332	332	get	get(f::Base.Callable, v::Pairs, key)	modelled	iteratorscov-pairs-semantics	
+base/iterators.jl	379	379	zip	zip(a...)	modelled	iterators-take-isdone-zero,iterators-zip	
+base/iterators.jl	380	384	length	length(z::Zip)	modelled	iterators-zip	
+base/iterators.jl	385	393	_zip_min_length	_zip_min_length(is)	modelled	iteratorscov-zip-metadata	
+base/iterators.jl	394	394	_zip_min_length	_zip_min_length(is::Tuple{})	modelled	iteratorscov-zip-metadata	
+base/iterators.jl	401	410	_zip_lengths_finite_equal	_zip_lengths_finite_equal(is)	modelled	iteratorscov-zip-metadata	
+base/iterators.jl	411	411	_zip_lengths_finite_equal	_zip_lengths_finite_equal(is::Tuple{})	modelled	iteratorscov-zip-metadata	
+base/iterators.jl	412	412	size	size(z::Zip)	modelled	iteratorscov-zip-metadata	
+base/iterators.jl	413	413	axes	axes(z::Zip)	modelled	iteratorscov-zip-metadata	
+base/iterators.jl	414	414	_promote_tuple_shape	_promote_tuple_shape((a,)::Tuple{OneTo}, (b,)::Tuple{OneTo})	modelled	iteratorscov-zip-metadata	
+base/iterators.jl	415	415	_promote_tuple_shape	_promote_tuple_shape((m,)::Tuple{Integer}, (n,)::Tuple{Integer})	modelled	iteratorscov-zip-metadata	
+base/iterators.jl	416	416	_promote_tuple_shape	_promote_tuple_shape(a, b)	modelled	iteratorscov-zip-metadata	
+base/iterators.jl	417	417	_promote_tuple_shape	_promote_tuple_shape(a, b...)	modelled	iteratorscov-zip-metadata	
+base/iterators.jl	418	418	_promote_tuple_shape	_promote_tuple_shape(a)	modelled	iteratorscov-zip-metadata	
+base/iterators.jl	425	425	eltype	eltype(::Type{Zip{Is}}) where {N, Is<:Tuple{Vararg{Any, N}}}	modelled	iteratorscov-zip-metadata	
+base/iterators.jl	430	430	isdone	isdone(z::Zip)	modelled	iteratorscov-zip-protocol	
+base/iterators.jl	431	431	isdone	isdone(z::Zip, ss)	modelled	iteratorscov-zip-protocol	
+base/iterators.jl	433	437	_zip_any_isdone	_zip_any_isdone(is::Tuple, ss::Tuple)	modelled	iteratorscov-zip-protocol	
+base/iterators.jl	438	438	_zip_any_isdone	_zip_any_isdone(::Tuple{}, ::Tuple{})	modelled	iteratorscov-zip-protocol	
+base/iterators.jl	440	440	iterate	iterate(z::Zip)	modelled	iteratorscov-zip-protocol	
+base/iterators.jl	441	441	iterate	iterate(z::Zip, ss)	modelled	iteratorscov-zip-protocol	
+base/iterators.jl	448	460	_zip_iterate_all	_zip_iterate_all(is, ss)	modelled	iteratorscov-zip-protocol	
+base/iterators.jl	462	462	_zip_all_missing	_zip_all_missing(ds::Tuple)	modelled	iteratorscov-zip-protocol	
+base/iterators.jl	463	463	_zip_all_missing	_zip_all_missing(::Tuple{})	modelled	iteratorscov-zip-protocol	
+base/iterators.jl	465	471	_zip_iterate_in_order	_zip_iterate_in_order(is::Tuple, ss::Tuple)	modelled	iteratorscov-zip-protocol	
+base/iterators.jl	472	472	_zip_iterate_in_order	_zip_iterate_in_order(::Tuple{}, ::Tuple{})	modelled	iteratorscov-zip-protocol	
+base/iterators.jl	478	484	_zip_iterate_unknown	_zip_iterate_unknown(is::Tuple, ss::Tuple, ds::Tuple)	modelled	iteratorscov-zip-protocol	
+base/iterators.jl	485	485	_zip_iterate_unknown	_zip_iterate_unknown(::Tuple{}, ::Tuple{}, ::Tuple{})	modelled	iteratorscov-zip-protocol	
+base/iterators.jl	487	493	_zip_iterate_rest	_zip_iterate_rest(is::Tuple, ss::Tuple, xs::Tuple)	modelled	iteratorscov-zip-protocol	
+base/iterators.jl	494	494	_zip_iterate_rest	_zip_iterate_rest(::Tuple{}, ::Tuple{}, ::Tuple{})	modelled	iteratorscov-zip-protocol	
+base/iterators.jl	496	500	_zip_isdone	_zip_isdone(is::Tuple, ss::Tuple)	modelled	iteratorscov-zip-protocol	
+base/iterators.jl	501	501	_zip_isdone	_zip_isdone(::Tuple{}, ::Tuple{})	modelled	iteratorscov-zip-protocol	
+base/iterators.jl	503	503	IteratorSize	IteratorSize(::Type{Zip{Is}}) where {N, Is<:Tuple{Vararg{Any, N}}}	modelled	iteratorscov-zip-traits	
+base/iterators.jl	504	504	IteratorEltype	IteratorEltype(::Type{Zip{Is}}) where {N, Is<:Tuple{Vararg{Any, N}}}	modelled	iteratorscov-zip-traits	
+base/iterators.jl	506	506	zip_iteratorsize	zip_iteratorsize()	modelled	iteratorscov-zip-traits	
+base/iterators.jl	507	507	zip_iteratorsize	zip_iteratorsize(I)	modelled	iteratorscov-zip-traits	
+base/iterators.jl	508	508	zip_iteratorsize	zip_iteratorsize(a, b)	modelled	iteratorscov-zip-traits	
+base/iterators.jl	509	509	zip_iteratorsize	zip_iteratorsize(::HasLength, ::IsInfinite)	modelled	iteratorscov-zip-traits	
+base/iterators.jl	510	510	zip_iteratorsize	zip_iteratorsize(::HasShape, ::IsInfinite)	modelled	iteratorscov-zip-traits	
+base/iterators.jl	511	511	zip_iteratorsize	zip_iteratorsize(a::IsInfinite, b)	modelled	iteratorscov-zip-traits	
+base/iterators.jl	512	512	zip_iteratorsize	zip_iteratorsize(a::IsInfinite, b::IsInfinite)	modelled	iteratorscov-zip-traits	
+base/iterators.jl	513	513	zip_iteratorsize	zip_iteratorsize(a, b, tail...)	modelled	iteratorscov-zip-traits	
+base/iterators.jl	515	515	zip_iteratoreltype	zip_iteratoreltype()	modelled	iteratorscov-zip-traits	
+base/iterators.jl	516	516	zip_iteratoreltype	zip_iteratoreltype(a)	modelled	iteratorscov-zip-traits	
+base/iterators.jl	517	517	zip_iteratoreltype	zip_iteratoreltype(a, tail...)	modelled	iteratorscov-zip-traits	
+base/iterators.jl	519	519	last	last(z::Zip)	modelled	iteratorscov-zip-metadata	
+base/iterators.jl	521	526	reverse	reverse(z::Zip)	modelled	iterators-zip-reverse	
+base/iterators.jl	576	576	filter	filter(flt, itr)	modelled	iteratorscov-filter	
+base/iterators.jl	578	592	iterate	iterate(f::Filter, state...)	modelled	iteratorscov-filter	
+base/iterators.jl	594	594	eltype	eltype(::Type{Filter{F,I}}) where {F,I}	modelled	iteratorscov-filter	
+base/iterators.jl	595	595	IteratorEltype	IteratorEltype(::Type{Filter{F,I}}) where {F,I}	modelled	iteratorscov-filter	
+base/iterators.jl	596	596	IteratorSize	IteratorSize(::Type{<:Filter})	modelled	iteratorscov-filter	
+base/iterators.jl	598	598	reverse	reverse(f::Filter)	modelled	iteratorscov-filter	
+base/iterators.jl	599	599	last	last(f::Filter)	modelled	iteratorscov-filter	
+base/iterators.jl	641	641	accumulate	accumulate(f, itr; init = Base._InitialValue())	modelled	iterators-accumulate	
+base/iterators.jl	643	650	iterate	iterate(itr::Accumulate)	modelled	iteratorscov-accumulate	
+base/iterators.jl	652	659	iterate	iterate(itr::Accumulate, state)	modelled	iteratorscov-accumulate	
+base/iterators.jl	661	661	length	length(itr::Accumulate)	modelled	iteratorscov-accumulate	
+base/iterators.jl	662	662	size	size(itr::Accumulate)	modelled	iteratorscov-accumulate	
+base/iterators.jl	664	664	IteratorSize	IteratorSize(::Type{<:Accumulate{<:Any,I}}) where {I}	modelled	iteratorscov-accumulate	
+base/iterators.jl	665	665	IteratorEltype	IteratorEltype(::Type{<:Accumulate})	modelled	iteratorscov-accumulate	
+base/iterators.jl	696	696	rest	rest(itr,state)	modelled	iteratorscov-rest	
+base/iterators.jl	697	697	rest	rest(itr::Rest,state)	modelled	iteratorscov-rest	
+base/iterators.jl	698	698	rest	rest(itr)	modelled	iteratorscov-rest	
+base/iterators.jl	725	730	peel	peel(itr)	modelled	iterators-rest-isdone-state	
+base/iterators.jl	732	732	iterate	iterate(i::Rest, st=i.st)	modelled	iteratorscov-rest	
+base/iterators.jl	733	733	isdone	isdone(i::Rest, st...)	modelled	iterators-rest-isdone-state	
+base/iterators.jl	735	735	eltype	eltype(::Type{<:Rest{I}}) where {I}	modelled	iteratorscov-rest	
+base/iterators.jl	736	736	IteratorEltype	IteratorEltype(::Type{<:Rest{I}}) where {I}	modelled	iteratorscov-rest	
+base/iterators.jl	737	737	rest_iteratorsize	rest_iteratorsize(a)	modelled	iteratorscov-rest	
+base/iterators.jl	738	738	rest_iteratorsize	rest_iteratorsize(::IsInfinite)	modelled	iteratorscov-rest	
+base/iterators.jl	739	739	IteratorSize	IteratorSize(::Type{<:Rest{I}}) where {I}	modelled	iteratorscov-rest	
+base/iterators.jl	764	764	countfrom	countfrom(start::T, step::S) where {T,S}	modelled	iteratorscov-countfrom-eltype	
+base/iterators.jl	765	765	countfrom	countfrom(start::Number, step::Number)	modelled	iteratorscov-countfrom-eltype	
+base/iterators.jl	766	766	countfrom	countfrom(start)	modelled	iteratorscov-countfrom-eltype	
+base/iterators.jl	767	767	countfrom	countfrom()	modelled	iteratorscov-countfrom-eltype	
+base/iterators.jl	770	770	eltype	eltype(::Type{<:Count{T}}) where {T}	modelled	iteratorscov-countfrom-eltype	
+base/iterators.jl	772	772	iterate	iterate(it::Count, state=it.start)	modelled	iteratorscov-countfrom-eltype	
+base/iterators.jl	774	774	IteratorSize	IteratorSize(::Type{<:Count})	modelled	iteratorscov-countfrom-eltype	
+base/iterators.jl	781	784	Take	Take(xs::I, n::Integer) where {I}	modelled	iteratorscov-take	
+base/iterators.jl	815	815	take	take(xs, n::Integer)	modelled	iteratorscov-take	
+base/iterators.jl	816	816	take	take(xs::Take, n::Integer)	modelled	iteratorscov-take	
+base/iterators.jl	818	818	eltype	eltype(::Type{Take{I}}) where {I}	modelled	iteratorscov-take	
+base/iterators.jl	819	819	IteratorEltype	IteratorEltype(::Type{Take{I}}) where {I}	modelled	iteratorscov-take	
+base/iterators.jl	820	820	take_iteratorsize	take_iteratorsize(a)	modelled	iteratorscov-take	
+base/iterators.jl	821	821	take_iteratorsize	take_iteratorsize(::SizeUnknown)	modelled	iteratorscov-take	
+base/iterators.jl	822	822	IteratorSize	IteratorSize(::Type{Take{I}}) where {I}	modelled	iteratorscov-take	
+base/iterators.jl	823	823	length	length(t::Take)	modelled	iterators-cycle-empty-length,iterators-take	
+base/iterators.jl	824	824	isdone	isdone(t::Take)	modelled	iteratorscov-take	
+base/iterators.jl	825	825	isdone	isdone(t::Take, state)	modelled	iteratorscov-take	
+base/iterators.jl	827	833	iterate	iterate(it::Take, state=(it.n,))	modelled	iteratorscov-take	
+base/iterators.jl	840	843	Drop	Drop(xs::I, n::Integer) where {I}	modelled	iteratorscov-drop	
+base/iterators.jl	871	871	drop	drop(xs, n::Integer)	modelled	iteratorscov-drop	
+base/iterators.jl	872	872	drop	drop(xs::Take, n::Integer)	modelled	iteratorscov-drop	
+base/iterators.jl	873	873	drop	drop(xs::Drop, n::Integer)	modelled	iteratorscov-drop	
+base/iterators.jl	875	875	eltype	eltype(::Type{Drop{I}}) where {I}	modelled	iteratorscov-drop	
+base/iterators.jl	876	876	IteratorEltype	IteratorEltype(::Type{Drop{I}}) where {I}	modelled	iteratorscov-drop	
+base/iterators.jl	877	877	drop_iteratorsize	drop_iteratorsize(::SizeUnknown)	modelled	iteratorscov-drop	
+base/iterators.jl	878	878	drop_iteratorsize	drop_iteratorsize(::Union{HasShape, HasLength})	modelled	iteratorscov-drop	
+base/iterators.jl	879	879	drop_iteratorsize	drop_iteratorsize(::IsInfinite)	modelled	iteratorscov-drop	
+base/iterators.jl	880	880	IteratorSize	IteratorSize(::Type{Drop{I}}) where {I}	modelled	iteratorscov-drop	
+base/iterators.jl	881	881	length	length(d::Drop)	modelled	iterators-drop	
+base/iterators.jl	883	890	iterate	iterate(it::Drop)	modelled	iteratorscov-drop	
+base/iterators.jl	891	891	iterate	iterate(it::Drop, state)	modelled	iteratorscov-drop	
+base/iterators.jl	892	892	isdone	isdone(it::Drop, state)	modelled	iteratorscov-drop	
+base/iterators.jl	928	928	takewhile	takewhile(pred,xs)	modelled	iterators-takewhile-dropwhile	
+base/iterators.jl	930	935	iterate	iterate(ibl::TakeWhile, itr...)	modelled	iteratorscov-while	
+base/iterators.jl	937	937	IteratorSize	IteratorSize(::Type{<:TakeWhile})	modelled	iteratorscov-while	
+base/iterators.jl	938	938	eltype	eltype(::Type{TakeWhile{I,P}} where P) where {I}	modelled	iteratorscov-while	
+base/iterators.jl	939	939	IteratorEltype	IteratorEltype(::Type{TakeWhile{I, P}} where P) where {I}	modelled	iteratorscov-while	
+base/iterators.jl	976	976	dropwhile	dropwhile(pred,itr)	modelled	iterators-takewhile-dropwhile	
+base/iterators.jl	978	978	iterate	iterate(ibl::DropWhile,itr)	modelled	iteratorscov-while	
+base/iterators.jl	979	986	iterate	iterate(ibl::DropWhile)	modelled	iteratorscov-while	
+base/iterators.jl	988	988	IteratorSize	IteratorSize(::Type{<:DropWhile})	modelled	iteratorscov-while	
+base/iterators.jl	989	989	eltype	eltype(::Type{DropWhile{I,P}}) where {I,P}	modelled	iteratorscov-while	
+base/iterators.jl	990	990	IteratorEltype	IteratorEltype(::Type{DropWhile{I,P}}) where {I,P}	modelled	iteratorscov-while	
+base/iterators.jl	1016	1016	findeach	findeach(f, it)	modelled	iteratorscov-cycle-repeated	
+base/iterators.jl	1018	1018	findeach	findeach(it)	modelled	iteratorscov-cycle-repeated	
+base/iterators.jl	1058	1058	cycle	cycle(xs)	modelled	iterators-cycle-n,iterators-nth-cycle-overflow	
+base/iterators.jl	1059	1059	cycle	cycle(xs, n::Integer)	modelled	iteratorscov-cycle-repeated	
+base/iterators.jl	1061	1061	eltype	eltype(::Type{Cycle{I}}) where {I}	modelled	iteratorscov-cycle-repeated	
+base/iterators.jl	1062	1062	IteratorEltype	IteratorEltype(::Type{Cycle{I}}) where {I}	modelled	iteratorscov-cycle-repeated	
+base/iterators.jl	1063	1063	IteratorSize	IteratorSize(::Type{Cycle{I}}) where {I}	modelled	iteratorscov-cycle-repeated	
+base/iterators.jl	1065	1065	iterate	iterate(it::Cycle)	modelled	iteratorscov-cycle-repeated	
+base/iterators.jl	1066	1066	isdone	isdone(it::Cycle)	modelled	iteratorscov-cycle-repeated	
+base/iterators.jl	1067	1067	isdone	isdone(it::Cycle, state)	modelled	iteratorscov-cycle-repeated	
+base/iterators.jl	1068	1072	iterate	iterate(it::Cycle, state)	modelled	iteratorscov-cycle-repeated	
+base/iterators.jl	1074	1074	reverse	reverse(it::Cycle)	modelled	iteratorscov-cycle-repeated	
+base/iterators.jl	1075	1075	last	last(it::Cycle)	modelled	iteratorscov-cycle-repeated	
+base/iterators.jl	1083	1083	repeated	repeated(x)	modelled	iterators-repeated-n	
+base/iterators.jl	1111	1111	repeated	repeated(x, n::Integer)	modelled	iteratorscov-cycle-repeated	
+base/iterators.jl	1113	1113	eltype	eltype(::Type{Repeated{O}}) where {O}	modelled	iteratorscov-cycle-repeated	
+base/iterators.jl	1115	1115	iterate	iterate(it::Repeated, state...)	modelled	iteratorscov-cycle-repeated	
+base/iterators.jl	1117	1117	IteratorSize	IteratorSize(::Type{<:Repeated})	modelled	iteratorscov-cycle-repeated	
+base/iterators.jl	1118	1118	IteratorEltype	IteratorEltype(::Type{<:Repeated})	modelled	iteratorscov-cycle-repeated	
+base/iterators.jl	1120	1120	reverse	reverse(it::Union{Repeated,Take{<:Repeated}})	modelled	iteratorscov-cycle-repeated	
+base/iterators.jl	1121	1121	last	last(it::Union{Repeated,Take{<:Repeated}})	modelled	iteratorscov-cycle-repeated	
+base/iterators.jl	1148	1148	product	product(iters...)	modelled	iterators-product	
+base/iterators.jl	1150	1150	IteratorSize	IteratorSize(::Type{ProductIterator{Tuple{}}})	modelled	iteratorscov-product-empty-infinite	
+base/iterators.jl	1151	1152	IteratorSize	IteratorSize(::Type{ProductIterator{T}}) where {N, T<:Tuple{Vararg{Any, N}}}	modelled	iteratorscov-product-empty-infinite	
+base/iterators.jl	1154	1154	prod_iteratorsize	prod_iteratorsize()	modelled	iteratorscov-product-empty-infinite	
+base/iterators.jl	1155	1155	prod_iteratorsize	prod_iteratorsize(I)	modelled	iteratorscov-product-empty-infinite	
+base/iterators.jl	1157	1157	prod_iteratorsize	prod_iteratorsize(::HasLength, ::HasLength)	modelled	iteratorscov-product-empty-infinite	
+base/iterators.jl	1158	1158	prod_iteratorsize	prod_iteratorsize(::HasLength, ::HasShape{N}) where {N}	modelled	iteratorscov-product-empty-infinite	
+base/iterators.jl	1159	1159	prod_iteratorsize	prod_iteratorsize(::HasShape{N}, ::HasLength) where {N}	modelled	iteratorscov-product-empty-infinite	
+base/iterators.jl	1160	1160	prod_iteratorsize	prod_iteratorsize(::HasShape{M}, ::HasShape{N}) where {M,N}	modelled	iteratorscov-product-empty-infinite	
+base/iterators.jl	1163	1163	prod_iteratorsize	prod_iteratorsize(::IsInfinite, ::IsInfinite)	modelled	iteratorscov-product-empty-infinite	
+base/iterators.jl	1164	1164	prod_iteratorsize	prod_iteratorsize(a, ::IsInfinite)	modelled	iteratorscov-product-empty-infinite	
+base/iterators.jl	1165	1165	prod_iteratorsize	prod_iteratorsize(::IsInfinite, b)	modelled	iteratorscov-product-empty-infinite	
+base/iterators.jl	1166	1166	prod_iteratorsize	prod_iteratorsize(a, b)	modelled	iteratorscov-product-empty-infinite	
+base/iterators.jl	1167	1167	prod_iteratorsize	prod_iteratorsize(a, b, tail...)	modelled	iteratorscov-product-empty-infinite	
+base/iterators.jl	1169	1169	size	size(P::ProductIterator)	modelled	iterators-product	
+base/iterators.jl	1170	1170	_prod_size	_prod_size(::Tuple{})	modelled	iteratorscov-product-methods	
+base/iterators.jl	1171	1171	_prod_size	_prod_size(t::Tuple)	modelled	iteratorscov-product-methods	
+base/iterators.jl	1172	1172	_prod_size1	_prod_size1(a, ::HasShape)	modelled	iteratorscov-product-methods	
+base/iterators.jl	1173	1173	_prod_size1	_prod_size1(a, ::HasLength)	modelled	iteratorscov-product-methods	
+base/iterators.jl	1174	1175	_prod_size1	_prod_size1(a, A)	modelled	iteratorscov-product-methods	
+base/iterators.jl	1177	1177	axes	axes(P::ProductIterator)	modelled	iteratorscov-product-methods	
+base/iterators.jl	1178	1178	_prod_indices	_prod_indices(::Tuple{})	modelled	iteratorscov-product-methods	
+base/iterators.jl	1179	1179	_prod_indices	_prod_indices(t::Tuple)	modelled	iteratorscov-product-methods	
+base/iterators.jl	1180	1180	_prod_axes1	_prod_axes1(a, ::HasShape)	modelled	iteratorscov-product-methods	
+base/iterators.jl	1181	1181	_prod_axes1	_prod_axes1(a, ::HasLength)	modelled	iteratorscov-product-methods	
+base/iterators.jl	1182	1183	_prod_axes1	_prod_axes1(a, A)	modelled	iteratorscov-product-methods	
+base/iterators.jl	1185	1185	ndims	ndims(p::ProductIterator)	modelled	iteratorscov-product-methods	
+base/iterators.jl	1186	1186	length	length(P::ProductIterator)	modelled	iterators-product-length-zero	
+base/iterators.jl	1188	1188	IteratorEltype	IteratorEltype(::Type{ProductIterator{Tuple{}}})	modelled	iteratorscov-product-methods	
+base/iterators.jl	1189	1189	IteratorEltype	IteratorEltype(::Type{ProductIterator{Tuple{I}}}) where {I}	modelled	iteratorscov-product-methods	
+base/iterators.jl	1191	1195	IteratorEltype	IteratorEltype(::Type{ProductIterator{T}}) where {N, T<:Tuple{Vararg{Any, N}}}	modelled	iteratorscov-product-methods	
+base/iterators.jl	1197	1197	eltype	eltype(::Type{ProductIterator{I}}) where {I}	modelled	iteratorscov-product-methods	
+base/iterators.jl	1198	1198	_prod_eltype	_prod_eltype(::Type{Tuple{}})	modelled	iteratorscov-product-methods	
+base/iterators.jl	1199	1199	_prod_eltype	_prod_eltype(::Type{I}) where {N, I<:Tuple{Vararg{Any, N}}}	modelled	iteratorscov-product-methods	
+base/iterators.jl	1201	1201	iterate	iterate(::ProductIterator{Tuple{}})	modelled	iteratorscov-product-methods	
+base/iterators.jl	1202	1202	iterate	iterate(::ProductIterator{Tuple{}}, state)	modelled	iteratorscov-product-methods	
+base/iterators.jl	1204	1204	isdone	isdone(P::ProductIterator)	modelled	iteratorscov-product-methods	
+base/iterators.jl	1205	1212	_pisdone	_pisdone(iters, states)	modelled	iterators-product-stateful-done	
+base/iterators.jl	1213	1213	isdone	isdone(::ProductIterator{Tuple{}}, states)	modelled	iteratorscov-product-methods	
+base/iterators.jl	1214	1214	isdone	isdone(P::ProductIterator, states)	modelled	iteratorscov-product-methods	
+base/iterators.jl	1216	1216	_piterate	_piterate()	modelled	iteratorscov-product-methods	
+base/iterators.jl	1217	1225	_piterate	_piterate(iter1, rest...)	modelled	iteratorscov-product-methods	
+base/iterators.jl	1226	1231	iterate	iterate(P::ProductIterator)	modelled	iteratorscov-product-methods	
+base/iterators.jl	1233	1233	_piterate1	_piterate1(::Tuple{}, ::Tuple{})	modelled	iteratorscov-product-methods	
+base/iterators.jl	1234	1247	_piterate1	_piterate1(iters, states)	modelled	iteratorscov-product-methods	
+base/iterators.jl	1248	1253	iterate	iterate(P::ProductIterator, states)	modelled	iteratorscov-product-methods	
+base/iterators.jl	1255	1255	reverse	reverse(p::ProductIterator)	modelled	iteratorscov-product-methods	
+base/iterators.jl	1256	1256	last	last(p::ProductIterator)	modelled	iterators-product-last-empty	
+base/iterators.jl	1257	1257	intersect	intersect(a::ProductIterator, b::ProductIterator)	modelled	iteratorscov-product-intersect-arity	
+base/iterators.jl	1291	1291	flatten	flatten(itr)	modelled	iterators-flatten	
+base/iterators.jl	1293	1293	eltype	eltype(::Type{Flatten{I}}) where {I}	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1298	1300	eltype	eltype(::Type{Flatten{I}}) where {N, I<:Tuple{Vararg{Any, N}}}	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1301	1303	eltype	eltype(::Type{Flatten{I}}) where {I<:NamedTuple}	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1305	1305	IteratorEltype	IteratorEltype(::Type{Flatten{I}}) where {I}	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1306	1306	IteratorEltype	IteratorEltype(::Type{Flatten{Tuple{}}})	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1307	1307	_flatteneltype	_flatteneltype(I, ::HasEltype)	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1308	1308	_flatteneltype	_flatteneltype(I, et)	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1310	1310	flatten_iteratorsize	flatten_iteratorsize(::Union{HasShape, HasLength}, ::Type{Union{}})	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1311	1312	flatten_iteratorsize	flatten_iteratorsize(sz::Union{HasShape, HasLength}, ::Type{Union{}}, slurp...)	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1313	1313	flatten_iteratorsize	flatten_iteratorsize(::Union{HasShape, HasLength}, ::Type{<:NTuple{N,Any}}) where {N}	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1314	1314	flatten_iteratorsize	flatten_iteratorsize(::Union{HasShape, HasLength}, ::Type{<:Tuple})	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1315	1315	flatten_iteratorsize	flatten_iteratorsize(::Union{HasShape, HasLength}, ::Type{<:Number})	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1316	1316	flatten_iteratorsize	flatten_iteratorsize(a, b)	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1318	1318	_flatten_iteratorsize	_flatten_iteratorsize(sz, ::EltypeUnknown, I)	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1319	1319	_flatten_iteratorsize	_flatten_iteratorsize(sz, ::HasEltype, I)	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1320	1320	_flatten_iteratorsize	_flatten_iteratorsize(sz, ::HasEltype, ::Type{Tuple{}})	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1322	1322	IteratorSize	IteratorSize(::Type{Flatten{I}}) where {I}	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1324	1324	flatten_length	flatten_length(f, T::Type{Union{}})	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1325	1325	flatten_length	flatten_length(f, ::Type{Union{}}, slurp...)	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1326	1328	flatten_length	flatten_length(f, T::Type{<:NTuple{N,Any}}) where {N}	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1329	1329	flatten_length	flatten_length(f, ::Type{<:Number})	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1330	1331	flatten_length	flatten_length(f, T)	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1332	1332	length	length(f::Flatten{I}) where {I}	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1333	1333	length	length(f::Flatten{Tuple{}})	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1335	1352	iterate	iterate(fl::Flatten)	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1354	1377	iterate	iterate(fl::Flatten, state)	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1379	1379	reverse	reverse(f::Flatten)	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1380	1380	last	last(f::Flatten)	modelled	iteratorscov-flatten-methods	
+base/iterators.jl	1421	1421	flatmap	flatmap(f, c...)	modelled	iteratorscov-cycle-repeated	
+base/iterators.jl	1436	1439	partition	partition(c, n::Integer)	modelled	iterators-partition-vector	
+base/iterators.jl	1446	1446	PartitionIterator	PartitionIterator(A::AbstractArray, n::Int)	modelled	iteratorscov-partition-methods	
+base/iterators.jl	1447	1447	PartitionIterator	PartitionIterator(v::AbstractVector, n::Int)	modelled	iteratorscov-partition-methods	
+base/iterators.jl	1449	1449	eltype	eltype(::Type{PartitionIterator{T}}) where {T}	modelled	iteratorscov-partition-methods	
+base/iterators.jl	1451	1451	eltype	eltype(::Type{PartitionIterator{T}}) where {T<:AbstractArray}	modelled	iteratorscov-partition-methods	
+base/iterators.jl	1453	1453	eltype	eltype(::Type{PartitionIterator{T}}) where {T<:Vector}	modelled	iteratorscov-partition-methods	
+base/iterators.jl	1455	1455	IteratorEltype	IteratorEltype(::Type{PartitionIterator{T}}) where {T}	modelled	iteratorscov-partition-methods	
+base/iterators.jl	1456	1456	IteratorEltype	IteratorEltype(::Type{PartitionIterator{T}}) where {T<:AbstractArray}	modelled	iteratorscov-partition-methods	
+base/iterators.jl	1457	1457	IteratorEltype	IteratorEltype(::Type{PartitionIterator{T}}) where {T<:Vector}	modelled	iteratorscov-partition-methods	
+base/iterators.jl	1459	1459	partition_iteratorsize	partition_iteratorsize(::HasShape)	modelled	iteratorscov-partition-methods	
+base/iterators.jl	1460	1460	partition_iteratorsize	partition_iteratorsize(isz)	modelled	iteratorscov-partition-methods	
+base/iterators.jl	1461	1463	IteratorSize	IteratorSize(::Type{PartitionIterator{T}}) where {T}	modelled	iteratorscov-partition-methods	
+base/iterators.jl	1465	1468	length	length(itr::PartitionIterator)	modelled	iterators-partition-vector	
+base/iterators.jl	1470	1474	iterate	iterate(itr::PartitionIterator{<:AbstractRange}, state = firstindex(itr.c))	modelled	iterators-partition-range-overflow	
+base/iterators.jl	1476	1480	iterate	iterate(itr::PartitionIterator{<:AbstractArray}, state = firstindex(itr.c))	modelled	iteratorscov-partition-methods	
+base/iterators.jl	1484	1502	iterate	iterate(itr::PartitionIterator, state...)	modelled	iterators-partition-generic-alloc	
+base/iterators.jl	1566	1568	Stateful{<:Any, Any}	Stateful{<:Any, Any}(itr::T) where {T}	modelled	iteratorscov-stateful-methods	
+base/iterators.jl	1569	1572	Stateful	Stateful(itr::T) where {T}	modelled	iteratorscov-stateful-methods	
+base/iterators.jl	1575	1578	reset!	reset!(s::Stateful)	modelled	iteratorscov-stateful-methods	
+base/iterators.jl	1579	1583	reset!	reset!(s::Stateful{T}, itr::T) where {T}	modelled	iteratorscov-stateful-methods	
+base/iterators.jl	1589	1589	approx_iter_type	approx_iter_type(itrT::Type)	modelled	iteratorscov-stateful-methods	
+base/iterators.jl	1592	1596	doiterate	doiterate(itr, valstate::Union{Nothing, Tuple{Any, Any}})	modelled	iteratorscov-stateful-methods	
+base/iterators.jl	1597	1603	_approx_iter_type	_approx_iter_type(itrT::Type, vstate::Type)	modelled	iteratorscov-stateful-methods	
+base/iterators.jl	1605	1605	Stateful	Stateful(x::Stateful)	modelled	iteratorscov-stateful-methods	
+base/iterators.jl	1606	1606	convert	convert(::Type{Stateful}, itr)	modelled	iteratorscov-stateful-methods	
+base/iterators.jl	1607	1607	isdone	isdone(s::Stateful, st=nothing)	modelled	iterators-stateful	
+base/iterators.jl	1609	1618	popfirst!	popfirst!(s::Stateful)	modelled	iterators-stateful	
+base/iterators.jl	1620	1623	peek	peek(s::Stateful, sentinel=nothing)	modelled	iterators-stateful	
+base/iterators.jl	1624	1624	iterate	iterate(s::Stateful, state=nothing)	modelled	iteratorscov-stateful-methods	
+base/iterators.jl	1625	1625	IteratorSize	IteratorSize(::Type{<:Stateful{T}}) where {T}	modelled	iteratorscov-stateful-methods	
+base/iterators.jl	1626	1626	eltype	eltype(::Type{<:Stateful{T}}) where {T}	modelled	iteratorscov-stateful-methods	
+base/iterators.jl	1627	1627	IteratorEltype	IteratorEltype(::Type{<:Stateful{T}}) where {T}	modelled	iteratorscov-stateful-methods	
+base/iterators.jl	1659	1659	only	only(x)	modelled	iteratorscov-only-nth-methods	
+base/iterators.jl	1661	1671	_only	_only(x, ::typeof(iterate))	modelled	iteratorscov-only-nth-methods	
+base/iterators.jl	1673	1678	_only	_only(x, ::typeof(first))	modelled	iteratorscov-only-nth-methods	
+base/iterators.jl	1680	1680	only	only(x::IdDict)	modelled	iteratorscov-only-nth-methods	
+base/iterators.jl	1683	1683	only	only(x::Tuple{Any})	modelled	iteratorscov-only-nth-methods	
+base/iterators.jl	1684	1686	only	only(x::Tuple)	modelled	iteratorscov-only-nth-methods	
+base/iterators.jl	1687	1687	only	only(x::NamedTuple{<:Any, <:Tuple{Any}})	modelled	iteratorscov-only-nth-methods	
+base/iterators.jl	1688	1690	only	only(x::NamedTuple)	modelled	iteratorscov-only-nth-methods	
+base/iterators.jl	1704	1704	IteratorSize	IteratorSize(::Type{<:IterableStatePairs{T}}) where T	modelled	iteratorscov-iterable-state-pairs	
+base/iterators.jl	1705	1705	length	length(x::IterableStatePairs)	modelled	iteratorscov-iterable-state-pairs	
+base/iterators.jl	1706	1706	Base.eltype	Base.eltype(::Type{IterableStatePairs{T}}) where T	modelled	iteratorscov-iterable-state-pairs	
+base/iterators.jl	1708	1712	iterate	iterate(x::IterableStatePairs, state=first(keys(x.x)))	modelled	iteratorscov-iterable-state-pairs	
+base/iterators.jl	1714	1714	reverse	reverse(x::IterableStatePairs)	modelled	iteratorscov-iterable-state-pairs	
+base/iterators.jl	1715	1715	reverse	reverse(x::IterableStatePairs{<:Iterators.Reverse})	modelled	iteratorscov-iterable-state-pairs	
+base/iterators.jl	1717	1721	iterate	iterate(x::IterableStatePairs{<:Iterators.Reverse}, state=last(keys(x.x.itr)))	modelled	iteratorscov-iterable-state-pairs	
+base/iterators.jl	1725	1725	pairs	pairs(s::AbstractString)	modelled	iteratorscov-iterable-state-pairs	
+base/iterators.jl	1753	1753	nth	nth(itr, n::Integer)	modelled	iteratorscov-only-nth-methods	
+base/iterators.jl	1754	1754	nth	nth(itr::Cycle{I}, n::Integer) where I	modelled	iterators-nth-cycle-overflow	
+base/iterators.jl	1755	1755	nth	nth(itr::Flatten{Take{Repeated{O}}}, n::Integer) where O	modelled	iterators-nth-cycle-overflow	
+base/iterators.jl	1756	1756	nth	nth(itr::AbstractArray, n::Integer)	modelled	iterators-nth-vector,iterators-nth-unsigned-offset	
+base/iterators.jl	1758	1764	_nth	_nth(::Union{HasShape, HasLength}, itr::Cycle{I}, n::Integer) where {I}	modelled	iterators-nth-cycle-overflow	
+base/iterators.jl	1767	1775	_nth	_nth(::Union{HasShape, HasLength}, itr::Flatten{Take{Repeated{O}}}, n::Integer) where {O}	modelled	iterators-nth-cycle-overflow	
+base/iterators.jl	1777	1787	_nth	_nth(::IteratorSize, itr, n::Integer)	modelled	iteratorscov-only-nth-methods	
+base/iterators.jl	1789	1789	_nth	_nth(::IteratorSize, z::Zip, n::Integer)	modelled	iterators-nth-zip-empty	
+base/iterators.jl	1810	1810	nth	nth(n::Integer)	modelled	iteratorscov-only-nth-methods	

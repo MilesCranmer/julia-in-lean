@@ -1,0 +1,31 @@
+file	line	endline	name	signature	status	entry	note
+base/cartesian.jl	38	40	nloops	nloops(N, itersym, rangeexpr, args...)	modelled	exprreflect-cartesian-row-38	method-specific mirror and property: exprreflect-cartesian-row-38
+base/cartesian.jl	42	44	_nloops	_nloops(N::Int, itersym::Symbol, esc_rng::Bool, arraysym::Symbol, args::Expr...)	modelled	exprreflect-cartesian-row-42	method-specific mirror and property: exprreflect-cartesian-row-42
+base/cartesian.jl	46	71	_nloops	_nloops(N::Int, itersym::Symbol, esc_rng::Bool, rangeexpr::Expr, args::Expr...)	modelled	exprreflect-cartesian-row-46	method-specific mirror and property: exprreflect-cartesian-row-46
+base/cartesian.jl	85	88	nref	nref(N::Int, A::Symbol, ex)	modelled	exprreflect-cartesian-row-85	method-specific mirror and property: exprreflect-cartesian-row-85
+base/cartesian.jl	105	110	ncall	ncall(N::Int, f, args...)	modelled	exprreflect-cartesian-row-105	method-specific mirror and property: exprreflect-cartesian-row-105
+base/cartesian.jl	132	138	ncallkw	ncallkw(N::Int, f, kw, args...)	modelled	exprreflect-cartesian-row-132	method-specific mirror and property: exprreflect-cartesian-row-132
+base/cartesian.jl	156	159	nexprs	nexprs(N::Int, ex::Expr)	modelled	exprreflect-cartesian-row-156	method-specific mirror and property: exprreflect-cartesian-row-156
+base/cartesian.jl	179	182	nextract	nextract(N::Int, esym::Symbol, isym::Symbol)	modelled	exprreflect-cartesian-row-179	method-specific mirror and property: exprreflect-cartesian-row-179
+base/cartesian.jl	184	187	nextract	nextract(N::Int, esym::Symbol, ex::Expr)	modelled	exprreflect-cartesian-row-184	method-specific mirror and property: exprreflect-cartesian-row-184
+base/cartesian.jl	198	204	nall	nall(N::Int, criterion::Expr)	modelled	exprreflect-cartesian-row-198	method-specific mirror and property: exprreflect-cartesian-row-198
+base/cartesian.jl	214	220	nany	nany(N::Int, criterion::Expr)	modelled	exprreflect-cartesian-row-214	method-specific mirror and property: exprreflect-cartesian-row-214
+base/cartesian.jl	228	231	ntuple	ntuple(N::Int, ex)	modelled	exprreflect-cartesian-row-228	method-specific mirror and property: exprreflect-cartesian-row-228
+base/cartesian.jl	251	259	nif	nif(N, condition, operation...)	modelled	exprreflect-cartesian-row-251	method-specific mirror and property: exprreflect-cartesian-row-251
+base/cartesian.jl	264	276	inlineanonymous	inlineanonymous(ex::Expr, val)	modelled	exprreflect-cartesian-row-264	method-specific mirror and property: exprreflect-cartesian-row-264
+base/cartesian.jl	279	279	inlineanonymous	inlineanonymous(base::Symbol, ext)	modelled	exprreflect-cartesian-row-279	method-specific mirror and property: exprreflect-cartesian-row-279
+base/cartesian.jl	292	292	LReplace	LReplace(sym::Symbol, val::Integer)	modelled	exprreflect-cartesian-row-292	method-specific mirror and property: exprreflect-cartesian-row-292
+base/cartesian.jl	294	294	lreplace	lreplace(ex::Expr, sym::Symbol, val)	modelled	exprreflect-cartesian-row-294	method-specific mirror and property: exprreflect-cartesian-row-294
+base/cartesian.jl	296	300	lreplace!	lreplace!(sym::Symbol, r::LReplace, in_quote_context::Bool, escs::Int)	modelled	exprreflect-cartesian-row-296	method-specific mirror and property: exprreflect-cartesian-row-296
+base/cartesian.jl	302	342	lreplace_string!	lreplace_string!(str::String, r::LReplace)	modelled	exprreflect-cartesian-row-302	method-specific mirror and property: exprreflect-cartesian-row-302
+base/cartesian.jl	344	377	lreplace!	lreplace!(ex::Expr, r::LReplace, in_quote_context::Bool, escs::Int)	modelled	exprreflect-cartesian-row-344	method-specific mirror and property: exprreflect-cartesian-row-344
+base/cartesian.jl	379	379	lreplace!	lreplace!(@nospecialize(arg), r::LReplace, in_quote_context::Bool, escs::Int)	modelled	exprreflect-cartesian-row-379	method-specific mirror and property: exprreflect-cartesian-row-379
+base/cartesian.jl	383	383	poplinenum	poplinenum(arg)	modelled	exprreflect-cartesian-row-383	method-specific mirror and property: exprreflect-cartesian-row-383
+base/cartesian.jl	384	399	poplinenum	poplinenum(ex::Expr)	modelled	exprreflect-cartesian-row-384	method-specific mirror and property: exprreflect-cartesian-row-384
+base/cartesian.jl	408	418	exprresolve_arith	exprresolve_arith(ex::Expr)	modelled	exprreflect-cartesian-row-408	method-specific mirror and property: exprreflect-cartesian-row-408
+base/cartesian.jl	419	419	exprresolve_arith	exprresolve_arith(arg)	modelled	exprreflect-cartesian-row-419	method-specific mirror and property: exprreflect-cartesian-row-419
+base/cartesian.jl	421	421	exprresolve_conditional	exprresolve_conditional(b::Bool)	modelled	exprreflect-cartesian-row-421	method-specific mirror and property: exprreflect-cartesian-row-421
+base/cartesian.jl	422	434	exprresolve_conditional	exprresolve_conditional(ex::Expr)	modelled	exprreflect-cartesian-row-422	method-specific mirror and property: exprreflect-cartesian-row-422
+base/cartesian.jl	435	435	exprresolve_conditional	exprresolve_conditional(arg)	modelled	exprreflect-cartesian-row-435	method-specific mirror and property: exprreflect-cartesian-row-435
+base/cartesian.jl	437	437	exprresolve	exprresolve(arg)	modelled	exprreflect-cartesian-row-437	method-specific mirror and property: exprreflect-cartesian-row-437
+base/cartesian.jl	438	473	exprresolve	exprresolve(ex::Expr)	modelled	exprreflect-cartesian-row-438	method-specific mirror and property: exprreflect-cartesian-row-438

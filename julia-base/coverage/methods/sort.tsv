@@ -1,0 +1,146 @@
+file	line	endline	name	signature	status	entry	note
+base/sort.jl	48	60	issorted	issorted(itr, order::Ordering)	modelled	sort-issorted-adjacent	
+base/sort.jl	86	95	issorted	issorted(itr; lt=isless, by=identity, rev::Union{Bool,Nothing}=nothing, order::Ordering=Forward)	modelled	sorttuplescov-sort-keyword-wrappers	
+base/sort.jl	97	108	partialsort!	partialsort!(v::AbstractVector, k::Union{Integer,OrdinalRange}, o::Ordering; scratch::Union{Nothing, Vector} = nothing)	modelled	sort-partialsort-reversed-range,sort-partialsort-empty-range	
+base/sort.jl	110	110	maybeview	maybeview(v, k)	modelled	sort-partialsort-reversed-range	
+base/sort.jl	111	111	maybeview	maybeview(v, k::Integer)	modelled	sort-partialsort-reversed-range	
+base/sort.jl	166	168	partialsort!	partialsort!(v::AbstractVector, k::Union{Integer,OrdinalRange}; lt=isless, by=identity, rev::Union{Bool,Nothing}=nothing, order::Ordering=Forward, kws...)	modelled	sorttuplescov-sort-keyword-wrappers	
+base/sort.jl	176	177	partialsort	partialsort(v::AbstractVector, k::Union{Integer,OrdinalRange}; kws...)	modelled	sort-partialsort-reversed-range	
+base/sort.jl	184	199	searchsortedfirst	searchsortedfirst(v::AbstractVector, x, lo::T, hi::T, o::Ordering)::keytype(v) where T<:Integer	modelled	sort-vector-search-correct	
+base/sort.jl	203	216	searchsortedlast	searchsortedlast(v::AbstractVector, x, lo::T, hi::T, o::Ordering)::keytype(v) where T<:Integer	modelled	sort-vector-search-correct,sort-vector-u8-search-sentinel	
+base/sort.jl	221	238	searchsorted	searchsorted(v::AbstractVector, x, ilo::T, ihi::T, o::Ordering)::UnitRange{keytype(v)} where T<:Integer	modelled	sort-vector-u8-search-sentinel	
+base/sort.jl	243	254	searchsortedlast	searchsortedlast(a::AbstractRange{<:Real}, x::Real, o::FastRangeOrderings)::keytype(a)	modelled	sorttuplescov-float-range-search-overflow	
+base/sort.jl	256	267	searchsortedfirst	searchsortedfirst(a::AbstractRange{<:Real}, x::Real, o::FastRangeOrderings)::keytype(a)	modelled	sorttuplescov-float-range-search-overflow	
+base/sort.jl	269	283	searchsortedlast	searchsortedlast(a::AbstractRange{<:Integer}, x::Real, o::FastRangeOrderings)::keytype(a)	modelled	sort-range-search-no-overflow,sort-range-search-overflow,sort-range-search-empty	
+base/sort.jl	285	299	searchsortedfirst	searchsortedfirst(a::AbstractRange{<:Integer}, x::Real, o::FastRangeOrderings)::keytype(a)	modelled	sort-range-search-no-overflow,sort-range-search-overflow,sort-range-search-empty	
+base/sort.jl	301	302	searchsorted	searchsorted(a::AbstractRange{<:Real}, x::Real, o::FastRangeOrderings)	modelled	sorttuplescov-float-range-search-overflow	
+base/sort.jl	306	306	$s	$s(v::AbstractVector, x, o::Ordering)	modelled	sorttuplescov-sort-keyword-wrappers	
+base/sort.jl	307	309	$s	$s(v::AbstractVector, x; lt=isless, by=identity, rev::Union{Bool,Nothing}=nothing, order::Ordering=Forward)	modelled	sorttuplescov-sort-keyword-wrappers	
+base/sort.jl	464	464	insorted	insorted	excluded		no-behaviour: declares the insorted generic function without a method body
+base/sort.jl	465	465	insorted	insorted(x, v::AbstractVector; kw...)	modelled	sorttuplescov-insorted-range-equivalence	
+base/sort.jl	466	466	insorted	insorted(x, r::AbstractRange)	modelled	sorttuplescov-insorted-range-equivalence	
+base/sort.jl	470	473	getkw	getkw(syms...)	modelled	sorttuplescov-generated-keywords	
+base/sort.jl	483	489	$usym	$usym(v, o, kw)	modelled	sorttuplescov-generated-keywords	
+base/sort.jl	503	506	make_scratch	make_scratch(scratch::Nothing, T::Type, len::Integer)	modelled	sorttuplescov-make-scratch	
+base/sort.jl	507	510	make_scratch	make_scratch(scratch::Vector{T}, ::Type{T}, len::Integer) where T	modelled	sorttuplescov-make-scratch	
+base/sort.jl	511	516	make_scratch	make_scratch(scratch::Vector, T::Type, len::Integer)	modelled	sorttuplescov-make-scratch,sorttuplescov-sort-missing-scratch	
+base/sort.jl	542	542	_sort!	_sort!	excluded		no-behaviour: declares the _sort! generic function without a method body
+base/sort.jl	559	559	_sort!	_sort!(v::AbstractVector, a::SubArrayOptimization, o::Ordering, kw)	modelled	sorttuplescov-subarray-optimization	
+base/sort.jl	560	574	_sort!	_sort!(v::UnwrappableSubArray, a::SubArrayOptimization, o::Ordering, kw)	modelled	sorttuplescov-subarray-optimization	
+base/sort.jl	591	596	WithoutMissingVector	WithoutMissingVector(data; unsafe=false)	modelled	sorttuplescov-without-missing	
+base/sort.jl	598	602	Base.getindex	Base.getindex(v::WithoutMissingVector, i::Integer)	modelled	sorttuplescov-without-missing	
+base/sort.jl	603	606	Base.setindex!	Base.setindex!(v::WithoutMissingVector, x, i::Integer)	modelled	sorttuplescov-without-missing	
+base/sort.jl	607	607	Base.size	Base.size(v::WithoutMissingVector)	modelled	sorttuplescov-without-missing	
+base/sort.jl	608	608	Base.axes	Base.axes(v::WithoutMissingVector)	modelled	sorttuplescov-without-missing	
+base/sort.jl	620	634	send_to_end!	send_to_end!(f::F, v::AbstractVector; lo=firstindex(v), hi=lastindex(v)) where F <: Function	modelled	sorttuplescov-send-to-end	
+base/sort.jl	645	646	send_to_end!	send_to_end!(f::F, v::AbstractVector, ::ForwardOrdering, end_stable=false; lo, hi) where F <: Function	modelled	sorttuplescov-send-to-end	
+base/sort.jl	647	648	send_to_end!	send_to_end!(f::F, v::AbstractVector, ::ReverseOrdering, end_stable=false; lo, hi) where F <: Function	modelled	sorttuplescov-send-to-end	
+base/sort.jl	651	686	_sort!	_sort!(v::AbstractVector, a::MissingOptimization, o::Ordering, kw)	modelled	sorttuplescov-missing-optimization,sorttuplescov-sort-missing-scratch	
+base/sort.jl	703	703	after_zero	after_zero(::ForwardOrdering, x)	modelled	sorttuplescov-ieee-optimization	
+base/sort.jl	704	704	after_zero	after_zero(::ReverseOrdering, x)	modelled	sorttuplescov-ieee-optimization	
+base/sort.jl	705	705	is_concrete_IEEEFloat	is_concrete_IEEEFloat(T::Type)	modelled	sorttuplescov-ieee-optimization	
+base/sort.jl	706	731	_sort!	_sort!(v::AbstractVector, a::IEEEFloatOptimization, o::Ordering, kw)	modelled	sorttuplescov-ieee-optimization	
+base/sort.jl	745	745	_sort!	_sort!(v::AbstractVector, a::BoolOptimization, o::Ordering, kw)	modelled	sorttuplescov-bool-optimization	
+base/sort.jl	746	758	_sort!	_sort!(v::AbstractVector{Bool}, ::BoolOptimization, o::Ordering, kw)	modelled	sorttuplescov-bool-optimization	
+base/sort.jl	774	780	_sort!	_sort!(v::AbstractVector, a::IsUIntMappable, o::Ordering, kw)	modelled	sorttuplescov-algorithm-dispatch	
+base/sort.jl	793	793	Small{N}	Small{N}(small, big) where N	modelled	sorttuplescov-algorithm-dispatch	
+base/sort.jl	794	794	Small{N}	Small{N}(big) where N	modelled	sorttuplescov-algorithm-dispatch	
+base/sort.jl	795	802	_sort!	_sort!(v::AbstractVector, a::Small{N}, o::Ordering, kw) where N	modelled	sorttuplescov-algorithm-dispatch	
+base/sort.jl	835	852	_sort!	_sort!(v::AbstractVector, ::InsertionSortAlg, o::Ordering, kw)	modelled	sort-insertionsort-stable	
+base/sort.jl	864	879	_sort!	_sort!(v::AbstractVector, a::CheckSorted, o::Ordering, kw)	modelled	sorttuplescov-algorithm-dispatch	
+base/sort.jl	893	905	_sort!	_sort!(v::AbstractVector, a::ComputeExtrema, o::Ordering, kw)	modelled	sorttuplescov-algorithm-dispatch	
+base/sort.jl	922	922	ConsiderCountingSort	ConsiderCountingSort(next)	modelled	sorttuplescov-algorithm-dispatch	
+base/sort.jl	923	932	_sort!	_sort!(v::AbstractVector{<:Integer}, a::ConsiderCountingSort, o::DirectOrdering, kw)	modelled	sorttuplescov-algorithm-dispatch	
+base/sort.jl	933	933	_sort!	_sort!(v::AbstractVector, a::ConsiderCountingSort, o::Ordering, kw)	modelled	sorttuplescov-algorithm-dispatch	
+base/sort.jl	946	946	maybe_reverse	maybe_reverse(o::ForwardOrdering, x)	modelled	sorttuplescov-algorithm-dispatch	
+base/sort.jl	947	947	maybe_reverse	maybe_reverse(o::ReverseOrdering, x)	modelled	sorttuplescov-algorithm-dispatch	
+base/sort.jl	948	969	_sort!	_sort!(v::AbstractVector{<:Integer}, ::CountingSort, o::DirectOrdering, kw)	modelled	sorttuplescov-counting-sort	
+base/sort.jl	982	982	ConsiderRadixSort	ConsiderRadixSort(next)	modelled	sorttuplescov-algorithm-dispatch	
+base/sort.jl	983	992	_sort!	_sort!(v::AbstractVector, a::ConsiderRadixSort, o::DirectOrdering, kw)	modelled	sorttuplescov-algorithm-dispatch	
+base/sort.jl	1017	1047	_sort!	_sort!(v::AbstractVector, a::RadixSort, o::DirectOrdering, kw)	modelled	sorttuplescov-radix-wrapper	
+base/sort.jl	1079	1079	ScratchQuickSort	ScratchQuickSort(next::Algorithm=SMALL_ALGORITHM)	modelled	sort-scratchquicksort-stable	
+base/sort.jl	1080	1080	ScratchQuickSort	ScratchQuickSort(lo::Union{Integer, Missing}, hi::Union{Integer, Missing})	modelled	sort-partialsort-reversed-range	
+base/sort.jl	1081	1081	ScratchQuickSort	ScratchQuickSort(lo::Union{Integer, Missing}, next::Algorithm=SMALL_ALGORITHM)	modelled	sort-partialsort-reversed-range	
+base/sort.jl	1082	1082	ScratchQuickSort	ScratchQuickSort(r::OrdinalRange, next::Algorithm=SMALL_ALGORITHM)	modelled	sort-partialsort-reversed-range	
+base/sort.jl	1088	1119	partition!	partition!(t::AbstractVector, lo::Integer, hi::Integer, offset::Integer, o::Ordering, v::AbstractVector, rev::Bool, pivot_dest::AbstractVector, pivot_index_offset::Integer)	modelled	sort-scratchquicksort-stable	
+base/sort.jl	1121	1164	_sort!	_sort!(v::AbstractVector, a::ScratchQuickSort, o::Ordering, kw; t=nothing, offset=nothing, swap=false, rev=false)	modelled	sort-scratchquicksort-stable	
+base/sort.jl	1224	1224	BracketedSort	BracketedSort(k)	modelled	sort-partialsort-empty-range	
+base/sort.jl	1226	1246	bracket_kernel!	bracket_kernel!(v::AbstractVector, lo, hi, lo_signpost, hi_signpost, o)	modelled	sorttuplescov-bracketed-sort	
+base/sort.jl	1248	1262	move!	move!(v, target, source)	modelled	sorttuplescov-bracketed-sort	
+base/sort.jl	1264	1353	_sort!	_sort!(v::AbstractVector, a::BracketedSort, o::Ordering, kw)	modelled	sorttuplescov-bracketed-sort	
+base/sort.jl	1368	1379	_sort!	_sort!(v::AbstractVector, a::StableCheckSorted, o::Ordering, kw)	modelled	sorttuplescov-algorithm-dispatch	
+base/sort.jl	1384	1401	radix_sort!	radix_sort!(v::AbstractVector{U}, lo::Integer, hi::Integer, bits::Unsigned, t::AbstractVector{U}, offset::Integer, chunk_size=radix_chunk_size_heuristic(lo, hi, bits)) where U <: Unsigned	modelled	sorttuplescov-radix-sort	
+base/sort.jl	1402	1429	radix_sort_pass!	radix_sort_pass!(t, lo, hi, offset, counts, v, shift, chunk_size)	modelled	sorttuplescov-radix-sort	
+base/sort.jl	1430	1441	radix_chunk_size_heuristic	radix_chunk_size_heuristic(lo::Integer, hi::Integer, bits::Unsigned)	modelled	sorttuplescov-radix-sort	
+base/sort.jl	1443	1443	maybe_unsigned	maybe_unsigned(x::Integer)	modelled	sorttuplescov-radix-sort	
+base/sort.jl	1444	1444	maybe_unsigned	maybe_unsigned(x::BitSigned)	modelled	sorttuplescov-radix-sort	
+base/sort.jl	1445	1451	_issorted	_issorted(v::AbstractVector, lo::Integer, hi::Integer, o::Ordering)	modelled	sort-default-stable	
+base/sort.jl	1473	1478	InitialOptimizations	InitialOptimizations(next)	modelled	sorttuplescov-initial-pipeline	
+base/sort.jl	1592	1593	_sort!	_sort!(v::AbstractVector, ::Union{DefaultStable, DefaultUnstable}, o::Ordering, kw)	modelled	sorttuplescov-initial-pipeline	
+base/sort.jl	1597	1599	Base.show	Base.show(io::IO, alg::Algorithm)	modelled	sorttuplescov-algorithm-show	
+base/sort.jl	1600	1616	print_tree	print_tree(io::IO, alg::Algorithm, cols::Int)	modelled	sorttuplescov-algorithm-show	
+base/sort.jl	1617	1617	show_type	show_type(io::IO, alg::Algorithm)	modelled	sorttuplescov-algorithm-show	
+base/sort.jl	1618	1618	show_type	show_type(io::IO, alg::Small{N}) where N	modelled	sorttuplescov-algorithm-show	
+base/sort.jl	1620	1620	defalg	defalg(v::AbstractArray)	modelled	sorttuplescov-initial-pipeline	
+base/sort.jl	1621	1621	defalg	defalg(v::AbstractArray{<:Union{Number, Missing}})	modelled	sorttuplescov-initial-pipeline	
+base/sort.jl	1622	1622	defalg	defalg(v::AbstractArray{Missing})	modelled	sorttuplescov-initial-pipeline	
+base/sort.jl	1623	1623	defalg	defalg(v::AbstractArray{Union{}})	modelled	sorttuplescov-initial-pipeline	
+base/sort.jl	1624	1624	defalg	defalg(v)	modelled	sorttuplescov-initial-pipeline	
+base/sort.jl	1732	1741	sort!	sort!(v::AbstractVector{T}; alg::Algorithm=defalg(v), lt=isless, by=identity, rev::Union{Bool,Nothing}=nothing, order::Ordering=Forward, scratch::Union{Vector{T}, Nothing}=nothing) where T	modelled	sorttuplescov-top-level-sort,sort-default-stable,sorttuplescov-sort-missing-scratch	
+base/sort.jl	1780	1780	sort	sort(v::AbstractVector; kws...)	modelled	sorttuplescov-top-level-sort	
+base/sort.jl	1783	1783	sort	sort(v::COLLECT_ON_SORT_TYPES; kws...)	modelled	sorttuplescov-top-level-sort	
+base/sort.jl	1785	1795	sort	sort(x::NTuple; alg::Algorithm=defalg(x), lt=isless, by=identity, rev::Union{Bool,Nothing}=nothing, order::Ordering=Forward, scratch::Union{Vector, Nothing}=nothing)	modelled	sorttuplescov-top-level-sort,sorttuplescov-sort-ntuple-alg	
+base/sort.jl	1798	1808	_sort	_sort(x::NTuple, a::Union{DefaultStable, DefaultUnstable}, o::Ordering, kw)	modelled	sorttuplescov-top-level-sort,sorttuplescov-sort-ntuple-alg	
+base/sort.jl	1809	1809	_mergesort	_mergesort(x::Union{NTuple{0}, NTuple{1}}, o::Ordering)	modelled	sorttuplescov-top-level-sort	
+base/sort.jl	1810	1813	_mergesort	_mergesort(x::NTuple, o::Ordering)	modelled	sorttuplescov-top-level-sort	
+base/sort.jl	1814	1814	merge	merge(x::NTuple, y::NTuple{0}, o::Ordering)	modelled	sorttuplescov-top-level-sort	
+base/sort.jl	1815	1815	merge	merge(x::NTuple{0}, y::NTuple, o::Ordering)	modelled	sorttuplescov-top-level-sort	
+base/sort.jl	1816	1816	merge	merge(x::NTuple{0}, y::NTuple{0}, o::Ordering)	modelled	sorttuplescov-top-level-sort	
+base/sort.jl	1817	1818	merge	merge(x::NTuple, y::NTuple, o::Ordering)	modelled	sorttuplescov-top-level-sort	
+base/sort.jl	1853	1854	partialsortperm	partialsortperm(v::AbstractVector, k::Union{Integer,OrdinalRange}; kwargs...)	modelled	sort-partialsortperm-index-type	
+base/sort.jl	1896	1915	partialsortperm!	partialsortperm!(ix::AbstractVector{<:Integer}, v::AbstractVector, k::Union{Integer, OrdinalRange}; lt::Function=isless, by::Function=identity, rev::Union{Bool,Nothing}=nothing, order::Ordering=Forward, initialized::Bool=false)	modelled	sorttuplescov-sortperm-wrappers,sort-partialsortperm-index-type	
+base/sort.jl	1966	1979	sortperm	sortperm(A::AbstractArray; alg::Algorithm=DEFAULT_UNSTABLE, lt=isless, by=identity, rev::Union{Bool,Nothing}=nothing, order::Ordering=Forward, scratch::Union{Vector{<:Integer}, Nothing}=nothing, dims...)	modelled	sorttuplescov-sortperm-wrappers	
+base/sort.jl	1980	1994	_sortperm	_sortperm(A::AbstractArray; alg, order, scratch, dims...)	modelled	sorttuplescov-sortperm-wrappers	
+base/sort.jl	2037	2055	sortperm!	sortperm!(ix::AbstractArray{T}, A::AbstractArray; alg::Algorithm=DEFAULT_UNSTABLE, lt=isless, by=identity, rev::Union{Bool,Nothing}=nothing, order::Ordering=Forward, initialized::Bool=false, scratch::Union{Vector{T}, Nothing}=nothing, dims...) where T <: Integer	modelled	sorttuplescov-sortperm-wrappers	
+base/sort.jl	2058	2081	sortperm_int_range	sortperm_int_range(x::Vector{<:Integer}, rangelen, minval)	modelled	sorttuplescov-sortperm-int-range	
+base/sort.jl	2112	2134	sort	sort(A::AbstractArray{T}; dims::Integer, alg::Algorithm=defalg(A), lt=isless, by=identity, rev::Union{Bool,Nothing}=nothing, order::Ordering=Forward, scratch::Union{Vector{T}, Nothing}=nothing) where T	modelled	sorttuplescov-multidimensional-sort	
+base/sort.jl	2136	2139	sort_chunks!	sort_chunks!(Av, n, alg, order, scratch)	modelled	sorttuplescov-multidimensional-sort	
+base/sort.jl	2141	2147	sort_chunks!	sort_chunks!(Av, n, alg, order, scratch::Nothing, fst, lst)	modelled	sorttuplescov-multidimensional-sort	
+base/sort.jl	2149	2154	sort_chunks!	sort_chunks!(Av, n, alg, order, scratch::AbstractVector, fst, lst)	modelled	sorttuplescov-multidimensional-sort	
+base/sort.jl	2187	2223	sort!	sort!(A::AbstractArray{T}; dims::Integer, alg::Algorithm=defalg(A), lt=isless, by=identity, rev::Union{Bool,Nothing}=nothing, order::Ordering=Forward, # TODO stop eagerly over-allocating. scratch::Union{Vector{T}, Nothing}=size(A, dims) < 10 ? nothing : Vector{T}(undef, size(A, dims))) where T	modelled	sorttuplescov-multidimensional-sort,sorttuplescov-sort-dims-exception	
+base/sort.jl	2206	2206	get_view	get_view(idx)	modelled	sorttuplescov-multidimensional-sort	
+base/sort.jl	2224	2224	get_value	get_value(::Val{x}) where x	modelled	sorttuplescov-multidimensional-sort	
+base/sort.jl	2237	2237	UIntMappable	UIntMappable(T::Type, order::Ordering)	modelled	sorttuplescov-uint-mapping	
+base/sort.jl	2251	2251	uint_map	uint_map	excluded		no-behaviour: declares the uint_map generic function without a method body
+base/sort.jl	2261	2261	uint_unmap	uint_unmap	excluded		no-behaviour: declares the uint_unmap generic function without a method body
+base/sort.jl	2267	2267	uint_map	uint_map(x::Unsigned, ::ForwardOrdering)	modelled	sorttuplescov-uint-mapping	
+base/sort.jl	2268	2268	uint_unmap	uint_unmap(::Type{T}, u::T, ::ForwardOrdering) where T <: Unsigned	modelled	sorttuplescov-uint-mapping	
+base/sort.jl	2270	2271	uint_map	uint_map(x::Signed, ::ForwardOrdering)	modelled	sorttuplescov-uint-mapping	
+base/sort.jl	2272	2273	uint_unmap	uint_unmap(::Type{T}, u::Unsigned, ::ForwardOrdering) where T <: Signed	modelled	sorttuplescov-uint-mapping	
+base/sort.jl	2275	2275	UIntMappable	UIntMappable(T::BitIntegerType, ::ForwardOrdering)	modelled	sorttuplescov-uint-mapping	
+base/sort.jl	2282	2282	uint_map	uint_map(x::Char, ::ForwardOrdering)	modelled	sorttuplescov-uint-mapping	
+base/sort.jl	2283	2283	uint_unmap	uint_unmap(::Type{Char}, u::UInt32, ::ForwardOrdering)	modelled	sorttuplescov-uint-mapping	
+base/sort.jl	2284	2284	UIntMappable	UIntMappable(::Type{Char}, ::ForwardOrdering)	modelled	sorttuplescov-uint-mapping	
+base/sort.jl	2287	2287	uint_map	uint_map(x, rev::ReverseOrdering)	modelled	sorttuplescov-uint-mapping	
+base/sort.jl	2288	2288	uint_unmap	uint_unmap(T::Type, u::Unsigned, rev::ReverseOrdering)	modelled	sorttuplescov-uint-mapping	
+base/sort.jl	2289	2289	UIntMappable	UIntMappable(T::Type, order::ReverseOrdering)	modelled	sorttuplescov-uint-mapping	
+base/sort.jl	2295	2301	uint_map!	uint_map!(v::AbstractVector, lo::Integer, hi::Integer, order::Ordering)	modelled	sorttuplescov-uint-mapping-loops	
+base/sort.jl	2303	2310	uint_unmap!	uint_unmap!(v::AbstractVector, u::AbstractVector{U}, lo::Integer, hi::Integer, order::Ordering, offset::U=zero(U), index_offset::Integer=0) where U <: Unsigned	modelled	sorttuplescov-uint-mapping-loops	
+base/sort.jl	2396	2396	maybe_apply_initial_optimizations	maybe_apply_initial_optimizations(alg::Algorithm)	modelled	sorttuplescov-initial-optimization-wrapper	
+base/sort.jl	2397	2397	maybe_apply_initial_optimizations	maybe_apply_initial_optimizations(alg::QuickSortAlg)	modelled	sorttuplescov-initial-optimization-wrapper	
+base/sort.jl	2398	2398	maybe_apply_initial_optimizations	maybe_apply_initial_optimizations(alg::MergeSortAlg)	modelled	sorttuplescov-initial-optimization-wrapper	
+base/sort.jl	2399	2399	maybe_apply_initial_optimizations	maybe_apply_initial_optimizations(alg::InsertionSortAlg)	modelled	sorttuplescov-initial-optimization-wrapper	
+base/sort.jl	2409	2429	selectpivot!	selectpivot!(v::AbstractVector, lo::Integer, hi::Integer, o::Ordering)	modelled	sorttuplescov-legacy-sort-kernels	
+base/sort.jl	2435	2452	partition!	partition!(v::AbstractVector, lo::Integer, hi::Integer, o::Ordering)	modelled	sorttuplescov-legacy-sort-kernels	
+base/sort.jl	2454	2457	sort!	sort!(v::AbstractVector, lo::Integer, hi::Integer, a::QuickSortAlg, o::Ordering)	modelled	sorttuplescov-legacy-entries	
+base/sort.jl	2459	2478	_quicksort!	_quicksort!(v::AbstractVector, lo::Integer, hi::Integer, a::QuickSortAlg, o::Ordering)	modelled	sorttuplescov-legacy-sort-kernels	
+base/sort.jl	2480	2481	sort!	sort!(v::AbstractVector{T}, lo::Integer, hi::Integer, a::MergeSortAlg, o::Ordering, t0::Vector{T}) where T	modelled	sorttuplescov-legacy-entries	
+base/sort.jl	2482	2486	sort!	sort!(v::AbstractVector{T}, lo::Integer, hi::Integer, a::MergeSortAlg, o::Ordering, t0::Union{AbstractVector{T}, Nothing}=nothing) where T	modelled	sorttuplescov-legacy-entries	
+base/sort.jl	2488	2531	_mergesort!	_mergesort!(v::AbstractVector{T}, lo::Integer, hi::Integer, a::MergeSortAlg, o::Ordering, t0::Union{AbstractVector{T}, Nothing}) where T	modelled	sorttuplescov-legacy-sort-kernels	
+base/sort.jl	2533	2537	sort!	sort!(v::AbstractVector, lo::Integer, hi::Integer, a::PartialQuickSort, o::Ordering)	modelled	sorttuplescov-legacy-entries	
+base/sort.jl	2539	2566	_partialquicksort!	_partialquicksort!(v::AbstractVector, lo::Integer, hi::Integer, a::PartialQuickSort, o::Ordering)	modelled	sorttuplescov-legacy-sort-kernels,sorttuplescov-partialquicksort-reversed-range	
+base/sort.jl	2571	2571	sort!	sort!(v::AbstractVector, a::Algorithm, o::Ordering)	modelled	sorttuplescov-legacy-entries	
+base/sort.jl	2572	2576	sort!	sort!(v::AbstractVector, lo::Integer, hi::Integer, a::Algorithm, o::Ordering)	modelled	sorttuplescov-legacy-entries	
+base/sort.jl	2577	2577	sort!	sort!(v::AbstractVector, lo::Integer, hi::Integer, a::Algorithm, o::Ordering, _)	modelled	sorttuplescov-legacy-entries	
+base/sort.jl	2578	2582	sort!	sort!(v::AbstractVector, lo::Integer, hi::Integer, a::Algorithm, o::Ordering, scratch::Vector)	modelled	sorttuplescov-legacy-sort-scratch	
+base/sort.jl	2586	2595	_sort!	_sort!(v::AbstractVector, a::Algorithm, o::Ordering, kw)	modelled	sorttuplescov-legacy-sort-scratch	

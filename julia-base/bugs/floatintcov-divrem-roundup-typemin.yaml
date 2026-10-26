@@ -1,0 +1,75 @@
+id: floatintcov-divrem-roundup-typemin
+title: "rem with RoundUp negates typemin, so it disagrees with divrem and returns the wrong remainder"
+priority: P1
+kind: wrong-result
+area: FloatIntCov
+files: [base/div.jl]
+functions: ["rem(::Integer, ::Integer, RoundUp)", "divrem(::Integer, ::Integer, RoundUp)"]
+summary: |
+  rem(Int8(-127), typemin(Int8), RoundUp) returns -127 because the implementation
+  negates typemin and wraps back to -128. divrem returns the correct pair (1, 1),
+  so it also contradicts the documented equivalence to separate div and rem calls.
+likelihood: |
+  This requires a signed typemin divisor, but those values arise naturally at
+  integer boundaries. Every signed fixed-width type is affected, and callers
+  silently receive a remainder that does not reconstruct the dividend.
+maybe_intended: ""
+reproducer: |
+  x = Int8(-127)
+  y = typemin(Int8)
+  q = div(x, y, RoundUp)
+  r = rem(x, y, RoundUp)
+  qr = divrem(x, y, RoundUp)
+  println("div = ", q)
+  println("rem = ", r)
+  println("divrem = ", qr)
+  println("divrem == (div, rem) = ", qr == (q, r))
+  println("REPRODUCED floatintcov-divrem-roundup-typemin")
+output:
+  release: |
+    VERSION = 1.13.2
+    x = -127, y = -128
+    div(x, y, RoundUp) = 1
+    rem(x, y, RoundUp) = -127
+    divrem(x, y, RoundUp) = (1, 1)
+    q*y+r = -255
+    divrem == (div, rem) = false
+    REPRODUCED floatintcov-divrem-roundup-typemin
+  nightly: |
+    VERSION = 1.15.0-DEV.126
+    x = -127, y = -128
+    div(x, y, RoundUp) = 1
+    rem(x, y, RoundUp) = -127
+    divrem(x, y, RoundUp) = (1, 1)
+    q*y+r = -255
+    divrem == (div, rem) = false
+    REPRODUCED floatintcov-divrem-roundup-typemin
+reproduced: {release: true, nightly: true}
+expected: |
+  rem should return 1. The separate calls should produce (1, 1), matching divrem,
+  and 1 * -128 + 1 should reconstruct -127.
+promised_by: |
+  base/div.jl:258-260 says divrem(x, y, r) is equivalent to
+  (div(x, y, r), rem(x, y, r)). base/div.jl:99-101 also puts the RoundUp
+  remainder in (-abs(y), 0] for a positive divisor or [0, abs(y)) otherwise.
+cause: |
+  base/div.jl:129 implements RoundUp remainder as mod(x, -y). Negating
+  typemin(Int8) wraps back to typemin(Int8), so mod sees the wrong divisor sign
+  and returns -127. The integer divrem method at base/div.jl:290-325 instead
+  reconstructs x - q*y with wrapping cancellation and returns the exact remainder 1.
+possible_fix: |
+  Avoid negating typemin in the source type. Compute the rounded remainder in a
+  widened signed type and convert the exact result, as open PR #62319 does.
+duplicates:
+  issues:
+    - {number: 62283, state: open, relation: duplicate}
+    - {number: 62319, state: open, relation: related}
+  queries:
+    - "issues and prs: divrem RoundUp typemin"
+    - "issues and prs: rem RoundUp typemin"
+    - "issues and prs: divrem rem RoundUp"
+    - "issues and prs: mod typemin unary minus"
+    - "issues and prs: RoundUp remainder"
+lean:
+  property: JuliaLean.FloatIntCov.Div.DivremProjectionConsistency
+  theorem: JuliaLean.FloatIntCov.Div.divremProjectionConsistency_refuted

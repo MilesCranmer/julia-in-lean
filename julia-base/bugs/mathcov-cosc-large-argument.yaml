@@ -1,0 +1,61 @@
+id: mathcov-cosc-large-argument
+title: "cosc(x) returns 0.0 or NaN instead of 1/x for large finite x"
+priority: P2
+kind: wrong-result
+area: MathCov
+files: [base/special/trig.jl]
+functions: ["cosc(::Float64)", "cosc(::Float32)", "Base.Math._cosc_generic"]
+summary: |
+  For |x| beyond the polynomial range, cosc evaluates (pi*x*cospi(x) - sinpi(x))/(pi*x*x).
+  The denominator pi*x*x overflows to Inf once |x| > sqrt(floatmax/pi) (about 7.6e153 for
+  Float64, 1.0e19 for Float32), so cosc returns 0.0 although the exact value is about 1/x;
+  once |x| > floatmax/pi the numerator is Inf as well and cosc returns NaN for a finite
+  argument. For |x| >= maxintfloat every float is an even integer, so the exact value is
+  exactly 1/x.
+likelihood: |
+  Low. Only arguments above about 7.6e153 (Float64) or 1.0e19 (Float32) are affected.
+maybe_intended: |
+  The docstring promises no accuracy, and 0.0 is within an absolute error of 1e-154 of
+  the true value. The NaN result for finite x is hard to justify: the function's value is
+  finite and tends to 0.
+reproducer: |
+  cosc(1.0e154)              # 0.0, exact value 1.0e-154
+  cosc(floatmax(Float64))    # NaN, exact value 5.562684646268003e-309
+  cosc(floatmax(Float32))    # NaN32, exact value 2.938736e-39
+output:
+  release: |
+    Float64 cosc(1.0e154) = 0.0   expected 1.0e-154
+    Float64 cosc(1.0e200) = 0.0   expected 1.0e-200
+    Float64 cosc(1.7976931348623157e308) = NaN   expected 5.562684646268003e-309
+    Float32 cosc(1.0e19) = 1.00000003e-19   expected 1.00000003e-19
+    Float32 cosc(3.4028235e38) = NaN   expected 2.938736e-39
+    REPRODUCED mathcov-cosc-large-argument
+  nightly: |
+    Float64 cosc(1.0e154) = 0.0   expected 1.0e-154
+    Float64 cosc(1.0e200) = 0.0   expected 1.0e-200
+    Float64 cosc(1.7976931348623157e308) = NaN   expected 5.562684646268003e-309
+    Float32 cosc(1.0e19) = 1.00000003e-19   expected 1.00000003e-19
+    Float32 cosc(3.4028235e38) = NaN   expected 2.938736e-39
+    REPRODUCED mathcov-cosc-large-argument
+reproduced: {release: true, nightly: true}
+expected: |
+  cosc(x) == inv(x) (to within an ulp) for |x| >= maxintfloat, e.g. cosc(1.0e154) ==
+  1.0e-154 and cosc(floatmax(Float64)) == 5.562684646268003e-309; never NaN for finite x.
+promised_by: |
+  base/special/trig.jl:1244-1250 (cosc docstring): "Compute cos(πx)/x - sin(πx)/(πx^2) if
+  x ≠ 0, and 0 if x = 0." For finite large x this value is finite and close to 1/x.
+cause: |
+  base/special/trig.jl:1255-1258: _cosc_generic computes (pi_x*cospi(x) - sinpi(x))/(pi_x*x)
+  with pi_x = pi*x; both pi_x*x and (for larger x) pi_x overflow. _cos_cardinal_eval
+  (base/special/trig.jl:1358-1365) calls it for every finite |x| outside the polynomial range.
+possible_fix: |
+  Evaluate cospi(x)/x - sinpi(x)/(pi_x*x) (or return inv(x) for |x| >= maxintfloat), so no
+  product larger than |x| is formed.
+duplicates:
+  issues:
+    - {number: 59064, state: closed, relation: related}
+    - {number: 59065, state: closed, relation: related}
+  queries: ["cosc", "cosc NaN", "cosc overflow large", "cosc floatmax"]
+lean:
+  property: JuliaLean.MathCov.CoscLargeArgument
+  theorem: JuliaLean.MathCov.coscLargeArgument_refuted

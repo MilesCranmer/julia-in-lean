@@ -1,0 +1,49 @@
+id: bitsetscov-sizehint-bitvector-integer
+title: "sizehint!(::BitVector, n) throws MethodError unless n is an Int"
+priority: P2
+kind: wrong-exception
+area: BitSetsCov
+files: [base/bitarray.jl]
+functions: ["sizehint!(B::BitVector, sz::Integer)", "num_bit_chunks(n::Int)"]
+summary: |
+  sizehint!(B::BitVector, sz::Integer) is declared for any Integer but
+  passes sz straight to num_bit_chunks, which has only an Int method. So
+  sizehint!(falses(3), UInt(10)) and sizehint!(falses(3), Int32(10)) throw
+  MethodError, while sizehint!(::Vector{Bool}, ::UInt) works.
+likelihood: |
+  Code that computes capacities in UInt or Int32 and calls sizehint! on a
+  BitVector, or generic AbstractVector code that does so.
+maybe_intended: ""
+reproducer: |
+  sizehint!(falses(3), UInt(10))      # MethodError: num_bit_chunks(::UInt64)
+  sizehint!(fill(false, 3), UInt(10)) # works
+output:
+  release: |
+    sizehint!(fill(false, 3), UInt(10)) = Bool[0, 0, 0]
+    sizehint!(falses(3), UInt(10)) = MethodError
+    sizehint!(falses(3), Int32(10)) = MethodError
+    REPRODUCED bitsetscov-sizehint-bitvector-integer
+  nightly: |
+    sizehint!(fill(false, 3), UInt(10)) = Bool[0, 0, 0]
+    sizehint!(falses(3), UInt(10)) = MethodError
+    sizehint!(falses(3), Int32(10)) = MethodError
+    REPRODUCED bitsetscov-sizehint-bitvector-integer
+reproduced: {release: true, nightly: true}
+expected: |
+  sizehint!(falses(3), UInt(10)) returns the BitVector unchanged, as for
+  Vector{Bool}.
+promised_by: |
+  The method signature sizehint!(B::BitVector, sz::Integer)
+  (base/bitarray.jl:798) and the sizehint! docstring (base/array.jl:1584):
+  "Suggest that collection s reserve capacity for at least n elements."
+cause: |
+  base/bitarray.jl:799 calls num_bit_chunks(sz) without Int(sz);
+  num_bit_chunks is defined only for Int (base/bitarray.jl:120).
+possible_fix: |
+  sizehint!(B.chunks, num_bit_chunks(Int(sz))).
+duplicates:
+  issues: []
+  queries: ["sizehint! BitVector", "sizehint! BitArray", "num_bit_chunks"]
+lean:
+  property: JuliaLean.BitSetsCov.BitSizehintSpec
+  theorem: JuliaLean.BitSetsCov.bitSizehintSpec_refuted

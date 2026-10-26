@@ -1,0 +1,32 @@
+line	name	verdict	mirror	property	settled	reason
+59	dlsym	HOLLOW	no	no	yes	The Lean model omits the Ref allocation and ccall argument conversions and restricts the Symbol-or-AbstractString argument to String, while the propositions rely on undocumented runtime-result hypotheses.
+80	dlsym_e	HOLLOW	no	no	yes	The Lean wrapper fixes the splatted arguments to a non-null handle and String symbol and proves only a runtime-failure case, so it does not cover every allowed delegation to dlsym.
+116	dlopen	FAITHFUL	-	-	-	The no-behaviour exclusion applies because this is an empty generic-function declaration with no method body.
+118	dlopen	HOLLOW	no	no	yes	The Lean model receives a String directly and omits the method's string conversion from Symbol, so its equality does not state the wrapper's behaviour for Symbol inputs.
+121	dlopen	HOLLOW	no	no	yes	The Lean model restricts AbstractString to String and omits Cstring conversion, while the proposition assumes an in-range flag and a chosen loader result rather than covering every allowed input.
+146	dlopen	HOLLOW	no	no	yes	The Lean model returns the handle as evidence instead of calling dlclose in a finally block, and its proposition does not state that closing occurs when the callback returns or throws.
+162	dlopen_e	HOLLOW	no	no	yes	The Lean model fixes the splatted call to String and flags and proves only one failure case, so it does not mirror or specify every allowed delegation to dlopen.
+169	dlclose	FAITHFUL	yes	yes	yes	The model calls the supplied jl_dlclose primitive once and returns whether its result is zero for every pointer value.
+189	dlclose	FAITHFUL	yes	yes	yes	The model and proposition both return nothing for the empty Nothing method body.
+201	find_library	HOLLOW	no	yes	yes	The documented candidate property is universal, but findLibrary collapses each dlopen and required dlclose into canOpen and therefore does not mirror the method's calls.
+219	find_library	HOLLOW	no	no	yes	The Lean wrapper accepts an already converted character list and never models string(libname), so its proposition omits Symbol inputs and the conversion performed by this method.
+227	dlpath	HOLLOW	no	no	yes	The model returns an arbitrary pathname value and omits unsafe_string and the Windows free call, so the proposition does not establish that the returned value is the documented full path.
+245	dlpath	HOLLOW	no	no	yes	The model omits dlclose and the Symbol conversion and states the result through arbitrary load and pathname values under undocumented outcome hypotheses.
+273	dllist	HOLLOW	no	no	yes	The model is an identity wrapper around an arbitrary supplied list and omits the platform branches and collection calls, so its proposition does not say that the result contains loaded libraries.
+317	LazyLibraryPath	HOLLOW	yes	no	yes	The constructor model stores its input pieces, but the proposition quantifies only over the closed Piece type rather than every Any piece accepted by the Julia constructor.
+319	Base.string	HOLLOW	no	no	yes	The model handles only two Piece variants with Unix joinpath, and the proposition covers only two relative string pieces under extra undocumented hypotheses.
+320	Base.cconvert	HOLLOW	no	no	yes	The model returns a character list after a hand-written NUL check instead of mirroring Base.cconvert, and the proposition covers only successful NUL-free modeled paths.
+322	Base.print	HOLLOW	no	no	yes	The model has no IO argument or print effect and merely returns llpString, so the proposition does not state that the method writes string(llp) to every allowed IO.
+338	Base.string	HOLLOW	no	no	yes	The model replaces private_shlibdir() with an arbitrary value and omits its OncePerProcess initialization, C call, fallback, and platform cleanup, while the shared proposition concerns the bundled constructor instead.
+356	BundledLazyLibraryPath	HOLLOW	yes	no	yes	The model mirrors the two-piece construction, but the proposition accepts only character-list subpaths and substitutes an arbitrary value for private_shlibdir().
+358	Base.show	HOLLOW	no	no	yes	The model builds a pure string over a closed Piece type instead of performing the source-order IO calls, and the registered proposition covers only the single-string-piece branch.
+396	(init::InitialDependencies)	HOLLOW	no	no	yes	The identity list model cannot represent a fresh Vector copy, and value equality alone does not state the claimed copy and independence behaviour.
+464	LazyLibrary	HOLLOW	no	no	yes	The model omits OncePerProcess construction, the stored callback value, lock construction, and atomic field initialization, and its reduced record proposition does not cover all constructor inputs or fields.
+480	_invoke_on_load_callback	FAITHFUL	yes	yes	yes	The Lean function invokes every supplied callback once with no arguments, exactly matching the Julia wrapper.
+481	_lazy_library_path_string	HOLLOW	no	no	yes	The Lean function handles only its LazyLibraryPath model instead of calling generic string(path), so the proposition omits every other allowed path value.
+484	Base.show	HOLLOW	no	yes	yes	The proposition universally states the rendered LazyLibrary(path) text, but the model returns a pure string and omits the method's print, show, and print IO call sequence.
+509	add_dependency!	HOLLOW	no	yes	yes	The proposition universally states that the dependency is appended, but the pure record update omits the lock, OncePerProcess call, and in-place push performed by the method.
+519	dlopen	HOLLOW	no	yes	yes	The registered properties state the cached-handle promise and the documented missing-library behaviour, but dlopenLL replaces the lock, dependency loop, path conversion, atomic operations, and callback synchronization with precomputed outcomes.
+559	dlopen	HOLLOW	no	no	yes	The constant dlopenAny model omits the input and most TypeError arguments, and its shared proposition therefore does not state the fallback's behaviour for every x.
+560	dlsym	HOLLOW	no	no	yes	dlsymLL receives a completed LoadOutcome instead of calling dlopen(ll), and its proposition assumes success while omitting LazyLibrary inputs, failure paths, and splatted arguments.
+561	dlpath	HOLLOW	no	no	yes	dlpathLL receives a completed LoadOutcome instead of calling dlopen(ll), and its proposition assumes success without quantifying over LazyLibrary inputs or load failures.

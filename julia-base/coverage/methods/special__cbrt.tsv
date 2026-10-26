@@ -1,0 +1,7 @@
+file	line	endline	name	signature	status	entry	note
+base/special/cbrt.jl	36	36	cbrt	cbrt(x::AbstractFloat)	modelled	mathcov-special-cbrt-l36	method-specific source model and quantified behavior property
+base/special/cbrt.jl	63	79	_approx_cbrt	_approx_cbrt(x::T) where {T<:Union{Float32,Float64}}	modelled	mathcov-special-cbrt-l63	method-specific source model and quantified behavior property
+base/special/cbrt.jl	81	101	_improve_cbrt	_improve_cbrt(x::Float32, t::Float32)	modelled	mathcov-special-cbrt-l81	method-specific source model and quantified behavior property
+base/special/cbrt.jl	103	142	_improve_cbrt	_improve_cbrt(x::Float64, t::Float64)	modelled	mathcov-special-cbrt-l103	method-specific source model and quantified behavior property
+base/special/cbrt.jl	144	150	cbrt	cbrt(x::Union{Float32,Float64})	modelled	mathcov-special-cbrt-l144	method-specific source model and quantified behavior property
+base/special/cbrt.jl	152	167	cbrt	cbrt(a::Float16)	modelled	mathcov-special-cbrt-l152	method-specific source model and quantified behavior property

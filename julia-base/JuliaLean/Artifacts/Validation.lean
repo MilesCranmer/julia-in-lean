@@ -1,7 +1,7 @@
 import JuliaLean.Artifacts.Model
 import JuliaLean.Platforms.Lemmas
 
-/-! Deterministic corpus, mirrored line by line by a Julia differential script. -/
+/-! Deterministic differential corpus. -/
 
 namespace JuliaLean.Artifacts.Validation
 

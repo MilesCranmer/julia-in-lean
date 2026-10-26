@@ -1,0 +1,55 @@
+id: reducecov-dims-unsigned-large
+title: "sum(A; dims=UInt(2)^63) throws InexactError while sum(A; dims=typemax(Int)) reduces over the trailing singleton dimension"
+priority: P3
+kind: wrong-exception
+area: ReduceCov
+files: [base/reducedim.jl]
+functions: ["_check_valid_region", "reduced_indices", "sum(A; dims)", "maximum(A; dims)"]
+summary: |
+  A reduction over a dimension beyond ndims(A) reduces over a trailing singleton
+  dimension, so sum([1, 2]; dims=typemax(Int)) returns [1, 2]. The same dimension
+  given as an unsigned integer above typemax(Int) throws InexactError from
+  Int(d) in _check_valid_region: sum([1, 2]; dims=UInt(2)^63), maximum, any and
+  the other dims reductions all fail, while axes([1, 2], UInt(2)^63) returns 1:1.
+likelihood: |
+  Very low: dimensions this large are only written by mistake or by code that
+  computes dimension numbers in unsigned arithmetic.
+maybe_intended: |
+  Dimension numbers are Ints in practice. The region check exists to give an
+  ArgumentError for invalid dimensions; a valid (trailing) dimension gets an
+  InexactError instead.
+reproducer: |
+  sum([1, 2]; dims=UInt(2)^63)     # InexactError
+  sum([1, 2]; dims=typemax(Int))   # [1, 2]
+output:
+  release: |
+    sum([1, 2]; dims=UInt(2)^63) -> InexactError
+    sum([1, 2]; dims=typemax(Int)) -> [1, 2]
+    maximum([1, 2]; dims=UInt(2)^63) -> InexactError
+    axes([1, 2], UInt(2)^63) -> Base.OneTo(1)
+    REPRODUCED reducecov-dims-unsigned-large
+  nightly: |
+    sum([1, 2]; dims=UInt(2)^63) -> InexactError
+    sum([1, 2]; dims=typemax(Int)) -> [1, 2]
+    maximum([1, 2]; dims=UInt(2)^63) -> InexactError
+    axes([1, 2], UInt(2)^63) -> Base.OneTo(1)
+    REPRODUCED reducecov-dims-unsigned-large
+reproduced: {release: true, nightly: true}
+expected: |
+  [1, 2], the reduction over the trailing singleton dimension, as for
+  dims=typemax(Int).
+promised_by: |
+  base/reducedim.jl:30-35: _check_valid_region rejects only non-integer dimensions
+  and dimensions below 1 ("region dimension(s) must be ≥ 1"); every integer d ≥ 1 is a
+  valid dimension (trailing dimensions have size 1, axes(A, d) = 1:1).
+cause: |
+  base/reducedim.jl:33: Int(d) < 1 converts d to Int before comparing; the conversion
+  throws InexactError for d > typemax(Int). d < 1 would compare without converting.
+possible_fix: |
+  Use d < 1 instead of Int(d) < 1.
+duplicates:
+  issues: []
+  queries: ["dims UInt InexactError", "_check_valid_region", "reduced_indices UInt"]
+lean:
+  property: JuliaLean.ReduceCov.Dims.ValidRegionUnsigned
+  theorem: JuliaLean.ReduceCov.Dims.validRegionUnsigned_refuted

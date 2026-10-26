@@ -1,0 +1,59 @@
+id: memsafety-deprecated-substring-negative-count
+title: "Deprecated no-shift SubString constructor accepts a negative code-unit count"
+priority: P2
+kind: missing-error
+area: Strings
+files: [base/deprecated.jl, base/strings/substring.jl]
+functions: ["SubString{T}(s, i, j, Val(:noshift))", "raw_substring"]
+summary: |
+  SubString{String}("abc", 2, -1, Val(:noshift)) returns a SubString whose
+  ncodeunits and sizeof are both -1. The endpoint checks accept the reversed
+  span, and @inbounds then suppresses raw_substring's negative-count check.
+  String(result) subsequently throws OutOfMemoryError on both tested versions.
+likelihood: |
+  This requires direct use of a deprecated internal constructor with a negative
+  count. The input is contrived, but the result violates the SubString storage
+  invariant used by later unchecked string operations.
+maybe_intended: ""
+reproducer: |
+  for parent in ("abc", SubString("abc"))
+      ss = SubString{typeof(parent)}(parent, 2, -1, Val(:noshift))
+      @show ncodeunits(ss) sizeof(ss)
+  end
+output:
+  release: |
+    default String constructor returned ncodeunits = -1, sizeof = -1
+    default SubString constructor returned ncodeunits = -1, sizeof = -1
+    checked String constructor returned ncodeunits = -1, sizeof = -1
+    checked SubString constructor returned ncodeunits = -1, sizeof = -1
+    checked child exit code = 0, signal = 0
+    REPRODUCED memsafety-deprecated-substring-negative-count
+  nightly: |
+    default String constructor returned ncodeunits = -1, sizeof = -1
+    default SubString constructor returned ncodeunits = -1, sizeof = -1
+    checked String constructor threw BoundsError
+    checked SubString constructor threw BoundsError
+    checked child exit code = 0, signal = 0
+    REPRODUCED memsafety-deprecated-substring-negative-count
+reproduced: {release: true, nightly: true}
+expected: |
+  The constructor should throw BoundsError for a negative code-unit count, as
+  raw_substring does when its bounds check is enabled.
+promised_by: |
+  base/strings/substring.jl:3-12 documents a span of n_codeunits and a checked
+  raw_substring constructor. A SubString code-unit count is a storage length and
+  must be nonnegative.
+cause: |
+  base/deprecated.jl:704-710 and 717-723 validate only the computed start and end
+  indices. For i=2 and j=-1, those indices are 3 and 1, both valid in "abc".
+  The final @inbounds raw_substring(s, 3, -1) suppresses the n_codeunits < 0
+  check at base/strings/substring.jl:86-91 and stores -1 in the result.
+possible_fix: |
+  Reject j < 0 before the endpoint calculations, or call raw_substring without
+  @inbounds so its negative-count check remains active.
+duplicates:
+  issues: []
+  queries: ["SubString negative ncodeunits", "Val noshift negative SubString", "raw_substring negative"]
+lean:
+  property: JuliaLean.MemSafety.G1.DeprecatedSubstringValid
+  theorem: JuliaLean.MemSafety.G1.deprecatedSubstringValid_refuted

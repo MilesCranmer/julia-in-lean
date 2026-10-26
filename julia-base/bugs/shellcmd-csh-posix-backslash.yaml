@@ -1,0 +1,57 @@
+id: shellcmd-csh-posix-backslash
+title: "shell_escape_csh output is not safe for a POSIX shell when an argument has a quote and a backslash"
+priority: P2
+kind: wrong-result
+area: ShellCmd
+files: [base/shell.jl]
+functions: ["Base.shell_escape_csh"]
+summary: |
+  shell_escape_csh wraps a part of an argument that contains a single quote in double
+  quotes, without escaping backslashes in it. The docstring says the output also works for
+  a POSIX shell (except for linefeeds), but POSIX sh treats `\"` and `\\` inside double
+  quotes as escapes. An argument such as "'\\" (quote, backslash) therefore leaves the
+  double-quoted string open, so the following arguments are parsed as shell syntax:
+  shell_escape_csh("'\\", "\"; echo INJECTED #") makes sh run `echo INJECTED`.
+likelihood: |
+  Low: needs an argument that contains both a single quote and a backslash, and a caller
+  that relies on the docstring and passes the result to sh. When the arguments come from
+  untrusted input this is a command injection.
+maybe_intended: |
+  The function is written for csh, where backslash is not special inside double quotes,
+  and is correct there. The POSIX claim is in the docstring only.
+reproducer: |
+  e = Base.shell_escape_csh("'\\", "\"; echo INJECTED #")
+  read(`sh -c "printf '<%s>' $e"`, String)   # "<'\" '>INJECTED\n"
+output:
+  release: |
+    shell_escape_csh("'\\", "\"; echo INJECTED #") = "\"'\\\" '\"; echo INJECTED #'"
+    sh -c "printf '<%s>' $e" prints "<'\" '>INJECTED\n"
+    shell_escape_csh("'\\\\") = "\"'\\\\\""; sh prints "<'\\>"
+    REPRODUCED shellcmd-csh-posix-backslash
+  nightly: |
+    shell_escape_csh("'\\", "\"; echo INJECTED #") = "\"'\\\" '\"; echo INJECTED #'"
+    sh -c "printf '<%s>' $e" prints "<'\" '>INJECTED\n"
+    shell_escape_csh("'\\\\") = "\"'\\\\\""; sh prints "<'\\>"
+    REPRODUCED shellcmd-csh-posix-backslash
+reproduced: {release: true, nightly: true}
+expected: |
+  sh prints "<'\\><\"; echo INJECTED #>": two arguments, the original strings, and no
+  command executed.
+promised_by: |
+  base/shell.jl:539-540: "This function should also work for a POSIX shell, except if the
+  input string contains a linefeed ("\n") character."
+cause: |
+  base/shell.jl:551-553: the double-quote patterns r"^[^\$\`\"]*\z" and r"^[^\$\`\"]+"
+  admit backslashes, which POSIX sh interprets inside double quotes
+  (POSIX.1-2024 XCU 2.2.3).
+possible_fix: |
+  Exclude backslash from the two double-quote character classes, so that backslashes are
+  always emitted inside single quotes; the output stays correct for csh.
+duplicates:
+  issues: []
+  queries:
+    - "issues/prs: shell_escape_csh"
+    - "issues/prs: csh escape"
+lean:
+  property: JuliaLean.ShellCmd.CshPosixRoundTrip
+  theorem: JuliaLean.ShellCmd.cshPosixRoundTrip_refuted

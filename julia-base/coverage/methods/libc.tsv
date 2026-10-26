@@ -1,0 +1,71 @@
+file	line	endline	name	signature	status	entry	note
+base/libc.jl	35	35	RawFD	RawFD(fd::Integer)	modelled	iocov-libc-rawfd-int	
+base/libc.jl	36	36	RawFD	RawFD(fd::RawFD)	modelled	iocov-libc-rawfd-id	
+base/libc.jl	37	37	Base.cconvert	Base.cconvert(::Type{Cint}, fd::RawFD)	modelled	iocov-libc-rawfd-id	
+base/libc.jl	46	46	dup	dup(x::RawFD)	modelled	iocov-libc-dup-ok,iocov-dup-unchecked	
+base/libc.jl	47	49	dup	dup(src::RawFD, target::RawFD)	modelled	iocov-libc-dup2	
+base/libc.jl	51	51	show	show(io::IO, fd::RawFD)	modelled	iocov-libc-show-rawfd	
+base/libc.jl	61	61	WindowsRawSocket	WindowsRawSocket(handle::Ptr{Cvoid})	excluded		platform: Windows-only WindowsRawSocket constructor
+base/libc.jl	62	62	WindowsRawSocket	WindowsRawSocket(handle::WindowsRawSocket)	excluded		platform: Windows-only WindowsRawSocket constructor
+base/libc.jl	64	64	Base.cconvert	Base.cconvert(::Type{Ptr{Cvoid}}, fd::WindowsRawSocket)	excluded		platform: Windows-only cconvert of WindowsRawSocket
+base/libc.jl	65	65	show	show(io::IO, fd::WindowsRawSocket)	excluded		platform: Windows-only show of WindowsRawSocket
+base/libc.jl	66	66	_get_osfhandle	_get_osfhandle(fd::RawFD)	excluded		platform: Windows-only _get_osfhandle
+base/libc.jl	67	67	_get_osfhandle	_get_osfhandle(fd::WindowsRawSocket)	excluded		platform: Windows-only _get_osfhandle
+base/libc.jl	68	77	dup	dup(src::WindowsRawSocket)	excluded		platform: Windows-only dup
+base/libc.jl	78	83	dup	dup(src::WindowsRawSocket, target::RawFD)	excluded		platform: Windows-only dup
+base/libc.jl	86	86	_get_osfhandle	_get_osfhandle(fd::RawFD)	modelled	iocov-libc-get-osfhandle	
+base/libc.jl	123	123	modestr	modestr(s::IO)	modelled	iocov-libc-modestr-io	
+base/libc.jl	124	124	modestr	modestr(r::Bool, w::Bool)	modelled	iocov-libc-modestr	
+base/libc.jl	126	130	FILE	FILE(fd::RawFD, mode)	modelled	iocov-libc-file-fd	
+base/libc.jl	132	136	FILE	FILE(s::IO)	modelled	iocov-libc-file-io	
+base/libc.jl	138	138	Base.unsafe_convert	Base.unsafe_convert(T::Union{Type{Ptr{Cvoid}},Type{Ptr{FILE}}}, f::FILE)	modelled	iocov-libc-unsafe-convert-file	
+base/libc.jl	139	139	Base.close	Base.close(f::FILE)	modelled	iocov-libc-close-file	
+base/libc.jl	141	145	Base.seek	Base.seek(h::FILE, offset::Integer)	modelled	iocov-libc-seek-file	
+base/libc.jl	147	147	Base.position	Base.position(h::FILE)	modelled	iocov-libc-position-file	
+base/libc.jl	156	156	flush_cstdio	flush_cstdio()	modelled	iocov-libc-flush-cstdio	
+base/libc.jl	162	162	systemsleep	systemsleep(s::Real)	modelled	iocov-libc-systemsleep,iocov-systemsleep-large	
+base/libc.jl	164	167	systemsleep	systemsleep(s::Real)	excluded		platform: Windows systemsleep branch
+base/libc.jl	187	192	TimeVal	TimeVal()	modelled	iocov-libc-timeval	
+base/libc.jl	217	218	TmStruct	TmStruct(sec, min, hour, mday, month, year, wday, yday, isdst)	modelled	iocov-libc-tmstruct9	
+base/libc.jl	219	219	TmStruct	TmStruct()	modelled	iocov-libc-tmstruct0	
+base/libc.jl	220	226	TmStruct	TmStruct(t::Real)	modelled	iocov-libc-tmstruct-time	
+base/libc.jl	236	236	strftime	strftime(t)	modelled	iocov-libc-strftime-default	
+base/libc.jl	237	237	strftime	strftime(fmt::AbstractString, t::Real)	modelled	iocov-libc-strftime-real	
+base/libc.jl	239	245	strftime	strftime(fmt::AbstractString, tm::TmStruct)	modelled	iocov-strftime-long,iocov-libc-strftime	
+base/libc.jl	257	257	strptime	strptime(timestr::AbstractString)	modelled	iocov-libc-strptime-default	
+base/libc.jl	258	307	strptime	strptime(fmt::AbstractString, timestr::AbstractString)	modelled	iocov-libc-strptime	
+base/libc.jl	270	299	shouldcallmktime	shouldcallmktime(s::AbstractString)	modelled	iocov-libc-strptime	
+base/libc.jl	316	316	time	time(tm::TmStruct)	modelled	iocov-libc-time-tm	
+base/libc.jl	325	325	time	time()	modelled	iocov-libc-time-now	
+base/libc.jl	334	334	getpid	getpid()	modelled	iocov-libc-getpid	
+base/libc.jl	343	352	gethostname	gethostname()	modelled	iocov-libc-gethostname	
+base/libc.jl	366	366	errno	errno()	modelled	iocov-libc-errno	
+base/libc.jl	367	367	errno	errno(e::Integer)	modelled	iocov-libc-errno-set	
+base/libc.jl	374	374	strerror	strerror(e::Integer)	modelled	iocov-libc-strerror	
+base/libc.jl	375	375	strerror	strerror()	modelled	iocov-libc-strerror0	
+base/libc.jl	382	382	GetLastError	GetLastError	excluded		no-behaviour: empty generic-function declaration of GetLastError
+base/libc.jl	389	389	FormatMessage	FormatMessage	excluded		no-behaviour: empty generic-function declaration of FormatMessage
+base/libc.jl	392	392	GetLastError	GetLastError()	excluded		platform: Windows-only GetLastError
+base/libc.jl	394	394	FormatMessage	FormatMessage(e)	excluded		platform: Windows-only FormatMessage
+base/libc.jl	395	411	FormatMessage	FormatMessage(e::UInt32=GetLastError())	excluded		platform: Windows-only FormatMessage
+base/libc.jl	423	423	free	free(p::Ptr)	modelled	iocov-libc-free	
+base/libc.jl	424	424	free	free(p::Cstring)	modelled	iocov-libc-free	
+base/libc.jl	425	425	free	free(p::Cwstring)	modelled	iocov-libc-free	
+base/libc.jl	432	432	malloc	malloc(size::Integer)	modelled	iocov-libc-malloc	
+base/libc.jl	442	442	realloc	realloc(p::Ptr, size::Integer)	modelled	iocov-libc-realloc	
+base/libc.jl	449	449	calloc	calloc(num::Integer, size::Integer)	modelled	iocov-libc-calloc	
+base/libc.jl	456	461	getrandom!	getrandom!(A::Union{Array,Base.RefValue})	modelled	iocov-libc-getrandom	
+base/libc.jl	462	462	_make_uint64_seed	_make_uint64_seed()	modelled	iocov-libc-make-seed	
+base/libc.jl	472	472	rand	rand()	modelled	iocov-libc-rand	
+base/libc.jl	473	473	rand	rand(::Type{UInt32})	modelled	iocov-libc-rand	
+base/libc.jl	474	474	rand	rand(::Type{Float64})	modelled	iocov-libc-rand-float	
+base/libc.jl	481	483	srand	srand(seed::Integer=_make_uint64_seed())	modelled	iocov-libc-srand	
+base/libc.jl	495	510	mkfifo	mkfifo( path::AbstractString, mode::Integer = Base.S_IRUSR | Base.S_IWUSR | Base.S_IRGRP | Base.S_IWGRP | Base.S_IROTH | Base.S_IWOTH, )	modelled	iocov-libc-mkfifo	
+base/libc.jl	519	519	Cpasswd	Cpasswd()	modelled	iocov-libc-mkfifo	
+base/libc.jl	525	525	Cgroup	Cgroup()	modelled	iocov-libc-mkfifo	
+base/libc.jl	543	559	getpw	getpw()	modelled	iocov-libc-getpw	
+base/libc.jl	561	579	getpwuid	getpwuid(uid::Unsigned, throw_error::Bool=true)	modelled	iocov-libc-getpwuid	
+base/libc.jl	581	604	getgrgid	getgrgid(gid::Unsigned, throw_error::Bool=true)	modelled	iocov-libc-getgrgid	
+base/libc.jl	606	606	getuid	getuid()	modelled	iocov-libc-ids	
+base/libc.jl	607	607	geteuid	geteuid()	modelled	iocov-libc-ids	
+base/libc.jl	608	608	getegid	getegid()	modelled	iocov-libc-ids	

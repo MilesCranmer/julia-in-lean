@@ -1,0 +1,26 @@
+file	line	endline	name	signature	status	entry	note
+base/linking.jl	25	42	adjust_ENV!	adjust_ENV!(env::Dict, PATH::String, LIBPATH::String, adjust_PATH::Bool, adjust_LIBPATH::Bool)	modelled	docssyntaxcov-linking-env	
+base/linking.jl	69	69	PATH	PATH()	modelled	docssyntaxcov-linking-tools	
+base/linking.jl	81	84	lld	lld(; adjust_PATH::Bool = true, adjust_LIBPATH::Bool = true)	modelled	docssyntaxcov-linking-tools	
+base/linking.jl	86	89	dsymutil	dsymutil(; adjust_PATH::Bool = true, adjust_LIBPATH::Bool = true)	modelled	docssyntaxcov-linking-tools	
+base/linking.jl	91	128	ld	ld(; strict_definitions::Bool = false)	modelled	docssyntaxcov-linking-ld	
+base/linking.jl	143	143	whole_archive	whole_archive(paths::String; is_cc=false)	modelled	docssyntaxcov-linking-whole-archive	
+base/linking.jl	144	151	whole_archive	whole_archive(paths::Vector{String}; is_cc=false)	modelled	docssyntaxcov-linking-whole-archive	
+base/linking.jl	145	145	cc_arg	cc_arg(a)	modelled	docssyntaxcov-linking-whole-archive	
+base/linking.jl	159	159	libdir	libdir()	modelled	docssyntaxcov-linking-dirs	
+base/linking.jl	160	160	private_libdir	private_libdir()	modelled	docssyntaxcov-linking-dirs	
+base/linking.jl	162	162	shlibdir	shlibdir()	modelled	docssyntaxcov-linking-dirs	
+base/linking.jl	164	164	shlibdir	shlibdir()	modelled	docssyntaxcov-linking-dirs	
+base/linking.jl	167	167	verbose_linking	verbose_linking()	modelled	docssyntaxcov-linking-dirs	
+base/linking.jl	169	175	_find_static	_find_static(lib)	modelled	docssyntaxcov-linking-dirs	
+base/linking.jl	177	182	_find_loaded	_find_loaded(re::Regex)	modelled	docssyntaxcov-linking-dirs	
+base/linking.jl	184	228	link_image_cmd	link_image_cmd(path, out; is_sysimage::Bool = false)	modelled	docssyntaxcov-linking-image	
+base/linking.jl	230	233	link_image	link_image(path, out, internal_stderr::IO=stderr, internal_stdout::IO=stdout; is_sysimage::Bool = false)	modelled	docssyntaxcov-linking-image	
+base/linking.jl	251	267	is_library_file	is_library_file(name::AbstractString, file::AbstractString)	modelled	docssyntaxcov-linking-is-library,docssyntaxcov-library-files-unrelated-invalid	
+base/linking.jl	270	271	library_listings	library_listings()	modelled	docssyntaxcov-linking-library-files,docssyntaxcov-library-files-unrelated-invalid	
+base/linking.jl	274	286	library_files!	library_files!(paths::Vector{String}, name::AbstractString, listings)	modelled	docssyntaxcov-linking-library-files,docssyntaxcov-library-files-unrelated-invalid	
+base/linking.jl	296	303	library_files	library_files(names)	modelled	docssyntaxcov-linking-library-files,docssyntaxcov-library-files-unrelated-invalid	
+base/linking.jl	304	304	library_files	library_files(name::AbstractString)	modelled	docssyntaxcov-linking-library-files,docssyntaxcov-library-files-unrelated-invalid	
+base/linking.jl	306	326	runtime_library_names	runtime_library_names(optional_components)	modelled	docssyntaxcov-linking-runtime	
+base/linking.jl	342	345	runtime_libraries	runtime_libraries(; optional_components = DEFAULT_COMPONENTS)	modelled	docssyntaxcov-linking-runtime	
+base/linking.jl	347	363	resolve_libraries	resolve_libraries(required, optional, listings)	modelled	docssyntaxcov-linking-runtime	

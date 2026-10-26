@@ -1,0 +1,31 @@
+file	line	endline	name	signature	status	entry	note
+base/accumulate.jl	7	23	_accumulate_pairwise!	_accumulate_pairwise!(op::Op, c::AbstractVector{T}, v::AbstractVector, s, i1, n)::T where {T,Op}	modelled	memsafety-accumulate-indexing	
+base/accumulate.jl	25	36	accumulate_pairwise!	accumulate_pairwise!(op::Op, result::AbstractVector, v::AbstractVector) where Op	modelled	memsafety-accumulate-indexing	
+base/accumulate.jl	38	41	accumulate_pairwise	accumulate_pairwise(op, v::AbstractVector{T}) where T	modelled	broadcastcov-accumulate-wrappers	
+base/accumulate.jl	51	52	cumsum!	cumsum!(B::AbstractArray{T}, A; dims::Integer) where {T}	modelled	broadcastcov-accumulate-wrappers	
+base/accumulate.jl	54	57	cumsum!	cumsum!(out::AbstractArray, v::AbstractVector; dims::Integer=1)	modelled	broadcastcov-accumulate-wrappers	
+base/accumulate.jl	59	61	_cumsum!	_cumsum!(out::AbstractArray{T}, v, dim, ::ArithmeticRounds) where {T}	modelled	broadcastcov-accumulate-wrappers	
+base/accumulate.jl	62	64	_cumsum!	_cumsum!(out::AbstractArray, v, dim, ::ArithmeticUnknown)	modelled	broadcastcov-accumulate-wrappers	
+base/accumulate.jl	65	67	_cumsum!	_cumsum!(out::AbstractArray{T}, v, dim, ::ArithmeticStyle) where {T}	modelled	broadcastcov-accumulate-wrappers	
+base/accumulate.jl	116	119	cumsum	cumsum(A::AbstractArray{T}; dims::Integer) where T	modelled	broadcastcov-accumulate-wrappers	
+base/accumulate.jl	149	149	cumsum	cumsum(x::AbstractVector)	modelled	arrayops-accumulate,reduce-cumsum-dims-nonpositive	
+base/accumulate.jl	150	150	cumsum	cumsum(itr)	modelled	broadcastcov-accumulate-wrappers	
+base/accumulate.jl	161	162	cumprod!	cumprod!(B::AbstractArray{T}, A; dims::Integer) where {T}	modelled	broadcastcov-accumulate-wrappers	
+base/accumulate.jl	172	172	cumprod!	cumprod!(y::AbstractVector, x::AbstractVector)	modelled	broadcastcov-accumulate-wrappers	
+base/accumulate.jl	196	198	cumprod	cumprod(A::AbstractArray; dims::Integer)	modelled	broadcastcov-accumulate-wrappers	
+base/accumulate.jl	230	230	cumprod	cumprod(x::AbstractVector)	modelled	broadcastcov-accumulate-wrappers	
+base/accumulate.jl	231	231	cumprod	cumprod(itr)	modelled	reduce-cumprod-widened	
+base/accumulate.jl	281	294	accumulate	accumulate(op, A; dims::Union{Nothing,Integer}=nothing, kw...)	modelled	broadcastcov-accumulate-dispatch-promote	
+base/accumulate.jl	296	303	accumulate	accumulate(op, xs::Tuple; init = _InitialValue())	modelled	broadcastcov-accumulate-wrappers	
+base/accumulate.jl	347	356	accumulate!	accumulate!(op, B, A; dims::Union{Integer, Nothing} = nothing, kw...)	modelled	reduce-accumulate-dims-init	
+base/accumulate.jl	358	360	_accumulate!	_accumulate!(op, B, A, dims::Nothing, init::Union{Nothing, Some})	modelled	reduce-accumulate-dims-scan	
+base/accumulate.jl	362	366	_accumulate!	_accumulate!(op, B, A::AbstractVector, dims::Nothing, init::Nothing)	modelled	reduce-accumulate-dims-scan	
+base/accumulate.jl	368	372	_accumulate!	_accumulate!(op, B, A::AbstractVector, dims::Nothing, init::Some)	modelled	reduce-accumulate-dims-scan	
+base/accumulate.jl	374	402	_accumulate!	_accumulate!(op, B, A, dims::Integer, init::Union{Nothing, Some})	modelled	reduce-accumulate-dims-scan	
+base/accumulate.jl	404	418	_accumulaten!	_accumulaten!(op, B, A, R1, ind, R2, init::Nothing)	modelled	reduce-accumulate-dims-scan	
+base/accumulate.jl	420	434	_accumulaten!	_accumulaten!(op, B, A, R1, ind, R2, init::Some)	modelled	reduce-accumulate-dims-scan	
+base/accumulate.jl	436	452	_accumulate1!	_accumulate1!(op, B, v1, A::AbstractVector, dim::Integer)	modelled	broadcastcov-accumulate-dispatch-promote	
+base/accumulate.jl	455	491	_accumulate_promote_op	_accumulate_promote_op(op, v; init=nothing)	modelled	broadcastcov-accumulate-dispatch-promote	
+base/accumulate.jl	461	464	f	f(op, v, init)	modelled	broadcastcov-accumulate-dispatch-promote	
+base/accumulate.jl	470	476	g	g(op, v, r)	modelled	broadcastcov-accumulate-dispatch-promote	
+base/accumulate.jl	481	486	h	h(op, v, r)	modelled	broadcastcov-accumulate-dispatch-promote	

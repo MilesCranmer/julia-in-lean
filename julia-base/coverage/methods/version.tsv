@@ -1,0 +1,86 @@
+file	line	endline	name	signature	status	entry	note
+base/version.jl	56	82	VersionNumber	VersionNumber(major::VInt, minor::VInt, patch::VInt, @nospecialize(pre::VerTuple), @nospecialize(bld::VerTuple))	modelled	intfuncscov-version-number-source	
+base/version.jl	84	89	VersionNumber	VersionNumber(major::Integer, minor::Integer = 0, patch::Integer = 0, pre::Tuple{Vararg{Union{Integer,AbstractString}}} = (), bld::Tuple{Vararg{Union{Integer,AbstractString}}} = ())	modelled	intfuncscov-version-number-source	
+base/version.jl	91	91	VersionNumber	VersionNumber(v::Tuple)	modelled	intfuncscov-version-number-source	
+base/version.jl	92	92	VersionNumber	VersionNumber(v::VersionNumber)	modelled	intfuncscov-version-number-source	
+base/version.jl	94	110	print	print(io::IO, v::VersionNumber)	modelled	versionnumbers-ident-trailing-newline	
+base/version.jl	111	111	show	show(io::IO, v::VersionNumber)	modelled	intfuncscov-version-number-source	
+base/version.jl	113	113	Broadcast.broadcastable	Broadcast.broadcastable(v::VersionNumber)	modelled	intfuncscov-version-number-source	
+base/version.jl	127	131	split_idents	split_idents(s::AbstractString)	modelled	versionnumbers-tryparse-throws	
+base/version.jl	133	147	tryparse	tryparse(::Type{VersionNumber}, v::AbstractString)	modelled	versionnumbers-ident-nonascii,versionnumbers-tryparse-throws	
+base/version.jl	149	153	parse	parse(::Type{VersionNumber}, v::AbstractString)	modelled	versionnumbers-ident-trailing-newline	
+base/version.jl	155	155	VersionNumber	VersionNumber(v::AbstractString)	modelled	intfuncscov-version-number-source	
+base/version.jl	171	171	v_str	v_str(v)	modelled	intfuncscov-version-number-source	
+base/version.jl	173	176	typemax	typemax(::Type{VersionNumber})	modelled	versionnumbers-typemin-typemax	
+base/version.jl	178	178	typemin	typemin(::Type{VersionNumber})	modelled	versionnumbers-typemin-typemax	
+base/version.jl	180	180	ident_cmp	ident_cmp(a::Integer, b::Integer)	modelled	intfuncscov-version-number-source	
+base/version.jl	181	181	ident_cmp	ident_cmp(a::Integer, b::String )	modelled	intfuncscov-version-number-source	
+base/version.jl	182	182	ident_cmp	ident_cmp(a::String, b::Integer)	modelled	intfuncscov-version-number-source	
+base/version.jl	183	183	ident_cmp	ident_cmp(a::String, b::String )	modelled	intfuncscov-version-number-source	
+base/version.jl	185	192	ident_cmp	ident_cmp(@nospecialize(A::VerTuple), @nospecialize(B::VerTuple))	modelled	intfuncscov-version-number-source	
+base/version.jl	194	201	==	==(a::VersionNumber, b::VersionNumber)	modelled	versionnumbers-eq-structural,versionnumbers-hash-consistent	
+base/version.jl	203	203	issupbuild	issupbuild(v::VersionNumber)	modelled	intfuncscov-version-number-source	
+base/version.jl	205	222	isless	isless(a::VersionNumber, b::VersionNumber)	modelled	versionnumbers-isless-total-order,versionnumbers-semver-precedence	
+base/version.jl	224	231	hash	hash(v::VersionNumber, h::UInt)	modelled	versionnumbers-hash-consistent	
+base/version.jl	233	233	lowerbound	lowerbound(v::VersionNumber)	modelled	versionnumbers-bounds-bracket	
+base/version.jl	234	234	upperbound	upperbound(v::VersionNumber)	modelled	versionnumbers-bounds-bracket	
+base/version.jl	236	236	thispatch	thispatch(v::VersionNumber)	modelled	versionnumbers-this-monotone	
+base/version.jl	237	237	thisminor	thisminor(v::VersionNumber)	modelled	versionnumbers-this-monotone	
+base/version.jl	238	238	thismajor	thismajor(v::VersionNumber)	modelled	versionnumbers-this-monotone	
+base/version.jl	240	240	nextpatch	nextpatch(v::VersionNumber)	modelled	versionnumbers-next-least,versionnumbers-next-overflow	
+base/version.jl	241	241	nextminor	nextminor(v::VersionNumber)	modelled	versionnumbers-next-least,versionnumbers-next-overflow	
+base/version.jl	242	242	nextmajor	nextmajor(v::VersionNumber)	modelled	versionnumbers-next-least,versionnumbers-next-overflow	
+base/version.jl	273	283	version_with_build_variant	version_with_build_variant()	modelled	intfuncscov-version-number-source	
+base/version.jl	293	293	libllvm_path	libllvm_path()	modelled	intfuncscov-version-number-source	
+base/version.jl	302	309	VersionBound	VersionBound(tin::NTuple{n, Integer}) where {n}	modelled	intfuncscov-version-bound-range	
+base/version.jl	311	311	VersionBound	VersionBound(t::Integer...)	modelled	intfuncscov-version-bound-range	
+base/version.jl	312	312	VersionBound	VersionBound(v::VersionNumber)	modelled	intfuncscov-version-bound-range	
+base/version.jl	314	314	Base.getindex	Base.getindex(b::VersionBound, i::Int)	modelled	intfuncscov-version-bound-range	
+base/version.jl	316	321	≲	≲(v::VersionNumber, b::VersionBound)	modelled	intfuncscov-version-bound-range	
+base/version.jl	323	328	≲	≲(b::VersionBound, v::VersionNumber)	modelled	intfuncscov-version-bound-range	
+base/version.jl	330	337	isless_ll	isless_ll(a::VersionBound, b::VersionBound)	modelled	intfuncscov-version-bound-range	
+base/version.jl	339	339	stricterlower	stricterlower(a::VersionBound, b::VersionBound)	modelled	intfuncscov-version-bound-range	
+base/version.jl	342	349	isless_uu	isless_uu(a::VersionBound, b::VersionBound)	modelled	intfuncscov-version-bound-range	
+base/version.jl	351	351	stricterupper	stricterupper(a::VersionBound, b::VersionBound)	modelled	intfuncscov-version-bound-range	
+base/version.jl	358	376	isjoinable	isjoinable(up::VersionBound, lo::VersionBound)	modelled	intfuncscov-version-bound-range	
+base/version.jl	378	378	Base.hash	Base.hash(r::VersionBound, h::UInt)	modelled	intfuncscov-version-bound-range	
+base/version.jl	381	405	VersionBound	VersionBound(s::AbstractString)	modelled	intfuncscov-version-bound-range	
+base/version.jl	414	420	VersionRange	VersionRange(lo::VersionBound, hi::VersionBound)	modelled	intfuncscov-version-bound-range	
+base/version.jl	422	422	VersionRange	VersionRange(b::VersionBound = VersionBound())	modelled	intfuncscov-version-bound-range	
+base/version.jl	423	423	VersionRange	VersionRange(t::Integer...)	modelled	intfuncscov-version-bound-range	
+base/version.jl	424	424	VersionRange	VersionRange(v::VersionNumber)	modelled	intfuncscov-version-bound-range	
+base/version.jl	425	425	VersionRange	VersionRange(lo::VersionNumber, hi::VersionNumber)	modelled	intfuncscov-version-bound-range	
+base/version.jl	429	438	VersionRange	VersionRange(s::AbstractString)	modelled	versionnumbers-range-print-upper	
+base/version.jl	440	446	Base.isempty	Base.isempty(r::VersionRange)	modelled	intfuncscov-version-bound-range	
+base/version.jl	448	465	Base.print	Base.print(io::IO, r::VersionRange)	modelled	versionnumbers-range-print-upper	
+base/version.jl	466	466	Base.show	Base.show(io::IO, r::VersionRange)	modelled	intfuncscov-version-bound-range	
+base/version.jl	468	468	Base.in	Base.in(v::VersionNumber, r::VersionRange)	modelled	versionnumbers-range-print-upper	
+base/version.jl	470	470	Base.intersect	Base.intersect(a::VersionRange, b::VersionRange)	modelled	intfuncscov-version-bound-range	
+base/version.jl	472	502	Base.union!	Base.union!(ranges::Vector{<:VersionRange})	modelled	intfuncscov-version-bound-range	
+base/version.jl	504	504	Base.minimum	Base.minimum(r::VersionRange)	modelled	intfuncscov-version-bound-range	
+base/version.jl	511	511	VersionSpec	VersionSpec(r::Vector{<:VersionRange})	modelled	intfuncscov-version-spec	
+base/version.jl	512	512	VersionSpec	VersionSpec(vs::VersionSpec)	modelled	intfuncscov-version-spec	
+base/version.jl	515	515	VersionSpec	VersionSpec(r::VersionRange)	modelled	intfuncscov-version-spec	
+base/version.jl	516	516	VersionSpec	VersionSpec(v::VersionNumber)	modelled	intfuncscov-version-spec	
+base/version.jl	518	518	VersionSpec	VersionSpec()	modelled	intfuncscov-version-spec	
+base/version.jl	519	519	VersionSpec	VersionSpec(s::AbstractString)	modelled	intfuncscov-version-spec	
+base/version.jl	520	520	VersionSpec	VersionSpec(v::AbstractVector)	modelled	intfuncscov-version-spec	
+base/version.jl	523	528	Base.in	Base.in(v::VersionNumber, s::VersionSpec)	modelled	intfuncscov-version-spec	
+base/version.jl	534	560	matches_spec_range!	matches_spec_range!(dest::BitVector, versions::AbstractVector{VersionNumber}, spec::VersionSpec, n::Int)	modelled	intfuncscov-version-spec,intfuncscov-matches-spec-unsorted	
+base/version.jl	562	562	Base.copy	Base.copy(vs::VersionSpec)	modelled	intfuncscov-version-spec	
+base/version.jl	567	567	Base.isempty	Base.isempty(s::VersionSpec)	modelled	intfuncscov-version-spec	
+base/version.jl	570	579	Base.intersect	Base.intersect(A::VersionSpec, B::VersionSpec)	modelled	intfuncscov-version-spec	
+base/version.jl	580	580	Base.intersect	Base.intersect(a::VersionNumber, B::VersionSpec)	modelled	intfuncscov-version-spec	
+base/version.jl	581	581	Base.intersect	Base.intersect(A::VersionSpec, b::VersionNumber)	modelled	intfuncscov-version-spec	
+base/version.jl	583	589	Base.union	Base.union(A::VersionSpec, B::VersionSpec)	modelled	intfuncscov-version-spec	
+base/version.jl	591	591	Base.:(==)	Base.:(==)(A::VersionSpec, B::VersionSpec)	modelled	intfuncscov-version-spec	
+base/version.jl	592	592	Base.hash	Base.hash(s::VersionSpec, h::UInt)	modelled	intfuncscov-version-spec	
+base/version.jl	594	603	Base.print	Base.print(io::IO, s::VersionSpec)	modelled	intfuncscov-version-spec	
+base/version.jl	605	618	Base.show	Base.show(io::IO, s::VersionSpec)	modelled	intfuncscov-version-spec	
+base/version.jl	620	620	Base.minimum	Base.minimum(v::VersionSpec)	modelled	intfuncscov-version-spec	
+base/version.jl	626	648	semver_spec	semver_spec(s::String; throw = true)	modelled	intfuncscov-semver-source,intfuncscov-semver-spec-nothrow	
+base/version.jl	650	684	semver_interval	semver_interval(m::RegexMatch)	modelled	intfuncscov-semver-source,intfuncscov-semver-spec-nothrow	
+base/version.jl	687	717	inequality_interval	inequality_interval(m::RegexMatch)	modelled	intfuncscov-semver-source,intfuncscov-semver-spec-nothrow	
+base/version.jl	719	751	hyphen_interval	hyphen_interval(m::RegexMatch)	modelled	intfuncscov-semver-source,intfuncscov-semver-spec-nothrow	
+base/version.jl	763	763	EditionNumber	EditionNumber(v::VersionNumber)	modelled	intfuncscov-semver-source	
+base/version.jl	764	764	VersionedParse	VersionedParse(v::VersionNumber)	modelled	intfuncscov-semver-source	

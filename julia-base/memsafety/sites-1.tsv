@@ -1,18 +1,18 @@
 site	file	line	kind	group	status	entry	note	code
-Base_compiler:25	base/Base_compiler.jl	25	memoryref	1	todo		v1 proof rejected by review (memsafety-base-compiler-bootstrap)	Core.memoryrefset!(Core.memoryref(_included_files.ref, lenp1), (mod, ccall(:jl_prepend_cwd, Any, (Any,), path)), :not_atomic, true)
-Base_compiler:200	base/Base_compiler.jl	200	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-base-compiler-bootstrap)	unsafe_copyto!(out_ptr, unsafe_convert(Ptr{UInt8}, x), Core.sizeof(x))
-Base_compiler:201	base/Base_compiler.jl	201	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-base-compiler-bootstrap)	unsafe_copyto!(out_ptr + Core.sizeof(x), unsafe_convert(Ptr{UInt8}, y), Core.sizeof(y))
-abstractarraymath:194	base/abstractarraymath.jl	194	@inbounds	1	todo		v1 proof rejected by review (memsafety-abstractarraymath-repeat)	conj!(A::AbstractArray{<:Number}) = (@inbounds broadcast!(conj, A, A); A)
-abstractarraymath:567	base/abstractarraymath.jl	567	@inbounds	1	todo		v1 proof rejected by review (memsafety-abstractarraymath-repeat)	@inbounds b[c:c+o-1, R] = a
-abstractarraymath:578	base/abstractarraymath.jl	578	@inbounds	1	todo		v1 proof rejected by review (memsafety-abstractarraymath-repeat)	@inbounds b[c:c+o-1] = a
-abstractarraymath:593	base/abstractarraymath.jl	593	@inbounds	1	todo		v1 proof rejected by review (memsafety-abstractarraymath-repeat)	@inbounds out[IJ] = arr[I]
-abstractarraymath:608	base/abstractarraymath.jl	608	@inbounds	1	todo		v1 proof rejected by review (memsafety-abstractarraymath-repeat)	@inbounds out[IJ] = arr[I]
+Base_compiler:25	base/Base_compiler.jl	25	memoryref	1	proven	memsafety-base-compiler-bootstrap		Core.memoryrefset!(Core.memoryref(_included_files.ref, lenp1), (mod, ccall(:jl_prepend_cwd, Any, (Any,), path)), :not_atomic, true)
+Base_compiler:200	base/Base_compiler.jl	200	unsafe_copyto!	1	proven	memsafety-base-compiler-bootstrap		unsafe_copyto!(out_ptr, unsafe_convert(Ptr{UInt8}, x), Core.sizeof(x))
+Base_compiler:201	base/Base_compiler.jl	201	unsafe_copyto!	1	proven	memsafety-base-compiler-bootstrap		unsafe_copyto!(out_ptr + Core.sizeof(x), unsafe_convert(Ptr{UInt8}, y), Core.sizeof(y))
+abstractarraymath:194	base/abstractarraymath.jl	194	@inbounds	1	proven	memsafety-abstractarraymath-broadcast-repeat		conj!(A::AbstractArray{<:Number}) = (@inbounds broadcast!(conj, A, A); A)
+abstractarraymath:567	base/abstractarraymath.jl	567	@inbounds	1	proven	memsafety-abstractarraymath-repeat-vector-matrix		@inbounds b[c:c+o-1, R] = a
+abstractarraymath:578	base/abstractarraymath.jl	578	@inbounds	1	proven	memsafety-abstractarraymath-repeat-vector-matrix		@inbounds b[c:c+o-1] = a
+abstractarraymath:593	base/abstractarraymath.jl	593	@inbounds	1	proven	memsafety-abstractarraymath-generic-repeat		@inbounds out[IJ] = arr[I]
+abstractarraymath:608	base/abstractarraymath.jl	608	@inbounds	1	proven	memsafety-abstractarraymath-generic-repeat		@inbounds out[IJ] = arr[I]
 array:211	base/array.jl	211	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck checkbounds(A, i)
-array:212	base/array.jl	212	@inbounds+memoryref	1	todo		v1 proof rejected by review (memsafety-array-guarded-access)	@inbounds unsetindex!(memoryref(A.ref, i))
+array:212	base/array.jl	212	@inbounds+memoryref	1	proven	memsafety-array-checked-scalar		@inbounds unsetindex!(memoryref(A.ref, i))
 array:234	base/array.jl	234	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck checkbounds(Bool, a, i...) || return false
-array:236	base/array.jl	236	@inbounds+memoryref	1	todo		v1 proof rejected by review (memsafety-array-guarded-access)	return @inbounds isassigned(memoryrefnew(a.ref, ii, false))
+array:236	base/array.jl	236	@inbounds+memoryref	1	proven	memsafety-array-checked-cartesian		return @inbounds isassigned(memoryrefnew(a.ref, ii, false))
 array:242	base/array.jl	242	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck checkbounds(Bool, a, i) || return false
-array:243	base/array.jl	243	@inbounds+memoryref	1	todo		v1 proof rejected by review (memsafety-array-guarded-access)	return @inbounds isassigned(memoryrefnew(a.ref, i, false))
+array:243	base/array.jl	243	@inbounds+memoryref	1	proven	memsafety-array-checked-scalar		return @inbounds isassigned(memoryrefnew(a.ref, i, false))
 array:250	base/array.jl	250	unsafe_copyto!	1	not-unchecked		Docstring signature, not executable source.	unsafe_copyto!(dest::Ptr{T}, src::Ptr{T}, N)
 array:259	base/array.jl	259	unsafe_copyto!	1	not-unchecked		This calls memoryrefoffset or declares a function; it does not dereference or create an unchecked access.	function unsafe_copyto!(dest::Ptr{T}, src::Ptr{T}, n) where T
 array:267	base/array.jl	267	unsafe_copyto!	1	not-unchecked		Docstring signature, not executable source.	unsafe_copyto!(dest::Array, doffs, src::Array, soffs, n)
@@ -22,172 +22,172 @@ array:303	base/array.jl	303	@boundscheck	1	not-unchecked		@boundscheck is the ch
 array:304	base/array.jl	304	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck n <= length(dest) - doffs + 1 || throw(BoundsError(dest, length(dest) + 1))
 array:305	base/array.jl	305	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck checkbounds(src, soffs)
 array:306	base/array.jl	306	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck n <= length(src) - soffs + 1 || throw(BoundsError(src, length(src) + 1))
-array:310	base/array.jl	310	@inbounds+memoryref	1	todo		v1 proof rejected by review (memsafety-array-copy)	@inbounds let dest = memoryref(dest isa Array ? getfield(dest, :ref) : dest, doffs),
-array:311	base/array.jl	311	memoryref	1	todo		v1 proof rejected by review (memsafety-array-copy)	src = memoryref(src isa Array ? getfield(src, :ref) : src, soffs)
-array:312	base/array.jl	312	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-array-copy)	unsafe_copyto!(dest, src, n)
-array:397	base/array.jl	397	@inbounds+unsafe_copyto!+memoryref	1	todo		v1 proof rejected by review (memsafety-array-copy)	@inbounds unsafe_copyto!(memoryref(newmem), ref, length(a))
-array:398	base/array.jl	398	memoryref	1	todo		v1 proof rejected by review (memsafety-array-copy)	return $(Expr(:new, :(typeof(a)), :(memoryref(newmem)), :(a.size)))
-array:456	base/array.jl	456	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-allocated-loops)	@inbounds a[i] = v
-array:891	base/array.jl	891	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-allocated-loops)	@inbounds new[i] = el
-array:904	base/array.jl	904	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-allocated-loops)	@inbounds dest[i] = el
+array:310	base/array.jl	310	@inbounds+memoryref	1	proven	memsafety-array-checked-copies		@inbounds let dest = memoryref(dest isa Array ? getfield(dest, :ref) : dest, doffs),
+array:311	base/array.jl	311	memoryref	1	proven	memsafety-array-checked-copies		src = memoryref(src isa Array ? getfield(src, :ref) : src, soffs)
+array:312	base/array.jl	312	unsafe_copyto!	1	proven	memsafety-array-checked-copies		unsafe_copyto!(dest, src, n)
+array:397	base/array.jl	397	@inbounds+unsafe_copyto!+memoryref	1	proven	memsafety-array-checked-copies		@inbounds unsafe_copyto!(memoryref(newmem), ref, length(a))
+array:398	base/array.jl	398	memoryref	1	proven	memsafety-array-checked-copies		return $(Expr(:new, :(typeof(a)), :(memoryref(newmem)), :(a.size)))
+array:456	base/array.jl	456	@inbounds	1	proven	memsafety-array-literal		@inbounds a[i] = v
+array:891	base/array.jl	891	@inbounds	1	proven	memsafety-array-allocated-callers		@inbounds new[i] = el
+array:904	base/array.jl	904	@inbounds	1	refuted	iterators-partition-range-overflow	Built-in PartitionIterator reports length 2 but yields forever after Int index overflow; collect_to! writes the extra elements past its allocation.	@inbounds dest[i] = el
 array:976	base/array.jl	976	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck checkbounds(A, i1, i2, I...) # generally _to_linear_index requires bounds checking
-array:977	base/array.jl	977	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-guarded-access)	return @inbounds A[_to_linear_index(A, i1, i2, I...)]
+array:977	base/array.jl	977	@inbounds	1	proven	memsafety-array-checked-cartesian		return @inbounds A[_to_linear_index(A, i1, i2, I...)]
 array:983	base/array.jl	983	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck checkbounds(A, I)
-array:999	base/array.jl	999	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-array-copy)	unsafe_copyto!(X, 1, A, 1, lI)
+array:999	base/array.jl	999	unsafe_copyto!	1	proven	memsafety-array-checked-copies		unsafe_copyto!(X, 1, A, 1, lI)
 array:1038	base/array.jl	1038	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck checkbounds(A, i)
-array:1039	base/array.jl	1039	memoryref	1	todo		v1 proof rejected by review (memsafety-array-guarded-access)	memoryrefset!(memoryrefnew(A.ref, i, false), x, :not_atomic, false)
+array:1039	base/array.jl	1039	memoryref	1	proven	memsafety-array-checked-scalar		memoryrefset!(memoryrefnew(A.ref, i, false), x, :not_atomic, false)
 array:1050	base/array.jl	1050	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck checkbounds(A, i1, i2, I...) # generally _to_linear_index requires bounds checking
-array:1051	base/array.jl	1051	memoryref	1	todo		v1 proof rejected by review (memsafety-array-guarded-access)	memoryrefset!(memoryrefnew(A.ref, _to_linear_index(A, i1, i2, I...), false), x, :not_atomic, false)
-array:1056	base/array.jl	1056	memoryref	1	todo		v1 proof rejected by review (memsafety-array-allocated-loops)	memoryrefset!(memoryrefnew(A.ref, i, false), x, :not_atomic, false); return A)
-array:1058	base/array.jl	1058	memoryref	1	todo		v1 proof rejected by review (memsafety-array-allocated-loops)	memoryrefset!(memoryrefnew(A.ref, i, false), x, :not_atomic, false); return A)
+array:1051	base/array.jl	1051	memoryref	1	proven	memsafety-array-checked-cartesian		memoryrefset!(memoryrefnew(A.ref, _to_linear_index(A, i1, i2, I...), false), x, :not_atomic, false)
+array:1056	base/array.jl	1056	memoryref	1	proven	memsafety-array-allocated-callers		memoryrefset!(memoryrefnew(A.ref, i, false), x, :not_atomic, false); return A)
+array:1058	base/array.jl	1058	memoryref	1	proven	memsafety-array-allocated-callers		memoryrefset!(memoryrefnew(A.ref, i, false), x, :not_atomic, false); return A)
 array:1066	base/array.jl	1066	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck checkbounds(A, I)
-array:1071	base/array.jl	1071	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-allocated-loops)	@inbounds A[I′[k]] = X′[j]
+array:1071	base/array.jl	1071	@inbounds	1	proven	memsafety-array-allocated-callers		@inbounds A[I′[k]] = X′[j]
 array:1080	base/array.jl	1080	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck checkbounds(A, I)
-array:1084	base/array.jl	1084	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-array-copy)	unsafe_copyto!(A, first(I), X, 1, lI)
-array:1093	base/array.jl	1093	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-array-copy)	unsafe_copyto!(A, 1, X, 1, lI)
+array:1084	base/array.jl	1084	unsafe_copyto!	1	proven	memsafety-array-checked-copies		unsafe_copyto!(A, first(I), X, 1, lI)
+array:1093	base/array.jl	1093	unsafe_copyto!	1	proven	memsafety-array-checked-copies		unsafe_copyto!(A, 1, X, 1, lI)
 array:1120	base/array.jl	1120	memoryref	1	not-unchecked		This calls memoryrefoffset or declares a function; it does not dereference or create an unchecked access.	offset = memoryrefoffset(ref)
-array:1137	base/array.jl	1137	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-array-centered-growth)	unsafe_copyto!(newmem, newoffset + delta, mem, offset, len)
-array:1139	base/array.jl	1139	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-centered-growth)	@inbounds unsetindex!(mem, j)
-array:1143	base/array.jl	1143	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-array-centered-growth)	unsafe_copyto!(newmem, newoffset + delta, mem, offset, len)
-array:1148	base/array.jl	1148	@inbounds+memoryref	1	todo		v1 proof rejected by review (memsafety-array-centered-growth)	setfield!(a, :ref, @inbounds memoryref(newmem, newoffset))
+array:1137	base/array.jl	1137	unsafe_copyto!	1	proven	memsafety-array-allocating-growth		unsafe_copyto!(newmem, newoffset + delta, mem, offset, len)
+array:1139	base/array.jl	1139	@inbounds	1	proven	memsafety-array-allocating-growth		@inbounds unsetindex!(mem, j)
+array:1143	base/array.jl	1143	unsafe_copyto!	1	proven	memsafety-array-allocating-growth		unsafe_copyto!(newmem, newoffset + delta, mem, offset, len)
+array:1148	base/array.jl	1148	@inbounds+memoryref	1	proven	memsafety-array-allocating-growth		setfield!(a, :ref, @inbounds memoryref(newmem, newoffset))
 array:1158	base/array.jl	1158	memoryref	1	not-unchecked		This calls memoryrefoffset or declares a function; it does not dereference or create an unchecked access.	offset = memoryrefoffset(ref)
-array:1162	base/array.jl	1162	@inbounds+memoryref	1	todo		v1 proof rejected by review (memsafety-array-front-growth)	setfield!(a, :ref, @inbounds memoryref(ref, 1 - delta))
+array:1162	base/array.jl	1162	@inbounds+memoryref	1	proven	memsafety-array-simple-vector-moves		setfield!(a, :ref, @inbounds memoryref(ref, 1 - delta))
 array:1177	base/array.jl	1177	memoryref	1	not-unchecked		This calls memoryrefoffset or declares a function; it does not dereference or create an unchecked access.	offset = memoryrefoffset(ref)
-array:1198	base/array.jl	1198	@inbounds+memoryref	1	todo		v1 proof rejected by review (memsafety-array-end-growth)	newref = @inbounds memoryref(newmem, newoffset)
-array:1199	base/array.jl	1199	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-array-end-growth)	unsafe_copyto!(newref, ref, len)
-array:1202	base/array.jl	1202	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-end-growth)	@inbounds unsetindex!(mem, j)
+array:1198	base/array.jl	1198	@inbounds+memoryref	1	proven	memsafety-array-allocating-growth		newref = @inbounds memoryref(newmem, newoffset)
+array:1199	base/array.jl	1199	unsafe_copyto!	1	proven	memsafety-array-allocating-growth		unsafe_copyto!(newref, ref, len)
+array:1202	base/array.jl	1202	@inbounds	1	proven	memsafety-array-allocating-growth		@inbounds unsetindex!(mem, j)
 array:1221	base/array.jl	1221	memoryref	1	not-unchecked		This calls memoryrefoffset or declares a function; it does not dereference or create an unchecked access.	offset = memoryrefoffset(ref)
 array:1243	base/array.jl	1243	memoryref	1	not-unchecked		This calls memoryrefoffset or declares a function; it does not dereference or create an unchecked access.	offset = memoryrefoffset(ref)
-array:1250	base/array.jl	1250	@inbounds+memoryref	1	todo		v1 proof rejected by review (memsafety-array-front-growth)	newref = @inbounds memoryref(mem, offset - delta)
-array:1251	base/array.jl	1251	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-array-front-growth)	unsafe_copyto!(newref, ref, i)
-array:1255	base/array.jl	1255	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-front-growth)	@inbounds unsetindex!(a, j)
-array:1258	base/array.jl	1258	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-array-tail-growth)	unsafe_copyto!(mem, offset - 1 + delta + i, mem, offset - 1 + i, len - i + 1)
-array:1261	base/array.jl	1261	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-tail-growth)	@inbounds unsetindex!(a, j)
-array:1269	base/array.jl	1269	@inbounds+memoryref	1	todo		v1 proof rejected by review (memsafety-array-centered-growth)	newref = @inbounds memoryref(newmem, newoffset)
-array:1270	base/array.jl	1270	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-array-centered-growth)	unsafe_copyto!(newref, ref, i-1)
-array:1271	base/array.jl	1271	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-array-centered-growth)	unsafe_copyto!(newmem, newoffset + delta + i - 1, mem, offset + i - 1, len - i + 1)
-array:1286	base/array.jl	1286	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-delete-moves)	@inbounds unsetindex!(a, i)
-array:1291	base/array.jl	1291	@inbounds+memoryref	1	todo		v1 proof rejected by review (memsafety-array-delete-moves)	newref = @inbounds memoryref(a.ref, delta + 1)
-array:1307	base/array.jl	1307	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-delete-moves)	@inbounds unsetindex!(a, i)
-array:1320	base/array.jl	1320	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-array-delete-moves)	unsafe_copyto!(newa, 1 + delta, a, 1, i - 1)
-array:1323	base/array.jl	1323	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-array-delete-moves)	unsafe_copyto!(newa, i, a, i + delta, len + 1 - delta - i)
-array:1631	base/array.jl	1631	memoryref	1	todo		v1 proof rejected by review (memsafety-array-sizehint)	newref = memoryref(newmem, inc + 1)
-array:1633	base/array.jl	1633	memoryref	1	todo		v1 proof rejected by review (memsafety-array-sizehint)	newref = memoryref(newmem)
-array:1635	base/array.jl	1635	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-array-sizehint)	unsafe_copyto!(newref, ref, len)
-array:1640	base/array.jl	1640	memoryref	1	todo		v1 proof rejected by review (memsafety-array-sizehint)	newref = memoryref(newref, inc + 1)
-array:1750	base/array.jl	1750	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-delete-moves)	x = @inbounds a[i]
-array:1876	base/array.jl	1876	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-delete-moves)	@inbounds a[i] = item
-array:1976	base/array.jl	1976	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-delete-moves)	@inbounds _push_deleted!(dltd, a, p)
-array:1990	base/array.jl	1990	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-delete-moves)	@inbounds _copy_item!(a, p, q)
-array:1993	base/array.jl	1993	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-delete-moves)	@inbounds _push_deleted!(dltd, a, i)
-array:1997	base/array.jl	1997	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-delete-moves)	@inbounds _copy_item!(a, p, q)
-array:2010	base/array.jl	2010	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-delete-moves)	@inbounds _copy_item!(a, p, q)
-array:2327	base/array.jl	2327	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-iterator-access)	@inbounds for i in s:midpoint(s, n-1)
-array:2361	base/array.jl	2361	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-array-copy)	unsafe_copyto!(arr, nd, a, 1, na)
-array:2905	base/array.jl	2905	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-iterator-access)	@inbounds for (i,ai) in pairs(a)
-array:2924	base/array.jl	2924	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-iterator-access)	@inbounds begin
-array:3024	base/array.jl	3024	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-allocated-loops)	@inbounds b[j] = ai
-array:3038	base/array.jl	3038	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-allocated-loops)	@inbounds idxs[j] = idx
-array:3039	base/array.jl	3039	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-allocated-loops)	ai = @inbounds a[idx]
-array:3069	base/array.jl	3069	@inbounds	1	todo		v1 proof rejected by review (memsafety-array-allocated-loops)	@inbounds a[j] = ai
+array:1250	base/array.jl	1250	@inbounds+memoryref	1	proven	memsafety-array-simple-vector-moves		newref = @inbounds memoryref(mem, offset - delta)
+array:1251	base/array.jl	1251	unsafe_copyto!	1	proven	memsafety-array-simple-vector-moves		unsafe_copyto!(newref, ref, i)
+array:1255	base/array.jl	1255	@inbounds	1	proven	memsafety-array-simple-vector-moves		@inbounds unsetindex!(a, j)
+array:1258	base/array.jl	1258	unsafe_copyto!	1	proven	memsafety-array-simple-vector-moves		unsafe_copyto!(mem, offset - 1 + delta + i, mem, offset - 1 + i, len - i + 1)
+array:1261	base/array.jl	1261	@inbounds	1	proven	memsafety-array-simple-vector-moves		@inbounds unsetindex!(a, j)
+array:1269	base/array.jl	1269	@inbounds+memoryref	1	proven	memsafety-array-allocating-growth		newref = @inbounds memoryref(newmem, newoffset)
+array:1270	base/array.jl	1270	unsafe_copyto!	1	proven	memsafety-array-allocating-growth		unsafe_copyto!(newref, ref, i-1)
+array:1271	base/array.jl	1271	unsafe_copyto!	1	proven	memsafety-array-allocating-growth		unsafe_copyto!(newmem, newoffset + delta + i - 1, mem, offset + i - 1, len - i + 1)
+array:1286	base/array.jl	1286	@inbounds	1	proven	memsafety-array-simple-vector-moves		@inbounds unsetindex!(a, i)
+array:1291	base/array.jl	1291	@inbounds+memoryref	1	proven	memsafety-array-simple-vector-moves		newref = @inbounds memoryref(a.ref, delta + 1)
+array:1307	base/array.jl	1307	@inbounds	1	proven	memsafety-array-simple-vector-moves		@inbounds unsetindex!(a, i)
+array:1320	base/array.jl	1320	unsafe_copyto!	1	refuted	arrayops-deleteat-range-overflow	For 2:typemax(Int), the wrapping checks pass and this branch constructs an invalid destination MemoryRef near typemax(Int).	unsafe_copyto!(newa, 1 + delta, a, 1, i - 1)
+array:1323	base/array.jl	1323	unsafe_copyto!	1	proven	memsafety-array-simple-vector-moves		unsafe_copyto!(newa, i, a, i + delta, len + 1 - delta - i)
+array:1631	base/array.jl	1631	memoryref	1	proven	memsafety-array-simple-vector-moves		newref = memoryref(newmem, inc + 1)
+array:1633	base/array.jl	1633	memoryref	1	proven	memsafety-array-simple-vector-moves		newref = memoryref(newmem)
+array:1635	base/array.jl	1635	unsafe_copyto!	1	proven	memsafety-array-simple-vector-moves		unsafe_copyto!(newref, ref, len)
+array:1640	base/array.jl	1640	memoryref	1	proven	memsafety-array-simple-vector-moves		newref = memoryref(newref, inc + 1)
+array:1750	base/array.jl	1750	@inbounds	1	proven	memsafety-array-checked-scalar		x = @inbounds a[i]
+array:1876	base/array.jl	1876	@inbounds	1	proven	memsafety-array-insert		@inbounds a[i] = item
+array:1976	base/array.jl	1976	@inbounds	1	proven	memsafety-array-delete-indices		@inbounds _push_deleted!(dltd, a, p)
+array:1990	base/array.jl	1990	@inbounds	1	proven	memsafety-array-delete-indices		@inbounds _copy_item!(a, p, q)
+array:1993	base/array.jl	1993	@inbounds	1	proven	memsafety-array-delete-indices		@inbounds _push_deleted!(dltd, a, i)
+array:1997	base/array.jl	1997	@inbounds	1	proven	memsafety-array-delete-indices		@inbounds _copy_item!(a, p, q)
+array:2010	base/array.jl	2010	@inbounds	1	proven	memsafety-array-delete-indices		@inbounds _copy_item!(a, p, q)
+array:2327	base/array.jl	2327	@inbounds	1	proven	memsafety-array-iterator-access		@inbounds for i in s:midpoint(s, n-1)
+array:2361	base/array.jl	2361	unsafe_copyto!	1	proven	memsafety-array-vcat		unsafe_copyto!(arr, nd, a, 1, na)
+array:2905	base/array.jl	2905	@inbounds	1	proven	memsafety-array-iterator-access		@inbounds for (i,ai) in pairs(a)
+array:2924	base/array.jl	2924	@inbounds	1	proven	memsafety-array-iterator-access		@inbounds begin
+array:3024	base/array.jl	3024	@inbounds	1	proven	memsafety-array-filter-loops		@inbounds b[j] = ai
+array:3038	base/array.jl	3038	@inbounds	1	proven	memsafety-array-filter-loops		@inbounds idxs[j] = idx
+array:3039	base/array.jl	3039	@inbounds	1	proven	memsafety-array-filter-loops		ai = @inbounds a[idx]
+array:3069	base/array.jl	3069	@inbounds	1	proven	memsafety-array-filter-loops		@inbounds a[j] = ai
 array:3236	base/array.jl	3236	unsafe_wrap	1	not-unchecked		Docstring reference to unsafe_wrap, not an unchecked access.	of [`unsafe_wrap`](@ref) utilizing `Memory` or `MemoryRef` instead of raw pointers.
 array:3243	base/array.jl	3243	memoryref	1	not-unchecked		This calls memoryrefoffset or declares a function; it does not dereference or create an unchecked access.	mem_len = length(mem) + 1 - memoryrefoffset(ref)
 array:3245	base/array.jl	3245	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck mem_len >= len || invalid_wrap_err(mem_len, dims, len)
-array:3262	base/array.jl	3262	memoryref	1	todo		v1 proof rejected by review (memsafety-array-wrap)	ref = _wrap(memoryref(m), dims)
-array:3272	base/array.jl	3272	memoryref	1	todo		v1 proof rejected by review (memsafety-array-wrap)	ref = _wrap(memoryref(m), (l,))
-array:3276	base/array.jl	3276	memoryref	1	todo		v1 proof rejected by review (memsafety-array-wrap)	ref = memoryref(m)
+array:3262	base/array.jl	3262	memoryref	1	proven	memsafety-array-wrap-memory		ref = _wrap(memoryref(m), dims)
+array:3272	base/array.jl	3272	memoryref	1	proven	memsafety-array-wrap-memory		ref = _wrap(memoryref(m), (l,))
+array:3276	base/array.jl	3276	memoryref	1	proven	memsafety-array-wrap-memory		ref = memoryref(m)
 combinatorics:107	base/combinatorics.jl	107	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck i in cols || throw(BoundsError(a, (:,i)))
 combinatorics:108	base/combinatorics.jl	108	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck j in cols || throw(BoundsError(a, (:,j)))
-combinatorics:110	base/combinatorics.jl	110	@inbounds	1	todo		v1 proof rejected by review (memsafety-combinatorics-swap-invperm)	@inbounds a[k,i],a[k,j] = a[k,j],a[k,i]
+combinatorics:110	base/combinatorics.jl	110	@inbounds	1	proven	memsafety-combinatorics-swap-invperm		@inbounds a[k,i],a[k,j] = a[k,j],a[k,i]
 combinatorics:118	base/combinatorics.jl	118	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck i in rows || throw(BoundsError(a, (:,i)))
 combinatorics:119	base/combinatorics.jl	119	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck j in rows || throw(BoundsError(a, (:,j)))
-combinatorics:121	base/combinatorics.jl	121	@inbounds	1	todo		v1 proof rejected by review (memsafety-combinatorics-swap-invperm)	@inbounds a[i,k],a[j,k] = a[j,k],a[i,k]
-combinatorics:290	base/combinatorics.jl	290	@inbounds	1	todo		v1 proof rejected by review (memsafety-combinatorics-swap-invperm)	@inbounds for (i, j) in enumerate(a)
+combinatorics:121	base/combinatorics.jl	121	@inbounds	1	proven	memsafety-combinatorics-swap-invperm		@inbounds a[i,k],a[j,k] = a[j,k],a[i,k]
+combinatorics:290	base/combinatorics.jl	290	@inbounds	1	proven	memsafety-combinatorics-swap-invperm		@inbounds for (i, j) in enumerate(a)
 deprecated:705	base/deprecated.jl	705	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck if !(i == j == 0)
-deprecated:707	base/deprecated.jl	707	@inbounds	1	todo		v1 proof rejected by review (memsafety-deprecated-substring)	@inbounds isvalid(s, si) || string_index_err(s, si)
-deprecated:708	base/deprecated.jl	708	@inbounds	1	todo		v1 proof rejected by review (memsafety-deprecated-substring)	@inbounds isvalid(s, sj) || string_index_err(s, sj)
-deprecated:710	base/deprecated.jl	710	@inbounds	1	todo		v1 proof rejected by review (memsafety-deprecated-substring)	@inbounds raw_substring(s, i + 1, j)
+deprecated:707	base/deprecated.jl	707	@inbounds	1	refuted	memsafety-deprecated-substring-negative-count		@inbounds isvalid(s, si) || string_index_err(s, si)
+deprecated:708	base/deprecated.jl	708	@inbounds	1	refuted	memsafety-deprecated-substring-negative-count		@inbounds isvalid(s, sj) || string_index_err(s, sj)
+deprecated:710	base/deprecated.jl	710	@inbounds	1	refuted	memsafety-deprecated-substring-negative-count		@inbounds raw_substring(s, i + 1, j)
 deprecated:718	base/deprecated.jl	718	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck if !(i == j == 0)
-deprecated:720	base/deprecated.jl	720	@inbounds	1	todo		v1 proof rejected by review (memsafety-deprecated-substring)	@inbounds isvalid(s, si) || string_index_err(s, si)
-deprecated:721	base/deprecated.jl	721	@inbounds	1	todo		v1 proof rejected by review (memsafety-deprecated-substring)	@inbounds isvalid(s, sj) || string_index_err(s, sj)
-deprecated:723	base/deprecated.jl	723	@inbounds	1	todo		v1 proof rejected by review (memsafety-deprecated-substring)	ss = @inbounds raw_substring(s, i + 1, j)
-gcutils:163	base/gcutils.jl	163	unsafe_load	1	todo		v1 proof rejected by review (memsafety-gcutils-global)	if unsafe_load(cglobal(:jl_gc_have_pending_finalizers, Cint), :monotonic) != 0
+deprecated:720	base/deprecated.jl	720	@inbounds	1	refuted	memsafety-deprecated-substring-negative-count		@inbounds isvalid(s, si) || string_index_err(s, si)
+deprecated:721	base/deprecated.jl	721	@inbounds	1	refuted	memsafety-deprecated-substring-negative-count		@inbounds isvalid(s, sj) || string_index_err(s, sj)
+deprecated:723	base/deprecated.jl	723	@inbounds	1	refuted	memsafety-deprecated-substring-negative-count		ss = @inbounds raw_substring(s, i + 1, j)
+gcutils:163	base/gcutils.jl	163	unsafe_load	1	todo			if unsafe_load(cglobal(:jl_gc_have_pending_finalizers, Cint), :monotonic) != 0
 gcutils:209	base/gcutils.jl	209	unsafe_load	1	not-unchecked		Documentation or doctest text, not executable source.	When loading from a pointer with `unsafe_load`, the underlying object is
 gcutils:210	base/gcutils.jl	210	unsafe_load	1	not-unchecked		Documentation or doctest text, not executable source.	implicitly used, for example `x` is implicitly used by `unsafe_load(p)` in the
 gcutils:217	base/gcutils.jl	217	unsafe_load	1	not-unchecked		Documentation or doctest text, not executable source.	GC.@preserve x unsafe_load(p)
 iobuffer:145	base/iobuffer.jl	145	memoryref	1	not-unchecked		This calls memoryrefoffset or declares a function; it does not dereference or create an unchecked access.	offset = memoryrefoffset(ref) - 1
-iobuffer:167	base/iobuffer.jl	167	unsafe_wrap	1	todo		v1 proof rejected by review (memsafety-iobuffer-constructors)	StringMemory(n::Integer) = unsafe_wrap(Memory{UInt8}, _string_n(n))
+iobuffer:167	base/iobuffer.jl	167	unsafe_wrap	1	proven	memsafety-iobuffer-string-memory		StringMemory(n::Integer) = unsafe_wrap(Memory{UInt8}, _string_n(n))
 iobuffer:363	base/iobuffer.jl	363	@inbounds+unsafe_store!	1	user-contract		unsafe_read! requires the caller to supply a writable destination for nbytes and a valid source span.	unsafe_store!(dest, @inbounds(src[so+i-1]), i)
 iobuffer:376	base/iobuffer.jl	376	unsafe_copyto!	1	user-contract		unsafe_read! requires the caller to supply a writable destination for nbytes and a valid source span.	GC.@preserve src unsafe_copyto!(dest, pointer(src, so), nbytes)
-iobuffer:427	base/iobuffer.jl	427	unsafe_load	1	todo		v1 proof rejected by review (memsafety-iobuffer-operations)	x = unsafe_load(ptr)
-iobuffer:445	base/iobuffer.jl	445	@inbounds	1	todo		v1 proof rejected by review (memsafety-iobuffer-operations)	@inbounds byte = from.data[ptr]::UInt8
-iobuffer:765	base/iobuffer.jl	765	memoryref	1	todo		v1 proof rejected by review (memsafety-iobuffer-operations)	data = wrap(Array, memoryref(io.data, get_offset(io) + 1), nbytes)
-iobuffer:774	base/iobuffer.jl	774	memoryref	1	todo		v1 proof rejected by review (memsafety-iobuffer-operations)	data = wrap(Array, memoryref(io.data, io.ptr), nbytes)
-iobuffer:806	base/iobuffer.jl	806	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-iobuffer-take-copy)	unsafe_copyto!(mem, 1, io.data, from, nbytes)
-iobuffer:856	base/iobuffer.jl	856	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-iobuffer-take-copy)	unsafe_copyto!(mem, 1, io.data, first(used_span), length(used_span))
+iobuffer:427	base/iobuffer.jl	427	unsafe_load	1	proven	memsafety-iobuffer-operations		x = unsafe_load(ptr)
+iobuffer:445	base/iobuffer.jl	445	@inbounds	1	proven	memsafety-iobuffer-operations		@inbounds byte = from.data[ptr]::UInt8
+iobuffer:765	base/iobuffer.jl	765	memoryref	1	proven	memsafety-iobuffer-operations		data = wrap(Array, memoryref(io.data, get_offset(io) + 1), nbytes)
+iobuffer:774	base/iobuffer.jl	774	memoryref	1	proven	memsafety-iobuffer-operations		data = wrap(Array, memoryref(io.data, io.ptr), nbytes)
+iobuffer:806	base/iobuffer.jl	806	unsafe_copyto!	1	proven	memsafety-iobuffer-operations		unsafe_copyto!(mem, 1, io.data, from, nbytes)
+iobuffer:856	base/iobuffer.jl	856	unsafe_copyto!	1	proven	memsafety-iobuffer-operations		unsafe_copyto!(mem, 1, io.data, first(used_span), length(used_span))
 iobuffer:879	base/iobuffer.jl	879	memoryref	1	user-contract		_unsafe_take! is internal and explicitly assumes a writable, seekable IOBuffer; base/iobuffer.jl:865-874.	memoryref(Memory{UInt8}())
 iobuffer:881	base/iobuffer.jl	881	memoryref	1	user-contract		_unsafe_take! is internal and explicitly assumes a writable, seekable IOBuffer; base/iobuffer.jl:865-874.	memoryref(io.data, offset + 1)
 iobuffer:925	base/iobuffer.jl	925	unsafe_load	1	user-contract		unsafe_write receives a caller-owned pointer; the caller must provide nb readable bytes.	data[from + i] = unsafe_load(p)
 iobuffer:937	base/iobuffer.jl	937	@inbounds	1	todo			@inbounds for i in UInt(1):nb
 iobuffer:938	base/iobuffer.jl	938	unsafe_load	1	todo			data[from + (i % Int) - 1] = unsafe_load(p, i)
 iobuffer:943	base/iobuffer.jl	943	unsafe_copyto!	1	todo			@inline unsafe_copyto!(ptr, p, nb)
-libc:408	base/libc.jl	408	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-libc-os-buffers)	GC.@preserve buf unsafe_copyto!(pointer(buf), p, len)
-libc:592	base/libc.jl	592	unsafe_load	1	todo		v1 proof rejected by review (memsafety-libc-os-buffers)	mem = unsafe_load(gp.mem, length(members) + 1)
-libdl:517	base/libdl.jl	517	unsafe_store!	1	todo		v1 proof rejected by review (memsafety-libdl-global)	Base.unsafe_store!(cglobal(:jl_libdl_dlopen_func, Any), dlopen)
-reducedim:264	base/reducedim.jl	264	@inbounds	1	todo		v1 proof rejected by review (memsafety-reducedim-matrix,memsafety-reducedim-blocks)	r = op(@inbounds(R[i]), mapreduce_impl(f, op, A, ibase+1, ibase+lsiz))
-reducedim:265	base/reducedim.jl	265	@inbounds	1	todo		v1 proof rejected by review (memsafety-reducedim-matrix)	@inbounds R[i] = r
-reducedim:277	base/reducedim.jl	277	@inbounds	1	todo		v1 proof rejected by review (memsafety-reducedim-matrix)	@inbounds r = R[i1,IR]
-reducedim:279	base/reducedim.jl	279	@inbounds	1	todo		v1 proof rejected by review (memsafety-reducedim-matrix)	r = op(r, f(@inbounds(A[i, IA])))
-reducedim:281	base/reducedim.jl	281	@inbounds	1	todo		v1 proof rejected by review (memsafety-reducedim-matrix)	@inbounds R[i1,IR] = r
-reducedim:287	base/reducedim.jl	287	@inbounds	1	todo		v1 proof rejected by review (memsafety-reducedim-matrix)	v = op(@inbounds(R[i,IR]), f(@inbounds(A[i,IA])))
-reducedim:288	base/reducedim.jl	288	@inbounds	1	todo		v1 proof rejected by review (memsafety-reducedim-matrix)	@inbounds R[i,IR] = v
-reducedim:1049	base/reducedim.jl	1049	@inbounds	1	todo		v1 proof rejected by review (memsafety-reducedim-matrix)	@inbounds tmpRv = Rval[i1,IR]
-reducedim:1050	base/reducedim.jl	1050	@inbounds	1	todo		v1 proof rejected by review (memsafety-reducedim-matrix)	@inbounds tmpRi = Rind[i1,IR]
-reducedim:1053	base/reducedim.jl	1053	@inbounds	1	todo		v1 proof rejected by review (memsafety-reducedim-matrix)	tmpAv = f(@inbounds(A[i,IA]))
-reducedim:1060	base/reducedim.jl	1060	@inbounds	1	todo		v1 proof rejected by review (memsafety-reducedim-matrix)	@inbounds Rval[i1,IR] = tmpRv
-reducedim:1061	base/reducedim.jl	1061	@inbounds	1	todo		v1 proof rejected by review (memsafety-reducedim-matrix)	@inbounds Rind[i1,IR] = tmpRi
-reducedim:1068	base/reducedim.jl	1068	@inbounds	1	todo		v1 proof rejected by review (memsafety-reducedim-matrix)	tmpAv = f(@inbounds(A[i,IA]))
-reducedim:1069	base/reducedim.jl	1069	@inbounds	1	todo		v1 proof rejected by review (memsafety-reducedim-matrix)	@inbounds tmpRv = Rval[i,IR]
-reducedim:1070	base/reducedim.jl	1070	@inbounds	1	todo		v1 proof rejected by review (memsafety-reducedim-matrix)	@inbounds tmpRi = Rind[i,IR]
-reducedim:1072	base/reducedim.jl	1072	@inbounds	1	todo		v1 proof rejected by review (memsafety-reducedim-matrix)	@inbounds Rval[i,IR] = tmpAv
-reducedim:1073	base/reducedim.jl	1073	@inbounds	1	todo		v1 proof rejected by review (memsafety-reducedim-matrix)	@inbounds Rind[i,IR] = k
+libc:408	base/libc.jl	408	unsafe_copyto!	1	proven	memsafety-libc-os-buffers		GC.@preserve buf unsafe_copyto!(pointer(buf), p, len)
+libc:592	base/libc.jl	592	unsafe_load	1	proven	memsafety-libc-os-buffers		mem = unsafe_load(gp.mem, length(members) + 1)
+libdl:517	base/libdl.jl	517	unsafe_store!	1	proven	memsafety-libdl-global		Base.unsafe_store!(cglobal(:jl_libdl_dlopen_func, Any), dlopen)
+reducedim:264	base/reducedim.jl	264	@inbounds	1	proven	memsafety-reducedim-accesses		r = op(@inbounds(R[i]), mapreduce_impl(f, op, A, ibase+1, ibase+lsiz))
+reducedim:265	base/reducedim.jl	265	@inbounds	1	proven	memsafety-reducedim-accesses		@inbounds R[i] = r
+reducedim:277	base/reducedim.jl	277	@inbounds	1	proven	memsafety-reducedim-accesses		@inbounds r = R[i1,IR]
+reducedim:279	base/reducedim.jl	279	@inbounds	1	proven	memsafety-reducedim-accesses		r = op(r, f(@inbounds(A[i, IA])))
+reducedim:281	base/reducedim.jl	281	@inbounds	1	proven	memsafety-reducedim-accesses		@inbounds R[i1,IR] = r
+reducedim:287	base/reducedim.jl	287	@inbounds	1	proven	memsafety-reducedim-accesses		v = op(@inbounds(R[i,IR]), f(@inbounds(A[i,IA])))
+reducedim:288	base/reducedim.jl	288	@inbounds	1	proven	memsafety-reducedim-accesses		@inbounds R[i,IR] = v
+reducedim:1049	base/reducedim.jl	1049	@inbounds	1	proven	memsafety-reducedim-accesses		@inbounds tmpRv = Rval[i1,IR]
+reducedim:1050	base/reducedim.jl	1050	@inbounds	1	proven	memsafety-reducedim-accesses		@inbounds tmpRi = Rind[i1,IR]
+reducedim:1053	base/reducedim.jl	1053	@inbounds	1	proven	memsafety-reducedim-accesses		tmpAv = f(@inbounds(A[i,IA]))
+reducedim:1060	base/reducedim.jl	1060	@inbounds	1	proven	memsafety-reducedim-accesses		@inbounds Rval[i1,IR] = tmpRv
+reducedim:1061	base/reducedim.jl	1061	@inbounds	1	proven	memsafety-reducedim-accesses		@inbounds Rind[i1,IR] = tmpRi
+reducedim:1068	base/reducedim.jl	1068	@inbounds	1	proven	memsafety-reducedim-accesses		tmpAv = f(@inbounds(A[i,IA]))
+reducedim:1069	base/reducedim.jl	1069	@inbounds	1	proven	memsafety-reducedim-accesses		@inbounds tmpRv = Rval[i,IR]
+reducedim:1070	base/reducedim.jl	1070	@inbounds	1	proven	memsafety-reducedim-accesses		@inbounds tmpRi = Rind[i,IR]
+reducedim:1072	base/reducedim.jl	1072	@inbounds	1	proven	memsafety-reducedim-accesses		@inbounds Rval[i,IR] = tmpAv
+reducedim:1073	base/reducedim.jl	1073	@inbounds	1	proven	memsafety-reducedim-accesses		@inbounds Rind[i,IR] = k
 secretbuffer:95	base/secretbuffer.jl	95	unsafe_load	1	user-contract		unsafe_SecretBuffer!(p, len) accepts a caller-owned pointer; the caller must provide len readable and writable bytes.	write(s, unsafe_load(p, i))
-set:143	base/set.jl	143	@inbounds	1	todo		v1 proof rejected by review (memsafety-set-pop-unique)	@inbounds key = dict.keys[index]
-set:154	base/set.jl	154	@inbounds	1	todo		v1 proof rejected by review (memsafety-set-pop-unique)	result = @inbounds s.dict.keys[index]
-set:379	base/set.jl	379	@inbounds	1	todo		v1 proof rejected by review (memsafety-set-pop-unique)	x = @inbounds A[i]
-set:390	base/set.jl	390	@inbounds	1	todo		v1 proof rejected by review (memsafety-set-pop-unique)	x = @inbounds A[i]
-set:394	base/set.jl	394	@inbounds	1	todo		v1 proof rejected by review (memsafety-set-pop-unique)	@inbounds A[current] = x
-set:587	base/set.jl	587	@inbounds	1	todo		v1 proof rejected by review (memsafety-set-pop-unique)	isequal(a, @inbounds A[j]) && return false
-set:952	base/set.jl	952	@inbounds	1	todo		v1 proof rejected by review (memsafety-set-replace)	@inbounds Ai = A[i]
-set:954	base/set.jl	954	@inbounds	1	todo		v1 proof rejected by review (memsafety-set-replace)	@inbounds A[i] = y
-set:958	base/set.jl	958	@inbounds	1	todo		v1 proof rejected by review (memsafety-set-replace)	@inbounds Ai = A[i]
-set:960	base/set.jl	960	@inbounds	1	todo		v1 proof rejected by review (memsafety-set-replace)	@inbounds res[i] = y
-set:965	base/set.jl	965	@inbounds	1	todo		v1 proof rejected by review (memsafety-set-replace)	@inbounds Ai = A[i]
-set:968	base/set.jl	968	@inbounds	1	todo		v1 proof rejected by review (memsafety-set-replace)	@inbounds res[i] = y
-set:971	base/set.jl	971	@inbounds	1	todo		v1 proof rejected by review (memsafety-set-replace)	@inbounds res[i] = Ai
-set:987	base/set.jl	987	@inbounds	1	todo		v1 proof rejected by review (memsafety-set-replace)	@inbounds while i != 0
-strings.io:306	base/strings/io.jl	306	unsafe_wrap	1	todo		v1 proof rejected by review (memsafety-strings-io-wrap)	IOBuffer(str::String) = IOBuffer(unsafe_wrap(Vector{UInt8}, str))
-strings.io:307	base/strings/io.jl	307	unsafe_wrap	1	todo		v1 proof rejected by review (memsafety-strings-io-wrap)	IOBuffer(s::SubString{String}) = IOBuffer(view(unsafe_wrap(Vector{UInt8}, s.string), s.offset + 1 : s.offset + sizeof(s)))
+set:143	base/set.jl	143	@inbounds	1	proven	memsafety-set-pop		@inbounds key = dict.keys[index]
+set:154	base/set.jl	154	@inbounds	1	proven	memsafety-set-pop		result = @inbounds s.dict.keys[index]
+set:379	base/set.jl	379	@inbounds	1	proven	memsafety-set-unique		x = @inbounds A[i]
+set:390	base/set.jl	390	@inbounds	1	proven	memsafety-set-unique		x = @inbounds A[i]
+set:394	base/set.jl	394	@inbounds	1	proven	memsafety-set-unique		@inbounds A[current] = x
+set:587	base/set.jl	587	@inbounds	1	proven	memsafety-set-unique		isequal(a, @inbounds A[j]) && return false
+set:952	base/set.jl	952	@inbounds	1	proven	memsafety-set-replace		@inbounds Ai = A[i]
+set:954	base/set.jl	954	@inbounds	1	proven	memsafety-set-replace		@inbounds A[i] = y
+set:958	base/set.jl	958	@inbounds	1	proven	memsafety-set-replace		@inbounds Ai = A[i]
+set:960	base/set.jl	960	@inbounds	1	proven	memsafety-set-replace		@inbounds res[i] = y
+set:965	base/set.jl	965	@inbounds	1	proven	memsafety-set-replace		@inbounds Ai = A[i]
+set:968	base/set.jl	968	@inbounds	1	proven	memsafety-set-replace		@inbounds res[i] = y
+set:971	base/set.jl	971	@inbounds	1	proven	memsafety-set-replace		@inbounds res[i] = Ai
+set:987	base/set.jl	987	@inbounds	1	proven	memsafety-set-replace		@inbounds while i != 0
+strings.io:306	base/strings/io.jl	306	unsafe_wrap	1	proven	memsafety-strings-io-wrap		IOBuffer(str::String) = IOBuffer(unsafe_wrap(Vector{UInt8}, str))
+strings.io:307	base/strings/io.jl	307	unsafe_wrap	1	proven	memsafety-strings-io-wrap		IOBuffer(s::SubString{String}) = IOBuffer(view(unsafe_wrap(Vector{UInt8}, s.string), s.offset + 1 : s.offset + sizeof(s)))
 strings.substring:78	base/strings/substring.jl	78	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck begin
-strings.substring:80	base/strings/substring.jl	80	@inbounds	1	todo		v1 proof rejected by review (memsafety-strings-substring-index)	@inbounds isvalid(s, i) || string_index_err(s, i)
-strings.substring:81	base/strings/substring.jl	81	@inbounds	1	todo		v1 proof rejected by review (memsafety-strings-substring-index)	@inbounds isvalid(s, j) || string_index_err(s, j)
+strings.substring:80	base/strings/substring.jl	80	@inbounds	1	proven	memsafety-strings-substring-index		@inbounds isvalid(s, i) || string_index_err(s, i)
+strings.substring:81	base/strings/substring.jl	81	@inbounds	1	proven	memsafety-strings-substring-index		@inbounds isvalid(s, j) || string_index_err(s, j)
 strings.substring:87	base/strings/substring.jl	87	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck if n_codeunits < 0 || first_index < 1 || (n_codeunits > ncodeunits(s) - first_index + 1)
 strings.substring:94	base/strings/substring.jl	94	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck if n_codeunits < 0 || first_index < 1 || (n_codeunits > ncodeunits(s) - first_index + 1)
 strings.substring:113	base/strings/substring.jl	113	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck i ≤ j && checkbounds(s, i:j)
-strings.substring:117	base/strings/substring.jl	117	@inbounds	1	todo		v1 proof rejected by review (memsafety-strings-substring-index)	SubString(s::AbstractString) = @inbounds raw_substring(s, 1, Int(ncodeunits(s))::Int)
+strings.substring:117	base/strings/substring.jl	117	@inbounds	1	proven	memsafety-strings-substring-index		SubString(s::AbstractString) = @inbounds raw_substring(s, 1, Int(ncodeunits(s))::Int)
 strings.substring:147	base/strings/substring.jl	147	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck checkbounds(s, i)
-strings.substring:148	base/strings/substring.jl	148	@inbounds	1	todo		v1 proof rejected by review (memsafety-strings-substring-index)	@inbounds return codeunit(s.string, s.offset + i)
+strings.substring:148	base/strings/substring.jl	148	@inbounds	1	proven	memsafety-strings-substring-index		@inbounds return codeunit(s.string, s.offset + i)
 strings.substring:153	base/strings/substring.jl	153	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck checkbounds(s, i)
 strings.substring:161	base/strings/substring.jl	161	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck checkbounds(s, i)
-strings.substring:162	base/strings/substring.jl	162	@inbounds	1	todo		v1 proof rejected by review (memsafety-strings-substring-index)	@inbounds return getindex(s.string, s.offset + i)
+strings.substring:162	base/strings/substring.jl	162	@inbounds	1	proven	memsafety-strings-substring-index		@inbounds return getindex(s.string, s.offset + i)
 strings.substring:170	base/strings/substring.jl	170	@boundscheck	1	not-unchecked		@boundscheck is the check itself; no unchecked access occurs on this line.	@boundscheck ib = checkbounds(Bool, s, i)
-strings.substring:171	base/strings/substring.jl	171	@inbounds	1	todo		v1 proof rejected by review (memsafety-strings-substring-index)	@inbounds return ib && isvalid(s.string, s.offset + i)::Bool
-strings.substring:219	base/strings/substring.jl	219	unsafe_store!	1	todo		v1 proof rejected by review (memsafety-strings-build-repeat)	unsafe_store!(pointer(out, offs), x % UInt8)
-strings.substring:222	base/strings/substring.jl	222	unsafe_store!	1	todo		v1 proof rejected by review (memsafety-strings-build-repeat)	unsafe_store!(pointer(out, offs+1), x % UInt8)
-strings.substring:225	base/strings/substring.jl	225	unsafe_store!	1	todo		v1 proof rejected by review (memsafety-strings-build-repeat)	unsafe_store!(pointer(out, offs+2), x % UInt8)
-strings.substring:228	base/strings/substring.jl	228	unsafe_store!	1	todo		v1 proof rejected by review (memsafety-strings-build-repeat)	unsafe_store!(pointer(out, offs+3), x % UInt8)
-strings.substring:235	base/strings/substring.jl	235	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-strings-build-repeat)	GC.@preserve s out unsafe_copyto!(pointer(out, offs), pointer(s), n)
-strings.substring:241	base/strings/substring.jl	241	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-strings-build-repeat)	GC.@preserve s out unsafe_copyto!(pointer(out, offs), pointer(s), n)
-strings.substring:247	base/strings/substring.jl	247	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-strings-build-repeat)	GC.@preserve s out unsafe_copyto!(pointer(out, offs), unsafe_convert(Ptr{UInt8},s), n)
-strings.substring:299	base/strings/substring.jl	299	@inbounds	1	todo		v1 proof rejected by review (memsafety-strings-build-repeat)	@inbounds b = codeunit(s, 1)
-strings.substring:303	base/strings/substring.jl	303	unsafe_copyto!	1	todo		v1 proof rejected by review (memsafety-strings-build-repeat)	GC.@preserve s out unsafe_copyto!(pointer(out, i*n+1), pointer(s), n)
+strings.substring:171	base/strings/substring.jl	171	@inbounds	1	proven	memsafety-strings-substring-index		@inbounds return ib && isvalid(s.string, s.offset + i)::Bool
+strings.substring:219	base/strings/substring.jl	219	unsafe_store!	1	proven	memsafety-strings-build		unsafe_store!(pointer(out, offs), x % UInt8)
+strings.substring:222	base/strings/substring.jl	222	unsafe_store!	1	proven	memsafety-strings-build		unsafe_store!(pointer(out, offs+1), x % UInt8)
+strings.substring:225	base/strings/substring.jl	225	unsafe_store!	1	proven	memsafety-strings-build		unsafe_store!(pointer(out, offs+2), x % UInt8)
+strings.substring:228	base/strings/substring.jl	228	unsafe_store!	1	proven	memsafety-strings-build		unsafe_store!(pointer(out, offs+3), x % UInt8)
+strings.substring:235	base/strings/substring.jl	235	unsafe_copyto!	1	proven	memsafety-strings-build		GC.@preserve s out unsafe_copyto!(pointer(out, offs), pointer(s), n)
+strings.substring:241	base/strings/substring.jl	241	unsafe_copyto!	1	proven	memsafety-strings-build		GC.@preserve s out unsafe_copyto!(pointer(out, offs), pointer(s), n)
+strings.substring:247	base/strings/substring.jl	247	unsafe_copyto!	1	proven	memsafety-strings-build		GC.@preserve s out unsafe_copyto!(pointer(out, offs), unsafe_convert(Ptr{UInt8},s), n)
+strings.substring:299	base/strings/substring.jl	299	@inbounds	1	proven	memsafety-strings-repeat		@inbounds b = codeunit(s, 1)
+strings.substring:303	base/strings/substring.jl	303	unsafe_copyto!	1	proven	memsafety-strings-repeat		GC.@preserve s out unsafe_copyto!(pointer(out, i*n+1), pointer(s), n)

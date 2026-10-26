@@ -1,0 +1,68 @@
+id: numberscov-rationalize-integer-tolerance
+title: "rationalize(T, x::Integer; tol) ignores tol and can return infinity outside the requested tolerance"
+priority: P1
+kind: wrong-result
+area: NumbersCov
+files: [base/rational.jl]
+functions: ["rationalize(::Type{T}, x::Integer; kvs...)"]
+summary: |
+  rationalize(Int8, 128; tol=1) returns 1//0. The finite Rational{Int8}
+  value 127//1 differs from the input by exactly the requested tolerance, while
+  the returned infinity is outside every finite tolerance.
+likelihood: |
+  Callers can request a small fixed-width component type for storage and pass a
+  value just outside its integer range. An explicit tolerance is the documented
+  way to permit an approximation in this situation.
+maybe_intended: |
+  The integer overload deliberately maps values outside T to rational
+  infinities, but accepting a tol keyword while ignoring it contradicts the
+  documented error bound and differs from the AbstractFloat overload.
+reproducer: |
+  T = Int8
+  x = 128
+  tol = 1
+  q = rationalize(T, x; tol=tol)
+
+  println("Julia ", VERSION)
+  println("rationalize(Int8, 128; tol=1) = ", q)
+  println("isfinite(result) = ", isfinite(q))
+  println("127//1 is within tolerance = ", abs(x - 127//1) <= tol)
+
+  if q == 1//0 && abs(x - 127//1) <= tol
+      println("REPRODUCED numberscov-rationalize-integer-tolerance")
+  else
+      error("bug did not reproduce")
+  end
+output:
+  release: |
+    Julia 1.13.2
+    rationalize(Int8, 128; tol=1) = 1//0
+    isfinite(result) = false
+    127//1 is within tolerance = true
+    REPRODUCED numberscov-rationalize-integer-tolerance
+  nightly: |
+    Julia 1.15.0-DEV.126
+    rationalize(Int8, 128; tol=1) = 1//0
+    isfinite(result) = false
+    127//1 is within tolerance = true
+    REPRODUCED numberscov-rationalize-integer-tolerance
+reproduced: {release: true, nightly: true}
+expected: |
+  Return a Rational{Int8} within one of 128, such as 127//1, or throw if the
+  implementation cannot produce a result satisfying the requested tolerance.
+promised_by: |
+  The rationalize docstring at base/rational.jl:238-243 says the result will
+  differ from x by no more than tol.
+cause: |
+  base/rational.jl:334-342 accepts arbitrary keyword arguments as kvs but never
+  reads them. For a bounded T, it maps every integer below typemin(T) or above
+  typemax(T) directly to -1//0 or 1//0.
+possible_fix: |
+  Make the integer overload honor and validate tol, returning a finite boundary
+  approximation when it satisfies tol and throwing otherwise.
+duplicates:
+  issues: []
+  queries: ["rationalize Integer tolerance", "rationalize Int8 1//0", "rationalize tol ignored integer", "rationalize out of range integer"]
+lean:
+  property: JuliaLean.NumbersCov.rationalizeIntegerWithinTolerance
+  theorem: JuliaLean.NumbersCov.rationalizeIntegerWithinTolerance_refuted

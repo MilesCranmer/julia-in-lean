@@ -1,8 +1,8 @@
 # Formalizing Julia in Lean
 
-Julia source code, modelled in Lean 4, with AI coding agents writing the models and the proofs and machine checks deciding what counts. Each Julia function is mirrored by a Lean definition that follows the source line by line. Each property of that function, taken from a docstring, the manual, or an obvious invariant, ends either proven (a Lean theorem) or refuted (a Lean theorem of the negation, built from a concrete counterexample). Every refutation is backed by a pure-Julia script that reproduces the problem on real Julia.
+Julia source code modelled in Lean 4. Each Julia function is mirrored by a Lean definition that follows the source line by line. Each property of that function, taken from a docstring, the manual, or an obvious invariant, ends either proven (a Lean theorem) or refuted (a Lean theorem of the negation, built from a concrete counterexample). Every refutation is backed by a pure-Julia script that reproduces the problem on real Julia.
 
-The repository holds two Lean packages. `julia-base/` models parts of Julia Base and several standard libraries: 910 registered properties, 510 proven and 400 refuted, with 401 bug write-ups and 75 issues filed on JuliaLang/julia. `dynamicexpressions/` models DynamicExpressions.jl, the expression-tree package behind SymbolicRegression.jl and PySR: 385 properties in the first pass (332 proven, 53 refuted), 38 fix pull requests merged upstream, and a current registry of 400 entries with 394 proven and 6 refuted.
+The repository holds two Lean packages. `julia-base/` models parts of Julia Base and several standard libraries: 9,798 registered properties, 9,227 proven and 571 refuted, with 574 bug write-ups and 90 issues filed on JuliaLang/julia. `dynamicexpressions/` models DynamicExpressions.jl, the expression-tree package behind SymbolicRegression.jl and PySR: 385 properties in the first pass (332 proven, 53 refuted), 38 fix pull requests merged upstream, and a current registry of 400 entries with 394 proven and 6 refuted.
 
 The method is described in enough detail to repeat it for another package.
 
@@ -10,7 +10,7 @@ The method is described in enough detail to repeat it for another package.
 
 1. [What a property looks like](#what-a-property-looks-like)
 2. [The method](#the-method)
-3. [Running it with agents](#running-it-with-agents)
+3. [Running the workflow](#running-the-workflow)
 4. [What went wrong, and the lessons](#what-went-wrong-and-the-lessons)
 5. [Results](#results)
 6. [Formalizing your own package](#formalizing-your-own-package)
@@ -168,32 +168,19 @@ Before filing, each bug is searched for duplicates in JuliaLang/julia issues and
 
 Filing is never automated. After the first two reports, the Julia community was asked how it preferred to receive findings in bulk, and the answer was individual issues. Each issue is drafted from its YAML, checked again for duplicates, and shown to a person, who approves it or sends it back before it is posted. Issues are posted from a separate bot account so they read as ordinary bug reports; each ends with a short italic note saying it was found through a Lean formalization and tagging the person responsible. Selection favours distinct bugs that are severe and that real code might hit, so most write-ups are never filed. Findings that may be security-relevant are held back and raised privately before anything is posted.
 
-## Running it with agents
+## Running the workflow
 
-### Areas and ownership
+### Areas and files
 
-One agent owns one area of the source, for example ranges, integer arithmetic, Dict/Set, UTF-8 strings, Printf, the TOML parser, or shell quoting. The area owns a fixed set of files:
+Base functions are grouped by area, such as ranges, integer arithmetic, Dict/Set, strings, Printf and TOML. Each area's entry module lists its properties and points to the source functions and supporting Lean models.
 
-```
-JuliaLean/<Area>.lean
-JuliaLean/<Area>/
-repro/<area>-*.jl
-bugs/<area>-*.yaml
-```
+### Reproducing a refutation
 
-A coordinator agent creates area stubs, registers them, broadcasts rule changes, and reviews results. An area took one agent between one and six hours. About 50 areas were covered in waves of 4 to 7 agents running in parallel; agents sometimes spawned sub-agents for independent parts of an area.
+A refuted property has a pure-Julia script in `repro/` and a YAML write-up in `bugs/`. Run each script with both pinned Julia versions. It prints `REPRODUCED <id>` as its final line when the behavior appears. The write-up records the source citation, expected behavior and issue search.
 
-### Models and refusals
+### Local checks
 
-Models used: Claude Opus for most areas, GPT-6.1 Sol through Codex, Kimi K3, GLM-5.3, and OpenAI's Daybreak Blue model in Codex.
-
-Several GPT-based runs were stopped by the provider's cybersecurity filter (`cyber_policy`) because the task described hunting for bugs and overflow in source code. Kimi and GLM sub-runs that fell back to GPT models hit the same filter. Those areas were re-run on Claude Opus, or on Daybreak Blue, which is intended for authorized security work and accepted the same task.
-
-### Practical rules
-
-- Agents write the YAML as soon as a reproducer confirms, not at the end of a run. Holding write-ups until the end delayed reports by hours.
-- Agents share one working tree and commit with an explicit pathspec (`git commit -m ... -- <files>`), because a bare `git commit` also commits other agents' staged files.
-- Rule changes are broadcast by the coordinator to every running agent.
+From `julia-base/`, run `lake build` and `bash scripts/audit.sh`; export the registry with `lake env lean Report.lean > registry.tsv`. Run `JULIA=... bash scripts/run-repros.sh` with each pinned Julia executable, then `bash scripts/check-bugs.sh`, `python3 scripts/check_memsafety.py` and `python3 scripts/check_coverage.py`.
 
 ## What went wrong, and the lessons
 
@@ -211,23 +198,23 @@ Lean 4.34.1 (`lean-toolchain`: `leanprover/lean4:v4.34.1`), no Mathlib.
 
 | Count | |
 | --- | --- |
-| Registry entries | 910 |
-| Proven | 510 |
-| Refuted | 400 |
-| Bug write-ups | 401 |
+| Registry entries | 9,798 |
+| Proven | 9,227 |
+| Refuted | 571 |
+| Bug write-ups | 574 |
 
-There is one write-up per refuted entry, plus one for a compiler bug (`compiler-isa-flag-loop`, [#64183](https://github.com/JuliaLang/julia/issues/64183)) found while checking Markdown; the compiler is outside the Lean model, so it has no registry entry. Bug write-ups by priority:
+There is one write-up per refuted registry entry, plus three standalone reports: `compiler-isa-flag-loop` is a compiler issue outside the Lean model; `iocov-encode-uri-padding` and `stringscova-search-offset-pattern-range` have reproducer write-ups but no refuted registry entries. Bug write-ups by priority:
 
 | Priority | Count |
 | --- | --- |
-| P0 | 4 |
-| P1 | 47 |
-| P2 | 223 |
-| P3 | 127 |
+| P0 | 6 |
+| P1 | 63 |
+| P2 | 314 |
+| P3 | 191 |
 
 Coverage: parts of about 90 files in `base/`, plus the stdlib packages Printf, Dates, Base64, UUIDs, CRC32c, TOML, Markdown, Sockets, Serialization, Artifacts, Random and Unicode.
 
-After the first two reports (including [#64121](https://github.com/JuliaLang/julia/issues/64121)), 75 issues were filed on JuliaLang/julia ([full list](https://github.com/JuliaLang/julia/issues?q=is%3Aissue%20author%3AMilesCranmerBot)), numbered [#64123](https://github.com/JuliaLang/julia/issues/64123) to [#64207](https://github.com/JuliaLang/julia/issues/64207). A few numbers in that range come from a separate C-runtime/GC project that is not in this repository. Selected filed issues, all open:
+After the first two reports (including [#64121](https://github.com/JuliaLang/julia/issues/64121)), 90 issues were filed on JuliaLang/julia ([full list](https://github.com/JuliaLang/julia/issues?q=is%3Aissue%20author%3AMilesCranmerBot)), numbered [#64123](https://github.com/JuliaLang/julia/issues/64123) to [#64240](https://github.com/JuliaLang/julia/issues/64240). A few numbers in that range come from a separate C-runtime/GC project that is not in this repository. Selected filed issues, all open:
 
 - [#64183](https://github.com/JuliaLang/julia/issues/64183): 1.14 regression. A stale `isa` refinement across loop iterations miscompiles code: inference folds `w && el isa String` to false when `w = el isa C` was set in the previous iteration. Found because `Markdown.rst` printed wrong output on master.
 - [#64147](https://github.com/JuliaLang/julia/issues/64147): BitArrays. Resizing `vec(M)` or `reshape(M, n)` corrupts the original `BitArray` (memory unsafe).
@@ -258,7 +245,7 @@ The memory-safety phase lists every unchecked access in `base/` on master: `@inb
 | user-contract | the docstring makes the caller responsible; the sentence is quoted in the note |
 | not-unchecked | the site is not actually an unchecked access |
 
-`scripts/check_memsafety.py` fails while any site is unsettled. Current state: 242 sites are not unchecked accesses, 159 are the caller's responsibility by contract, 20 are refuted, and 731 are not yet settled. This phase is unfinished.
+`scripts/check_memsafety.py` fails while any site is unsettled. Current state: 250 sites are not unchecked accesses, 657 are proven, 52 are refuted, 189 are the caller's responsibility by contract, and 4 remain unsettled. This phase is unfinished.
 
 ### DynamicExpressions.jl (`dynamicexpressions/`)
 
@@ -300,10 +287,10 @@ Downstream, a separate Lean formalization of SymbolicRegression.jl imports the D
 
 ## Formalizing your own package
 
-A checklist derived from the method above. The order matters: the checks that keep the agents honest must exist before the agents start proving things.
+A checklist derived from the method above. Establish the checks before proof work begins.
 
 1. **Set up the model, the differential test, the audit and the registry first.**
-   - Write the Lean mirror of one small, central module by hand or with one agent, following the source line by line. Use `Except JlError` for exceptions and fixed-width integer types for Julia integers.
+   - Write the Lean mirror of one small, central module, following the source line by line. Use `Except JlError` for exceptions and fixed-width integer types for Julia integers.
    - Write a differential test that evaluates the model on many inputs and compares the results with the real package. Make it exhaustive where the input space allows (small integer types) and random elsewhere. Run it before any proof work, and rerun it whenever the model changes.
    - Write `Audit.lean` and the registry before the second module. The audit must fail the build on unsettled entries, mismatched theorem types, non-standard axioms, and `sorry`, `admit`, `native_decide`, `bv_decide` and `ofReduceBool`. Add the generality count so that example-checking statements are rejected.
    - Add the coverage rule: every file and function named in the model needs entries.
@@ -314,7 +301,7 @@ A checklist derived from the method above. The order matters: the checks that ke
 6. **Write bugs up as they are confirmed.** A YAML per bug with the fields listed above, validated by a script, written the moment the reproducer passes.
 7. **Review proofs against the source, not only against the audit.** Especially for memory-safety claims, use a fixed rubric: the proof must compute the index from the real inputs by following the code, its hypotheses must be type invariants or documented preconditions, and it must cover every caller.
 8. **Keep reproducers and flip on fix.** When a fix is merged upstream, merge it into the formalization branch, update the model to the new source, and let the same statement flip from refuted to proven. Never edit the statement.
-9. **Give each agent one area and a coordinator.** One area per agent, fixed file ownership, commits with an explicit pathspec, and a coordinator who creates stubs, broadcasts rule changes and reviews results.
+9. **Keep the work focused.** Organize Lean files by source area and keep each change's registry, proof and checks together.
 
 ## Repository layout and building
 
@@ -331,10 +318,15 @@ julia-base/
   bugs/<id>.yaml              one write-up per confirmed bug
   memsafety/sites-*.tsv       unchecked-access sites, six groups
   memsafety/REVIEW_PROMPT.md  rubric for reviewing in-bounds proofs
+  coverage/methods/*.tsv      whole-Base method inventory
+  coverage/review/*.tsv       fixed-prompt method review results
+  coverage/REVIEW_PROMPT.md   method review criteria
   scripts/audit.sh            lake build, forbidden-token scan, audit
   scripts/run-repros.sh       runs every reproducer on a given Julia
   scripts/check-bugs.sh       validates bugs/*.yaml
   scripts/check_memsafety.py  fails while any memory-safety site is unsettled
+  scripts/check_coverage.py   validates whole-Base method coverage
+  scripts/list_base_methods.jl rebuilds the method inventory
   NOTICE                      Julia's license, for the mirrored source
 
 dynamicexpressions/
@@ -353,9 +345,14 @@ dynamicexpressions/
 Build and check a package:
 
 ```sh
-cd julia-base                     # or dynamicexpressions
-bash scripts/audit.sh             # lake build, forbidden-token scan, audit; ends with AUDIT OK
-JULIA=/path/to/julia scripts/run-repros.sh   # runs the reproducer of every refuted entry
+cd julia-base
+lake build
+bash scripts/audit.sh
+lake env lean Report.lean > registry.tsv
+JULIA=/path/to/julia bash scripts/run-repros.sh
+bash scripts/check-bugs.sh
+python3 scripts/check_memsafety.py
+python3 scripts/check_coverage.py
 ```
 
 For `julia-base/`, run the reproducers against both the 1.13.2 release and Julia master; each refuted entry reproduces on at least one of them, and most on both. The DynamicExpressions.jl reproducers use `repro/Project.toml`, which pins the package at the modelled commit; the `evalcache-*` reproducers need the [PR #219](https://github.com/SymbolicML/DynamicExpressions.jl/issues/219) branch instead.
@@ -366,8 +363,10 @@ For `julia-base/`, run the reproducers against both the 1.13.2 release and Julia
 
 **Coverage is partial.** The Julia Base package covers parts of about 90 files in `base/` and a selection of stdlib packages. Within a covered file, only the functions named in the model have entries. The coverage rule guarantees that named functions have entries; it does not say anything about the rest of the file.
 
-**The memory-safety phase is unfinished.** Of the 1,152 listed sites, the current state is 242 sites are not unchecked accesses, 159 are the caller's responsibility by contract, 20 are refuted, and 731 are not yet settled. The first-pass proofs were withdrawn after review (see the lessons above), and any new proof must pass the same review rubric before it counts.
+Whole-Base method inventory: 12,765 methods in the manifest, 12,411 modelled, 334 excluded, and 20 todo. The fixed-prompt review has passed 3,562 methods, with line coverage of 12.2665% (9,200 of 75,001 definition lines; overlapping definitions counted separately). Most modelled methods have not yet passed review.
 
-**Priorities are judgment calls.** The agent that confirms a bug assigns its P0 to P3 priority from the scale above, and a person reviews it before anything is filed. Whether an input is "ordinary" or "contrived", and whether a documented sentence is a promise or a description, are decisions that another reader could make differently. The write-ups record the reasoning so the decision can be revisited.
+**The memory-safety phase is unfinished.** Of the 1,152 listed sites, 250 are not unchecked accesses, 657 are proven, 52 are refuted, 189 are the caller's responsibility by contract, and 4 remain unsettled. The first-pass proofs were withdrawn after review (see the lessons above), and any new proof must pass the same review rubric before it counts.
+
+**Priorities are judgment calls.** Give each bug a conservative P0 to P3 priority from the scale above, then review it before filing. Whether an input is "ordinary" or "contrived", and whether a documented sentence is a promise or a description, are decisions that another reader could make differently. The write-ups record the reasoning so the decision can be revisited.
 
 **Properties are only as good as their sources.** A docstring can be wrong or vague. When the source of a property is an invariant rather than a written promise, the refutation is an argument for a change rather than evidence of a contradiction, and the write-up records that possibility in its `maybe_intended` field.

@@ -1,0 +1,111 @@
+file	line	endline	name	signature	status	entry	note
+base/intfuncs.jl	44	51	gcd	gcd(a::T, b::T) where T<:Integer	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	53	64	gcd	gcd(a::T, b::T) where T<:BitInteger	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	65	66	__throw_gcd_overflow	__throw_gcd_overflow(a, b)	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	68	71	absdiff	absdiff(x::T,y::T) where {T<:Unsigned}	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	72	75	absdiff	absdiff(x::T,y::T) where {T<:Signed}	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	80	95	_gcd	_gcd(ain::T, bin::T) where T<:BitInteger	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	136	144	lcm	lcm(a::T, b::T) where T<:Integer	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	146	150	_promote_mixed_signs	_promote_mixed_signs(a::Signed, b::Unsigned)	modelled	intfuncscov-number-theory-source,intfuncscov-gcd-mixed-typemin	
+base/intfuncs.jl	152	152	gcd	gcd(a::Integer)	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	153	153	gcd	gcd(a::Rational)	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	154	154	lcm	lcm(a::Union{Integer,Rational})	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	155	155	gcd	gcd(a::Unsigned, b::Signed)	modelled	intfuncscov-number-theory-source,intfuncscov-gcd-mixed-typemin	
+base/intfuncs.jl	156	156	gcd	gcd(a::Signed, b::Unsigned)	modelled	intfuncscov-number-theory-source,intfuncscov-gcd-mixed-typemin	
+base/intfuncs.jl	157	157	lcm	lcm(a::Unsigned, b::Signed)	modelled	intarith-number-lcm-mixed-typemin	
+base/intfuncs.jl	158	158	lcm	lcm(a::Signed, b::Unsigned)	modelled	intfuncscov-number-theory-source,intfuncscov-gcd-mixed-typemin	
+base/intfuncs.jl	159	159	gcd	gcd(a::Real, b::Real)	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	160	160	lcm	lcm(a::Real, b::Real)	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	161	161	gcd	gcd(a::Real, b::Real, c::Real...)	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	162	162	lcm	lcm(a::Real, b::Real, c::Real...)	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	163	163	gcd	gcd(a::T, b::T) where T<:Real	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	164	164	lcm	lcm(a::T, b::T) where T<:Real	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	166	166	gcd	gcd(abc::AbstractArray{<:Real})	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	167	176	lcm	lcm(abc::AbstractArray{<:Real})	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	178	187	gcd	gcd(abc::AbstractArray{<:Integer})	modelled	intfuncscov-number-theory-source,intfuncscov-gcd-array-typemin	
+base/intfuncs.jl	189	189	_gcdx_update	_gcdx_update(s0::T, q::T, s1::T) where {T<:Unsigned}	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	190	190	_gcdx_update	_gcdx_update(s0, q, s1)	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	235	260	gcdx	gcdx(a::T, b::T) where {T<:Integer}	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	261	261	gcdx	gcdx(a::Real, b::Real)	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	262	262	gcdx	gcdx(a::T, b::T) where T<:Real	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	263	263	gcdx	gcdx(a::Real)	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	264	274	gcdx	gcdx(a::Real, b::Real, cs::Real...)	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	276	281	gcdx	gcdx(a::Signed, b::Unsigned)	modelled	intfuncscov-number-theory-source,intfuncscov-gcd-mixed-typemin	
+base/intfuncs.jl	282	285	gcdx	gcdx(a::Unsigned, b::Signed)	modelled	intfuncscov-number-theory-source,intfuncscov-gcd-mixed-typemin	
+base/intfuncs.jl	308	335	invmod	invmod(n::Integer, m::Integer)	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	337	341	_bezout_coef	_bezout_coef(n, m)	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	370	370	invmod	invmod(n::Integer, ::Type{T}) where {T<:BitInteger}	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	371	371	invmod	invmod(n, ::Type{Union{}}, slurp...)	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	373	382	invmod	invmod(n::T) where {T<:BitInteger}	modelled	intfuncscov-number-theory-source	
+base/intfuncs.jl	385	387	throw_domerr_powbysq	throw_domerr_powbysq(::Any, p)	modelled	intfuncscov-power-source	
+base/intfuncs.jl	388	392	throw_domerr_powbysq	throw_domerr_powbysq(::Integer, p)	modelled	intfuncscov-power-source	
+base/intfuncs.jl	393	397	throw_domerr_powbysq	throw_domerr_powbysq(::AbstractMatrix, p)	modelled	intfuncscov-power-source	
+base/intfuncs.jl	399	443	power_by_squaring	power_by_squaring(x_, p::Integer; mul=*)	modelled	intfuncscov-power-source	
+base/intfuncs.jl	444	444	power_by_squaring	power_by_squaring(x::Bool, p::Unsigned)	modelled	intfuncscov-power-source	
+base/intfuncs.jl	445	448	power_by_squaring	power_by_squaring(x::Bool, p::Integer)	modelled	intfuncscov-power-source	
+base/intfuncs.jl	450	450	^	^(x::T, p::T) where {T<:Integer}	modelled	intfuncscov-power-source	
+base/intfuncs.jl	451	451	^	^(x::Number, p::Integer)	modelled	intfuncscov-power-source	
+base/intfuncs.jl	460	460	literal_pow	literal_pow(f, x, ::Val{p}) where {p}	modelled	intfuncscov-power-source	
+base/intfuncs.jl	470	470	literal_pow	literal_pow(::typeof(^), x::HWNumber, ::Val{0})	modelled	intfuncscov-power-source	
+base/intfuncs.jl	471	471	literal_pow	literal_pow(::typeof(^), x::HWNumber, ::Val{1})	modelled	intfuncscov-power-source	
+base/intfuncs.jl	472	472	literal_pow	literal_pow(::typeof(^), x::HWNumber, ::Val{2})	modelled	intfuncscov-power-source	
+base/intfuncs.jl	473	473	literal_pow	literal_pow(::typeof(^), x::HWNumber, ::Val{3})	modelled	intfuncscov-power-source	
+base/intfuncs.jl	474	474	literal_pow	literal_pow(::typeof(^), x::HWNumber, ::Val{-1})	modelled	intfuncscov-power-source	
+base/intfuncs.jl	475	475	literal_pow	literal_pow(::typeof(^), x::HWNumber, ::Val{-2})	modelled	intfuncscov-power-source	
+base/intfuncs.jl	478	478	literal_pow	literal_pow(::typeof(^), x::AbstractFloat, ::Val{p}) where {p}	modelled	intfuncscov-power-source	
+base/intfuncs.jl	479	479	literal_pow	literal_pow(::typeof(^), x::AbstractFloat, ::Val{-1})	modelled	intfuncscov-power-source	
+base/intfuncs.jl	483	493	literal_pow	literal_pow(f::typeof(^), x, ::Val{p}) where {p}	modelled	intfuncscov-power-source	
+base/intfuncs.jl	524	579	powermod	powermod(x::Integer, p::Integer, m::T) where T<:Integer	modelled	intfuncscov-power-source	
+base/intfuncs.jl	581	581	_powermod_mi_legal	_powermod_mi_legal(::Integer)	modelled	intfuncscov-power-source	
+base/intfuncs.jl	582	584	_powermod_mi_legal	_powermod_mi_legal(mm::T) where {T<:Unsigned}	modelled	intfuncscov-power-source	
+base/intfuncs.jl	587	587	powermod	powermod(x::Integer, p::Integer, m::Union{Int128,UInt128})	modelled	intfuncscov-power-source	
+base/intfuncs.jl	589	589	_nextpow2	_nextpow2(x::Unsigned)	modelled	intfuncscov-power-source	
+base/intfuncs.jl	590	590	_nextpow2	_nextpow2(x::Integer)	modelled	intfuncscov-power-source	
+base/intfuncs.jl	591	591	_prevpow2	_prevpow2(x::Unsigned)	modelled	intfuncscov-power-source	
+base/intfuncs.jl	592	592	_prevpow2	_prevpow2(x::Integer)	modelled	intfuncscov-power-source	
+base/intfuncs.jl	622	622	ispow2	ispow2(x::Number)	modelled	intfuncscov-power-source	
+base/intfuncs.jl	624	624	ispow2	ispow2(x::Integer)	modelled	intfuncscov-power-source	
+base/intfuncs.jl	649	669	nextpow	nextpow(a::Real, x::Real)	modelled	intarith-powers-log-seed-correction,intarith-powers-nextpow-overflow	
+base/intfuncs.jl	694	713	prevpow	prevpow(a::T, x::Real) where T <: Real	modelled	mathfuncs-prevpow-float32-overflow	
+base/intfuncs.jl	725	729	bit_ndigits0z	bit_ndigits0z(x::Base.BitUnsigned64)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	730	737	bit_ndigits0z	bit_ndigits0z(x::UInt128)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	739	739	ndigits0z	ndigits0z(x::BitSigned)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	740	740	ndigits0z	ndigits0z(x::BitUnsigned)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	741	741	ndigits0z	ndigits0z(x::Integer)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	746	758	ndigits0znb	ndigits0znb(x::Integer, b::Integer)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	761	761	ndigits0znb	ndigits0znb(x::Bool, b::Integer)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	764	796	ndigits0zpb	ndigits0zpb(x::Integer, b::Integer)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	798	798	ndigits0zpb	ndigits0zpb(x::Bool, b::Integer)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	829	838	ndigits0z	ndigits0z(x::Integer, b::Integer)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	842	842	top_set_bit	top_set_bit(x::Integer)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	874	874	ndigits	ndigits(x::Integer; base::Integer=10, pad::Integer=1)	modelled	intarith-powers-large-base,intarith-powers-negative-base-typemin	
+base/intfuncs.jl	878	903	bin	bin(x::Unsigned, pad::Int, neg::Bool)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	905	920	oct	oct(x::Unsigned, pad::Int, neg::Bool)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	938	952	append_c_digits	append_c_digits(olength::Int, digits::Unsigned, buf, pos::Int)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	954	963	append_nine_digits	append_nine_digits(digits::Unsigned, buf, pos::Int)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	965	980	append_c_digits_fast	append_c_digits_fast(olength::Int, digits::Unsigned, buf, pos::Int)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	983	1018	dec	dec(x::Unsigned, pad::Int, neg::Bool)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	1020	1042	hex	hex(x::Unsigned, pad::Int, neg::Bool)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	1047	1070	_base	_base(base::Integer, x::Integer, pad::Int, neg::Bool)	modelled	parseprint-string-negative-base-unsigned	
+base/intfuncs.jl	1072	1072	split_sign	split_sign(n::Integer)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	1073	1073	split_sign	split_sign(n::Unsigned)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	1101	1119	string	string(n::Integer; base::Integer = 10, pad::Integer = 1)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	1121	1121	string	string(b::Bool)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	1140	1167	bitstring	bitstring(x::T) where {T}	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	1207	1208	digits	digits(n::Integer; base::Integer = 10, pad::Integer = 1)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	1210	1212	digits	digits(T::Type{<:Integer}, n::Integer; base::Integer = 10, pad::Integer = 1)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	1219	1219	hastypemax	hastypemax(::Type{T}) where {T}	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	1220	1220	hastypemax	hastypemax(::Type{Union{}})	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	1221	1221	hastypemax	hastypemax(::Type{Union{}}, slurp...)	modelled	intfuncscov-digits-source	
+base/intfuncs.jl	1249	1281	digits!	digits!(a::AbstractVector{T}, n::Integer; base::Integer = 10) where T<:Integer	modelled	parseprint-digits-fill-low-order,parseprint-digits-typemin-base	
+base/intfuncs.jl	1293	1293	isqrt	isqrt(x::Integer)	modelled	intfuncscov-combinatorial-source	
+base/intfuncs.jl	1295	1302	isqrt	isqrt(x::Union{Int64,UInt64,Int128,UInt128})	modelled	intfuncscov-combinatorial-source	
+base/intfuncs.jl	1330	1337	factorial	factorial(n::Integer)	modelled	intfuncscov-combinatorial-source	
+base/intfuncs.jl	1373	1373	binomial	binomial(n::Integer, k::Integer)	modelled	intfuncscov-combinatorial-source	
+base/intfuncs.jl	1375	1402	binomial	binomial(n::T, k::T) where T<:Integer	modelled	combinatorics-binomial-nonnegative-edges,combinatorics-binomial-typemin	
+base/intfuncs.jl	1428	1433	binomial	binomial(x::Number, k::Integer)	modelled	intfuncscov-combinatorial-source	
+base/intfuncs.jl	1461	1464	clamp	clamp(x::X, lo::L, hi::H) where {X,L,H}	modelled	intfuncscov-clamp-source	
+base/intfuncs.jl	1485	1492	clamp	clamp(x, ::Type{T}) where {T<:Integer}	modelled	intfuncscov-clamp-source	
+base/intfuncs.jl	1493	1493	clamp	clamp(x, ::Type{Union{}}, slurp...)	modelled	intfuncscov-clamp-source	
+base/intfuncs.jl	1518	1523	clamp!	clamp!(x::AbstractArray, lo, hi)	modelled	intfuncscov-clamp-source	
+base/intfuncs.jl	1533	1533	clamp	clamp(x::Integer, r::AbstractUnitRange{<:Integer})	modelled	intfuncscov-clamp-source	

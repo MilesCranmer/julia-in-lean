@@ -1,0 +1,23 @@
+file	line	endline	name	signature	status	entry	note
+base/asyncmap.jl	76	93	asyncmap	asyncmap(f, c...; ntasks=0, batch_size=nothing)	modelled	tasks-asyncmap-order,tasks-coverage-asyncmap-public	source-body: Lean model mirrors this method's branch and mutation order.
+base/asyncmap.jl	96	96	_asyncmap_result	_asyncmap_result(v, c1::Tuple)	modelled	tasks-coverage-asyncmap-public	source-body: Lean model mirrors this method's branch and mutation order.
+base/asyncmap.jl	97	97	_asyncmap_result	_asyncmap_result(v, c1::AbstractArray)	modelled	tasks-coverage-asyncmap-public	source-body: Lean model mirrors this method's branch and mutation order.
+base/asyncmap.jl	98	98	_asyncmap_result	_asyncmap_result(v, c1)	modelled	tasks-coverage-asyncmap-public	source-body: Lean model mirrors this method's branch and mutation order.
+base/asyncmap.jl	99	99	_asyncmap_result	_asyncmap_result(v, c1, ::HasShape)	modelled	tasks-coverage-asyncmap-public	source-body: Lean model mirrors this method's branch and mutation order.
+base/asyncmap.jl	100	100	_asyncmap_result	_asyncmap_result(v, _, _)	modelled	tasks-coverage-asyncmap-public	source-body: Lean model mirrors this method's branch and mutation order.
+base/asyncmap.jl	102	102	batch_size_err_str	batch_size_err_str(batch_size)	modelled	tasks-coverage-asyncmap-public	source-body: Lean model mirrors this method's branch and mutation order.
+base/asyncmap.jl	103	113	verify_batch_size	verify_batch_size(batch_size)	modelled	tasks-coverage-asyncmap-public	source-body: Lean model mirrors this method's branch and mutation order.
+base/asyncmap.jl	116	130	verify_ntasks	verify_ntasks(iterable, ntasks)	modelled	tasks-asyncmap-negative-ntasks-function,tasks-coverage-asyncmap-public	source-body: Lean model mirrors this method's branch and mutation order.
+base/asyncmap.jl	133	152	setup_chnl_and_tasks	setup_chnl_and_tasks(exec_func, ntasks, batch_size=nothing)	modelled	tasks-asyncmap-negative-ntasks-function,tasks-coverage-asyncmap-public	source-body: Lean model mirrors this method's branch and mutation order.
+base/asyncmap.jl	154	186	start_worker_task!	start_worker_task!(worker_tasks, exec_func, chnl, batch_size=nothing)	modelled	tasks-coverage-asyncmap-collector	source-body: Lean model mirrors this method's branch and mutation order.
+base/asyncmap.jl	189	193	asyncmap	asyncmap(f, s::AbstractString; kwargs...)	modelled	tasks-coverage-asyncmap-collector	source-body: Lean model mirrors this method's branch and mutation order.
+base/asyncmap.jl	203	203	AsyncCollector	AsyncCollector(f, r, en::Enumerate, ntasks, batch_size)	modelled	tasks-coverage-asyncmap-collector	source-body: Lean model mirrors this method's branch and mutation order.
+base/asyncmap.jl	226	228	AsyncCollector	AsyncCollector(f, results, c...; ntasks=0, batch_size=nothing)	modelled	tasks-coverage-asyncmap-collector	source-body: Lean model mirrors this method's branch and mutation order.
+base/asyncmap.jl	238	255	iterate	iterate(itr::AsyncCollector)	modelled	tasks-asyncmap-order,tasks-coverage-asyncmap-collector	source-body: Lean model mirrors this method's branch and mutation order.
+base/asyncmap.jl	257	263	wait_done	wait_done(state::AsyncCollectorState)	modelled	tasks-coverage-asyncmap-collector	source-body: Lean model mirrors this method's branch and mutation order.
+base/asyncmap.jl	265	291	iterate	iterate(itr::AsyncCollector, state::AsyncCollectorState)	modelled	tasks-asyncmap-order,tasks-coverage-asyncmap-collector	source-body: Lean model mirrors this method's branch and mutation order.
+base/asyncmap.jl	310	312	AsyncGenerator	AsyncGenerator(f, c...; ntasks=0)	modelled	tasks-coverage-asyncmap-generator	source-body: Lean model mirrors this method's branch and mutation order.
+base/asyncmap.jl	320	340	iterate	iterate(itr::AsyncGenerator, state::AsyncGeneratorState=AsyncGeneratorState(0, false, nothing))	modelled	tasks-coverage-asyncmap-generator	source-body: Lean model mirrors this method's branch and mutation order.
+base/asyncmap.jl	342	342	IteratorSize	IteratorSize(::Type{AsyncGenerator})	modelled	tasks-coverage-asyncmap-generator	source-body: Lean model mirrors this method's branch and mutation order.
+base/asyncmap.jl	343	343	IteratorEltype	IteratorEltype(::Type{AsyncGenerator})	modelled	tasks-coverage-asyncmap-generator	source-body: Lean model mirrors this method's branch and mutation order.
+base/asyncmap.jl	353	356	asyncmap!	asyncmap!(f, r, c1, c...; ntasks=0, batch_size=nothing)	modelled	tasks-asyncmap-order,tasks-coverage-asyncmap-generator	source-body: Lean model mirrors this method's branch and mutation order.

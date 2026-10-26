@@ -1,0 +1,51 @@
+id: sorttuplescov-partialquicksort-reversed-range
+title: "sort(v; alg=PartialQuickSort(k)) leaves v[k] unsorted when k is a descending range"
+priority: P2
+kind: wrong-result
+area: Sort
+files: [base/sort.jl]
+functions: ["_partialquicksort!(v, lo, hi, a::PartialQuickSort, o)", "sort!(v, lo, hi, a::PartialQuickSort, o)", "PartialQuickSort(k::OrdinalRange)"]
+summary: |
+  PartialQuickSort(k) accepts any OrdinalRange k, but for a descending range such
+  as 5:-1:3 the elements at the requested positions are not the sorted ones for
+  inputs of more than 21 elements. sort(x; alg=PartialQuickSort(5:-1:3))[5:-1:3]
+  returns [2, 1, 1] where sort(x)[5:-1:3] is [2, 2, 1].
+likelihood: |
+  Low: descending ranges are an unusual way to name target positions and
+  PartialQuickSort is a legacy algorithm, but the result is silently wrong for
+  most inputs (990 of 1000 random inputs of length 50 with k = 30:-1:10).
+maybe_intended: ""
+reproducer: |
+  x = [1, 3, 4, 5, 3, 5, 5, 2, 1, 4, 5, 1, 4, 3, 5, 5, 5, 4, 3, 5, 5, 2]
+  k = 5:-1:3
+  sort(x; alg=PartialQuickSort(k))[k]   # [2, 1, 1]
+  sort(x)[k]                            # [2, 2, 1]
+output:
+  release: |
+    [2, 1, 1]  expected: [2, 2, 1]
+    REPRODUCED sorttuplescov-partialquicksort-reversed-range
+  nightly: |
+    [2, 1, 1]  expected: [2, 2, 1]
+    REPRODUCED sorttuplescov-partialquicksort-reversed-range
+reproduced: {release: true, nightly: true}
+expected: |
+  [2, 2, 1], the values of the fully sorted vector at positions 5, 4, 3.
+promised_by: |
+  PartialQuickSort docstring, base/sort.jl:2322-2326: "PartialQuickSort(k) is like
+  QuickSort, but is only required to find and sort the elements that would end up
+  in v[k] were v fully sorted." The struct accepts k::Union{Integer,OrdinalRange}
+  (base/sort.jl:2356).
+cause: |
+  _partialquicksort! (base/sort.jl:2539-2566) skips the lower part when
+  j <= first(a.k) (line 2548) and the upper part when j >= last(a.k) (line 2550).
+  For a descending k, first(k) is the largest target, so a pivot position j with
+  last(k) < j <= first(k) discards the targets below j.
+possible_fix: |
+  Compare with minimum(a.k) and maximum(a.k) instead of first(a.k) and last(a.k).
+duplicates:
+  issues:
+    - {number: 63228, state: merged, relation: related}
+  queries: ["issues: PartialQuickSort range", "issues: PartialQuickSort reverse", "issues/prs: PartialQuickSort", "issues: partialquicksort"]
+lean:
+  property: JuliaLean.SortTuplesCov.PartialQuickSortCorrect
+  theorem: JuliaLean.SortTuplesCov.partialQuickSortCorrect_refuted

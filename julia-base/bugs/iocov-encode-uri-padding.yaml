@@ -1,0 +1,54 @@
+id: iocov-encode-uri-padding
+title: "uripath percent-encodes bytes below 0x10 with one hex digit (\"\\t\" becomes \"%9\")"
+priority: P2
+kind: wrong-result
+area: IOCov
+files: [base/path.jl]
+functions: ["Base.Filesystem.encode_uri_component", "Base.Filesystem.uripath(::String)"]
+summary: |
+  encode_uri_component, which uripath uses for the host and the path, writes each
+  reserved byte as '%' followed by string(byte, base=16) without zero padding. Bytes
+  0x00-0x0f therefore get a single hex digit: a tab becomes "%9" instead of "%09", so
+  uripath("/tmp/a\tb") ends in "a%9b", which is not a valid percent-encoding and
+  decodes to a different name ("%9b" reads as the byte 0x9b).
+likelihood: |
+  Needs a control character (tab, newline, 0x01-0x0f) in a file name or host name.
+  Such names are rare but legal on Unix, and uripath output is meant to be handed to
+  terminals and other programs as clickable links.
+maybe_intended: ""
+reproducer: |
+  enc = Base.Filesystem.encode_uri_component("a\tb")
+  println("encode_uri_component(\"a\\tb\") = ", repr(enc))
+  u = Base.Filesystem.uripath("/tmp/a\tb")
+  println("uripath(\"/tmp/a\\tb\") ends with ", repr(last(u, 6)))
+  if enc == "a%9b"
+      println("REPRODUCED iocov-encode-uri-padding")
+  end
+output:
+  release: |
+    encode_uri_component("a\tb") = "a%9b"
+    uripath("/tmp/a\tb") ends with "p/a%9b"
+    REPRODUCED iocov-encode-uri-padding
+  nightly: |
+    encode_uri_component("a\tb") = "a%9b"
+    uripath("/tmp/a\tb") ends with "p/a%9b"
+    REPRODUCED iocov-encode-uri-padding
+reproduced: {release: true, nightly: true}
+expected: |
+  "a%09b": RFC 3986 section 2.1 defines a percent-encoded octet as "%" HEXDIG HEXDIG.
+promised_by: |
+  uripath docstring, base/path.jl:985-987: "Encode `path` as a URI as per RFC8089 ...,
+  RFC3986: Uniform Resource Identifier (URI): Generic Syntax". RFC 3986 section 2.1:
+  pct-encoded = "%" HEXDIG HEXDIG.
+cause: |
+  base/path.jl:978: append!(out, codeunits(uppercase(string(cu, base = 16)))) omits
+  the pad = 2 argument.
+possible_fix: |
+  Use string(cu, base = 16, pad = 2).
+duplicates:
+  issues:
+    - {number: 55454, state: merged, relation: related}
+  queries: ["encode_uri_component", "uripath percent", "uripath", "percent encoding"]
+lean:
+  property: JuliaLean.IOCov.Path.EncodeUriTwoDigits
+  theorem: JuliaLean.IOCov.Path.encodeUriTwoDigits_refuted

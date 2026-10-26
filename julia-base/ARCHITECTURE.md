@@ -2,8 +2,8 @@
 
 Goal: find bugs in Julia by modelling parts of Base in Lean 4, stating the
 properties its documentation or obvious invariants promise, and settling each
-one as proven or refuted. Every refuted property is confirmed by a minimal
-pure-Julia reproducer run against the latest release and master.
+one as proven or refuted. Every refuted Base property is confirmed by a
+minimal pure-Julia reproducer run against the pinned release and master.
 
 ## Pinned sources
 
@@ -12,8 +12,7 @@ pure-Julia reproducer run against the latest release and master.
 | release | Julia 1.13.2 | `45b6d15e34b` |
 | nightly | Julia 1.15.0-DEV.126 (master) | `bbfa0ce4150` |
 
-The Lean model mirrors **master** (in a JuliaLang/julia checkout,
-`git show bbfa0ce4150:base/<file>`).
+The Lean model mirrors **master** (`git -C <julia-source-root> show bbfa0ce4150:base/<file>`).
 Where 1.13.2 differs in a modelled function, note it in the entry's `notes`.
 
 ## Layout
@@ -27,12 +26,11 @@ Where 1.13.2 differs in a modelled function, note it in the entry's `notes`.
 - `JuliaLean/Registry.lean`: `all` concatenates every area's `entries`.
 - `JuliaLean/Runtime/Axioms.lean`: the only place axioms may be declared.
 - `Audit.lean`, `Report.lean`: registry audit and TSV report (`registry.tsv`).
-- `repro/<id>.jl`: pure-Julia reproducer of each refuted entry; prints the line
-  `REPRODUCED <id>` when the bug shows, anything else otherwise. No packages.
+`repro/<id>.jl`: a pure-Julia reproducer for each refuted entry. It prints
+`REPRODUCED <id>` when the qualifying outcome occurs. Reproducers use only
+Julia's standard library.
 - `bugs/<id>.yaml`: one structured write-up per refuted entry (see below);
   `scripts/check-bugs.sh` validates them.
-- `scripts/audit.sh`: builds, rejects forbidden proof escapes, and runs the audit.
-- `scripts/run-repros.sh`: runs the reproducer of every refuted entry.
 
 ## Modelling rules
 
@@ -57,19 +55,20 @@ Where 1.13.2 differs in a modelled function, note it in the entry's `notes`.
 ## Workflow
 
 1. Model the functions; state the properties as registry entries (`todo`).
-2. As soon as a candidate counterexample appears, write `repro/<id>.jl` and run
-   it on both versions (`julia repro/<id>.jl`). The moment
-   it prints `REPRODUCED`, search JuliaLang/julia issues and PRs for a duplicate
+2. For a Base runtime candidate, write `repro/<id>.jl` and run
+   `julia repro/<id>.jl` with each pinned Julia version. When it prints
+   `REPRODUCED`, search JuliaLang/julia issues and PRs for a duplicate
    (`gh search issues --repo JuliaLang/julia ...`, `gh search prs ...`), write
-   `bugs/<id>.yaml` (schema below), check it with `scripts/check-bugs.sh`, and
-   commit the repro and YAML. Do this before any further modelling or proving,
-   so that no confirmed bug waits for a later write-up. If the Lean refutation is
-   not done yet, put its planned theorem name in `lean.theorem`.
-3. Prove or refute every remaining property; record duplicate searches in the
-   entry's `issue` field (`"#12345"` or `"none found (queries: ...)"`).
-4. Verify (see "Running the checks" below): `scripts/audit.sh` ends with
-   `AUDIT OK`, and `scripts/run-repros.sh` reports every reproducer as
-   `REPRODUCED` on at least one of the two pinned Julia versions.
+   `bugs/<id>.yaml` (schema below), and check it with `scripts/check-bugs.sh`.
+   Record the result before further modelling or proving. If the Lean
+   refutation is not done yet, put its planned theorem name in `lean.theorem`.
+3. Prove or refute every remaining property; for refuted entries, record
+   duplicate searches in the entry's `issue` field (`"#12345"` or
+   `"none found (queries: ...)"`).
+4. Run `lake build` and `bash scripts/audit.sh` from the package root.
+   Refresh the registry with `lake env lean Report.lean > registry.tsv`.
+   Run all reproducers with `JULIA=... bash scripts/run-repros.sh`, setting
+   `JULIA` to each pinned Julia executable in turn.
 
 When the model disagrees with Julia's behaviour on a reproducer, the model is
 wrong until shown otherwise: fix the model, never the reproducer.
@@ -98,7 +97,7 @@ maybe_intended: |                     # empty string if clearly a bug
 reproducer: |
   r = Int8(-127):Int8(-1):typemin(Int8)
   reverse(r)
-output:                               # verbatim, as Julia printed it
+output:                               # verbatim output from each Julia version
   release: |                          # Julia 1.13.2
     ...
   nightly: |                          # 1.15.0-DEV, master bbfa0ce4150
@@ -161,23 +160,49 @@ the inputs that make it do so. `memsafety/sites-<group>.tsv` lists every site on
   quote it in `note`) or `not-unchecked` (the line is not an unchecked access,
   e.g. a comment, a macro definition or a `@boundscheck` check itself; say so
   in `note`). `python3 scripts/check_memsafety.py` validates the files against
-  `registry.tsv` (regenerate it first, see below).
+  `registry.tsv` (refresh it with `lake env lean Report.lean > registry.tsv`).
 
-## Running the checks
+## Whole-Base coverage
 
-The Lean toolchain is pinned in `lean-toolchain` (install it with `elan`); the
-project needs no Mathlib. From this directory:
+Goal: account for every method definition in every `base/**/*.jl` file at master
+`bbfa0ce4150`. Each `coverage/methods/<path>.tsv` records source file, start/end
+lines, name, source signature, status, registry ids and notes. `<path>` is the
+path under `base/`, with `/` replaced by `__` and `.jl` dropped, for example
+`coverage/methods/strings__string.tsv`. `scripts/list_base_methods.jl` parses
+pinned sources with `julia scripts/list_base_methods.jl <julia-source-root>`
+using the pinned master Julia executable; it never evaluates Base. Each syntactic definition in a
+method-generating loop appears once, with the loop header in its note. Evaluated
+quotes and method templates in macros or generator helpers are included once;
+templates have `generated-macro:` or `generated-quote:` notes. Documentation
+strings, comments and inert top-level quotes are not definitions.
 
-```sh
-lake build                                  # build every module
-bash scripts/audit.sh                       # build, forbidden-token scan, audit -> .lake/audit.out
-lake env lean Report.lean > registry.tsv    # one TSV row per registry entry
-JULIA=/path/to/julia scripts/run-repros.sh  # reproducer of every refuted entry
-scripts/check-bugs.sh                       # validate bugs/*.yaml
-python3 scripts/check_memsafety.py          # validate memsafety/sites-*.tsv
-```
+- `todo`: no settled coverage claim.
+- `modelled`: `entry` names proven or refuted registry ids with the same
+  `juliaFile`. A registry entry may cover several rows of the same file.
+- `excluded`: `note` starts with `no-behaviour:` (no observable behaviour to
+  state), `deprecated:` (deprecation path), `internal-bootstrap:` (unreachable
+  after Base loads), or `platform:` (only another operating system), followed
+  by a one-line justification.
 
-`scripts/run-repros.sh` reads the refuted ids from `.lake/audit.out`, so run the
-audit first. Run it once with each pinned Julia version (release 1.13.2 and
-master `bbfa0ce4150`); some bugs exist on only one of them. Each Lean file is
-compiled with an 8 GB memory cap (`lakefile.toml`).
+`python3 scripts/check_coverage.py` validates every TSV against `registry.tsv`,
+prints per-file and total counts and definition-span-weighted line coverage
+of FAITHFUL rows, and fails if any problems, `todo` rows or unreviewed rows
+remain. Pass Base paths to check selected files, for example
+`python3 scripts/check_coverage.py base/range.jl base/dict.jl`. After changing
+registry entries, refresh `registry.tsv` with
+`lake env lean Report.lean > registry.tsv`.
+
+A `modelled` or `excluded` row counts only after a reviewer running the fixed
+`coverage/REVIEW_PROMPT.md` marks it FAITHFUL in `coverage/review/<path>.tsv`;
+a HOLLOW verdict is a checker problem until the model is fixed and re-reviewed.
+FAITHFUL needs a Lean function that mirrors that method's own body (not a
+shared simplified model of several overloads) and a property over all allowed
+inputs. An umbrella entry claiming many methods with one statement is HOLLOW.
+
+Nested definitions contribute their own spans, so the line measure counts
+overlapping spans separately.
+An optional `--prefill <metadata.tsv>` file has three tab-separated columns:
+registry id, Base source path, and Julia function name. Prefilling settles only
+unique same-file name/signature matches; ambiguous matches stay `todo` with
+`candidates:<ids>` in their notes. It does not infer Julia subtyping.
+

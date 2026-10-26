@@ -1,0 +1,185 @@
+line	name	verdict	mirror	property	settled	reason
+73	signed	FAITHFUL	yes	yes	yes	The model returns Int64 for Bool exactly as the 64-bit Julia method does, and the proven proposition covers its only input.
+74	signed	FAITHFUL	yes	yes	yes	The model returns Int8 for UInt8 exactly as the source method does, and the proposition is proven.
+75	signed	FAITHFUL	yes	yes	yes	The model returns Int16 for UInt16 exactly as the source method does, and the proposition is proven.
+76	signed	FAITHFUL	yes	yes	yes	The model returns Int32 for UInt32 exactly as the source method does, and the proposition is proven.
+77	signed	FAITHFUL	yes	yes	yes	The model returns Int64 for UInt64 exactly as the source method does, and the proposition is proven.
+78	signed	FAITHFUL	yes	yes	yes	The model returns Int128 for UInt128 exactly as the source method does, and the proposition is proven.
+79	signed	FAITHFUL	yes	yes	yes	The identity model covers every signed fixed-width type and states the documented same-type result in a proven proposition.
+80	signed	HOLLOW	no	no	yes	The model records only a method name and omits Union{}, the slurped arguments, and the MethodError argument tuple, so neither the body nor its observable exception is covered.
+84	<	FAITHFUL	yes	yes	yes	The fixed-width signed comparison models slt_int as mathematical signed less-than for every same-type input, and the proposition is proven.
+86	-	FAITHFUL	yes	yes	yes	The wrapping JInt negation mirrors neg_int for every BitInteger type and the all-input proposition is proven.
+87	-	FAITHFUL	yes	yes	yes	The wrapping JInt subtraction mirrors sub_int for every same-type BitInteger pair and the proposition is proven.
+88	+	FAITHFUL	yes	yes	yes	The wrapping JInt addition mirrors add_int for every same-type BitInteger pair and the proposition is proven.
+89	*	FAITHFUL	yes	yes	yes	The wrapping JInt multiplication mirrors mul_int for every same-type BitInteger pair and the proposition is proven.
+91	-%	FAITHFUL	yes	yes	yes	The wrapping JInt negation mirrors neg_int for every BitInteger input and the proposition is proven.
+92	-%	FAITHFUL	yes	yes	yes	The wrapping JInt subtraction mirrors sub_int for every same-type BitInteger pair and the proposition is proven.
+93	+%	FAITHFUL	yes	yes	yes	The wrapping JInt addition mirrors add_int for every same-type BitInteger pair and the proposition is proven.
+94	*%	FAITHFUL	yes	yes	yes	The wrapping JInt multiplication mirrors mul_int for every same-type BitInteger pair and the proposition is proven.
+96	negate	HOLLOW	no	no	yes	The Lean model accepts only fixed-width JInt values, so it omits allowed non-BitInteger values and cannot state the generic method's all-input behaviour.
+97	negate	FAITHFUL	yes	yes	yes	The model converts an unsigned value to its same-width signed type before wrapping negation, matching the source call order for every fixed-width unsigned input.
+100	inv	HOLLOW	no	no	yes	The model accepts only fixed-width Value inputs and hard-codes binary64 conversion, omitting BigInt and the source one, float, and division dispatch.
+101	/	HOLLOW	no	no	yes	The model accepts unrestricted fixed-width Value pairs and hard-codes binary64 conversion, omitting same-type BigInt inputs and the source float dispatch.
+103	/	FAITHFUL	yes	yes	yes	The model converts each fixed-width operand to binary64 and divides in source order for every BitInteger pair, and the proposition is proven.
+123	mul_hi	HOLLOW	no	no	yes	The model replaces widen, multiplication, logical shift, and remainder with a high-product formula and omits allowed arbitrary Integer inputs.
+127	mul_hi	HOLLOW	no	yes	yes	The model states the documented high-half product invariant, but it omits the UInt128 split, mask, partial products, and carry sequence in the method body.
+137	mul_hi	HOLLOW	no	yes	yes	The model states the documented high-half product invariant, but it omits the signed correction terms and call to the UInt128 mul_hi method.
+160	isodd	FAITHFUL	yes	yes	yes	The model preserves the short-circuit isreal check followed by isodd(real(n)) and quantifies over every abstract Number input and call result.
+161	isodd	FAITHFUL	yes	yes	yes	The model preserves the short-circuit integer check and tests the converted integer remainder modulo two for every abstract Real input.
+180	iseven	FAITHFUL	yes	yes	yes	The model preserves the short-circuit isreal check followed by iseven(real(n)) and quantifies over every abstract Number input and call result.
+181	iseven	FAITHFUL	yes	yes	yes	The model preserves the short-circuit integer check and tests the converted integer remainder modulo two for every abstract Real input.
+183	signbit	HOLLOW	no	no	yes	The JInt-only model omits allowed non-BitInteger Integer values such as BigInt, so it does not cover the generic method over all inputs.
+184	signbit	HOLLOW	no	no	yes	The model calls a sign comparison over every JInt type instead of returning false for Unsigned inputs, and its proposition never states the promised constant result.
+186	isnegative	HOLLOW	no	no	yes	The model calls signbit over every JInt type instead of returning false for Unsigned inputs, and its proposition never states the method's constant result.
+188	flipsign	HOLLOW	no	yes	yes	The proposition uses an unrestricted multi-signature flipsign dispatcher instead of the same-type BitSigned flipsign_int body, although it states sign-flipping behaviour on the allowed inputs.
+189	flipsign	HOLLOW	no	yes	yes	The proposition uses an unrestricted multi-signature flipsign dispatcher instead of this method's promote, intrinsic flip, and conversion sequence.
+191	flipsign	HOLLOW	no	no	yes	The model represents the Float16 argument as an integer Value and omits bitcast(Int16, y), so it covers neither the method body nor its allowed floating inputs.
+192	flipsign	HOLLOW	no	no	yes	The model represents the Float32 argument as an integer Value and omits bitcast(Int32, y), so it covers neither the method body nor its allowed floating inputs.
+193	flipsign	HOLLOW	no	no	yes	The model represents the Float64 argument as an integer Value and omits bitcast(Int64, y), so it covers neither the method body nor its allowed floating inputs.
+194	flipsign	HOLLOW	no	no	yes	The fixed-width Value model omits arbitrary Real inputs and the signbit, oftype, negation, and recursive flipsign calls in the source body.
+196	copysign	HOLLOW	no	yes	yes	The model computes sign-bit equivalence inside a shared dispatcher instead of calling xor and flipsign in source order, although it states the copysign behaviour.
+197	copysign	HOLLOW	no	no	yes	The model represents the Float16 argument as an integer Value and omits bitcast(Int16, y), so it covers neither the method body nor its allowed floating inputs.
+198	copysign	HOLLOW	no	no	yes	The model represents the Float32 argument as an integer Value and omits bitcast(Int32, y), so it covers neither the method body nor its allowed floating inputs.
+199	copysign	HOLLOW	no	no	yes	The model represents the Float64 argument as an integer Value and omits bitcast(Int64, y), so it covers neither the method body nor its allowed floating inputs.
+200	copysign	HOLLOW	no	no	yes	The fixed-width Value model omits arbitrary Real inputs and the signbit, oftype, negation, and recursive copysign calls in the source body.
+231	abs	FAITHFUL	yes	-	-	The exclusion applies because this line is an empty generic-function declaration with no method body.
+233	abs	HOLLOW	no	yes	yes	The proposition uses a signedness-dispatching abs model instead of this Unsigned method's identity body, although the model returns every allowed unsigned input unchanged.
+234	abs	HOLLOW	no	yes	yes	The proposition uses a signedness-dispatching abs model instead of directly calling flipsign(x, x), although it states the documented signed absolute-value behaviour.
+236	~	HOLLOW	no	no	yes	The fixed-width bit model omits allowed arbitrary Integer inputs such as BigInt, so it cannot cover the generic subtraction body over all inputs.
+261	unsigned	HOLLOW	no	no	yes	The model accepts only fixed-width Value inputs and replaces zero, convert, typeof, and remainder dispatch with a direct reinterpretation.
+262	unsigned	FAITHFUL	yes	yes	yes	The same-width JInt remainder is the bit reinterpretation used by this BitSigned specialization, and the proven proposition covers every fixed-width signed value.
+272	signed	HOLLOW	no	no	yes	The model accepts only fixed-width Value inputs and replaces zero, convert, typeof, and remainder dispatch with a direct reinterpretation.
+273	signed	FAITHFUL	yes	yes	yes	The same-width JInt remainder is the bit reinterpretation used by this BitUnsigned specialization, and the proven proposition covers every fixed-width unsigned value.
+275	div	HOLLOW	no	yes	yes	The proposition calls an unrestricted three-branch div dispatcher instead of constraining inputs to this signed-by-unsigned method, although that branch models the documented quotient.
+276	div	HOLLOW	no	yes	yes	The proposition calls an unrestricted three-branch div dispatcher instead of constraining inputs to this unsigned-by-signed method, although that branch models the documented quotient.
+278	rem	HOLLOW	no	yes	yes	The proposition calls an unrestricted three-branch rem dispatcher instead of constraining inputs to this signed-by-unsigned method, although that branch models the documented remainder.
+279	rem	HOLLOW	no	yes	yes	The proposition calls an unrestricted three-branch rem dispatcher instead of constraining inputs to this unsigned-by-signed method, although that branch models the documented remainder.
+281	divrem	HOLLOW	no	yes	yes	The proposition calls an unrestricted three-branch divrem dispatcher instead of constraining inputs to this signed-by-unsigned method, although that branch models both results.
+286	divrem	HOLLOW	no	yes	yes	The proposition calls an unrestricted three-branch divrem dispatcher instead of constraining inputs to this unsigned-by-signed method, although that branch models both results.
+331	mod	HOLLOW	no	no	yes	The fixed-width shared mod dispatcher omits arbitrary Integer types and does not mirror this method's minus-one check, fld call, multiplication, and subtraction body.
+338	mod	HOLLOW	no	yes	yes	The proposition uses an unrestricted signedness-dispatching mod model instead of this BitSigned method's minus-one check and wrapping fld formula.
+342	mod	HOLLOW	no	yes	yes	The proposition uses an unrestricted signedness-dispatching mod model instead of constraining inputs to this signed-by-unsigned remainder and correction body.
+347	mod	HOLLOW	no	yes	yes	The proposition uses an unrestricted signedness-dispatching mod model instead of constraining inputs to this unsigned-by-signed remainder and correction body.
+351	mod	HOLLOW	no	yes	yes	The proposition uses an unrestricted signedness-dispatching mod model instead of this Unsigned method's direct rem call.
+355	div	FAITHFUL	yes	yes	yes	JInt.div models checked signed division for every same-type BitSigned64 input, including its documented error cases, and the proposition is proven.
+356	rem	FAITHFUL	yes	yes	yes	JInt.remInt models checked signed remainder for every same-type BitSigned64 input, including division by zero, and the proposition is proven.
+357	div	FAITHFUL	yes	yes	yes	JInt.div models checked unsigned division for every same-type BitUnsigned64 input, including division by zero, and the proposition is proven.
+358	rem	FAITHFUL	yes	yes	yes	JInt.remInt models checked unsigned remainder for every same-type BitUnsigned64 input, including division by zero, and the proposition is proven.
+381	~	FAITHFUL	yes	yes	yes	The complete-bit-pattern complement model mirrors not_int for every BitInteger value and the all-input proposition is proven.
+407	&	FAITHFUL	yes	yes	yes	The bit-by-bit conjunction model mirrors and_int for every same-type BitInteger pair and the proposition is proven.
+432	|	FAITHFUL	yes	yes	yes	The bit-by-bit disjunction model mirrors or_int for every same-type BitInteger pair and the proposition is proven.
+433	xor	FAITHFUL	yes	yes	yes	The bit-by-bit exclusive-or model mirrors xor_int for every same-type BitInteger pair and the proposition is proven.
+457	bswap	HOLLOW	no	no	yes	The JInt model has no Bool value and adds a width branch instead of the source identity, so it omits one allowed input type and its promised result.
+458	bswap	FAITHFUL	yes	yes	yes	The complete-bit-pattern model reverses bytes for every listed 16-bit through 128-bit type and the proposition states the documented result.
+475	count_ones	FAITHFUL	yes	yes	yes	The model counts set bits in the complete fixed-width representation for every BitInteger input, matching ctpop_int and the docstring.
+488	leading_zeros	FAITHFUL	yes	yes	yes	The model counts leading zero bits in the complete fixed-width representation for every BitInteger input, matching ctlz_int and the docstring.
+501	trailing_zeros	FAITHFUL	yes	yes	yes	The model counts trailing zero bits in the complete fixed-width representation for every BitInteger input, including the zero-width result promised by cttz_int.
+517	count_zeros	HOLLOW	no	no	yes	The model replaces count_ones(~x) with a fixed-width formula and omits allowed arbitrary Integer inputs such as BigInt.
+530	leading_ones	HOLLOW	no	no	yes	The fixed-width model omits allowed arbitrary Integer inputs such as BigInt, so its proposition does not cover the generic leading_zeros(~x) method.
+543	trailing_ones	HOLLOW	no	no	yes	The fixed-width model omits allowed arbitrary Integer inputs such as BigInt, so its proposition does not cover the generic trailing_zeros(~x) method.
+569	top_set_bit	FAITHFUL	yes	yes	yes	The model subtracts leading_zeros from the fixed type width for every BitInteger input, matching the source body and documented bit position.
+573	<	HOLLOW	no	yes	yes	The proposition uses an unrestricted promotion comparison dispatcher instead of this same-type BitUnsigned ult_int body, although it states the correct order relation.
+574	<=	HOLLOW	no	yes	yes	The proposition uses an unrestricted promotion comparison dispatcher instead of this same-type BitSigned sle_int body, although it states the correct order relation.
+575	<=	HOLLOW	no	yes	yes	The proposition uses an unrestricted promotion comparison dispatcher instead of this same-type BitUnsigned ule_int body, although it states the correct order relation.
+577	==	HOLLOW	no	yes	yes	The model compares values directly through intCmp and omits the source call with reversed operands, although it states equality for every mixed fixed-width pair.
+578	<	HOLLOW	no	yes	yes	The model compares values directly through intCmp and omits the reversed <= call and negation, although it states less-than for every mixed fixed-width pair.
+579	<=	HOLLOW	no	yes	yes	The model compares values directly through intCmp and omits the reversed < call and negation, although it states less-than-or-equal for every mixed fixed-width pair.
+582	$op	HOLLOW	no	no	yes	The single entry fixes intCmp to equality, so it omits the generated < and <= methods and does not cover the loop's three allowed operators.
+591	max	FAITHFUL	yes	yes	yes	The model computes the promoted result type, compares mathematical values, and wraps the selected operand exactly as the source max method does for every BitInteger pair.
+596	min	HOLLOW	no	no	yes	The model returns the general promoted type, while this method returns the signed first operand's type and converts only the unsigned branch to that type.
+597	min	HOLLOW	no	no	yes	The model returns the general promoted type, while this method returns the signed second operand's type and converts only the unsigned branch to that type.
+599	minmax	HOLLOW	no	no	yes	The model delegates to its incorrect mixed-signedness intMin result, so it does not reproduce minmax values and result types for every BitInteger pair.
+604	>>	FAITHFUL	yes	yes	yes	The arithmetic-right-shift model preserves the sign bit for every BitSigned value and unsigned count, matching ashr_int.
+605	>>	FAITHFUL	yes	yes	yes	The logical-right-shift model fills with zero for every BitUnsigned value and unsigned count, matching lshr_int.
+606	<<	FAITHFUL	yes	yes	yes	The wrapping left-shift model multiplies by the corresponding power of two for every BitInteger value and unsigned count, matching shl_int.
+607	>>>	FAITHFUL	yes	yes	yes	The logical-right-shift model fills with zero for every BitInteger value and unsigned count, matching lshr_int.
+611	>>	FAITHFUL	yes	yes	yes	The signed-count model chooses right shift for nonnegative counts and left shift by the negated count otherwise for every fixed-width input.
+613	<<	FAITHFUL	yes	yes	yes	The signed-count model chooses left shift for nonnegative counts and right shift by the negated count otherwise for every fixed-width input.
+615	>>>	FAITHFUL	yes	yes	yes	The signed-count model chooses logical right shift for nonnegative counts and left shift by the negated count otherwise for every fixed-width input.
+621	rem	HOLLOW	no	yes	yes	The model uses one generic wrapping conversion instead of the generated trunc_int call for narrower targets, although it states the resulting fixed-width remainder.
+623	rem	HOLLOW	no	yes	yes	The model uses one generic wrapping conversion instead of this Bool source branch's convert call, although it states the resulting fixed-width remainder.
+626	rem	HOLLOW	no	yes	yes	The model uses one generic wrapping conversion instead of the generated sext_int call for a smaller signed source, although it states the resulting remainder.
+628	rem	HOLLOW	no	yes	yes	The model uses one generic wrapping conversion instead of the generated convert call for a smaller unsigned source, although it states the resulting remainder.
+631	rem	HOLLOW	no	yes	yes	The model uses one generic wrapping conversion instead of the generated equal-width bitcast call, although it states the resulting remainder.
+664	bitrotate	HOLLOW	no	yes	yes	The model directly indexes rotated bits and omits the source mask, two shifts, negated count, and bitwise-or sequence, although it states the documented rotation result.
+695	rem	HOLLOW	no	yes	yes	The model wraps through remType instead of returning the same typed value directly, although it states the identity result for every fixed-width input.
+696	rem	HOLLOW	no	yes	yes	The model converts directly through remType and omits the source unsigned(typeof(x)) construction and recursive remainder call.
+697	rem	HOLLOW	no	yes	yes	The model converts directly through remType and omits the source signed(typeof(x)) construction and recursive remainder call.
+698	rem	HOLLOW	no	no	yes	The model wraps out-of-range values through remType, while convert(T, x) must throw InexactError when the requested Integer type cannot represent x.
+699	rem	HOLLOW	no	yes	yes	The model tests mathematical remainder modulo two instead of performing the source bitwise-and and inequality calls, although it states the promised parity result.
+700	rem	HOLLOW	no	no	yes	The model records only a method name and omits x, Union{}, slurped arguments, and the MethodError argument tuple.
+701	mod	HOLLOW	no	yes	yes	The model converts directly through remType instead of calling rem(x, T), although it states the same fixed-width result.
+702	mod	HOLLOW	no	no	yes	The model records only a method name and omits x, Union{}, slurped arguments, and the MethodError argument tuple.
+704	unsafe_trunc	HOLLOW	no	yes	yes	The model converts directly through remType instead of calling rem(T, x) through the source method, although it states the same fixed-width result.
+705	unsafe_trunc	HOLLOW	no	no	yes	The model records only a method name and omits Union{}, slurped arguments, and the MethodError argument tuple.
+725	int128_str	FAITHFUL	yes	yes	yes	The model calls the supplied Int128 parser on the entire string exactly as the macro body does, and the proposition covers every string and parser result.
+745	uint128_str	FAITHFUL	yes	yes	yes	The model calls the supplied UInt128 parser on the entire string exactly as the macro body does, and the proposition covers every string and parser result.
+778	big_str	HOLLOW	no	no	yes	The model replaces the underscore-validation loop and concrete BigInt and BigFloat parsers with unconstrained functions, so its tautology establishes no actual macro behaviour.
+809	promote_rule	FAITHFUL	yes	yes	yes	The model returns Int16 for every type in the source union and the constant-result proposition is proven.
+810	promote_rule	FAITHFUL	yes	yes	yes	The model returns Int32 for every type in the source union and the constant-result proposition is proven.
+811	promote_rule	FAITHFUL	yes	yes	yes	The model returns Int64 for every type in the source union and the constant-result proposition is proven.
+812	promote_rule	FAITHFUL	yes	yes	yes	The model returns Int128 for every type in the source union and the constant-result proposition is proven.
+813	promote_rule	FAITHFUL	yes	yes	yes	The model returns UInt16 for every type in the source union and the constant-result proposition is proven.
+814	promote_rule	FAITHFUL	yes	yes	yes	The model returns UInt32 for every type in the source union and the constant-result proposition is proven.
+815	promote_rule	FAITHFUL	yes	yes	yes	The model returns UInt64 for every type in the source union and the constant-result proposition is proven.
+816	promote_rule	FAITHFUL	yes	yes	yes	The model returns UInt128 for every type in the source union and the constant-result proposition is proven.
+818	promote_rule	FAITHFUL	yes	yes	yes	The model returns UInt8 for the equal-width mixed-signedness pair and the constant-result proposition is proven.
+819	promote_rule	FAITHFUL	yes	yes	yes	The model returns UInt16 for the equal-width mixed-signedness pair and the constant-result proposition is proven.
+820	promote_rule	FAITHFUL	yes	yes	yes	The model returns UInt32 for the equal-width mixed-signedness pair and the constant-result proposition is proven.
+821	promote_rule	FAITHFUL	yes	yes	yes	The model returns UInt64 for the equal-width mixed-signedness pair and the constant-result proposition is proven.
+822	promote_rule	FAITHFUL	yes	yes	yes	The model returns UInt128 for the equal-width mixed-signedness pair and the constant-result proposition is proven.
+856	typemin	FAITHFUL	yes	-	-	The exclusion applies because this line is an empty generic-function declaration with no method body.
+885	typemax	FAITHFUL	yes	-	-	The exclusion applies because this line is an empty generic-function declaration with no method body.
+887	typemin	HOLLOW	no	yes	yes	The model calls a hand-written JInt.typemin specification instead of mirroring the Int8 constructor applied to -128, although it states the documented bound.
+888	typemax	HOLLOW	no	yes	yes	The model calls a hand-written JInt.typemax specification instead of mirroring the Int8 constructor applied to 127, although it states the documented bound.
+889	typemin	HOLLOW	no	yes	yes	The model calls a hand-written JInt.typemin specification instead of mirroring the UInt8 constructor applied to zero, although it states the documented bound.
+890	typemax	HOLLOW	no	yes	yes	The model calls a hand-written JInt.typemax specification instead of mirroring the UInt8 constructor applied to 255, although it states the documented bound.
+891	typemin	HOLLOW	no	yes	yes	The model calls a hand-written JInt.typemin specification instead of mirroring the Int16 constructor applied to -32768, although it states the documented bound.
+892	typemax	HOLLOW	no	yes	yes	The model calls a hand-written JInt.typemax specification instead of mirroring the Int16 constructor applied to 32767, although it states the documented bound.
+893	typemin	HOLLOW	no	yes	yes	The model calls a hand-written JInt.typemin specification instead of mirroring the UInt16 constructor applied to zero, although it states the documented bound.
+894	typemax	HOLLOW	no	yes	yes	The model calls a hand-written JInt.typemax specification instead of mirroring the UInt16 constructor applied to 65535, although it states the documented bound.
+895	typemin	HOLLOW	no	yes	yes	The model calls a hand-written JInt.typemin specification instead of mirroring the Int32 constructor applied to -2147483648, although it states the documented bound.
+896	typemax	HOLLOW	no	yes	yes	The model calls a hand-written JInt.typemax specification instead of mirroring the Int32 constructor applied to 2147483647, although it states the documented bound.
+897	typemin	HOLLOW	no	yes	yes	The model calls a hand-written JInt.typemin specification instead of mirroring the UInt32 constructor applied to zero, although it states the documented bound.
+898	typemax	HOLLOW	no	yes	yes	The model calls a hand-written JInt.typemax specification instead of mirroring the UInt32 constructor applied to 4294967295, although it states the documented bound.
+899	typemin	HOLLOW	no	yes	yes	The model calls a hand-written JInt.typemin specification instead of mirroring the Int64 literal body, although it states the documented bound.
+900	typemax	HOLLOW	no	yes	yes	The model calls a hand-written JInt.typemax specification instead of mirroring the Int64 literal body, although it states the documented bound.
+901	typemin	HOLLOW	no	yes	yes	The model calls a hand-written JInt.typemin specification instead of mirroring the UInt64 constructor applied to zero, although it states the documented bound.
+902	typemax	HOLLOW	no	yes	yes	The model calls a hand-written JInt.typemax specification instead of mirroring the hexadecimal UInt64 literal body, although it states the documented bound.
+903	typemin	HOLLOW	no	yes	yes	The model calls JInt.typemin instead of mirroring the evaluated convert(UInt128, 0) expression, although it states the documented bound.
+904	typemax	HOLLOW	no	yes	yes	The model calls JInt.typemax instead of mirroring the evaluated bitcast and conversion expression, although it states the documented bound.
+905	typemin	HOLLOW	no	yes	yes	The model calls JInt.typemin instead of mirroring the evaluated conversion and left shift expression, although it states the documented bound.
+906	typemax	HOLLOW	no	yes	yes	The model calls JInt.typemax instead of mirroring the evaluated bitcast, typemax, and right shift expression, although it states the documented bound.
+907	typemin	HOLLOW	no	no	yes	The model records only a method name and omits Union{}, the slurped arguments, and the MethodError argument tuple.
+908	typemax	HOLLOW	no	no	yes	The model records only a method name and omits Union{}, the slurped arguments, and the MethodError argument tuple.
+911	widen	FAITHFUL	yes	yes	yes	The model returns Int16 for Int8 exactly as the source method and documented widening rule require.
+912	widen	FAITHFUL	yes	yes	yes	The model returns Int32 for Int16 exactly as the source method and documented widening rule require.
+913	widen	FAITHFUL	yes	yes	yes	The model returns Int64 for Int32 exactly as the source method and documented widening rule require.
+914	widen	FAITHFUL	yes	yes	yes	The model returns Int128 for Int64 exactly as the source method and documented widening rule require.
+915	widen	FAITHFUL	yes	yes	yes	The model returns UInt16 for UInt8 exactly as the source method and documented widening rule require.
+916	widen	FAITHFUL	yes	yes	yes	The model returns UInt32 for UInt16 exactly as the source method and documented widening rule require.
+917	widen	FAITHFUL	yes	yes	yes	The model returns UInt64 for UInt32 exactly as the source method and documented widening rule require.
+918	widen	FAITHFUL	yes	yes	yes	The model returns UInt128 for UInt64 exactly as the source method and documented widening rule require.
+923	widemul	HOLLOW	no	no	yes	The fixed-width result formula omits allowed abstract Signed and Unsigned values and the source widen, signed, and multiplication call sequence.
+924	widemul	HOLLOW	no	no	yes	The fixed-width result formula omits allowed abstract Unsigned and Signed values and the source widen, signed, and multiplication call sequence.
+926	widemul	HOLLOW	no	no	yes	The JInt model has no Bool input and computes a widened Value, so it does not model Bool multiplication or its result type.
+927	widemul	HOLLOW	no	no	yes	The JInt model has no Bool or arbitrary Number input and computes a widened Value, so it does not cover this method's allowed inputs or result.
+928	widemul	HOLLOW	no	no	yes	The JInt model has no Bool or arbitrary Number input and computes a widened Value, so it does not cover this method's allowed inputs or result.
+934	widemul	FAITHFUL	yes	-	-	The exclusion applies because this Int64 method body is inside the Core.sizeof(Int) == 4 branch.
+949	widemul	FAITHFUL	yes	-	-	The exclusion applies because this UInt64 method body is inside the Core.sizeof(Int) == 4 branch.
+964	*	FAITHFUL	yes	-	-	The exclusion applies because this Int128 multiplication body is inside the Core.sizeof(Int) == 4 branch.
+975	*	FAITHFUL	yes	-	-	The exclusion applies because this UInt128 multiplication body is inside the Core.sizeof(Int) == 4 branch.
+986	_setbit	FAITHFUL	yes	-	-	The exclusion applies because this helper method body is inside the Core.sizeof(Int) == 4 branch.
+1002	divrem	FAITHFUL	yes	-	-	The exclusion applies because this UInt128 divrem method body is inside the Core.sizeof(Int) == 4 branch.
+1038	div	FAITHFUL	yes	-	-	The exclusion applies because this Int128 division method body is inside the Core.sizeof(Int) == 4 branch.
+1042	div	FAITHFUL	yes	-	-	The exclusion applies because this UInt128 division method body is inside the Core.sizeof(Int) == 4 branch.
+1044	rem	FAITHFUL	yes	-	-	The exclusion applies because this Int128 remainder method body is inside the Core.sizeof(Int) == 4 branch.
+1048	rem	FAITHFUL	yes	-	-	The exclusion applies because this UInt128 remainder method body is inside the Core.sizeof(Int) == 4 branch.
+1079	mod	FAITHFUL	yes	-	-	The exclusion applies because this Int128 modulus method body is inside the Core.sizeof(Int) == 4 branch.
+1083	*	FAITHFUL	yes	yes	yes	The wrapping JInt multiplication mirrors mul_int for every same-type Int128 or UInt128 pair on the active 64-bit branch.
+1085	div	FAITHFUL	yes	yes	yes	JInt.div mirrors checked_sdiv_int for every Int128 pair, including zero and typemin divided by -1 errors, and the proposition is proven.
+1086	div	FAITHFUL	yes	yes	yes	JInt.div mirrors checked_udiv_int for every UInt128 pair, including division by zero, and the proposition is proven.
+1088	rem	FAITHFUL	yes	yes	yes	JInt.remInt mirrors checked_srem_int for every Int128 pair, including division by zero, and the proposition is proven.
+1089	rem	FAITHFUL	yes	yes	yes	JInt.remInt mirrors checked_urem_int for every UInt128 pair, including division by zero, and the proposition is proven.
+1094	$op	HOLLOW	no	no	yes	The model omits not_sametype and quantifies over same-type operands that the source guard rejects, so it covers neither the full body nor every generated operator's allowed behaviour.
+1124	bitreverse	HOLLOW	no	yes	yes	The model directly indexes reversed bits and omits unsigned conversion, mask construction, three swap stages, bswap, and final type conversion, although it states the documented result.

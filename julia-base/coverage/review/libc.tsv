@@ -1,0 +1,71 @@
+line	name	verdict	mirror	property	settled	reason
+35	RawFD	FAITHFUL	yes	yes	yes	The model performs the Cint range conversion before the bitcast result, and the proposition covers every integer value and conversion failure.
+36	RawFD	FAITHFUL	yes	yes	yes	The identity constructor is mirrored and its identity result is stated for every RawFD value.
+37	Base.cconvert	FAITHFUL	yes	yes	yes	The bitcast back to Cint is represented by the descriptor identity and stated for every RawFD value.
+46	dup	FAITHFUL	yes	yes	yes	The model calls the supplied dup primitive once and returns its result unchecked, while the proved and refuted properties cover success and the documented failure case and the refutation has a reproducer.
+47	dup	FAITHFUL	yes	yes	yes	The model calls dup2 with source then target, checks for minus one, and the proposition states both outcomes for every descriptor pair.
+51	show	HOLLOW	no	no	yes	The model returns a hand-built String and omits the supplied IO, the ordered print call, its write effects, and possible IO failures, so the proposition does not cover every allowed IO.
+61	WindowsRawSocket	FAITHFUL	-	-	-	The exclusion applies because the constructor is inside the Sys.iswindows branch.
+62	WindowsRawSocket	FAITHFUL	-	-	-	The exclusion applies because the identity constructor is inside the Sys.iswindows branch.
+64	Base.cconvert	FAITHFUL	-	-	-	The exclusion applies because the WindowsRawSocket conversion is inside the Sys.iswindows branch.
+65	show	FAITHFUL	-	-	-	The exclusion applies because the WindowsRawSocket show method is inside the Sys.iswindows branch.
+66	_get_osfhandle	FAITHFUL	-	-	-	The exclusion applies because this RawFD conversion is inside the Sys.iswindows branch.
+67	_get_osfhandle	FAITHFUL	-	-	-	The exclusion applies because this WindowsRawSocket identity method is inside the Sys.iswindows branch.
+68	dup	FAITHFUL	-	-	-	The exclusion applies because this Windows handle-duplication method is inside the Sys.iswindows branch.
+78	dup	FAITHFUL	-	-	-	The exclusion applies because this Windows socket-to-descriptor duplication method is inside the Sys.iswindows branch.
+86	_get_osfhandle	FAITHFUL	yes	yes	yes	The Unix identity body is mirrored and the proposition states it for every represented RawFD value.
+123	modestr	HOLLOW	no	no	yes	The model starts from precomputed readability and writability Booleans and omits the IO value and ordered isreadable and iswritable calls, so its equality does not cover every stream or call failure.
+124	modestr	FAITHFUL	yes	yes	yes	The nested readable and writable branches and the ArgumentError case are mirrored and stated for all four Boolean inputs.
+126	FILE	HOLLOW	no	no	yes	The model restricts the untyped mode argument to String and omits its Cstring conversion behavior, so neither the mirror nor proposition covers every accepted mode value.
+132	FILE	HOLLOW	no	no	yes	The model replaces fd, isreadable, iswritable, and position calls on the IO object with precomputed values, and the proposition states only the neither-readable-nor-writable branch.
+138	Base.unsafe_convert	HOLLOW	no	yes	yes	The model erases the requested pointer type and omits the source convert call, although the proposition states the address-preserving result for every represented pointer.
+139	Base.close	FAITHFUL	yes	yes	yes	The model calls fclose once, checks its nonzero result, and states the success and SystemError outcomes for every pointer.
+141	Base.seek	HOLLOW	yes	no	yes	The source conversion, fseek check, and returned handle are mirrored, but the proposition excludes every out-of-Clong Integer input without a documented precondition.
+147	Base.position	FAITHFUL	yes	yes	yes	The model calls the supplied ftell primitive once and states its returned position for every handle.
+156	flush_cstdio	FAITHFUL	yes	yes	yes	The model calls the supplied jl_flush_cstdio primitive once and the proposition states that zero-argument behavior.
+162	systemsleep	HOLLOW	no	no	yes	The model accepts a precomputed integer microsecond count and omits the Real input, multiplication, and rounding, so neither registered property covers every allowed duration even though the refutation has a reproducer.
+164	systemsleep	FAITHFUL	-	-	-	The exclusion applies because these lines are the Sys.iswindows branch of systemsleep.
+187	TimeVal	HOLLOW	no	yes	yes	The model omits the Ref allocation and mutation and drops the failing status from the constructed error message, although the proposition states the return-or-error split for every foreign-call outcome.
+217	TmStruct	HOLLOW	no	no	yes	The model accepts an arbitrary-length integer list instead of exactly nine untyped arguments, and the proposition assumes every field is already an in-range Int32 value.
+219	TmStruct	FAITHFUL	yes	yes	yes	The model creates exactly fourteen zero fields and the proposition states the all-zero constructor invariant.
+220	TmStruct	HOLLOW	no	no	yes	The model receives floor(t) as a precomputed Option Int and omits flooring, fresh-struct construction, and localtime_r mutation, while the proposition excludes nonfinite and out-of-Int Real inputs.
+236	strftime	HOLLOW	no	no	yes	The model has no percent-c format value and merely aliases an arbitrary callback-specialized formatter, so the proposition does not establish use of the required default format.
+237	strftime	HOLLOW	no	no	yes	The model omits the AbstractString format and arbitrary Real input and replaces formatted C output with a supplied callback, so its proposition covers only in-range integer times.
+239	strftime	HOLLOW	no	no	yes	The model starts from the already formatted character list and omits fmt, tm, buffer mutation, wcsftime, resize, and transcode, so its length properties do not state behavior for every actual format and time even though the refutation has a reproducer.
+257	strptime	HOLLOW	no	no	yes	The model contains no percent-c format and only aliases the two-argument surrogate, so the proposition cannot establish the default-format call.
+258	strptime	HOLLOW	no	no	yes	The model replaces fmt, timestr, and the strptime call with a completed outcome and omits the Apple mktime branch, so its proposition does not cover every allowed input and platform path.
+270	shouldcallmktime	HOLLOW	no	no	yes	The registered entry has no Lean function for the byte scan, percent escaping, directive checks, or loop, and its proposition says nothing about shouldcallmktime.
+316	time	HOLLOW	no	no	yes	The model returns the integer mktime result and omits the required Float64 conversion, so the proposition does not state the documented Float64 seconds result.
+325	time	FAITHFUL	yes	yes	yes	The model invokes the supplied jl_clock_now primitive once and states its Float result for the zero-argument method.
+334	getpid	FAITHFUL	yes	yes	yes	The model invokes the supplied uv_os_getpid primitive once and states its result for the zero-argument method.
+343	gethostname	HOLLOW	no	yes	yes	The model replaces buffer allocation, pointer conversion, GC preservation, and unsafe_string with a returned byte list, although the proposition states the hostname-or-SystemError behavior for every represented foreign-call outcome.
+366	errno	HOLLOW	no	no	yes	The model returns a bare supplied state and omits jl_errno, so its identity proposition is not tied to the current C errno.
+367	errno	HOLLOW	no	no	yes	The model performs only Cint conversion, returns that integer instead of Cvoid, and omits jl_set_errno, so the proposition does not state that errno is set.
+374	strerror	HOLLOW	no	no	yes	The model receives already decoded bytes and omits the strerror pointer call and unsafe_string conversion, while its proposition also excludes out-of-Int32 Integer inputs.
+375	strerror	HOLLOW	no	no	yes	The model receives errno as a bare value instead of calling errno(), so its helper equality does not state behavior using the current C errno.
+382	GetLastError	FAITHFUL	-	-	-	The exclusion applies because this line is an empty generic-function declaration with no method body.
+389	FormatMessage	FAITHFUL	-	-	-	The exclusion applies because this line is an empty generic-function declaration with no method body.
+392	GetLastError	FAITHFUL	-	-	-	The exclusion applies because this method is inside the Sys.iswindows branch.
+394	FormatMessage	FAITHFUL	-	-	-	The exclusion applies because this forwarding method is inside the Sys.iswindows branch.
+395	FormatMessage	FAITHFUL	-	-	-	The exclusion applies because this FormatMessage implementation is inside the Sys.iswindows branch.
+423	free	FAITHFUL	yes	yes	yes	The model calls the supplied C free primitive once with the same pointer and states that effect for every pointer value.
+424	free	FAITHFUL	yes	yes	yes	The model preserves the address through the Cstring pointer conversion and delegates once to the modeled free call for every pointer value.
+425	free	FAITHFUL	yes	yes	yes	The model preserves the address through the Cwstring pointer conversion and delegates once to the modeled free call for every pointer value.
+432	malloc	HOLLOW	yes	no	yes	The Csize_t conversion and malloc call are mirrored, but the registered proposition covers only nonnegative in-range Integer sizes and omits other allowed conversion outcomes.
+442	realloc	HOLLOW	yes	no	yes	The pointer, Csize_t conversion, and realloc call are mirrored, but the proposition excludes negative and oversized Integer sizes without a documented precondition.
+449	calloc	HOLLOW	yes	no	yes	The two ordered Csize_t conversions and calloc call are mirrored, but the proposition excludes negative and oversized values for either Integer argument.
+456	getrandom!	HOLLOW	no	no	yes	The model replaces the Array or RefValue, sizeof call, in-place foreign write, and returned object identity with a length and completed byte list, so its proposition does not state filling the supplied object.
+462	_make_uint64_seed	HOLLOW	no	no	yes	The registered model applies an arbitrary function to a fabricated zero value and omits fresh RefValue construction, getrandom!, indexing, and their errors, leaving only a reflexive equation.
+472	rand	HOLLOW	no	yes	yes	The model takes the jl_rand result as a bare Nat and omits the foreign call, although the proposition states the UInt32 range invariant for every represented raw value.
+473	rand	HOLLOW	no	yes	yes	The wrapper delegates to a rand helper that omits jl_rand and starts from its bare result, although the proposition states equality with that helper for every represented value.
+474	rand	HOLLOW	no	yes	yes	The model encodes the answer as a rational pair and relies on the rand helper that omits jl_rand, although the proposition states the documented unit-interval bound.
+481	srand	HOLLOW	no	no	yes	The model returns only the wrapped seed and omits the jl_srand call and its Cvoid effect, so the proposition does not state that the global seed is set.
+495	mkfifo	HOLLOW	no	no	yes	The model includes only the Unix branch, restricts AbstractString to bytes, and the proposition excludes out-of-Cmode_t Integer modes, so it does not cover the full method body or allowed inputs.
+519	Cpasswd	HOLLOW	no	no	yes	The model fixes Culong to 64 bits and the proposition checks only username and uid, omitting gid and the three remaining null pointer fields.
+525	Cgroup	HOLLOW	no	no	yes	The model fixes Culong to 64 bits and the proposition checks only mem, omitting the null group name and maximum gid fields.
+543	getpw	HOLLOW	no	yes	yes	The model omits Ref allocation, pointer-to-string conversions, and uv_os_free_passwd cleanup, although the proposition states the returned Passwd or libuv error for every represented foreign-call outcome.
+561	getpwuid	HOLLOW	no	yes	yes	The model omits Ref allocation, Culong conversion, pointer-to-string conversions, and required cleanup, although the proposition states the documented false-on-error branch for every represented uid and failure.
+581	getgrgid	HOLLOW	no	yes	yes	The model replaces the member-pointer unsafe_load loop with a precomputed list and omits Ref allocation, conversions, and cleanup, although the proposition states the true-on-error branch for every represented gid and negative failure.
+606	getuid	FAITHFUL	yes	yes	yes	The model calls the supplied jl_getuid primitive once and states its result for the zero-argument method.
+607	geteuid	FAITHFUL	yes	yes	yes	The model calls the supplied jl_geteuid primitive once and states its result for the zero-argument method.
+608	getegid	HOLLOW	no	no	yes	The model always calls a supplied primitive and omits the Sys.iswindows branch returning Culong(-1), so its proposition does not cover every platform path.

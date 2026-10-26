@@ -1,0 +1,52 @@
+line	name	verdict	mirror	property	settled	reason
+21	IOStream	HOLLOW	no	no	yes	The model omits the handle pointer, mark, and lock, restricts AbstractString to String, and invents readable, writable, and open file state that this inner constructor does not establish.
+24	IOStream	HOLLOW	no	no	yes	The model uses an empty list instead of allocating sizeof_ios_t bytes and replaces conditional finalizer registration with a Boolean field, while also excluding non-String AbstractString names.
+32	IOStream	HOLLOW	no	no	yes	The model delegates to the unfaithful m24 abstraction and restricts the accepted AbstractString name to String, so the proposition does not cover every allowed name or actual finalizer registration.
+34	unsafe_convert	HOLLOW	no	no	yes	The model returns an unrelated Nat unchanged and omits the stream, its ios buffer, pointer, target pointer type, and convert call.
+35	show	HOLLOW	no	no	yes	The model returns a String instead of calling print on the supplied IO and therefore states neither the write effect nor the actual return behavior.
+37	_lock_ios	HOLLOW	no	no	yes	The model returns a precomputed value and omits expression evaluation, conditional lock and unlock calls, their order, side effects, and exceptional outcomes.
+74	fd	HOLLOW	no	no	yes	The model echoes an unrelated foreignFd input and omits the IOStream, jl_ios_fd call, and RawFD construction, so it does not state the descriptor backing the stream.
+76	stat	HOLLOW	no	no	yes	The model echoes a precomputed stat result and omits both fd(s) and stat(fd(s)), leaving no relationship between the stream and the result.
+88	isopen	HOLLOW	no	yes	yes	The proposition states the documented open-state query, but the model replaces the ios_isopen call and nonzero comparison with direct access to a synthetic field.
+90	close	HOLLOW	no	yes	yes	The proposition covers failure and successful closure, but the model omits the conditional lock bracket, ios_close call, and systemerror call order.
+95	closewrite	FAITHFUL	yes	yes	yes	
+97	flush	HOLLOW	no	no	yes	The model omits both signal-atomic calls, conditional locking, and ios_flush, and incorrectly makes failure depend only on the synthetic isopen field.
+104	iswritable	HOLLOW	no	yes	yes	The proposition states the access-mode query, but the model replaces the ios_get_writable call and nonzero comparison with direct access to a synthetic field.
+106	isreadable	HOLLOW	no	yes	yes	The proposition states the access-mode query, but the model replaces the ios_get_readable call and nonzero comparison with direct access to a synthetic field.
+137	truncate	HOLLOW	no	no	yes	The model replaces the locked ios_trunc call with a synthetic resize, restricts Integer to Nat, and omits Csize_t conversion behavior for negative and oversized inputs.
+158	seek	HOLLOW	no	no	yes	The model restricts Integer positions to Nat and replaces the locked ios_seek result and ordered error checks with a preselected result plus direct state mutation.
+185	seekstart	HOLLOW	no	no	yes	The model accepts only NamedIO and directly changes its position instead of dispatching seek(s, 0) for every IO and preserving that call's result and errors.
+192	seekend	HOLLOW	no	yes	yes	The proposition states the documented successful end position and failure case, but the model replaces the locked ios_seek_end call with direct list-length state mutation.
+215	skip	HOLLOW	no	yes	yes	The proposition states relative movement on success and both source error sentinels, but the model replaces the locked ios_skip call with direct position arithmetic over synthetic file state.
+247	position	HOLLOW	no	no	yes	The model branches on and returns an unrelated foreignPosition input, omitting the stream and ios_pos call, so the proposition never states the stream's current position.
+253	filesize	HOLLOW	no	no	yes	The model selects between two precomputed integers and omits the locked ios_filesize call, conditional stat(s), and filesize(stat(s)) fallback that determine the result.
+262	_eof_nolock	HOLLOW	no	yes	yes	The proposition states the logical no-unread-bytes EOF invariant, but the model replaces the blocking ios_eof_blocking call and its nonzero comparison with list arithmetic.
+263	eof	HOLLOW	no	no	yes	The model reduces every CancelTokenArg to a Boolean and omits check_cancel_arg, conditional locking, and the blocking foreign EOF behavior, so it does not cover all allowed cancellation inputs and outcomes.
+281	fdio	HOLLOW	no	no	yes	The model returns the descriptor and ownership flag beside a synthetic stream instead of calling ios_fd to install them in the returned IOStream, and it restricts the accepted argument types.
+287	fdio	HOLLOW	no	no	yes	The model delegates to the unfaithful m281 tuple abstraction, so the proposition does not establish that the returned IOStream wraps the descriptor with the requested ownership.
+316	open	HOLLOW	no	yes	yes	The proposition states documented flag, locking, and access-mode outcomes, but the model omits the ordered ios_file and ios_seek_end calls and replaces their filesystem effects with two Boolean inputs.
+346	open	HOLLOW	no	no	yes	The model echoes a preconverted String and omits the AbstractString input, convert and type assertion, keyword forwarding, delegated open result, and its errors.
+399	open	HOLLOW	no	no	yes	The model only parses the six mode strings into an enum and never performs the corresponding open call or returns its IOStream and filesystem errors.
+411	write	HOLLOW	no	no	yes	The model replaces iswritable, conditional locking, and ios_putc with synthetic list mutation and assumes every open writable stream writes exactly one byte.
+416	unsafe_write	HOLLOW	no	no	yes	The model replaces pointer memory and ios_write with a safe list prefix, collapses CancelTokenArg to Bool, omits locking, and assumes a full write for every open writable stream.
+429	bytesavailable	HOLLOW	no	yes	yes	The proposition states the available-byte count invariant, but the model replaces the locked jl_nb_available call and Int32 result with direct list-length subtraction.
+431	readavailable	HOLLOW	no	no	yes	The model omits the initial availability query, zero-only fill, second query, allocation, unconditional lock protocol, and ios_readall, replacing them with all remaining synthetic bytes and a preselected count.
+449	read	HOLLOW	no	yes	yes	The proposition states the documented next-byte consumption or EOF behavior, but the model replaces the locked ios_getc call and UInt8 remainder conversion with direct list indexing.
+458	read	HOLLOW	no	no	yes	The model returns a byte list for an arbitrary width and omits the type union, sizeof, conditional lock protocol, buffering call, typed integer extraction, conversion, and endian guard.
+472	read	HOLLOW	no	no	yes	The model returns the byte-list result of m458 and omits the Int16 read and reinterpret to Float16, so its proposition does not state this method's typed result.
+473	read	HOLLOW	no	no	yes	The model returns the byte-list result of m458 and omits the Int32 read and reinterpret to Float32, so its proposition does not state this method's typed result.
+474	read	HOLLOW	no	no	yes	The model returns the byte-list result of m458 and omits the Int64 read and reinterpret to Float64, so its proposition does not state this method's typed result.
+477	unsafe_read	HOLLOW	no	no	yes	The model returns bytes and synthetic state instead of writing through the supplied pointer and returning nothing, and it omits the locked ios_readall call.
+487	take!	HOLLOW	no	yes	yes	The proposition states the take-and-clear invariant, but the model replaces the locked jl_take_buffer call and returned Vector with direct operations on a synthetic list.
+490	readuntil	HOLLOW	no	yes	yes	The proposition states delimiter consumption, keep, cancellation, and stream-position behavior, but the model replaces check_cancel_arg, conditional locking, and jl_readuntil with a pure list split.
+496	readuntil_string	HOLLOW	no	no	yes	The model returns a List UInt8 rather than the no-copy String result and omits conditional locking and jl_readuntil, so the proposition does not cover this method's return behavior.
+499	readuntil	HOLLOW	no	no	yes	The model takes a preselected ASCII Boolean and UInt8 delimiter and uses the same byte split in both branches, omitting isascii, non-ASCII character handling, IOBuffer allocation, copyuntil, and takestring!.
+505	readline	HOLLOW	no	no	yes	The model replaces check_cancel_arg, conditional locking, jl_readuntil, String construction, and its keep-dependent C flag with a hand-written byte-list helper equality.
+510	copyuntil	HOLLOW	no	no	yes	The model reduces the resizing and pointer loop to one list split and append, omitting cancellation, IOBuffer ptr, size, append and maxsize state, repeated reads, EOF checks, assertions, and errors.
+535	copyuntil	HOLLOW	no	no	yes	The model implements a synthetic read followed by ioWrite instead of the nested lock brackets and ios_copyuntil call, and it omits cancellation and the foreign call's outcomes.
+542	readbytes_all!	HOLLOW	no	no	yes	The model performs one list read and appends it to the buffer, omitting overwrite semantics, resizing, the locked repeated-read loop, allocation failure cleanup, EOF checks, and final shrinking.
+570	readbytes_some!	HOLLOW	no	no	yes	The model appends a full requested prefix instead of resizing and overwriting from pointer(b) with one potentially short ios_read, then conditionally shrinking the destination.
+599	readbytes!	HOLLOW	no	no	yes	The model delegates to unfaithful helpers, restricts Integer to Nat, collapses CancelTokenArg to Bool, and therefore does not cover every requested count, cancellation value, or one-read short result.
+605	read	HOLLOW	no	no	yes	The model omits locking, allocation, IOError-only fallback, current-position subtraction, read-to-EOF selection, and final resize, and treats supplied counts as the data rather than results of the source calls.
+646	read	HOLLOW	no	no	yes	The model omits allocation and resize behavior, delegates to unfaithful helpers, collapses cancellation, and incorrectly makes all=false consume the full available requested prefix rather than one device-dependent read.
+658	peek	HOLLOW	no	yes	yes	The proposition states the documented next-byte or EOF result without advancing position, but the model replaces the locked ios_peekc call and UInt8 conversion with direct list indexing.

@@ -49,6 +49,12 @@ reserved word, which POSIX sh would parse as syntax (XCU 2.4). -/
 def PosixlyNoReservedWord : Prop :=
   ∀ (x : JS) (xs : List JS), firstWordReserved (shellEscapePosixly (x :: xs)) = false
 
+/-- `shell_escape_csh` output without linefeeds is split by POSIX sh into the
+original words (`base/shell.jl:539-540`). -/
+def CshPosixRoundTrip : Prop :=
+  ∀ xs : List JS, xs ≠ [] → (∀ w ∈ xs, A '\n' ∉ w) →
+    ∃ e, shellEscapeCsh xs = .ok e ∧ posixSplit e = some xs
+
 /-- `escape_microsoft_c_args` output is parsed back into the arguments by the
 Microsoft C runtime rules (`base/shell.jl:679-692`). -/
 def MsArgsRoundTrip : Prop :=

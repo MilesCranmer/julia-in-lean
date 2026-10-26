@@ -1,0 +1,70 @@
+id: nummisc-tanh-float32-nonmonotone
+title: "tanh(::Float32) decreases across adjacent inputs near 0.4921456"
+priority: P2
+kind: wrong-result
+area: NumMisc
+files: [base/special/hyperbolic.jl]
+functions: ["tanh(::Float32)", "tanh_kernel(::Float32)"]
+summary: |
+  Two adjacent Float32 inputs are ordered x < y, but tanh(x) is one ulp greater
+  than tanh(y). Both results are also on the wrong sides of the correctly rounded
+  reference values: the implementation returns the expected pair in reverse order.
+likelihood: |
+  The inputs have ordinary magnitude, but hitting this exact adjacent pair is uncommon.
+  The reversal can matter to searches or transforms that rely on tanh being monotone.
+maybe_intended: |
+  Julia's elementary functions do not promise correct rounding, so a one-ulp error in
+  either result is expected. A local decrease still violates the mathematical function's
+  basic monotonicity and is stronger than an ordinary approximation error.
+reproducer: |
+  x = 0.49214557f0
+  y = nextfloat(x)
+  tx = tanh(x)
+  ty = tanh(y)
+  rx, ry = setprecision(BigFloat, 256) do
+      Float32(tanh(BigFloat(x))), Float32(tanh(BigFloat(y)))
+  end
+  println("x = ", x, ", bits = 0x", string(reinterpret(UInt32, x), base=16))
+  println("y = ", y, ", bits = 0x", string(reinterpret(UInt32, y), base=16))
+  println("tanh(x) = ", tx, ", bits = 0x", string(reinterpret(UInt32, tx), base=16))
+  println("tanh(y) = ", ty, ", bits = 0x", string(reinterpret(UInt32, ty), base=16))
+  println("reference Float32 tanh(x), tanh(y) = ", (rx, ry))
+  if x < y && tx > ty
+      println("REPRODUCED nummisc-tanh-float32-nonmonotone")
+  end
+output:
+  release: |
+    x = 0.49214557, bits = 0x3efbfa81
+    y = 0.4921456, bits = 0x3efbfa82
+    tanh(x) = 0.45591772, bits = 0x3ee96e0c
+    tanh(y) = 0.4559177, bits = 0x3ee96e0b
+    reference Float32 tanh(x), tanh(y) = (0.4559177f0, 0.45591772f0)
+    REPRODUCED nummisc-tanh-float32-nonmonotone
+  nightly: |
+    x = 0.49214557, bits = 0x3efbfa81
+    y = 0.4921456, bits = 0x3efbfa82
+    tanh(x) = 0.45591772, bits = 0x3ee96e0c
+    tanh(y) = 0.4559177, bits = 0x3ee96e0b
+    reference Float32 tanh(x), tanh(y) = (0.4559177f0, 0.45591772f0)
+    REPRODUCED nummisc-tanh-float32-nonmonotone
+reproduced: {release: true, nightly: true}
+expected: |
+  A nondecreasing pair. At 256-bit BigFloat precision, rounding the exact results to
+  Float32 gives (0.4559177f0, 0.45591772f0).
+promised_by: |
+  Invariant: tanh is strictly increasing on the reals, so round-to-nearest evaluation
+  must be nondecreasing across ordered Float32 inputs. The source describes the method
+  as calculating mathematical tanh at base/special/hyperbolic.jl:161-171.
+cause: |
+  Both inputs take the small branch at base/special/hyperbolic.jl:174. The Float32
+  polynomial at lines 157-160 followed by the multiplication x*tanh_kernel(x*x)
+  accumulates enough approximation and rounding error to reverse this adjacent pair.
+possible_fix: |
+  Retune the Float32 polynomial with monotonicity as a constraint, or evaluate this
+  branch in Float64 before converting once to Float32 as the sinh kernel does.
+duplicates:
+  issues: []
+  queries: ["tanh Float32 monotonic", "tanh nonmonotonic", "hyperbolic monotonic", "tanh_kernel"]
+lean:
+  property: JuliaLean.NumMisc.TanhMonotone
+  theorem: JuliaLean.NumMisc.tanhMonotone_refuted

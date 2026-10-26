@@ -1,6 +1,6 @@
 import JuliaLean.HashOps.Proofs
 
-/-! Deterministic differential rows, mirrored line by line by a Julia script. -/
+/-! Deterministic differential rows. -/
 
 namespace JuliaLean.HashOps.Validation
 

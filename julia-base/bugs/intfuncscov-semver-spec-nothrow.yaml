@@ -1,0 +1,66 @@
+id: intfuncscov-semver-spec-nothrow
+title: "semver_spec(s; throw=false) throws InexactError or ErrorException for some specifiers"
+priority: P3
+kind: wrong-exception
+area: IntFuncsCov
+files: [base/version.jl]
+functions: ["semver_spec", "inequality_interval", "semver_interval"]
+summary: |
+  Base.semver_spec("< 0"; throw=false) throws InexactError and
+  Base.semver_spec("0.0.0"; throw=false) throws "invalid version", while an unrecognised
+  specifier such as "> 1" returns nothing. The throw=false mode only suppresses the
+  error for specifiers that match no regular expression.
+likelihood: |
+  Low: the inputs are degenerate compat specifiers ("< 0", "<0.0", "0.0.0") that a
+  validator calling semver_spec with throw=false could meet. Only master has
+  semver_spec in Base; Pkg's copy of this code behaves the same way.
+maybe_intended: |
+  "0.0.0" is deliberately rejected with an error message. But with throw=false the caller
+  asks for nothing instead of an exception, and "< 0" fails with an internal
+  InexactError rather than either result.
+reproducer: |
+  if !isdefined(Base, :semver_spec)
+      println("Base.semver_spec is not defined in this version")
+  else
+      res(f) = try f() catch e; sprint(showerror, e) end
+      a = res(() -> Base.semver_spec("< 0"; throw = false))
+      b = res(() -> Base.semver_spec("0.0.0"; throw = false))
+      c = res(() -> Base.semver_spec("> 1"; throw = false))
+      println("semver_spec(\"< 0\"; throw=false) = ", a)
+      println("semver_spec(\"0.0.0\"; throw=false) = ", b)
+      println("semver_spec(\"> 1\"; throw=false) = ", c)
+      if c === nothing && a isa String && startswith(a, "InexactError") && b isa String
+          println("REPRODUCED intfuncscov-semver-spec-nothrow")
+      else
+          println("not reproduced")
+      end
+  end
+output:
+  release: |
+    Base.semver_spec is not defined in this version
+  nightly: |
+    semver_spec("< 0"; throw=false) = InexactError: trunc(UInt32, -1)
+    semver_spec("0.0.0"; throw=false) = invalid version: "0.0.0"
+    semver_spec("> 1"; throw=false) = nothing
+    REPRODUCED intfuncscov-semver-spec-nothrow
+reproduced: {release: false, nightly: true}
+expected: |
+  nothing for every specifier semver_spec cannot turn into a VersionSpec when
+  throw=false (or an empty VersionSpec for "< 0").
+promised_by: |
+  The throw keyword of semver_spec, base/version.jl:626-646: without a match it returns
+  nothing when throw=false (base/version.jl:642). Invariant: with throw=false the
+  function returns a VersionSpec or nothing.
+cause: |
+  base/version.jl:702 builds VersionBound(v[1] - 1), which is VersionBound(-1) for "< 0"
+  and throws InexactError converting -1 to UInt32 (base/version.jl:302-309).
+  base/version.jl:658 and :695 call error() for 0.0.0 regardless of throw.
+possible_fix: |
+  Let the interval functions report failure to semver_spec (for example by returning
+  nothing) so that it honours throw=false, and treat "< 0" as an empty range.
+duplicates:
+  issues: []
+  queries: ["semver_spec", "semver_spec throw", "semver_spec InexactError", "VersionSpec", "VersionBound"]
+lean:
+  property: JuliaLean.IntFuncsCov.Version.SemverSpecNoThrow
+  theorem: JuliaLean.IntFuncsCov.Version.semverSpecNoThrow_refuted

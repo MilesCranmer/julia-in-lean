@@ -1,0 +1,54 @@
+line	name	verdict	mirror	property	settled	reason
+5	isreal	FAITHFUL	yes	yes	yes	The model makes the same all(isreal, x) call for every abstract array and the entry is proven.
+6	iszero	FAITHFUL	yes	yes	yes	The model makes the same all(iszero, x) call for every abstract array and the entry is proven.
+7	isreal	FAITHFUL	yes	yes	yes	The model returns true for every real-element array and the entry is proven.
+41	vec	FAITHFUL	yes	yes	yes	The model calls length before reshaping the same array and the quantified entry is proven.
+42	vec	FAITHFUL	yes	yes	yes	The model returns the input vector unchanged and the entry is proven.
+44	_sub	FAITHFUL	yes	yes	yes	The model returns the empty tuple for the empty-tuple overload and the entry is proven.
+45	_sub	FAITHFUL	yes	yes	yes	The model returns the first tuple unchanged when the second tuple is empty and the entry is proven.
+46	_sub	FAITHFUL	yes	yes	yes	The model evaluates both tail calls in source order before the recursive call and the entry is proven.
+85	dropdims	FAITHFUL	yes	yes	yes	The model forwards the same array and dimensions to _dropdims and the entry is proven.
+86	_dropdims	HOLLOW	no	yes	yes	The model replaces the method's dimension loop and its range, singleton-axis, and duplicate checks with an unconstrained validate callback.
+104	_dropdims	FAITHFUL	yes	yes	yes	The model converts the scalar dimension before dispatching with a singleton tuple and the entry is proven.
+146	insertdims	FAITHFUL	yes	yes	yes	The model forwards the same array and dimensions to _insertdims and the entry is proven.
+147	_insertdims	FAITHFUL	yes	yes	yes	The model preserves validation order, duplicate detection, axis-counter updates, singleton insertion, and reshape, and the entry is proven.
+166	_insertdims	FAITHFUL	yes	yes	yes	The model converts the scalar dimension before dispatching with a singleton tuple and the entry is proven.
+194	conj!	FAITHFUL	yes	yes	yes	The state-passing model broadcasts conj into the same array and returns its post-mutation state, and the entry is proven.
+195	conj!	FAITHFUL	yes	yes	yes	The model returns the real-element array unchanged and the entry is proven.
+196	conj!	HOLLOW	no	no	yes	The model hides foreach(conj!, A) behind an unconstrained one-argument callback, so it neither mirrors the conj! call nor states that every element is conjugated.
+220	conj	FAITHFUL	yes	yes	yes	The model calls broadcast_preserving_zero_d with conj and the same array and the entry is proven.
+221	conj	FAITHFUL	yes	yes	yes	The model returns the real-element array without copying and the entry is proven.
+245	real	FAITHFUL	yes	yes	yes	The model calls broadcast_preserving_zero_d with real and the same array and the entry is proven.
+246	real	FAITHFUL	yes	yes	yes	The model returns the real-element array without copying and the entry is proven.
+269	imag	FAITHFUL	yes	yes	yes	The model calls broadcast_preserving_zero_d with imag and the same array and the entry is proven.
+270	imag	FAITHFUL	yes	yes	yes	The model calls zero on the same real-element array and the entry is proven.
+293	-	FAITHFUL	yes	yes	yes	The model calls broadcast_preserving_zero_d with unary minus and the same array and the entry is proven.
+295	+	FAITHFUL	yes	yes	yes	The model returns the numeric array unchanged and the entry is proven.
+296	*	FAITHFUL	yes	yes	yes	The model returns the numeric matrix unchanged and the entry is proven.
+327	selectdim	FAITHFUL	yes	yes	yes	The model maps Slice over the axes, replaces dimension d with i, and calls _selectdim in source order, and the entry is proven.
+328	_selectdim	FAITHFUL	yes	yes	yes	The model preserves the below-one check, trailing-dimension check, singleton test, distinct errors, and final view call, and the entry is proven.
+335	circshift	FAITHFUL	yes	yes	yes	The model allocates similar(a) before converting the shift and calling circshift! with a singleton tuple, and the entry is proven.
+338	circshift	FAITHFUL	yes	yes	yes	The model allocates similar(a) and calls circshift! with the supplied dimensions and the entry is proven.
+411	circshift	FAITHFUL	yes	yes	yes	The model allocates first, splats and converts shifts in order, then calls circshift!, and the entry is proven.
+445	repeat	FAITHFUL	yes	yes	yes	The model forwards the positional counts as outer counts and the entry is proven.
+482	repeat	FAITHFUL	yes	yes	yes	The model forwards the array and both keyword values to _RepeatInnerOuter.repeat and the entry is proven.
+488	repeat	FAITHFUL	yes	yes	yes	The model checks, resolves, and calls repeat_inner_outer with the resolved values in source order, and the entry is proven.
+494	to_tuple	FAITHFUL	yes	yes	yes	The model returns every tuple unchanged and the entry is proven.
+495	to_tuple	FAITHFUL	yes	yes	yes	The model returns a singleton tuple representation for every integer input and the entry is proven.
+496	to_tuple	FAITHFUL	yes	yes	yes	The model consumes the iterator before constructing the tuple from all yielded values and the entry is proven.
+498	pad	HOLLOW	no	yes	yes	The model evaluates the fill value and Val(maximum length) once and reuses them, while the Julia body constructs both separately for each fill_to_length call.
+502	pad	HOLLOW	no	yes	yes	The model evaluates the fill value and Val(maximum length) once and reuses them, while the Julia body constructs all three separately for the three fill_to_length calls.
+507	resolve	FAITHFUL	yes	yes	yes	The model returns the matching-rank array and both count tuples unchanged and the entry is proven.
+510	resolve	FAITHFUL	yes	yes	yes	The model evaluates size and both tuple conversions before padding, reshaping, and returning the padded counts, and the entry is proven.
+514	resolve	FAITHFUL	yes	yes	yes	The model returns the array with both absent counts unchanged and the entry is proven.
+517	resolve	FAITHFUL	yes	yes	yes	The model converts and pads outer, reshapes to the padded dimensions, and preserves absent inner, and the entry is proven.
+521	resolve	FAITHFUL	yes	yes	yes	The model converts and pads inner, reshapes to the padded dimensions, and preserves absent outer, and the entry is proven.
+526	check	FAITHFUL	yes	yes	yes	The model preserves the one-based, integer, negative-count, and rank checks for inner and outer in source order, and the entry is proven.
+554	repeat_inner_outer	FAITHFUL	yes	yes	yes	The model returns the original array when both repetition counts are absent and the entry is proven.
+555	repeat_inner_outer	FAITHFUL	yes	yes	yes	The model calls repeat_outer when only outer counts are present and the entry is proven.
+556	repeat_inner_outer	FAITHFUL	yes	yes	yes	The model calls repeat_inner when only inner counts are present and the entry is proven.
+557	repeat_inner_outer	FAITHFUL	yes	yes	yes	The model completes repeat_inner before passing its result to repeat_outer and the entry is proven.
+559	repeat_outer	HOLLOW	no	yes	yes	The model computes only each block's starting row and column, omitting the source body's row-end and column-end arithmetic and range construction.
+573	repeat_outer	FAITHFUL	yes	yes	yes	The model preserves checked allocation and computes every destination slice before assigning the source vector, and the entry is proven.
+583	repeat_outer	HOLLOW	no	yes	yes	The model iterates repetition targets outside source indices, reversing the Julia body's outer source loop and inner repetition loop.
+599	repeat_inner	HOLLOW	no	yes	yes	The model iterates inner-copy targets outside source indices, reversing the Julia body's outer source loop and inner copy loop.

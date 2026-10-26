@@ -1,0 +1,44 @@
+file	line	endline	name	signature	status	entry	note
+base/strings/io.jl	32	40	print	print(io::IO, x)	modelled	showcov-strings-io-l32	method-specific source-order model
+base/strings/io.jl	42	54	print	print(io::IO, xs...)	modelled	showcov-strings-io-l42	method-specific source-order model
+base/strings/io.jl	77	77	println	println(io::IO, xs...)	modelled	showcov-strings-io-l77	method-specific source-order model
+base/strings/io.jl	104	114	sprint	sprint(f::Function, args...; context=nothing, sizehint::Integer=0)	modelled	showcov-strings-io-l104	method-specific source-order model
+base/strings/io.jl	116	132	_str_sizehint	_str_sizehint(x)	modelled	showcov-strings-io-l116	method-specific source-order model
+base/strings/io.jl	134	148	print_to_string	print_to_string(xs...)	modelled	showcov-strings-io-l134	method-specific source-order model
+base/strings/io.jl	150	165	string_with_env	string_with_env(env, xs...)	modelled	showcov-strings-io-l150	method-specific source-order model
+base/strings/io.jl	186	186	string	string(xs...)	modelled	showcov-strings-io-l186	method-specific source-order model
+base/strings/io.jl	188	188	string	string(a::Symbol)	modelled	showcov-strings-io-l188	method-specific source-order model
+base/strings/io.jl	192	192	print	print(io::IO, s::AbstractString)	modelled	showcov-strings-io-l192	method-specific source-order model
+base/strings/io.jl	193	193	write	write(io::IO, s::AbstractString)	modelled	showcov-strings-io-l193	method-specific source-order model
+base/strings/io.jl	194	194	show	show(io::IO, s::AbstractString)	modelled	showcov-strings-io-l194	method-specific source-order model
+base/strings/io.jl	197	236	show	"show( io :: IO, mime :: MIME""text/plain"", str :: AbstractString; limit :: Union{Int, Nothing} = nothing, )"	modelled	showcov-strings-io-l197	method-specific source-order model
+base/strings/io.jl	217	217	skip_text	skip_text(skip)	modelled	showcov-strings-io-l217	method-specific source-order model
+base/strings/io.jl	242	245	write	write(io::IO, s::Union{String,SubString{String}}; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	showcov-strings-io-l242	method-specific source-order model
+base/strings/io.jl	246	246	print	print(io::IO, s::Union{String,SubString{String}})	modelled	showcov-strings-io-l246	method-specific source-order model
+base/strings/io.jl	284	284	repr	repr(x; context=nothing)	modelled	showcov-strings-io-l284	method-specific source-order model
+base/strings/io.jl	286	286	limitrepr	limitrepr(x)	modelled	showcov-strings-io-l286	method-specific source-order model
+base/strings/io.jl	306	306	IOBuffer	IOBuffer(str::String)	modelled	showcov-strings-io-l306	method-specific source-order model
+base/strings/io.jl	307	307	IOBuffer	IOBuffer(s::SubString{String})	modelled	showcov-strings-io-l307	method-specific source-order model
+base/strings/io.jl	330	345	join	join(io::IO, iterator, delim, last)	modelled	showcov-strings-io-l330	method-specific source-order model
+base/strings/io.jl	346	354	join	"join(io::IO, iterator, delim="""")"	modelled	showcov-strings-io-l346	method-specific source-order model
+base/strings/io.jl	356	374	_join_preserve_annotations	_join_preserve_annotations(iterator, args...)	modelled	showcov-strings-io-l356	method-specific source-order model
+base/strings/io.jl	378	387	_join_preserve_annotations	_join_preserve_annotations(iterator::Tuple, args...)	modelled	showcov-strings-io-l378	method-specific source-order model
+base/strings/io.jl	389	389	join	join(iterator)	modelled	showcov-strings-io-l389	method-specific source-order model
+base/strings/io.jl	390	390	join	join(iterator, delim)	modelled	showcov-strings-io-l390	method-specific source-order model
+base/strings/io.jl	391	391	join	join(iterator, delim, last)	modelled	showcov-strings-io-l391	method-specific source-order model
+base/strings/io.jl	395	395	need_full_hex	need_full_hex(c::Union{Nothing, AbstractChar})	modelled	showcov-strings-io-l395	method-specific source-order model
+base/strings/io.jl	396	397	escape_nul	escape_nul(c::Union{Nothing, AbstractChar})	modelled	showcov-strings-io-l396	method-specific source-order model
+base/strings/io.jl	459	486	escape_string	"escape_string(io::IO, s::AbstractString, esc=""""; keep = (), ascii::Bool=false, fullhex::Bool=false)"	modelled	showcov-strings-io-l459	method-specific source-order model
+base/strings/io.jl	488	489	escape_string	"escape_string(s::AbstractString, esc=('\""',); keep = (), ascii::Bool=false, fullhex::Bool=false)"	modelled	showcov-strings-io-l488	method-specific source-order model
+base/strings/io.jl	491	495	print_quoted	print_quoted(io, s::AbstractString)	modelled	showcov-strings-io-l491	method-specific source-order model
+base/strings/io.jl	535	591	unescape_string	unescape_string(io::IO, s::AbstractString, keep = ())	modelled	showcov-strings-io-l535	method-specific source-order model
+base/strings/io.jl	592	593	unescape_string	unescape_string(s::AbstractString, keep = ())	modelled	showcov-strings-io-l592	method-specific source-order model
+base/strings/io.jl	613	616	b_str	b_str(s::String)	modelled	showcov-strings-io-l613	method-specific source-order model
+base/strings/io.jl	643	643	raw_str	raw_str(s)	modelled	showcov-strings-io-l643	method-specific source-order model
+base/strings/io.jl	663	693	escape_raw_string	"escape_raw_string(io::IO, str::AbstractString, delim::Char='""')"	modelled	showcov-strings-io-l663	method-specific source-order model
+base/strings/io.jl	694	697	escape_raw_string	"escape_raw_string(str::AbstractString, delim::Char='""')"	modelled	showcov-strings-io-l694	method-specific source-order model
+base/strings/io.jl	719	731	indentation	indentation(str::AbstractString; tabwidth=8)	modelled	showcov-strings-io-l719	method-specific source-order model
+base/strings/io.jl	749	803	unindent	unindent(str::AbstractString, indent::Int; tabwidth=8)	modelled	showcov-strings-io-l749	method-specific source-order model
+base/strings/io.jl	805	816	String	String(a::AbstractVector{Char})	modelled	showcov-strings-io-l805	method-specific source-order model
+base/strings/io.jl	818	824	String	String(chars::AbstractVector{<:AbstractChar})	modelled	showcov-strings-io-l818	method-specific source-order model
+base/strings/io.jl	826	847	AnnotatedString	AnnotatedString(chars::AbstractVector{C}) where {C<:AbstractChar}	modelled	showcov-strings-io-l826	method-specific source-order model

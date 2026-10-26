@@ -1,0 +1,4 @@
+file	line	endline	name	signature	status	entry	note
+base/threads_overloads.jl	41	63	Threads.foreach	Threads.foreach(f, channel::Channel; schedule::Threads.AbstractSchedule=Threads.FairSchedule(), ntasks=Threads.threadpoolsize())	modelled	concurrencycov-threads-overloads-foreach	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/threads_overloads.jl	65	65	_apply_for_schedule	_apply_for_schedule(::Threads.StaticSchedule)	modelled	concurrencycov-threads-overloads-static	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/threads_overloads.jl	66	66	_apply_for_schedule	_apply_for_schedule(::Threads.FairSchedule)	modelled	concurrencycov-threads-overloads-fair	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.

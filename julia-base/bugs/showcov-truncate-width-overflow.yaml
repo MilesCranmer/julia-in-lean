@@ -1,0 +1,57 @@
+id: showcov-truncate-width-overflow
+title: "Limited Dict/Set display overflows the line when an entry ends in a wide character"
+priority: P3
+kind: wrong-result
+area: ShowCov
+files: [base/show.jl]
+functions: ["_truncate_at_width_or_chars", "show(::IO, ::MIME\"text/plain\", ::AbstractDict)", "show(::IO, ::MIME\"text/plain\", ::AbstractSet)"]
+summary: |
+  _truncate_at_width_or_chars(ignore_ANSI, str, width, ...) returns str unchanged whenever
+  the loop reached the last character, even if that character made the width exceed
+  `width`. A double-width last character therefore yields a result one column too wide,
+  and limited Dict, Set, keys and values display lines overflow the terminal width. With
+  rpad=true and a string cut at a newline the padding is computed before the truncation
+  mark is added, so the result is also one column too wide.
+likelihood: |
+  Moderate for CJK or emoji data shown in narrow terminals: every entry whose shown text
+  ends in a wide character at the cut-off point overflows by one column.
+maybe_intended: ""
+reproducer: |
+  io = IOBuffer()
+  show(IOContext(io, :limit => true, :displaysize => (24, 12)), MIME"text/plain"(), Dict(:k => Symbol("ab中")))
+  split(String(take!(io)), '\n')   # second line "  :k => :ab中" has textwidth 13
+  Base._truncate_at_width_or_chars(false, "ab中", 3)          # "ab中", textwidth 4
+  Base._truncate_at_width_or_chars(false, "abc\n", 10, true)  # "abc…       ", textwidth 11
+output:
+  release: |
+    Dict lines: SubString{String}["Dict{Symbol, Symbol} with 1 entry:", "  :k => :ab中"] widths [34, 13] (display width 12)
+    Set lines:  SubString{String}["Set{Symbol} with 1 element:", "  :abcd中"] widths [27, 9] (display width 8)
+    _truncate_at_width_or_chars(false, "ab中", 3) = "ab中", textwidth 4
+    _truncate_at_width_or_chars(false, "abc\n", 10, true) = "abc…       ", textwidth 11
+    REPRODUCED showcov-truncate-width-overflow
+  nightly: |
+    Dict lines: SubString{String}["Dict{Symbol, Symbol} with 1 entry:", "  :k => :ab中"] widths [34, 13] (display width 12)
+    Set lines:  SubString{String}["Set{Symbol} with 1 element:", "  :abcd中"] widths [27, 9] (display width 8)
+    _truncate_at_width_or_chars(false, "ab中", 3) = "ab中", textwidth 4
+    _truncate_at_width_or_chars(false, "abc\n", 10, true) = "abc…       ", textwidth 11
+    REPRODUCED showcov-truncate-width-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  "ab…" (textwidth 3) for width 3, a Dict line "  :k => :ab…" of width 12, and
+  "abc…      " (textwidth 10) for the padded case.
+promised_by: |
+  invariant: the function truncates str to `width` columns (base/show.jl:104, used by the
+  Dict/Set/keys display at base/show.jl:160,219,227,271 to fit entries in displaysize(io)).
+cause: |
+  base/show.jl:130 tests lastidx < lastindex(str) instead of whether wid exceeded width,
+  so a last character that overflows is kept; base/show.jl:128 pads by width - wid without
+  counting the truncation mark added when the string is cut at a newline.
+possible_fix: |
+  Return the untruncated string only when wid <= width, and subtract the truncation mark
+  width from the padding when truncmark is appended.
+duplicates:
+  issues: []
+  queries: ["_truncate_at_width_or_chars", "truncate_at_width", "truncate width wide character Dict display", "Dict display truncate wide characters"]
+lean:
+  property: JuliaLean.ShowCov.TruncateFitsWidth
+  theorem: JuliaLean.ShowCov.truncateFitsWidth_refuted

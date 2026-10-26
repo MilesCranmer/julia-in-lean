@@ -1,0 +1,23 @@
+file	line	endline	name	signature	status	entry	note
+base/some.jl	15	15	Some	Some(::Type{T}) where {T}	modelled	reducecov-some-l15	
+base/some.jl	17	17	nonnothingtype	nonnothingtype(@nospecialize(T::Type))	modelled	reducecov-some-l17	
+base/some.jl	18	18	promote_rule	promote_rule(T::Type{Nothing}, S::Type)	modelled	reducecov-some-l18	
+base/some.jl	19	25	promote_rule	promote_rule(T::Type{>:Nothing}, S::Type)	modelled	reducecov-some-l19	
+base/some.jl	27	32	nonnothingtype_checked	nonnothingtype_checked(T::Type)	modelled	reducecov-some-l27	
+base/some.jl	34	34	convert	convert(::Type{T}, x::T) where {T>:Nothing}	modelled	reducecov-some-l34	
+base/some.jl	35	35	convert	convert(::Type{T}, x) where {T>:Nothing}	modelled	reducecov-some-l35	
+base/some.jl	36	36	convert	convert(::Type{Some{T}}, x::Some{T}) where {T}	modelled	reducecov-some-l36	
+base/some.jl	37	37	convert	convert(::Type{Some{T}}, x::Some) where {T}	modelled	reducecov-some-l37	
+base/some.jl	39	47	show	show(io::IO, x::Some)	modelled	missingchar-some-show-typeinfo	
+base/some.jl	54	54	notnothing	notnothing(x::Any)	modelled	reducecov-some-l54	
+base/some.jl	55	55	notnothing	notnothing(::Nothing)	modelled	reducecov-some-l55	
+base/some.jl	67	67	isnothing	isnothing(x)	modelled	reducecov-some-l67	
+base/some.jl	97	97	something	something	excluded		no-behaviour: generic function declaration installs no callable method
+base/some.jl	99	99	something	something()	modelled	reducecov-some-l99	
+base/some.jl	100	100	something	something(x::Nothing, y...)	modelled	reducecov-some-l100	
+base/some.jl	101	101	something	something(x::Some, y...)	modelled	reducecov-some-l101	
+base/some.jl	102	102	something	something(x::Any, y...)	modelled	reducecov-some-l102	
+base/some.jl	138	167	something	something(args...)	modelled	reducecov-some-l138	
+base/some.jl	169	169	==	==(a::Some, b::Some)	modelled	reducecov-some-l169	
+base/some.jl	170	170	isequal	isequal(a::Some, b::Some)::Bool	modelled	missingchar-some-hash-isequal	
+base/some.jl	172	172	hash	hash(s::Some, h::UInt)	modelled	missingchar-some-hash-isequal	

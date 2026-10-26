@@ -1,0 +1,20 @@
+file	line	endline	name	signature	status	entry	note
+base/cpuid.jl	20	20	Base.:<=	Base.:<=(a::ISA, b::ISA)	modelled	runtimecov-cpuid	
+base/cpuid.jl	21	21	Base.:<	Base.:<(a::ISA, b::ISA)	modelled	runtimecov-cpuid	
+base/cpuid.jl	22	22	Base.isless	Base.isless(a::ISA, b::ISA)	modelled	runtimecov-cpuid,runtimecov-isa-isless-order	
+base/cpuid.jl	31	43	_featurebytes_to_isa	_featurebytes_to_isa(buf::Vector{UInt8})	modelled	runtimecov-cpuid	
+base/cpuid.jl	52	61	_cross_lookup_cpu	_cross_lookup_cpu(arch::String, name::String)	modelled	runtimecov-cpuid	
+base/cpuid.jl	68	79	_build_bit_to_name	_build_bit_to_name(arch::String)	modelled	runtimecov-cpuid	
+base/cpuid.jl	97	97	feature_names	feature_names()	modelled	runtimecov-cpuid	
+base/cpuid.jl	98	98	feature_names	feature_names(isa::ISA)	modelled	runtimecov-cpuid	
+base/cpuid.jl	99	102	feature_names	feature_names(arch::String, cpu::String)	modelled	runtimecov-cpuid	
+base/cpuid.jl	103	106	feature_names	feature_names(arch::String, isa::ISA)	modelled	runtimecov-cpuid	
+base/cpuid.jl	114	120	_lookup_cpu	_lookup_cpu(name::String)	modelled	runtimecov-cpuid	
+base/cpuid.jl	127	132	_host_isa	_host_isa()	modelled	runtimecov-cpuid	
+base/cpuid.jl	137	147	_make_isa_list	_make_isa_list(arch::String, entries::Vector{Pair{String,String}})	modelled	runtimecov-cpuid	
+base/cpuid.jl	179	179	test_cpu_feature	test_cpu_feature(feature::UInt32)	modelled	runtimecov-cpuid	
+base/cpuid.jl	192	196	_cpu_model_features	_cpu_model_features(name::String)	modelled	runtimecov-cpuid	
+base/cpuid.jl	198	203	_cpu_supports_name	_cpu_supports_name(x)	modelled	runtimecov-cpuid	
+base/cpuid.jl	258	283	cpu_supports	cpu_supports(args...)	modelled	runtimecov-cpuid	
+base/cpuid.jl	286	302	normalize_arch	normalize_arch(arch::String)	modelled	runtimecov-cpuid	
+base/cpuid.jl	309	311	cpu_isa	cpu_isa()	modelled	runtimecov-cpuid	

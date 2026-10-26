@@ -1,0 +1,363 @@
+file	line	endline	name	signature	status	entry	note
+base/boot.jl	297	297	Typeof	Typeof	excluded		no-behaviour: declares the generic function without a method body.
+base/boot.jl	300	307	(f::typeof(Typeof))	(f::typeof(Typeof))(x)	modelled	bootcov-boot-typeof	
+base/boot.jl	313	313	TypeEqOf	TypeEqOf	excluded		no-behaviour: declares the generic function without a method body.
+base/boot.jl	316	319	(f::typeof(TypeEqOf))	(f::typeof(TypeEqOf))(x)	modelled	bootcov-boot-typeof	
+base/boot.jl	322	322	iterate	iterate	excluded		no-behaviour: declares the generic function without a method body.
+base/boot.jl	324	326	nospecialize	nospecialize(x)	modelled	bootcov-boot-markers	
+base/boot.jl	327	327	Expr	Expr(@nospecialize args...)	modelled	bootcov-boot-markers	
+base/boot.jl	329	329	latestworld	latestworld()	modelled	bootcov-boot-markers	
+base/boot.jl	331	331	_is_internal	_is_internal(__module__)	modelled	bootcov-boot-effect-metas	
+base/boot.jl	333	346	_total_meta	_total_meta()	modelled	bootcov-boot-effect-metas	
+base/boot.jl	348	361	_foldable_meta	_foldable_meta()	modelled	bootcov-boot-effect-metas	
+base/boot.jl	363	363	inline	inline()	modelled	bootcov-boot-markers	
+base/boot.jl	364	364	noinline	noinline()	modelled	bootcov-boot-markers	
+base/boot.jl	365	365	nospecializeinfer	nospecializeinfer()	modelled	bootcov-boot-markers	
+base/boot.jl	367	367	_boundscheck	_boundscheck()	modelled	bootcov-boot-markers	
+base/boot.jl	370	370	TypeVar	TypeVar(@nospecialize(n))	modelled	bootcov-boot-typevar-unionall	
+base/boot.jl	371	371	TypeVar	TypeVar(@nospecialize(n), @nospecialize(ub))	modelled	bootcov-boot-typevar-unionall	
+base/boot.jl	372	372	TypeVar	TypeVar(@nospecialize(n), @nospecialize(lb), @nospecialize(ub))	modelled	bootcov-boot-typevar-unionall	
+base/boot.jl	373	373	UnionAll	UnionAll(@nospecialize(v), @nospecialize(t))	modelled	bootcov-boot-typevar-unionall	
+base/boot.jl	381	381	convert	convert(::Type{Any}, @nospecialize(x))	modelled	bootcov-boot-identity	
+base/boot.jl	382	382	convert	convert(::Type{T}, x::T) where {T}	modelled	bootcov-boot-identity	
+base/boot.jl	383	383	cconvert	cconvert(::Type{T}, x) where {T}	modelled	bootcov-boot-identity	
+base/boot.jl	384	384	unsafe_convert	unsafe_convert(::Type{T}, x::T) where {T}	modelled	bootcov-boot-identity	
+base/boot.jl	387	387	_typeof_captured_variable	_typeof_captured_variable(@nospecialize t)	modelled	bootcov-boot-typeof	
+base/boot.jl	390	390	kwcall	kwcall	excluded		no-behaviour: declares the generic function without a method body.
+base/boot.jl	392	392	kwfunc	kwfunc(@nospecialize(f))	excluded		deprecated: the comment at base/boot.jl:391 marks kwfunc and kwftype as deprecated internal functions; use Core.kwcall.
+base/boot.jl	393	393	kwftype	kwftype(@nospecialize(t))	excluded		deprecated: the comment at base/boot.jl:391 marks kwfunc and kwftype as deprecated internal functions; use Core.kwcall.
+base/boot.jl	398	398	Union{}	Union{}(a...)	modelled	bootcov-boot-identity	
+base/boot.jl	399	399	kwcall	kwcall(kwargs, ::Type{Union{}}, a...)	modelled	bootcov-boot-identity	
+base/boot.jl	403	409	resolve_typegroup	resolve_typegroup(mod::Module, typevars::SimpleVector, struct_infos::SimpleVector, old_types::SimpleVector)	modelled	bootcov-boot-typeapp	
+base/boot.jl	420	422	TypeApp	TypeApp(@nospecialize(head), @nospecialize(param))	modelled	bootcov-boot-typeapp	
+base/boot.jl	426	434	_contains_typeapp	_contains_typeapp(@nospecialize(x))	modelled	bootcov-boot-typeapp	
+base/boot.jl	436	467	apply_type_or_typeapp	apply_type_or_typeapp(@nospecialize(tc), @nospecialize params...)	modelled	bootcov-boot-typeapp	
+base/boot.jl	472	472	ErrorException	ErrorException(msg::AbstractString)	modelled	bootcov-boot-exceptions	
+base/boot.jl	478	478	BoundsError	BoundsError()	modelled	bootcov-boot-exceptions	
+base/boot.jl	479	479	BoundsError	BoundsError(@nospecialize(a))	modelled	bootcov-boot-exceptions	
+base/boot.jl	480	480	BoundsError	BoundsError(@nospecialize(a), i)	modelled	bootcov-boot-exceptions	
+base/boot.jl	483	483	DivideError	DivideError()	modelled	bootcov-boot-exceptions	
+base/boot.jl	486	486	OutOfMemoryError	OutOfMemoryError()	modelled	bootcov-boot-exceptions	
+base/boot.jl	489	489	ReadOnlyMemoryError	ReadOnlyMemoryError()	modelled	bootcov-boot-exceptions	
+base/boot.jl	492	492	SegmentationFault	SegmentationFault()	modelled	bootcov-boot-exceptions	
+base/boot.jl	495	495	StackOverflowError	StackOverflowError()	modelled	bootcov-boot-exceptions	
+base/boot.jl	498	498	UndefRefError	UndefRefError()	modelled	bootcov-boot-exceptions	
+base/boot.jl	504	504	UndefVarError	UndefVarError(var::Symbol)	modelled	bootcov-boot-exceptions	
+base/boot.jl	505	505	UndefVarError	UndefVarError(var::Symbol, @nospecialize scope)	modelled	bootcov-boot-exceptions	
+base/boot.jl	509	509	ConcurrencyViolationError	ConcurrencyViolationError(msg::AbstractString)	modelled	bootcov-boot-exceptions	
+base/boot.jl	513	513	MissingCodeError	MissingCodeError(mi::MethodInstance)	modelled	bootcov-boot-exceptions	
+base/boot.jl	516	516	InterruptException	InterruptException()	modelled	bootcov-boot-exceptions	
+base/boot.jl	521	521	DomainError	DomainError(@nospecialize(val))	modelled	bootcov-boot-exceptions	
+base/boot.jl	522	522	DomainError	DomainError(@nospecialize(val), @nospecialize(msg))	modelled	bootcov-boot-exceptions	
+base/boot.jl	534	535	TypeError	TypeError(func, context, @nospecialize(expected::Type), @nospecialize(got))	modelled	bootcov-boot-exceptions	
+base/boot.jl	537	538	TypeError	TypeError(where, @nospecialize(expected::Type), @nospecialize(got))	modelled	bootcov-boot-exceptions	
+base/boot.jl	542	542	InexactError	InexactError(f::Symbol, @nospecialize(args...))	modelled	bootcov-boot-exceptions	
+base/boot.jl	546	546	OverflowError	OverflowError(msg::AbstractString)	modelled	bootcov-boot-exceptions	
+base/boot.jl	551	551	ArgumentError	ArgumentError(msg::AbstractString)	modelled	bootcov-boot-exceptions	
+base/boot.jl	555	555	UndefKeywordError	UndefKeywordError(var::Symbol)	modelled	bootcov-boot-exceptions	
+base/boot.jl	565	565	MethodError	MethodError(@nospecialize(f), @nospecialize(args), world::UInt)	modelled	bootcov-boot-exceptions	
+base/boot.jl	567	567	MethodError	MethodError(@nospecialize(f), @nospecialize(args))	modelled	bootcov-boot-exceptions	
+base/boot.jl	571	571	AssertionError	AssertionError(msg::AbstractString)	modelled	bootcov-boot-exceptions	
+base/boot.jl	573	573	AssertionError	AssertionError()	modelled	bootcov-boot-exceptions	
+base/boot.jl	578	578	FieldError	FieldError(type::DataType, field::Symbol)	modelled	bootcov-boot-exceptions	
+base/boot.jl	587	587	LoadError	LoadError(file::AbstractString, line::Int, @nospecialize(error))	modelled	bootcov-boot-exceptions	
+base/boot.jl	593	593	InitError	InitError(mod::Symbol, @nospecialize(error))	modelled	bootcov-boot-exceptions	
+base/boot.jl	599	599	ABIOverride	ABIOverride(@nospecialize(abi::Type), def::MethodInstance)	modelled	bootcov-boot-exceptions	
+base/boot.jl	603	603	PrecompilableError	PrecompilableError()	modelled	bootcov-boot-exceptions	
+base/boot.jl	606	606	TrimFailure	TrimFailure()	modelled	bootcov-boot-exceptions	
+base/boot.jl	611	611	String	String(s::String)	modelled	bootcov-boot-wrappers	
+base/boot.jl	614	614	Nothing	Nothing()	modelled	bootcov-boot-wrappers	
+base/boot.jl	617	617	getptls	getptls()	modelled	bootcov-boot-handles	
+base/boot.jl	619	619	include	include(m::Module, fname::String)	modelled	bootcov-boot-handles	
+base/boot.jl	620	620	eval	eval(m::Module, @nospecialize(e))	modelled	bootcov-boot-handles	
+base/boot.jl	624	624	EvalInto	EvalInto(m::Module)	modelled	bootcov-boot-wrappers	
+base/boot.jl	626	626	(this::EvalInto)	(this::EvalInto)(@nospecialize(e))	modelled	bootcov-boot-handles	
+base/boot.jl	630	630	Box	Box(@nospecialize(x))	modelled	bootcov-boot-wrappers	
+base/boot.jl	631	631	Box	Box()	modelled	bootcov-boot-wrappers	
+base/boot.jl	638	638	WeakRef	WeakRef()	modelled	bootcov-boot-wrappers	
+base/boot.jl	639	640	WeakRef	WeakRef(@nospecialize(v))	modelled	bootcov-boot-wrappers	
+base/boot.jl	643	643	Tuple{}	Tuple{}()	modelled	bootcov-boot-wrappers	
+base/boot.jl	647	647	VecElement{T}	VecElement{T}(value::T) where {T}	modelled	bootcov-boot-wrappers	
+base/boot.jl	649	649	VecElement	VecElement(arg::T) where {T}	modelled	bootcov-boot-wrappers	
+base/boot.jl	654	654	Const	Const(@nospecialize(v))	modelled	bootcov-boot-wrappers	
+base/boot.jl	664	664	_PartialStruct	_PartialStruct(@nospecialize(typ), undef::Array{Union{Nothing,Bool}, 1}, fields::Array{Any, 1})	modelled	bootcov-boot-wrappers	
+base/boot.jl	671	671	InterConditional	InterConditional(slot::Int, @nospecialize(thentype), @nospecialize(elsetype))	modelled	bootcov-boot-wrappers	
+base/boot.jl	679	679	InterMustAlias	InterMustAlias(slot::Int, @nospecialize(vartyp), fldidx::Int, @nospecialize(fldtyp))	modelled	bootcov-boot-wrappers	
+base/boot.jl	687	687	PartialOpaque	PartialOpaque(@nospecialize(typ::Type), @nospecialize(env), parent::MethodInstance, source)	modelled	bootcov-boot-wrappers	
+base/boot.jl	692	692	PartialTask	PartialTask(@nospecialize(fetch_type))	modelled	bootcov-boot-wrappers	
+base/boot.jl	696	696	PossiblyAmbiguous	PossiblyAmbiguous()	modelled	bootcov-boot-exceptions	
+base/boot.jl	700	700	GotoNode	GotoNode(label::Int)	modelled	bootcov-boot-ir-nodes	
+base/boot.jl	701	701	NewvarNode	NewvarNode(slot::SlotNumber)	modelled	bootcov-boot-ir-nodes	
+base/boot.jl	702	702	QuoteNode	QuoteNode(@nospecialize value)	modelled	bootcov-boot-ir-nodes	
+base/boot.jl	703	703	SSAValue	SSAValue(id::Int)	modelled	bootcov-boot-ir-nodes	
+base/boot.jl	704	704	Argument	Argument(n::Int)	modelled	bootcov-boot-ir-nodes	
+base/boot.jl	705	705	ReturnNode	ReturnNode(@nospecialize val)	modelled	bootcov-boot-ir-nodes	
+base/boot.jl	706	706	ReturnNode	ReturnNode()	modelled	bootcov-boot-ir-nodes	
+base/boot.jl	707	707	GotoIfNot	GotoIfNot(@nospecialize(cond), dest::Int)	modelled	bootcov-boot-ir-nodes	
+base/boot.jl	708	708	EnterNode	EnterNode(dest::Int)	modelled	bootcov-boot-ir-nodes	
+base/boot.jl	709	709	EnterNode	EnterNode(dest::Int, @nospecialize(scope))	modelled	bootcov-boot-ir-nodes	
+base/boot.jl	710	710	LineNumberNode	LineNumberNode(l::Int)	modelled	bootcov-boot-ir-nodes	
+base/boot.jl	711	714	LineNumberNode	LineNumberNode(l::Int, @nospecialize(f))	modelled	bootcov-boot-ir-nodes	
+base/boot.jl	715	716	DebugInfo	DebugInfo(def::Union{Method,MethodInstance,Symbol}, linetable::Union{Nothing,DebugInfo,String}, edges::SimpleVector, codelocs::String)	modelled	bootcov-boot-ir-nodes	
+base/boot.jl	717	718	DebugInfo	DebugInfo(def::Union{Method,MethodInstance,Symbol})	modelled	bootcov-boot-ir-nodes	
+base/boot.jl	719	719	SlotNumber	SlotNumber(n::Int)	modelled	bootcov-boot-ir-nodes	
+base/boot.jl	720	720	PhiNode	PhiNode(edges::Array{Int32, 1}, values::Array{Any, 1})	modelled	bootcov-boot-ir-nodes	
+base/boot.jl	721	721	PiNode	PiNode(@nospecialize(val), @nospecialize(typ))	modelled	bootcov-boot-ir-nodes	
+base/boot.jl	722	722	PhiCNode	PhiCNode(values::Array{Any, 1})	modelled	bootcov-boot-ir-nodes	
+base/boot.jl	723	723	UpsilonNode	UpsilonNode(@nospecialize(val))	modelled	bootcov-boot-ir-nodes	
+base/boot.jl	724	724	UpsilonNode	UpsilonNode()	modelled	bootcov-boot-ir-nodes	
+base/boot.jl	725	725	MethodMatch	MethodMatch(@nospecialize(spec_types), sparams::SimpleVector, method::Method, fully_covers::Bool)	modelled	bootcov-boot-ir-nodes	
+base/boot.jl	736	736	LineInfoNode	LineInfoNode(mod::Module, @nospecialize(method), file::Symbol, line::Int32, inlined_at::Int32)	modelled	bootcov-boot-ir-nodes	
+base/boot.jl	740	749	CodeInstance	CodeInstance( mi::Union{MethodInstance, ABIOverride}, owner, @nospecialize(rettype), @nospecialize(exctype), @nospecialize(inferred_const), @nospecialize(inferred), const_flags::Int32, min_world::UInt, max_world::UInt, effects::UInt32, @nospecialize(analysis_results), di::Union{DebugInfo,Nothing}, edges::SimpleVector)	modelled	bootcov-boot-handles	
+base/boot.jl	750	750	GlobalRef	GlobalRef(m::Module, s::Symbol)	modelled	bootcov-boot-handles	
+base/boot.jl	751	751	Module	Module(name::Symbol=:anonymous, std_imports::Bool=true, default_names::Bool=true)	modelled	bootcov-boot-handles	
+base/boot.jl	757	757	UndefInitializer	UndefInitializer()	modelled	bootcov-boot-exceptions	
+base/boot.jl	762	762	(self::Type{GenericMemory{kind,T,addrspace}})	(self::Type{GenericMemory{kind,T,addrspace}})(::UndefInitializer, m::Int) where {T,addrspace,kind}	modelled	bootcov-boot-memory	
+base/boot.jl	763	763	(self::Type{GenericMemory{kind,T,addrspace}})	(self::Type{GenericMemory{kind,T,addrspace}})(::UndefInitializer, d::NTuple{1,Int}) where {T,kind,addrspace}	modelled	bootcov-boot-memory	
+base/boot.jl	765	765	(self::Type{GenericMemory{kind,T,addrspace}})	(self::Type{GenericMemory{kind,T,addrspace}})() where {T,kind,addrspace}	modelled	bootcov-boot-memory	
+base/boot.jl	768	768	memoryref	memoryref(mem::GenericMemory)	modelled	bootcov-boot-memoryref	
+base/boot.jl	769	769	memoryref	memoryref(mem::GenericMemory, i::Integer)	modelled	bootcov-boot-memoryref	
+base/boot.jl	770	770	memoryref	memoryref(ref::GenericMemoryRef, i::Integer)	modelled	bootcov-boot-memoryref	
+base/boot.jl	771	771	GenericMemoryRef	GenericMemoryRef(mem::GenericMemory)	modelled	bootcov-boot-memoryref	
+base/boot.jl	772	772	GenericMemoryRef	GenericMemoryRef(mem::GenericMemory, i::Integer)	modelled	bootcov-boot-memoryref	
+base/boot.jl	773	773	GenericMemoryRef	GenericMemoryRef(mem::GenericMemoryRef, i::Integer)	modelled	bootcov-boot-memoryref	
+base/boot.jl	779	779	new_as_memoryref	new_as_memoryref(self::Type{GenericMemoryRef{kind,T,addrspace}}, m::Int) where {T,kind,addrspace}	modelled	bootcov-boot-array-ctors	
+base/boot.jl	782	782	_checked_mul_dims	_checked_mul_dims()	modelled	bootcov-boot-checked-dims	
+base/boot.jl	783	783	_checked_mul_dims	_checked_mul_dims(m::Int)	modelled	bootcov-boot-checked-dims	
+base/boot.jl	784	791	_checked_mul_dims	_checked_mul_dims(m::Int, n::Int)	modelled	bootcov-boot-checked-dims	
+base/boot.jl	792	809	_checked_mul_dims	_checked_mul_dims(m::Int, d::Int...)	modelled	bootcov-boot-checked-dims	
+base/boot.jl	812	812	checked_dims	checked_dims()	modelled	bootcov-boot-checked-dims	
+base/boot.jl	813	813	checked_dims	checked_dims(m::Int)	modelled	bootcov-boot-checked-dims	
+base/boot.jl	814	818	checked_dims	checked_dims(d::Int...)	modelled	bootcov-boot-checked-dims	
+base/boot.jl	821	824	(self::Type{Array{T,1}})	(self::Type{Array{T,1}})(::UndefInitializer, m::Int) where {T}	modelled	bootcov-boot-array-ctors	
+base/boot.jl	825	827	(self::Type{Array{T,2}})	(self::Type{Array{T,2}})(::UndefInitializer, m::Int, n::Int) where {T}	modelled	bootcov-boot-array-ctors	
+base/boot.jl	828	830	(self::Type{Array{T,3}})	(self::Type{Array{T,3}})(::UndefInitializer, m::Int, n::Int, o::Int) where {T}	modelled	bootcov-boot-array-ctors	
+base/boot.jl	831	833	(self::Type{Array{T, N}})	(self::Type{Array{T, N}})(::UndefInitializer, d::Vararg{Int, N}) where {T, N}	modelled	bootcov-boot-array-ctors	
+base/boot.jl	835	835	(self::Type{Array{T,1}})	(self::Type{Array{T,1}})(::UndefInitializer, d::NTuple{1, Int}) where {T}	modelled	bootcov-boot-array-ctors	
+base/boot.jl	836	836	(self::Type{Array{T,2}})	(self::Type{Array{T,2}})(::UndefInitializer, d::NTuple{2, Int}) where {T}	modelled	bootcov-boot-array-ctors	
+base/boot.jl	837	837	(self::Type{Array{T,3}})	(self::Type{Array{T,3}})(::UndefInitializer, d::NTuple{3, Int}) where {T}	modelled	bootcov-boot-array-ctors	
+base/boot.jl	838	838	(self::Type{Array{T,N}})	(self::Type{Array{T,N}})(::UndefInitializer, d::NTuple{N, Int}) where {T, N}	modelled	bootcov-boot-array-ctors	
+base/boot.jl	840	840	Array{T}	Array{T}(::UndefInitializer, m::Int) where {T}	modelled	bootcov-boot-array-ctors	
+base/boot.jl	841	841	Array{T}	Array{T}(::UndefInitializer, m::Int, n::Int) where {T}	modelled	bootcov-boot-array-ctors	
+base/boot.jl	842	842	Array{T}	Array{T}(::UndefInitializer, m::Int, n::Int, o::Int) where {T}	modelled	bootcov-boot-array-ctors	
+base/boot.jl	844	844	Array{T}	Array{T}(::UndefInitializer, ::Tuple{}) where {T}	modelled	bootcov-boot-array-ctors	
+base/boot.jl	845	845	Array{T}	Array{T}(::UndefInitializer, d::NTuple{N, Int}) where {T, N}	modelled	bootcov-boot-array-ctors	
+base/boot.jl	847	847	(self::Type{Array{T, 1}})	(self::Type{Array{T, 1}})() where {T}	modelled	bootcov-boot-array-ctors	
+base/boot.jl	849	849	Array{T, N} where T	(Array{T, N} where T)(x::AbstractArray{S, N}) where {S, N}	modelled	bootcov-boot-array-conversions	
+base/boot.jl	851	851	Array	Array(A::AbstractArray{T, N}) where {T, N}	modelled	bootcov-boot-array-conversions	
+base/boot.jl	852	852	Array{T}	Array{T}(A::AbstractArray{S, N}) where {T, N, S}	modelled	bootcov-boot-array-conversions	
+base/boot.jl	854	854	AbstractArray{T}	AbstractArray{T}(A::AbstractArray{S, N}) where {T, S, N}	modelled	bootcov-boot-array-conversions	
+base/boot.jl	860	861	_Symbol	_Symbol(ptr::Ptr{UInt8}, sz::Int, root::Any)	modelled	bootcov-boot-symbol	
+base/boot.jl	864	868	Symbol	Symbol(s::String)	modelled	bootcov-boot-symbol	
+base/boot.jl	869	872	Symbol	Symbol(a::Array{UInt8, 1})	modelled	bootcov-boot-symbol	
+base/boot.jl	873	873	Symbol	Symbol(s::Symbol)	modelled	bootcov-boot-symbol	
+base/boot.jl	878	878	fail	fail()	excluded		internal-bootstrap: local helper of the bootstrap import/using `let` block (base/boot.jl:877-921), used only by _eval_import/_eval_using, whose methods base/module.jl:5-10 deletes.
+base/boot.jl	879	879	length	length(a::Array{T, 1}) where {T}	excluded		internal-bootstrap: local helper of the bootstrap import/using `let` block (base/boot.jl:877-921), used only by _eval_import/_eval_using, whose methods base/module.jl:5-10 deletes.
+base/boot.jl	880	883	getindex	getindex(A::Array, i::Int)	excluded		internal-bootstrap: local helper of the bootstrap import/using `let` block (base/boot.jl:877-921), used only by _eval_import/_eval_using, whose methods base/module.jl:5-10 deletes.
+base/boot.jl	884	884	==	x == y	excluded		internal-bootstrap: local helper of the bootstrap import/using `let` block (base/boot.jl:877-921), used only by _eval_import/_eval_using, whose methods base/module.jl:5-10 deletes.
+base/boot.jl	885	885	+	x + y	excluded		internal-bootstrap: local helper of the bootstrap import/using `let` block (base/boot.jl:877-921), used only by _eval_import/_eval_using, whose methods base/module.jl:5-10 deletes.
+base/boot.jl	886	886	<=	x <= y	excluded		internal-bootstrap: local helper of the bootstrap import/using `let` block (base/boot.jl:877-921), used only by _eval_import/_eval_using, whose methods base/module.jl:5-10 deletes.
+base/boot.jl	888	908	_eval_import	_eval_import(explicit::Bool, to::Module, from::Union{Expr, Nothing}, paths::Expr...)	excluded		internal-bootstrap: base/module.jl:5-10 deletes every method of Core._eval_import and Core._eval_using and replaces them with the full Base implementation.
+base/boot.jl	910	920	_eval_using	_eval_using(to::Module, path::Expr)	excluded		internal-bootstrap: base/module.jl:5-10 deletes every method of Core._eval_import and Core._eval_using and replaces them with the full Base implementation.
+base/boot.jl	941	945	doc	doc(x...)	modelled	bootcov-boot-doc	
+base/boot.jl	946	948	__doc__	__doc__(x)	modelled	bootcov-boot-doc	
+base/boot.jl	950	950	isbasicdoc	isbasicdoc(@nospecialize x)	modelled	bootcov-boot-doc	
+base/boot.jl	951	951	firstarg	firstarg(arg1, args...)	modelled	bootcov-boot-doc	
+base/boot.jl	952	952	iscallexpr	iscallexpr(ex::Expr)	modelled	bootcov-boot-doc	
+base/boot.jl	953	953	iscallexpr	iscallexpr(ex)	modelled	bootcov-boot-doc	
+base/boot.jl	954	957	ignoredoc	ignoredoc(source, mod, str, expr)	modelled	bootcov-boot-doc	
+base/boot.jl	960	960	atdoc!	atdoc!(λ)	modelled	bootcov-boot-doc	
+base/boot.jl	963	963	int128_str	int128_str	excluded		no-behaviour: declares the macro without a method; the string macros and @cmd get their methods in Base.
+base/boot.jl	964	964	uint128_str	uint128_str	excluded		no-behaviour: declares the macro without a method; the string macros and @cmd get their methods in Base.
+base/boot.jl	965	965	big_str	big_str	excluded		no-behaviour: declares the macro without a method; the string macros and @cmd get their methods in Base.
+base/boot.jl	968	968	cmd	cmd	excluded		no-behaviour: declares the macro without a method; the string macros and @cmd get their methods in Base.
+base/boot.jl	974	974	CoreSTDOUT	CoreSTDOUT()	modelled	bootcov-boot-printing	
+base/boot.jl	977	977	CoreSTDERR	CoreSTDERR()	modelled	bootcov-boot-printing	
+base/boot.jl	981	981	io_pointer	io_pointer(::CoreSTDOUT)	modelled	bootcov-boot-printing	
+base/boot.jl	982	982	io_pointer	io_pointer(::CoreSTDERR)	modelled	bootcov-boot-printing	
+base/boot.jl	984	985	unsafe_write	unsafe_write(io::IO, x::Ptr{UInt8}, nb::UInt)	modelled	bootcov-boot-printing	
+base/boot.jl	986	987	unsafe_write	unsafe_write(io::IO, x::Ptr{UInt8}, nb::Int)	modelled	bootcov-boot-printing	
+base/boot.jl	988	989	write	write(io::IO, x::UInt8)	modelled	bootcov-boot-printing	
+base/boot.jl	990	994	write	write(io::IO, x::String)	modelled	bootcov-boot-printing	
+base/boot.jl	996	996	show	show(io::IO, @nospecialize x)	modelled	bootcov-boot-printing	
+base/boot.jl	997	997	print	print(io::IO, x::AbstractChar)	modelled	bootcov-boot-printing	
+base/boot.jl	998	998	print	print(io::IO, x::String)	modelled	bootcov-boot-printing	
+base/boot.jl	999	999	print	print(io::IO, @nospecialize x)	modelled	bootcov-boot-printing	
+base/boot.jl	1000	1000	print	print(io::IO, @nospecialize(x), @nospecialize a...)	modelled	bootcov-boot-printing	
+base/boot.jl	1001	1001	println	println(io::IO)	modelled	bootcov-boot-printing	
+base/boot.jl	1002	1002	println	println(io::IO, @nospecialize x...)	modelled	bootcov-boot-printing	
+base/boot.jl	1004	1004	show	show(@nospecialize a)	modelled	bootcov-boot-printing	
+base/boot.jl	1005	1005	print	print(@nospecialize a...)	modelled	bootcov-boot-printing	
+base/boot.jl	1006	1006	println	println(@nospecialize a...)	modelled	bootcov-boot-printing	
+base/boot.jl	1012	1012	GeneratedFunctionStub	GeneratedFunctionStub(@nospecialize(gen), argnames::SimpleVector, spnames::SimpleVector)	modelled	bootcov-boot-wrappers	
+base/boot.jl	1022	1022	NamedTuple	NamedTuple()	modelled	bootcov-boot-named-tuples	
+base/boot.jl	1024	1025	NamedTuple{names}	NamedTuple{names}(args::Tuple) where {names}	modelled	bootcov-boot-named-tuples	
+base/boot.jl	1029	1030	(NT::Type{NamedTuple{names,T}})	(NT::Type{NamedTuple{names,T}})(args::T) where {names, T <: Tuple}	modelled	bootcov-boot-named-tuples	
+base/boot.jl	1037	1042	is_top_bit_set	is_top_bit_set(x)	modelled	bootcov-boot-int-helpers	
+base/boot.jl	1045	1045	throw_inexacterror	throw_inexacterror(func::Symbol, to, val)	modelled	bootcov-boot-int-helpers	
+base/boot.jl	1047	1053	check_sign_bit	check_sign_bit(::Type{To}, x) where {To}	modelled	bootcov-boot-int-helpers,bootcov-signbit-func-name	
+base/boot.jl	1055	1061	checked_trunc_sint	checked_trunc_sint(::Type{To}, x::From) where {To,From}	modelled	bootcov-boot-int-helpers	
+base/boot.jl	1063	1069	checked_trunc_uint	checked_trunc_uint(::Type{To}, x::From) where {To,From}	modelled	bootcov-boot-int-helpers	
+base/boot.jl	1071	1071	toInt8	toInt8(x::Int8)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1072	1072	toInt8	toInt8(x::Int16)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1073	1073	toInt8	toInt8(x::Int32)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1074	1074	toInt8	toInt8(x::Int64)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1075	1075	toInt8	toInt8(x::Int128)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1076	1076	toInt8	toInt8(x::UInt8)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1077	1077	toInt8	toInt8(x::UInt16)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1078	1078	toInt8	toInt8(x::UInt32)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1079	1079	toInt8	toInt8(x::UInt64)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1080	1080	toInt8	toInt8(x::UInt128)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1081	1081	toInt8	toInt8(x::Bool)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1082	1082	toInt16	toInt16(x::Int8)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1083	1083	toInt16	toInt16(x::Int16)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1084	1084	toInt16	toInt16(x::Int32)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1085	1085	toInt16	toInt16(x::Int64)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1086	1086	toInt16	toInt16(x::Int128)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1087	1087	toInt16	toInt16(x::UInt8)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1088	1088	toInt16	toInt16(x::UInt16)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1089	1089	toInt16	toInt16(x::UInt32)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1090	1090	toInt16	toInt16(x::UInt64)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1091	1091	toInt16	toInt16(x::UInt128)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1092	1092	toInt16	toInt16(x::Bool)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1093	1093	toInt32	toInt32(x::Int8)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1094	1094	toInt32	toInt32(x::Int16)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1095	1095	toInt32	toInt32(x::Int32)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1096	1096	toInt32	toInt32(x::Int64)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1097	1097	toInt32	toInt32(x::Int128)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1098	1098	toInt32	toInt32(x::UInt8)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1099	1099	toInt32	toInt32(x::UInt16)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1100	1100	toInt32	toInt32(x::UInt32)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1101	1101	toInt32	toInt32(x::UInt64)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1102	1102	toInt32	toInt32(x::UInt128)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1103	1103	toInt32	toInt32(x::Bool)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1104	1104	toInt64	toInt64(x::Int8)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1105	1105	toInt64	toInt64(x::Int16)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1106	1106	toInt64	toInt64(x::Int32)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1107	1107	toInt64	toInt64(x::Int64)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1108	1108	toInt64	toInt64(x::Int128)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1109	1109	toInt64	toInt64(x::UInt8)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1110	1110	toInt64	toInt64(x::UInt16)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1111	1111	toInt64	toInt64(x::UInt32)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1112	1112	toInt64	toInt64(x::UInt64)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1113	1113	toInt64	toInt64(x::UInt128)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1114	1114	toInt64	toInt64(x::Bool)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1115	1115	toInt128	toInt128(x::Int8)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1116	1116	toInt128	toInt128(x::Int16)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1117	1117	toInt128	toInt128(x::Int32)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1118	1118	toInt128	toInt128(x::Int64)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1119	1119	toInt128	toInt128(x::Int128)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1120	1120	toInt128	toInt128(x::UInt8)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1121	1121	toInt128	toInt128(x::UInt16)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1122	1122	toInt128	toInt128(x::UInt32)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1123	1123	toInt128	toInt128(x::UInt64)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1124	1124	toInt128	toInt128(x::UInt128)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1125	1125	toInt128	toInt128(x::Bool)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1126	1126	toUInt8	toUInt8(x::Int8)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1127	1127	toUInt8	toUInt8(x::Int16)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1128	1128	toUInt8	toUInt8(x::Int32)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1129	1129	toUInt8	toUInt8(x::Int64)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1130	1130	toUInt8	toUInt8(x::Int128)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1131	1131	toUInt8	toUInt8(x::UInt8)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1132	1132	toUInt8	toUInt8(x::UInt16)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1133	1133	toUInt8	toUInt8(x::UInt32)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1134	1134	toUInt8	toUInt8(x::UInt64)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1135	1135	toUInt8	toUInt8(x::UInt128)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1136	1136	toUInt8	toUInt8(x::Bool)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1137	1137	toUInt16	toUInt16(x::Int8)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1138	1138	toUInt16	toUInt16(x::Int16)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1139	1139	toUInt16	toUInt16(x::Int32)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1140	1140	toUInt16	toUInt16(x::Int64)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1141	1141	toUInt16	toUInt16(x::Int128)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1142	1142	toUInt16	toUInt16(x::UInt8)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1143	1143	toUInt16	toUInt16(x::UInt16)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1144	1144	toUInt16	toUInt16(x::UInt32)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1145	1145	toUInt16	toUInt16(x::UInt64)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1146	1146	toUInt16	toUInt16(x::UInt128)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1147	1147	toUInt16	toUInt16(x::Bool)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1148	1148	toUInt32	toUInt32(x::Int8)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1149	1149	toUInt32	toUInt32(x::Int16)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1150	1150	toUInt32	toUInt32(x::Int32)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1151	1151	toUInt32	toUInt32(x::Int64)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1152	1152	toUInt32	toUInt32(x::Int128)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1153	1153	toUInt32	toUInt32(x::UInt8)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1154	1154	toUInt32	toUInt32(x::UInt16)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1155	1155	toUInt32	toUInt32(x::UInt32)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1156	1156	toUInt32	toUInt32(x::UInt64)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1157	1157	toUInt32	toUInt32(x::UInt128)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1158	1158	toUInt32	toUInt32(x::Bool)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1159	1159	toUInt64	toUInt64(x::Int8)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1160	1160	toUInt64	toUInt64(x::Int16)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1161	1161	toUInt64	toUInt64(x::Int32)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1162	1162	toUInt64	toUInt64(x::Int64)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1163	1163	toUInt64	toUInt64(x::Int128)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1164	1164	toUInt64	toUInt64(x::UInt8)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1165	1165	toUInt64	toUInt64(x::UInt16)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1166	1166	toUInt64	toUInt64(x::UInt32)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1167	1167	toUInt64	toUInt64(x::UInt64)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1168	1168	toUInt64	toUInt64(x::UInt128)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1169	1169	toUInt64	toUInt64(x::Bool)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1170	1170	toUInt128	toUInt128(x::Int8)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1171	1171	toUInt128	toUInt128(x::Int16)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1172	1172	toUInt128	toUInt128(x::Int32)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1173	1173	toUInt128	toUInt128(x::Int64)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1174	1174	toUInt128	toUInt128(x::Int128)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1175	1175	toUInt128	toUInt128(x::UInt8)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1176	1176	toUInt128	toUInt128(x::UInt16)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1177	1177	toUInt128	toUInt128(x::UInt32)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1178	1178	toUInt128	toUInt128(x::UInt64)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1179	1179	toUInt128	toUInt128(x::UInt128)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1180	1180	toUInt128	toUInt128(x::Bool)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1184	1184	Int8	Int8(x::BuiltinInts)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1185	1185	Int16	Int16(x::BuiltinInts)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1186	1186	Int32	Int32(x::BuiltinInts)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1187	1187	Int64	Int64(x::BuiltinInts)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1188	1188	Int128	Int128(x::BuiltinInts)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1189	1189	UInt8	UInt8(x::BuiltinInts)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1190	1190	UInt16	UInt16(x::BuiltinInts)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1191	1191	UInt32	UInt32(x::BuiltinInts)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1192	1192	UInt64	UInt64(x::BuiltinInts)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1193	1193	UInt128	UInt128(x::BuiltinInts)	modelled	bootcov-boot-int-ctors	
+base/boot.jl	1195	1195	(::Type{T})	(::Type{T})(x::T) where {T<:Number}	modelled	bootcov-boot-ptr-casts	
+base/boot.jl	1197	1197	Int	Int(x::Ptr)	modelled	bootcov-boot-ptr-casts	
+base/boot.jl	1198	1198	UInt	UInt(x::Ptr)	modelled	bootcov-boot-ptr-casts	
+base/boot.jl	1200	1200	Int64	Int64(x::Ptr)	excluded		platform: defined only inside `if Int === Int32` (base/boot.jl:1199-1202), i.e. on 32-bit platforms.
+base/boot.jl	1201	1201	UInt64	UInt64(x::Ptr)	excluded		platform: defined only inside `if Int === Int32` (base/boot.jl:1199-1202), i.e. on 32-bit platforms.
+base/boot.jl	1203	1203	(PT::Type{Ptr{T}} where T)	(PT::Type{Ptr{T}} where T)(x::Union{Int,UInt,Ptr}=0)	modelled	bootcov-boot-ptr-casts	
+base/boot.jl	1204	1204	(AS::Type{AddrSpace{Backend}} where Backend)	(AS::Type{AddrSpace{Backend}} where Backend)(x::UInt8)	modelled	bootcov-boot-ptr-casts	
+base/boot.jl	1206	1206	Signed	Signed(x::UInt8)	modelled	bootcov-boot-signed-unsigned	
+base/boot.jl	1207	1207	Unsigned	Unsigned(x::Int8)	modelled	bootcov-boot-signed-unsigned	
+base/boot.jl	1208	1208	Signed	Signed(x::UInt16)	modelled	bootcov-boot-signed-unsigned	
+base/boot.jl	1209	1209	Unsigned	Unsigned(x::Int16)	modelled	bootcov-boot-signed-unsigned	
+base/boot.jl	1210	1210	Signed	Signed(x::UInt32)	modelled	bootcov-boot-signed-unsigned	
+base/boot.jl	1211	1211	Unsigned	Unsigned(x::Int32)	modelled	bootcov-boot-signed-unsigned	
+base/boot.jl	1212	1212	Signed	Signed(x::UInt64)	modelled	bootcov-boot-signed-unsigned	
+base/boot.jl	1213	1213	Unsigned	Unsigned(x::Int64)	modelled	bootcov-boot-signed-unsigned	
+base/boot.jl	1214	1214	Signed	Signed(x::UInt128)	modelled	bootcov-boot-signed-unsigned	
+base/boot.jl	1215	1215	Unsigned	Unsigned(x::Int128)	modelled	bootcov-boot-signed-unsigned	
+base/boot.jl	1217	1217	Signed	Signed(x::Union{Float16, Float32, Float64, Bool})	modelled	bootcov-boot-ptr-casts	
+base/boot.jl	1218	1218	Unsigned	Unsigned(x::Union{Float16, Float32, Float64, Bool})	modelled	bootcov-boot-ptr-casts	
+base/boot.jl	1220	1220	Integer	Integer(x::Integer)	modelled	bootcov-boot-ptr-casts	
+base/boot.jl	1221	1221	Integer	Integer(x::Union{Float16, Float32, Float64})	modelled	bootcov-boot-ptr-casts	
+base/boot.jl	1227	1229	struct_name_shim	struct_name_shim(@nospecialize(x), name::Symbol, mod::Module, @nospecialize(t))	modelled	bootcov-boot-hooks	
+base/boot.jl	1252	1252	_setparser!	_setparser!(parser)	modelled	bootcov-boot-hooks	
+base/boot.jl	1253	1253	_setlowerer!	_setlowerer!(lowerer)	modelled	bootcov-boot-hooks	
+base/boot.jl	1254	1254	_set_toplevel_eval!	_set_toplevel_eval!(f)	modelled	bootcov-boot-hooks	
+base/boot.jl	1257	1257	_apply	_apply(x...)	excluded		deprecated: _apply is kept for deprecated uses of builtin functions (comment at base/boot.jl:1256); use _apply_iterate.
+base/boot.jl	1269	1269	Pair	Pair(a, b)	modelled	bootcov-boot-wrappers	
+base/boot.jl	1270	1273	Pair{A, B}	Pair{A, B}(@nospecialize(a), @nospecialize(b)) where {A, B}	excluded		internal-bootstrap: base/Base.jl:9 deletes this Pair{A,B}(a, b) method and base/Base.jl:10-13 installs a converting replacement.
+base/boot.jl	1276	1281	_hasmethod	_hasmethod(@nospecialize(tt))	modelled	bootcov-boot-hooks	
+base/boot.jl	1284	1284	arrayref	arrayref(inbounds::Bool, A::Array, i::Int...)	excluded		deprecated: arrayref, const_arrayref, arrayset and arraysize are kept for backward compatibility (comment at base/boot.jl:1283) and forward to Base.getindex/setindex!/size.
+base/boot.jl	1285	1285	const_arrayref	const_arrayref(inbounds::Bool, A::Array, i::Int...)	excluded		deprecated: arrayref, const_arrayref, arrayset and arraysize are kept for backward compatibility (comment at base/boot.jl:1283) and forward to Base.getindex/setindex!/size.
+base/boot.jl	1286	1286	arrayset	arrayset(inbounds::Bool, A::Array{T}, x::Any, i::Int...) where {T}	excluded		deprecated: arrayref, const_arrayref, arrayset and arraysize are kept for backward compatibility (comment at base/boot.jl:1283) and forward to Base.getindex/setindex!/size.
+base/boot.jl	1287	1287	arraysize	arraysize(a::Array)	excluded		deprecated: arrayref, const_arrayref, arrayset and arraysize are kept for backward compatibility (comment at base/boot.jl:1283) and forward to Base.getindex/setindex!/size.
+base/boot.jl	1288	1288	arraysize	arraysize(a::Array, i::Int)	excluded		deprecated: arrayref, const_arrayref, arrayset and arraysize are kept for backward compatibility (comment at base/boot.jl:1283) and forward to Base.getindex/setindex!/size.
+base/boot.jl	1292	1293	EnterNode	EnterNode(old::EnterNode, new_dest::Int)	modelled	bootcov-boot-ir-nodes	
+base/boot.jl	1307	1307	TypeNameError	TypeNameError(@nospecialize(a))	modelled	bootcov-boot-exceptions	
+base/boot.jl	1310	1310	typename	typename(a)	modelled	bootcov-boot-typename	
+base/boot.jl	1311	1311	typename	typename(a::DataType)	modelled	bootcov-boot-typename	
+base/boot.jl	1312	1317	typename	typename(a::Union)	modelled	bootcov-boot-typename	
+base/boot.jl	1318	1318	typename	typename(union::UnionAll)	modelled	bootcov-boot-typename	
+base/boot.jl	1322	1322	>:	(>:)(@nospecialize(a), @nospecialize(b))	modelled	bootcov-boot-operators	
+base/boot.jl	1323	1323	!==	(!==)(@nospecialize(a), @nospecialize(b))	modelled	bootcov-boot-operators	
+base/boot.jl	1335	1335	MacroSource	MacroSource(@nospecialize(lno), @nospecialize(syntax_ver))	modelled	bootcov-boot-wrappers	

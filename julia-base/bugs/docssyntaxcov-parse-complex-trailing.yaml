@@ -1,0 +1,56 @@
+id: docssyntaxcov-parse-complex-trailing
+title: "parse(ComplexF64, \"1+2imabc\") returns 1.0 + 2.0im: text after the imaginary unit is ignored"
+priority: P2
+kind: missing-error
+area: DocsSyntaxCov
+files: [base/parse.jl]
+functions: ["tryparse_internal(::Type{Complex{T}}, ::DenseUTF8String, ::Int, ::Int, ::Bool)", "parse(::Type{<:Complex}, ::AbstractString)", "tryparse(::Type{Complex{S}}, ::AbstractString)"]
+summary: |
+    `parse(Complex{T}, s)` and `tryparse(Complex{T}, s)` accept any string that contains a
+    valid complex number followed by other characters, as long as those characters contain
+    no `m`, `i` or `j`: `parse(ComplexF64, "1+2imabc") == 1.0 + 2.0im`,
+    `parse(ComplexF64, "2imfoo") == 2.0im`, `tryparse(Complex{Int}, "1+2im!") == 1 + 2im`.
+likelihood: |
+    Moderate for input validation: data files or user input with a trailing unit,
+    comma or comment ("1+2im,") are silently accepted instead of rejected.
+maybe_intended: ""
+reproducer: |
+    parse(ComplexF64, "1+2imabc")    # 1.0 + 2.0im
+    parse(ComplexF64, "2imfoo")      # 0.0 + 2.0im
+    tryparse(Complex{Int}, "1+2im!") # 1 + 2im
+output:
+  release: |
+    "1+2imabc" => 1.0 + 2.0im
+    "2imfoo" => 0.0 + 2.0im
+    "1+2jxyz" => 1.0 + 2.0im
+    tryparse(Complex{Int}, "1+2im!") => 1 + 2im
+    REPRODUCED docssyntaxcov-parse-complex-trailing
+  nightly: |
+    "1+2imabc" => 1.0 + 2.0im
+    "2imfoo" => 0.0 + 2.0im
+    "1+2jxyz" => 1.0 + 2.0im
+    tryparse(Complex{Int}, "1+2im!") => 1 + 2im
+    REPRODUCED docssyntaxcov-parse-complex-trailing
+reproduced: {release: true, nightly: true}
+expected: |
+    An `ArgumentError` from `parse` and `nothing` from `tryparse`, as for
+    `parse(Float64, "1.5abc")`.
+promised_by: |
+    `parse` docstring, base/parse.jl:10-13: "`Complex` types are parsed from decimal strings
+    of the form "R±Iim" ... If the string does not contain a valid number, an error is
+    raised." `tryparse`, base/parse.jl:244-245: returns `nothing` "if the string does not
+    contain a valid number".
+cause: |
+    base/parse.jl:304 finds the imaginary unit with `findprev(in(('m','i','j')), s, e)`,
+    the last `m`/`i`/`j` anywhere in the string, and the components are then parsed from
+    `i:prevind(s, iᵢ)` (lines 315, 335). Nothing checks that only whitespace follows the
+    unit, so the bytes after it are never looked at.
+possible_fix: |
+    After locating `iᵢ` (and the `i` of `im`), require that `s[nextind(s, iᵢ or the m):e]` is
+    whitespace, otherwise fail.
+duplicates:
+  issues: []
+  queries: ["parse complex", "Complex parse im", "parse Complex trailing characters", "parse ComplexF64 garbage", "tryparse Complex invalid accepted"]
+lean:
+  property: JuliaLean.DocsSyntaxCov.Parse.ComplexTrailingRejected
+  theorem: JuliaLean.DocsSyntaxCov.Parse.complexTrailingRejected_refuted

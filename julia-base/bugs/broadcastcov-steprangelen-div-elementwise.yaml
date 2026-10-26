@@ -1,0 +1,50 @@
+id: broadcastcov-steprangelen-div-elementwise
+title: "Broadcast division of a Float64 StepRangeLen differs from elementwise division"
+priority: P2
+kind: wrong-result
+area: BroadcastCov
+files: [base/broadcast.jl, base/twiceprecision.jl]
+functions:
+  - "broadcasted(::DefaultArrayStyle{1}, ::typeof(/), ::StepRangeLen, ::Number)"
+summary: |
+  Dividing a Float64 StepRangeLen by a scalar through broadcast divides its
+  twice-precision reference and step, then constructs a new range. Its last value can
+  differ by one ulp from dividing each source element by the scalar.
+likelihood: |
+  Ordinary floating-point ranges and non-power-of-two divisors can hit this. Exact
+  Float64 comparisons with a materialized calculation expose the difference.
+maybe_intended: |
+  The specialization preserves a lazy range and avoids allocation. That optimization
+  conflicts with the documented elementwise meaning of broadcast for this input.
+reproducer: |
+  r = range(0.0; step=0.25, length=6)
+  x = 3.0
+  collect(r ./ x) != collect(r) ./ x
+output:
+  release: |
+    collect(r ./ x) = [0.0, 0.08333333333333333, 0.16666666666666666, 0.25, 0.3333333333333333, 0.41666666666666663]
+    collect(r) ./ x = [0.0, 0.08333333333333333, 0.16666666666666666, 0.25, 0.3333333333333333, 0.4166666666666667]
+    REPRODUCED broadcastcov-steprangelen-div-elementwise
+  nightly: |
+    collect(r ./ x) = [0.0, 0.08333333333333333, 0.16666666666666666, 0.25, 0.3333333333333333, 0.41666666666666663]
+    collect(r) ./ x = [0.0, 0.08333333333333333, 0.16666666666666666, 0.25, 0.3333333333333333, 0.4166666666666667]
+    REPRODUCED broadcastcov-steprangelen-div-elementwise
+reproduced: {release: true, nightly: true}
+expected: |
+  collect(r ./ x) has the same Float64 elements as collect(r) ./ x.
+promised_by: |
+  base/broadcast.jl:785-792 says broadcasting applies the function over the elements
+  of the container arguments and indexes other arguments elementwise.
+cause: |
+  base/broadcast.jl:1231-1232 divides r.ref and r.step before constructing a new
+  StepRangeLen. base/twiceprecision.jl:479-485 reconstructs each output from that
+  divided step, which rounds differently from dividing the original element.
+possible_fix: |
+  Remove the StepRangeLen division specialization when exact elementwise behavior is
+  required, or document that range-preserving broadcast can change Float64 rounding.
+duplicates:
+  issues: []
+  queries: ["broadcast range division rounding", "StepRangeLen broadcast division"]
+lean:
+  property: JuliaLean.BroadcastCov.Refutations.StepRangeLenDivElementwise
+  theorem: JuliaLean.BroadcastCov.Refutations.stepRangeLenDivElementwise_refuted

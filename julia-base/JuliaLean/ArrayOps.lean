@@ -75,6 +75,13 @@ def entries : List Entry := [
     statement := "splice!(a, f:l, ins) for 1 <= f <= l+1 <= length(a)+1 (including the empty range f:f-1) returns a[f:l] and replaces it by ins."
     source := "base/array.jl:2088-2124 (docstring: splice!(collection, n:n-1, replacement) inserts before n)", status := .proven
     prop := ``SpliceRangeSpec, thm := some ``spliceRangeSpec },
+  { id := "arrayops-splice-convert-undef", juliaFile := "base/array.jl"
+    juliaFns := ["splice!(::Vector, r::AbstractUnitRange{<:Integer}, ins)", "splice!(::Vector, i::Integer, ins)"]
+    statement := "When splice!(a, r, ins) throws, for instance because a replacement cannot be converted to eltype(a), every element of a is still assigned."
+    source := "invariant: Base vector operations convert before growing (base/array.jl:1361 push!: \"convert first so we don't grow the array if the assignment won't work\"; base/array.jl:1873 insert!)", status := .refuted
+    prop := ``SpliceErrorAssigned, thm := some ``spliceErrorAssigned_refuted
+    issue := "#7642 (closed, same report from 2014: append!/prepend!/splice! should not modify arrays if convert throws); #46399 closed; PR #47112 closed unmerged (queries: splice, splice convert error, splice undef, prepend!)"
+    notes := "splice! grows the vector (_growat!, array.jl:2142) before storing and converting the replacements one by one (array.jl:2145-2149). splice!([\"a\",\"b\",\"c\"], 2:1, Any[\"x\", 1]) throws MethodError and leaves a 5-element vector whose third slot is #undef (a[3] throws UndefRefError); for Vector{Int} the slot holds uninitialized memory. append!/prepend! from vectors that need conversion take the push!/pushfirst! loop and leave partial results without holes. Same on 1.13.2." },
   { id := "arrayops-resize", juliaFile := "base/array.jl"
     juliaFns := ["resize!(::Vector, n::Integer; first)"]
     statement := "resize!(a, n; first) for n of any integer type throws ArgumentError for n < 0 and otherwise yields length n, keeping the first (first=false) or last (first=true) min(n, length(a)) elements, with new slots unassigned."

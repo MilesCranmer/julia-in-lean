@@ -1,0 +1,88 @@
+id: stringscovb-normalize-impure-chartransform
+title: normalize(s; chartransform=f) overflows its buffer when f is not pure
+priority: P2
+kind: crash
+area: StringsCovB
+files:
+- base/strings/unicode.jl
+functions:
+- utf8proc_map(str::Union{String,SubString{String}}, options, chartransform)
+- utf8proc_decompose(str, options, buffer, nwords, chartransform)
+- normalize(s; chartransform)
+summary: |
+  utf8proc_map calls utf8proc_decompose_custom twice: once to size the buffer and once
+  to fill it, invoking chartransform on every character each time. If the second pass
+  produces more code points than the first (an impure chartransform, for example one with a
+  counter or cache), utf8proc returns the larger count, which utf8proc_map passes on to
+  utf8proc_reencode as the number of words in the too-small buffer. utf8proc_reencode then
+  reads and writes past the end of the Vector, corrupting memory; here the corruption is
+  detected as a ConcurrencyViolationError in the following resize!.
+likelihood: |
+  Needs a chartransform whose result changes between calls; pure functions are safe. The effect is heap corruption rather than an error.
+maybe_intended: |
+  The chartransform keyword is presumably meant for pure character mappings, but this is not documented and the failure is memory corruption.
+reproducer: |
+  # utf8proc_map sizes its buffer with a first utf8proc_decompose call and then calls it
+  # again; a chartransform that answers differently the second time overflows the buffer.
+  code = """
+  n = Ref(0)
+  f = ch -> (n[] += 1; n[] <= 2 ? ch : Char(0xfdfa))   # U+FDFA has an 18-code-point compatibility decomposition
+  r = Base.Unicode.normalize("ab"; compat=true, chartransform=f)
+  println("returned ", repr(r))
+  """
+  out = IOBuffer()
+  p = run(pipeline(ignorestatus(`$(Base.julia_cmd()) --startup-file=no -e $code`), stdout=out, stderr=out))
+  s = String(take!(out))
+  println(first(s, 400))
+  println("child exit code ", p.exitcode, ", signal ", p.termsignal)
+  (occursin("ConcurrencyViolationError", s) || p.termsignal != 0) &&
+      println("REPRODUCED stringscovb-normalize-impure-chartransform")
+output:
+  release: |
+    ERROR: ConcurrencyViolationError("Vector has invalid state. Don't modify internal fields incorrectly, or resize without correct locks")
+    Stacktrace:
+     [1] _growend_internal!(a::Vector{UInt8}, delta::Int64, len::Int64)
+       @ Base ./array.jl:1166
+     [2] _growend!
+       @ ./array.jl:1205 [inlined]
+     [3] resize!(a::Vector{UInt8}, nl_::Int64)
+       @ Base ./array.jl:1545
+     [4] utf8proc_map(str::String, options::Int
+    child exit code 1, signal 0
+    REPRODUCED stringscovb-normalize-impure-chartransform
+  nightly: |
+    ERROR: ConcurrencyViolationError("Vector has invalid state. Don't modify internal fields incorrectly, or resize without correct locks")
+    Stacktrace:
+     [1] _growend_internal!(a::Vector{UInt8}, delta::Int64, len::Int64)
+       @ Base array.jl:1179
+     [2] _growend!(a::Vector{UInt8}, delta::Int64)
+       @ Base array.jl:1224 [inlined]
+     [3] resize!(a::Vector{UInt8}, nl_::Int64; first::Bool)
+       @ Base array.jl:1571
+    child exit code 1, signal 0
+    REPRODUCED stringscovb-normalize-impure-chartransform
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Either a result for the second pass's mapping or an error; never an out-of-bounds write.
+promised_by: |
+  Invariant: utf8proc_reencode(buffer, nwords, ...) must only see nwords <= length(buffer) ÷ 4
+  (utf8proc API: "If the number of written codepoints would be bigger than bufsize, the
+  required buffer size is returned, while the buffer will be overwritten with undefined
+  data").
+cause: |
+  base/strings/unicode.jl:174-178: the second utf8proc_decompose result is used as the word count
+  without checking it against the first (buffer size).
+possible_fix: |
+  Check `nwords <= length(buffer) ÷ 4` after the second call and retry (or throw) otherwise.
+duplicates:
+  issues: []
+  queries:
+  - 'issues: normalize chartransform'
+  - 'prs: normalize chartransform'
+  - 'issues: utf8proc_map'
+  - 'prs: utf8proc_map buffer'
+lean:
+  property: JuliaLean.StringsCovB.Uni.Utf8procMapInBounds
+  theorem: JuliaLean.StringsCovB.Uni.utf8procMapInBounds_refuted

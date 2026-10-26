@@ -1,0 +1,162 @@
+file	line	endline	name	signature	status	entry	note
+base/stream.jl	29	39	getproperty	getproperty(server::LibuvServer, name::Symbol)	modelled	streams-method-stream-l29	method-specific source model and quantified all-input behavior property
+base/stream.jl	58	76	getproperty	getproperty(stream::LibuvStream, name::Symbol)	modelled	streams-method-stream-l58	method-specific source model and quantified all-input behavior property
+base/stream.jl	102	102	bytesavailable	bytesavailable(s::LibuvStream)	modelled	streams-method-stream-l102	method-specific source model and quantified all-input behavior property
+base/stream.jl	104	116	eof	eof(s::LibuvStream; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l104	method-specific source model and quantified all-input behavior property
+base/stream.jl	139	168	uv_status_string	uv_status_string(x)	modelled	streams-method-stream-l139	method-specific source model and quantified all-input behavior property
+base/stream.jl	179	191	PipeEndpoint	PipeEndpoint(handle::Ptr{Cvoid}, status)	modelled	streams-method-stream-l179	method-specific source model and quantified all-input behavior property
+base/stream.jl	194	202	PipeEndpoint	PipeEndpoint()	modelled	streams-method-stream-l194	method-specific source model and quantified all-input behavior property
+base/stream.jl	204	207	PipeEndpoint	PipeEndpoint(fd::OS_HANDLE)	modelled	streams-method-stream-l204	method-specific source model and quantified all-input behavior property
+base/stream.jl	209	209	PipeEndpoint	PipeEndpoint(fd::RawFD)	excluded		platform: Windows-only RawFD/WindowsRawSocket adapter selected when OS_HANDLE differs from RawFD.
+base/stream.jl	224	241	TTY	TTY(handle::Ptr{Cvoid}, status)	modelled	streams-method-stream-l224	method-specific source model and quantified all-input behavior property
+base/stream.jl	244	253	TTY	TTY(fd::OS_HANDLE)	modelled	streams-method-stream-l244	method-specific source model and quantified all-input behavior property
+base/stream.jl	255	255	TTY	TTY(fd::RawFD)	excluded		platform: Windows-only RawFD/WindowsRawSocket adapter selected when OS_HANDLE differs from RawFD.
+base/stream.jl	258	260	show	show(io::IO, stream::LibuvServer)	modelled	streams-method-stream-l258	method-specific source model and quantified all-input behavior property
+base/stream.jl	261	264	show	show(io::IO, stream::LibuvStream)	modelled	streams-method-stream-l261	method-specific source model and quantified all-input behavior property
+base/stream.jl	268	273	isreadable	isreadable(io::LibuvStream)	modelled	streams-method-stream-l268	method-specific source model and quantified all-input behavior property
+base/stream.jl	275	279	iswritable	iswritable(io::LibuvStream)	modelled	streams-method-stream-l275	method-specific source model and quantified all-input behavior property
+base/stream.jl	281	281	lock	lock(s::LibuvStream)	modelled	streams-method-stream-l281	method-specific source model and quantified all-input behavior property
+base/stream.jl	282	282	unlock	unlock(s::LibuvStream)	modelled	streams-method-stream-l282	method-specific source model and quantified all-input behavior property
+base/stream.jl	284	284	setup_stdio	setup_stdio(stream::Union{LibuvStream, LibuvServer}, ::Bool)	modelled	streams-method-stream-l284	method-specific source model and quantified all-input behavior property
+base/stream.jl	285	285	rawhandle	rawhandle(stream::Union{LibuvStream, LibuvServer})	modelled	streams-method-stream-l285	method-specific source model and quantified all-input behavior property
+base/stream.jl	286	286	unsafe_convert	unsafe_convert(::Type{Ptr{Cvoid}}, s::Union{LibuvStream, LibuvServer})	modelled	streams-method-stream-l286	method-specific source model and quantified all-input behavior property
+base/stream.jl	288	314	init_stdio	init_stdio(handle::Ptr{Cvoid})	modelled	streams-method-stream-l288	method-specific source model and quantified all-input behavior property
+base/stream.jl	328	361	open	open(h::OS_HANDLE)	modelled	streams-method-stream-l328	method-specific source model and quantified all-input behavior property
+base/stream.jl	364	374	open	open(fd::RawFD)	modelled	streams-method-stream-l364	method-specific source model and quantified all-input behavior property
+base/stream.jl	377	382	isopen	isopen(x::Union{LibuvStream, LibuvServer})	modelled	streams-method-stream-l377	method-specific source model and quantified all-input behavior property
+base/stream.jl	384	388	check_open	check_open(x::Union{LibuvStream, LibuvServer})	modelled	streams-method-stream-l384	method-specific source model and quantified all-input behavior property
+base/stream.jl	390	442	wait_readnb	wait_readnb(x::LibuvStream, nb::Int, tok::MaybeToken=default_cancel_token())	modelled	streams-method-stream-l390	method-specific source model and quantified all-input behavior property
+base/stream.jl	493	500	_uvreq_witness_slot	_uvreq_witness_slot(w::WaitEntry)	modelled	streams-method-stream-l493	method-specific source model and quantified all-input behavior property
+base/stream.jl	502	506	_mark_uvreq_cancel_requested!	_mark_uvreq_cancel_requested!(w::WaitEntry, @nospecialize(witness))	modelled	streams-method-stream-l502	method-specific source model and quantified all-input behavior property
+base/stream.jl	511	517	_uvreq_cancel_requested	_uvreq_cancel_requested(req::Ptr{Cvoid})	modelled	streams-method-stream-l511	method-specific source model and quantified all-input behavior property
+base/stream.jl	530	533	_root_detached_uvreq!	_root_detached_uvreq!(req::Ptr{Cvoid}, @nospecialize(owner))	modelled	streams-method-stream-l530	method-specific source model and quantified all-input behavior property
+base/stream.jl	534	535	_unroot_detached_uvreq!	_unroot_detached_uvreq!(req::Ptr{Cvoid})	modelled	streams-method-stream-l534	method-specific source model and quantified all-input behavior property
+base/stream.jl	540	546	_iolocked_checkcancel	_iolocked_checkcancel(src::Union{Nothing, CancellationTokenSource})	modelled	streams-method-stream-l540	method-specific source model and quantified all-input behavior property
+base/stream.jl	553	563	_begin_uvreq_wait!	_begin_uvreq_wait!(src::Union{Nothing, CancellationTokenSource}, @nospecialize(witness), req::Ptr{Cvoid})	modelled	streams-method-stream-l553	method-specific source model and quantified all-input behavior property
+base/stream.jl	575	597	_end_uvreq_wait!	_end_uvreq_wait!(w::WaitEntry, @nospecialize(witness), req::Ptr{Cvoid}, trycancel::Bool, @nospecialize(owner))	modelled	streams-method-stream-l575	method-specific source model and quantified all-input behavior property
+base/stream.jl	615	619	wait_enqueue!	wait_enqueue!(x::UvReqWait, w::WaitEntry, first::Bool)	modelled	streams-method-stream-l615	method-specific source model and quantified all-input behavior property
+base/stream.jl	626	640	wait_dequeue!	wait_dequeue!(x::UvReqWait, w::WaitEntry, why::UInt8)	modelled	streams-method-stream-l626	method-specific source model and quantified all-input behavior property
+base/stream.jl	650	691	_wait_uvreq	_wait_uvreq(src::Union{Nothing, CancellationTokenSource}, @nospecialize(witness), req::Ptr{Cvoid}, trycancel::Bool, @nospecialize(owner))	modelled	streams-method-stream-l650	method-specific source model and quantified all-input behavior property
+base/stream.jl	700	717	_claim_uvreq_waiter	_claim_uvreq_waiter(req::Ptr{Cvoid})	modelled	streams-method-stream-l700	method-specific source model and quantified all-input behavior property
+base/stream.jl	719	748	closewrite	closewrite(s::LibuvStream; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l719	method-specific source model and quantified all-input behavior property
+base/stream.jl	750	768	wait_close	wait_close(x::Union{LibuvStream, LibuvServer})	modelled	streams-method-stream-l750	method-specific source model and quantified all-input behavior property
+base/stream.jl	770	784	close	close(stream::Union{LibuvStream, LibuvServer})	modelled	streams-method-stream-l770	method-specific source model and quantified all-input behavior property
+base/stream.jl	786	806	uvfinalize	uvfinalize(uv::Union{LibuvStream, LibuvServer})	modelled	streams-method-stream-l786	method-specific source model and quantified all-input behavior property
+base/stream.jl	809	809	ispty	ispty(s::TTY)	modelled	streams-method-stream-l809	method-specific source model and quantified all-input behavior property
+base/stream.jl	810	810	ispty	ispty(s::IO)	modelled	streams-method-stream-l810	method-specific source model and quantified all-input behavior property
+base/stream.jl	836	836	displaysize	displaysize(io::IO)	modelled	streams-method-stream-l836	method-specific source model and quantified all-input behavior property
+base/stream.jl	837	838	displaysize	displaysize()	modelled	streams-method-stream-l837	method-specific source model and quantified all-input behavior property
+base/stream.jl	845	845	displaysize_	displaysize_(io::IO)	modelled	streams-method-stream-l845	method-specific source model and quantified all-input behavior property
+base/stream.jl	847	879	displaysize	displaysize(io::TTY)	modelled	streams-method-stream-l847	method-specific source model and quantified all-input behavior property
+base/stream.jl	885	891	alloc_request	alloc_request(buffer::IOBuffer, recommended_size::UInt)	modelled	streams-method-stream-l885	method-specific source model and quantified all-input behavior property
+base/stream.jl	893	893	notify_filled	notify_filled(buffer::IOBuffer, nread::Int, base::Ptr{Cvoid}, len::UInt)	modelled	streams-method-stream-l893	method-specific source model and quantified all-input behavior property
+base/stream.jl	895	903	notify_filled	notify_filled(buffer::IOBuffer, nread::Int)	modelled	streams-method-stream-l895	method-specific source model and quantified all-input behavior property
+base/stream.jl	905	908	alloc_buf_hook	alloc_buf_hook(stream::LibuvStream, size::UInt)	modelled	streams-method-stream-l905	method-specific source model and quantified all-input behavior property
+base/stream.jl	910	936	uv_alloc_buf	uv_alloc_buf(handle::Ptr{Cvoid}, size::Csize_t, buf::Ptr{Cvoid})	modelled	streams-method-stream-l910	method-specific source model and quantified all-input behavior property
+base/stream.jl	938	990	uv_readcb	uv_readcb(handle::Ptr{Cvoid}, nread::Cssize_t, buf::Ptr{Cvoid})	modelled	streams-method-stream-l938	method-specific source model and quantified all-input behavior property
+base/stream.jl	941	987	readcb_specialized	readcb_specialized(stream::LibuvStream, nread::Int, nrequested::UInt)	modelled	streams-method-stream-l941	method-specific source model and quantified all-input behavior property
+base/stream.jl	992	999	reseteof	reseteof(x::TTY)	modelled	streams-method-stream-l992	method-specific source model and quantified all-input behavior property
+base/stream.jl	1001	1011	_uv_hook_close	_uv_hook_close(uv::Union{LibuvStream, LibuvServer})	modelled	streams-method-stream-l1001	method-specific source model and quantified all-input behavior property
+base/stream.jl	1048	1048	Pipe	Pipe()	modelled	streams-method-stream-l1048	method-specific source model and quantified all-input behavior property
+base/stream.jl	1049	1049	pipe_reader	pipe_reader(p::Pipe)	modelled	streams-method-stream-l1049	method-specific source model and quantified all-input behavior property
+base/stream.jl	1050	1050	pipe_writer	pipe_writer(p::Pipe)	modelled	streams-method-stream-l1050	method-specific source model and quantified all-input behavior property
+base/stream.jl	1061	1066	link_pipe!	link_pipe!(pipe::Pipe; reader_supports_async = false, writer_supports_async = false)	modelled	streams-method-stream-l1061	method-specific source model and quantified all-input behavior property
+base/stream.jl	1068	1074	show	show(io::IO, stream::Pipe)	modelled	streams-method-stream-l1068	method-specific source model and quantified all-input behavior property
+base/stream.jl	1076	1076	closewrite	closewrite(pipe::Pipe)	modelled	streams-method-stream-l1076	method-specific source model and quantified all-input behavior property
+base/stream.jl	1080	1090	open_pipe!	open_pipe!(p::PipeEndpoint, handle::OS_HANDLE)	modelled	streams-method-stream-l1080	method-specific source model and quantified all-input behavior property
+base/stream.jl	1093	1109	link_pipe!	link_pipe!(read_end::PipeEndpoint, reader_supports_async::Bool, write_end::PipeEndpoint, writer_supports_async::Bool)	modelled	streams-method-stream-l1093	method-specific source model and quantified all-input behavior property
+base/stream.jl	1111	1120	link_pipe	link_pipe(reader_supports_async::Bool, writer_supports_async::Bool)	modelled	streams-method-stream-l1111	method-specific source model and quantified all-input behavior property
+base/stream.jl	1123	1126	close_pipe_sync	close_pipe_sync(handle::WindowsRawSocket)	excluded		platform: Windows-only RawFD/WindowsRawSocket adapter selected when OS_HANDLE differs from RawFD.
+base/stream.jl	1128	1131	close_pipe_sync	close_pipe_sync(handle::RawFD)	modelled	streams-method-stream-l1128	method-specific source model and quantified all-input behavior property
+base/stream.jl	1138	1160	start_reading	start_reading(stream::LibuvStream)	modelled	streams-method-stream-l1138	method-specific source model and quantified all-input behavior property
+base/stream.jl	1168	1176	stop_reading	stop_reading(stream::LibuvStream)	modelled	streams-method-stream-l1168	method-specific source model and quantified all-input behavior property
+base/stream.jl	1178	1185	stop_reading	stop_reading(stream::LibuvStream)	modelled	streams-method-stream-l1178	method-specific source model and quantified all-input behavior property
+base/stream.jl	1190	1190	readbytes!	readbytes!(s::LibuvStream, a::Vector{UInt8}, nb = length(a))	modelled	streams-method-stream-l1190	method-specific source model and quantified all-input behavior property
+base/stream.jl	1191	1230	readbytes!	readbytes!(s::LibuvStream, a::Vector{UInt8}, nb::Int; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l1191	method-specific source model and quantified all-input behavior property
+base/stream.jl	1198	1207	wait_locked	wait_locked(s, buf, nb, tok)	modelled	streams-method-stream-l1198	method-specific source model and quantified all-input behavior property
+base/stream.jl	1232	1238	read	read(stream::LibuvStream; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l1232	method-specific source model and quantified all-input behavior property
+base/stream.jl	1240	1275	unsafe_read	unsafe_read(s::LibuvStream, p::Ptr{UInt8}, nb::UInt; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l1240	method-specific source model and quantified all-input behavior property
+base/stream.jl	1247	1256	wait_locked	wait_locked(s, buf, nb, tok)	modelled	streams-method-stream-l1247	method-specific source model and quantified all-input behavior property
+base/stream.jl	1277	1290	read	read(this::LibuvStream, ::Type{UInt8}; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l1277	method-specific source model and quantified all-input behavior property
+base/stream.jl	1292	1300	readavailable	readavailable(this::LibuvStream; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l1292	method-specific source model and quantified all-input behavior property
+base/stream.jl	1302	1345	copyuntil	copyuntil(out::IO, x::LibuvStream, c::UInt8; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l1302	method-specific source model and quantified all-input behavior property
+base/stream.jl	1347	1349	uv_write	uv_write(s::LibuvStream, p::Vector{UInt8}, cancel::CancelTokenArg=DEFAULT_CANCEL, partial::Bool=false)	modelled	streams-method-stream-l1347	method-specific source model and quantified all-input behavior property
+base/stream.jl	1360	1464	_uv_write_wait	_uv_write_wait(s::LibuvStream, p::Ptr{UInt8}, n::UInt, tok::MaybeToken, @nospecialize(owner), partial::Bool, chunk::UInt=MAX_OS_WRITE)	modelled	streams-method-stream-l1360	method-specific source model and quantified all-input behavior property
+base/stream.jl	1478	1555	_uv_write_cancelled_finish	_uv_write_cancelled_finish(s::LibuvStream, w::WaitEntry, uvw::Ptr{Cvoid}, sev::UInt8, src::CancellationTokenSource, @nospecialize(owner), others::Union{Nothing, Vector{Ptr{Cvoid}}})	modelled	streams-method-stream-l1478	method-specific source model and quantified all-input behavior property
+base/stream.jl	1558	1564	_split_complete	_split_complete(uvw::Ptr{Cvoid}, others::Vector{Ptr{Cvoid}})	modelled	streams-method-stream-l1558	method-specific source model and quantified all-input behavior property
+base/stream.jl	1576	1602	_end_split_uvreq_wait!	_end_split_uvreq_wait!(w::WaitEntry, @nospecialize(witness), uvw::Ptr{Cvoid}, others::Vector{Ptr{Cvoid}}, trycancel::Bool, @nospecialize(owner))	modelled	streams-method-stream-l1576	method-specific source model and quantified all-input behavior property
+base/stream.jl	1604	1607	uv_write	uv_write(s::LibuvStream, p::Ptr{UInt8}, n::UInt; cancel::CancelTokenArg=DEFAULT_CANCEL, owner=nothing)	modelled	streams-method-stream-l1604	method-specific source model and quantified all-input behavior property
+base/stream.jl	1611	1625	_uv_write_owned	_uv_write_owned(s::LibuvStream, p::Ptr{UInt8}, n::UInt, cancel::CancelTokenArg, @nospecialize(owner), partial::Bool)	modelled	streams-method-stream-l1611	method-specific source model and quantified all-input behavior property
+base/stream.jl	1634	1662	uv_write_async	uv_write_async(s::LibuvStream, p::Ptr{UInt8}, n::UInt, chunk::UInt=MAX_OS_WRITE)	modelled	streams-method-stream-l1634	method-specific source model and quantified all-input behavior property
+base/stream.jl	1669	1677	write	write(s::LibuvStream, a::Vector{UInt8}; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l1669	method-specific source model and quantified all-input behavior property
+base/stream.jl	1679	1684	writepartial	writepartial(s::LibuvStream, a::Vector{UInt8}; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l1679	method-specific source model and quantified all-input behavior property
+base/stream.jl	1691	1697	write	write(s::LibuvStream, str::Union{String, SubString{String}}; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l1691	method-specific source model and quantified all-input behavior property
+base/stream.jl	1699	1705	writepartial	writepartial(s::LibuvStream, str::Union{String, SubString{String}}; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l1699	method-specific source model and quantified all-input behavior property
+base/stream.jl	1710	1718	write	write(s::LibuvStream, a::Array; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l1710	method-specific source model and quantified all-input behavior property
+base/stream.jl	1720	1728	writepartial	writepartial(s::LibuvStream, a::Array; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l1720	method-specific source model and quantified all-input behavior property
+base/stream.jl	1736	1739	unsafe_write	unsafe_write(s::LibuvStream, p::Ptr{UInt8}, n::UInt; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l1736	method-specific source model and quantified all-input behavior property
+base/stream.jl	1741	1772	_unsafe_write_owned	_unsafe_write_owned(s::LibuvStream, p::Ptr{UInt8}, n::UInt, cancel::CancelTokenArg, @nospecialize(owner), partial::Bool)	modelled	streams-method-stream-l1741	method-specific source model and quantified all-input behavior property
+base/stream.jl	1778	1789	_requeue_unwritten!	_requeue_unwritten!(s::LibuvStream, arr::Vector{UInt8}, nwritten::Int)	modelled	streams-method-stream-l1778	method-specific source model and quantified all-input behavior property
+base/stream.jl	1795	1824	flush	flush(s::LibuvStream; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l1795	method-specific source model and quantified all-input behavior property
+base/stream.jl	1826	1832	buffer_writes	buffer_writes(s::LibuvStream, bufsize)	modelled	streams-method-stream-l1826	method-specific source model and quantified all-input behavior property
+base/stream.jl	1836	1854	write	write(s::LibuvStream, b::UInt8)	modelled	streams-method-stream-l1836	method-specific source model and quantified all-input behavior property
+base/stream.jl	1856	1907	uv_writecb_task	uv_writecb_task(req::Ptr{Cvoid}, status::Cint)	modelled	streams-method-stream-l1856	method-specific source model and quantified all-input behavior property
+base/stream.jl	1909	1913	uv_shutdowncb_task	uv_shutdowncb_task(req::Ptr{Cvoid}, status::Cint)	modelled	streams-method-stream-l1909	method-specific source model and quantified all-input behavior property
+base/stream.jl	1916	1916	_fd	_fd(x::IOStream)	modelled	streams-method-stream-l1916	method-specific source model and quantified all-input behavior property
+base/stream.jl	1917	1917	_fd	_fd(x::Union{OS_HANDLE, RawFD})	modelled	streams-method-stream-l1917	method-specific source model and quantified all-input behavior property
+base/stream.jl	1919	1926	_fd	_fd(x::Union{LibuvStream, LibuvServer})	modelled	streams-method-stream-l1919	method-specific source model and quantified all-input behavior property
+base/stream.jl	1938	1948	_redirect_io_libc	_redirect_io_libc(stream, unix_fd::Int)	modelled	streams-method-stream-l1938	method-specific source model and quantified all-input behavior property
+base/stream.jl	1949	1956	_redirect_io_cglobal	_redirect_io_cglobal(handle::Union{LibuvStream, IOStream, Nothing}, unix_fd::Int)	modelled	streams-method-stream-l1949	method-specific source model and quantified all-input behavior property
+base/stream.jl	1957	1962	_redirect_io_global	_redirect_io_global(io, unix_fd::Int)	modelled	streams-method-stream-l1957	method-specific source model and quantified all-input behavior property
+base/stream.jl	1963	1968	(f::RedirectStdStream)	(f::RedirectStdStream)(handle::Union{LibuvStream, IOStream})	modelled	streams-method-stream-l1963	method-specific source model and quantified all-input behavior property
+base/stream.jl	1969	1977	(f::RedirectStdStream)	(f::RedirectStdStream)(::DevNull)	modelled	streams-method-stream-l1969	method-specific source model and quantified all-input behavior property
+base/stream.jl	1978	1983	(f::RedirectStdStream)	(f::RedirectStdStream)(io::AbstractPipe)	modelled	streams-method-stream-l1978	method-specific source model and quantified all-input behavior property
+base/stream.jl	1984	1991	(f::RedirectStdStream)	(f::RedirectStdStream)(p::Pipe)	modelled	streams-method-stream-l1984	method-specific source model and quantified all-input behavior property
+base/stream.jl	1992	1992	(f::RedirectStdStream)	(f::RedirectStdStream)()	modelled	streams-method-stream-l1992	method-specific source model and quantified all-input behavior property
+base/stream.jl	1995	1995	iterate	iterate(p::Pipe)	modelled	streams-method-stream-l1995	method-specific source model and quantified all-input behavior property
+base/stream.jl	1996	1996	iterate	iterate(p::Pipe, i::Int)	modelled	streams-method-stream-l1996	method-specific source model and quantified all-input behavior property
+base/stream.jl	1997	1997	getindex	getindex(p::Pipe, key::Int)	modelled	streams-method-stream-l1997	method-specific source model and quantified all-input behavior property
+base/stream.jl	2052	2056	redirect_stdio	redirect_stdio(;stdin=nothing, stderr=nothing, stdout=nothing)	modelled	streams-method-stream-l2052	method-specific source model and quantified all-input behavior property
+base/stream.jl	2110	2154	redirect_stdio	redirect_stdio(f; stdin=nothing, stderr=nothing, stdout=nothing)	modelled	streams-method-stream-l2110	method-specific source model and quantified all-input behavior property
+base/stream.jl	2112	2114	resolve	resolve(new::Nothing, oldstream, mode)	modelled	streams-method-stream-l2112	method-specific source model and quantified all-input behavior property
+base/stream.jl	2115	2117	resolve	resolve(path::AbstractString, oldstream,mode)	modelled	streams-method-stream-l2115	method-specific source model and quantified all-input behavior property
+base/stream.jl	2118	2120	resolve	resolve(new, oldstream, mode)	modelled	streams-method-stream-l2118	method-specific source model and quantified all-input behavior property
+base/stream.jl	2122	2122	same_path	same_path(x, y)	modelled	streams-method-stream-l2122	method-specific source model and quantified all-input behavior property
+base/stream.jl	2123	2126	same_path	same_path(x::AbstractString, y::AbstractString)	modelled	streams-method-stream-l2123	method-specific source model and quantified all-input behavior property
+base/stream.jl	2156	2167	(f::RedirectStdStream)	(f::RedirectStdStream)(thunk::Function, stream)	modelled	streams-method-stream-l2156	method-specific source model and quantified all-input behavior property
+base/stream.jl	2194	2194	mark	mark(x::LibuvStream)	modelled	streams-method-stream-l2194	method-specific source model and quantified all-input behavior property
+base/stream.jl	2195	2195	unmark	unmark(x::LibuvStream)	modelled	streams-method-stream-l2195	method-specific source model and quantified all-input behavior property
+base/stream.jl	2196	2196	reset	reset(x::LibuvStream)	modelled	streams-method-stream-l2196	method-specific source model and quantified all-input behavior property
+base/stream.jl	2197	2197	ismarked	ismarked(x::LibuvStream)	modelled	streams-method-stream-l2197	method-specific source model and quantified all-input behavior property
+base/stream.jl	2199	2205	peek	peek(s::LibuvStream, ::Type{T}) where T	modelled	streams-method-stream-l2199	method-specific source model and quantified all-input behavior property
+base/stream.jl	2216	2216	BufferStream	BufferStream()	modelled	streams-method-stream-l2216	method-specific source model and quantified all-input behavior property
+base/stream.jl	2219	2219	isopen	isopen(s::BufferStream)	modelled	streams-method-stream-l2219	method-specific source model and quantified all-input behavior property
+base/stream.jl	2225	2229	closewrite	closewrite(s::BufferStream; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l2225	method-specific source model and quantified all-input behavior property
+base/stream.jl	2231	2237	close	close(s::BufferStream)	modelled	streams-method-stream-l2231	method-specific source model and quantified all-input behavior property
+base/stream.jl	2238	2238	uvfinalize	uvfinalize(s::BufferStream)	modelled	streams-method-stream-l2238	method-specific source model and quantified all-input behavior property
+base/stream.jl	2239	2239	setup_stdio	setup_stdio(stream::BufferStream, child_readable::Bool)	modelled	streams-method-stream-l2239	method-specific source model and quantified all-input behavior property
+base/stream.jl	2241	2248	read	read(s::BufferStream, ::Type{UInt8}; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l2241	method-specific source model and quantified all-input behavior property
+base/stream.jl	2249	2256	unsafe_read	unsafe_read(s::BufferStream, a::Ptr{UInt8}, nb::UInt; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l2249	method-specific source model and quantified all-input behavior property
+base/stream.jl	2257	2257	bytesavailable	bytesavailable(s::BufferStream)	modelled	streams-method-stream-l2257	method-specific source model and quantified all-input behavior property
+base/stream.jl	2259	2259	isreadable	isreadable(s::BufferStream)	modelled	streams-method-stream-l2259	method-specific source model and quantified all-input behavior property
+base/stream.jl	2260	2260	iswritable	iswritable(s::BufferStream)	modelled	streams-method-stream-l2260	method-specific source model and quantified all-input behavior property
+base/stream.jl	2262	2275	wait_readnb	wait_readnb(s::BufferStream, nb::Int, tok::MaybeToken=default_cancel_token())	modelled	streams-method-stream-l2262	method-specific source model and quantified all-input behavior property
+base/stream.jl	2277	2286	readavailable	readavailable(this::BufferStream; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l2277	method-specific source model and quantified all-input behavior property
+base/stream.jl	2288	2295	read	read(stream::BufferStream; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l2288	method-specific source model and quantified all-input behavior property
+base/stream.jl	2297	2335	readbytes!	readbytes!(s::BufferStream, a::Vector{UInt8}, nb::Int; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l2297	method-specific source model and quantified all-input behavior property
+base/stream.jl	2303	2310	wait_locked	wait_locked(s, buf, nb, tok)	modelled	streams-method-stream-l2303	method-specific source model and quantified all-input behavior property
+base/stream.jl	2337	2337	show	show(io::IO, s::BufferStream)	modelled	streams-method-stream-l2337	method-specific source model and quantified all-input behavior property
+base/stream.jl	2339	2356	readuntil	readuntil(s::BufferStream, c::UInt8; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l2339	method-specific source model and quantified all-input behavior property
+base/stream.jl	2358	2371	wait_close	wait_close(s::BufferStream, tok::MaybeToken=default_cancel_token())	modelled	streams-method-stream-l2358	method-specific source model and quantified all-input behavior property
+base/stream.jl	2373	2373	start_reading	start_reading(s::BufferStream)	modelled	streams-method-stream-l2373	method-specific source model and quantified all-input behavior property
+base/stream.jl	2374	2374	stop_reading	stop_reading(s::BufferStream)	modelled	streams-method-stream-l2374	method-specific source model and quantified all-input behavior property
+base/stream.jl	2376	2376	write	write(s::BufferStream, b::UInt8)	modelled	streams-method-stream-l2376	method-specific source model and quantified all-input behavior property
+base/stream.jl	2382	2387	write	write(s::BufferStream, a::Vector{UInt8}; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l2382	method-specific source model and quantified all-input behavior property
+base/stream.jl	2388	2394	write	write(s::BufferStream, str::Union{String, SubString{String}}; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l2388	method-specific source model and quantified all-input behavior property
+base/stream.jl	2395	2403	write	write(s::BufferStream, a::Array; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l2395	method-specific source model and quantified all-input behavior property
+base/stream.jl	2404	2414	unsafe_write	unsafe_write(s::BufferStream, p::Ptr{UInt8}, nb::UInt; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l2404	method-specific source model and quantified all-input behavior property
+base/stream.jl	2416	2424	eof	eof(s::BufferStream; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l2416	method-specific source model and quantified all-input behavior property
+base/stream.jl	2427	2427	buffer_writes	buffer_writes(s::BufferStream, bufsize=0)	modelled	streams-method-stream-l2427	method-specific source model and quantified all-input behavior property
+base/stream.jl	2428	2436	flush	flush(s::BufferStream; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-stream-l2428	method-specific source model and quantified all-input behavior property
+base/stream.jl	2438	2438	skip	skip(s::BufferStream, n)	modelled	streams-method-stream-l2438	method-specific source model and quantified all-input behavior property
+base/stream.jl	2440	2446	reseteof	reseteof(s::BufferStream)	modelled	streams-method-stream-l2440	method-specific source model and quantified all-input behavior property

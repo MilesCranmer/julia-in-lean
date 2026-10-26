@@ -1,0 +1,82 @@
+file	line	endline	name	signature	status	entry	note
+base/syntax.jl	57	59	Syntax	Syntax(head, children, @nospecialize(value), source, context, jl_source, meta, mod, syntax_flags)	modelled	docssyntaxcov-syntax-constructors	
+base/syntax.jl	70	72	SyntaxContext	SyntaxContext(mod::Module, edition::Tuple{Int, Int})	modelled	docssyntaxcov-syntax-constructors	
+base/syntax.jl	77	80	Syntax	Syntax(head::Symbol, children, @nospecialize(value), source, context)	modelled	docssyntaxcov-syntax-constructors	
+base/syntax.jl	82	82	head	head(ex::Syntax)	modelled	docssyntaxcov-syntax-accessors	
+base/syntax.jl	84	84	is_leaf	is_leaf(ex::Syntax)	modelled	docssyntaxcov-syntax-accessors	
+base/syntax.jl	86	89	numchildren	numchildren(ex::Syntax)	modelled	docssyntaxcov-syntax-accessors	
+base/syntax.jl	95	98	children	children(ex::Syntax)	modelled	docssyntaxcov-syntax-accessors	
+base/syntax.jl	100	102	Base.getindex	Base.getindex(ex::Syntax, i::Integer)	modelled	docssyntaxcov-syntax-accessors	
+base/syntax.jl	104	106	Base.getindex	Base.getindex(ex::Syntax, r::UnitRange)	modelled	docssyntaxcov-syntax-accessors	
+base/syntax.jl	108	108	Base.firstindex	Base.firstindex(::Syntax)	modelled	docssyntaxcov-syntax-accessors	
+base/syntax.jl	109	109	Base.lastindex	Base.lastindex(ex::Syntax)	modelled	docssyntaxcov-syntax-accessors	
+base/syntax.jl	115	142	node_string	node_string(ex::Syntax, depth=2)	modelled	docssyntaxcov-syntax-node-string	
+base/syntax.jl	147	158	assert_syntax	assert_syntax(st::Syntax, recursive=true)	modelled	docssyntaxcov-syntax-validation	
+base/syntax.jl	160	208	_assert_syntax_node	_assert_syntax_node(st::Syntax)	modelled	docssyntaxcov-syntax-validation	
+base/syntax.jl	213	231	_assert_syntax	_assert_syntax(st::Syntax, parents::Vector{Syntax})	modelled	docssyntaxcov-syntax-validation	
+base/syntax.jl	247	281	mknode	mknode(attrs, old)	modelled	docssyntaxcov-syntax-mknode	
+base/syntax.jl	282	285	mknode	mknode(x)	modelled	docssyntaxcov-syntax-mknode	
+base/syntax.jl	287	290	_debug_check_attrs	_debug_check_attrs(x)	modelled	docssyntaxcov-syntax-validation	
+base/syntax.jl	292	293	Base.setproperty!	Base.setproperty!(ex::Syntax, name::Symbol, @nospecialize(val))	modelled	docssyntaxcov-syntax-validation	
+base/syntax.jl	296	320	mapchildren	mapchildren(f::Function, ex::Syntax)	modelled	docssyntaxcov-syntax-mapchildren	
+base/syntax.jl	325	325	is_base_layer	is_base_layer(sc::SyntaxContext)	modelled	docssyntaxcov-syntax-context,docssyntaxcov-syntax-layer-totality	
+base/syntax.jl	330	336	base_layer	base_layer(sc::SyntaxContext)	modelled	docssyntaxcov-syntax-context,docssyntaxcov-syntax-layer-totality	
+base/syntax.jl	338	341	escape_layer	escape_layer(sc::SyntaxContext, recursive::Bool)	modelled	docssyntaxcov-syntax-context,docssyntaxcov-syntax-layer-totality	
+base/syntax.jl	343	343	syntax_module	syntax_module(sc::SyntaxContext)	modelled	docssyntaxcov-syntax-context	
+base/syntax.jl	344	348	syntax_module	syntax_module(st::Syntax)	modelled	docssyntaxcov-syntax-context	
+base/syntax.jl	349	349	syntax_name	syntax_name(s::Syntax)	modelled	docssyntaxcov-syntax-context	
+base/syntax.jl	351	351	edition	edition(st::Syntax)	modelled	docssyntaxcov-syntax-context	
+base/syntax.jl	352	352	edition	edition(@nospecialize(st))	modelled	docssyntaxcov-syntax-context	
+base/syntax.jl	354	355	_with_context	_with_context(st, sc)	modelled	docssyntaxcov-syntax-context	
+base/syntax.jl	359	377	adopt_scope	adopt_scope(sc_in::SyntaxContext, st::Syntax, unexpanded_in, scmap)	modelled	docssyntaxcov-syntax-scope	
+base/syntax.jl	378	380	adopt_scope	adopt_scope(reference::Syntax, st::Syntax)	modelled	docssyntaxcov-syntax-scope	
+base/syntax.jl	383	385	adopt_scope	adopt_scope(ctx::MacroContext, st::Syntax)	modelled	docssyntaxcov-syntax-scope	
+base/syntax.jl	386	388	adopt_scope	adopt_scope(ctx::MacroContext, reference::Syntax, st::Syntax)	modelled	docssyntaxcov-syntax-scope	
+base/syntax.jl	390	393	fill_context	fill_context(st::Syntax, sc::SyntaxContext)	modelled	docssyntaxcov-syntax-scope	
+base/syntax.jl	395	408	remove_scope	remove_scope(st::Syntax, scmap)	modelled	docssyntaxcov-syntax-scope	
+base/syntax.jl	409	410	remove_scope	remove_scope(st::Syntax)	modelled	docssyntaxcov-syntax-scope	
+base/syntax.jl	417	435	_trim_provenance	_trim_provenance(st::Syntax, trim_unexpanded, scmap)	modelled	docssyntaxcov-syntax-scope	
+base/syntax.jl	436	437	trim_provenance	trim_provenance(st::Syntax, trim_unexpanded)	modelled	docssyntaxcov-syntax-scope	
+base/syntax.jl	439	448	Base.show	"Base.show(io::IO, ::MIME""text/plain"", sl::ScopeLayer)"	modelled	docssyntaxcov-syntax-scope-show	
+base/syntax.jl	449	449	Base.show	Base.show(io::IO, sl::ScopeLayer)	modelled	docssyntaxcov-syntax-scope-show	
+base/syntax.jl	451	468	Base.show	"Base.show(io::IO, ::MIME""text/plain"", sc::SyntaxContext)"	modelled	docssyntaxcov-syntax-scope-show	
+base/syntax.jl	469	469	Base.show	Base.show(io::IO, sc::SyntaxContext)	modelled	docssyntaxcov-syntax-scope-show	
+base/syntax.jl	489	497	provenance	provenance(st::Syntax)	modelled	docssyntaxcov-syntax-provenance	
+base/syntax.jl	500	503	prov	prov(st::Syntax)	modelled	docssyntaxcov-syntax-provenance	
+base/syntax.jl	506	512	prov_end	prov_end(st::Syntax)	modelled	docssyntaxcov-syntax-provenance	
+base/syntax.jl	515	518	sourceref	sourceref(st::Syntax)	modelled	docssyntaxcov-syntax-provenance	
+base/syntax.jl	521	524	macro_prov	macro_prov(st::Syntax)	modelled	docssyntaxcov-syntax-provenance	
+base/syntax.jl	527	533	macro_prov_end	macro_prov_end(st::Syntax)	modelled	docssyntaxcov-syntax-provenance	
+base/syntax.jl	536	539	unexpanded_sourceref	unexpanded_sourceref(st::Syntax)	modelled	docssyntaxcov-syntax-provenance	
+base/syntax.jl	556	558	flattened_provenance	flattened_provenance(st::Syntax)	modelled	docssyntaxcov-syntax-provenance	
+base/syntax.jl	561	568	_flattened_provenance	_flattened_provenance(st::Syntax, out)	modelled	docssyntaxcov-syntax-provenance	
+base/syntax.jl	572	576	filename	filename(s::Syntax)	modelled	docssyntaxcov-syntax-source	
+base/syntax.jl	577	580	source_line	source_line(src::SourceCode, b)	modelled	docssyntaxcov-syntax-source	
+base/syntax.jl	581	581	first_linenode	first_linenode(s::Syntax)	modelled	docssyntaxcov-syntax-source	
+base/syntax.jl	582	583	first_linenode	first_linenode(sr::SourceRef)	modelled	docssyntaxcov-syntax-source	
+base/syntax.jl	584	584	first_linenode	first_linenode(lnn::LineNumberNode)	modelled	docssyntaxcov-syntax-source	
+base/syntax.jl	597	606	_first_linenode	_first_linenode(e::Expr)	modelled	docssyntaxcov-syntax-expr-lines	
+base/syntax.jl	607	607	first_linenode	first_linenode(e::Expr)	modelled	docssyntaxcov-syntax-expr-lines	
+base/syntax.jl	609	613	_unescape_lnn	_unescape_lnn(@nospecialize(e))	modelled	docssyntaxcov-syntax-expr-lines	
+base/syntax.jl	617	634	_get_inner_lnn	_get_inner_lnn(e::Expr, default::LineNumberNode)	modelled	docssyntaxcov-syntax-expr-lines	
+base/syntax.jl	639	640	isa_lowering_ast_node	isa_lowering_ast_node(@nospecialize(e))	modelled	docssyntaxcov-syntax-expr-to-syntax	
+base/syntax.jl	642	647	expr_to_syntax	"expr_to_syntax(@nospecialize(e), src::Union{LineNumberNode, SourceRef}= e isa Expr ? first_linenode(e) : LineNumberNode(0, :var""""), context=SyntaxContext(nothing, nothing, JL_OLD_EDITION, false))"	modelled	docssyntaxcov-syntax-expr-to-syntax	
+base/syntax.jl	648	650	expr_to_syntax	expr_to_syntax(@nospecialize(e), src::Syntax)	modelled	docssyntaxcov-syntax-expr-to-syntax	
+base/syntax.jl	651	699	_expr_to_syntax	_expr_to_syntax(@nospecialize(e), context::SyntaxContext, src::SourceAttrType, quoted::Bool)	modelled	docssyntaxcov-syntax-expr-to-syntax	
+base/syntax.jl	702	708	_is_meta_doc_block	_is_meta_doc_block(s::Syntax)	modelled	docssyntaxcov-syntax-meta-call	
+base/syntax.jl	710	713	is_eventually_call	is_eventually_call(e)	modelled	docssyntaxcov-syntax-meta-call	
+base/syntax.jl	718	788	syntax_to_expr	syntax_to_expr(s::Syntax, suppress_linenodes=false)	modelled	docssyntaxcov-syntax-to-expr	
+base/syntax.jl	719	722	push_lno!	push_lno!(ex::Expr, lno::LineNumberNode, first::Bool=false)	modelled	docssyntaxcov-syntax-to-expr	
+base/syntax.jl	791	798	_c_parseall_expr	_c_parseall_expr(code::Core.SimpleVector, filename::String, lineno::Int, mod::Union{Module, Nothing})	modelled	docssyntaxcov-syntax-parser-eval	
+base/syntax.jl	800	807	fl_toplevel_eval	fl_toplevel_eval(mod::Module, @nospecialize(x))	modelled	docssyntaxcov-syntax-parser-eval	
+base/syntax.jl	812	812	attrsummary	attrsummary(name, _value)	modelled	docssyntaxcov-syntax-print-helpers	
+base/syntax.jl	813	813	attrsummary	attrsummary(name, value::Number)	modelled	docssyntaxcov-syntax-print-helpers	
+base/syntax.jl	814	814	attrsummary	attrsummary(name, value::LineNumberNode)	modelled	docssyntaxcov-syntax-print-helpers	
+base/syntax.jl	815	815	attrsummary	attrsummary(name, value::Module)	modelled	docssyntaxcov-syntax-print-helpers	
+base/syntax.jl	817	821	subscript_str	subscript_str(i)	modelled	docssyntaxcov-syntax-print-helpers	
+base/syntax.jl	823	863	_value_string	_value_string(ex)	modelled	docssyntaxcov-syntax-print-helpers	
+base/syntax.jl	865	893	_show_syntax_tree	_show_syntax_tree(io, ex, indent, show_kinds, @nospecialize(parent_sc))	modelled	docssyntaxcov-syntax-tree-show	
+base/syntax.jl	895	898	Base.show	"Base.show(io::IO, ::MIME""text/plain"", ex::Syntax, show_kinds=true)"	modelled	docssyntaxcov-syntax-tree-show	
+base/syntax.jl	899	910	_show_syntax_tree_sexpr	_show_syntax_tree_sexpr(io, ex)	modelled	docssyntaxcov-syntax-tree-show	
+base/syntax.jl	912	915	Base.show	"Base.show(io::IO, ::MIME""text/x.sexpression"", node::Syntax)"	modelled	docssyntaxcov-syntax-tree-show	
+base/syntax.jl	917	920	Base.show	Base.show(io::IO, node::Syntax)	modelled	docssyntaxcov-syntax-tree-show	

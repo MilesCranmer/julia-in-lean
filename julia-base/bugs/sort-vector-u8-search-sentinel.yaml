@@ -1,0 +1,74 @@
+id: sort-vector-u8-search-sentinel
+title: "searchsortedlast(v, x, lo, hi, o) reads v[0] out of bounds for lo=0x01, hi=0xff"
+priority: P2
+kind: crash
+area: Sort
+files: [base/sort.jl]
+functions: ["searchsortedlast(v, x, lo::T, hi::T, o)", "searchsorted(v, x, lo::T, hi::T, o)"]
+summary: |
+  The positional binary searches accept any integer type for lo and hi. With an
+  unsigned window ending at typemax(T), such as lo = 0x01, hi = 0xff on a
+  vector of length 255, the sentinel hi + T(1) wraps to zero, the loop's first
+  midpoint is 0, and v[0] is read under @inbounds: a silent out-of-bounds
+  memory read on a plain Vector.
+likelihood: |
+  Low: these positional methods are undocumented, and the window must use an
+  unsigned type and end exactly at typemax(T) (0xff, 0xffff, ...). The keyword
+  methods pass Int windows and are unaffected.
+maybe_intended: |
+  The positional methods with explicit lo/hi are undocumented (issue #30388),
+  so they may be considered internal; they were widened from Int to any
+  T<:Integer after #31618.
+reproducer: |
+  # A vector that keeps its bounds check under the caller's @inbounds, so the
+  # invalid read is reported instead of reading arbitrary memory.
+  struct Checked <: AbstractVector{Int}
+      data::Vector{Int}
+  end
+  Base.size(v::Checked) = size(v.data)
+  Base.getindex(v::Checked, i::Integer) = (1 <= i <= length(v.data) || throw(BoundsError(v, i)); v.data[i])
+
+  v = Checked(collect(1:255))
+  println(searchsortedlast(v, 128, 1, 255, Base.Order.Forward))
+  err = try
+      searchsortedlast(v, 128, 0x01, 0xff, Base.Order.Forward)
+  catch e
+      e
+  end
+  println(typeof(err), " at index ", repr(err.i))
+  if err isa BoundsError && err.i == 0
+      println("REPRODUCED sort-vector-u8-search-sentinel")
+  end
+output:
+  release: |
+    128
+    BoundsError at index 0x00
+    REPRODUCED sort-vector-u8-search-sentinel
+  nightly: |
+    128
+    BoundsError at index 0x00
+    REPRODUCED sort-vector-u8-search-sentinel
+reproduced: {release: true, nightly: true}
+expected: |
+  128, the same as with the Int window 1:255, without reading outside lo:hi.
+promised_by: |
+  Invariant: base/sort.jl:203 and 221 accept lo::T, hi::T for any T<:Integer
+  and read v[m] under @inbounds, which is only sound if every m lies in lo:hi
+  for every valid window 1 <= lo <= hi <= lastindex(v).
+cause: |
+  base/sort.jl:204-207: u = T(1); lo = lo - u; hi = hi + u. For T = UInt8 and
+  hi = 0xff, hi + u wraps to 0x00, which equals lo - u = 0x00. The loop test
+  lo != hi - u (0x00 != 0xff) holds and midpoint(0x00, 0x00) = 0x00 (base/sort.jl:208)
+  is read at base/sort.jl:209. searchsorted (base/sort.jl:222-227) has the same
+  sentinels. searchsortedfirst is unaffected because its m + 1 promotes to Int.
+possible_fix: |
+  Promote lo and hi to a type that can hold hi + 1 (for example widen(T) or Int
+  via promote(lo, hi, 1)) before forming the sentinels.
+duplicates:
+  issues:
+    - {number: 31618, state: closed, relation: related}
+    - {number: 30388, state: open, relation: related}
+  queries: ["issues: searchsortedlast UInt8", "issues: searchsorted lo hi", "issues/prs: searchsorted overflow", "prs: searchsorted midpoint overflow"]
+lean:
+  property: JuliaLean.Sort.WindowSearchInBounds
+  theorem: JuliaLean.Sort.windowSearchInBounds_refuted

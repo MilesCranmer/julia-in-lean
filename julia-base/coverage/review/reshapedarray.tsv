@@ -1,0 +1,122 @@
+line	name	verdict	mirror	property	settled	reason
+10	ReshapedArray	FAITHFUL	yes	yes	yes	
+20	ReshapedArrayIterator	FAITHFUL	yes	yes	yes	
+21	_rs_iterator	FAITHFUL	yes	yes	yes	
+31	iterate	FAITHFUL	yes	yes	yes	
+35	length	FAITHFUL	yes	yes	yes	
+36	eltype	FAITHFUL	yes	yes	yes	
+38	throw_dmrsa	FAITHFUL	yes	yes	yes	
+43	reshape	HOLLOW	no	yes	yes	m43 calls length once and reuses that result in the mismatch message, while Julia calls length(a) once for the comparison and again only on the mismatch branch.
+55	reshape!	HOLLOW	no	yes	yes	m55 calls length once and replaces the source setfield! call with a hard-coded callback error, so it does not mirror the failing mutation body.
+122	reshape	FAITHFUL	yes	yes	yes	
+123	reshape	FAITHFUL	yes	yes	yes	
+126	reshape	FAITHFUL	yes	yes	yes	
+127	reshape	FAITHFUL	yes	yes	yes	
+128	reshape	FAITHFUL	yes	yes	yes	
+131	reshape	FAITHFUL	yes	yes	yes	
+132	reshape	FAITHFUL	yes	yes	yes	
+133	reshape	FAITHFUL	yes	yes	yes	
+134	reshape	FAITHFUL	yes	yes	yes	
+135	reshape	FAITHFUL	yes	yes	yes	
+136	reshape	FAITHFUL	yes	yes	yes	
+138	throw1	FAITHFUL	yes	yes	yes	
+140	throw2	HOLLOW	no	yes	yes	m140 constructs a LazyString surrogate and never mirrors Julia's eager string call before constructing the DimensionMismatch.
+143	_reshape_uncolon	HOLLOW	no	yes	yes	m143 passes a fixed AnyValue to throw1 instead of the promoted dims tuple that Julia includes in the error.
+152	_reshape_uncolon_computesize	FAITHFUL	yes	yes	yes	
+163	_reshape_uncolon_computesize	FAITHFUL	yes	yes	yes	
+172	_reshape_uncolon_computesize_nonempty	FAITHFUL	yes	yes	yes	
+178	_any_colon	FAITHFUL	yes	yes	yes	
+179	_any_colon	FAITHFUL	yes	yes	yes	
+180	_any_colon	FAITHFUL	yes	yes	yes	
+181	_before_colon	FAITHFUL	yes	yes	yes	
+182	_before_colon	FAITHFUL	yes	yes	yes	
+183	_after_colon	FAITHFUL	yes	yes	yes	
+184	_after_colon	FAITHFUL	yes	yes	yes	
+186	reshape	FAITHFUL	yes	yes	yes	
+187	reshape	FAITHFUL	yes	yes	yes	
+194	rdims_trailing	FAITHFUL	yes	yes	yes	
+195	rdims_trailing	FAITHFUL	yes	yes	yes	
+196	rdims	FAITHFUL	yes	yes	yes	
+197	rdims	FAITHFUL	yes	yes	yes	
+198	rdims	FAITHFUL	yes	yes	yes	
+199	rdims	FAITHFUL	yes	yes	yes	
+200	rdims	FAITHFUL	yes	yes	yes	
+201	rdims	FAITHFUL	yes	yes	yes	
+202	rdims	FAITHFUL	yes	yes	yes	
+203	rdims	FAITHFUL	yes	yes	yes	
+204	rdims	FAITHFUL	yes	yes	yes	
+205	rdims	FAITHFUL	yes	yes	yes	
+209	_reshape	FAITHFUL	yes	yes	yes	
+210	_reshape	FAITHFUL	yes	yes	yes	
+211	_reshape	FAITHFUL	yes	yes	yes	
+214	_reshape	FAITHFUL	yes	yes	yes	
+221	_reshape	FAITHFUL	yes	yes	yes	
+227	_throw_dmrs	HOLLOW	no	yes	yes	m227 inserts a fixed AnyValue into the message instead of the actual dims value interpolated by Julia after prod(dims).
+232	_reshape	FAITHFUL	yes	yes	yes	
+233	_reshape	FAITHFUL	yes	yes	yes	
+235	__reshape	FAITHFUL	yes	yes	yes	
+243	__reshape	FAITHFUL	yes	yes	yes	
+248	__reshape	FAITHFUL	yes	yes	yes	
+253	size	FAITHFUL	yes	yes	yes	
+254	length	FAITHFUL	yes	yes	yes	
+255	similar	FAITHFUL	yes	yes	yes	
+256	similar	FAITHFUL	yes	yes	yes	
+257	IndexStyle	FAITHFUL	yes	yes	yes	
+258	parent	FAITHFUL	yes	yes	yes	
+259	parentindices	FAITHFUL	yes	yes	yes	
+260	elsize	FAITHFUL	yes	yes	yes	
+262	unaliascopy	HOLLOW	no	yes	yes	m262 runs unaliascopy before typeof(view), reversing Julia's left-to-right constructor-argument evaluation order.
+263	dataids	FAITHFUL	yes	yes	yes	
+265	mightalias	FAITHFUL	yes	yes	yes	
+267	mightalias	FAITHFUL	yes	yes	yes	
+268	mightalias	FAITHFUL	yes	yes	yes	
+270	ind2sub_rs	FAITHFUL	yes	yes	yes	
+271	ind2sub_rs	FAITHFUL	yes	yes	yes	
+272	_ind2sub_rs	HOLLOW	no	yes	yes	m272 calls add(origin, index), while Julia evaluates ind + first(ax[end]) with the index as the left operand.
+273	_ind2sub_rs	FAITHFUL	yes	yes	yes	
+277	offset_if_vec	FAITHFUL	yes	yes	yes	
+278	offset_if_vec	FAITHFUL	yes	yes	yes	
+280	isassigned	FAITHFUL	yes	yes	yes	
+286	isassigned	FAITHFUL	yes	yes	yes	
+294	getindex	HOLLOW	no	yes	yes	m294 reads parent(view) once before firstindex and reuses it, while Julia calls parent(A) separately inside firstindex and again for getindex.
+300	getindex	FAITHFUL	yes	yes	yes	
+304	getindex	HOLLOW	no	yes	yes	m304 reads parent(view) once and reuses it, while Julia calls parent(A) separately for checkbounds and getindex.
+310	_unsafe_getindex	HOLLOW	no	yes	yes	m310 reads parent(view) before axes and reuses it for the final read, while Julia first reads A.parent and calls parent(A) only after index conversion.
+316	_unsafe_getindex_rs	FAITHFUL	yes	yes	yes	
+317	_unsafe_getindex_rs	FAITHFUL	yes	yes	yes	
+319	setindex!	HOLLOW	no	yes	yes	m319 reads parent(view) once and reuses it, while Julia calls parent(A) separately inside firstindex and again for the assignment.
+325	setindex!	FAITHFUL	yes	yes	yes	
+329	setindex!	HOLLOW	no	yes	yes	m329 reads parent(view) once and reuses it, while Julia calls parent(A) separately for checkbounds and assignment.
+335	_unsafe_setindex!	HOLLOW	no	yes	yes	m335 reads parent(view) at the start and reuses it, while Julia calls parent(A) only at the later assignment after the first axes and index calculations.
+344	setindex!	FAITHFUL	yes	yes	yes	
+345	setindex!	FAITHFUL	yes	yes	yes	
+346	setindex!	FAITHFUL	yes	yes	yes	
+348	_rs_setindex!_err	HOLLOW	no	yes	yes	m348 returns an anonymous callback failure and omits Julia's error call and literal ErrorException message.
+350	cconvert	FAITHFUL	yes	yes	yes	
+351	unsafe_convert	FAITHFUL	yes	yes	yes	
+355	viewindexing	FAITHFUL	yes	yes	yes	
+356	viewindexing	FAITHFUL	yes	yes	yes	
+357	compute_stride1	FAITHFUL	yes	yes	yes	
+358	compute_offset1	FAITHFUL	yes	yes	yes	
+360	substrides	HOLLOW	no	yes	yes	m360 extracts I[1] once and reuses it for step and size, while Julia evaluates I[1] separately in those two calls.
+368	unsafe_convert	HOLLOW	no	no	yes	m368 replaces subtraction followed by multiplication with one unconstrained offsetArithmetic callback, so neither the source arithmetic nor its byte-offset result is established.
+384	_offset_cconvert	FAITHFUL	yes	yes	yes	
+391	_offset_cconvert	FAITHFUL	yes	yes	yes	
+398	unsafe_convert	FAITHFUL	yes	yes	yes	
+402	cconvert	HOLLOW	no	no	yes	m402 replaces the contiguous branch's first_index, firstindex, subtraction, elsize, and multiplication with one unconstrained fastOffset callback, so the byte offset is not established.
+417	_checkcontiguous	FAITHFUL	yes	yes	yes	
+420	_checkcontiguous	FAITHFUL	yes	yes	yes	
+421	_checkcontiguous	FAITHFUL	yes	yes	yes	
+422	_checkcontiguous	FAITHFUL	yes	yes	yes	
+424	strides	FAITHFUL	yes	yes	yes	
+433	_reshaped_strides	FAITHFUL	yes	yes	yes	
+437	_reshaped_strides	FAITHFUL	yes	yes	yes	
+448	merge_adjacent_dim	FAITHFUL	yes	yes	yes	
+449	merge_adjacent_dim	FAITHFUL	yes	yes	yes	
+450	merge_adjacent_dim	FAITHFUL	yes	yes	yes	
+466	map	FAITHFUL	yes	yes	yes	
+468	iterate	FAITHFUL	yes	yes	yes	
+469	iterate	FAITHFUL	yes	yes	yes	
+471	mapfoldl_impl	FAITHFUL	yes	yes	yes	
+472	mapfoldr_impl	FAITHFUL	yes	yes	yes	
+474	in	FAITHFUL	yes	yes	yes	

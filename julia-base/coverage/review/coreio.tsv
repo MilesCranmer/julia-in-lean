@@ -1,0 +1,27 @@
+line	name	verdict	mirror	property	settled	reason
+3	print	FAITHFUL	-	-	-	The no-behaviour exclusion applies because this is an empty generic-function declaration with no method body.
+6	print	HOLLOW	no	no	yes	The model replaces the dispatched print(stdout, x) call with one pre-rendered output event, while the proposition only asserts reflexive HasResult and states no forwarding or output behavior.
+7	print	HOLLOW	no	no	yes	The model replaces the dispatched print(stdout, x1, x2) call with pre-rendered output events, while the proposition only asserts reflexive HasResult and states no forwarding order or output behavior.
+8	println	HOLLOW	no	no	yes	The model replaces the dispatched print(stdout, x, "\\n") call with pre-rendered output events, while the proposition only asserts reflexive HasResult and states no newline behavior.
+9	println	HOLLOW	no	no	yes	The model replaces the dispatched print(stdout, x1, x2, "\\n") call with pre-rendered output events, while the proposition only asserts reflexive HasResult and states no argument-order or newline behavior.
+11	print	HOLLOW	no	no	yes	The model maps a list of pre-rendered strings directly to output events instead of forwarding arbitrary xs to print(stdout, xs...), while the proposition only asserts reflexive HasResult.
+12	println	HOLLOW	no	no	yes	The model maps pre-rendered strings and a newline directly to output events instead of calling print(stdout, xs..., "\\n"), while the proposition only asserts reflexive HasResult.
+13	println	HOLLOW	no	no	yes	The model emits a newline event directly instead of calling print(io, "\\n"), while the proposition only asserts reflexive HasResult and states no write behavior.
+15	show	FAITHFUL	-	-	-	The no-behaviour exclusion applies because this is an empty generic-function declaration with no method body.
+16	repr	FAITHFUL	-	-	-	The no-behaviour exclusion applies because this is an empty generic-function declaration with no method body.
+19	DevNull	HOLLOW	yes	no	yes	The constructor model mirrors the zero-field new() body, but the proposition only asserts reflexive HasResult and does not state that a DevNull value is created.
+22	write	FAITHFUL	yes	yes	yes	
+23	unsafe_write	HOLLOW	yes	no	yes	The model includes the UInt-to-Int conversion outcome, but the proposition only asserts reflexive HasResult and states neither the returned Int nor the conversion error.
+24	closewrite	FAITHFUL	yes	yes	yes	
+25	close	FAITHFUL	yes	yes	yes	
+26	wait_close	HOLLOW	no	no	yes	The model replaces the call to wait() with a fixed forever-blocking outcome, and the proposition neither states delegation nor covers wait() returning after the task is rescheduled.
+27	bytesavailable	FAITHFUL	yes	yes	yes	
+30	write	HOLLOW	no	no	yes	The model replaces Core.write(io, x) with the identity on a one-byte list and drops io, so the proposition neither records the delegated call nor quantifies over both Core output streams.
+31	unsafe_write	HOLLOW	no	no	yes	The model replaces Core.unsafe_write(io, ptr, nb) with the identity on a preselected byte list and drops io, ptr, and nb, so the proposition covers neither the allowed inputs nor the delegated call.
+34	read	FAITHFUL	yes	yes	yes	
+35	isopen	FAITHFUL	yes	yes	yes	
+36	isreadable	FAITHFUL	yes	yes	yes	
+37	iswritable	FAITHFUL	yes	yes	yes	
+38	flush	FAITHFUL	yes	yes	yes	
+39	eof	FAITHFUL	yes	yes	yes	
+40	wait_readnb	FAITHFUL	yes	yes	yes	

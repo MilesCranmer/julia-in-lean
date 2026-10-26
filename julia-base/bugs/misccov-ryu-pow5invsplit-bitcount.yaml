@@ -1,0 +1,44 @@
+id: misccov-ryu-pow5invsplit-bitcount
+title: "Ryu.pow5invsplit(T, 0) has pow5_inv_bitcount(T)+1 significant bits, not pow5_inv_bitcount(T) as documented"
+priority: P3
+kind: documentation
+area: MiscCov
+files: [base/ryu/utils.jl]
+functions: ["Base.Ryu.pow5invsplit", "Base.Ryu.pow5_inv_bitcount"]
+summary: |
+  The docstring says the result of pow5invsplit(T, i) has `pow5_inv_bitcount(T)` significant bits. For i = 0 the value is 2^pow5_inv_bitcount(T) + 1 for all three float types (123, 60 and 31 bits instead of 122, 59 and 30). For 1 <= i <= i_max the count is right.
+likelihood: |
+  None in printing: the first table entry is used as is, as in the reference Ryu. Only a reader relying on the docstring is affected.
+maybe_intended: |
+  The +1 in floor(2^k/5^i)+1 makes the first entry a power of two plus one; the docstring describes the other entries.
+reproducer: |
+  ndigits(Base.Ryu.pow5invsplit(Float64, 0), base = 2)  # 123
+  Base.Ryu.pow5_inv_bitcount(Float64)                     # 122
+output:
+  release: |
+    Float64: pow5invsplit(T, 0) = 0x04000000000000000000000000000001, significant bits = 123, pow5_inv_bitcount(T) = 122
+    Float32: pow5invsplit(T, 0) = 0x0800000000000001, significant bits = 60, pow5_inv_bitcount(T) = 59
+    Float16: pow5invsplit(T, 0) = 0x40000001, significant bits = 31, pow5_inv_bitcount(T) = 30
+    REPRODUCED misccov-ryu-pow5invsplit-bitcount
+  nightly: |
+    Float64: pow5invsplit(T, 0) = 0x04000000000000000000000000000001, significant bits = 123, pow5_inv_bitcount(T) = 122
+    Float32: pow5invsplit(T, 0) = 0x0800000000000001, significant bits = 60, pow5_inv_bitcount(T) = 59
+    Float16: pow5invsplit(T, 0) = 0x40000001, significant bits = 31, pow5_inv_bitcount(T) = 30
+    REPRODUCED misccov-ryu-pow5invsplit-bitcount
+reproduced: {release: true, nightly: true}
+expected: |
+  `pow5_inv_bitcount(T)` significant bits, or a docstring noting the exception at i = 0.
+promised_by: |
+  base/ryu/utils.jl:275-277: "The result is an unsigned integer twice as wide as `T` ... with `pow5_inv_bitcount(T)` significant bits."
+cause: |
+  base/ryu/utils.jl:282: for i = 0, `div(big(1) << (1 - 1 + bitcount), 1) + 1 == 2^bitcount + 1`.
+possible_fix: |
+  Mention the i = 0 case in the docstring.
+duplicates:
+  issues: []
+  queries:
+    - "issues: pow5invsplit"
+    - "issues: Ryu docstring"
+lean:
+  property: JuliaLean.MiscCov.RyuUtils.Pow5InvsplitBitcount
+  theorem: JuliaLean.MiscCov.RyuUtils.pow5InvsplitBitcount_refuted

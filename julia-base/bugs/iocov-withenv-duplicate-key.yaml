@@ -1,0 +1,56 @@
+id: iocov-withenv-duplicate-key
+title: "withenv does not restore a variable that appears twice in its arguments"
+priority: P2
+kind: wrong-result
+area: IOCov
+files: [base/env.jl]
+functions: ["withenv(f, ::Pair...)"]
+summary: |
+  withenv records the old value of each key with old[key] = get(ENV, key, nothing)
+  inside the loop that also assigns the new values. When a key occurs twice, the
+  second occurrence overwrites the saved value with the first new value, so on exit
+  the variable is set to that intermediate value instead of its original value (or
+  left set when it was originally unset).
+likelihood: |
+  Needs the same variable name twice in one withenv call, for example when the pairs
+  are built by merging two lists of settings. Then the process environment is
+  silently left modified after withenv returns.
+maybe_intended: ""
+reproducer: |
+  haskey(ENV, "IOCOV_DUP") && delete!(ENV, "IOCOV_DUP")
+  withenv("IOCOV_DUP" => "1", "IOCOV_DUP" => "2") do
+      println("inside: ", ENV["IOCOV_DUP"])
+  end
+  after = get(ENV, "IOCOV_DUP", nothing)
+  println("after withenv: ", repr(after))
+  if after !== nothing
+      println("REPRODUCED iocov-withenv-duplicate-key")
+  end
+output:
+  release: |
+    inside: 2
+    after withenv: "1"
+    REPRODUCED iocov-withenv-duplicate-key
+  nightly: |
+    inside: 2
+    after withenv: "1"
+    REPRODUCED iocov-withenv-duplicate-key
+reproduced: {release: true, nightly: true}
+expected: |
+  after withenv: nothing (the variable was unset before the call).
+promised_by: |
+  withenv docstring, base/env.jl:269-271: "When `withenv` returns, the original
+  environment has been restored."
+cause: |
+  base/env.jl:279-282: old[key] = get(ENV,key,nothing) runs for every pair, after the
+  earlier pairs have already been assigned, so a repeated key saves the value set by
+  its first occurrence.
+possible_fix: |
+  Record a key only the first time it is seen (haskey(old, key) || (old[key] = ...)),
+  or save all old values before assigning any.
+duplicates:
+  issues: []
+  queries: ["withenv duplicate", "withenv restore", "withenv same key", "withenv", "withenv duplicate keys"]
+lean:
+  property: JuliaLean.IOCov.EnvFaithful.WithenvRestores
+  theorem: JuliaLean.IOCov.EnvFaithful.withenvRestores_refuted

@@ -16,7 +16,7 @@ GMP and MPFR calls are exact primitives defined by their manuals; Julia's wrappe
 mirrored line by line. See the module docstrings of `BigNums/Int.lean`, `BigNums/Float.lean`,
 `BigNums/Rational.lean` and `BigNums/Parse.lean`.
 
-Differential check against Julia master:
+Differential check (master):
 6,820 rows over BigInt `div`/`rem`/`mod`/`fld`/`cld`, `isqrt`, conversion to and `rem` into all
 ten `BitInteger` types, `powermod`, `invmod`, `^`, `digits`, `parse`, `string(base, pad)`,
 `BigFloat(::Rational, mode; precision)`, `cmp(::BigFloat, ::Float64)`, `round(Int64, ::BigFloat,
@@ -99,6 +99,13 @@ def entries : List Entry := [
     status := .refuted, prop := ``DigitsBangFillsLow, thm := some ``digitsBangFillsLow_refuted,
     issue := "none found (queries: digits! BigInt; digits!; digits! resize; mpz_export digits; digits BigInt)",
     notes := "digits!(view(zeros(Int, 10), 1:3), big(2)^62 + 5; base=128) throws MethodError (resize! on a SubArray). Same on 1.13.2 and master." },
+  { id := "bignums-parse-base-abort", juliaFile := "base/mpfr.jl",
+    juliaFns := ["tryparse(::Type{BigFloat}, ::AbstractString; base)", "parse(::Type{BigFloat}, ::AbstractString; base)"],
+    statement := "tryparse(BigFloat, s; base) never aborts the process, for any string and base.",
+    source := "tryparse docstring, base/parse.jl:241-246",
+    status := .refuted, prop := ``TryparseBigFloatTotal, thm := some ``tryparseBigFloatTotal_refuted,
+    issue := "none found (queries: BigFloat base abort; MPFR assertion failed; parse BigFloat base; tryparse BigFloat; BigFloat parse; parse BigFloat)",
+    notes := "tryparse(BigFloat, \"1\"; base=1) dies with SIGABRT: MPFR assertion base == 0 || (base >= 2 && base <= 62). Same on 1.13.2 and master." },
   { id := "bignums-tryparse-nul", juliaFile := "base/mpfr.jl",
     juliaFns := ["tryparse(::Type{BigFloat}, ::AbstractString)"],
     statement := "tryparse(BigFloat, s) returns a value or nothing and never throws.",

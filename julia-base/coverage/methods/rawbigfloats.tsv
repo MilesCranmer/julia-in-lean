@@ -1,0 +1,23 @@
+file	line	endline	name	signature	status	entry	note
+base/rawbigfloats.jl	5	5	elem_count	elem_count(x::BigFloatData, ::Val{:words})	modelled	bignumscov-raw-count-index	source-model: bignumscov-raw-count-index
+base/rawbigfloats.jl	6	6	elem_count	elem_count(x::Unsigned, ::Val{:bits})	modelled	bignumscov-raw-count-index	source-model: bignumscov-raw-count-index
+base/rawbigfloats.jl	7	7	word_length	word_length(::BigFloatData{T}) where {T}	modelled	bignumscov-raw-count-index	source-model: bignumscov-raw-count-index
+base/rawbigfloats.jl	8	8	elem_count	elem_count(x::BigFloatData{T}, ::Val{:bits}) where {T}	modelled	bignumscov-raw-count-index	source-model: bignumscov-raw-count-index
+base/rawbigfloats.jl	9	9	reversed_index	reversed_index(n::Int, i::Int)	modelled	bignumscov-raw-count-index	source-model: bignumscov-raw-count-index
+base/rawbigfloats.jl	10	10	reversed_index	reversed_index(x, i::Int, v::Val)	modelled	bignumscov-raw-count-index	source-model: bignumscov-raw-count-index
+base/rawbigfloats.jl	11	11	split_bit_index	split_bit_index(x::BigFloatData, i::Int)	modelled	bignumscov-raw-count-index	source-model: bignumscov-raw-count-index
+base/rawbigfloats.jl	17	19	get_elem	get_elem(x::BigFloatData{T}, i::Int, ::Val{:words}, ::Val{:ascending}) where {T}	modelled	bignumscov-raw-count-index,memsafety-rawbigfloats-get-elem	source-model: bignumscov-raw-count-index,memsafety-rawbigfloats-get-elem
+base/rawbigfloats.jl	21	24	get_elem	get_elem(x, i::Int, v::Val, ::Val{:descending})	modelled	bignumscov-raw-count-index,memsafety-rawbigfloats-get-elem	source-model: bignumscov-raw-count-index,memsafety-rawbigfloats-get-elem
+base/rawbigfloats.jl	26	26	word_is_nonzero	word_is_nonzero(x::BigFloatData, i::Int, v::Val)	modelled	bignumscov-raw-tail	source-model: bignumscov-raw-tail
+base/rawbigfloats.jl	28	30	word_is_nonzero	word_is_nonzero(x::BigFloatData, v::Val)	modelled	bignumscov-raw-tail	source-model: bignumscov-raw-tail
+base/rawbigfloats.jl	36	38	tail_is_nonzero	tail_is_nonzero(x::BigFloatData, len::Int, ::Val{:words})	modelled	bignumscov-raw-tail,memsafety-rawbigfloats-get-elem	source-model: bignumscov-raw-tail,memsafety-rawbigfloats-get-elem
+base/rawbigfloats.jl	44	47	tail_is_nonzero	tail_is_nonzero(x::BigFloatData, len::Int, i::Int, ::Val{:word})	modelled	bignumscov-raw-tail,memsafety-rawbigfloats-get-elem	source-model: bignumscov-raw-tail,memsafety-rawbigfloats-get-elem
+base/rawbigfloats.jl	53	61	tail_is_nonzero	tail_is_nonzero(x::BigFloatData, len::Int, ::Val{:bits})	modelled	bignumscov-raw-tail,memsafety-rawbigfloats-get-elem	source-model: bignumscov-raw-tail,memsafety-rawbigfloats-get-elem
+base/rawbigfloats.jl	66	68	get_elem	get_elem(x::Unsigned, i::Int, ::Val{:bits}, ::Val{:ascending})	modelled	bignumscov-raw-count-index	source-model: bignumscov-raw-count-index
+base/rawbigfloats.jl	73	82	get_elem	get_elem(x::BigFloatData, i::Int, ::Val{:bits}, v::Val{:ascending})	modelled	bignumscov-raw-count-index,memsafety-rawbigfloats-get-elem	source-model: bignumscov-raw-count-index,memsafety-rawbigfloats-get-elem
+base/rawbigfloats.jl	89	114	truncated	truncated(::Type{R}, x::BigFloatData, len::Int) where {R<:Integer}	modelled	bignumscov-raw-trunc-round,memsafety-rawbigfloats-get-elem	source-model: bignumscov-raw-trunc-round,memsafety-rawbigfloats-get-elem
+base/rawbigfloats.jl	123	128	BigFloatDataRoundingIncrementHelper{T}	BigFloatDataRoundingIncrementHelper{T}(n::BigFloatData{T}, len::Int) where {T<:Unsigned}	modelled	bignumscov-raw-trunc-round,memsafety-rawbigfloats-get-elem	source-model: bignumscov-raw-trunc-round,memsafety-rawbigfloats-get-elem
+base/rawbigfloats.jl	131	133	BigFloatDataRoundingIncrementHelper	BigFloatDataRoundingIncrementHelper(n::BigFloatData{T}, len::Int) where {T<:Unsigned}	modelled	bignumscov-raw-trunc-round,memsafety-rawbigfloats-get-elem	source-model: bignumscov-raw-trunc-round,memsafety-rawbigfloats-get-elem
+base/rawbigfloats.jl	135	135	(h::BigFloatDataRoundingIncrementHelper)	(h::BigFloatDataRoundingIncrementHelper)(::Rounding.FinalBit)	modelled	bignumscov-raw-trunc-round,memsafety-rawbigfloats-get-elem	source-model: bignumscov-raw-trunc-round,memsafety-rawbigfloats-get-elem
+base/rawbigfloats.jl	137	137	(h::BigFloatDataRoundingIncrementHelper)	(h::BigFloatDataRoundingIncrementHelper)(::Rounding.RoundBit)	modelled	bignumscov-raw-trunc-round,memsafety-rawbigfloats-get-elem	source-model: bignumscov-raw-trunc-round,memsafety-rawbigfloats-get-elem
+base/rawbigfloats.jl	139	143	(h::BigFloatDataRoundingIncrementHelper)	(h::BigFloatDataRoundingIncrementHelper)(::Rounding.StickyBit)	modelled	bignumscov-raw-trunc-round,memsafety-rawbigfloats-get-elem	source-model: bignumscov-raw-trunc-round,memsafety-rawbigfloats-get-elem

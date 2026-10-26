@@ -1,0 +1,120 @@
+line	name	verdict	mirror	property	settled	reason
+86	supertype	HOLLOW	no	no	yes	The Lean model turns the cache-mutating ccall into a discarded pure Unit call, and the proposition states only the returned field value without the cache effect.
+95	getproperty	FAITHFUL	yes	yes	yes	-
+102	supertype	HOLLOW	no	yes	yes	The Lean model receives var and body separately, so it omits the UnionAll input and both field reads.
+104	supertype	HOLLOW	no	no	yes	The Lean model receives only the intended result as an argument, so it omits the TypeEq input and the proposition is an identity unrelated to this method.
+105	supertype	HOLLOW	no	no	yes	The Lean model receives the type parameter directly, so it omits type_parameter(T) and the proposition does not describe the method on a TypeEgal input.
+196	isequal	HOLLOW	no	no	yes	The Lean model requires a Bool-valued equality callback, so it omits the source Bool assertion and the resulting error behavior for non-Bool equality results.
+198	signequal	FAITHFUL	yes	yes	yes	-
+199	signless	HOLLOW	no	yes	yes	The Lean model uses short-circuit Boolean conjunction, so it does not mirror Julia's eager bitwise conjunction and both signbit calls.
+201	isequal	HOLLOW	no	yes	yes	The Lean model uses short-circuit Boolean operators, so it does not mirror the eager isnan, signequal, and equality calls in Julia's bitwise expression.
+202	isequal	HOLLOW	no	yes	yes	The Lean model uses short-circuit Boolean operators, so it does not mirror the eager isnan, signequal, and equality calls in Julia's bitwise expression.
+203	isequal	HOLLOW	no	no	yes	The registry entry proves a total-order property only for IEEE floats and integers of at most 32 bits, so it neither mirrors this method nor covers every Real input.
+238	isless	FAITHFUL	yes	-	-	-
+240	isless	HOLLOW	no	yes	yes	The Lean model uses short-circuit Boolean operators, so it does not mirror the eager calls in Julia's bitwise expression.
+241	isless	HOLLOW	no	no	yes	The registry entry proves a total-order property only for IEEE floats and integers of at most 32 bits, so it neither mirrors this method nor covers every Real input.
+242	isless	HOLLOW	no	no	yes	The registry entry proves a total-order property only for IEEE floats and integers of at most 32 bits, so it neither mirrors this method nor covers every Real input.
+248	isless	HOLLOW	no	yes	yes	The Lean model uses short-circuit Boolean operators, so it does not mirror Julia's eager bitwise calls for both tuple fields.
+295	isgreater	HOLLOW	yes	no	yes	The proposition covers only calls with a missing operand, so it does not quantify over every input accepted by the generic isgreater method.
+309	isunordered	FAITHFUL	yes	yes	yes	-
+310	isunordered	FAITHFUL	yes	yes	yes	-
+311	isunordered	HOLLOW	yes	no	yes	The proposition concludes only an isgreater ordering property and never states directly that isunordered(missing) returns true.
+313	==	HOLLOW	no	no	yes	The Lean model replaces jl_types_equal and its nonzero test with an arbitrary Bool callback, and the proposition only repeats that callback's result.
+314	==	FAITHFUL	yes	yes	yes	-
+315	==	FAITHFUL	yes	yes	yes	-
+338	!=	FAITHFUL	yes	yes	yes	-
+417	<	FAITHFUL	yes	yes	yes	-
+443	>	FAITHFUL	yes	yes	yes	-
+467	<=	FAITHFUL	yes	yes	yes	-
+499	>=	FAITHFUL	yes	yes	yes	-
+505	isless	HOLLOW	yes	no	yes	The proposition assumes that < is a strict weak order, which is not a type invariant or documented precondition of this Real fallback.
+526	cmp	FAITHFUL	yes	yes	yes	-
+534	cmp	FAITHFUL	yes	yes	yes	-
+537	cmp	HOLLOW	no	no	yes	The Lean model short-circuits the second isless call, while the proposition also assumes an undocumented strict-weak-order hypothesis.
+555	max	HOLLOW	no	no	yes	The entry models and refutes the specialized Float64 min and max methods rather than this generic max fallback.
+573	min	HOLLOW	no	no	yes	The entry models and refutes the specialized Float64 min and max methods rather than this generic min fallback.
+588	minmax	FAITHFUL	yes	yes	yes	-
+605	identity	FAITHFUL	yes	yes	yes	-
+607	+	FAITHFUL	yes	yes	yes	-
+608	*	FAITHFUL	yes	yes	yes	-
+609	&	FAITHFUL	yes	yes	yes	-
+610	|	FAITHFUL	yes	yes	yes	-
+611	xor	FAITHFUL	yes	yes	yes	-
+622	afoldl	FAITHFUL	yes	yes	yes	-
+623	afoldl	HOLLOW	no	yes	yes	The Lean model replaces Julia's 31 explicitly checked applications and subsequent loop with a library fold, so it does not mirror the method's branches and loop.
+671	$op	HOLLOW	no	yes	yes	The Lean model inlines afoldl as a library fold instead of preserving the source call to afoldl.
+678	kron!	FAITHFUL	yes	-	-	-
+709	\	FAITHFUL	yes	yes	yes	-
+735	<<	HOLLOW	yes	no	yes	The proposition is the tautology HasResult and states no documented shift result or exception behavior.
+741	<<	HOLLOW	no	no	yes	The Lean error omits the MethodError argument tuple, and HasResult states no documented shift result or exception behavior.
+748	<<	HOLLOW	yes	no	yes	The proposition is the tautology HasResult and states no documented direction or result for signed shift counts.
+780	>>	HOLLOW	no	no	yes	The Lean error omits the MethodError argument tuple, and HasResult states no documented shift result or exception behavior.
+789	>>	HOLLOW	yes	no	yes	The proposition is the tautology HasResult and states no documented direction or result for signed shift counts.
+818	>>>	HOLLOW	yes	no	yes	The proposition is the tautology HasResult and states no documented logical-shift result.
+822	>>>	HOLLOW	no	no	yes	The Lean error omits the MethodError argument tuple, and HasResult states no documented logical-shift result or exception behavior.
+829	>>>	HOLLOW	yes	no	yes	The proposition is the tautology HasResult and states no documented direction or result for signed shift counts.
+914	mod1	FAITHFUL	yes	yes	yes	-
+943	cldmod1	FAITHFUL	yes	yes	yes	-
+952	fldmod1	FAITHFUL	yes	yes	yes	-
+975	widen	FAITHFUL	yes	yes	yes	-
+976	widen	HOLLOW	no	no	yes	The Lean model has only an arbitrary error-name string and no Type input, so it cannot mirror or state this method's MethodError for T.
+977	widen	HOLLOW	no	no	yes	The Lean model has only an arbitrary error-name string and omits the Union{} input and variadic arguments, so it cannot mirror or state this method's behavior.
+1001	|>	FAITHFUL	yes	yes	yes	-
+1003	_stable_typeof	FAITHFUL	yes	yes	yes	-
+1004	_stable_typeof	HOLLOW	no	no	yes	The Lean model omits the @isdefined(T) branch, so the proposition does not state the method's full type-selection behavior.
+1031	Returns{V}	FAITHFUL	yes	yes	yes	-
+1032	Returns	HOLLOW	no	yes	yes	The Lean model aliases the typed constructor and omits the source call to _stable_typeof(value).
+1035	(obj::Returns)	FAITHFUL	yes	yes	yes	-
+1085	∘	FAITHFUL	yes	-	-	-
+1121	ComposedFunction{O, I}	FAITHFUL	yes	yes	yes	-
+1122	ComposedFunction	HOLLOW	no	yes	yes	The Lean model aliases the typed constructor and omits both source calls to Core.Typeof.
+1125	(c::ComposedFunction)	FAITHFUL	yes	yes	yes	-
+1126	unwrap_composed	FAITHFUL	yes	yes	yes	-
+1127	unwrap_composed	FAITHFUL	yes	yes	yes	-
+1128	call_composed	HOLLOW	no	no	yes	The Lean model receives a pre-split head and tail, so it omits fs[1], tail(fs), and their behavior on all accepted fs values.
+1129	call_composed	HOLLOW	no	yes	yes	The Lean model receives the sole function directly, so it omits the singleton tuple input and fs[1] access.
+1132	(::Constructor{F})	HOLLOW	no	yes	yes	The Lean model supplies a function value in place of the Constructor type parameter, so it does not mirror the type call in the source body.
+1133	maybeconstructor	HOLLOW	no	no	yes	The Lean model applies an arbitrary wrapper to a value, so it omits the Type{F} dispatch and construction of Constructor{F}().
+1134	maybeconstructor	FAITHFUL	yes	yes	yes	-
+1136	∘	FAITHFUL	yes	yes	yes	-
+1137	∘	HOLLOW	no	yes	yes	The Lean model constructs the record directly instead of calling the untyped ComposedFunction constructor and its Core.Typeof operations.
+1138	∘	FAITHFUL	yes	yes	yes	-
+1140	show	HOLLOW	no	no	yes	The Lean model constructs a String and omits the ordered writes to io, so its proposition does not state the observable IO behavior of show.
+1147	show	HOLLOW	no	no	yes	The Lean model constructs a String and omits the ordered writes to io, so its proposition does not state the observable IO behavior of show.
+1152	_showcomposed	HOLLOW	no	no	yes	The Lean model returns an abstract rendered String instead of calling show(io, x), so it omits the method's IO behavior.
+1154	_showcomposed	HOLLOW	no	no	yes	The Lean model builds a String and omits the print and show calls on io, so its proposition does not state the method's IO behavior.
+1156	_showcomposed	HOLLOW	no	no	yes	The Lean model builds a parenthesized String and omits the print and show calls on io, so its proposition does not state the method's IO behavior.
+1158	_showcomposed	HOLLOW	no	no	yes	The Lean model returns an abstract rendered String instead of calling show(io, f), so it omits the method's IO behavior.
+1182	!	HOLLOW	no	no	yes	The Lean model returns a unary Bool lambda instead of constructing ComposedFunction(!, f), and the proposition excludes other callable signatures accepted by Function.
+1183	!	HOLLOW	no	yes	yes	The Lean model receives the inner value directly instead of projecting inner from a ComposedFunction whose outer function is !.
+1206	Fix{N}	HOLLOW	no	no	yes	The Lean model omits both _stable_typeof calls, and its HasResult proposition states neither the constructor's selected types nor its documented errors.
+1216	(f::Fix{N})	HOLLOW	no	no	yes	The Lean model replaces the source's detailed ArgumentError message with "Fix arguments", and HasResult states no argument-count, insertion, forwarding, or exception behavior.
+1223	(f::Fix{1})	FAITHFUL	yes	yes	yes	-
+1224	(f::Fix{2})	FAITHFUL	yes	yes	yes	-
+1226	Base.show	HOLLOW	no	no	yes	The Lean model constructs a String instead of performing the source's ordered show and print calls on io, and HasResult states no rendering behavior.
+1259	isequal	HOLLOW	no	yes	yes	The Lean model returns the callable's result function directly instead of constructing the promised Fix2 object.
+1270	==	HOLLOW	no	yes	yes	The Lean model returns the callable's result function directly instead of constructing the promised Fix2 object.
+1283	!=	HOLLOW	no	yes	yes	The Lean model returns the callable's result function directly instead of constructing the promised Fix2 object.
+1296	>=	HOLLOW	no	yes	yes	The Lean model returns the callable's result function directly instead of constructing the promised Fix2 object.
+1309	<=	HOLLOW	no	yes	yes	The Lean model returns the callable's result function directly instead of constructing the promised Fix2 object.
+1322	>	HOLLOW	no	yes	yes	The Lean model returns the callable's result function directly instead of constructing the promised Fix2 object.
+1335	<	HOLLOW	no	yes	yes	The Lean model returns the callable's result function directly instead of constructing the promised Fix2 object.
+1366	splat	HOLLOW	no	yes	yes	The Lean model constructs the wrapper directly instead of mirroring the source call to the separate Splat constructor.
+1384	Splat	HOLLOW	no	yes	yes	The Lean model aliases a typed constructor and omits the source call to Core.Typeof(f).
+1386	(s::Splat)	FAITHFUL	yes	yes	yes	-
+1387	show	HOLLOW	no	no	yes	The Lean model constructs a String instead of performing the ordered print and show calls on io, so it omits the method's IO behavior.
+1415	unsplat	FAITHFUL	yes	yes	yes	-
+1416	unsplat	FAITHFUL	yes	yes	yes	-
+1417	splat	HOLLOW	no	yes	yes	The Lean model receives the outer value directly and omits the ComposedFunction input, its tuple-inner constraint, and the outer field projection.
+1438	tap	HOLLOW	no	no	yes	The discarded pure Lean call cannot represent f(x)'s observable effects, and the proposition states only that the returned value is x.
+1453	in	HOLLOW	no	yes	yes	The Lean model returns the callable's result function directly instead of constructing the promised Fix2 object.
+1455	in	FAITHFUL	yes	yes	yes	-
+1459	in	FAITHFUL	yes	yes	yes	-
+1463	_in_tuple	HOLLOW	yes	no	yes	The proposition covers only membership started with the default false accumulator and does not quantify over the helper's allowed explicit result argument.
+1474	in	FAITHFUL	yes	yes	yes	-
+1477	∉	FAITHFUL	yes	yes	yes	-
+1478	∉	HOLLOW	no	yes	yes	The Lean model returns the callable's result function directly instead of constructing the promised Fix2 object.
+1486	∋	FAITHFUL	yes	yes	yes	-
+1497	∋	HOLLOW	no	yes	yes	The Lean model returns the callable's result function directly instead of constructing the promised Fix2 object.
+1499	∌	FAITHFUL	yes	yes	yes	-
+1500	∌	HOLLOW	no	yes	yes	The Lean model returns the callable's result function directly instead of constructing the promised Fix2 object.

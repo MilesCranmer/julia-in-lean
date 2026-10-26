@@ -1,0 +1,23 @@
+file	line	endline	name	signature	status	entry	note
+base/scopedvalues.jl	84	84	ScopedValue{T}	ScopedValue{T}() where T	modelled	tasks-coverage-scoped-access	source-body: Lean model mirrors this method's branch and mutation order.
+base/scopedvalues.jl	85	85	ScopedValue{T}	ScopedValue{T}(val) where T	modelled	tasks-coverage-scoped-access	source-body: Lean model mirrors this method's branch and mutation order.
+base/scopedvalues.jl	86	86	ScopedValue	ScopedValue(val::T) where T	modelled	tasks-coverage-scoped-access	source-body: Lean model mirrors this method's branch and mutation order.
+base/scopedvalues.jl	89	89	Base.eltype	Base.eltype(::AbstractScopedValue{T}) where {T}	modelled	tasks-coverage-scoped-access	source-body: Lean model mirrors this method's branch and mutation order.
+base/scopedvalues.jl	91	91	hasdefault	hasdefault(val::ScopedValue)	modelled	tasks-coverage-scoped-access	source-body: Lean model mirrors this method's branch and mutation order.
+base/scopedvalues.jl	92	92	hasdefault	hasdefault(val::LazyScopedValue)	modelled	tasks-coverage-scoped-access	source-body: Lean model mirrors this method's branch and mutation order.
+base/scopedvalues.jl	93	93	hasdefault	hasdefault(val::Base.CancelTokenKey)	modelled	tasks-coverage-scoped-access	source-body: Lean model mirrors this method's branch and mutation order.
+base/scopedvalues.jl	95	95	getdefault	getdefault(val::ScopedValue)	modelled	tasks-coverage-scoped-access	source-body: Lean model mirrors this method's branch and mutation order.
+base/scopedvalues.jl	96	96	getdefault	getdefault(val::LazyScopedValue)	modelled	tasks-coverage-scoped-access	source-body: Lean model mirrors this method's branch and mutation order.
+base/scopedvalues.jl	97	97	getdefault	getdefault(val::Base.CancelTokenKey)	modelled	tasks-coverage-scoped-access	source-body: Lean model mirrors this method's branch and mutation order.
+base/scopedvalues.jl	119	124	Base.isassigned	Base.isassigned(val::AbstractScopedValue)	modelled	tasks-coverage-scoped-access	source-body: Lean model mirrors this method's branch and mutation order.
+base/scopedvalues.jl	126	141	Base.show	Base.show(io::IO, scope::Scope)	modelled	tasks-coverage-scoped-access	source-body: Lean model mirrors this method's branch and mutation order.
+base/scopedvalues.jl	166	180	get	get(val::AbstractScopedValue{T}) where {T}	modelled	tasks-coverage-scoped-access	source-body: Lean model mirrors this method's branch and mutation order.
+base/scopedvalues.jl	182	186	Base.getindex	Base.getindex(val::AbstractScopedValue{T})::T where T	modelled	tasks-coverage-scoped-access	source-body: Lean model mirrors this method's branch and mutation order.
+base/scopedvalues.jl	188	201	Base.show	Base.show(io::IO, val::AbstractScopedValue)	modelled	tasks-coverage-scoped-access	source-body: Lean model mirrors this method's branch and mutation order.
+base/scopedvalues.jl	231	243	with	with(exprs...)	modelled	tasks-scopedvalues-restore,tasks-scopedvalues-child-inheritance,tasks-coverage-scoped-dynamic	source-body: Lean model mirrors this method's branch and mutation order.
+base/scopedvalues.jl	285	287	with	with(f, pair::Pair{<:AbstractScopedValue}, rest::Pair{<:AbstractScopedValue}...)	modelled	tasks-scopedvalues-restore,tasks-scopedvalues-child-inheritance,tasks-coverage-scoped-dynamic	source-body: Lean model mirrors this method's branch and mutation order.
+base/scopedvalues.jl	288	288	with	with(@nospecialize(f))	modelled	tasks-coverage-scoped-dynamic	source-body: Lean model mirrors this method's branch and mutation order.
+base/scopedvalues.jl	290	292	enter_scope	enter_scope(scope, expr)	modelled	tasks-coverage-scoped-dynamic	source-body: Lean model mirrors this method's branch and mutation order.
+base/scopedvalues.jl	305	305	ScopedThunk{F}	ScopedThunk{F}(f) where {F}	modelled	tasks-coverage-scoped-dynamic	source-body: Lean model mirrors this method's branch and mutation order.
+base/scopedvalues.jl	307	307	ScopedThunk	ScopedThunk(f)	modelled	tasks-coverage-scoped-dynamic	source-body: Lean model mirrors this method's branch and mutation order.
+base/scopedvalues.jl	308	308	(sf::ScopedThunk)	(sf::ScopedThunk)()	modelled	tasks-coverage-scoped-dynamic	source-body: Lean model mirrors this method's branch and mutation order.

@@ -1,0 +1,4 @@
+file	line	endline	name	signature	status	entry	note
+base/flfrontend.jl	5	18	fl_parse	fl_parse(text::Union{Core.SimpleVector,String}, filename::String, lineno, offset, options, edition)	modelled	misccov-flfrontend	
+base/flfrontend.jl	20	23	fl_parse	fl_parse(text::AbstractString, filename::AbstractString, lineno, offset, options, edition)	modelled	misccov-flfrontend	
+base/flfrontend.jl	25	29	fl_lower	"fl_lower(ex, mod::Module, filename::String=""none"", lineno::Int=0, world::UInt=typemax(Csize_t), warn::Bool=false)"	modelled	misccov-flfrontend	

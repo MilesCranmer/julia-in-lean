@@ -1,0 +1,15 @@
+file	line	endline	name	signature	status	entry	note
+base/mathconstants.jl	23	25	Rational{BigInt}	Rational{BigInt}(::_KnownIrrational)	modelled	mathcov-mathconstants-l23	method-specific source model and quantified behavior property
+base/mathconstants.jl	26	28	Rational{T}	Rational{T}(x::_KnownIrrational) where {T<:Integer}	modelled	mathcov-mathconstants-l26	method-specific source model and quantified behavior property
+base/mathconstants.jl	29	31	(::Type{T})	(::Type{T})(x::_KnownIrrational, r::RoundingMode) where {T<:Union{Float32,Float64}}	modelled	mathcov-mathconstants-l29	method-specific source model and quantified behavior property
+base/mathconstants.jl	32	34	Base.rationalize	Base.rationalize(::Type{T}, x::_KnownIrrational; tol::Real=0) where {T<:Integer}	modelled	mathcov-mathconstants-l32	method-specific source model and quantified behavior property
+base/mathconstants.jl	35	37	Base.lessrational	Base.lessrational(rx::Rational, x::_KnownIrrational)	modelled	mathcov-mathconstants-l35	method-specific source model and quantified behavior property
+base/mathconstants.jl	139	139	Base.:^	Base.:^(::Irrational{:ℯ}, x::T)	modelled	mathcov-mathconstants-l139	method-specific source model and quantified behavior property
+base/mathconstants.jl	141	141	Base.literal_pow	Base.literal_pow(::typeof(^), ::Irrational{:ℯ}, ::Val{p}) where {p}	modelled	mathcov-mathconstants-l141	method-specific source model and quantified behavior property
+base/mathconstants.jl	143	143	Base.log	Base.log(::Irrational{:ℯ})	modelled	mathcov-mathconstants-l143	method-specific source model and quantified behavior property
+base/mathconstants.jl	144	144	Base.log	Base.log(::Irrational{:ℯ}, x::Number)	modelled	mathcov-mathconstants-l144	method-specific source model and quantified behavior property
+base/mathconstants.jl	146	146	Base.sin	Base.sin(::Irrational{:π})	modelled	mathcov-mathconstants-l146	method-specific source model and quantified behavior property
+base/mathconstants.jl	147	147	Base.cos	Base.cos(::Irrational{:π})	modelled	mathcov-mathconstants-l147	method-specific source model and quantified behavior property
+base/mathconstants.jl	148	148	Base.sincos	Base.sincos(::Irrational{:π})	modelled	mathcov-mathconstants-l148	method-specific source model and quantified behavior property
+base/mathconstants.jl	149	149	Base.tan	Base.tan(::Irrational{:π})	modelled	mathcov-mathconstants-l149	method-specific source model and quantified behavior property
+base/mathconstants.jl	150	150	Base.cot	Base.cot(::Irrational{:π})	modelled	mathcov-mathconstants-l150	method-specific source model and quantified behavior property

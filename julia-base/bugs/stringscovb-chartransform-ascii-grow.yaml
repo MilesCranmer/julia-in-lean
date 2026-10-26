@@ -1,0 +1,62 @@
+id: stringscovb-chartransform-ascii-grow
+title: annotated_chartransform shifts the start of an annotation on a one-byte character that grows
+priority: P3
+kind: wrong-result
+area: StringsCovB
+files:
+- base/strings/annotated.jl
+functions:
+- annotated_chartransform(f, str::AnnotatedString, state)
+summary: |
+  annotated_chartransform records each length change at the last byte of the changed
+  character and applies every change recorded at positions <= start to an annotation's
+  start. For a one-byte character that becomes longer, its own change is recorded at its
+  only byte, so an annotation starting there is moved past the new character's first byte:
+  transforming 'b' to 'é' in "ab" with (2:2, :l) gives region 3:3 instead of 2:3.
+likelihood: |
+  Not reachable through uppercase/lowercase/titlecase/uppercasefirst/lowercasefirst
+  (ASCII maps to ASCII), only through direct calls of the internal helper with a mapping from
+  an ASCII character to a longer one.
+maybe_intended: ''
+reproducer: |
+  using Base: AnnotatedString, annotated_chartransform, annotations
+  s = AnnotatedString("ab", [(2:2, :l, 1)])          # :l covers 'b'
+  r = annotated_chartransform(c -> c == 'b' ? 'é' : c, s)
+  println(repr(r.string), " ", [(a.region, a.label) for a in annotations(r)])
+  println("bytes of 'é' in the result: 2:3")
+  first(annotations(r)).region == 3:3 && println("REPRODUCED stringscovb-chartransform-ascii-grow")
+output:
+  release: |
+    "aé" Tuple{UnitRange{Int64}, Symbol}[(3:3, :l)]
+    bytes of 'é' in the result: 2:3
+    REPRODUCED stringscovb-chartransform-ascii-grow
+  nightly: |
+    "aé" Tuple{UnitRange{Int64}, Symbol}[(3:3, :l)]
+    bytes of 'é' in the result: 2:3
+    REPRODUCED stringscovb-chartransform-ascii-grow
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Region 2:3, the code units of 'é'.
+promised_by: |
+  base/strings/annotated.jl:462-476 (annotated_chartransform docstring: "Transform every character in
+  str with f, adjusting annotation regions as appropriate").
+cause: |
+  base/strings/annotated.jl:497: `findlast(<=(start) ∘ first, offsets)` includes the entry pushed for
+  the character that starts at `start` when that character is one byte long; the start should
+  use the offset recorded strictly before it (`<(start)`).
+possible_fix: |
+  Use `findlast(<(start) ∘ first, offsets)` for the start offset.
+duplicates:
+  issues:
+  - number: 54013
+    state: merged
+    relation: related
+  queries:
+  - 'issues: annotated_chartransform'
+  - 'prs: annotated_chartransform'
+  - 'issues: AnnotatedString uppercase annotations'
+lean:
+  property: JuliaLean.StringsCovB.Ann.ChartransformAligned
+  theorem: JuliaLean.StringsCovB.Ann.chartransformAligned_refuted

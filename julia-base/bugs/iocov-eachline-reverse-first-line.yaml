@@ -1,0 +1,69 @@
+id: iocov-eachline-reverse-first-line
+title: "Iterators.reverse(eachline(io)) loses the start of the first line when lines span 4 KiB chunks"
+priority: P1
+kind: wrong-result
+area: IOCov
+files: [base/io.jl]
+functions: ["iterate(::Iterators.Reverse{<:EachLine}, state)"]
+summary: |
+  Reverse line iteration reads the stream backwards in 4096-byte chunks kept in a
+  circular buffer. When the search for the previous newline wraps all the way around
+  the buffer without finding one, it leaves ichunk equal to jchunk, and the final
+  "no newline left" branch then writes only chunks[jchunk][1:jnewline], dropping the
+  bytes of the first line that are in the other chunk. For "X\n" * "a"^8191 the
+  reversed lines are ["aaa...", ""] instead of ["aaa...", "X"]; for a first line of
+  4095 bytes followed by a 4096-byte line, the first line comes back 2 bytes short.
+likelihood: |
+  Needs a stream of more than 8 KiB with a line longer than 4 KiB near its start, so
+  that the first line ends up split over two chunks after the earlier chunks were
+  recycled. Log files with long (for example JSON) lines do this; the result is
+  silently truncated text.
+maybe_intended: ""
+reproducer: |
+  s = "X\n" * "a"^8191                       # 8193 bytes, two lines
+  rev = collect(Iterators.reverse(eachline(IOBuffer(s))))
+  fwd = readlines(IOBuffer(s))
+  println("readlines:            ", [(sizeof(l), first(l, 3)) for l in fwd])
+  println("reverse(eachline(io)): ", [(sizeof(l), first(l, 3)) for l in rev])
+  t = "X" * "a"^4094 * "\n" * "a"^4096 * "\n" * "z"
+  rt = collect(Iterators.reverse(eachline(IOBuffer(t))))
+  println("second input, lengths: readlines ", sizeof.(readlines(IOBuffer(t))), ", reversed eachline ", sizeof.(rt))
+  if rev != reverse(fwd)
+      println("REPRODUCED iocov-eachline-reverse-first-line")
+  end
+output:
+  release: |
+    readlines:            [(1, "X"), (8191, "aaa")]
+    reverse(eachline(io)): [(8191, "aaa"), (0, "")]
+    second input, lengths: readlines [4095, 4096, 1], reversed eachline [1, 4096, 4093]
+    REPRODUCED iocov-eachline-reverse-first-line
+  nightly: |
+    readlines:            [(1, "X"), (8191, "aaa")]
+    reverse(eachline(io)): [(8191, "aaa"), (0, "")]
+    second input, lengths: readlines [4095, 4096, 1], reversed eachline [1, 4096, 4093]
+    REPRODUCED iocov-eachline-reverse-first-line
+reproduced: {release: true, nightly: true}
+expected: |
+  reverse(readlines(io)): [(8191, "aaa"), (1, "X")], and lengths [1, 4096, 4095].
+promised_by: |
+  eachline docstring, base/io.jl:1372-1374: "[`Iterators.reverse`](@ref) can be used on
+  an `EachLine` object to read the lines in reverse order (for files, buffers, and
+  other I/O streams supporting [`seek`](@ref))".
+cause: |
+  base/io.jl:1494-1503: the backward newline search stops with
+  "ichunk == jchunk && break # found nothing", so ichunk points at the chunk holding
+  the end of the line instead of the chunk holding its start; the inewline == 0
+  branch (lines 1453-1466) then concatenates the chunks from ichunk to jchunk, which
+  is only the last piece. In the example the other chunk was refilled with "X" by the
+  overwrite loop at lines 1484-1491.
+possible_fix: |
+  When the search wraps around without a newline, set ichunk to the chunk after
+  jchunk in circular order (the oldest chunk), so that the remaining-line branch
+  concatenates all chunks.
+duplicates:
+  issues:
+    - {number: 42225, state: merged, relation: related}
+  queries: ["eachline reverse", "Iterators.reverse eachline", "last eachline", "reverse eachline chunk"]
+lean:
+  property: JuliaLean.IOCov.IoLines.ReverseEachlineMatches
+  theorem: JuliaLean.IOCov.IoLines.reverseEachlineMatches_refuted

@@ -3,7 +3,7 @@ import JuliaLean.Float.Extras
 /-!
 `Complex{Float64}` from `base/complex.jl` at Julia `bbfa0ce4150`, on the exact
 binary64 model `JuliaLean.Float.F64`. `muladd` is the fused interpretation of
-`F64.muladd`; `have_fma(Float64)` is true on the x86-64 machines the checks ran on.
+`F64.muladd`; this model assumes `have_fma(Float64)` is true.
 -/
 
 namespace JuliaLean.Complex

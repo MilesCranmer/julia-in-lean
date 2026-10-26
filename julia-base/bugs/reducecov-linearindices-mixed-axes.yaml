@@ -1,0 +1,52 @@
+id: reducecov-linearindices-mixed-axes
+title: "LinearIndices((Base.IdentityUnitRange(3:5), 2)) drops the offset axis that LinearIndices((Base.IdentityUnitRange(3:5), Base.OneTo(2))) keeps"
+priority: P3
+kind: wrong-result
+area: ReduceCov
+files: [base/indices.jl]
+functions: ["LinearIndices(inds::NTuple{N,Union{<:Integer,AbstractUnitRange{<:Integer}}})", "_convert2ind"]
+summary: |
+  A tuple that mixes integers and ranges goes through _convert2ind, which turns every
+  range into first(r):last(r), so offset axes become 1-based:
+  axes(LinearIndices((Base.IdentityUnitRange(3:5), 2))) is (OneTo(3), OneTo(2)),
+  while the all-range tuple (Base.IdentityUnitRange(3:5), Base.OneTo(2)) keeps the
+  axis 3:5. Writing the size of one dimension as an integer changes the axes of
+  another.
+likelihood: |
+  Low: only code that builds LinearIndices from a mixed tuple with offset axes is
+  affected; it silently gets 1-based axes.
+maybe_intended: |
+  The constructor docstring documents only tuples of ranges and Dims; the mixed form
+  is an undocumented convenience. CartesianIndices behaves the same way for mixed
+  tuples.
+reproducer: |
+  axes(LinearIndices((Base.IdentityUnitRange(3:5), 2)))   # (Base.OneTo(3), Base.OneTo(2))
+output:
+  release: |
+    axes(LinearIndices((Base.IdentityUnitRange(3:5), 2))) = (Base.OneTo(3), Base.OneTo(2))
+    axes(LinearIndices((Base.IdentityUnitRange(3:5), Base.OneTo(2)))) = (Base.IdentityUnitRange(3:5), Base.OneTo(2))
+    REPRODUCED reducecov-linearindices-mixed-axes
+  nightly: |
+    axes(LinearIndices((Base.IdentityUnitRange(3:5), 2))) = (Base.OneTo(3), Base.OneTo(2))
+    axes(LinearIndices((Base.IdentityUnitRange(3:5), Base.OneTo(2)))) = (Base.IdentityUnitRange(3:5), Base.OneTo(2))
+    REPRODUCED reducecov-linearindices-mixed-axes
+reproduced: {release: true, nightly: true}
+expected: |
+  (Base.IdentityUnitRange(3:5), Base.OneTo(2)), the axes of the all-range form.
+promised_by: |
+  The LinearIndices constructor docstring (base/indices.jl:463-466): "Return a
+  LinearIndices array with the specified shape or axes."
+cause: |
+  base/indices.jl:485-486 and 490: the mixed-tuple constructor maps
+  _convert2ind(ind::AbstractUnitRange) = first(ind):last(ind), which loses the
+  IdentityUnitRange wrapper, whereas the all-range constructor (base/indices.jl:483-484)
+  converts with convert(AbstractUnitRange{Int}, r), which keeps it.
+possible_fix: |
+  Define _convert2ind(ind::AbstractUnitRange) = convert(AbstractUnitRange{Int}, ind).
+duplicates:
+  issues:
+    - {number: 48613, state: open, relation: related}
+  queries: ["LinearIndices offset axes integer", "LinearIndices _convert2ind", "LinearIndices"]
+lean:
+  property: JuliaLean.ReduceCov.Indices.LinearIndicesAxes
+  theorem: JuliaLean.ReduceCov.Indices.linearIndicesAxes_refuted

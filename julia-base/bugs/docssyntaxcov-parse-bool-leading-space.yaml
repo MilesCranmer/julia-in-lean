@@ -1,0 +1,58 @@
+id: docssyntaxcov-parse-bool-leading-space
+title: "parse(Bool, \" 1\") throws although parse(Bool, \"1 \") and parse(Bool, \" true\") succeed"
+priority: P3
+kind: wrong-result
+area: DocsSyntaxCov
+files: [base/parse.jl]
+functions: ["tryparse_internal(::Type{Bool}, ::AbstractString, ::Int, ::Int, ::Integer, ::Bool)", "parse(::Type{Bool}, ::AbstractString)", "tryparse(::Type{Bool}, ::AbstractString)"]
+summary: |
+    `parse(Bool, s)` accepts surrounding whitespace for `"true"`/`"false"` and trailing
+    whitespace for `"0"`/`"1"`, but not leading whitespace before a digit:
+    `parse(Bool, "1 ") == true` while `parse(Bool, " 1")` throws
+    `ArgumentError("invalid Bool representation")` and `tryparse(Bool, " 0") === nothing`.
+likelihood: |
+    Low to moderate: Bool flags read from padded text fields or environment-like
+    configuration (" 1") fail while the same padding works for "true" and for integers.
+maybe_intended: |
+    The Bool grammar is not documented; one could argue numeric Bools need no padding.
+    But the code explicitly ignores leading and trailing whitespace (line 201) and
+    `parse(Int, " 1") == 1`.
+reproducer: |
+    parse(Bool, "1 ")   # true
+    parse(Bool, " true") # true
+    parse(Bool, " 1")   # ArgumentError
+output:
+  release: |
+    "1 " => true
+    " 1" => ArgumentError("invalid Bool representation: \" 1\"")
+    " true" => true
+    "0 " => false
+    " 0" => ArgumentError("invalid Bool representation: \" 0\"")
+    parse(Int, " 1") => 1
+    REPRODUCED docssyntaxcov-parse-bool-leading-space
+  nightly: |
+    "1 " => true
+    " 1" => ArgumentError("invalid Bool representation: \" 1\"")
+    " true" => true
+    "0 " => false
+    " 0" => ArgumentError("invalid Bool representation: \" 0\"")
+    parse(Int, " 1") => 1
+    REPRODUCED docssyntaxcov-parse-bool-leading-space
+reproduced: {release: true, nightly: true}
+expected: |
+    `parse(Bool, " 1") == true` and `tryparse(Bool, " 0") == false`.
+promised_by: |
+    Invariant: base/parse.jl:201 ("Ignore leading and trailing whitespace") and the
+    integer grammar's leading whitespace, base/parse.jl:49-51, used for the digit forms.
+cause: |
+    base/parse.jl:191 tests `isnumeric(sbuff[1])`, the first character of the whole string,
+    before any whitespace is skipped. With a leading space the integer path (lines 192-195)
+    is skipped and only the "true"/"false" comparison (lines 202-221) runs.
+possible_fix: |
+    Test `isnumeric` on the first non-whitespace character of `startpos:endpos` (or always try the integer path first).
+duplicates:
+  issues: [{number: 42616, state: closed, relation: related}]
+  queries: ["parse Bool whitespace", "parse Bool leading space", "tryparse Bool"]
+lean:
+  property: JuliaLean.DocsSyntaxCov.Parse.BoolLeadingSpace
+  theorem: JuliaLean.DocsSyntaxCov.Parse.boolLeadingSpace_refuted

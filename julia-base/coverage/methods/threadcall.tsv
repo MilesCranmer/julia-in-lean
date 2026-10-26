@@ -1,0 +1,5 @@
+file	line	endline	name	signature	status	entry	note
+base/threadcall.jl	18	59	threadcall	threadcall(f, rettype, argtypes, argvals...)	modelled	concurrencycov-threadcall-macro	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/threadcall.jl	64	67	threadcall_run	threadcall_run(f::F) where F	modelled	concurrencycov-threadcall-run	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/threadcall.jl	71	76	threadcall_notify	threadcall_notify(ct::Task, ctx::RefValue{Any})	modelled	concurrencycov-threadcall-notify	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/threadcall.jl	78	109	do_threadcall	do_threadcall(wrapper::F, result::Ref{T}) where {F, T}	modelled	concurrencycov-threadcall-do	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.

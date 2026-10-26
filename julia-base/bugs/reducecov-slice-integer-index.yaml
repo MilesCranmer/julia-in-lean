@@ -1,0 +1,57 @@
+id: reducecov-slice-integer-index
+title: "Base.Slice(3:5)[Int8(3)] == 5 although Base.Slice(3:5)[3] == 3"
+priority: P2
+kind: wrong-result
+area: ReduceCov
+files: [base/indices.jl]
+functions: ["getindex(S::Slice, i::Int)", "getindex(v::AbstractRange, i::Integer)"]
+summary: |
+  A Slice returns the index itself for an Int index (Base.Slice(3:5)[3] == 3), but an
+  integer of another type goes through the generic range method and returns the
+  element at that position: Base.Slice(3:5)[Int8(3)] == 5,
+  Base.Slice(3:5)[UInt(4)] == 6. IdentityUnitRange returns the integer for every
+  integer type. One-based slices are not affected.
+likelihood: |
+  Low: Slices with offset indices arise from colons over offset axes, and indexing
+  them with a non-Int integer is unusual; the result is silently a different index.
+maybe_intended: |
+  No: the Slice docstring promises the exact integer, and the Int method does that.
+reproducer: |
+  Base.Slice(3:5)[3]         # 3
+  Base.Slice(3:5)[Int8(3)]   # 5
+output:
+  release: |
+    Base.Slice(3:5)[3] = 3
+    Base.Slice(3:5)[Int8(3)] = 5
+    Base.Slice(3:5)[UInt(4)] = 6
+    Base.IdentityUnitRange(3:5)[Int8(3)] = 3
+    REPRODUCED reducecov-slice-integer-index
+  nightly: |
+    Base.Slice(3:5)[3] = 3
+    Base.Slice(3:5)[Int8(3)] = 5
+    Base.Slice(3:5)[UInt(4)] = 6
+    Base.IdentityUnitRange(3:5)[Int8(3)] = 3
+    REPRODUCED reducecov-slice-integer-index
+reproduced: {release: true, nightly: true}
+expected: |
+  3, the same as Base.Slice(3:5)[3] and Base.IdentityUnitRange(3:5)[Int8(3)].
+promised_by: |
+  The Slice docstring (base/indices.jl:325-336): "indexing into Slice objects with an
+  integer always returns that exact integer".
+cause: |
+  base/indices.jl:350 defines getindex(S::Slice, i::Int) only. Other integers reach
+  getindex(v::AbstractRange, i::Integer) (base/array.jl:3224-3230), which checks bounds
+  against axes(S) (the offset indices) but then returns
+  unsafe_getindex(v, i) = first(v) + (i - 1) * step(v) (base/range.jl:985), a
+  position-based value. IdentityUnitRange defines getindex for i::Integer
+  (base/indices.jl:378).
+possible_fix: |
+  Widen the method to getindex(S::Slice, i::Integer) returning convert(Int, i), as
+  for IdentityUnitRange, keeping the Bool rejection.
+duplicates:
+  issues:
+    - {number: 30740, state: open, relation: duplicate}
+  queries: ["Slice Int16 getindex", "Slice integer index offset", "Base.Slice"]
+lean:
+  property: JuliaLean.ReduceCov.Indices.SliceIntegerIndex
+  theorem: JuliaLean.ReduceCov.Indices.sliceIntegerIndex_refuted

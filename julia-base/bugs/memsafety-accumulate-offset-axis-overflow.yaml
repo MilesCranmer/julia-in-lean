@@ -1,0 +1,88 @@
+id: memsafety-accumulate-offset-axis-overflow
+title: "accumulate! reads out of bounds for a one-element axis ending at typemax(Int)"
+priority: P1
+kind: crash
+area: MemSafety
+files: [base/accumulate.jl]
+functions: ["accumulate!", "_accumulate!"]
+summary: |
+  Dimensional accumulate! initializes the first element, then constructs its remaining
+  loop as first(axis) + 1:last(axis). For a legal one-element AbstractVector whose sole
+  index is typemax(Int), the addition wraps to typemin(Int). The loop becomes nonempty
+  and reads the wrapped index under @inbounds.
+likelihood: |
+  The failure requires a custom array with a one-element extreme offset axis. Offset
+  arrays are common, but an axis at typemax(Int) is contrived. The public accumulate!
+  method accepts the array and confirms that the input and output axes match.
+maybe_intended: |
+  AbstractArrays may use non-one-based axes, and accumulate! explicitly checks matching
+  axes. A legal singleton axis should make the remaining-element loop empty.
+reproducer: |
+  input = ExtremeVector([1])
+  output = ExtremeVector([0])
+  accumulate!(+, output, input; dims=1)
+output:
+  release: |
+    ERROR: LoadError: BoundsError: attempt to access 1-element ExtremeVector{Int64} with indices 9223372036854775807:9223372036854775807 at index [-9223372036854775808]
+    Stacktrace:
+     [1] getindex
+       @ <julia>/repro/memsafety-accumulate-offset-axis-overflow.jl:21 [inlined]
+     [2] _getindex
+       @ ./abstractarray.jl:1387 [inlined]
+     [3] getindex
+       @ ./abstractarray.jl:1363 [inlined]
+     [4] _accumulate!(op::typeof(+), B::ExtremeVector{Int64}, A::ExtremeVector{Int64}, dims::Int64, init::Nothing)
+       @ Base ./accumulate.jl:392
+     [5] accumulate!(op::Function, B::ExtremeVector{Int64}, A::ExtremeVector{Int64}; dims::Int64, kw::@Kwargs{})
+       @ Base ./accumulate.jl:350
+     [6] top-level scope
+       @ <julia>/repro/memsafety-accumulate-offset-axis-overflow.jl:28
+     [7] include(mod::Module, _path::String)
+       @ Base ./Base.jl:309
+     [8] exec_options(opts::Base.JLOptions)
+       @ Base ./client.jl:344
+     [9] _start()
+       @ Base ./client.jl:577
+    in expression starting at <julia>/repro/memsafety-accumulate-offset-axis-overflow.jl:28
+    child exit code = 1, signal = 0
+    REPRODUCED memsafety-accumulate-offset-axis-overflow
+  nightly: |
+    ERROR: LoadError: BoundsError: attempt to access 1-element ExtremeVector{Int64} with indices 9223372036854775807:9223372036854775807 at index [-9223372036854775808]
+    Stacktrace:
+     [1] getindex(a::ExtremeVector{Int64}, i::Int64)
+       @ Main <julia>/repro/memsafety-accumulate-offset-axis-overflow.jl:22 [inlined]
+     [2] _getindex(::IndexLinear, A::ExtremeVector{Int64}, i::Int64)
+       @ Base abstractarray.jl:1390 [inlined]
+     [3] getindex(::ExtremeVector{Int64}, ::Int64, ::CartesianIndex{0})
+       @ Base abstractarray.jl:1366 [inlined]
+     [4] _accumulate!(op::typeof(+), B::ExtremeVector{Int64}, A::ExtremeVector{Int64}, dims::Int64, init::Nothing)
+       @ Base accumulate.jl:392
+     [5] accumulate!(op::Function, B::ExtremeVector{Int64}, A::ExtremeVector{Int64}; dims::Int64, kw::@Kwargs{})
+       @ Base accumulate.jl:350
+     [6] top-level scope
+       @ <julia>/repro/memsafety-accumulate-offset-axis-overflow.jl:28
+    in expression starting at <julia>/repro/memsafety-accumulate-offset-axis-overflow.jl:28
+    child exit code = 1, signal = 0
+    REPRODUCED memsafety-accumulate-offset-axis-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  accumulate! should write the sole output element and return. It must not read any
+  index other than typemax(Int).
+promised_by: |
+  The cumsum! docstring at base/accumulate.jl:44-49 says it stores the cumulative sum
+  of A in B. accumulate! at lines 337-355 checks that B and A have the same axes.
+  Invariant: an in-bounds AbstractArray operation must not access outside its axes.
+cause: |
+  base/accumulate.jl:391 constructs first(ind1)+1:last(ind1) with wrapping Int
+  arithmetic. When both endpoints are typemax(Int), the lower endpoint wraps to
+  typemin(Int), and line 392 reads A[i_1, I] under @inbounds. The higher-dimensional
+  loops at lines 412-415 and 428-431 use the same first(ind)+1:last(ind) arithmetic.
+possible_fix: |
+  Iterate the axis after its first element without forming first(axis) + 1, or return
+  before the loop when first(ind1) == last(ind1).
+duplicates:
+  issues: []
+  queries: ["accumulate offset axis overflow", "accumulate typemax firstindex", "accumulate custom axes bounds", "prs: accumulate offset axis overflow", "prs: accumulate typemax firstindex", "prs: accumulate custom axes bounds"]
+lean:
+  property: JuliaLean.MemSafety.G5.AccumulateDimsAccessesInBounds
+  theorem: JuliaLean.MemSafety.G5.accumulateDimsAccessesInBounds_refuted

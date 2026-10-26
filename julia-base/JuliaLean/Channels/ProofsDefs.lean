@@ -26,7 +26,7 @@ def PcFits (sz : Nat) (op : Op) : Pc → Prop
   | .handoff v _ => op = .put v ∧ sz = 0
 
 /-- The operation list and capacity are fixed, and continuations fit operations.
-The owner proves `fitInv_init : FitInv sz ops (init sz ops)` and
+Initialization and preservation are expressed by `fitInv_init : FitInv sz ops (init sz ops)` and
 `fitInv_step : FitInv sz ops s → stepTask s i = some s' → FitInv sz ops s'`. -/
 structure FitInv (sz : Nat) (ops : List Op) (s : St) : Prop where
   capacity : s.ch.sz = sz
@@ -59,7 +59,7 @@ def PutQueueKind (sz : Nat) (pc : Pc) : Prop :=
   else ∃ v, pc = .parked (.putBuf v)
 
 /-- Queue, availability, handoff, and wake-value invariants.
-The owner proves `queueInv_init : QueueInv sz (init sz ops)` and
+Initialization and preservation are expressed by `queueInv_init : QueueInv sz (init sz ops)` and
 `queueInv_step : QueueInv sz s → FitInv sz ops s → stepTask s i = some s' → QueueInv sz s'`.
 All fields concern the state before a step; neither lemma assumes reachability. -/
 structure QueueInv (sz : Nat) (s : St) : Prop where
@@ -98,7 +98,7 @@ def ledgerCredit (x : Val) (t : Task) : Int :=
     | _, _ => 0)
 
 /-- The value ledger balances completed puts against received and stored items.
-The owner proves `ledgerInv_init : LedgerInv (init sz ops)` and
+The associated lemmas are `ledgerInv_init : LedgerInv (init sz ops)` and
 `ledgerInv_step : LedgerInv s → FitInv sz ops s → QueueInv sz s →
   stepTask s i = some s' → LedgerInv s'`, and
 `ledgerInv_conservation : LedgerInv s → List.Perm (putsDone s)

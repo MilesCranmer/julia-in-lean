@@ -1,0 +1,161 @@
+line	name	verdict	mirror	property	settled	reason
+17	Complex	HOLLOW	yes	no	yes	The mirror follows promotion and construction, but HasResult is a tautology and states no promised constructor behaviour.
+18	Complex	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+42	Complex{T}	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+43	Complex{T}	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+44	(::Type{T})	HOLLOW	no	no	yes	The model omits the result type assertion and the type and value fields of InexactError, while HasResult states no behaviour.
+47	Complex	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+49	promote_rule	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+51	promote_rule	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+54	widen	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+56	float	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+57	float	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+72	real	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+87	imag	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+88	real	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+89	imag	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+102	reim	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+120	real	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+121	real	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+122	real	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+123	real	HOLLOW	no	no	yes	Option.none has no established correspondence to Julia Union{}, so neither the model nor its equation states this method's result.
+124	real	HOLLOW	no	no	yes	The model drops Union{} and every slurped argument from MethodError, so it neither mirrors nor specifies the allowed calls.
+148	isreal	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+149	isreal	HOLLOW	yes	no	yes	The exact body mirror and proposition cover only ComplexF64 rather than every component type accepted by the generic Complex method.
+150	isinteger	HOLLOW	no	yes	yes	The proposition states the componentwise invariant, but the mirror replaces Julia's eager ampersand with short-circuit conjunction.
+151	isfinite	HOLLOW	no	yes	yes	The proposition states the componentwise invariant, but the mirror replaces Julia's eager ampersand with short-circuit conjunction.
+152	isnan	HOLLOW	no	yes	yes	The proposition states the componentwise invariant, but the mirror replaces Julia's eager vertical-bar call with short-circuit disjunction.
+153	isinf	HOLLOW	no	yes	yes	The proposition states the componentwise invariant, but the mirror replaces Julia's eager vertical-bar call with short-circuit disjunction.
+154	iszero	HOLLOW	no	yes	yes	The proposition states the componentwise invariant, but the mirror replaces Julia's eager ampersand with short-circuit conjunction.
+155	isone	HOLLOW	no	yes	yes	The proposition states the componentwise invariant, but the mirror replaces Julia's eager ampersand with short-circuit conjunction.
+168	complex	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+169	complex	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+170	complex	HOLLOW	yes	no	yes	The mirror follows promotion and construction, but HasResult is a tautology and states no promised conversion behaviour.
+190	complex	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+191	complex	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+192	complex	HOLLOW	no	no	yes	Option.none has no established correspondence to Julia Union{}, so neither the model nor its equation states this method's result.
+195	complex	HOLLOW	no	no	yes	The model drops Union{} and every slurped argument from MethodError, so it neither mirrors nor specifies the allowed calls.
+197	flipsign	HOLLOW	no	no	yes	The model replaces eager ifelse with a lazy branch, and HasResult states no sign-dependent behaviour.
+199	show	HOLLOW	no	no	yes	The model accepts pre-rendered text and flags instead of performing the ordered IO operations, while HasResult states no output behaviour.
+219	show	HOLLOW	no	no	yes	The model accepts the equality result as an input instead of performing the comparison, while HasResult states no formatting behaviour.
+222	show_unquoted	HOLLOW	no	no	yes	The model accepts the precedence decision as an input instead of performing the check and IO calls, while HasResult states no output behaviour.
+232	read	HOLLOW	no	no	yes	The model replaces two ordered reads with one callback returning a pair, while HasResult states no read or failure behaviour.
+237	write	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+242	bswap	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+246	==	HOLLOW	no	yes	yes	The proposition states componentwise equality, but the mirror replaces Julia's eager ampersand with short-circuit conjunction.
+247	==	HOLLOW	yes	no	yes	The exact body mirror and proposition cover only ComplexF64 and Float64 rather than every Complex and Real input allowed by the method.
+248	==	HOLLOW	yes	no	yes	The mirror follows the two checks, but HasResult is a tautology and states no equality behaviour.
+250	isequal	HOLLOW	no	no	yes	The Float64-only model also replaces Julia's eager ampersand with short-circuit conjunction, and the proposition omits other allowed component types.
+251	isequal	HOLLOW	no	no	yes	The Float64-only model also replaces Julia's eager ampersand with short-circuit conjunction, and the proposition omits other allowed Real types.
+252	isequal	HOLLOW	no	yes	yes	The proposition states componentwise isequal behaviour, but the mirror replaces Julia's eager ampersand with short-circuit conjunction.
+254	in	HOLLOW	yes	no	yes	The mirror follows the checks, but HasResult is a tautology and states no range-membership behaviour.
+259	hash	HOLLOW	yes	no	yes	The exact body mirror and hash-contract proposition cover only ComplexF64 rather than every component type accepted by the generic method.
+280	conj	HOLLOW	yes	no	yes	The exact body mirror and involution proposition cover only ComplexF64 rather than every component type accepted by the generic method.
+281	abs	HOLLOW	yes	no	yes	The exact body mirror and magnitude proposition cover only ComplexF64 rather than every component type accepted by the generic method.
+282	abs2	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+283	inv	HOLLOW	no	no	yes	The model replaces Julia's eager infinity checks with short-circuit disjunction, while HasResult states no inverse behaviour.
+288	inv	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+290	+	HOLLOW	yes	no	yes	The body has a direct mirror, but HasResult is a tautology and states no unary-plus behaviour.
+291	-	HOLLOW	yes	no	yes	The body has a direct mirror, but HasResult is a tautology and states no negation behaviour.
+292	+	HOLLOW	yes	no	yes	The body has a direct mirror, but HasResult is a tautology and states no addition behaviour.
+293	-	HOLLOW	yes	no	yes	The body has a direct mirror, but HasResult is a tautology and states no subtraction behaviour.
+294	*	HOLLOW	yes	no	yes	The body has a direct mirror, but HasResult is a tautology and states no multiplication behaviour.
+297	-%	HOLLOW	yes	no	yes	The body has a direct mirror parameterized by wrapping negation, but HasResult states no behaviour.
+298	+%	HOLLOW	yes	no	yes	The body has a direct mirror parameterized by wrapping addition, but HasResult states no behaviour.
+299	-%	HOLLOW	yes	no	yes	The body has a direct mirror parameterized by wrapping subtraction, but HasResult states no behaviour.
+300	*%	HOLLOW	yes	no	yes	The body has a direct mirror parameterized by wrapping multiplication, but HasResult states no behaviour.
+303	_mulsub	HOLLOW	yes	no	yes	The body has a direct promotion-and-call mirror, but HasResult is a tautology and states no result behaviour.
+304	_mulsub	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+305	muladd	HOLLOW	yes	no	yes	The refuted exactness property covers only ComplexF64 rather than every component type accepted by the generic method.
+311	+	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+312	+	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+313	-	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+314	-	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+315	*	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+316	*	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+318	+	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+319	+	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+320	-	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+321	-	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+322	*	HOLLOW	yes	no	yes	The exact body mirror and strong-zero proposition cover only ComplexF64 rather than every component type accepted by the generic method.
+323	*	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+325	+	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+326	+	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+327	-	HOLLOW	no	no	yes	The model negates the Bool component directly and omits the source oftype conversion through the computed real-result type.
+332	-	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+333	*	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+334	*	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+337	+	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+338	+	HOLLOW	no	no	yes	The model calls addition as real(z)+x although this method deliberately calls x+real(z), so its equation specifies a different dispatch order.
+339	-	HOLLOW	no	no	yes	The model negates the imaginary component directly and omits the source oftype conversion through the computed real-result type.
+344	-	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+345	*	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+346	*	HOLLOW	no	no	yes	The model calls multiplication with the complex component first although this method deliberately calls the real scalar first.
+348	muladd	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+349	muladd	HOLLOW	yes	no	yes	The body has a direct mirror, but HasResult is a tautology and states no muladd behaviour.
+350	muladd	HOLLOW	yes	no	yes	The body has a direct mirror, but HasResult is a tautology and states no muladd behaviour.
+352	muladd	HOLLOW	yes	no	yes	The body has a direct mirror, but HasResult is a tautology and states no muladd behaviour.
+353	muladd	HOLLOW	yes	no	yes	The body has a direct mirror, but HasResult is a tautology and states no muladd behaviour.
+357	/	HOLLOW	no	no	yes	The model replaces promote_type and typed conversion with a value-level promote callback, while HasResult states no division behaviour.
+358	/	HOLLOW	yes	no	yes	The body has a direct componentwise mirror, but HasResult is a tautology and states no division behaviour.
+360	/	HOLLOW	no	no	yes	The model replaces Julia's eager infinity checks with short-circuit disjunction, while HasResult states no division behaviour.
+379	/	HOLLOW	no	no	yes	The model replaces Julia's eager infinity checks with short-circuit disjunction, while HasResult states no widened-division behaviour.
+400	/	FAITHFUL	yes	yes	yes	The exact ComplexF64 mirror supports three all-input division properties, each refuted with an existing reproducer.
+424	cdiv	HOLLOW	yes	no	yes	The body has an exact Float64 mirror, but HasResult is a tautology and states no cdiv behaviour.
+433	scaling_cdiv	HOLLOW	yes	no	yes	The body has an exact Float64 mirror, but HasResult is a tautology and states no scaled-division behaviour.
+439	scaleargs_cdiv	HOLLOW	yes	no	yes	The body has an exact Float64 mirror, but HasResult is a tautology and states no argument-scaling behaviour.
+460	robust_cdiv1	HOLLOW	yes	no	yes	The proposition constrains top-level complex division rather than robust_cdiv1 over all four inputs accepted by this helper.
+467	robust_cdiv2	HOLLOW	yes	no	yes	The proposition constrains top-level complex division rather than robust_cdiv2 over all six inputs accepted by this helper.
+476	inv	HOLLOW	no	no	yes	The model replaces Julia's eager infinity checks with short-circuit disjunction, while HasResult states no inverse behaviour.
+482	inv	HOLLOW	yes	no	yes	The body has an exact ComplexF64 mirror, but HasResult is a tautology and states no inverse behaviour.
+511	robust_cinv	HOLLOW	yes	no	yes	The body has an exact Float64 mirror, but HasResult is a tautology and states no robust-inverse behaviour.
+519	ssqs	HOLLOW	no	no	yes	The model replaces max and convert calls with hand-written alternatives, while HasResult states no scaling behaviour.
+533	sqrt	HOLLOW	yes	no	yes	The exact ComplexF64 body mirror and branch-cut proposition omit every other component type accepted by the generic method.
+586	cis	FAITHFUL	-	-	-	The no-behaviour reason applies because this row only declares the generic function and has no method body.
+587	cis	HOLLOW	no	yes	yes	The proposition states Euler's formula, but the model replaces the single sincos call and reversal order with separate cosine and sine calls.
+592	cis	HOLLOW	no	no	yes	The model replaces sincos with separate cosine and sine calls, while HasResult states no complex-cis behaviour.
+617	cispi	FAITHFUL	-	-	-	The no-behaviour reason applies because this row only declares the generic function and has no method body.
+618	cispi	HOLLOW	no	yes	yes	The proposition states the documented result, but the model replaces reverse(sincospi(theta)) with separate cosine-pi and sine-pi calls.
+620	cispi	HOLLOW	no	no	yes	The model replaces sincospi with separate cosine-pi and sine-pi calls, while HasResult states no complex-cispi behaviour.
+651	angle	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+653	log	HOLLOW	no	no	yes	The model omits float conversion and replaces typed constants and conversions with scalar expressions, while HasResult states no logarithm behaviour.
+695	log10	HOLLOW	no	no	yes	The model omits oftype and replaces complex division dispatch with componentwise scalar division, while HasResult states no logarithm behaviour.
+699	log2	HOLLOW	no	no	yes	The model omits oftype and replaces complex division dispatch with componentwise scalar division, while HasResult states no logarithm behaviour.
+704	exp	HOLLOW	no	no	yes	The model replaces equality and oftype operations and the sincos call with hand-written alternatives, while HasResult states no exponential behaviour.
+727	expm1	HOLLOW	no	no	yes	The model omits float-type conversion and replaces typed constants and sincos with hand-written alternatives, while HasResult states no behaviour.
+757	log1p	HOLLOW	no	no	yes	The model replaces the complex quotient z/(u-1) with scalar division by the real component and omits required conversions.
+775	exp2	HOLLOW	no	no	yes	The model omits float and typed conversion calls and replaces sincos with separate calls, while HasResult states no behaviour.
+783	exp10	HOLLOW	no	no	yes	The model omits float and typed conversion calls and replaces sincos with separate calls, while HasResult states no behaviour.
+792	_cpow	HOLLOW	no	no	yes	The model substitutes several source calls and eager branches with derived scalar operations, while HasResult states no power behaviour.
+882	^	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+883	^	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+884	^	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+886	^	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+887	^	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+889	^	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+890	^	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+892	^	FAITHFUL	yes	yes	yes	The exact ComplexF64 and power-by-squaring mirrors support an all-input totality property that is refuted with an existing reproducer.
+894	^	HOLLOW	yes	no	yes	The proved wrapping property covers only Complex{Int64}, Int64 exponents, and nonnegative powers rather than every allowed integer input.
+896	^	HOLLOW	no	no	yes	The model replaces promote_type and typed conversions with value-level callbacks, while HasResult states no promoted-power behaviour.
+900	^	HOLLOW	no	no	yes	The model replaces promote_type and typed conversions with value-level callbacks, while HasResult states no promoted-power behaviour.
+905	sin	HOLLOW	no	no	yes	The model omits float-type conversions and replaces sincos with separate calls, while HasResult states no sine behaviour.
+923	cos	HOLLOW	no	no	yes	The model omits float-type conversions and replaces sincos with separate calls, while HasResult states no cosine behaviour.
+943	tan	HOLLOW	yes	no	yes	The body has a direct transformed-tanh mirror, but HasResult is a tautology and states no tangent behaviour.
+949	asin	HOLLOW	no	no	yes	The model reuses square-root results that the source recomputes in a different order, while HasResult states no inverse-sine behaviour.
+963	acos	HOLLOW	no	no	yes	The model replaces repeated square-root calls with reused values and conjugation identities, while HasResult states no inverse-cosine behaviour.
+986	atan	HOLLOW	yes	no	yes	The body has a direct transformed-atanh mirror, but HasResult is a tautology and states no inverse-tangent behaviour.
+991	sinh	HOLLOW	yes	no	yes	The body has a direct transformed-sine mirror, but HasResult is a tautology and states no hyperbolic-sine behaviour.
+997	cosh	HOLLOW	yes	no	yes	The body has a direct transformed-cosine mirror, but HasResult is a tautology and states no hyperbolic-cosine behaviour.
+1002	tanh	HOLLOW	no	no	yes	The model omits float conversion and threshold construction by accepting a precomputed value, while HasResult states no behaviour.
+1024	asinh	HOLLOW	yes	no	yes	The body has a direct transformed-asin mirror, but HasResult is a tautology and states no inverse-hyperbolic-sine behaviour.
+1029	acosh	HOLLOW	no	no	yes	The model replaces repeated square-root calls with reused values and conjugation identities, while HasResult states no inverse-hyperbolic-cosine behaviour.
+1048	atanh	HOLLOW	no	no	yes	The model omits float conversion and threshold construction by accepting a precomputed value, while HasResult states no behaviour.
+1123	round	FAITHFUL	yes	yes	yes	The Lean function follows the two component-rounding calls and its proved equation states the documented all-input behaviour.
+1129	float	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+1130	float	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+1132	big	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+1133	big	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behaviour.
+1153	complex	FAITHFUL	yes	yes	yes	The Lean identity model and equation cover every abstract-array value accepted by this method.
+1155	complex	HOLLOW	no	no	yes	The model uses a supplied flag and converter, omits the source type construction, and raises a different error, while HasResult states no behaviour.
+1164	eps	HOLLOW	no	no	yes	The model expands hypot as a square-root formula instead of calling Julia's robust hypot method, while HasResult states no epsilon behaviour.
+1166	eps	HOLLOW	no	no	yes	The model replaces 2*one(T) and type-level eps(T) with value-level addition and a sample, while HasResult states no behaviour.

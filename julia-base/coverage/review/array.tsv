@@ -1,0 +1,264 @@
+line	name	verdict	mirror	property	settled	reason
+14	DimensionMismatch	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-14 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+132	_safeindex	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+135	_safeindex	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-135 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+158	vect	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-158 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+159	vect	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+183	vect	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+188	asize_from	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-188 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+190	allocatedinline	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-190 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+206	isbitsunion	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+208	unsetindex!	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+209	unsetindex!	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+218	elsize	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+219	elsize	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-219 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+226	elsize	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+227	elsize	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-227 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+229	sizeof	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-229 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+231	isassigned	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+239	isassigned	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+259	unsafe_copyto!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-259 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+276	unsafe_copyto!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-276 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+288	copyto!	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+290	copyto!	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+292	copyto!	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+296	copyto!	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+299	_copyto_impl!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-299 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+321	_throw_argerror	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-321 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+323	_copyto2arg!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-323 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+325	copyto!	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+326	copyto!	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+327	copyto!	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+330	copyto!	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+331	copyto!	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+332	copyto!	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+368	fill!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-368 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+373	_fill!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-373 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+391	copy	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-391 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+402	_take!	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+414	similar	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+415	similar	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+416	similar	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+417	similar	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+418	similar	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+419	similar	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+420	similar	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+421	similar	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-421 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+445	getindex	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-445 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+463	getindex	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-463 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+471	getindex	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-471 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+473	fill!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-473 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+482	to_dim	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-482 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+483	to_dim	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-483 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+581	fill	FAITHFUL	-	-	-	The source line is an empty generic-function declaration and has no executable behaviour.
+583	fill	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-583 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+584	fill	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-584 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+585	fill	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-585 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+586	fill	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-586 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+587	fill	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-587 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+608	zeros	FAITHFUL	-	-	-	The source line is an empty generic-function declaration and has no executable behaviour.
+629	ones	FAITHFUL	-	-	-	The source line is an empty generic-function declaration and has no executable behaviour.
+633	$fname	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-633 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+634	$fname	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-634 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+635	$fname	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-635 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+636	$fname	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-636 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+637	$fname	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-637 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+642	$fname	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-642 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+647	$fname	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-647 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+657	convert	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-657 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+659	promote_rule	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-659 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+664	Array{T,N}	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-664 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+665	AbstractArray{T,N}	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-665 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+684	collect	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-684 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+686	_collect	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-686 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+688	_collect	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-688 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+697	_similar_for	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-697 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+699	_similar_shape	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-699 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+700	_similar_shape	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-700 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+701	_similar_shape	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-701 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+703	_similar_for	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-703 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+705	_similar_for	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-705 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+707	_similar_for	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-707 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+711	_array_for_inner	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-711 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+712	_array_for_inner	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-712 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+713	_array_for_inner	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-713 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+716	_array_for	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-716 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+771	collect	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-771 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+773	collect	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-773 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+775	collect_similar	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-775 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+777	_collect	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-777 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+780	_collect	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-780 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+788	_collect_indices	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-788 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+793	_collect_indices	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-793 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+798	_collect_indices	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-798 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+805	_iterator_upper_bound	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-805 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+821	default_eltype	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-821 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+833	collect	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-833 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+855	_collect	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-855 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+858	_collect	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-858 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+875	collect_to_with_first!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-875 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+881	collect_to_with_first!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-881 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+886	setindex_widen_up_to	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-886 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+895	collect_to!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-895 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+914	grow_to!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-914 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+922	push_widen	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-922 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+935	grow_to!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-935 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+972	getindex	FAITHFUL	-	-	-	The source line is an empty generic-function declaration and has no executable behaviour.
+974	getindex	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-974 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+981	getindex	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-981 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+993	getindex	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-993 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+995	getindex	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-995 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1005	getindex	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1005 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1029	setindex!	FAITHFUL	-	-	-	The source line is an empty generic-function declaration and has no executable behaviour.
+1031	setindex!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1031 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1036	_setindex!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1036 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1042	setindex!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1042 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1047	_setindex!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1047 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1055	__safe_setindex!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1055 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1057	__safe_setindex!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1057 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1059	__safe_setindex!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1059 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1063	setindex!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1063 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1078	setindex!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1078 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1088	setindex!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1088 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1102	overallocation	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1102 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1114	array_new_memory	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1114 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1116	_growbeg_internal!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1116 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1151	_growbeg!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1151 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1171	_growend_internal!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1171 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1212	_growend!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1212 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1230	_growat!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1230 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1278	_deletebeg!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1278 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1296	_deleteend!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1296 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1312	_deleteat!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1312 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1356	push!	FAITHFUL	-	-	-	The source line is an empty generic-function declaration and has no executable behaviour.
+1358	push!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1358 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1366	_push!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1366 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1373	push!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1373 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1378	push!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1378 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1425	append!	FAITHFUL	-	-	-	The source line is an empty generic-function declaration and has no executable behaviour.
+1427	append!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1427 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1435	append!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1435 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1436	push!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1436 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1437	append!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1437 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1439	_append!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1439 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1447	_append!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1447 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1483	prepend!	FAITHFUL	-	-	-	The source line is an empty generic-function declaration and has no executable behaviour.
+1485	prepend!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1485 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1500	prepend!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1500 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1501	pushfirst!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1501 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1502	prepend!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1502 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1504	_prepend!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1504 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1517	_prepend!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1517 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1564	resize!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1564 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1615	sizehint!	FAITHFUL	-	-	-	The source line is an empty generic-function declaration and has no executable behaviour.
+1617	sizehint!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1617 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1652	Core.kwcall	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1652 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1700	pop!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1700 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1741	popat!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1741 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1748	popat!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1748 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1777	pushfirst!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1777 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1782	_pushfirst!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1782 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1789	pushfirst!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1789 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1794	pushfirst!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1794 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1836	popfirst!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1836 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1866	insert!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1866 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1871	_insert!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1871 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1899	deleteat!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1899 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1905	deleteat!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1905 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1945	deleteat!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1945 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1946	deleteat!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1946 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1949	push!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1949 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1950	_growend!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1950 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1952	_push_deleted!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1952 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1961	_copy_item!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1961 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+1970	_deleteat!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-1970 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2005	deleteat!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2005 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2070	splice!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2070 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2125	splice!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2125 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2153	splice!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2153 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2155	empty!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2155 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2161	cmp	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2161 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2176	==	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2176 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2193	==	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2193 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2253	reverse	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2253 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2271	$f	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2271 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2272	$_f	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2272 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2273	$_f	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2273 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2274	$_f	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2274 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2281	reverseind	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2281 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2288	midpoint	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2288 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2289	midpoint	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2289 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2317	reverse!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2317 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2337	vcat	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2337 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2338	hcat	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2338 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2340	hcat	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2340 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2349	hcat	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2349 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2351	vcat	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2351 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2366	vcat	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2366 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2368	_cat	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2368 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2404	findnext	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2404 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2441	findfirst	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2441 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2444	findfirst	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2444 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2475	findnext	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2475 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2523	findfirst	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2523 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2531	findfirst	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2531 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2534	findfirst	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2534 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2537	findfirst	FAITHFUL	yes	yes	yes	The proven registry proposition uses a method-specific Lean model that follows the source body and states its behaviour for all represented inputs.
+2538	findfirst	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2538 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2540	findfirst	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2540 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2546	findfirst	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2546 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2554	findfirst	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2554 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2555	findfirst	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2555 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2591	findprev	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2591 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2629	findlast	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2629 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2632	findlast	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2632 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2671	findprev	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2671 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2716	findlast	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2716 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2724	findlast	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2724 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2728	findlast	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2728 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2733	findlast	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2733 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2789	findall	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2789 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2796	findall	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2796 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2838	findall	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2838 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2843	findall	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2843 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2856	findall	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2856 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2857	findall	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2857 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2858	findall	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2858 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2892	indexin	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2892 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2903	_findin	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2903 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2910	_findin	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2910 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2915	_sortedfindin	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2915 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2957	findall	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2957 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2966	findall	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2966 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2967	findall	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2967 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2970	indcopy	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2970 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+2981	indcopy	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-2981 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3020	filter	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3020 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3032	filter	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3032 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3066	filter!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3066 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3105	filter	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3105 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3134	keepat!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3134 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3159	keepat!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3159 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3164	_unique_filter!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3164 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3174	_grow_filter!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3174 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3175	_shrink_filter!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3175 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3177	_grow!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3177 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3185	union!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3185 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3188	symdiff!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3188 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3191	_shrink!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3191 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3198	intersect!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3198 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3199	setdiff!	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3199 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3201	vectorfilter	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3201 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3203	intersect	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3203 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3209	setdiff	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3209 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3215	intersect	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3215 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3221	intersect	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3221 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3224	getindex	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3224 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3238	wrap	FAITHFUL	-	-	-	The source line is an empty generic-function declaration and has no executable behaviour.
+3241	_wrap	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3241 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3249	invalid_wrap_err	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3249 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3254	wrap	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3254 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3260	wrap	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3260 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3265	wrap	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3265 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3270	wrap	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3270 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.
+3275	wrap	HOLLOW	no	no	no	Registry ID multidimcov-array-faithful-3275 is absent from JuliaLean, so no mirror, behavioural proposition, or settled theorem exists.

@@ -1,0 +1,27 @@
+line	name	verdict	mirror	property	settled	reason
+46	ReverseOrdering	FAITHFUL	yes	yes	yes	The generic unwrap model returns the wrapped ordering for every field type, exactly as this constructor method does.
+47	ReverseOrdering	FAITHFUL	yes	yes	yes	The generic wrap model covers both successful construction for an Ordering value and the constructor type error for every other value.
+48	ReverseOrdering	FAITHFUL	yes	yes	yes	The default-constructor model calls the mirrored ReverseOrdering operation on Forward and proves its documented reversed-isless behaviour for all elements.
+56	reverse	FAITHFUL	yes	yes	yes	The generic reverse method delegates to its ReverseOrdering callback for every input exactly as the source method does.
+86	By	FAITHFUL	yes	yes	yes	The default-By model constructs By with Forward and proves the documented key comparison for every function and pair of elements.
+110	ReverseOrdering	FAITHFUL	yes	yes	yes	The generic By reversal preserves the key and calls reversal on the stored order in source order, including failure propagation.
+111	ReverseOrdering	FAITHFUL	yes	yes	yes	The mirrored Perm construction and comparison refute the universal docstring claim with a concrete valid Perm input, and the required reproducer exists.
+118	lt	FAITHFUL	yes	yes	yes	The Forward branch calls the supplied isless operation on the two arguments and proves that documented result for all elements.
+119	lt	HOLLOW	no	no	yes	The closed Lean Ordering datatype cannot represent an arbitrary user-defined Ordering stored in ReverseOrdering, so neither its delegated lt call nor the property covers all allowed inputs.
+120	lt	HOLLOW	no	no	yes	The closed Lean Ordering datatype and endofunction-only key model omit user-defined stored orderings and type-changing key functions accepted by By.
+121	lt	FAITHFUL	yes	yes	yes	The Lt branch calls its documented Boolean comparison function on every pair and returns that result directly.
+123	lt	FAITHFUL	yes	yes	yes	The Perm model performs both indexed reads, both eager comparisons and Bool assertions, and the stable tie-break in the source order for arbitrary outcomes.
+130	_ord	FAITHFUL	yes	yes	yes	The generic isless branch retains every existing ordering and applies the mirrored identity-or-By helper for every documented by argument.
+131	_ord	FAITHFUL	yes	yes	yes	The Forward disambiguation branch uses the mirrored _by operation and the proposition covers its result for every documented by argument.
+132	_ord	FAITHFUL	yes	yes	yes	The Reverse disambiguation branch uses the mirrored _by operation and the proposition covers its result for every documented by argument.
+133	_ord	FAITHFUL	yes	yes	yes	The custom-lt Forward branch constructs Lt and then applies the mirrored _by operation for every documented callback.
+134	_ord	FAITHFUL	yes	yes	yes	The custom-lt Reverse branch constructs Lt, applies _by, and performs the specialized reversal in the same order as the source.
+135	_ord	FAITHFUL	yes	yes	yes	The generic rejection branch covers every non-Forward and non-Reverse existing ordering and returns the exact source error.
+136	_by	FAITHFUL	yes	yes	yes	The generic helper constructs By from every documented key function and arbitrary existing ordering.
+137	_by	FAITHFUL	yes	yes	yes	The identity helper returns every arbitrary existing ordering unchanged.
+155	ord	HOLLOW	no	no	yes	The fused genericOrd model represents custom lt with Reverse and a nonidentity by function as Reverse(By(...)) instead of Julia's By(..., Reverse(...)), and its proposition omits that documented combination.
+157	ord	HOLLOW	no	no	yes	The fused genericOrd model uses a generic outer Reverse constructor instead of the specialized unwrapping and By or Perm reversal methods, and its proposition omits the documented custom-lt Reverse case.
+170	ordtype	FAITHFUL	yes	yes	yes	The generic reverse model delegates ordtype to every arbitrary wrapped ordering with the original array argument.
+171	ordtype	FAITHFUL	yes	yes	yes	The generic Perm model delegates ordtype to every arbitrary stored ordering with the stored data rather than the supplied array.
+173	ordtype	HOLLOW	yes	no	yes	The proposition covers empty input and key-function failure but states nothing about the allowed nonempty successful path that returns typeof(o.by(vs[1])).
+174	ordtype	HOLLOW	no	no	yes	The closed Lean Ordering datatype proves eltype only for Forward and Lt constructors, leaving every user-defined Ordering subtype accepted by this fallback method unmodelled.

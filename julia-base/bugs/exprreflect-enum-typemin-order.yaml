@@ -1,0 +1,61 @@
+id: exprreflect-enum-typemin-order
+title: "typemin of an @enum is wrong when a later member has the lowest value"
+priority: P1
+kind: wrong-result
+area: ExprReflect
+files: [base/Enums.jl, base/int.jl]
+functions: ["@enum", "typemin(::Type{<:Enum})"]
+summary: |
+  @enum records the first member as lo and never lowers it when later explicit values are
+  smaller. typemin(E) therefore returns the first member rather than the enum member with
+  the lowest represented value.
+likelihood: |
+  Explicit enum values are documented and need not be increasing. Protocol constants and
+  status codes commonly put a negative sentinel after positive members.
+maybe_intended: ""
+reproducer: |
+  @enum OutOfOrderEnum::Int8 high=5 low=-2 top=9
+
+  actual = Int(typemin(OutOfOrderEnum))
+  expected = minimum(Int.(instances(OutOfOrderEnum)))
+  println("instances: ", Int.(instances(OutOfOrderEnum)))
+  println("Int(typemin(OutOfOrderEnum)): ", actual)
+  println("minimum instance value: ", expected)
+
+  if actual != expected
+      println("REPRODUCED exprreflect-enum-typemin-order")
+  else
+      println("NOT REPRODUCED exprreflect-enum-typemin-order")
+  end
+output:
+  release: |
+    instances: (5, -2, 9)
+    Int(typemin(OutOfOrderEnum)): 5
+    minimum instance value: -2
+    REPRODUCED exprreflect-enum-typemin-order
+  nightly: |
+    instances: (5, -2, 9)
+    Int(typemin(OutOfOrderEnum)): 5
+    minimum instance value: -2
+    REPRODUCED exprreflect-enum-typemin-order
+reproduced: {release: true, nightly: true}
+expected: |
+  typemin(OutOfOrderEnum) should be low, whose represented value -2 is the lowest value
+  accepted by the enum constructor.
+promised_by: |
+  base/int.jl:827-831 defines typemin(T) as the lowest value representable by T.
+  base/Enums.jl:95-100 documents arbitrary optional assigned member values.
+cause: |
+  base/Enums.jl:208-212 sets lo to the first value but updates only hi for later values.
+  base/Enums.jl:226 then defines typemin(E) as E(lo).
+possible_fix: |
+  Update lo with min(lo, i) alongside the existing hi = max(hi, i).
+duplicates:
+  issues:
+    - {number: 64217, state: open, relation: duplicate}
+  queries:
+    - "issues: enum typemin order OR out of order OR minimum"
+    - "prs: enum typemin order OR out of order OR minimum"
+lean:
+  property: JuliaLean.ExprReflect.EnumExtremaCorrect
+  theorem: JuliaLean.ExprReflect.enumExtremaCorrect_refuted

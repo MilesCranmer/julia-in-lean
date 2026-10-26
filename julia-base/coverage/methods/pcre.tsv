@@ -1,0 +1,25 @@
+file	line	endline	name	signature	status	entry	note
+base/pcre.jl	20	31	create_match_context	create_match_context()	modelled	stringscovb-pcre-local-context	Lean property and source-matched model cited by entry.
+base/pcre.jl	37	37	_tid	_tid()	modelled	stringscovb-pcre-local-context	Lean property and source-matched model cited by entry.
+base/pcre.jl	38	38	_mth	_mth()	modelled	stringscovb-pcre-local-context	Lean property and source-matched model cited by entry.
+base/pcre.jl	40	63	get_local_match_context	get_local_match_context()	modelled	stringscovb-pcre-local-context	Lean property and source-matched model cited by entry.
+base/pcre.jl	135	147	info	info(regex::Ptr{Cvoid}, what::Integer, ::Type{T}) where T	modelled	stringscovb-pcre-helpers	Lean property and source-matched model cited by entry.
+base/pcre.jl	149	153	ovec_length	ovec_length(match_data)	modelled	stringscovb-pcre-helpers	Lean property and source-matched model cited by entry.
+base/pcre.jl	155	159	ovec_ptr	ovec_ptr(match_data)	modelled	stringscovb-pcre-helpers	Lean property and source-matched model cited by entry.
+base/pcre.jl	161	174	compile	compile(pattern::AbstractString, options::Integer)	modelled	stringscovb-pcre-helpers	Lean property and source-matched model cited by entry.
+base/pcre.jl	176	182	jit_compile	jit_compile(regex::Ptr{Cvoid})	modelled	stringscovb-pcre-helpers	Lean property and source-matched model cited by entry.
+base/pcre.jl	184	185	free_match_data	free_match_data(match_data)	modelled	stringscovb-pcre-helpers	Lean property and source-matched model cited by entry.
+base/pcre.jl	187	188	free_re	free_re(re)	modelled	stringscovb-pcre-helpers	Lean property and source-matched model cited by entry.
+base/pcre.jl	190	191	free_jit_stack	free_jit_stack(stack)	modelled	stringscovb-pcre-helpers	Lean property and source-matched model cited by entry.
+base/pcre.jl	193	194	free_match_context	free_match_context(context)	modelled	stringscovb-pcre-helpers	Lean property and source-matched model cited by entry.
+base/pcre.jl	196	203	err_message	err_message(errno::Integer)	modelled	stringscovb-pcre-helpers	Lean property and source-matched model cited by entry.
+base/pcre.jl	205	206	exec	exec(re, subject::DenseUTF8String, offset, options, match_data)	modelled	stringscovb-pcre-exec	Lean property and source-matched model cited by entry.
+base/pcre.jl	207	208	exec	exec(re, subject, offset, options, match_data)	modelled	stringscovb-pcre-exec	Lean property and source-matched model cited by entry.
+base/pcre.jl	210	217	_exec	_exec(re, subject, offset, options, match_data)	modelled	stringscovb-pcre-exec	Lean property and source-matched model cited by entry.
+base/pcre.jl	219	224	exec_r	exec_r(re, subject, offset, options)	modelled	stringscovb-pcre-exec	Lean property and source-matched model cited by entry.
+base/pcre.jl	226	230	exec_r_data	exec_r_data(re, subject, offset, options)	modelled	stringscovb-pcre-exec	Lean property and source-matched model cited by entry.
+base/pcre.jl	232	237	create_match_data	create_match_data(re)	modelled	stringscovb-pcre-helpers	Lean property and source-matched model cited by entry.
+base/pcre.jl	239	243	substring_number_from_name	substring_number_from_name(re, name)	modelled	stringscovb-pcre-helpers	Lean property and source-matched model cited by entry.
+base/pcre.jl	245	254	substring_length_bynumber	substring_length_bynumber(match_data, number)	modelled	stringscovb-pcre-helpers	Lean property and source-matched model cited by entry.
+base/pcre.jl	256	263	substring_copy_bynumber	substring_copy_bynumber(match_data, number, buf, buf_size)	modelled	stringscovb-pcre-helpers	Lean property and source-matched model cited by entry.
+base/pcre.jl	265	282	capture_names	capture_names(re)	modelled	stringscovb-pcre-capture-names	Lean property and source-matched model cited by entry.

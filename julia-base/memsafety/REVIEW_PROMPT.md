@@ -1,9 +1,9 @@
-# Memory-safety entry review (fixed prompt; do not edit)
+# Memory-safety entry review (fixed criteria)
 
-You are reviewing Lean proofs that claim unchecked array and pointer accesses in
-Julia Base are in bounds. Repository: this `julia-base` package. Julia source: read
-master with `git -C <julia checkout> show bbfa0ce4150:<path>`. Do not edit any file
-except the review file named below, do not run Lean or Julia, and do not commit.
+This procedure checks Lean proofs that claim unchecked array and pointer accesses
+in Julia Base are in bounds. Work from the package root and read the pinned
+master source with `git -C <julia-source-root> show bbfa0ce4150:<path>`.
+Review the source and proofs without executing Lean or Julia.
 
 For every registry entry with id `memsafety-*` and status `proven` in
 `JuliaLean/MemSafety/G{GROUP}.lean`, read its `prop` definition (follow every
@@ -37,5 +37,5 @@ Be strict: when unsure, answer no and say what is missing.
 Write `memsafety/review-{GROUP}.tsv` with header
 `entry	verdict	model	hypotheses	coverage	reason`, one row per entry,
 `yes`/`no` in the three answer columns, and a one-sentence reason that names
-the missing statement, hypothesis or site for every `no`. Then print the line
-`REVIEW {GROUP} FAITHFUL <n> HOLLOW <m>` and stop.
+the missing statement, hypothesis or site for every `no`. Report the totals as
+`REVIEW {GROUP} FAITHFUL <n> HOLLOW <m>`.

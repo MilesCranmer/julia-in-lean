@@ -1,0 +1,56 @@
+id: docssyntaxcov-toml-print-inline-array-table
+title: "TOML.print writes invalid TOML when a table of an array of tables is in inline_tables"
+priority: P2
+kind: wrong-result
+area: DocsSyntaxCov
+files: [base/toml/printer.jl]
+functions: ["Base.TOML.Printer.print_table", "TOML.print"]
+summary: |
+    When `data` has an array of tables whose element is listed in `inline_tables`,
+    `TOML.print` writes the `[[a]]` header followed by the element as a bare inline table:
+    `TOML.print(Dict("a" => [inner]); inline_tables = IdSet([inner]))` with
+    `inner = Dict("c" => 1)` writes `"[[a]]\n{c = 1}"`, which `TOML.parse` rejects.
+likelihood: |
+    Low: requires marking an element of an array of tables as inline (for example
+    when re-printing data that tracks which tables were inline).
+maybe_intended: ""
+reproducer: |
+    using TOML
+    inner = Dict("c" => 1)
+    TOML.print(Dict("a" => [inner]); inline_tables = Base.IdSet{Dict{String}}([inner]))
+output:
+  release: |
+    "[[a]]\n{c = 1}"
+    reparse fails: TOML Parser error:
+    none:2:1 error: invalid bare key character: '{'
+      {c = 1}
+      ^       
+    REPRODUCED docssyntaxcov-toml-print-inline-array-table
+  nightly: |
+    "[[a]]\n{c = 1}"
+    reparse fails: TOML Parser error:
+    none:2:1 error: invalid bare key character: '{'
+      {c = 1}
+      ^       
+    REPRODUCED docssyntaxcov-toml-print-inline-array-table
+reproduced: {release: true, nightly: true}
+expected: |
+    Valid TOML that parses back to the data, for example `a = [{c = 1}]`.
+promised_by: |
+    TOML.print docstring (stdlib/TOML/src/TOML.jl:175-179): "Write `data` as TOML syntax to the
+    stream `io` ... If the keyword argument `inline_tables` is given, it should be a set of
+    tables that should be printed "inline"."
+cause: |
+    base/toml/printer.jl:305 and 359 treat an array of dicts as an array of tables
+    regardless of `inline_tables`; the loop at lines 367-375 prints the `[[a]]` header and
+    then calls `print_table` on the element, which at lines 282-285 prints the inline form
+    `{c = 1}` with no key in front of it.
+possible_fix: |
+    Treat an array as an array of tables only if none of its elements is in `inline_tables`;
+    otherwise print it as an ordinary value (`a = [{c = 1}]`).
+duplicates:
+  issues: []
+  queries: ["TOML print", "TOML print inline_tables", "TOML print array of tables inline", "TOML inline table"]
+lean:
+  property: JuliaLean.DocsSyntaxCov.TomlPrint.InlineArrayTableValid
+  theorem: JuliaLean.DocsSyntaxCov.TomlPrint.inlineArrayTableValid_refuted

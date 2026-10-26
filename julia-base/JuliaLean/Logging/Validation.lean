@@ -1,6 +1,6 @@
 import JuliaLean.Logging.Model
 
-/-! Deterministic rows, mirrored line by line by a Julia differential script. -/
+/-! Deterministic differential rows. -/
 
 namespace JuliaLean.Logging.Validation
 

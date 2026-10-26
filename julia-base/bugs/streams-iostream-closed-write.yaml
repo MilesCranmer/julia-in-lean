@@ -1,0 +1,61 @@
+id: streams-iostream-closed-write
+title: "Writing to a closed IOStream silently returns zero"
+priority: P1
+kind: missing-error
+area: Streams
+files: [base/iostream.jl, base/io.jl]
+functions: ["iswritable(::IOStream)", "write(::IOStream, ::UInt8)", "unsafe_write(::IOStream, ::Ptr{UInt8}, ::UInt)"]
+summary: |
+  Closing an IOStream makes isopen return false but leaves iswritable true. Both a byte write
+  and a string write then return zero without writing anything or raising an error. Code can
+  silently lose output even though both IOStream write methods contain an explicit error check.
+likelihood: |
+  Plausible: cleanup, logging, and concurrent ownership mistakes can retain a closed file stream.
+  Silent data loss is harder to diagnose than an exception at the invalid write.
+maybe_intended: ""
+reproducer: |
+  path, io = mktemp()
+  close(io)
+  isopen(io)                 # false
+  iswritable(io)             # true
+  write(io, "x")            # 0
+  write(io, UInt8('x'))      # 0
+output:
+  release: |
+    isopen(io) = false
+    iswritable(io) = true
+    write(io, "x") = 0
+    write(io, UInt8('x')) = 0
+    REPRODUCED streams-iostream-closed-write
+  nightly: |
+    isopen(io) = false
+    iswritable(io) = true
+    write(io, "x") = 0
+    write(io, UInt8('x')) = 0
+    REPRODUCED streams-iostream-closed-write
+reproduced: {release: true, nightly: true}
+expected: |
+  iswritable(io) is false after close, and both writes throw an error instead of accepting zero
+  bytes. A closed stream cannot accept the requested canonical representation.
+promised_by: |
+  base/iostream.jl:79-84 says close makes an IOStream closed. base/io.jl:186-188 says
+  iswritable returns false if an IO object is not writable. base/io.jl:267-271 says write writes
+  the canonical representation and returns the number of bytes written.
+cause: |
+  base/iostream.jl:104 asks ios_get_writable only for the original access mode, without also
+  checking ios_isopen. The guards at lines 411-425 therefore pass after close, and the C write
+  functions return zero.
+possible_fix: |
+  Make iswritable(::IOStream) require both ios_isopen and ios_get_writable, so the existing write
+  guards throw after close.
+duplicates:
+  issues:
+    - {number: 64218, state: open, relation: duplicate}
+  queries:
+    - "issues: IOStream closed write"
+    - "issues: iswritable closed IOStream"
+    - "prs: IOStream closed write"
+    - "prs: ios_iswritable"
+lean:
+  property: JuliaLean.Streams.ClosedIOStreamWriteErrors
+  theorem: JuliaLean.Streams.closedIOStreamWriteErrors_refuted

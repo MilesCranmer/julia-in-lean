@@ -1,0 +1,65 @@
+id: stringscova-search-offset-pattern-range
+title: "Byte-vector search returns ranges that are too long for offset-indexed patterns"
+priority: P1
+kind: wrong-result
+area: StringsCovA
+files: [base/strings/search.jl]
+functions: ["findnext(::AbstractVector{<:Union{Int8,UInt8}}, ::AbstractVector{<:Union{Int8,UInt8}}, ::Integer)", "findprev(::AbstractVector{<:Union{Int8,UInt8}}, ::AbstractVector{<:Union{Int8,UInt8}}, ::Integer)", "findfirst(::AbstractVector{<:Union{Int8,UInt8}}, ::AbstractVector{<:Union{Int8,UInt8}})", "findlast(::AbstractVector{<:Union{Int8,UInt8}}, ::AbstractVector{<:Union{Int8,UInt8}})"]
+summary: |
+  Searching with a valid offset-indexed byte-vector pattern finds the correct start
+  but returns a range whose length depends on the pattern's last index. A two-byte
+  pattern indexed at 5:6 returns 11:16 instead of 11:12.
+likelihood: |
+  Offset-indexed arrays are a supported AbstractVector use case and are common in
+  array code. Searching byte-vector views with non-one-based pattern axes silently
+  returns a wrong range, and indexing the haystack by that range can throw BoundsError.
+maybe_intended: ""
+reproducer: |
+  struct OffsetBytes <: AbstractVector{UInt8}
+      data::Vector{UInt8}
+      first::Int
+  end
+  Base.size(v::OffsetBytes) = (length(v.data),)
+  Base.axes(v::OffsetBytes) = (v.first:(v.first + length(v.data) - 1),)
+  Base.IndexStyle(::Type{OffsetBytes}) = IndexLinear()
+  Base.getindex(v::OffsetBytes, i::Int) = v.data[i - v.first + 1]
+  haystack = OffsetBytes(UInt8[0x40, 0x52, 0x62, 0x63], 10)
+  pattern = OffsetBytes(UInt8[0x52, 0x62], 5)
+  findnext(pattern, haystack, firstindex(haystack))
+output:
+  release: |
+    findnext(pattern, haystack, 10) = 11:16
+    findprev(pattern, haystack, 13) = 11:16
+    findfirst(pattern, haystack) = 11:16
+    findlast(pattern, haystack) = 11:16
+    expected = 11:12
+    REPRODUCED stringscova-search-offset-pattern-range
+  nightly: |
+    findnext(pattern, haystack, 10) = 11:16
+    findprev(pattern, haystack, 13) = 11:16
+    findfirst(pattern, haystack) = 11:16
+    findlast(pattern, haystack) = 11:16
+    expected = 11:12
+    REPRODUCED stringscova-search-offset-pattern-range
+reproduced: {release: true, nightly: true}
+expected: |
+  Each search returns 11:12, the two indices in the haystack whose values equal
+  the two-byte pattern. The result range length must equal length(pattern).
+promised_by: |
+  base/strings/search.jl:532-536 says findnext returns the occurrence range for a
+  byte-vector pattern, and its example returns a range with the pattern's length.
+  The findnext docstring at lines 488-492 also promises that indexing the searched
+  collection by the returned range yields the pattern.
+cause: |
+  base/strings/search.jl:468-479 constructs the result end as
+  `idx + lastindex(t) - 1`. For offset-indexed patterns, lastindex(t) is not the
+  pattern length. The same `_search` and `_rsearch` range construction feeds all
+  four public wrappers.
+possible_fix: |
+  Construct the range end as `idx + length(t) - 1` in `_search` and `_rsearch`.
+duplicates:
+  issues: []
+  queries: ["findnext offset array pattern", "findprev offset array pattern", "search AbstractVector lastindex pattern"]
+lean:
+  property: JuliaLean.StringsCovA.SearchRebuilt.OffsetPatternRangeProperty
+  theorem: JuliaLean.StringsCovA.SearchRebuilt.offsetPatternRange_refuted

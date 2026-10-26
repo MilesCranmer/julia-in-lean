@@ -1,0 +1,78 @@
+id: iocov-getpass-backspace
+title: "Base.getpass ignores Backspace: typing a, b, Backspace, c returns \"abc\""
+priority: P1
+kind: wrong-result
+area: IOCov
+files: [base/util.jl]
+functions: ["Base.getpass(::TTY, ::IO, ::AbstractString)", "Base.getpass(::AbstractString)"]
+summary: |
+  getpass keeps a counter plen of typed characters so that Backspace can delete the
+  last one, but it never increments plen when it stores a character. The Backspace
+  branch (c == '\b' && plen > 0) is therefore never taken, and the byte terminals
+  send for Backspace in raw mode (DEL, 0x7f) is dropped as a control character.
+  Corrections are silently ignored: typing "ab", Backspace, "c" yields the secret
+  "abc". The 128-byte length limit (plen < 128) is never enforced either.
+likelihood: |
+  Any interactive user who corrects a typo while entering a password or token at a
+  getpass prompt gets a wrong secret, with no visible sign since input is not echoed.
+maybe_intended: ""
+reproducer: |
+  # Base.getpass needs stdin to be a terminal, so run it in a child Julia whose
+  # stdin is the slave side of a pseudo-terminal, and type into the master side.
+  const O_RDWR = 0x0002
+  const O_NOCTTY = Sys.islinux() ? 0x0100 : 0x20000
+
+  function typed_secret(keys::Vector{UInt8})
+      mfd = ccall(:posix_openpt, Cint, (Cint,), O_RDWR | O_NOCTTY)
+      mfd < 0 && error("posix_openpt failed")
+      ccall(:grantpt, Cint, (Cint,), mfd) == 0 || error("grantpt failed")
+      ccall(:unlockpt, Cint, (Cint,), mfd) == 0 || error("unlockpt failed")
+      slave = open(unsafe_string(ccall(:ptsname, Cstring, (Cint,), mfd)), "r+")
+      code = """s = Base.getpass("PROMPT>"; with_suffix=false); println(); println("SECRET ", repr(read(s, String)))"""
+      p = open(pipeline(`$(Base.julia_cmd()) --startup-file=no -e $code`, stdin=slave), "r")
+      readuntil(p, "PROMPT>")          # printed after the terminal is switched to raw mode
+      ccall(:write, Cssize_t, (Cint, Ptr{UInt8}, Csize_t), mfd, keys, length(keys))
+      out = read(p, String)
+      close(slave); ccall(:close, Cint, (Cint,), mfd)
+      m = match(r"SECRET (\".*\")", out)
+      return m === nothing ? out : Meta.parse(m.captures[1])
+  end
+
+  backspace = typed_secret(UInt8['a', 'b', '\b', 'c', '\r'])
+  println("typed a b BACKSPACE(0x08) c RETURN -> ", repr(backspace))
+  delete = typed_secret(UInt8['a', 'b', 0x7f, 'c', '\r'])
+  println("typed a b DEL(0x7f) c RETURN       -> ", repr(delete))
+  if backspace == "abc"
+      println("REPRODUCED iocov-getpass-backspace")
+  end
+output:
+  release: |
+    typed a b BACKSPACE(0x08) c RETURN -> "abc"
+    typed a b DEL(0x7f) c RETURN       -> "abc"
+    REPRODUCED iocov-getpass-backspace
+  nightly: |
+    typed a b BACKSPACE(0x08) c RETURN -> "abc"
+    typed a b DEL(0x7f) c RETURN       -> "abc"
+    REPRODUCED iocov-getpass-backspace
+reproduced: {release: true, nightly: true}
+expected: |
+  "ac" for both inputs: the character before Backspace is deleted.
+promised_by: |
+  base/util.jl:380-381, the code's own intent: "elseif c == UInt8('\b') && plen > 0;
+  plen -= 1 # delete last character on backspace". getpass docstring (base/util.jl:285):
+  "Display a message and wait for the user to input a secret".
+cause: |
+  base/util.jl:373-385: plen starts at 0 and is only ever decremented; the write(s, c)
+  branch does not do plen += 1, and the deletion branch only changes plen, never the
+  SecretBuffer contents. DEL (0x7f), what Unix terminals send for Backspace in raw
+  mode, is not recognized at all.
+possible_fix: |
+  Treat both 0x08 and 0x7f as Backspace; on Backspace with plen > 0 remove the last
+  character from the buffer (stepping back over UTF-8 continuation bytes and zeroing
+  them), and increment plen for each stored byte.
+duplicates:
+  issues: []
+  queries: ["getpass backspace", "getpass", "getpass Unicode"]
+lean:
+  property: JuliaLean.IOCov.Util.GetpassBackspace
+  theorem: JuliaLean.IOCov.Util.getpassBackspace_refuted

@@ -1,0 +1,70 @@
+id: intfuncscov-gcd-array-typemin
+title: "gcd(v::AbstractArray) throws OverflowError for typemin elements whose gcd is representable"
+priority: P2
+kind: wrong-exception
+area: IntFuncsCov
+files: [base/intfuncs.jl]
+functions: ["gcd(abc::AbstractArray{<:Integer})"]
+summary: |
+  gcd([typemin(Int), 2]) throws OverflowError, although gcd(typemin(Int), 2) and
+  gcd(typemin(Int), 2, 4) both return 2. The array method starts from zero and calls
+  gcd(0, typemin(Int)) first, whose value |typemin(Int)| is not representable, so it
+  throws before the second element can reduce the running gcd.
+likelihood: |
+  Needs a signed typemin element that is reached while the running gcd is still zero
+  (a leading typemin, or one after only zeros). Reachable from data containing
+  typemin sentinels, but uncommon.
+maybe_intended: |
+  Issue #59660 discusses the typemin error policy of gcd/gcdx/lcm in general. The
+  two-argument and varargs methods already return 2 for the same inputs, so the array
+  method is inconsistent with them rather than following a deliberate policy.
+reproducer: |
+  v = [typemin(Int), 2]
+  pairwise = gcd(v[1], v[2])
+  varargs = gcd(v...)
+  arr = try
+      gcd(v)
+  catch e
+      e
+  end
+  println("gcd(typemin(Int), 2) = ", pairwise)
+  println("gcd(typemin(Int), 2, 4) = ", gcd(typemin(Int), 2, 4))
+  println("gcd([typemin(Int), 2]) = ", arr isa Exception ? sprint(showerror, arr) : arr)
+  if pairwise == 2 && varargs == 2 && arr isa OverflowError
+      println("REPRODUCED intfuncscov-gcd-array-typemin")
+  else
+      println("not reproduced")
+  end
+output:
+  release: |
+    gcd(typemin(Int), 2) = 2
+    gcd(typemin(Int), 2, 4) = 2
+    gcd([typemin(Int), 2]) = OverflowError: checked arithmetic: cannot compute |x| for x = -9223372036854775808::Int64
+    REPRODUCED intfuncscov-gcd-array-typemin
+  nightly: |
+    gcd(typemin(Int), 2) = 2
+    gcd(typemin(Int), 2, 4) = 2
+    gcd([typemin(Int), 2]) = OverflowError: checked arithmetic: cannot compute |x| for x = -9223372036854775808::Int64
+    REPRODUCED intfuncscov-gcd-array-typemin
+reproduced: {release: true, nightly: true}
+expected: |
+  2, the greatest common divisor of the elements, as gcd(typemin(Int), 2) returns.
+promised_by: |
+  base/intfuncs.jl:8: "Greatest common (positive) divisor (or zero if all arguments are
+  zero)." Invariant: gcd(v) == gcd(v...) for every integer vector whose gcd is
+  representable.
+cause: |
+  base/intfuncs.jl:179-181 initialises a = zero(eltype(abc)) and computes a = gcd(a, b).
+  For a == 0 the BitInteger method returns checked_abs(b) (base/intfuncs.jl:54), which
+  throws for b == typemin(T), even though later elements would bring the gcd back into
+  range.
+possible_fix: |
+  Start the loop from the first element instead of zero (as the varargs method does), or
+  take checked_abs only of the final result.
+duplicates:
+  issues:
+    - {number: 59660, state: open, relation: related}
+  queries: ["gcd typemin", "gcd array OverflowError", "gcd typemin array"]
+lean:
+  property: JuliaLean.IntFuncsCov.Gcd.GcdArrayRepresentable
+  theorem: JuliaLean.IntFuncsCov.Gcd.gcdArrayRepresentable_refuted

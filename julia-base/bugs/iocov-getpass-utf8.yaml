@@ -1,0 +1,79 @@
+id: iocov-getpass-utf8
+title: "Base.getpass corrupts non-ASCII input on Unix: \"пароль\" is read as \"па\\xd1ол\\xd1\""
+priority: P1
+kind: wrong-result
+area: IOCov
+files: [base/util.jl]
+functions: ["Base.getpass(::TTY, ::IO, ::AbstractString)"]
+summary: |
+  getpass reads the terminal one byte at a time and keeps a byte only if
+  !iscntrl(Char(c)). For a UTF-8 continuation byte 0x80-0x9f, Char(c) is a C1 control
+  character (U+0080-U+009F), so the byte is dropped; a lead byte 0xe0 is treated as a
+  Windows function-key prefix and the byte after it is discarded. Non-ASCII secrets
+  are silently changed: Cyrillic "пароль" becomes "па\xd1ол\xd1", "5€" becomes
+  "5\xe2\xac".
+likelihood: |
+  Every user whose password contains characters such as р-я (Cyrillic), € or ő, whose
+  UTF-8 encoding has a byte 0x80-0x9f, or characters in U+0800-U+0FFF (lead byte 0xe0,
+  for example Devanagari). The wrong secret is returned without any error.
+maybe_intended: |
+  #44399 reports that non-ASCII input does not work on Windows, where _getch returns
+  code-page bytes; on Unix the bytes are UTF-8 and only this filtering corrupts them.
+reproducer: |
+  # Base.getpass needs stdin to be a terminal, so run it in a child Julia whose
+  # stdin is the slave side of a pseudo-terminal, and type into the master side.
+  const O_RDWR = 0x0002
+  const O_NOCTTY = Sys.islinux() ? 0x0100 : 0x20000
+
+  function typed_secret(keys::Vector{UInt8})
+      mfd = ccall(:posix_openpt, Cint, (Cint,), O_RDWR | O_NOCTTY)
+      mfd < 0 && error("posix_openpt failed")
+      ccall(:grantpt, Cint, (Cint,), mfd) == 0 || error("grantpt failed")
+      ccall(:unlockpt, Cint, (Cint,), mfd) == 0 || error("unlockpt failed")
+      slave = open(unsafe_string(ccall(:ptsname, Cstring, (Cint,), mfd)), "r+")
+      code = """s = Base.getpass("PROMPT>"; with_suffix=false); println(); println("SECRET ", repr(read(s, String)))"""
+      p = open(pipeline(`$(Base.julia_cmd()) --startup-file=no -e $code`, stdin=slave), "r")
+      readuntil(p, "PROMPT>")          # printed after the terminal is switched to raw mode
+      ccall(:write, Cssize_t, (Cint, Ptr{UInt8}, Csize_t), mfd, keys, length(keys))
+      out = read(p, String)
+      close(slave); ccall(:close, Cint, (Cint,), mfd)
+      m = match(r"SECRET (\".*\")", out)
+      return m === nothing ? out : Meta.parse(m.captures[1])
+  end
+
+  cyrillic = typed_secret(vcat(collect(codeunits("пароль")), UInt8['\r']))
+  println("typed \"пароль\" RETURN -> ", repr(cyrillic))
+  euro = typed_secret(vcat(collect(codeunits("5€")), UInt8['\r']))
+  println("typed \"5€\" RETURN     -> ", repr(euro))
+  if cyrillic != "пароль"
+      println("REPRODUCED iocov-getpass-utf8")
+  end
+output:
+  release: |
+    typed "пароль" RETURN -> "па\xd1ол\xd1"
+    typed "5€" RETURN     -> "5\xe2\xac"
+    REPRODUCED iocov-getpass-utf8
+  nightly: |
+    typed "пароль" RETURN -> "па\xd1ол\xd1"
+    typed "5€" RETURN     -> "5\xe2\xac"
+    REPRODUCED iocov-getpass-utf8
+reproduced: {release: true, nightly: true}
+expected: |
+  "пароль" and "5€", the bytes typed.
+promised_by: |
+  getpass docstring, base/util.jl:285-286: "Display a message and wait for the user to
+  input a secret, returning an `IO` object containing the secret."
+cause: |
+  base/util.jl:378-383: the 0x00/0xe0 function-key prefix test (a Windows _getch
+  convention) and !iscntrl(Char(c)) are applied to raw UTF-8 bytes on Unix; Char(c) of
+  a single byte is the code point U+00XX, a control character for 0x80-0x9f.
+possible_fix: |
+  On Unix, skip the 0x00/0xe0 prefix handling and keep every byte >= 0x80 (filter only
+  ASCII control bytes below 0x20 and 0x7f).
+duplicates:
+  issues:
+    - {number: 44399, state: open, relation: related}
+  queries: ["getpass backspace", "getpass", "getpass Unicode", "getpass unicode"]
+lean:
+  property: JuliaLean.IOCov.Util.GetpassBytes
+  theorem: JuliaLean.IOCov.Util.getpassBytes_refuted

@@ -1,0 +1,50 @@
+id: sorttuplescov-sort-missing-scratch
+title: "sort!(v; scratch) throws ArgumentError for Vector{Union{Missing,T}} because scratch is reinterpreted"
+priority: P2
+kind: wrong-exception
+area: Sort
+files: [base/sort.jl]
+functions: ["sort!(v::AbstractVector{T}; alg, lt, by, rev, order, scratch::Union{Vector{T}, Nothing})", "make_scratch(scratch::Vector, T::Type, len::Integer)", "_sort!(v::AbstractVector, a::MissingOptimization, o::Ordering, kw)"]
+summary: |
+  sort! accepts a scratch vector of type Vector{T} with T = eltype(v). For
+  T = Union{Missing, Int32} (or Float32, Float64, UInt64) MissingOptimization passes
+  the scratch on to RadixSort, whose make_scratch reinterprets it as the element type
+  without missing, and reinterpret throws ArgumentError because Union{Missing, Int32}
+  is not a bits type. sort!(v) without scratch works.
+likelihood: |
+  Low: the scratch keyword is undocumented in the docstring, but it appears in the
+  public signature and is used by packages to avoid allocation.
+maybe_intended: |
+  scratch is not mentioned in the sort! docstring, so its contract is only the
+  signature.
+reproducer: |
+  v = Union{Missing, Int32}[Int32(i * 7919 % 100000) for i in 1:3000]
+  sort!(copy(v))                                 # sorts
+  sort!(v; scratch = Union{Missing, Int32}[])    # ArgumentError: cannot reinterpret
+output:
+  release: |
+    true ArgumentError
+    REPRODUCED sorttuplescov-sort-missing-scratch
+  nightly: |
+    true ArgumentError
+    REPRODUCED sorttuplescov-sort-missing-scratch
+reproduced: {release: true, nightly: true}
+expected: |
+  v sorted, as without the scratch keyword.
+promised_by: |
+  The signature sort!(v::AbstractVector{T}; scratch::Union{Vector{T}, Nothing}=nothing)
+  (base/sort.jl:1732-1738) accepts the call; base/sort.jl:534-536 notes that
+  MissingOptimization changes the eltype the scratch space is used for.
+cause: |
+  base/sort.jl:511-515: make_scratch(scratch::Vector, T, len) calls reinterpret(T,
+  scratch), which requires a bits eltype; Union{Missing,T} scratch reaches it through
+  MissingOptimization (sort.jl:655) and RadixSort (sort.jl:1039).
+possible_fix: |
+  In make_scratch, allocate a fresh Vector{T} (or drop the scratch) when the scratch
+  eltype is not a bits type.
+duplicates:
+  issues: []
+  queries: ["issues/prs: sort scratch missing reinterpret", "issues/prs: cannot reinterpret scratch sort", "issues/prs: make_scratch", "issues/prs: sort scratch", "issues/prs: scratch keyword sort"]
+lean:
+  property: JuliaLean.SortTuplesCov.SortScratchAccepted
+  theorem: JuliaLean.SortTuplesCov.sortScratchAccepted_refuted

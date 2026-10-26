@@ -26,6 +26,15 @@ theorem splitRestNT_refuted :
 theorem destructureMid_duplicates : destructureMid [(1 : Int)] = .ok (1, [], 1) := by
   rfl
 
+/-- `Base.split_rest([1], -1)` grows the vector with `resize!` and returns an
+uninitialised slot. -/
+theorem splitRestPartition_refuted : ¬ SplitRestPartition := by
+  intro h
+  have hv : splitRestVector [(1 : Int)] (I64 (-1)) (I64 1) = .ok ([some 1, none], []) := by rfl
+  have := h [1] (I64 (-1))
+  rw [hv] at this
+  exact absurd this (by decide)
+
 /-- `haskey((a=1,), Int32(1))` throws `TypeError` from `isdefined`. -/
 theorem haskeyInteger_refuted : ¬ HaskeyInteger := by
   intro h

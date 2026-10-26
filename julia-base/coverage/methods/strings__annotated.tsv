@@ -1,0 +1,76 @@
+file	line	endline	name	signature	status	entry	note
+base/strings/annotated.jl	104	105	AnnotatedString	AnnotatedString(s::AbstractString, annots::Vector)	modelled	stringscovb-ann-constructors	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	107	108	AnnotatedString	AnnotatedString(s::AbstractString, annots)	modelled	stringscovb-ann-constructors	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	110	111	AnnotatedChar	AnnotatedChar(c::AbstractChar, annots::Vector)	modelled	stringscovb-ann-constructors	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	113	114	AnnotatedChar	AnnotatedChar(c::AbstractChar, annots)	modelled	stringscovb-ann-constructors	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	118	119	AnnotatedString	AnnotatedString(s::AnnotatedString, annots::Vector{RegionAnnotation})	modelled	stringscovb-ann-constructors	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	121	122	AnnotatedChar	AnnotatedChar(c::AnnotatedChar, annots::Vector{Annotation})	modelled	stringscovb-ann-constructors	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	125	125	String	String(s::AnnotatedString{String})	modelled	stringscovb-ann-constructors	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	129	129	convert	convert(::Type{AnnotatedString}, s::AnnotatedString)	modelled	stringscovb-ann-constructors	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	130	131	convert	convert(::Type{AnnotatedString{S}}, s::S) where {S <: AbstractString}	modelled	stringscovb-ann-constructors	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	132	133	convert	convert(::Type{AnnotatedString}, s::S) where {S <: AbstractString}	modelled	stringscovb-ann-constructors	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	134	134	AnnotatedString	AnnotatedString(s::S) where {S <: AbstractString}	modelled	stringscovb-ann-constructors	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	136	136	convert	convert(::Type{AnnotatedChar}, c::AnnotatedChar)	modelled	stringscovb-ann-constructors	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	137	138	convert	convert(::Type{AnnotatedChar{C}}, c::C) where { C <: AbstractChar }	modelled	stringscovb-ann-constructors	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	139	140	convert	convert(::Type{AnnotatedChar}, c::C) where { C <: AbstractChar }	modelled	stringscovb-ann-constructors	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	142	142	AnnotatedChar	AnnotatedChar(c::AbstractChar)	modelled	stringscovb-ann-constructors	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	143	143	AnnotatedChar	AnnotatedChar(c::UInt32)	modelled	stringscovb-ann-constructors	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	144	144	AnnotatedChar{C}	AnnotatedChar{C}(c::UInt32) where {C <: AbstractChar}	modelled	stringscovb-ann-constructors	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	146	146	promote_rule	promote_rule(::Type{<:AnnotatedString}, ::Type{<:AbstractString})	modelled	stringscovb-ann-equality	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	150	150	ncodeunits	ncodeunits(s::AnnotatedString)	modelled	stringscovb-ann-interface	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	151	151	codeunits	codeunits(s::AnnotatedString)	modelled	stringscovb-ann-interface	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	152	152	codeunit	codeunit(s::AnnotatedString)	modelled	stringscovb-ann-interface	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	153	153	codeunit	codeunit(s::AnnotatedString, i::Integer)	modelled	stringscovb-ann-interface	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	154	154	isvalid	isvalid(s::AnnotatedString, i::Integer)	modelled	stringscovb-ann-interface	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	155	156	iterate	iterate(s::AnnotatedString, i::Integer=firstindex(s))	modelled	stringscovb-ann-interface	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	157	157	eltype	eltype(::Type{<:AnnotatedString{S}}) where {S}	modelled	stringscovb-ann-interface	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	158	158	firstindex	firstindex(s::AnnotatedString)	modelled	stringscovb-ann-interface	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	159	159	lastindex	lastindex(s::AnnotatedString)	modelled	stringscovb-ann-interface	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	184	184	unannotate	unannotate(s::AnnotatedString)	modelled	stringscovb-ann-interface	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	186	189	unannotate	unannotate(s::SubString{<:AnnotatedString})	modelled	stringscovb-ann-interface	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	192	199	getindex	getindex(s::AnnotatedString, i::Integer)	modelled	stringscovb-ann-interface	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	204	212	show	show(io::IO, s::A) where {A <: AnnotatedString}	modelled	stringscovb-ann-show	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	215	216	show	"show(io::IO, ::MIME""text/plain"", s::AnnotatedString)"	modelled	stringscovb-ann-show	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	220	220	ncodeunits	ncodeunits(c::AnnotatedChar)	modelled	stringscovb-ann-interface	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	221	221	codepoint	codepoint(c::AnnotatedChar)	modelled	stringscovb-ann-interface	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	224	224	cmp	cmp(a::AnnotatedString, b::AbstractString)	modelled	stringscovb-ann-equality	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	225	225	cmp	cmp(a::AbstractString, b::AnnotatedString)	modelled	stringscovb-ann-equality	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	227	227	cmp	cmp(a::AnnotatedString, b::AnnotatedString)	modelled	hashops-annotated-isless	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	229	230	==	==(a::AnnotatedString, b::AnnotatedString)	modelled	stringscovb-ann-equality	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	232	232	==	==(a::AnnotatedString, b::AbstractString)	modelled	stringscovb-ann-equality	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	233	233	==	==(a::AbstractString, b::AnnotatedString)	modelled	stringscovb-ann-equality	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	237	239	==	==(a::SubString{<:AnnotatedString}, b::SubString{<:AnnotatedString})	modelled	stringscovb-ann-equality	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	241	242	==	==(a::SubString{<:AnnotatedString}, b::AnnotatedString)	modelled	stringscovb-ann-equality	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	244	245	==	==(a::SubString{<:AnnotatedString}, b::AbstractString)	modelled	stringscovb-ann-equality	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	247	247	==	==(a::AbstractString, b::SubString{<:AnnotatedString})	modelled	stringscovb-ann-equality	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	249	249	==	==(a::AnnotatedString, b::SubString{<:AnnotatedString})	modelled	stringscovb-ann-equality	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	272	306	annotatedstring	annotatedstring(xs...)	modelled	stringscovb-ann-annotatedstring-forms	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	308	308	annotatedstring	annotatedstring(s::AnnotatedString)	modelled	stringscovb-ann-annotatedstring-forms	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	309	310	annotatedstring	annotatedstring(c::AnnotatedChar)	modelled	stringscovb-annotatedstring-char-region	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	312	312	AnnotatedString	AnnotatedString(s::SubString{<:AnnotatedString})	modelled	stringutil-annotated-substring-convert	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	314	335	repeat	repeat(str::AnnotatedString, r::Integer)	modelled	stringscovb-ann-repeat-string	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	337	338	repeat	repeat(str::SubString{<:AnnotatedString}, r::Integer)	modelled	stringscovb-ann-repeat-string	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	340	344	repeat	repeat(c::AnnotatedChar, r::Integer)	modelled	stringscovb-repeat-char-zero	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	346	355	reverse	reverse(s::AnnotatedString)	modelled	stringutil-annotated-reverse	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	358	358	reverse	reverse(s::SubString{<:AnnotatedString})	modelled	stringscovb-ann-reverse-sub	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	364	370	_annotate!	_annotate!(annlist::Vector{RegionAnnotation}, region::UnitRange{Int}, label::Symbol, @nospecialize(value::Any))	modelled	stringscovb-ann-annotate,stringscovb-annotate-nothing-partial	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	382	383	annotate!	annotate!(s::AnnotatedString, range::UnitRange{Int}, label::Symbol, @nospecialize(val::Any))	modelled	stringscovb-ann-annotate,stringscovb-annotate-nothing-partial	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	385	386	annotate!	annotate!(ss::AnnotatedString, label::Symbol, @nospecialize(val::Any))	modelled	stringscovb-ann-annotate,stringscovb-annotate-nothing-partial	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	388	389	annotate!	annotate!(s::SubString{<:AnnotatedString}, range::UnitRange{Int}, label::Symbol, @nospecialize(val::Any))	modelled	stringscovb-ann-annotate,stringscovb-annotate-nothing-partial	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	391	392	annotate!	annotate!(s::SubString{<:AnnotatedString}, label::Symbol, @nospecialize(val::Any))	modelled	stringscovb-ann-annotate,stringscovb-annotate-nothing-partial	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	399	400	annotate!	annotate!(c::AnnotatedChar, label::Symbol, @nospecialize(value::Any))	modelled	stringscovb-ann-annotate,stringscovb-annotate-nothing-partial	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	418	418	annotations	annotations(s::AnnotatedString)	modelled	stringscovb-ann-annotations	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	420	430	annotations	annotations(s::SubString{<:AnnotatedString})	modelled	stringutil-annotated-substring-inside,stringutil-annotated-substring-pos	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	432	443	annotations	annotations(s::AnnotatedString, pos::UnitRange{<:Integer})	modelled	stringscovb-ann-annotations	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	445	445	annotations	annotations(s::AnnotatedString, pos::Integer)	modelled	stringutil-annotated-concat,stringutil-annotated-reverse	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	447	448	annotations	annotations(s::SubString{<:AnnotatedString}, pos::Integer)	modelled	stringutil-annotated-substring-pos	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	450	451	annotations	annotations(s::SubString{<:AnnotatedString}, pos::UnitRange{<:Integer})	modelled	stringscovb-ann-annotations	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	458	458	annotations	annotations(c::AnnotatedChar)	modelled	stringscovb-ann-annotations	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	477	502	annotated_chartransform	annotated_chartransform(f::Function, str::AnnotatedString, state=nothing)	modelled	stringscovb-chartransform-ascii-grow	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	510	510	Base.length	Base.length(si::RegionIterator)	modelled	stringscovb-ann-region-iterator	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	512	516	Base.iterate	Base.iterate(si::RegionIterator, i::Integer=1)	modelled	stringscovb-ann-region-iterator	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	518	519	Base.eltype	Base.eltype(::RegionIterator{S}) where { S <: AbstractString}	modelled	stringscovb-ann-region-iterator	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	541	573	eachregion	eachregion(s::AnnotatedString, subregion::UnitRange{Int}=firstindex(s):lastindex(s))	modelled	stringscovb-ann-region-iterator,stringscovb-ann-events-forward	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	575	581	eachregion	eachregion(s::SubString{<:AnnotatedString}, pos::UnitRange{Int}=firstindex(s):lastindex(s))	modelled	stringscovb-ann-region-iterator,stringscovb-ann-events-forward	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	595	606	annotation_events	annotation_events(s::AbstractString, annots::Vector{RegionAnnotation}, subregion::UnitRange{Int})	modelled	stringscovb-ann-events-sorted,stringscovb-ann-events-forward	Lean property and source-matched model cited by entry.
+base/strings/annotated.jl	608	609	annotation_events	annotation_events(s::AnnotatedString, subregion::UnitRange{Int})	modelled	stringscovb-ann-events-sorted,stringscovb-ann-events-forward	Lean property and source-matched model cited by entry.

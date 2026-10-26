@@ -1,0 +1,61 @@
+line	name	verdict	mirror	property	settled	reason
+16	include	HOLLOW	no	no	yes	The entry models only the one-argument forwarding include and has no Lean function or proposition for this method's growth branch, memory write, printing, flush, or Core.include call.
+30	include	FAITHFUL	yes	yes	yes	includeBase performs the exact Base-and-path forwarding call, and the proposition states that result for every supplied include operation and path.
+34	IncludeInto	FAITHFUL	yes	yes	yes	mkIncludeInto stores the supplied module, and the universal constructor-and-call proposition observes that same stored module.
+36	(this::IncludeInto)	HOLLOW	yes	no	yes	callIncludeInto mirrors the forwarding body, while the proposition restricts fname to String and omits other AbstractString inputs allowed by the Julia method.
+44	inline	FAITHFUL	yes	yes	yes	atInline constructs the exact meta expression, and the settled proposition states the zero-argument macro expansion.
+45	noinline	FAITHFUL	yes	yes	yes	atNoinline constructs the exact meta expression, and the settled proposition states the zero-argument macro expansion.
+47	_boundscheck	FAITHFUL	yes	yes	yes	atBoundscheck constructs the exact boundscheck expression, and the settled proposition states the zero-argument macro expansion.
+52	getproperty	FAITHFUL	yes	yes	yes	The module branch calls the supplied getglobal operation with the same module and symbol, and the proposition states this for every module and symbol.
+53	getproperty	FAITHFUL	yes	yes	yes	The Type case calls the supplied getfield operation with the same object and symbol, and the non-module proposition covers every represented Type value.
+54	setproperty!	FAITHFUL	yes	yes	yes	The Type case returns the source ErrorException, and the proposition universally states that setting a Type field errors.
+55	setproperty!	FAITHFUL	yes	yes	yes	The Array case returns the source ErrorException, and the proposition universally states that setting an Array field errors.
+56	getproperty	HOLLOW	no	no	yes	The Lean getproperty accepts a symbolic String field rather than the Int index used by this Tuple method, so neither its model nor its proposition covers the allowed indices.
+57	setproperty!	HOLLOW	no	no	yes	The Lean setproperty accepts a symbolic String field rather than the Int index used by this Tuple method, so neither its model nor its proposition covers the allowed indices.
+59	getproperty	FAITHFUL	yes	yes	yes	The non-module branch calls the supplied getfield operation with the same object and symbol, and the proposition states this delegation universally on that dispatch case.
+60	setproperty!	HOLLOW	yes	no	yes	setproperty mirrors the fieldtype, isa, optional convert, and setfield sequence, while its propositions cover only already-typed values or successful conversions under undocumented runtime-result hypotheses.
+66	getproperty	HOLLOW	no	-	-	The no-behaviour reason does not apply because the line also assigns constprop_heuristic and therefore has observable compiler-metadata behaviour.
+67	setproperty!	HOLLOW	no	-	-	The no-behaviour reason does not apply because the line also assigns constprop_heuristic and therefore has observable compiler-metadata behaviour.
+69	dotgetproperty	FAITHFUL	yes	yes	yes	dotgetproperty delegates the same object and field to getproperty, and the proposition states that forwarding for every modeled input.
+71	getproperty	HOLLOW	no	no	yes	The Lean getproperty has no order argument and calls an unordered getglobal operation, so its proposition cannot cover every memory-order input or the ordered call.
+72	setproperty!	HOLLOW	no	no	yes	The module model omits the order argument passed to setglobal! and covers only the already-typed branch, so it neither mirrors the ordered call nor specifies all allowed values and orders.
+78	getproperty	HOLLOW	no	no	yes	The Lean getproperty has no order argument and calls an unordered getfield operation, so its proposition cannot cover every memory-order input or the ordered call.
+79	setproperty!	HOLLOW	yes	no	yes	The modeled Type branch has the same unconditional error body, while the proposition has no order input and therefore is not quantified over every allowed call.
+80	getproperty	HOLLOW	no	no	yes	The Lean getproperty uses a symbolic String field and has no order argument, omitting both the Tuple Int index and the ordered getfield call.
+81	setproperty!	HOLLOW	no	no	yes	The Lean setproperty uses a symbolic String field and has no order argument, omitting both the Tuple Int index and the ordered setfield! call.
+83	getproperty	HOLLOW	no	no	yes	The Lean getproperty has no order argument and calls an unordered getfield operation, so its proposition cannot cover every memory-order input or the ordered call.
+84	setproperty!	HOLLOW	no	no	yes	The Lean setproperty omits the order argument passed to setfield! and its propositions cover only selected successful conversion outcomes under extra runtime-result hypotheses.
+91	swapproperty!	HOLLOW	no	no	yes	storedValue models only one conversion substep and never calls Core.swapfield! with the field and order, while its proposition covers only already-typed non-module values.
+97	modifyproperty!	HOLLOW	no	no	yes	modifyArgs merely pairs op and v and omits the object, field, order, Core.modifyfield! call, result, and error behaviour required to state this method's behaviour.
+101	replaceproperty!	HOLLOW	no	no	yes	storedValue models only one conversion substep and omits expected, both orders, and Core.replacefield!, while its proposition covers only already-typed non-module values.
+107	setpropertyonce!	HOLLOW	no	no	yes	storedValue models only one conversion substep and omits both orders and Core.setfieldonce!, while its proposition covers only already-typed non-module values.
+114	swapproperty!	HOLLOW	no	no	yes	storedValue never calls Core.swapglobal! and the proposition explicitly excludes module objects, leaving this method without a modelled call or property.
+120	modifyproperty!	HOLLOW	no	no	yes	modifyArgs omits the module, binding, order, Core.modifyglobal! call, result, and error behaviour required to model or state this method's behaviour.
+124	replaceproperty!	HOLLOW	no	no	yes	storedValue never calls Core.replaceglobal! and the proposition explicitly excludes module objects, while expected and both orders are absent.
+130	setpropertyonce!	HOLLOW	no	no	yes	storedValue never calls Core.setglobalonce! and the proposition explicitly excludes module objects, while both memory orders are absent.
+137	convert	FAITHFUL	yes	yes	yes	convertIdentity returns its input unchanged, and the proposition states that identity for every input type and value.
+138	convert	FAITHFUL	yes	yes	yes	convertIdentity returns its same-typed input unchanged, and the proposition states that identity for every input type and value.
+146	set_syntax_version	FAITHFUL	yes	-	-	The no-behaviour exclusion applies because this line declares an empty generic function and supplies no method body.
+147	_topmod	FAITHFUL	yes	yes	yes	topmod calls the supplied runtime primitive once on the same module, and the proposition universally states the returned module from that call.
+148	_setup_module!	HOLLOW	no	yes	yes	setupModule omits Core._using, _topmod, both Core.declare_const calls and their values, and the return path, although the proposition universally states the two declared names and edition selection effects.
+169	eval	FAITHFUL	yes	yes	yes	evalIn calls the supplied Core.eval operation with the selected module and expression, and its universal proposition includes the Base instance used by this method.
+170	eval	FAITHFUL	yes	yes	yes	evalIn calls the supplied Core.eval operation with the same module and expression, and the proposition states that result for every input.
+179	show	FAITHFUL	yes	-	-	The internal-bootstrap exclusion applies because the literal false branch prevents this debugging method from being defined.
+180	print	FAITHFUL	yes	-	-	The internal-bootstrap exclusion applies because the literal false branch prevents this debugging method from being defined.
+181	println	FAITHFUL	yes	-	-	The internal-bootstrap exclusion applies because the literal false branch prevents this debugging method from being defined.
+189	string	FAITHFUL	yes	-	-	The no-behaviour exclusion applies because this line declares an empty generic function and supplies no method body.
+194	strcat	HOLLOW	no	yes	yes	The concatenation property covers all modeled byte lists, while strcat is a hand-written result specification that omits allocation, preservation, pointer conversion, and the two unsafe_copyto! calls in source order.
+219	time_ns	HOLLOW	no	yes	yes	timeNs receives a precomputed clock value and applies a bound mask instead of calling jl_hrtime, although the proposition universally states the UInt64 range invariant.
+235	Core.kwcall	HOLLOW	no	yes	yes	kwcallInvokeSig models only a list of signature components and omits unwrap_unionall, the DataType check, rewrap_unionall, and invoke call, although its universal property preserves the constructed component order.
+246	Core.kwcall	HOLLOW	no	yes	yes	kwcallApplicableArgs builds only the forwarded argument list and omits the applicable call and its result, although the proposition universally states that the original arguments remain its suffix.
+250	Core._hasmethod	HOLLOW	no	yes	yes	hasmethodSig models only a list of signature components and omits unwrap_unionall, the DataType check, rewrap_unionall, and Core._hasmethod call, although its length invariant is universal.
+274	Core.kwcall	HOLLOW	no	yes	yes	kwcallLatestArgs builds only the forwarded argument list and omits the Core.invokelatest call and its result, although the proposition universally states that the original arguments remain its suffix.
+308	Core.kwcall	HOLLOW	no	yes	yes	kwcallWorldArgs builds only a world-and-arguments pair and omits the Core.invoke_in_world call and its result, although the proposition universally states that the world value is forwarded.
+318	(vp::VersionedParse)	HOLLOW	no	no	yes	versionedParsePassesEdition models only the branch Boolean and omits parentmodule, both isdefined calls, both invokelatest calls and their arguments, while the proposition omits the false-false hook case.
+338	==	FAITHFUL	yes	yes	yes	eqFallback models egal identity as Lean equality, and the proposition states the exact all-input truth condition.
+347	nextfloat	FAITHFUL	yes	-	-	The no-behaviour exclusion applies because this line declares an empty generic function and supplies no method body.
+348	prevfloat	FAITHFUL	yes	-	-	The no-behaviour exclusion applies because this line declares an empty generic function and supplies no method body.
+355	cld	FAITHFUL	yes	-	-	The no-behaviour exclusion applies because this line declares an empty generic function and supplies no method body.
+356	fld	FAITHFUL	yes	-	-	The no-behaviour exclusion applies because this line declares an empty generic function and supplies no method body.
+395	process_sysimg_args!	HOLLOW	no	yes	yes	processSysimgArgs preserves the flag branch order and pair iteration while replacing include and global assignments with result constructors and omitting the initial ARGS offset, although its pair-length and missing-value properties are universal.
+413	isready	FAITHFUL	yes	-	-	The no-behaviour exclusion applies because this line declares an empty generic function and supplies no method body.

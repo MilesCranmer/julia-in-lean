@@ -41,6 +41,13 @@ def entries : List Entry := [
     source := "base/sort.jl:353-357, 392-396 (docstrings)", status := .proven
     prop := ``VectorSearchCorrect, thm := some ``vectorSearchCorrect
     notes := "The binary-search interpreter tracks the Julia type of each local (promotion of m+1 to Int, T-typed sentinels); the theorem covers the keyword methods, which search the Int window 1:length(v) (length < 2^62)." },
+  { id := "sort-vector-u8-search-sentinel", juliaFile := "base/sort.jl"
+    juliaFns := ["searchsortedlast(v, x, lo::T, hi::T, o)", "searchsorted(v, x, lo::T, hi::T, o)"]
+    statement := "For a valid window 1 <= lo <= hi <= length(v) of any integer type, searchsortedlast(v, x, lo, hi, o) never reads outside the vector."
+    source := "invariant: the positional methods accept any lo::T, hi::T <: Integer (base/sort.jl:203, 221) and read v[m] under @inbounds", status := .refuted
+    prop := ``WindowSearchInBounds, thm := some ``windowSearchInBounds_refuted
+    issue := "none found (related: #31618 generalized lo/hi to T<:Integer; #30388 these methods are undocumented; queries: searchsortedlast UInt8, searchsorted lo hi, searchsorted overflow)"
+    notes := "lo=0x01, hi=0xff: hi + 0x01 wraps to 0x00, so lo-u == hi+u == 0x00 and midpoint(0x00,0x00) = 0 is read with @inbounds. searchsortedfirst is unaffected because m+1 promotes to Int. Same on 1.13.2." },
   { id := "sort-range-search-no-overflow", juliaFile := "base/sort.jl"
     juliaFns := ["searchsortedfirst(::AbstractRange{<:Integer}, x, o)", "searchsortedlast(::AbstractRange{<:Integer}, x, o)"]
     statement := "On every nonempty sorted integer range (UnitRange{T}, StepRange{T,T}) and every x::T for which x - first(r) neither overflows T nor equals typemin(T), the range methods agree with the docstring answer on collect(r), for Forward, Reverse, Lt(<) and ReverseOrdering(Lt(<))."

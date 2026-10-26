@@ -1,0 +1,18 @@
+file	line	endline	name	signature	status	entry	note
+base/traits.jl	9	9	OrderStyle	OrderStyle(instance)	modelled	reducecov-traits-l9	
+base/traits.jl	10	10	OrderStyle	OrderStyle(::Type{<:Real})	modelled	reducecov-traits-l10	
+base/traits.jl	11	11	OrderStyle	OrderStyle(::Type{<:AbstractString})	modelled	reducecov-traits-l11	
+base/traits.jl	12	12	OrderStyle	OrderStyle(::Type{Symbol})	modelled	reducecov-traits-l12	
+base/traits.jl	13	13	OrderStyle	OrderStyle(::Type{<:Any})	modelled	reducecov-traits-l13	
+base/traits.jl	14	14	OrderStyle	OrderStyle(::Type{Union{}})	modelled	reducecov-traits-l14	
+base/traits.jl	15	15	OrderStyle	OrderStyle(::Type{Union{}}, slurp...)	modelled	reducecov-traits-l15	
+base/traits.jl	17	20	OrderStyle	OrderStyle(T::Type{<:Tuple})	modelled	reducecov-traits-l17	
+base/traits.jl	28	28	ArithmeticStyle	ArithmeticStyle(instance)	modelled	reducecov-traits-l28	
+base/traits.jl	29	29	ArithmeticStyle	ArithmeticStyle(::Type{<:AbstractFloat})	modelled	reducecov-traits-l29	
+base/traits.jl	30	30	ArithmeticStyle	ArithmeticStyle(::Type{<:Integer})	modelled	reducecov-traits-l30	
+base/traits.jl	31	31	ArithmeticStyle	ArithmeticStyle(::Type{<:Any})	modelled	reducecov-traits-l31	
+base/traits.jl	32	32	ArithmeticStyle	ArithmeticStyle(::Type{Union{}})	modelled	reducecov-traits-l32	
+base/traits.jl	33	33	ArithmeticStyle	ArithmeticStyle(::Type{Union{}}, slurp...)	modelled	reducecov-traits-l33	
+base/traits.jl	69	69	RangeStepStyle	RangeStepStyle(::Type{Union{}})	modelled	reducecov-traits-l69	
+base/traits.jl	70	70	RangeStepStyle	RangeStepStyle(::Type{Union{}}, slurp...)	modelled	reducecov-traits-l70	
+base/traits.jl	72	72	RangeStepStyle	RangeStepStyle(instance)	modelled	reducecov-rangestepstyle-hang	

@@ -1,0 +1,82 @@
+id: nummisc-irrational-directed-rounding
+title: "AbstractIrrational directed conversion can round in the wrong direction"
+priority: P2
+kind: wrong-result
+area: NumMisc
+files: [base/irrationals.jl]
+functions: ["Float32(::AbstractIrrational, ::RoundingMode)", "Float64(::AbstractIrrational, ::RoundingMode)", "_irrational_to_float"]
+summary: |
+  Directed Float32 and Float64 conversion first approximates every AbstractIrrational
+  as a 256-bit BigFloat under the current BigFloat rounding mode. An exact irrational
+  just above 1 can therefore become exactly 1 at that intermediate precision, after
+  which RoundUp returns 1 instead of nextfloat(1); RoundDown fails symmetrically below 1.
+likelihood: |
+  The built-in constants are not known to lie this close to a Float32 or Float64 boundary.
+  The failure affects valid custom AbstractIrrational subtypes with unusually close values.
+maybe_intended: |
+  A fixed 256-bit intermediate is inexpensive and far exceeds Float64 precision, so it is
+  enough for ordinary constants. The public method nevertheless accepts every conforming
+  AbstractIrrational and a rounding mode, with no distance-from-boundary precondition.
+reproducer: |
+  struct TinyAboveOne <: AbstractIrrational end
+  struct TinyBelowOne <: AbstractIrrational end
+
+  Base.BigFloat(::TinyAboveOne; precision=precision(BigFloat)) =
+      setprecision(BigFloat, precision) do
+          BigFloat(1) + sqrt(BigFloat(2)) * BigFloat(2)^(-1000)
+      end
+  Base.BigFloat(::TinyBelowOne; precision=precision(BigFloat)) =
+      setprecision(BigFloat, precision) do
+          BigFloat(1) - sqrt(BigFloat(2)) * BigFloat(2)^(-1000)
+      end
+  Base.Float64(::Union{TinyAboveOne,TinyBelowOne}) = 1.0
+  Base.Float32(::Union{TinyAboveOne,TinyBelowOne}) = 1.0f0
+  Base.:(==)(::TinyAboveOne, ::TinyAboveOne) = true
+  Base.:(==)(::TinyBelowOne, ::TinyBelowOne) = true
+  Base.hash(::TinyAboveOne, h::UInt) = hash(:TinyAboveOne, h)
+  Base.hash(::TinyBelowOne, h::UInt) = hash(:TinyBelowOne, h)
+
+  above = Float64(TinyAboveOne(), RoundUp)
+  below = Float64(TinyBelowOne(), RoundDown)
+  println("Float64(TinyAboveOne(), RoundUp) = ", above)
+  println("expected above = ", nextfloat(1.0))
+  println("Float64(TinyBelowOne(), RoundDown) = ", below)
+  println("expected below = ", prevfloat(1.0))
+  if above == 1.0 && below == 1.0
+      println("REPRODUCED nummisc-irrational-directed-rounding")
+  end
+output:
+  release: |
+    Float64(TinyAboveOne(), RoundUp) = 1.0
+    expected above = 1.0000000000000002
+    Float64(TinyBelowOne(), RoundDown) = 1.0
+    expected below = 0.9999999999999999
+    REPRODUCED nummisc-irrational-directed-rounding
+  nightly: |
+    Float64(TinyAboveOne(), RoundUp) = 1.0
+    expected above = 1.0000000000000002
+    Float64(TinyBelowOne(), RoundDown) = 1.0
+    expected below = 0.9999999999999999
+    REPRODUCED nummisc-irrational-directed-rounding
+reproduced: {release: true, nightly: true}
+expected: |
+  RoundUp returns nextfloat(1.0) for the exact value above 1, and RoundDown returns
+  prevfloat(1.0) for the exact value below 1.
+promised_by: |
+  base/irrationals.jl:8-12 says AbstractIrrational represents an exact irrational value
+  automatically rounded to the correct precision. Lines 101-106 define conversion with
+  an explicit RoundingMode for every AbstractIrrational, without another precondition.
+cause: |
+  base/irrationals.jl:101-104 fixes the BigFloat intermediate precision at 256 bits and
+  does not apply the requested rounding mode while constructing BigFloat(x). Both exact
+  test values round to 1 at that precision, so the final directed conversion cannot
+  recover which side of 1 the value lies on.
+possible_fix: |
+  Evaluate BigFloat(x) under the requested directed mode and use an adaptive-precision
+  interval when nearest rounding could still suffer from double rounding.
+duplicates:
+  issues: []
+  queries: ["AbstractIrrational rounding", "Irrational RoundUp", "_irrational_to_float", "irrational correctly rounded"]
+lean:
+  property: JuliaLean.NumMisc.IrrationalRoundingCorrect
+  theorem: JuliaLean.NumMisc.irrationalRoundingCorrect_refuted

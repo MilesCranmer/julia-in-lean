@@ -1,0 +1,51 @@
+id: bitsetscov-isdisjoint-zero-step
+title: "isdisjoint throws DivideError for two overlapping integer StepRangeLens with step 0"
+priority: P2
+kind: crash
+area: BitSetsCov
+files: [base/abstractset.jl]
+functions: ["isdisjoint(::AbstractRange{T}, ::AbstractRange{T}) where T", "_overlapping_range_isdisjoint(::AbstractRange{T}, ::AbstractRange{T}) where T<:Integer"]
+summary: |
+  For two overlapping integer ranges with |step(a)| == |step(b)|,
+  isdisjoint compares mod(minimum(a), step(a)) with
+  mod(minimum(b), step(a)). A StepRangeLen{Int} can have step 0
+  (StepRangeLen(1, 0, 3) == [1, 1, 1]), and then mod(x, 0) throws
+  DivideError instead of returning false.
+likelihood: |
+  Rare: zero-step integer ranges come from StepRangeLen(x, 0, n) or
+  range(x; step=0, length=n) style constructions, e.g. a constant
+  coordinate axis.
+maybe_intended: ""
+reproducer: |
+  isdisjoint(StepRangeLen(1, 0, 3), StepRangeLen(1, 0, 2))   # DivideError
+  isdisjoint([1, 1, 1], [1, 1])                              # false
+output:
+  release: |
+    collect(a) = [1, 1, 1], collect(b) = [1, 1]
+    isdisjoint(collect(a), collect(b)) = false
+    isdisjoint(a, b) = DivideError()
+    REPRODUCED bitsetscov-isdisjoint-zero-step
+  nightly: |
+    collect(a) = [1, 1, 1], collect(b) = [1, 1]
+    isdisjoint(collect(a), collect(b)) = false
+    isdisjoint(a, b) = DivideError()
+    REPRODUCED bitsetscov-isdisjoint-zero-step
+reproduced: {release: true, nightly: true}
+expected: |
+  false: both ranges contain 1.
+promised_by: |
+  isdisjoint docstring, base/abstractset.jl:555-556: "Determine whether the
+  collections a and b are disjoint. Equivalent to isempty(a ∩ b)".
+cause: |
+  base/abstractset.jl:612-614: the step test abs(step(a)) == abs(step(b))
+  also holds for two zero steps, and line 614 then divides by step(a) == 0.
+possible_fix: |
+  Treat step zero separately (the ranges overlap, so they are not disjoint),
+  e.g. test iszero(step(a)) before calling mod.
+duplicates:
+  issues:
+    - {number: 47796, state: closed, relation: related}
+  queries: ["isdisjoint DivideError", "isdisjoint StepRangeLen", "isdisjoint zero step", "isdisjoint range", "PRs: isdisjoint zero step (#46356 added the range method)"]
+lean:
+  property: JuliaLean.BitSetsCov.RangeIsdisjointSpec
+  theorem: JuliaLean.BitSetsCov.rangeIsdisjointSpec_refuted

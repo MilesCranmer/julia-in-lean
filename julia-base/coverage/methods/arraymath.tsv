@@ -1,0 +1,25 @@
+file	line	endline	name	signature	status	entry	note
+base/arraymath.jl	5	7	_broadcast_preserving_zero_d	_broadcast_preserving_zero_d(f, A, B)	modelled	multidimcov-arraymath-line5	source-order model and quantified behavior
+base/arraymath.jl	12	14	_broadcast_preserving_zero_d	_broadcast_preserving_zero_d(f, A::Array{<:Any,N}, B::Array{<:Any,N}, Cs::Array{<:Any,N}...) where {N}	modelled	multidimcov-arraymath-line12	source-order model and quantified behavior
+base/arraymath.jl	16	25	_broadcast_preserving_zero_d	_broadcast_preserving_zero_d(f, A::Array, B::Array, Cs::Array...)	modelled	multidimcov-arraymath-faithful-16	row-specific faithful source-order replacement
+base/arraymath.jl	27	29	_broadcast_preserving_zero_d	_broadcast_preserving_zero_d(f, A::Array, B::Number)	modelled	multidimcov-arraymath-line27	source-order model and quantified behavior
+base/arraymath.jl	31	33	_broadcast_preserving_zero_d	_broadcast_preserving_zero_d(f, A::Number, B::Array)	modelled	multidimcov-arraymath-line31	source-order model and quantified behavior
+base/arraymath.jl	36	39	$f	($f)(A::AbstractArray, B::AbstractArray)	modelled	multidimcov-arraymath-line36	source-order model and quantified behavior
+base/arraymath.jl	42	42	+	+(A::Array)	modelled	multidimcov-arraymath-line42	source-order model and quantified behavior
+base/arraymath.jl	44	50	+	+(A::Array, B::Array, Cs::Array...)	modelled	multidimcov-arraymath-line44	source-order model and quantified behavior
+base/arraymath.jl	54	54	$f	($f)(A::Number, B::AbstractArray)	modelled	multidimcov-arraymath-line54	source-order model and quantified behavior
+base/arraymath.jl	57	57	$f	($f)(A::AbstractArray, B::Number)	modelled	multidimcov-arraymath-line57	source-order model and quantified behavior
+base/arraymath.jl	92	92	reverse	reverse(A::AbstractArray; dims::D=:) where {D}	modelled	multidimcov-arraymath-line92	source-order model and quantified behavior
+base/arraymath.jl	93	93	_reverse	_reverse(A, dims::D) where {D}	modelled	multidimcov-arraymath-line93	source-order model and quantified behavior
+base/arraymath.jl	103	103	reverse!	reverse!(A::AbstractArray; dims::D=:) where {D}	modelled	multidimcov-arraymath-line103	source-order model and quantified behavior
+base/arraymath.jl	104	104	_reverse!	_reverse!(A::AbstractArray{<:Any,N}, ::Colon) where {N}	modelled	multidimcov-arraymath-line104	source-order model and quantified behavior
+base/arraymath.jl	105	105	_reverse!	_reverse!(A, dim::Integer)	modelled	multidimcov-arraymath-line105	source-order model and quantified behavior
+base/arraymath.jl	106	106	_reverse!	_reverse!(A, dims::NTuple{M,Integer}) where {M}	modelled	multidimcov-arraymath-line106	source-order model and quantified behavior
+base/arraymath.jl	107	131	_reverse!	_reverse!(A::AbstractArray{<:Any,N}, dims::NTuple{M,Int}) where {N,M}	modelled	multidimcov-arraymath-faithful-107	row-specific faithful source-order replacement
+base/arraymath.jl	133	133	_reverse!	_reverse!(A::AbstractVector, dim::Tuple{Int})	modelled	multidimcov-arraymath-line133	source-order model and quantified behavior
+base/arraymath.jl	154	162	rotl90	rotl90(A::AbstractMatrix)	modelled	multidimcov-arraymath-faithful-154	row-specific faithful source-order replacement
+base/arraymath.jl	182	190	rotr90	rotr90(A::AbstractMatrix)	modelled	multidimcov-arraymath-faithful-182	row-specific faithful source-order replacement
+base/arraymath.jl	209	217	rot180	rot180(A::AbstractMatrix)	modelled	multidimcov-arraymath-faithful-209	row-specific faithful source-order replacement
+base/arraymath.jl	252	257	rotl90	rotl90(A::AbstractMatrix, k::Integer)	modelled	multidimcov-arraymath-faithful-252	row-specific faithful source-order replacement
+base/arraymath.jl	292	292	rotr90	rotr90(A::AbstractMatrix, k::Integer)	modelled	multidimcov-arraymath-faithful-292	row-specific faithful source-order replacement
+base/arraymath.jl	317	317	rot180	rot180(A::AbstractMatrix, k::Integer)	modelled	multidimcov-arraymath-faithful-317	row-specific faithful source-order replacement

@@ -1,0 +1,342 @@
+line	name	verdict	mirror	property	settled	reason
+37	BroadcastStyle	FAITHFUL	yes	yes	yes	
+38	BroadcastStyle	HOLLOW	no	no	yes	The model drops the BroadcastStyle callee and the leading Union{} argument from MethodError, so it neither mirrors the thrown value nor states the complete failure behavior.
+49	BroadcastStyle	FAITHFUL	yes	yes	yes	
+87	ArrayStyle{A}	FAITHFUL	yes	yes	yes	
+98	DefaultArrayStyle	FAITHFUL	yes	yes	yes	
+99	DefaultArrayStyle{M}	FAITHFUL	yes	yes	yes	
+102	BroadcastStyle	FAITHFUL	yes	yes	yes	
+103	BroadcastStyle	FAITHFUL	yes	yes	yes	
+111	ArrayConflict	FAITHFUL	yes	yes	yes	
+128	BroadcastStyle	HOLLOW	no	no	yes	The Julia body constructs S(), while the model returns the input style value, which differs for non-singleton custom style types.
+130	BroadcastStyle	FAITHFUL	yes	yes	yes	
+132	BroadcastStyle	FAITHFUL	yes	yes	yes	
+133	BroadcastStyle	HOLLOW	no	no	yes	The Julia body constructs S(), while the model preserves the supplied left value, so custom style payloads are modeled incorrectly.
+135	BroadcastStyle	FAITHFUL	yes	yes	yes	
+136	BroadcastStyle	FAITHFUL	yes	yes	yes	
+137	BroadcastStyle	HOLLOW	no	no	yes	The Julia body constructs A(), while the model returns the supplied style value and therefore preserves payload that Julia discards.
+138	BroadcastStyle	HOLLOW	no	no	yes	The model returns Unknown for every pair, including homogeneous ArrayStyle values that dispatch to the more-specific line 137 method.
+139	BroadcastStyle	HOLLOW	no	no	yes	The Julia body constructs A(), while the model returns the supplied abstract-array style value and can preserve a noncanonical payload.
+140	BroadcastStyle	HOLLOW	no	no	yes	The model compares a string field and rebuilds the input record, but Julia compares concrete type names and invokes A(Val(max(M,N))), whose constructor may change more than rank.
+147	BroadcastStyle	FAITHFUL	yes	yes	yes	
+148	BroadcastStyle	FAITHFUL	yes	yes	yes	
+149	BroadcastStyle	HOLLOW	no	no	yes	The model updates only the stored rank, while Julia calls typeof(a)(Val(max(M,N))) and may construct a different payload.
+175	Broadcasted	FAITHFUL	yes	yes	yes	
+176	Broadcasted	FAITHFUL	yes	yes	yes	
+181	Broadcasted	FAITHFUL	yes	yes	yes	
+185	Broadcasted{Style}	FAITHFUL	yes	yes	yes	
+189	Broadcasted{Style,Axes,F,Args}	HOLLOW	no	no	yes	The fully typed Julia constructor checks the explicit Axes, F, and Args field types, while the model delegates to an inferred-type constructor and checks only Style.
+196	broadcasted	FAITHFUL	yes	yes	yes	
+199	broadcasted	FAITHFUL	yes	yes	yes	
+207	broadcasted	FAITHFUL	yes	yes	yes	
+208	broadcasted	FAITHFUL	yes	yes	yes	
+215	Base.convert	HOLLOW	no	no	yes	Julia constructs NewStyle() through the fully typed constructor, while the model accepts and stores an arbitrary style value.
+218	Base.show	HOLLOW	no	no	yes	Julia prints the Style type parameter and returns nothing through IO, while the model renders the stored style value into a returned string.
+229	Base.similar	FAITHFUL	yes	yes	yes	
+230	Base.similar	FAITHFUL	yes	yes	yes	
+232	Base.similar	FAITHFUL	yes	yes	yes	
+235	Base.similar	FAITHFUL	yes	yes	yes	
+237	Base.similar	FAITHFUL	yes	yes	yes	
+240	Base.axes	FAITHFUL	yes	yes	yes	
+241	_axes	FAITHFUL	yes	yes	yes	
+242	_axes	FAITHFUL	yes	yes	yes	
+243	_axes	FAITHFUL	yes	yes	yes	
+245	Base.axes	HOLLOW	no	yes	yes	The model receives precomputed axes and rewrites the source ternary into separate bounds branches, so it omits the source axes call and its evaluation order.
+248	BroadcastStyle	HOLLOW	no	no	yes	Julia constructs Style() from the type parameter, while the model returns an arbitrary supplied style value.
+249	BroadcastStyle	FAITHFUL	yes	yes	yes	
+252	argtype	FAITHFUL	yes	yes	yes	
+253	argtype	FAITHFUL	yes	yes	yes	
+255	Base.eachindex	FAITHFUL	yes	yes	yes	
+256	Base.eachindex	FAITHFUL	yes	yes	yes	
+257	_eachindex	FAITHFUL	yes	yes	yes	
+258	_eachindex	HOLLOW	no	no	yes	The model merely tags the axis tuple as linear and omits LinearIndices(t) followed by eachindex(s,...), so it does not determine the Julia return value.
+259	_eachindex	FAITHFUL	yes	yes	yes	
+261	Base.IndexStyle	FAITHFUL	yes	yes	yes	
+262	Base.IndexStyle	FAITHFUL	yes	yes	yes	
+263	Base.IndexStyle	FAITHFUL	yes	yes	yes	
+265	Base.LinearIndices	FAITHFUL	yes	yes	yes	
+267	Base.ndims	FAITHFUL	yes	yes	yes	
+268	Base.ndims	FAITHFUL	yes	yes	yes	
+269	Base.ndims	HOLLOW	no	yes	yes	The model starts from a prepared list of argument ranks and omits both argtype(BC) and the _maxndims call made by this method.
+270	Base.ndims	FAITHFUL	yes	yes	yes	
+273	_maxndims	FAITHFUL	yes	yes	yes	
+274	_maxndims	FAITHFUL	yes	yes	yes	
+275	_maxndims	FAITHFUL	yes	yes	yes	
+281	Base.size	FAITHFUL	yes	yes	yes	
+282	Base.length	FAITHFUL	yes	yes	yes	
+284	Base.iterate	FAITHFUL	yes	yes	yes	
+288	Base.iterate	FAITHFUL	yes	yes	yes	
+295	Base.IteratorSize	HOLLOW	no	no	yes	The proposition returns a bare Nat and never constructs Base.HasShape{ndims(T)}(), so it does not model or state the method result.
+296	Base.IteratorEltype	FAITHFUL	yes	yes	yes	
+299	instantiate	FAITHFUL	yes	yes	yes	
+310	instantiate	FAITHFUL	yes	yes	yes	
+319	instantiate	FAITHFUL	yes	yes	yes	
+321	instantiate	FAITHFUL	yes	yes	yes	
+322	instantiate	FAITHFUL	yes	yes	yes	
+346	flatten	HOLLOW	no	no	yes	The nonflat branch calls the stored function directly and omits Base.maybeconstructor(bc.f), which can change the callable used by the flattened expression.
+364	isflat	HOLLOW	no	no	yes	The Lean function accepts leaf trees and reports them flat, while the Julia method accepts only Broadcasted nodes and the proposition has no node hypothesis.
+365	_isflat	HOLLOW	no	no	yes	The NestedTuple type invariant that the head is Broadcasted is absent, so the proposition also returns false for leaf-headed tuples handled by another Julia method.
+366	_isflat	HOLLOW	no	no	yes	The proposition includes Broadcasted-headed tuples even though those dispatch to line 365, and it can return the tail result instead of false.
+367	_isflat	FAITHFUL	yes	yes	yes	
+369	cat_nested	HOLLOW	no	no	yes	The Lean function accepts leaf trees and returns no arguments, while this Julia method is restricted to Broadcasted values.
+370	cat_nested_args	FAITHFUL	yes	yes	yes	
+371	cat_nested_args	FAITHFUL	yes	yes	yes	
+372	cat_nested_args	FAITHFUL	yes	yes	yes	
+373	cat_nested	HOLLOW	no	no	yes	The fallback model also accepts nested Broadcasted nodes and wraps them as leaves, although Julia dispatch expands those nodes through line 369.
+382	make_makeargs	FAITHFUL	yes	yes	yes	
+386	_make_makeargs	FAITHFUL	yes	yes	yes	
+391	_make_makeargs	FAITHFUL	yes	yes	yes	
+395	(::Pick{N})	HOLLOW	no	no	yes	For N=0 the Lean subtraction saturates and can return the first item, while Julia args[0] throws BoundsError.
+398	_make_makeargs1	HOLLOW	no	no	yes	The fallback model accepts Broadcasted nodes and creates one Pick, although those inputs dispatch to the recursive line 400 method.
+400	_make_makeargs1	HOLLOW	no	no	yes	The nested-node model omits Base.maybeconstructor(bc.f), so the generated selector closure can call a different function from Julia.
+407	prepare_args	FAITHFUL	yes	yes	yes	
+408	prepare_args	FAITHFUL	yes	yes	yes	
+409	prepare_args	FAITHFUL	yes	yes	yes	
+429	combine_styles	FAITHFUL	-	-	-	The exclusion is valid because this line only declares a generic function and has no method body or observable behavior.
+431	combine_styles	FAITHFUL	yes	yes	yes	
+432	combine_styles	FAITHFUL	yes	yes	yes	
+433	combine_styles	FAITHFUL	yes	yes	yes	
+437	combine_styles	FAITHFUL	yes	yes	yes	
+438	combine_styles	HOLLOW	no	no	yes	The recursive helper combines a singleton tail with DefaultArrayStyle{0}, while Julia's singleton combine_styles call returns result_style of that value alone.
+456	result_style	FAITHFUL	-	-	-	The exclusion is valid because this line only declares a generic function and has no method body or observable behavior.
+458	result_style	FAITHFUL	yes	yes	yes	
+459	result_style	HOLLOW	no	no	yes	The model uses structural equality on its record, while Julia tests egal identity with s1 ≡ s2, which differs for allowed custom style payloads.
+463	result_style	FAITHFUL	yes	yes	yes	
+467	result_join	FAITHFUL	yes	yes	yes	
+468	result_join	FAITHFUL	yes	yes	yes	
+469	result_join	FAITHFUL	yes	yes	yes	
+474	result_join	FAITHFUL	yes	yes	yes	
+477	result_join	FAITHFUL	yes	yes	yes	
+479	result_join	FAITHFUL	yes	yes	yes	
+502	combine_axes	HOLLOW	no	no	yes	Julia recursively combines the tail before the outer broadcast_shape call, while the model maps all axes and folds shapes from the left, changing call and error order.
+503	combine_axes	FAITHFUL	yes	yes	yes	
+504	combine_axes	FAITHFUL	yes	yes	yes	
+519	broadcast_shape	FAITHFUL	-	-	-	The exclusion is valid because this line only declares a generic function and has no method body or observable behavior.
+521	broadcast_shape	FAITHFUL	yes	yes	yes	
+522	broadcast_shape	FAITHFUL	yes	yes	yes	
+524	_bcs	FAITHFUL	yes	yes	yes	
+525	_bcs	FAITHFUL	yes	yes	yes	
+526	_bcs	FAITHFUL	yes	yes	yes	
+527	_bcs	FAITHFUL	yes	yes	yes	
+531	_bcs1	FAITHFUL	yes	yes	yes	
+532	_bcs1	HOLLOW	no	no	yes	The list-based axis model gives empty axes no first or last endpoint, while Julia ranges such as OneTo(0) still have first and last values used by this method.
+533	_bcs1	HOLLOW	no	no	yes	This model delegates to the flawed line 532 model, so reversed mixed inputs inherit its incorrect empty-axis behavior.
+534	_bcs1	FAITHFUL	yes	yes	yes	
+536	_bcsm	FAITHFUL	yes	yes	yes	
+537	_bcsm	FAITHFUL	yes	yes	yes	
+538	_bcsm	FAITHFUL	yes	yes	yes	
+542	axistype	FAITHFUL	yes	yes	yes	
+543	axistype	HOLLOW	no	no	yes	OneTo{Int}(a) can perform checked element conversion, while the model only relabels the axis and cannot represent conversion failure or converted endpoints.
+544	axistype	HOLLOW	no	no	yes	UnitRange{Int}(a) performs endpoint conversion and may fail, while the model only relabels unchanged values.
+548	check_broadcast_shape	FAITHFUL	yes	yes	yes	
+549	check_broadcast_shape	FAITHFUL	yes	yes	yes	
+550	check_broadcast_shape	FAITHFUL	yes	yes	yes	
+551	check_broadcast_shape	FAITHFUL	yes	yes	yes	
+557	check_broadcast_shape	FAITHFUL	yes	yes	yes	
+561	check_broadcast_axes	FAITHFUL	yes	yes	yes	
+563	check_broadcast_axes	FAITHFUL	yes	yes	yes	
+585	newindex	FAITHFUL	yes	yes	yes	
+586	newindex	FAITHFUL	yes	yes	yes	
+587	_newindex	HOLLOW	no	no	yes	The model reads the axis first value before the length check and treats an empty range as an error, unlike Julia's eager ifelse expression over range endpoints.
+588	_newindex	FAITHFUL	yes	yes	yes	
+589	_newindex	HOLLOW	no	no	yes	The model treats every empty axis as lacking a first value, while valid empty Julia ranges retain a first endpoint used by this method.
+590	_newindex	FAITHFUL	yes	yes	yes	
+593	newindex	FAITHFUL	yes	yes	yes	
+594	newindex	FAITHFUL	yes	yes	yes	
+595	newindex	FAITHFUL	yes	yes	yes	
+596	newindex	FAITHFUL	yes	yes	yes	
+597	newindex	FAITHFUL	yes	yes	yes	
+598	_newindex	FAITHFUL	yes	yes	yes	
+600	_newindex	FAITHFUL	yes	yes	yes	
+601	_newindex	FAITHFUL	yes	yes	yes	
+602	_newindex	FAITHFUL	yes	yes	yes	
+606	newindexer	FAITHFUL	yes	yes	yes	
+607	shapeindexer	FAITHFUL	yes	yes	yes	
+608	_newindexer	FAITHFUL	yes	yes	yes	
+609	_newindexer	HOLLOW	no	no	yes	The model treats a valid empty range as a bounds error because its list representation loses the first endpoint used by Julia.
+615	Base.getindex	FAITHFUL	yes	yes	yes	
+619	_getindex	FAITHFUL	yes	yes	yes	
+623	_getindex	FAITHFUL	yes	yes	yes	
+627	_getindex	FAITHFUL	yes	yes	yes	
+631	to_index	FAITHFUL	yes	yes	yes	
+632	to_index	FAITHFUL	yes	yes	yes	
+633	to_index	FAITHFUL	yes	yes	yes	
+635	Base.checkbounds	FAITHFUL	yes	yes	yes	
+640	Base.checkbounds	FAITHFUL	yes	yes	yes	
+651	_broadcast_getindex	FAITHFUL	yes	yes	yes	
+652	_broadcast_getindex	FAITHFUL	yes	yes	yes	
+654	_broadcast_getindex	FAITHFUL	yes	yes	yes	
+655	_broadcast_getindex	HOLLOW	no	no	yes	Converting (i-1) with Nat.toNat makes nonpositive indices select the first list element, while Julia tuple indexing throws BoundsError.
+657	_broadcast_getindex	FAITHFUL	yes	yes	yes	
+669	axes	FAITHFUL	yes	yes	yes	
+670	_broadcast_getindex	FAITHFUL	yes	yes	yes	
+671	extrude	FAITHFUL	yes	yes	yes	
+672	extrude	FAITHFUL	yes	yes	yes	
+675	_broadcast_getindex	FAITHFUL	yes	yes	yes	
+685	_broadcast_getindex	FAITHFUL	yes	yes	yes	
+689	_broadcast_getindex	FAITHFUL	yes	yes	yes	
+694	_broadcast_getindex	FAITHFUL	yes	yes	yes	
+700	_getindex	FAITHFUL	yes	yes	yes	
+701	_getindex	FAITHFUL	yes	yes	yes	
+702	_getindex	FAITHFUL	yes	yes	yes	
+704	_broadcast_getindex_evalf	FAITHFUL	yes	yes	yes	
+736	broadcastable	FAITHFUL	yes	yes	yes	
+737	broadcastable	FAITHFUL	yes	yes	yes	
+738	broadcastable	FAITHFUL	yes	yes	yes	
+740	broadcastable	FAITHFUL	yes	yes	yes	
+741	broadcastable	FAITHFUL	yes	yes	yes	
+744	_bc_eltype	FAITHFUL	yes	yes	yes	
+747	_bc_eltype	FAITHFUL	yes	yes	yes	
+748	_bc_eltype	FAITHFUL	yes	yes	yes	
+751	_bc_eltype	FAITHFUL	yes	yes	yes	
+753	_bc_eltypes	FAITHFUL	yes	yes	yes	
+754	_bc_eltypes	FAITHFUL	yes	yes	yes	
+756	result_eltype	FAITHFUL	yes	yes	yes	
+765	_broadcast_getindex_eltype	FAITHFUL	yes	yes	yes	
+766	_broadcast_getindex_eltype	FAITHFUL	yes	yes	yes	
+768	eltypes	FAITHFUL	yes	yes	yes	
+769	eltypes	FAITHFUL	yes	yes	yes	
+770	eltypes	FAITHFUL	yes	yes	yes	
+771	eltypes	HOLLOW	no	no	yes	The recursive model inserts the entire tail tuple type as one element instead of splicing TT.parameters, so tuples of length three or more get the wrong inferred type.
+774	combine_eltypes	HOLLOW	no	no	yes	The method depends on eltypes, whose recursive line 771 model does not splice tail parameters, so combine_eltypes receives the wrong argument type tuple.
+859	broadcast	FAITHFUL	yes	yes	yes	
+862	broadcast	FAITHFUL	yes	yes	yes	
+863	broadcast	FAITHFUL	yes	yes	yes	
+898	broadcast!	HOLLOW	no	no	yes	Julia discards the return from materialize! and explicitly returns dest, while the model returns the arbitrary materializeBang result.
+908	broadcast_preserving_zero_d	FAITHFUL	yes	yes	yes	
+913	broadcast_preserving_zero_d	HOLLOW	no	no	yes	Julia fill(f()) returns a zero-dimensional container, while the model returns a one-element List and does not represent zero-dimensional axes.
+914	broadcast_preserving_zero_d	HOLLOW	no	no	yes	Julia fill(f(as...)) returns a zero-dimensional container, while the model returns a one-element List.
+921	materialize	FAITHFUL	yes	yes	yes	
+922	materialize	FAITHFUL	yes	yes	yes	
+924	materialize!	HOLLOW	no	no	yes	The model's make function receives only destination axes and omits identity, x, and the singleton argument tuple used to construct Broadcasted.
+928	materialize!	FAITHFUL	yes	yes	yes	
+932	materialize!	HOLLOW	no	no	yes	The opaque rebuild function does not state that style, f, and args are preserved while only axes are replaced, so the proposition is weaker than the method invariant.
+936	materialize!	HOLLOW	no	yes	yes	The Julia body calls _throw_unwritable_dest(dest), while the model directly returns an undifferentiated argument error and omits that call.
+937	_throw_unwritable_dest	FAITHFUL	yes	yes	yes	
+942	copy	FAITHFUL	yes	yes	yes	
+943	copy	FAITHFUL	yes	yes	yes	
+948	copy	HOLLOW	no	no	yes	The model replaces iterator state, widening count, return-type calculation, and the remaining loop with an arbitrary copyRemaining result.
+980	copyto!	FAITHFUL	yes	yes	yes	
+983	copyto!	FAITHFUL	yes	yes	yes	
+1001	broadcast_unalias	FAITHFUL	yes	yes	yes	
+1002	broadcast_unalias	FAITHFUL	yes	yes	yes	
+1007	preprocess	FAITHFUL	yes	yes	yes	
+1008	preprocess	FAITHFUL	yes	yes	yes	
+1010	preprocess_args	FAITHFUL	yes	yes	yes	
+1011	preprocess_args	FAITHFUL	yes	yes	yes	
+1012	preprocess_args	FAITHFUL	yes	yes	yes	
+1015	copyto!	HOLLOW	no	no	yes	When the identity shortcut source axes differ, Julia falls through to preprocessing and copying, while the model returns dest unchanged.
+1035	copyto!	HOLLOW	no	no	yes	The model collapses the zero-dimensional and packed-bit loops into an arbitrary optional result or a flat map, omitting the source branches, chunk arithmetic, and writes.
+1083	_chunkop	FAITHFUL	yes	yes	yes	
+1084	_chunkop	FAITHFUL	yes	yes	yes	
+1085	_chunkop	FAITHFUL	yes	yes	yes	
+1086	_chunkop	FAITHFUL	yes	yes	yes	
+1087	_chunkop	FAITHFUL	yes	yes	yes	
+1088	_chunkop	FAITHFUL	yes	yes	yes	
+1089	_chunkop	FAITHFUL	yes	yes	yes	
+1090	_chunkop	FAITHFUL	yes	yes	yes	
+1091	_chunkop	FAITHFUL	yes	yes	yes	
+1092	_chunkop	FAITHFUL	yes	yes	yes	
+1093	_chunkop	FAITHFUL	yes	yes	yes	
+1094	_chunkop	FAITHFUL	yes	yes	yes	
+1095	_chunkop	FAITHFUL	yes	yes	yes	
+1096	_chunkop	FAITHFUL	yes	yes	yes	
+1098	ischunkedbroadcast	HOLLOW	no	no	yes	The model assumes a chunk operation is already stored in the node and never calls _chunkop(bc.f,bc.args) as this method does.
+1099	ischunkedbroadcast	FAITHFUL	yes	yes	yes	
+1100	ischunkedbroadcast	FAITHFUL	yes	yes	yes	
+1101	ischunkedbroadcast	FAITHFUL	yes	yes	yes	
+1102	ischunkedbroadcast	FAITHFUL	yes	yes	yes	
+1103	ischunkedbroadcast	FAITHFUL	yes	yes	yes	
+1104	ischunkedbroadcast	FAITHFUL	yes	yes	yes	
+1105	ischunkedbroadcast	FAITHFUL	yes	yes	yes	
+1108	liftfuncs	HOLLOW	no	no	yes	The model has no stored Julia function and assumes its chunk operation is already known, so it omits the _chunkop derivation required by this method.
+1109	liftfuncs	HOLLOW	no	no	yes	The node representation has no original function field, so the Nothing branch cannot preserve bc.f as Julia does.
+1110	liftfuncs	FAITHFUL	yes	yes	yes	
+1111	liftfuncs	FAITHFUL	yes	yes	yes	
+1113	liftchunks	FAITHFUL	yes	yes	yes	
+1114	liftchunks	FAITHFUL	yes	yes	yes	
+1116	liftchunks	HOLLOW	no	no	yes	A Bool is encoded as a one-element chunk vector, causing later chunk indices to become zero instead of reusing the scalar UInt64 for every chunk.
+1117	ithchunk	FAITHFUL	yes	yes	yes	
+1118	ithchunk	HOLLOW	no	no	yes	The model uses zero-based optional indexing with a silent zero default, while Julia uses one-based c[i] and throws on an invalid index.
+1119	ithchunk	FAITHFUL	yes	yes	yes	
+1120	chunkedcopyto!	HOLLOW	no	no	yes	The model starts from a supplied operation and broken uniform chunk vectors, omitting liftfuncs, flatten, liftchunks, and scalar reuse from the Julia body.
+1133	throwdm	HOLLOW	no	yes	yes	The model omits construction of the DimensionMismatch LazyString containing both axis values and returns only an undifferentiated error.
+1136	restart_copyto_nonleaf!	HOLLOW	no	no	yes	The state argument is ignored and the continuation type has no state slot, although Julia resumes copyto_nonleaf! with the exact iterator state.
+1145	copyto_nonleaf!	HOLLOW	no	no	yes	The model replaces the stateful while loop and restart path with list recursion whose widen function receives neither the failing index nor iterator state and count.
+1167	copy	FAITHFUL	yes	yes	yes	
+1176	broadcasted	FAITHFUL	yes	yes	yes	
+1178	broadcasted	FAITHFUL	yes	yes	yes	
+1179	broadcasted	FAITHFUL	yes	yes	yes	
+1180	broadcasted	FAITHFUL	yes	yes	yes	
+1181	broadcasted	FAITHFUL	yes	yes	yes	
+1184	broadcasted	FAITHFUL	yes	yes	yes	
+1185	broadcasted	FAITHFUL	yes	yes	yes	
+1186	broadcasted	FAITHFUL	yes	yes	yes	
+1187	broadcasted	FAITHFUL	yes	yes	yes	
+1188	broadcasted	FAITHFUL	yes	yes	yes	
+1189	broadcasted	FAITHFUL	yes	yes	yes	
+1190	broadcasted	FAITHFUL	yes	yes	yes	
+1191	broadcasted	FAITHFUL	yes	yes	yes	
+1192	broadcasted	FAITHFUL	yes	yes	yes	
+1194	broadcasted	FAITHFUL	yes	yes	yes	
+1196	broadcasted	FAITHFUL	yes	yes	yes	
+1197	broadcasted	FAITHFUL	yes	yes	yes	
+1198	broadcasted	FAITHFUL	yes	yes	yes	
+1200	broadcasted	FAITHFUL	yes	yes	yes	
+1201	broadcasted	FAITHFUL	yes	yes	yes	
+1202	broadcasted	FAITHFUL	yes	yes	yes	
+1203	broadcasted	FAITHFUL	yes	yes	yes	
+1204	broadcasted	FAITHFUL	yes	yes	yes	
+1205	broadcasted	FAITHFUL	yes	yes	yes	
+1206	broadcasted	FAITHFUL	yes	yes	yes	
+1208	broadcasted	FAITHFUL	yes	yes	yes	
+1210	broadcasted	FAITHFUL	yes	yes	yes	
+1211	broadcasted	FAITHFUL	yes	yes	yes	
+1212	broadcasted	FAITHFUL	yes	yes	yes	
+1215	broadcasted	FAITHFUL	yes	yes	yes	
+1216	broadcasted	FAITHFUL	yes	yes	yes	
+1218	broadcasted	FAITHFUL	yes	yes	yes	
+1219	broadcasted	HOLLOW	no	no	yes	Julia calls Base.range_start_step_length, while the model constructs its StepRangeLen representation directly and therefore misses that helper's behavior.
+1222	broadcasted	FAITHFUL	yes	yes	yes	
+1223	broadcasted	FAITHFUL	yes	yes	yes	
+1225	broadcasted	FAITHFUL	yes	yes	yes	
+1226	broadcasted	HOLLOW	no	no	yes	Julia calls Base.range_start_step_length, while the model constructs its StepRangeLen representation directly.
+1230	broadcasted	FAITHFUL	yes	yes	yes	
+1231	broadcasted	FAITHFUL	yes	yes	yes	
+1233	broadcasted	FAITHFUL	yes	yes	yes	
+1235	broadcasted	FAITHFUL	yes	yes	yes	
+1236	broadcasted	FAITHFUL	yes	yes	yes	
+1237	broadcasted	FAITHFUL	yes	yes	yes	
+1239	broadcasted	FAITHFUL	yes	yes	yes	
+1240	broadcasted	HOLLOW	no	no	yes	Julia evaluates big(start), big(step), then big(last), while the proposition evaluates start, last, then step, changing observable failure order.
+1241	broadcasted	FAITHFUL	yes	yes	yes	
+1242	broadcasted	FAITHFUL	yes	yes	yes	
+1245	broadcasted	FAITHFUL	yes	yes	yes	
+1247	broadcasted	FAITHFUL	yes	yes	yes	
+1249	broadcasted	FAITHFUL	yes	yes	yes	
+1251	broadcasted	FAITHFUL	yes	yes	yes	
+1252	diffrange	FAITHFUL	yes	yes	yes	
+1261	BitMaskedBitArray{N,M}	FAITHFUL	yes	yes	yes	
+1263	BitMaskedBitArray	HOLLOW	no	no	yes	Julia checkbounds(parent,mask) checks logical mask bounds and axes, while the model tests only equal bit-list lengths.
+1267	dotview	FAITHFUL	yes	yes	yes	
+1268	Base.show	HOLLOW	no	no	yes	Julia shows typeof(B) and the actual parent-mask tuple to IO, while the model renders the word BitMasked and two bit counts.
+1270	materialize!	FAITHFUL	yes	yes	yes	
+1271	materialize!	HOLLOW	no	no	yes	The model omits the Broadcasted argument entirely, so materializeBang receives only the view instead of materialize!(view,bc).
+1272	Base.fill!	HOLLOW	no	no	yes	The zip-based model silently truncates unequal parent and mask lists, while Julia iterates every parent chunk and indexes the corresponding mask chunk.
+1297	dotview	FAITHFUL	yes	yes	yes	
+1304	dottable	FAITHFUL	yes	yes	yes	
+1306	dottable	FAITHFUL	yes	yes	yes	
+1307	dottable	FAITHFUL	yes	yes	yes	
+1308	undot	FAITHFUL	yes	yes	yes	
+1309	undot	FAITHFUL	yes	yes	yes	
+1318	__dot__	FAITHFUL	yes	yes	yes	
+1319	__dot__	HOLLOW	no	no	yes	For a dollar-splice Julia returns the original x.args[1], while the model recursively dots that argument before returning it.
+1390	__dot__	HOLLOW	no	no	yes	The macro body applies esc after __dot__, while the model has no escape operation and returns the rewritten value directly.
+1394	broadcasted_kwsyntax	HOLLOW	no	no	yes	The keyword branch must build a closure and pass it to broadcasted, while the model calls an arbitrary callWithKeywords function directly.
+1401	broadcasted	FAITHFUL	yes	yes	yes	
+1409	broadcasted	FAITHFUL	yes	yes	yes	
+1414	broadcasted	FAITHFUL	yes	yes	yes	
+1420	broadcasted	HOLLOW	no	no	yes	Julia constructs Broadcasted with the default axes value nothing, while the modeled structure has no axes field.
+1452	(op::BroadcastFunction)	FAITHFUL	yes	yes	yes	
+1454	Base.show	HOLLOW	no	yes	yes	Julia performs three ordered IO calls and returns nothing, while the model returns a concatenated string.
+1460	Base.show	FAITHFUL	yes	yes	yes	

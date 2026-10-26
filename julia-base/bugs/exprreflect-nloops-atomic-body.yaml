@@ -1,0 +1,65 @@
+id: exprreflect-nloops-atomic-body
+title: "Base.Cartesian.@nloops rejects a variable or literal body with an internal MethodError"
+priority: P2
+kind: wrong-exception
+area: ExprReflect
+files: [base/cartesian.jl]
+functions: ["Base.Cartesian.@nloops", "Base.Cartesian._nloops"]
+summary: |
+  @nloops documents its last argument as a body expression, but the _nloops methods
+  restrict every body, pre, and post argument to Expr. An atomic expression such as a
+  variable or literal therefore fails during macro expansion with a MethodError.
+likelihood: |
+  Most callers use a begin block or assignment, which is an Expr. Passing a function
+  call through a variable, using a literal such as nothing, or generating the macro AST
+  programmatically reaches the failing path.
+maybe_intended: |
+  The implementation may have expected every body to be a compound Expr, but the
+  docstring states bodyexpr without that restriction and Julia macros normally accept
+  symbols and literals as expressions.
+reproducer: |
+  source = "Base.Cartesian.@nloops 2 i A body"
+  result = try
+      macroexpand(Main, Meta.parse(source))
+  catch err
+      err
+  end
+
+  println("source: ", source)
+  println("macroexpand result type: ", typeof(result))
+
+  if result isa MethodError && result.f === Base.Cartesian._nloops
+      println("REPRODUCED exprreflect-nloops-atomic-body")
+  else
+      println("NOT REPRODUCED exprreflect-nloops-atomic-body")
+  end
+output:
+  release: |
+    source: Base.Cartesian.@nloops 2 i A body
+    macroexpand result type: MethodError
+    REPRODUCED exprreflect-nloops-atomic-body
+  nightly: |
+    source: Base.Cartesian.@nloops 2 i A body
+    macroexpand result type: MethodError
+    REPRODUCED exprreflect-nloops-atomic-body
+reproduced: {release: true, nightly: true}
+expected: |
+  The macro should expand to two nested loops whose innermost body evaluates body, just
+  as it does when the same symbol is wrapped in a begin block.
+promised_by: |
+  base/cartesian.jl:9-18 documents bodyexpr, preexpr, and postexpr as expressions and
+  imposes no requirement that they be compound Expr nodes.
+cause: |
+  base/cartesian.jl:42 and base/cartesian.jl:46 declare args::Expr..., so dispatch fails
+  before _nloops can wrap the body in Expr(:escape, body).
+possible_fix: |
+  Remove the Expr restriction from args and let inlineanonymous handle the pre and post
+  arguments according to their documented forms.
+duplicates:
+  issues: []
+  queries:
+    - "issues: Cartesian @nloops body MethodError"
+    - "prs: Cartesian @nloops body MethodError"
+lean:
+  property: JuliaLean.ExprReflect.CartesianLoopsTotal
+  theorem: JuliaLean.ExprReflect.cartesianLoopsTotal_refuted

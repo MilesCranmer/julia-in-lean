@@ -1,0 +1,149 @@
+file	line	endline	name	signature	status	entry	note
+base/io.jl	28	28	SystemError	SystemError(p::AbstractString, e::Integer, extrainfo)	modelled	iocov-io-systemerror3	
+base/io.jl	29	29	SystemError	SystemError(p::AbstractString, e::Integer)	modelled	iocov-io-systemerror2	
+base/io.jl	30	30	SystemError	SystemError(p::AbstractString)	modelled	iocov-io-systemerror1	
+base/io.jl	33	33	lock	lock(::IO)	excluded		no-behaviour: lock(::IO) returns nothing
+base/io.jl	35	35	unlock	unlock(::IO)	excluded		no-behaviour: unlock(::IO) returns nothing
+base/io.jl	45	45	reseteof	reseteof(x::IO)	excluded		no-behaviour: reseteof(::IO) returns nothing
+base/io.jl	48	48	buffer_writes	buffer_writes(x::IO, bufsize=SZ_UNBUFFERED_IO)	modelled	iocov-io-buffer-writes	
+base/io.jl	70	70	isopen	isopen	excluded		no-behaviour: empty generic-function declaration
+base/io.jl	88	88	close	close	excluded		no-behaviour: empty generic-function declaration
+base/io.jl	116	116	closewrite	closewrite	excluded		no-behaviour: empty generic-function declaration
+base/io.jl	126	126	flush	flush	excluded		no-behaviour: empty generic-function declaration
+base/io.jl	142	142	bytesavailable	bytesavailable	excluded		no-behaviour: empty generic-function declaration
+base/io.jl	156	156	readavailable	readavailable	excluded		no-behaviour: empty generic-function declaration
+base/io.jl	159	159	isexecutable	isexecutable	excluded		no-behaviour: empty generic-function declaration
+base/io.jl	183	183	isreadable	isreadable(io::IO)	modelled	iocov-io-isreadable	
+base/io.jl	206	206	iswritable	iswritable(io::IO)	modelled	iocov-io-iswritable	
+base/io.jl	230	230	eof	eof	excluded		no-behaviour: empty generic-function declaration
+base/io.jl	233	233	copy	copy	excluded		no-behaviour: empty generic-function declaration
+base/io.jl	234	234	wait_readnb	wait_readnb	excluded		no-behaviour: empty generic-function declaration
+base/io.jl	235	235	wait_close	wait_close	excluded		no-behaviour: empty generic-function declaration
+base/io.jl	263	263	read	read(stream, ::Type{Union{}}, slurp...; kwargs...)	modelled	iocov-io-read-union	
+base/io.jl	330	330	write	write	excluded		no-behaviour: empty generic-function declaration
+base/io.jl	343	343	writepartial	writepartial(io::IO, x)	modelled	iocov-io-writepartial	
+base/io.jl	346	346	read	read(s::IO, ::Type{UInt8})	modelled	iocov-io-byte-fallback	
+base/io.jl	347	347	write	write(s::IO, x::UInt8)	modelled	iocov-io-byte-fallback	
+base/io.jl	358	364	unsafe_write	unsafe_write(s::IO, p::Ptr{UInt8}, n::UInt)	modelled	iocov-io-unsafe-write	
+base/io.jl	375	380	unsafe_read	unsafe_read(s::IO, p::Ptr{UInt8}, n::UInt)	modelled	iocov-io-unsafe-read	
+base/io.jl	382	388	peek	peek(s::IO, ::Type{T}) where T	modelled	iobuffers-peek-clears-mark	
+base/io.jl	389	389	peek	peek(s::IO, ::Type{Union{}}, slurp...)	modelled	iocov-io-peek-union	
+base/io.jl	391	391	peek	peek(s)	modelled	iocov-io-peek-byte	
+base/io.jl	401	431	open_flags	open_flags(; read :: Union{Bool,Nothing} = nothing, write :: Union{Bool,Nothing} = nothing, create :: Union{Bool,Nothing} = nothing, truncate :: Union{Bool,Nothing} = nothing, append :: Union{Bool,Nothing} = nothing, )	modelled	iocov-open-flags-append-doc,iocov-io-open-flags	
+base/io.jl	449	456	open	open(f::Function, args...; kwargs...)	modelled	iocov-io-open-do	
+base/io.jl	478	484	getproperty	getproperty(pipe::AbstractPipe, name::Symbol)	modelled	iocov-io-pipe-getproperty	
+base/io.jl	486	486	pipe_reader	pipe_reader	excluded		no-behaviour: empty generic-function declaration
+base/io.jl	487	487	pipe_writer	pipe_writer	excluded		no-behaviour: empty generic-function declaration
+base/io.jl	489	489	iswritable	iswritable(io::AbstractPipe)	modelled	iocov-io-pipe-iswritable	
+base/io.jl	496	498	$(f)	$(f)(io::AbstractPipe; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-pipe-flush	generated-loop: f in (:flush, :closewrite)
+base/io.jl	500	500	write	write(io::AbstractPipe, byte::UInt8)	modelled	iocov-io-pipe-write-byte	
+base/io.jl	501	501	writepartial	writepartial(io::AbstractPipe, x)	modelled	iocov-io-pipe-writepartial	
+base/io.jl	502	502	write	write(to::IO, from::AbstractPipe)	modelled	iocov-io-write-from-pipe	
+base/io.jl	503	505	unsafe_write	unsafe_write(io::AbstractPipe, p::Ptr{UInt8}, nb::UInt; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-pipe-unsafe-write	
+base/io.jl	506	506	buffer_writes	buffer_writes(io::AbstractPipe, args...)	modelled	iocov-io-pipe-buffer-writes	
+base/io.jl	513	513	$(f)	$(f)(io::AbstractPipe)	modelled	iocov-io-pipe-reader-ops	generated-loop: f in ( # peek/mark interface :mark, :unmark, :reset, :ismarked, # Simple reader functions :read, :bytesavailable, :reseteof, :isreadable)
+base/io.jl	517	519	readavailable	readavailable(io::AbstractPipe; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-pipe-readavailable	
+base/io.jl	520	522	read	read(io::AbstractPipe, byte::Type{UInt8}; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-pipe-read-byte	
+base/io.jl	523	523	unsafe_read	unsafe_read(io::AbstractPipe, p::Ptr{UInt8}, nb::UInt)	modelled	iocov-io-pipe-unsafe-read	
+base/io.jl	524	524	copyuntil	copyuntil(out::IO, io::AbstractPipe, arg::UInt8; kw...)	modelled	iocov-io-pipe-forward	
+base/io.jl	525	525	copyuntil	copyuntil(out::IO, io::AbstractPipe, arg::AbstractChar; kw...)	modelled	iocov-io-pipe-forward	
+base/io.jl	526	526	copyuntil	copyuntil(out::IO, io::AbstractPipe, arg::AbstractString; kw...)	modelled	iocov-io-pipe-forward	
+base/io.jl	527	527	copyuntil	copyuntil(out::IO, io::AbstractPipe, arg::AbstractVector; kw...)	modelled	iocov-io-pipe-forward	
+base/io.jl	528	528	readuntil_vector!	readuntil_vector!(io::AbstractPipe, target::AbstractVector, keep::Bool, out)	modelled	iocov-io-pipe-forward	
+base/io.jl	531	533	readbytes!	readbytes!(io::AbstractPipe, target::AbstractVector{UInt8}, n=length(target); cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-pipe-forward	
+base/io.jl	534	534	peek	peek(io::AbstractPipe, ::Type{T}) where {T}	modelled	iocov-io-pipe-forward	
+base/io.jl	535	535	wait_readnb	wait_readnb(io::AbstractPipe, nb::Int)	modelled	iocov-io-pipe-forward	
+base/io.jl	536	538	eof	eof(io::AbstractPipe; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-pipe-eof	
+base/io.jl	540	540	isopen	isopen(io::AbstractPipe)	modelled	iocov-io-pipe-isopen	
+base/io.jl	541	541	close	close(io::AbstractPipe)	modelled	iocov-io-pipe-close	
+base/io.jl	542	542	wait_close	wait_close(io::AbstractPipe)	modelled	iocov-io-pipe-wait-close	
+base/io.jl	555	555	write	write(filename::AbstractString, a1, args...)	modelled	iocov-io-filename-basic	
+base/io.jl	571	571	read	read(filename::AbstractString, args...)	modelled	iocov-io-filename-basic	
+base/io.jl	573	573	read	read(filename::AbstractString, ::Type{T}) where {T}	modelled	iocov-io-filename-basic	
+base/io.jl	581	581	read!	read!	excluded		no-behaviour: empty generic-function declaration
+base/io.jl	584	584	read!	read!(filename::AbstractString, a)	modelled	iocov-io-filename-basic	
+base/io.jl	623	623	readuntil	readuntil(filename::AbstractString, delim; kw...)	modelled	iocov-io-filename-text	
+base/io.jl	624	626	readuntil	readuntil(stream::IO, delim::UInt8; cancel::CancelTokenArg=DEFAULT_CANCEL, kw...)	modelled	iocov-io-readuntil-byte	
+base/io.jl	627	629	readuntil	readuntil(stream::IO, delim::Union{AbstractChar, AbstractString}; cancel::CancelTokenArg=DEFAULT_CANCEL, kw...)	modelled	iocov-io-readuntil-text	
+base/io.jl	630	633	readuntil	readuntil(stream::IO, delim::T; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL) where T	modelled	iocov-io-copyuntil-scalar	
+base/io.jl	666	666	copyuntil	copyuntil(out::IO, filename::AbstractString, delim; kw...)	modelled	iocov-io-filename-text	
+base/io.jl	710	713	readline	readline(filename::AbstractString; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-filename-text	
+base/io.jl	714	716	readline	readline(s::IO=stdin; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-readline	
+base/io.jl	753	757	copyline	copyline(out::IO, filename::AbstractString; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-filename-text	
+base/io.jl	760	779	copyline	copyline(out::IO, s::IO; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-copyline-cr-crlf,iocov-io-copyline-plain	
+base/io.jl	807	811	readlines	readlines(filename::AbstractString; kw...)	modelled	iocov-io-filename-text	
+base/io.jl	812	813	readlines	readlines(s=stdin; cancel::CancelTokenArg=DEFAULT_CANCEL, kw...)	modelled	iocov-io-readlines	
+base/io.jl	821	821	ntoh	ntoh(x)	modelled	iocov-io-endian-methods	
+base/io.jl	822	822	hton	hton(x)	modelled	iocov-io-endian-methods	
+base/io.jl	823	823	ltoh	ltoh(x)	modelled	iocov-io-endian-methods	
+base/io.jl	824	824	htol	htol(x)	modelled	iocov-io-endian-methods	
+base/io.jl	827	827	ntoh	ntoh(x)	modelled	iocov-io-endian-methods	
+base/io.jl	828	828	hton	hton(x)	modelled	iocov-io-endian-methods	
+base/io.jl	829	829	ltoh	ltoh(x)	modelled	iocov-io-endian-methods	
+base/io.jl	830	830	htol	htol(x)	modelled	iocov-io-endian-methods	
+base/io.jl	893	893	isreadonly	isreadonly(s)	modelled	iocov-io-isreadonly	
+base/io.jl	897	897	write	write(io::IO, x)	modelled	iocov-io-write-fallback	
+base/io.jl	898	905	write	write(io::IO, x1, xs...; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-write-many	
+base/io.jl	907	908	unsafe_write	unsafe_write(s::IO, p::Ref{T}, n::Integer) where {T}	modelled	iocov-io-unsafe-write-ptr	
+base/io.jl	909	909	unsafe_write	unsafe_write(s::IO, p::Ptr, n::Integer)	modelled	iocov-io-unsafe-write-ptr	
+base/io.jl	910	917	write	write(s::IO, x::Ref{T}) where {T}	modelled	iocov-io-write-ref	
+base/io.jl	918	918	write	write(s::IO, x::Int8)	modelled	iocov-io-write-read-int8	
+base/io.jl	919	921	write	write(s::IO, x::Union{Int16,UInt16,Int32,UInt32,Int64,UInt64,Int128,UInt128,Float16,Float32,Float64})	modelled	iocov-io-write-read-int,iocov-io-write-read-float	
+base/io.jl	923	923	write	write(s::IO, x::Bool)	modelled	iocov-io-write-read-bool	
+base/io.jl	924	924	write	write(to::IO, p::Ptr)	modelled	iocov-io-write-read-ptr	
+base/io.jl	926	938	write	write(s::IO, A::AbstractArray; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-write-array	
+base/io.jl	940	971	write	write(s::IO, A::StridedArray; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-write-strided	
+base/io.jl	973	980	write	write(io::IO, c::Char)	modelled	iocov-io-char-roundtrip	
+base/io.jl	984	987	write	write(io::IO, s::Symbol)	modelled	iocov-io-write-symbol	
+base/io.jl	989	995	write	write(to::IO, from::IO)	modelled	iocov-io-write-from-io	
+base/io.jl	997	997	unsafe_read	unsafe_read(s::IO, p::Ref{T}, n::Integer) where {T}	modelled	iocov-io-unsafe-read-ptr	
+base/io.jl	998	998	unsafe_read	unsafe_read(s::IO, p::Ptr, n::Integer)	modelled	iocov-io-unsafe-read-ptr	
+base/io.jl	999	1007	read!	read!(s::IO, x::Ref{T}) where {T}	modelled	iocov-io-read-ref	
+base/io.jl	1009	1009	read	read(s::IO, ::Type{Int8})	modelled	iocov-io-write-read-int8	
+base/io.jl	1010	1014	read	read(s::IO, T::Union{Type{Int16},Type{UInt16},Type{Int32},Type{UInt32},Type{Int64},Type{UInt64},Type{Int128},Type{UInt128},Type{Float16},Type{Float32},Type{Float64}})	modelled	iocov-io-write-read-int,iocov-io-write-read-float	
+base/io.jl	1016	1016	read	read(s::IO, ::Type{Bool})	modelled	iocov-io-read-bool	
+base/io.jl	1017	1017	read	read(s::IO, ::Type{Ptr{T}}) where {T}	modelled	iocov-io-write-read-ptr	
+base/io.jl	1019	1037	read!	read!(s::IO, A::AbstractArray{T}; cancel::CancelTokenArg=DEFAULT_CANCEL) where {T}	modelled	iocov-io-read-array	
+base/io.jl	1043	1046	write	write(s::IO, B::BitArray; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-write-bitarray	
+base/io.jl	1047	1057	read!	read!(s::IO, B::BitArray; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-read-bitarray	
+base/io.jl	1059	1089	read!	read!(s::IO, A::StridedArray{T}; cancel::CancelTokenArg=DEFAULT_CANCEL) where {T}	modelled	iocov-io-read-strided	
+base/io.jl	1091	1106	read	read(io::IO, ::Type{Char})	modelled	iocov-io-char-roundtrip	
+base/io.jl	1110	1124	copyuntil	copyuntil(out::IO, s::IO, delim::AbstractChar; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-copyuntil-char	
+base/io.jl	1128	1131	copyuntil	copyuntil(out::IO, s::IO, delim; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-copyuntil-scalar	
+base/io.jl	1134	1144	_copyuntil	_copyuntil(out, s::IO, delim::T, keep::Bool) where T	modelled	iocov-io-copyuntil-scalar	
+base/io.jl	1161	1230	readuntil_vector!	readuntil_vector!(io::IO, target::AbstractVector{T}, keep::Bool, out) where {T}	modelled	iocov-io-readuntil-vector-core	
+base/io.jl	1232	1248	copyuntil	copyuntil(out::IO, io::IO, target::AbstractString; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-copyuntil-string	
+base/io.jl	1253	1260	readuntil	readuntil(io::IO, target::AbstractVector{T}; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL) where T	modelled	iocov-io-until-vector-wrappers	
+base/io.jl	1261	1267	copyuntil	copyuntil(out::IO, io::IO, target::AbstractVector; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-until-vector-wrappers	
+base/io.jl	1285	1290	readchomp	readchomp(x; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-readchomp	
+base/io.jl	1301	1319	readbytes!	readbytes!(s::IO, b::AbstractArray{UInt8}, nb=length(b); cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-readbytes	
+base/io.jl	1326	1335	read	read(s::IO, nb::Integer = typemax(Int); cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-read-count	
+base/io.jl	1337	1344	read	read(s::IO, ::Type{String}; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-read-string	
+base/io.jl	1345	1345	read	read(s::IO, T::Type)	modelled	iocov-io-read-type-fallback	
+base/io.jl	1354	1356	EachLine	EachLine(stream::IO=stdin; ondone::Function=()->nothing, keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-eachline-basic	
+base/io.jl	1392	1394	eachline	eachline(stream::IO=stdin; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-eachline-basic	
+base/io.jl	1396	1399	eachline	eachline(filename::AbstractString; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iocov-io-eachline-file	
+base/io.jl	1401	1409	iterate	iterate(itr::EachLine, state=nothing)	modelled	iocov-io-eachline-iterate	
+base/io.jl	1411	1411	eltype	eltype(::Type{<:EachLine})	modelled	iocov-io-eachline-basic	
+base/io.jl	1413	1413	IteratorSize	IteratorSize(::Type{<:EachLine})	modelled	iocov-io-eachline-basic	
+base/io.jl	1415	1415	isdone	isdone(itr::EachLine, state...)	modelled	iocov-io-eachline-basic	
+base/io.jl	1419	1439	iterate	iterate(r::Iterators.Reverse{<:EachLine})	modelled	iocov-io-eachline-reverse-init	
+base/io.jl	1440	1519	iterate	iterate(r::Iterators.Reverse{<:EachLine}, state)	modelled	iocov-eachline-reverse-first-line,iocov-io-eachline-reverse-state	
+base/io.jl	1441	1448	_stripnewline	_stripnewline(keep, pos, data)	modelled	iocov-io-reverse-strip-newline	
+base/io.jl	1520	1520	isdone	isdone(r::Iterators.Reverse{<:EachLine}, state)	modelled	iocov-io-eachline-reverse-tail	
+base/io.jl	1521	1521	isdone	isdone(r::Iterators.Reverse{<:EachLine})	modelled	iocov-io-eachline-reverse-tail	
+base/io.jl	1524	1524	last	last(itr::EachLine)	modelled	iocov-io-eachline-reverse-tail	
+base/io.jl	1551	1551	readeach	readeach(stream::IOT, T::Type) where IOT<:IO	modelled	iocov-io-readeach-basic	
+base/io.jl	1553	1554	iterate	iterate(itr::ReadEachIterator{T}, state=nothing) where T	modelled	iocov-io-readeach-iterate	
+base/io.jl	1556	1556	eltype	eltype(::Type{<:ReadEachIterator{T}}) where {T}	modelled	iocov-io-readeach-basic	
+base/io.jl	1557	1557	eltype	eltype(::Type{ReadEachIterator})	modelled	iocov-io-readeach-basic	
+base/io.jl	1559	1559	IteratorSize	IteratorSize(::Type{<:ReadEachIterator})	modelled	iocov-io-readeach-basic	
+base/io.jl	1561	1561	isdone	isdone(itr::ReadEachIterator, state...)	modelled	iocov-io-readeach-basic	
+base/io.jl	1575	1577	mark	mark(io::IO)	modelled	iocov-io-mark	
+base/io.jl	1586	1590	unmark	unmark(io::IO)	modelled	iocov-io-unmark	
+base/io.jl	1600	1606	reset	reset(io::T) where T<:IO	modelled	iocov-io-reset	
+base/io.jl	1615	1615	ismarked	ismarked(io::IO)	modelled	iocov-io-ismarked	
+base/io.jl	1620	1620	flush	flush(io::IO)	excluded		no-behaviour: flush(::IO) returns nothing
+base/io.jl	1643	1653	skipchars	skipchars(predicate, io::IO; linecomment=nothing)	modelled	iocov-skipchars-nonseekable,iocov-io-skipchars	
+base/io.jl	1700	1715	countlines	countlines(io::IO; eol::AbstractChar='\n')	modelled	iocov-io-countlines	
+base/io.jl	1717	1717	countlines	countlines(f::AbstractString; eol::AbstractChar = '\n')	modelled	iocov-io-filename-text	

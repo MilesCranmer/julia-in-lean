@@ -1,0 +1,54 @@
+id: iocov-iobuffer-show-compacted
+title: "show(::IOBuffer) prints the internal pointer, not the position, after a PipeBuffer was compacted"
+priority: P3
+kind: wrong-result
+area: IOCov
+files: [base/iobuffer.jl]
+functions: ["show(::IO, ::GenericIOBuffer)"]
+summary: |
+  show prints ptr=b.ptr - get_offset(b) and size=b.size - get_offset(b). After a
+  non-seekable buffer has been compacted, get_offset is 0 while the discarded bytes are
+  recorded in offset_or_compacted, so the printed ptr and size refer to internal
+  indices. A PipeBuffer at position 90 prints ptr=1 (and size=2010 of 2100 written
+  bytes), while for uncompacted buffers ptr is always position+1.
+likelihood: |
+  Seen whenever a PipeBuffer or other non-seekable buffer is displayed after enough
+  reading and writing to trigger compaction; only the printed text is affected.
+maybe_intended: |
+  The fields shown are internal, but the docstring examples (for example skipchars,
+  base/io.jl:1628-1632) use the printed ptr as the read position.
+reproducer: |
+  pb = PipeBuffer()
+  write(pb, "x"^100); read(pb, 90); write(pb, "y"^2000)
+  println(sprint(show, pb))
+  println("position(pb) = ", position(pb), ", bytesavailable(pb) = ", bytesavailable(pb))
+  m = match(r"ptr=(\d+)", sprint(show, pb))
+  if parse(Int, m.captures[1]) != position(pb) + 1
+      println("REPRODUCED iocov-iobuffer-show-compacted")
+  end
+output:
+  release: |
+    IOBuffer(data=UInt8[...], readable=true, writable=true, seekable=false, append=true, size=2010, maxsize=Inf, ptr=1, mark=-1)
+    position(pb) = 90, bytesavailable(pb) = 2010
+    REPRODUCED iocov-iobuffer-show-compacted
+  nightly: |
+    IOBuffer(data=UInt8[...], readable=true, writable=true, seekable=false, append=true, size=2010, maxsize=Inf, ptr=1, mark=-1)
+    position(pb) = 90, bytesavailable(pb) = 2010
+    REPRODUCED iocov-iobuffer-show-compacted
+reproduced: {release: true, nightly: true}
+expected: |
+  ptr=91 (position + 1), as for a buffer that was not compacted.
+promised_by: |
+  Invariant of the printed form: for every uncompacted buffer ptr is position(b) + 1,
+  and the skipchars docstring example reads it that way.
+cause: |
+  base/iobuffer.jl:334-342: show subtracts get_offset(b) but not get_compacted(b).
+possible_fix: |
+  Print position(b) + 1 and the size as filesize/bytesavailable-based values, e.g.
+  ptr = b.ptr - b.offset_or_compacted.
+duplicates:
+  issues: []
+  queries: ["IOBuffer show ptr", "IOBuffer show compacted"]
+lean:
+  property: JuliaLean.IOCov.IOBuf.ShowPtrPosition
+  theorem: JuliaLean.IOCov.IOBuf.showPtrPosition_refuted

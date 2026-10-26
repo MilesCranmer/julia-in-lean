@@ -1,0 +1,61 @@
+id: concurrencycov-timev-zero-counters
+title: "@timev prints zero-valued counters although documented to print only non-zero ones"
+priority: P3
+kind: documentation
+area: Timing
+files: [base/timing.jl]
+functions: ["@timev", "timev_print", "padded_nonzero_print"]
+summary: |
+  The @timev docstring says it prints the @time line and then "any non-zero memory
+  allocation counters". timev_print calls padded_nonzero_print with its default
+  always_print=true for seven of the ten counters, so lines such as
+  "gc time (ns): 0" and "full collections: 0" are printed every time.
+likelihood: |
+  Every @timev call whose counters include a zero.
+maybe_intended: |
+  Always printing a fixed set of counters may be deliberate; then the docstring and
+  its example (which omit zero counters) are out of date.
+reproducer: |
+  @timev 1 + 1
+output:
+  release: |
+    0.000000 seconds
+    elapsed time (ns):  491.00000000000006
+    gc time (ns):       0
+    bytes allocated:    0
+    pool allocs:        0
+    non-pool GC allocs: 0
+    minor collections:  0
+    full collections:   0
+    zero-valued counter lines: SubString{String}["gc time (ns):       0", "bytes allocated:    0", "pool allocs:        0", "non-pool GC allocs: 0", "minor collections:  0", "full collections:   0"]
+    REPRODUCED concurrencycov-timev-zero-counters
+  nightly: |
+    0.000002 seconds
+    elapsed time (ns):  2074.0
+    gc time (ns):       0
+    bytes allocated:    0
+    pool allocs:        0
+    non-pool GC allocs: 0
+    minor collections:  0
+    full collections:   0
+    zero-valued counter lines: SubString{String}["gc time (ns):       0", "bytes allocated:    0", "pool allocs:        0", "non-pool GC allocs: 0", "minor collections:  0", "full collections:   0"]
+    REPRODUCED concurrencycov-timev-zero-counters
+reproduced: {release: true, nightly: true}
+expected: |
+  Only the counters with non-zero values after the time line, as in the docstring's
+  second example (elapsed time, bytes allocated, pool allocs).
+promised_by: |
+  base/timing.jl:435-437: "It first prints the same information as `@time`, then any
+  non-zero memory allocation counters, and then returns the value of the expression."
+cause: |
+  base/timing.jl:212 defaults `always_print = true`, and lines 312-316 and 322-323
+  call padded_nonzero_print without overriding it.
+possible_fix: |
+  Pass `false` for the allocation counters (or change the default), or update the
+  docstring to describe the fixed set of printed counters.
+duplicates:
+  issues: []
+  queries: ["timev output", "padded_nonzero_print", "timev elapsed time"]
+lean:
+  property: JuliaLean.ConcurrencyCov.Timing.TimevNonzeroCounters
+  theorem: JuliaLean.ConcurrencyCov.Timing.timevNonzeroCounters_refuted

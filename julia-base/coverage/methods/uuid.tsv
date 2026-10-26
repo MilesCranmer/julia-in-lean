@@ -1,0 +1,21 @@
+file	line	endline	name	signature	status	entry	note
+base/uuid.jl	11	11	UUID	UUID(u::UUID)	modelled	intfuncscov-uuid-bits	
+base/uuid.jl	12	12	UUID	UUID(u::NTuple{2, UInt64})	modelled	intfuncscov-uuid-bits	
+base/uuid.jl	13	14	UUID	UUID(u::NTuple{4, UInt32})	modelled	intfuncscov-uuid-bits	
+base/uuid.jl	16	21	convert	convert(::Type{NTuple{2, UInt64}}, uuid::UUID)	modelled	intfuncscov-uuid-bits	
+base/uuid.jl	23	30	convert	convert(::Type{NTuple{4, UInt32}}, uuid::UUID)	modelled	intfuncscov-uuid-bits	
+base/uuid.jl	32	32	UInt128	UInt128(u::UUID)	modelled	intfuncscov-uuid-bits	
+base/uuid.jl	36	36	Base.hash	Base.hash(uuid::UUID, h::UInt)	modelled	intfuncscov-uuid-bits	
+base/uuid.jl	39	39	_crc32c	_crc32c(uuid::UUID, crc::UInt32=0x00000000)	modelled	intfuncscov-uuid-bits	
+base/uuid.jl	44	57	takebytes	takebytes(units, y, n::Int)	modelled	intfuncscov-uuid-parse	
+base/uuid.jl	62	79	parseuuid	parseuuid(units)	modelled	intfuncscov-uuid-parse	
+base/uuid.jl	81	81	Parsers.parsevalue	Parsers.parsevalue(::Type{UUID}, bytes::AbstractVector{UInt8})	modelled	intfuncscov-uuid-parse	
+base/uuid.jl	83	86	tryparse	tryparse(::Type{UUID}, s::AbstractString)	modelled	intfuncscov-uuid-parse	
+base/uuid.jl	89	89	throw_malformed_uuid	throw_malformed_uuid(s)	modelled	intfuncscov-uuid-parse	
+base/uuid.jl	90	93	Base.parse	Base.parse(::Type{UUID}, s::AbstractString)	modelled	base64uuid-uuid-string-roundtrip	
+base/uuid.jl	96	96	UUID	UUID(s::AbstractString)	modelled	base64uuid-uuid-string-roundtrip	
+base/uuid.jl	100	115	string	string(u::UUID)	modelled	base64uuid-uuid-string-roundtrip	
+base/uuid.jl	118	118	print	print(io::IO, u::UUID)	modelled	intfuncscov-uuid-display	
+base/uuid.jl	119	119	show	show(io::IO, u::UUID)	modelled	intfuncscov-uuid-display	
+base/uuid.jl	121	121	isless	isless(a::UUID, b::UUID)	modelled	intfuncscov-uuid-display	
+base/uuid.jl	124	124	Base.broadcastable	Base.broadcastable(x::UUID)	modelled	intfuncscov-uuid-display	

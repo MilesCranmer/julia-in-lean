@@ -1,0 +1,128 @@
+file	line	endline	name	signature	status	entry	note
+base/reduce.jl	16	16	add_sum	add_sum(x, y)	modelled	reducecov-reduce-arithmetic	
+base/reduce.jl	17	17	add_sum	add_sum(x::Union{Bool,BitIntegerSmall}, y::Union{Bool,BitIntegerSmall})	modelled	reducecov-reduce-arithmetic	
+base/reduce.jl	18	18	add_sum	add_sum(x::BitUnsignedSmall, y::BitUnsignedSmall)	modelled	reducecov-reduce-arithmetic	
+base/reduce.jl	19	19	add_sum	add_sum(x::Real, y::Real)::Real	modelled	reducecov-reduce-arithmetic	
+base/reduce.jl	27	27	mul_prod	mul_prod(x, y)	modelled	reducecov-reduce-arithmetic	
+base/reduce.jl	28	28	mul_prod	mul_prod(x::BitSignedSmall, y::BitSignedSmall)	modelled	reducecov-reduce-arithmetic	
+base/reduce.jl	29	29	mul_prod	mul_prod(x::BitUnsignedSmall, y::BitUnsignedSmall)	modelled	reducecov-reduce-arithmetic	
+base/reduce.jl	30	30	mul_prod	mul_prod(x::Real, y::Real)::Real	modelled	reducecov-reduce-arithmetic	
+base/reduce.jl	32	32	and_all	and_all(x, y)	modelled	reducecov-reduce-arithmetic	
+base/reduce.jl	33	33	or_any	or_any(x, y)	modelled	reducecov-reduce-arithmetic	
+base/reduce.jl	35	35	and_all	and_all(x::Bool, y::Bool)	modelled	reducecov-reduce-arithmetic	
+base/reduce.jl	36	36	or_any	or_any(x::Bool, y::Bool)	modelled	reducecov-reduce-arithmetic	
+base/reduce.jl	40	43	mapfoldl_impl	mapfoldl_impl(f::F, op::OP, nt, itr) where {F,OP}	modelled	reducecov-reduce-folds	
+base/reduce.jl	45	49	foldl_impl	foldl_impl(op::OP, nt, itr) where {OP}	modelled	reducecov-reduce-folds	
+base/reduce.jl	51	63	_foldl_impl	_foldl_impl(op::OP, init, itr) where {OP}	modelled	reducecov-reduce-folds	
+base/reduce.jl	65	68	_foldl_impl	_foldl_impl(op, init, itr::Union{Tuple,NamedTuple})	modelled	reducecov-reduce-folds	
+base/reduce.jl	83	83	(op::BottomRF)	(op::BottomRF)(::_InitialValue, x)	modelled	reducecov-reduce-folds	
+base/reduce.jl	84	84	(op::BottomRF)	(op::BottomRF)(acc, x)	modelled	reducecov-reduce-folds	
+base/reduce.jl	94	94	MappingRF	MappingRF(f::F, rf::T) where {F,T}	modelled	reducecov-reduce-folds	
+base/reduce.jl	95	95	MappingRF	MappingRF(::Type{f}, rf::T) where {f,T}	modelled	reducecov-reduce-folds	
+base/reduce.jl	98	98	(op::MappingRF)	(op::MappingRF)(acc, x)	modelled	reducecov-reduce-folds	
+base/reduce.jl	110	110	(op::FilteringRF)	(op::FilteringRF)(acc, x)	modelled	reducecov-reduce-folds	
+base/reduce.jl	122	125	(op::FlatteningRF)	(op::FlatteningRF)(acc, x)	modelled	reducecov-reduce-folds	
+base/reduce.jl	146	149	_xfadjoint	_xfadjoint(op, itr)	modelled	reducecov-reduce-folds	
+base/reduce.jl	151	151	_xfadjoint_unwrap	_xfadjoint_unwrap(itr)	modelled	reducecov-reduce-folds	
+base/reduce.jl	152	156	_xfadjoint_unwrap	_xfadjoint_unwrap(itr::Generator)	modelled	reducecov-reduce-folds	
+base/reduce.jl	157	160	_xfadjoint_unwrap	_xfadjoint_unwrap(itr::Filter)	modelled	reducecov-reduce-folds	
+base/reduce.jl	161	164	_xfadjoint_unwrap	_xfadjoint_unwrap(itr::Flatten)	modelled	reducecov-reduce-folds	
+base/reduce.jl	173	173	mapfoldl	mapfoldl(f, op, itr; init=_InitialValue())	modelled	reduce-fold-init	
+base/reduce.jl	196	196	foldl	foldl(op, itr; kw...)	modelled	reduce-flatten-foldl,reduce-fold-init	
+base/reduce.jl	200	203	mapfoldr_impl	mapfoldr_impl(f, op, nt, itr)	modelled	reducecov-reduce-right-folds	
+base/reduce.jl	206	206	_reverse_iter	_reverse_iter(itr)	modelled	reducecov-reduce-right-folds	
+base/reduce.jl	207	207	_reverse_iter	_reverse_iter(itr::Union{Tuple,NamedTuple})	modelled	reducecov-reduce-right-folds	
+base/reduce.jl	213	213	(f::FlipArgs)	(f::FlipArgs)(x, y)	modelled	reducecov-reduce-right-folds	
+base/reduce.jl	222	222	mapfoldr	mapfoldr(f::F, op::F2, itr; init=_InitialValue()) where {F,F2}	modelled	reduce-fold-init,reduce-foldr-reduce-first	
+base/reduce.jl	241	241	foldr	foldr(op::F, itr; kw...) where {F}	modelled	reduce-fold-init,reduce-foldr-reduce-first	
+base/reduce.jl	252	274	mapreduce_impl	mapreduce_impl(f, op, A::AbstractArrayOrBroadcasted, ifirst::Integer, ilast::Integer, blksize::Int)	modelled	reducecov-reduce-mapreduce	
+base/reduce.jl	276	277	mapreduce_impl	mapreduce_impl(f, op, A::AbstractArrayOrBroadcasted, ifirst::Integer, ilast::Integer)	modelled	reducecov-reduce-mapreduce	
+base/reduce.jl	306	306	mapreduce	mapreduce(f, op, itr; kw...)	modelled	reducecov-reduce-mapreduce	
+base/reduce.jl	307	307	mapreduce	mapreduce(f, op, itr, itrs...; kw...)	modelled	reducecov-reduce-mapreduce	
+base/reduce.jl	311	311	pairwise_blocksize	pairwise_blocksize(f, op)	modelled	reducecov-reduce-mapreduce	
+base/reduce.jl	314	314	pairwise_blocksize	pairwise_blocksize(::typeof(abs2), ::typeof(+))	modelled	reducecov-reduce-mapreduce	
+base/reduce.jl	318	318	_empty_reduce_error	_empty_reduce_error()	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	319	319	reduce_empty	reduce_empty(f, T)	modelled	arrayops-sum-prod	
+base/reduce.jl	320	320	mapreduce_empty	mapreduce_empty(f, op, T)	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	321	321	reduce_empty	reduce_empty(f, ::Type{Union{}}, splat...)	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	322	322	mapreduce_empty	mapreduce_empty(f, op, ::Type{Union{}}, splat...)	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	342	342	reduce_empty	reduce_empty(::typeof(+), ::Type{T}) where {T}	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	343	343	reduce_empty	reduce_empty(::typeof(+), ::Type{Bool})	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	344	344	reduce_empty	reduce_empty(::typeof(*), ::Type{T}) where {T}	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	345	345	reduce_empty	reduce_empty(::typeof(*), ::Type{<:AbstractChar})	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	346	346	reduce_empty	reduce_empty(::typeof(&), ::Type{Bool})	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	347	347	reduce_empty	reduce_empty(::typeof(|), ::Type{Bool})	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	348	348	reduce_empty	reduce_empty(::typeof(and_all), ::Type{T}) where {T}	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	349	349	reduce_empty	reduce_empty(::typeof(or_any), ::Type{T}) where {T}	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	351	351	reduce_empty	reduce_empty(::typeof(add_sum), ::Type{T}) where {T}	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	352	352	reduce_empty	reduce_empty(::typeof(add_sum), ::Type{T}) where {T<:BitSignedSmall}	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	353	353	reduce_empty	reduce_empty(::typeof(add_sum), ::Type{T}) where {T<:BitUnsignedSmall}	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	354	354	reduce_empty	reduce_empty(::typeof(mul_prod), ::Type{T}) where {T}	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	355	355	reduce_empty	reduce_empty(::typeof(mul_prod), ::Type{T}) where {T<:BitSignedSmall}	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	356	356	reduce_empty	reduce_empty(::typeof(mul_prod), ::Type{T}) where {T<:BitUnsignedSmall}	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	358	358	reduce_empty	reduce_empty(op::BottomRF, ::Type{T}) where {T}	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	359	359	reduce_empty	reduce_empty(op::MappingRF, ::Type{T}) where {T}	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	360	360	reduce_empty	reduce_empty(op::FilteringRF, ::Type{T}) where {T}	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	361	361	reduce_empty	reduce_empty(op::FlipArgs, ::Type{T}) where {T}	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	370	370	mapreduce_empty	mapreduce_empty(::typeof(identity), op, T)	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	371	371	mapreduce_empty	mapreduce_empty(::typeof(abs), op, T)	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	372	372	mapreduce_empty	mapreduce_empty(::typeof(abs2), op, T)	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	374	374	mapreduce_empty	mapreduce_empty(f::typeof(abs), ::typeof(max), T)	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	375	375	mapreduce_empty	mapreduce_empty(f::typeof(abs2), ::typeof(max), T)	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	378	379	mapreduce_empty_iter	mapreduce_empty_iter(f::F, op::F2, itr, ItrEltype) where {F,F2}	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	381	381	reduce_empty_iter	reduce_empty_iter(op, itr)	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	382	382	reduce_empty_iter	reduce_empty_iter(op, itr, ::HasEltype)	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	389	390	reduce_empty_iter	reduce_empty_iter(op, itr::Tuple{Vararg{T}}, ::HasEltype) where {T}	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	391	393	reduce_empty_iter	reduce_empty_iter(op, itr, ::EltypeUnknown)	modelled	reducecov-reduce-empty-methods	
+base/reduce.jl	409	409	reduce_first	reduce_first(op, x)	modelled	reducecov-reduce-first-methods	
+base/reduce.jl	410	410	reduce_first	reduce_first(::typeof(+), x::Bool)	modelled	reducecov-reduce-first-methods	
+base/reduce.jl	411	411	reduce_first	reduce_first(::typeof(*), x::AbstractChar)	modelled	reducecov-reduce-first-methods	
+base/reduce.jl	413	413	reduce_first	reduce_first(::typeof(add_sum), x)	modelled	reducecov-reduce-first-methods	
+base/reduce.jl	414	414	reduce_first	reduce_first(::typeof(add_sum), x::BitSignedSmall)	modelled	reducecov-reduce-first-methods	
+base/reduce.jl	415	415	reduce_first	reduce_first(::typeof(add_sum), x::BitUnsignedSmall)	modelled	reducecov-reduce-first-methods	
+base/reduce.jl	416	416	reduce_first	reduce_first(::typeof(mul_prod), x)	modelled	reducecov-reduce-first-methods	
+base/reduce.jl	417	417	reduce_first	reduce_first(::typeof(mul_prod), x::BitSignedSmall)	modelled	reducecov-reduce-first-methods	
+base/reduce.jl	418	418	reduce_first	reduce_first(::typeof(mul_prod), x::BitUnsignedSmall)	modelled	reducecov-reduce-first-methods	
+base/reduce.jl	419	419	reduce_first	reduce_first(::typeof(vcat), x)	modelled	reducecov-reduce-first-methods	
+base/reduce.jl	420	420	reduce_first	reduce_first(::typeof(hcat), x)	modelled	reducecov-reduce-first-methods	
+base/reduce.jl	432	432	mapreduce_first	mapreduce_first(f, op, x)	modelled	reducecov-reduce-mapreduce	
+base/reduce.jl	434	434	_mapreduce	_mapreduce(f, op, A::AbstractArrayOrBroadcasted)	modelled	reducecov-reduce-mapreduce	
+base/reduce.jl	436	457	_mapreduce	_mapreduce(f, op, ::IndexLinear, A::AbstractArrayOrBroadcasted)	modelled	reducecov-reduce-mapreduce	
+base/reduce.jl	459	459	mapreduce	mapreduce(f, op, a::Number)	modelled	reducecov-reduce-mapreduce	
+base/reduce.jl	461	461	_mapreduce	_mapreduce(f, op, ::IndexCartesian, A::AbstractArrayOrBroadcasted)	modelled	reducecov-reduce-mapreduce	
+base/reduce.jl	498	498	reduce	reduce(op, itr; kw...)	modelled	reduce-pairwise-foldl	
+base/reduce.jl	500	500	reduce	reduce(op, a::Number)	modelled	reducecov-reduce-number	
+base/reduce.jl	543	543	sum	sum(f, a; kw...)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	572	572	sum	sum(a; kw...)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	573	574	sum	sum(a::AbstractArray{Bool}; kw...)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	599	599	prod	prod(f, a; kw...)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	628	628	prod	prod(a; kw...)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	656	656	maximum	maximum(f, a; kw...)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	683	683	minimum	minimum(f, a; kw...)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	715	715	maximum	maximum(a; kw...)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	747	747	minimum	minimum(a; kw...)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	776	776	extrema	extrema(itr; kw...)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	806	806	extrema	extrema(f, itr; kw...)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	813	813	ExtremaMap	ExtremaMap(::Type{T}) where {T}	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	814	814	(f::ExtremaMap)	(f::ExtremaMap)(x)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	816	816	_extrema_rf	_extrema_rf((min1, max1), (min2, max2))	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	851	851	findmax	findmax(f, domain)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	852	852	_findmax	_findmax(f, domain, ::Colon)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	853	853	_rf_findmax	_rf_findmax((fm, im), (fx, ix))	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	880	880	findmax	findmax(itr)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	881	881	_findmax	_findmax(a, ::Colon)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	917	917	findmin	findmin(f, domain)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	918	918	_findmin	_findmin(f, domain, ::Colon)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	919	919	_rf_findmin	_rf_findmin((fm, im), (fx, ix))	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	946	946	findmin	findmin(itr)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	947	947	_findmin	_findmin(a, ::Colon)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	973	973	argmax	argmax(f, domain)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	1002	1002	argmax	argmax(itr)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	1031	1031	argmin	argmin(f, domain)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	1060	1060	argmin	argmin(itr)	modelled	reducecov-reduce-public-methods	
+base/reduce.jl	1064	1064	_bool	_bool(f)	modelled	reducecov-reduce-count	
+base/reduce.jl	1091	1091	count	count(itr; init=0)	modelled	reducecov-reduce-count	
+base/reduce.jl	1093	1093	count	count(f, itr; init=0)	modelled	reducecov-reduce-count	
+base/reduce.jl	1095	1095	_simple_count	_simple_count(pred, itr, init)	modelled	reducecov-reduce-count	
+base/reduce.jl	1097	1113	_simple_count	_simple_count(::typeof(identity), x::Array{Bool}, init=0)	modelled	reducecov-reduce-count	
+base/reduce.jl	1117	1119	_foldl_impl	_foldl_impl(op::typeof(BottomRF($f)), init, r::AbstractRange)	modelled	reducecov-reduce-count	

@@ -1,0 +1,21 @@
+file	line	endline	name	signature	status	entry	note
+base/multinverses.jl	8	8	unsigned	unsigned(::Type{Bool})	modelled	intfuncscov-multiplicative-inverse-source	
+base/multinverses.jl	9	9	unsigned	unsigned(::Type{Int8})	modelled	intfuncscov-multiplicative-inverse-source	
+base/multinverses.jl	10	10	unsigned	unsigned(::Type{Int16})	modelled	intfuncscov-multiplicative-inverse-source	
+base/multinverses.jl	11	11	unsigned	unsigned(::Type{Int32})	modelled	intfuncscov-multiplicative-inverse-source	
+base/multinverses.jl	12	12	unsigned	unsigned(::Type{Int64})	modelled	intfuncscov-multiplicative-inverse-source	
+base/multinverses.jl	13	13	unsigned	unsigned(::Type{Int128})	modelled	intfuncscov-multiplicative-inverse-source	
+base/multinverses.jl	14	14	unsigned	unsigned(::Type{T}) where {T<:Unsigned}	modelled	intfuncscov-multiplicative-inverse-source	
+base/multinverses.jl	15	15	unsigned	unsigned(::Type{Union{}}, slurp...)	modelled	intfuncscov-multiplicative-inverse-source	
+base/multinverses.jl	53	88	SignedMultiplicativeInverse{T}	SignedMultiplicativeInverse{T}(d::T) where T<:Signed	modelled	reinterpretarrays-smi-div	
+base/multinverses.jl	90	90	SignedMultiplicativeInverse	SignedMultiplicativeInverse(x::Signed)	modelled	intfuncscov-multiplicative-inverse-source	
+base/multinverses.jl	98	133	UnsignedMultiplicativeInverse{T}	UnsignedMultiplicativeInverse{T}(d::T) where T<:Unsigned	modelled	reinterpretarrays-umi-div	
+base/multinverses.jl	135	135	UnsignedMultiplicativeInverse	UnsignedMultiplicativeInverse(x::Unsigned)	modelled	intfuncscov-multiplicative-inverse-source	
+base/multinverses.jl	137	141	div	div(a::T, b::SignedMultiplicativeInverse{T}) where T	modelled	reinterpretarrays-smi-div,reinterpretarrays-smi-div-typemin	
+base/multinverses.jl	142	146	div	div(a::T, b::UnsignedMultiplicativeInverse{T}) where T	modelled	reinterpretarrays-umi-div	
+base/multinverses.jl	148	149	rem	rem(a::T, b::MultiplicativeInverse{T}) where {T}	modelled	reinterpretarrays-smi-rem-mod,reinterpretarrays-umi-div	
+base/multinverses.jl	151	154	divrem	divrem(a::T, b::MultiplicativeInverse{T}) where T	modelled	reinterpretarrays-smi-div-typemin	
+base/multinverses.jl	156	156	mod	mod(a::T, b::UnsignedMultiplicativeInverse{T}) where {T}	modelled	intfuncscov-multiplicative-inverse-source	
+base/multinverses.jl	158	161	mod	mod(a::T, b::SignedMultiplicativeInverse{T}) where {T}	modelled	reinterpretarrays-smi-rem-mod	
+base/multinverses.jl	163	163	multiplicativeinverse	multiplicativeinverse(x::Signed)	modelled	intfuncscov-multiplicative-inverse-source	
+base/multinverses.jl	164	164	multiplicativeinverse	multiplicativeinverse(x::Unsigned)	modelled	intfuncscov-multiplicative-inverse-source	

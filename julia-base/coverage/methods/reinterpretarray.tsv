@@ -1,0 +1,108 @@
+file	line	endline	name	signature	status	entry	note
+base/reinterpretarray.jl	14	17	throwbits	throwbits(S::Type, T::Type, U::Type)	modelled	multidimcov-reinterpretarray-line14	source-order model and quantified behavior
+base/reinterpretarray.jl	18	22	throwsize0	throwsize0(S::Type, T::Type, msg)	modelled	multidimcov-reinterpretarray-line18	source-order model and quantified behavior
+base/reinterpretarray.jl	23	26	throwsingleton	throwsingleton(S::Type, T::Type)	modelled	multidimcov-reinterpretarray-line23	source-order model and quantified behavior
+base/reinterpretarray.jl	27	31	throwbitpadding	throwbitpadding(S::Type, T::Type, U::Type)	modelled	multidimcov-reinterpretarray-line27	source-order model and quantified behavior
+base/reinterpretarray.jl	73	103	reinterpret	reinterpret(::Type{T}, a::A) where {T,N,S,A<:AbstractArray{S, N}}	modelled	multidimcov-reinterpretarray-line73	source-order model and quantified behavior
+base/reinterpretarray.jl	74	79	thrownonint	thrownonint(S::Type, T::Type, dim)	modelled	multidimcov-reinterpretarray-line74	source-order model and quantified behavior
+base/reinterpretarray.jl	80	84	throwaxes1	throwaxes1(S::Type, T::Type, ax1)	modelled	multidimcov-reinterpretarray-line80	source-order model and quantified behavior
+base/reinterpretarray.jl	104	104	reinterpret	reinterpret(::Type{T}, a::AbstractArray{T}) where {T}	modelled	arraycov-reinterpret-simple-construction	
+base/reinterpretarray.jl	107	144	reinterpret	reinterpret(::typeof(reshape), ::Type{T}, a::A) where {T,S,A<:AbstractArray{S}}	modelled	multidimcov-reinterpretarray-line107	source-order model and quantified behavior
+base/reinterpretarray.jl	108	112	throwintmult	throwintmult(S::Type, T::Type)	modelled	multidimcov-reinterpretarray-faithful-108	row-specific faithful source-order replacement
+base/reinterpretarray.jl	113	118	throwsize1	throwsize1(a::AbstractArray, T::Type)	modelled	multidimcov-reinterpretarray-faithful-113	row-specific faithful source-order replacement
+base/reinterpretarray.jl	119	123	throwfromsingleton	throwfromsingleton(S, T)	modelled	multidimcov-reinterpretarray-faithful-119	row-specific faithful source-order replacement
+base/reinterpretarray.jl	145	145	reinterpret	reinterpret(::typeof(reshape), ::Type{T}, a::AbstractArray{T}) where {T}	modelled	arraycov-reinterpret-simple-construction	
+base/reinterpretarray.jl	190	190	reinterpret	reinterpret(::Type{T}, a::NonReshapedReinterpretArray) where {T}	modelled	multidimcov-reinterpretarray-nested	source-order model and quantified behavior
+base/reinterpretarray.jl	191	191	reinterpret	reinterpret(::typeof(reshape), ::Type{T}, a::ReshapedReinterpretArray) where {T}	modelled	multidimcov-reinterpretarray-nested	source-order model and quantified behavior
+base/reinterpretarray.jl	204	204	strides	strides(a::Union{DenseArray,StridedReshapedArray,StridedReinterpretArray})	modelled	multidimcov-reinterpretarray-strides	source-order model and quantified behavior
+base/reinterpretarray.jl	205	206	stride	stride(A::Union{DenseArray,StridedReshapedArray,StridedReinterpretArray}, k::Integer)	modelled	multidimcov-reinterpretarray-strides	source-order model and quantified behavior
+base/reinterpretarray.jl	208	220	strides	strides(a::ReinterpretArray{T,<:Any,S,<:AbstractArray{S},IsReshaped}) where {T,S,IsReshaped}	modelled	multidimcov-reinterpretarray-strides	source-order model and quantified behavior
+base/reinterpretarray.jl	222	227	_checked_strides	_checked_strides(byte_strides::Tuple, els::Integer)	modelled	multidimcov-reinterpretarray-faithful-222	row-specific faithful source-order replacement
+base/reinterpretarray.jl	229	229	_checkcontiguous	_checkcontiguous(::Type{Bool}, A::ReinterpretArray)	modelled	multidimcov-reinterpretarray-strides	source-order model and quantified behavior
+base/reinterpretarray.jl	231	231	similar	similar(a::ReinterpretArray, T::Type, d::Dims)	modelled	multidimcov-reinterpretarray-strides	source-order model and quantified behavior
+base/reinterpretarray.jl	232	232	similar	similar(::Type{TA}, dims::Dims) where {T,N,O,P,TA<:ReinterpretArray{T,N,O,P}}	modelled	multidimcov-reinterpretarray-strides	source-order model and quantified behavior
+base/reinterpretarray.jl	234	239	check_readable	check_readable(a::ReinterpretArray{T, N, S} where N) where {T,S}	modelled	multidimcov-reinterpretarray-padding-checks	source-order model and quantified behavior
+base/reinterpretarray.jl	241	251	check_writable	check_writable(a::ReinterpretArray{T, N, S} where N) where {T,S}	modelled	multidimcov-reinterpretarray-padding-checks	source-order model and quantified behavior
+base/reinterpretarray.jl	260	261	IndexStyle	IndexStyle(::Type{ReinterpretArray{T,N,S,A,false}}) where {T,N,S,A<:AbstractArray{S,N}}	modelled	multidimcov-reinterpretarray-index-style	source-order model and quantified behavior
+base/reinterpretarray.jl	263	269	IndexStyle	IndexStyle(::Type{ReinterpretArray{T,N,S,A,true}}) where {T,N,S,A<:AbstractArray{S}}	modelled	multidimcov-reinterpretarray-index-style	source-order model and quantified behavior
+base/reinterpretarray.jl	270	270	IndexStyle	IndexStyle(::IndexSCartesian2{K}, ::IndexSCartesian2{K}) where {K}	modelled	multidimcov-reinterpretarray-index-style	source-order model and quantified behavior
+base/reinterpretarray.jl	276	276	to_index	to_index(i::SCartesianIndex2)	modelled	multidimcov-reinterpretarray-scartesian-step	source-order model and quantified behavior
+base/reinterpretarray.jl	277	278	nextind	nextind(::AbstractArray, i::SCartesianIndex2{K}) where {K}	modelled	multidimcov-reinterpretarray-scartesian-step	source-order model and quantified behavior
+base/reinterpretarray.jl	279	280	prevind	prevind(::AbstractArray, i::SCartesianIndex2{K}) where {K}	modelled	multidimcov-reinterpretarray-scartesian-step	source-order model and quantified behavior
+base/reinterpretarray.jl	285	285	SCartesianIndices2{K}	SCartesianIndices2{K}(indices2::AbstractUnitRange{Int}) where {K}	modelled	multidimcov-reinterpretarray-scartesian-iterate	source-order model and quantified behavior
+base/reinterpretarray.jl	287	287	eachindex	eachindex(::IndexSCartesian2{K}, A::ReshapedReinterpretArray) where {K}	modelled	multidimcov-reinterpretarray-scartesian-iterate	source-order model and quantified behavior
+base/reinterpretarray.jl	288	293	eachindex	eachindex(style::IndexSCartesian2{K}, A::AbstractArray, B::AbstractArray...) where {K}	modelled	multidimcov-reinterpretarray-scartesian-iterate	source-order model and quantified behavior
+base/reinterpretarray.jl	295	295	size	size(iter::SCartesianIndices2{K}) where K	modelled	multidimcov-reinterpretarray-scartesian-iterate	source-order model and quantified behavior
+base/reinterpretarray.jl	296	296	axes	axes(iter::SCartesianIndices2{K}) where K	modelled	multidimcov-reinterpretarray-scartesian-iterate	source-order model and quantified behavior
+base/reinterpretarray.jl	298	298	first	first(iter::SCartesianIndices2{K}) where {K}	modelled	multidimcov-reinterpretarray-scartesian-iterate	source-order model and quantified behavior
+base/reinterpretarray.jl	299	299	last	last(iter::SCartesianIndices2{K}) where {K}	modelled	multidimcov-reinterpretarray-scartesian-iterate	source-order model and quantified behavior
+base/reinterpretarray.jl	301	304	getindex	getindex(iter::SCartesianIndices2{K}, i::Int, j::Int) where {K}	modelled	multidimcov-reinterpretarray-scartesian-iterate	source-order model and quantified behavior
+base/reinterpretarray.jl	306	311	iterate	iterate(iter::SCartesianIndices2{K}) where {K}	modelled	multidimcov-reinterpretarray-scartesian-iterate	source-order model and quantified behavior
+base/reinterpretarray.jl	313	322	iterate	iterate(iter::SCartesianIndices2{K}, (state1, item2, state2)) where {K}	modelled	multidimcov-reinterpretarray-scartesian-iterate	source-order model and quantified behavior
+base/reinterpretarray.jl	324	324	SimdLoop.simd_outer_range	SimdLoop.simd_outer_range(iter::SCartesianIndices2)	modelled	multidimcov-reinterpretarray-scartesian-iterate	source-order model and quantified behavior
+base/reinterpretarray.jl	325	325	SimdLoop.simd_inner_length	SimdLoop.simd_inner_length(::SCartesianIndices2{K}, ::Any) where K	modelled	multidimcov-reinterpretarray-scartesian-iterate	source-order model and quantified behavior
+base/reinterpretarray.jl	326	328	SimdLoop.simd_index	SimdLoop.simd_index(::SCartesianIndices2{K}, Ilast::Int, I1::Int) where {K}	modelled	multidimcov-reinterpretarray-scartesian-iterate	source-order model and quantified behavior
+base/reinterpretarray.jl	330	330	_maybe_reshape	_maybe_reshape(::IndexSCartesian2, A::AbstractArray, I...)	modelled	multidimcov-reinterpretarray-scartesian-routing	source-order model and quantified behavior
+base/reinterpretarray.jl	331	331	_maybe_reshape	_maybe_reshape(::IndexSCartesian2, A::ReshapedReinterpretArray, I...)	modelled	multidimcov-reinterpretarray-scartesian-routing	source-order model and quantified behavior
+base/reinterpretarray.jl	334	337	_getindex	_getindex(::IndexSCartesian2, A::AbstractArray, I::Vararg{Int, N}) where {N}	modelled	multidimcov-reinterpretarray-scartesian-routing	source-order model and quantified behavior
+base/reinterpretarray.jl	338	341	_setindex!	_setindex!(::IndexSCartesian2, A::AbstractArray, v, I::Vararg{Int, N}) where {N}	modelled	multidimcov-reinterpretarray-scartesian-routing	source-order model and quantified behavior
+base/reinterpretarray.jl	344	347	_getindex	_getindex(style::IndexSCartesian2, A::AbstractArray, ind::SCartesianIndex2)	modelled	multidimcov-reinterpretarray-scartesian-routing	source-order model and quantified behavior
+base/reinterpretarray.jl	349	352	_setindex!	_setindex!(style::IndexSCartesian2, A::AbstractArray, v, ind::SCartesianIndex2)	modelled	multidimcov-reinterpretarray-scartesian-routing	source-order model and quantified behavior
+base/reinterpretarray.jl	356	360	_scartesian2_trailing	_scartesian2_trailing(style::IndexSCartesian2, A::AbstractArray, ind::SCartesianIndex2)	modelled	multidimcov-reinterpretarray-scartesian-routing	source-order model and quantified behavior
+base/reinterpretarray.jl	362	362	eachindex	eachindex(style::IndexSCartesian2, A::AbstractArray)	modelled	multidimcov-reinterpretarray-scartesian-routing	source-order model and quantified behavior
+base/reinterpretarray.jl	366	366	parent	parent(a::ReinterpretArray)	modelled	multidimcov-reinterpretarray-parent-copy	source-order model and quantified behavior
+base/reinterpretarray.jl	367	367	dataids	dataids(a::ReinterpretArray)	modelled	multidimcov-reinterpretarray-parent-copy	source-order model and quantified behavior
+base/reinterpretarray.jl	368	368	unaliascopy	unaliascopy(a::NonReshapedReinterpretArray{T}) where {T}	modelled	multidimcov-reinterpretarray-parent-copy	source-order model and quantified behavior
+base/reinterpretarray.jl	369	369	unaliascopy	unaliascopy(a::ReshapedReinterpretArray{T}) where {T}	modelled	multidimcov-reinterpretarray-parent-copy	source-order model and quantified behavior
+base/reinterpretarray.jl	371	375	size	size(a::NonReshapedReinterpretArray{T,N,S} where {N}) where {T,S}	modelled	multidimcov-reinterpretarray-shape	source-order model and quantified behavior
+base/reinterpretarray.jl	376	381	size	size(a::ReshapedReinterpretArray{T,N,S} where {N}) where {T,S}	modelled	multidimcov-reinterpretarray-shape	source-order model and quantified behavior
+base/reinterpretarray.jl	382	382	size	size(a::NonReshapedReinterpretArray{T,0}) where {T}	modelled	multidimcov-reinterpretarray-shape	source-order model and quantified behavior
+base/reinterpretarray.jl	384	389	axes	axes(a::NonReshapedReinterpretArray{T,N,S} where {N}) where {T,S}	modelled	multidimcov-reinterpretarray-shape	source-order model and quantified behavior
+base/reinterpretarray.jl	390	395	axes	axes(a::ReshapedReinterpretArray{T,N,S} where {N}) where {T,S}	modelled	multidimcov-reinterpretarray-shape	source-order model and quantified behavior
+base/reinterpretarray.jl	396	396	axes	axes(a::NonReshapedReinterpretArray{T,0}) where {T}	modelled	multidimcov-reinterpretarray-shape	source-order model and quantified behavior
+base/reinterpretarray.jl	398	398	has_offset_axes	has_offset_axes(a::ReinterpretArray)	modelled	multidimcov-reinterpretarray-shape	source-order model and quantified behavior
+base/reinterpretarray.jl	400	406	elsize	elsize(::Type{<:ReinterpretArray{T,<:Any,S,A}}) where {T,S,A}	modelled	multidimcov-reinterpretarray-shape	source-order model and quantified behavior
+base/reinterpretarray.jl	407	407	cconvert	cconvert(::Type{Ptr{T}}, a::ReinterpretArray{T,N,S} where N) where {T,S}	modelled	multidimcov-reinterpretarray-shape	source-order model and quantified behavior
+base/reinterpretarray.jl	408	408	unsafe_convert	unsafe_convert(::Type{Ptr{T}}, a::ReinterpretArray{T,N,S} where N) where {T,S}	modelled	multidimcov-reinterpretarray-shape	source-order model and quantified behavior
+base/reinterpretarray.jl	410	416	getindex	getindex(a::NonReshapedReinterpretArray{T,0,S}) where {T,S}	modelled	multidimcov-reinterpretarray-shape	source-order model and quantified behavior
+base/reinterpretarray.jl	418	421	check_ptr_indexable	check_ptr_indexable(a::ReinterpretArray{T,<:Any,S}) where {T,S}	modelled	multidimcov-reinterpretarray-pointer-assigned	source-order model and quantified behavior
+base/reinterpretarray.jl	422	422	check_ptr_indexable	check_ptr_indexable(a::ReshapedArray)	modelled	multidimcov-reinterpretarray-pointer-assigned	source-order model and quantified behavior
+base/reinterpretarray.jl	423	423	check_ptr_indexable	check_ptr_indexable(a::FastContiguousSubArray)	modelled	multidimcov-reinterpretarray-pointer-assigned	source-order model and quantified behavior
+base/reinterpretarray.jl	424	424	check_ptr_indexable	check_ptr_indexable(a::Union{Array, Memory})	modelled	multidimcov-reinterpretarray-pointer-assigned	source-order model and quantified behavior
+base/reinterpretarray.jl	425	425	check_ptr_indexable	check_ptr_indexable(a::AbstractArray)	modelled	multidimcov-reinterpretarray-pointer-assigned	source-order model and quantified behavior
+base/reinterpretarray.jl	427	427	getindex	getindex(a::ReshapedReinterpretArray{T,0}) where {T}	modelled	multidimcov-reinterpretarray-pointer-assigned	source-order model and quantified behavior
+base/reinterpretarray.jl	429	429	isassigned	isassigned(a::ReinterpretArray, inds::Integer...)	modelled	multidimcov-reinterpretarray-pointer-assigned	source-order model and quantified behavior
+base/reinterpretarray.jl	430	430	isassigned	isassigned(a::ReinterpretArray, inds::SCartesianIndex2)	modelled	multidimcov-reinterpretarray-pointer-assigned	source-order model and quantified behavior
+base/reinterpretarray.jl	431	431	_isassigned_ra	_isassigned_ra(a::ReinterpretArray, inds...)	modelled	multidimcov-reinterpretarray-pointer-assigned	source-order model and quantified behavior
+base/reinterpretarray.jl	433	437	getindex	getindex(a::ReinterpretArray{T,N,S}, inds::Vararg{Int, N}) where {T,N,S}	modelled	multidimcov-reinterpretarray-faithful-433	row-specific faithful source-order replacement
+base/reinterpretarray.jl	439	449	getindex	getindex(a::ReinterpretArray{T,N,S}, i::Int) where {T,N,S}	modelled	multidimcov-reinterpretarray-faithful-439	row-specific faithful source-order replacement
+base/reinterpretarray.jl	451	456	getindex	getindex(a::ReshapedReinterpretArray{T,N,S}, ind::SCartesianIndex2) where {T,N,S}	modelled	multidimcov-reinterpretarray-faithful-451	row-specific faithful source-order replacement
+base/reinterpretarray.jl	458	464	_getindex_ptr	_getindex_ptr(a::ReinterpretArray{T}, inds...) where {T}	modelled	multidimcov-reinterpretarray-faithful-458	row-specific faithful source-order replacement
+base/reinterpretarray.jl	466	468	_is_scalar_reinterpret_applicable	_is_scalar_reinterpret_applicable(T, S)	modelled	multidimcov-reinterpretarray-faithful-466	row-specific faithful source-order replacement
+base/reinterpretarray.jl	470	522	_getindex_ra	_getindex_ra(a::NonReshapedReinterpretArray{T,N,S}, i1::Int, tailinds::TT) where {T,N,S,TT}	modelled	multidimcov-reinterpretarray-faithful-470	row-specific faithful source-order replacement
+base/reinterpretarray.jl	524	567	_getindex_ra	_getindex_ra(a::ReshapedReinterpretArray{T,N,S}, i1::Int, tailinds::TT) where {T,N,S,TT}	modelled	multidimcov-reinterpretarray-faithful-524	row-specific faithful source-order replacement
+base/reinterpretarray.jl	569	575	setindex!	setindex!(a::NonReshapedReinterpretArray{T,0,S}, v) where {T,S}	modelled	multidimcov-reinterpretarray-set-zero	source-order model and quantified behavior
+base/reinterpretarray.jl	577	577	setindex!	setindex!(a::ReshapedReinterpretArray{T,0}, v) where {T}	modelled	multidimcov-reinterpretarray-faithful-577	row-specific faithful source-order replacement
+base/reinterpretarray.jl	579	583	setindex!	setindex!(a::ReinterpretArray{T,N,S}, v, inds::Vararg{Int, N}) where {T,N,S}	modelled	multidimcov-reinterpretarray-faithful-579	row-specific faithful source-order replacement
+base/reinterpretarray.jl	585	593	setindex!	setindex!(a::ReinterpretArray{T,N,S}, v, i::Int) where {T,N,S}	modelled	multidimcov-reinterpretarray-faithful-585	row-specific faithful source-order replacement
+base/reinterpretarray.jl	595	605	setindex!	setindex!(a::ReshapedReinterpretArray{T,N,S}, v, ind::SCartesianIndex2) where {T,N,S}	modelled	multidimcov-reinterpretarray-faithful-595	row-specific faithful source-order replacement
+base/reinterpretarray.jl	607	614	_setindex_ptr!	_setindex_ptr!(a::ReinterpretArray{T}, v, inds...) where {T}	modelled	multidimcov-reinterpretarray-faithful-607	row-specific faithful source-order replacement
+base/reinterpretarray.jl	616	683	_setindex_ra!	_setindex_ra!(a::NonReshapedReinterpretArray{T,N,S}, v, i1::Int, tailinds::TT) where {T,N,S,TT}	modelled	multidimcov-reinterpretarray-faithful-616	row-specific faithful source-order replacement
+base/reinterpretarray.jl	685	731	_setindex_ra!	_setindex_ra!(a::ReshapedReinterpretArray{T,N,S}, v, i1::Int, tailinds::TT) where {T,N,S,TT}	modelled	multidimcov-reinterpretarray-faithful-685	row-specific faithful source-order replacement
+base/reinterpretarray.jl	738	740	showerror	showerror(io::IO, p::PaddingError)	modelled	multidimcov-reinterpretarray-padding-map	source-order model and quantified behavior
+base/reinterpretarray.jl	747	755	non_padding_bytes	non_padding_bytes(T::DataType)::Memory{Bool}	modelled	multidimcov-reinterpretarray-padding-map	source-order model and quantified behavior
+base/reinterpretarray.jl	756	768	fill_nonpadding_bytes!	fill_nonpadding_bytes!(T::DataType, offset::Int, used::Memory{Bool})	modelled	multidimcov-reinterpretarray-padding-map	source-order model and quantified behavior
+base/reinterpretarray.jl	772	810	array_subpadding	array_subpadding(S, T)	modelled	multidimcov-reinterpretarray-padding-map	source-order model and quantified behavior
+base/reinterpretarray.jl	812	814	struct_subpadding	struct_subpadding(Out, In)	modelled	multidimcov-reinterpretarray-padding-map	source-order model and quantified behavior
+base/reinterpretarray.jl	816	822	packedsize	packedsize(T)	modelled	multidimcov-reinterpretarray-padding-map	source-order model and quantified behavior
+base/reinterpretarray.jl	824	826	ispacked	ispacked(T)	modelled	multidimcov-reinterpretarray-padding-map	source-order model and quantified behavior
+base/reinterpretarray.jl	828	837	has_bit_padding	has_bit_padding(::Type{T}) where T	modelled	multidimcov-reinterpretarray-faithful-828	row-specific faithful source-order replacement
+base/reinterpretarray.jl	839	857	_copytopacked!	_copytopacked!(ptr_out::Ptr{Out}, ptr_in::Ptr{In}) where {Out, In}	modelled	multidimcov-reinterpretarray-packed-copy	source-order model and quantified behavior
+base/reinterpretarray.jl	859	877	_copyfrompacked!	_copyfrompacked!(ptr_out::Ptr{Out}, ptr_in::Ptr{In}) where {Out, In}	modelled	multidimcov-reinterpretarray-faithful-859	row-specific faithful source-order replacement
+base/reinterpretarray.jl	879	906	_reinterpret	_reinterpret(::Type{Out}, x::In) where {Out, In}	modelled	multidimcov-reinterpretarray-faithful-879	row-specific faithful source-order replacement
+base/reinterpretarray.jl	910	932	_reinterpret_padding	_reinterpret_padding(::Type{Out}, x::In) where {Out, In}	modelled	multidimcov-reinterpretarray-faithful-910	row-specific faithful source-order replacement
+base/reinterpretarray.jl	934	939	String	String(v::ReinterpretArray{UInt8,1,S,<:Union{Vector{S},Memory{S}},IsReshaped}) where {S,IsReshaped}	modelled	multidimcov-reinterpretarray-scalar-padding	source-order model and quantified behavior
+base/reinterpretarray.jl	943	951	_mapreduce	_mapreduce(f::F, op::OP, style::IndexSCartesian2{K}, A::AbstractArrayOrBroadcasted) where {F,OP,K}	modelled	multidimcov-reinterpretarray-mapreduce-wrapper	source-order model and quantified behavior
+base/reinterpretarray.jl	953	979	mapreduce_impl	mapreduce_impl(f::F, op::OP, A::AbstractArrayOrBroadcasted, ifirst::SCI, ilast::SCI, blksize::Int) where {F,OP,SCI<:SCartesianIndex2{K}} where K	modelled	multidimcov-reinterpretarray-faithful-953	row-specific faithful source-order replacement
+base/reinterpretarray.jl	981	982	mapreduce_impl	mapreduce_impl(f::F, op::OP, A::AbstractArrayOrBroadcasted, ifirst::SCartesianIndex2, ilast::SCartesianIndex2) where {F,OP}	modelled	multidimcov-reinterpretarray-mapreduce-default	source-order model and quantified behavior
+base/reinterpretarray.jl	987	996	_totuple	_totuple(T::Type{All32{E,N}}, itr::Union{Array,Memory}) where {E,N}	modelled	multidimcov-reinterpretarray-totuple	source-order model and quantified behavior

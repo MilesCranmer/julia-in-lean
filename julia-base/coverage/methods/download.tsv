@@ -1,0 +1,5 @@
+file	line	endline	name	signature	status	entry	note
+base/download.jl	3	6	Downloads	Downloads()	modelled	misccov-download	
+base/download.jl	19	19	download	download(url::AbstractString, path::AbstractString)	modelled	misccov-download	
+base/download.jl	20	20	download	download(url::AbstractString)	modelled	misccov-download	
+base/download.jl	22	25	do_download	do_download(url::AbstractString, path::Union{AbstractString, Nothing})	modelled	misccov-download	

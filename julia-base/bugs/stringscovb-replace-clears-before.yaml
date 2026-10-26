@@ -1,0 +1,61 @@
+id: stringscovb-replace-clears-before
+title: replace(out::AnnotatedIOBuffer, ...) at a non-final position clears the annotations of the byte before
+priority: P3
+kind: wrong-result
+area: StringsCovB
+files:
+- base/strings/annotated_io.jl
+functions:
+- replace(out::AnnotatedIOBuffer, str::AnnotatedString, pat_f::Pair...; count)
+summary: |
+  When out is not at its end, replace clears out's annotations over
+  first(replacements).offset:position(out), where first(replacements).offset is the
+  zero-based starting position, so the byte just before the written text (which is not
+  overwritten) loses its annotations. write(out, ::AnnotatedString) at the same position
+  keeps them.
+likelihood: |
+  Rare: replacing into the middle of an existing AnnotatedIOBuffer.
+maybe_intended: ''
+reproducer: |
+  using Base: AnnotatedString, AnnotatedIOBuffer, annotations
+  mk() = (io = AnnotatedIOBuffer(); write(io, AnnotatedString("XYZW", [(1:1, :p, 1), (2:4, :d, 2)])); seek(io, 1); io)
+  a = mk(); replace(a, AnnotatedString("ab", [(1:2, :s, 3)]), "a" => "c")
+  b = mk(); write(b, AnnotatedString("cb", [(1:2, :s, 3)]))
+  println("replace into position 1: ", [(x.region, x.label) for x in annotations(a)])
+  println("write into position 1:   ", [(x.region, x.label) for x in annotations(b)])
+  !any(x -> x.label == :p, annotations(a)) && any(x -> x.label == :p, annotations(b)) &&
+      println("REPRODUCED stringscovb-replace-clears-before")
+output:
+  release: |
+    replace into position 1: Tuple{UnitRange{Int64}, Symbol}[(4:4, :d), (3:3, :s)]
+    write into position 1:   Tuple{UnitRange{Int64}, Symbol}[(1:1, :p), (4:4, :d), (2:3, :s)]
+    REPRODUCED stringscovb-replace-clears-before
+  nightly: |
+    replace into position 1: Tuple{UnitRange{Int64}, Symbol}[(4:4, :d), (3:3, :s)]
+    write into position 1:   Tuple{UnitRange{Int64}, Symbol}[(1:1, :p), (4:4, :d), (2:3, :s)]
+    REPRODUCED stringscovb-replace-clears-before
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  (1:1, :p) is kept, as with write.
+promised_by: |
+  Invariant of _clear_annotations_in_region! (base/strings/annotated_io.jl:111-119) and consistency
+  with write(io::AnnotatedIOBuffer, ::AnnotatedString) (base/strings/annotated_io.jl:35-41).
+cause: |
+  base/strings/annotated_io.jl:286: the span starts at `first(replacements).offset` instead of
+  `first(replacements).offset + 1`.
+possible_fix: |
+  Clear `first(replacements).offset+1:position(out)`.
+duplicates:
+  issues: []
+  queries:
+  - 'issues: replace AnnotatedString'
+  - 'prs: replace AnnotatedString'
+  - 'issues: AnnotatedString replace annotations'
+  - 'issues: replace AnnotatedIOBuffer'
+  - 'prs: replace AnnotatedIOBuffer'
+  - 'issues: styled replace regex empty'
+lean:
+  property: JuliaLean.StringsCovB.AIOR.ReplaceKeepsBefore
+  theorem: JuliaLean.StringsCovB.AIOR.replaceKeepsBefore_refuted

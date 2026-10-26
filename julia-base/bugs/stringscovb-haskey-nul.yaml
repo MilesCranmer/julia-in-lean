@@ -1,0 +1,58 @@
+id: stringscovb-haskey-nul
+title: haskey(m::RegexMatch, name) throws ArgumentError for a name containing NUL
+priority: P3
+kind: wrong-exception
+area: StringsCovB
+files:
+- base/regex.jl
+- base/pcre.jl
+functions:
+- haskey(m::RegexMatch, name::Union{AbstractString,Symbol})
+- substring_number_from_name(re, name)
+summary: |
+  haskey(m, name) passes name as a Cstring to pcre2_substring_number_from_name; a name
+  containing '\0' (never a valid group name) makes the Cstring conversion throw
+  ArgumentError instead of haskey returning false. m[name] throws the same ArgumentError
+  instead of its "no capture group named" error.
+likelihood: |
+  Only with names built from untrusted input that contain NUL.
+maybe_intended: ''
+reproducer: |
+  m = match(r"(?<a>x)", "x")
+  println("haskey(m, \"zz\") -> ", haskey(m, "zz"))
+  r = try haskey(m, "a\0b") catch e e end
+  println("haskey(m, \"a\\0b\") -> ", repr(r))
+  r isa ArgumentError && println("REPRODUCED stringscovb-haskey-nul")
+output:
+  release: |
+    haskey(m, "zz") -> false
+    haskey(m, "a\0b") -> ArgumentError("embedded NULs are not allowed in C strings: \"a\\0b\"")
+    REPRODUCED stringscovb-haskey-nul
+  nightly: |
+    haskey(m, "zz") -> false
+    haskey(m, "a\0b") -> ArgumentError("embedded NULs are not allowed in C strings: \"a\\0b\"")
+    REPRODUCED stringscovb-haskey-nul
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  haskey(m, "a\0b") == false.
+promised_by: |
+  haskey(collection, key) -> Bool (base/abstractdict.jl haskey docstring: "Determine whether a
+  collection has a mapping for a given key"); RegexMatch docstring base/regex.jl:156-158 lists
+  haskey with group names as keys.
+cause: |
+  base/pcre.jl:240-244: `ccall(..., (Ptr{Cvoid}, Cstring), re, name)` converts name to Cstring,
+  which rejects embedded NULs; base/regex.jl:269-272 does not catch it.
+possible_fix: |
+  Return false (and error with the usual message in getindex) when name contains '\0'.
+duplicates:
+  issues: []
+  queries:
+  - 'issues: substring_number_from_name'
+  - 'prs: substring_number_from_name'
+  - 'issues: RegexMatch haskey NUL'
+  - 'issues: RegexMatch haskey'
+lean:
+  property: JuliaLean.StringsCovB.Rx.HaskeyNameTotal
+  theorem: JuliaLean.StringsCovB.Rx.haskeyNameTotal_refuted

@@ -1,0 +1,27 @@
+file	line	endline	name	signature	status	entry	note
+base/coreio.jl	3	3	print	print	excluded		no-behaviour: empty generic-function declaration installs no callable method body
+base/coreio.jl	6	6	print	print(x)	modelled	showcov-coreio-l6	method-specific source-order model
+base/coreio.jl	7	7	print	print(x1, x2)	modelled	showcov-coreio-l7	method-specific source-order model
+base/coreio.jl	8	8	println	println(x)	modelled	showcov-coreio-l8	method-specific source-order model
+base/coreio.jl	9	9	println	println(x1, x2)	modelled	showcov-coreio-l9	method-specific source-order model
+base/coreio.jl	11	11	print	print(xs...)	modelled	showcov-coreio-l11	method-specific source-order model
+base/coreio.jl	12	12	println	println(xs...)	modelled	showcov-coreio-l12	method-specific source-order model
+base/coreio.jl	13	13	println	println(io::IO)	modelled	showcov-coreio-l13	method-specific source-order model
+base/coreio.jl	15	15	show	show	excluded		no-behaviour: empty generic-function declaration installs no callable method body
+base/coreio.jl	16	16	repr	repr	excluded		no-behaviour: empty generic-function declaration installs no callable method body
+base/coreio.jl	19	19	DevNull	DevNull()	modelled	showcov-coreio-l19	method-specific source-order model
+base/coreio.jl	22	22	write	write(::DevNull, ::UInt8)	modelled	showcov-coreio-l22	method-specific source-order model
+base/coreio.jl	23	23	unsafe_write	unsafe_write(::DevNull, ::Ptr{UInt8}, n::UInt)::Int	modelled	showcov-coreio-l23	method-specific source-order model
+base/coreio.jl	24	24	closewrite	closewrite(::DevNull)	modelled	showcov-coreio-l24	method-specific source-order model
+base/coreio.jl	25	25	close	close(::DevNull)	modelled	showcov-coreio-l25	method-specific source-order model
+base/coreio.jl	26	26	wait_close	wait_close(::DevNull)	modelled	showcov-coreio-l26	method-specific source-order model
+base/coreio.jl	27	27	bytesavailable	bytesavailable(io::DevNull)	modelled	showcov-coreio-l27	method-specific source-order model
+base/coreio.jl	30	30	write	write(io::CoreIO, x::UInt8)	modelled	showcov-coreio-l30	method-specific source-order model
+base/coreio.jl	31	31	unsafe_write	unsafe_write(io::CoreIO, x::Ptr{UInt8}, nb::UInt)	modelled	showcov-coreio-l31	method-specific source-order model
+base/coreio.jl	34	34	read	read(::CoreIO, ::Type{UInt8})	modelled	showcov-coreio-l34	method-specific source-order model
+base/coreio.jl	35	35	isopen	isopen(::CoreIO)	modelled	showcov-coreio-l35	method-specific source-order model
+base/coreio.jl	36	36	isreadable	isreadable(::CoreIO)	modelled	showcov-coreio-l36	method-specific source-order model
+base/coreio.jl	37	37	iswritable	iswritable(::CoreIO)	modelled	showcov-coreio-l37	method-specific source-order model
+base/coreio.jl	38	38	flush	flush(::CoreIO)	modelled	showcov-coreio-l38	method-specific source-order model
+base/coreio.jl	39	39	eof	eof(::CoreIO)	modelled	showcov-coreio-l39	method-specific source-order model
+base/coreio.jl	40	40	wait_readnb	wait_readnb(::CoreIO, nb::Int)	modelled	showcov-coreio-l40	method-specific source-order model

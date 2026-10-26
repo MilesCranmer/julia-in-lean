@@ -51,7 +51,8 @@ def DataArg.ok : DataArg → Prop
   | .mem d => d.length ≤ bound
   | .other d => d.length ≤ bound
 
-/-- In-range constructor arguments. -/
+/-- In-range constructor arguments with a nonnegative `maxsize` (`IOBuffer(; maxsize)`
+rejects a negative one). -/
 def Ctor.ok : Ctor → Prop
   | .empty _ _ _ _ m s => 0 ≤ m ∧ m < 2 ^ 63 ∧ (∀ h, s = some h → isInt h ∧ h ≤ bound)
   | .data d _ _ _ _ m => d.ok ∧ 0 ≤ m ∧ m < 2 ^ 63

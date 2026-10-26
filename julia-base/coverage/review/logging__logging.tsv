@@ -1,0 +1,52 @@
+line	name	verdict	mirror	property	settled	reason
+41	handle_message	FAITHFUL	-	-	-	The no-behaviour exclusion applies because this line is an empty generic-function declaration with no method body.
+49	shouldlog	FAITHFUL	-	-	-	The no-behaviour exclusion applies because this line is an empty generic-function declaration with no method body.
+57	min_enabled_level	FAITHFUL	-	-	-	The no-behaviour exclusion applies because this line is an empty generic-function declaration with no method body.
+72	catch_exceptions	FAITHFUL	yes	yes	yes	catchExceptionsM returns true for every logger, matching the documented default method and its universal proven proposition.
+77	_invoked_shouldlog	HOLLOW	no	yes	yes	The forwarding property is universal, but the Lean function omits invoke's explicit concrete signature tuple and the observable Bool type assertion failure.
+86	_invoked_min_enabled_level	HOLLOW	no	yes	yes	The forwarding property is universal, but the Lean function omits invoke's concrete logger signature and the observable LogLevel type assertion failure.
+90	_invoked_catch_exceptions	HOLLOW	no	yes	yes	The forwarding property is universal, but the Lean function omits invoke's concrete logger signature and the observable Bool type assertion failure.
+102	min_enabled_level	FAITHFUL	yes	yes	yes	nullMinLevel returns AboveMaxLevel exactly, and the proven proposition states that result for the sole NullLogger case.
+103	shouldlog	FAITHFUL	yes	yes	yes	nullShouldlog returns false independently of every variadic argument list, matching NullLogger's documented filtering behavior.
+104	handle_message	FAITHFUL	yes	yes	yes	nullHandleMessage produces the source ErrorException with the exact message for every ignored argument list.
+129	LogLevel	FAITHFUL	yes	yes	yes	logLevelCopy returns its LogLevel input unchanged, and the proposition states this constructor behavior universally.
+131	isless	FAITHFUL	yes	yes	yes	lessLevelLevel compares the two represented Int32 fields with strict integer order, and the proposition states that result for every pair.
+132	isless	HOLLOW	no	yes	yes	The proposition states numeric ordering universally, but the Lean function replaces the dispatched isless call on an arbitrary Integer subtype with a direct Int comparison.
+133	isless	HOLLOW	no	yes	yes	The proposition states numeric ordering universally, but the Lean function replaces the dispatched isless call on an arbitrary Integer subtype with a direct Int comparison.
+134	+	HOLLOW	no	no	yes	The model replaces arbitrary-Integer addition and LogLevel construction with addInt, while the proposition only equates an alias with that helper instead of stating an independent exact-result or conversion-error property.
+135	-	HOLLOW	no	no	yes	The model replaces arbitrary-Integer subtraction and LogLevel construction with subInt, while the proposition only equates an alias with that helper instead of stating an independent exact-result or conversion-error property.
+136	convert	HOLLOW	no	no	yes	The model replaces the LogLevel constructor and arbitrary-Integer conversion dispatch with a mathematical range check, while the proposition only repeats that helper.
+137	convert	FAITHFUL	yes	yes	yes	convertInt32M returns the represented LogLevel's Int32 field, and the proposition states that field projection for every level.
+180	show	HOLLOW	no	no	yes	The model returns a String instead of performing the ordered print call on io, and its proposition only equates an alias with the same string helper.
+266	_sourceinfo	HOLLOW	no	yes	yes	The proposition states the caller metadata and missing-file fallback, but the model omits macro quotation, esc, Symbol-to-String conversion, and the file type assertion.
+274	logmsg	HOLLOW	no	yes	yes	The proposition states that the explicit level is selected, but the model omits source information, esc, variadic arguments, and the logmsg_code call.
+275	debug	HOLLOW	no	yes	yes	The proposition states the documented Debug level, but the model omits source information, variadic arguments, and the logmsg_code call.
+276	info	HOLLOW	no	yes	yes	The proposition states the documented Info level, but the model omits source information, variadic arguments, and the logmsg_code call.
+277	warn	HOLLOW	no	yes	yes	The proposition states the documented Warn level, but the model omits source information, variadic arguments, and the logmsg_code call.
+278	error	HOLLOW	no	yes	yes	The proposition states the documented Error level, but the model omits source information, variadic arguments, and the logmsg_code call.
+294	log_record_id	HOLLOW	no	no	yes	The numeric collision search omits module-name construction, hashing, UInt32 wrapping, padded Symbol creation, Set mutation, and the proposition does not state those promised identity and uniqueness operations.
+314	default_group	HOLLOW	no	no	yes	The model accepts an already extracted stem and returns it unchanged, so neither it nor its proposition performs basename, splitext, or Symbol construction on every file input.
+316	issimple	HOLLOW	no	no	yes	The simplified Syntax datatype omits malformed Expr indexing errors and the proposition only equates an alias with the same restricted classifier.
+328	issimplekw	HOLLOW	no	no	yes	The simplified keyword node omits Expr shape and indexing errors and the proposition only equates an alias with the same restricted classifier.
+341	current_logger_for_env	HOLLOW	no	yes	yes	The proposition states the threshold-or-override selection, but the model receives the log state and override result precomputed and omits current_logstate, lazy env_override_minlevel, and their call order.
+350	logmsg_code	HOLLOW	no	yes	yes	The trace states the documented filtering stages, but the model omits metadata processing, AST construction, definedness checks, exception handling, path fixing, assertions, and handler calls.
+431	handle_message_nothrow	HOLLOW	no	no	yes	The model maps a precomputed handler outcome to Bool and omits both invokelatest calls, their side effects, errors, and the method's actual return values.
+443	process_logmsg_exs	HOLLOW	no	no	yes	processArgs omits Expr parsing, key conversion, esc, stored values, source fields, and default group and record-id calls, while the proposition only repeats that partial helper.
+486	default_group_code	HOLLOW	no	yes	yes	The proposition captures the constant-versus-memoized choice, but the model receives the branch and stem precomputed and omits the file test, Base availability check, default_group call, Ref allocation, and generated expression.
+498	logging_error	HOLLOW	no	no	yes	The Boolean trace omits throw versus rethrow, protected message construction, backtrace calls and deletion, handler failures, and therefore does not cover every logger and error outcome.
+523	logmsg_shim	HOLLOW	no	no	yes	The trace replaces level and file conversion and macro execution with true flags and cannot represent an odd keyword list's BoundsError, so its unconditional emission claim is not universal.
+538	LogState	HOLLOW	no	no	yes	The model takes the minimum level as a free input and omits _invoked_min_enabled_level and LogLevel conversion, so its pair construction does not state this constructor's behavior.
+542	current_logstate	HOLLOW	no	yes	yes	The proposition states scoped-state fallback universally, but the model receives the ScopedValues.get result precomputed and omits that call and the LogState assertion.
+547	with_logstate	HOLLOW	no	no	yes	The model passes state as an explicit function argument instead of dynamically installing CURRENT_LOGSTATE, calling the zero-argument function, and restoring scope.
+565	disable_logging	HOLLOW	no	no	yes	The model performs only level addition and omits the sequentially consistent atomic store and global effect, while the proposition merely equates that arithmetic alias with addInt.
+572	env_override_minlevel	HOLLOW	no	no	yes	The model accepts a pre-parsed DebugConfig and omits ENV access, cache invalidation, token parsing, deduplication, Symbol and Module checks, while its proposition only repeats the final membership helper.
+631	global_logger	FAITHFUL	yes	yes	yes	globalLoggerM projects the logger from the represented global LogState, matching the documented getter for every state.
+633	global_logger	HOLLOW	no	yes	yes	The proposition captures returning the previous logger and installing a new state, but the model receives the minimum precomputed and omits LogState construction, conversion failure, and global assignment.
+657	with_logger	HOLLOW	no	yes	yes	The proposition states installation and restoration across both outcomes, but the model builds a trace directly and omits LogState construction and the with_logstate call.
+667	current_logger	HOLLOW	no	yes	yes	The proposition states that the current state's logger is returned, but the model receives that state directly and omits current_logstate and its scoped-to-global fallback.
+690	SimpleLogger	HOLLOW	no	yes	yes	The proposition states the supplied stream state and minimum, but the model omits ReentrantLock allocation, the empty Dict, field conversions, and their constructor order.
+691	SimpleLogger	HOLLOW	no	yes	yes	The proposition states the closed default stream and supplied minimum, but the model constructs abstract state directly instead of calling the stream constructor with closed_stream.
+693	shouldlog	HOLLOW	no	yes	yes	The proposition states the positive effective per-id limit test, but the model omits locking and replaces get(message_limits,id,1) with a total precomputed limits function.
+696	min_enabled_level	FAITHFUL	yes	yes	yes	simpleMinLevelM returns the stored minimum field, and the proposition states that behavior for every represented SimpleLogger.
+698	catch_exceptions	FAITHFUL	yes	yes	yes	simpleCatchM returns false for every represented SimpleLogger, matching the exact source body and exception policy.
+700	handle_message	HOLLOW	no	no	yes	The model always starts from a precomputed remaining count and omits keyword typing, locks, dictionary mutation, level and footer formatting, IO buffering, iteration, stream selection details, writes, and their errors.

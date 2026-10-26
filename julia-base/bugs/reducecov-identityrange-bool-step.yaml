@@ -1,0 +1,52 @@
+id: reducecov-identityrange-bool-step
+title: "IdentityUnitRange(1:2)[StepRange(true, -1, false)] is empty instead of [1]"
+priority: P3
+kind: wrong-result
+area: ReduceCov
+files: [base/indices.jl]
+functions: ["getindex(S::IdentityUnitRange, i::StepRange{Bool})"]
+summary: |
+  Logical indexing of an IdentityUnitRange with the Bool step range
+  StepRange(true, -1, false), whose elements are [true, false], returns the empty
+  range 1:-1:2 instead of the first element. Indexing the collected vector with the
+  same mask gives [1]. The other Bool step-range masks ([false], [true],
+  [false, true]) give the right element.
+likelihood: |
+  Very low: a decreasing Bool step range is an unusual mask.
+maybe_intended: |
+  No: the method exists to implement logical indexing with Bool step ranges.
+reproducer: |
+  Base.IdentityUnitRange(1:2)[StepRange(true, -1, false)]   # 1:-1:2, empty
+output:
+  release: |
+    collect(StepRange(true, -1, false)) = Bool[1, 0]
+    Base.IdentityUnitRange(1:2)[StepRange(true, -1, false)] = 1:-1:2 (0 elements)
+    collect(Base.IdentityUnitRange(1:2))[collect(StepRange(true, -1, false))] = [1]
+    REPRODUCED reducecov-identityrange-bool-step
+  nightly: |
+    collect(StepRange(true, -1, false)) = Bool[1, 0]
+    Base.IdentityUnitRange(1:2)[StepRange(true, -1, false)] = 1:-1:2 (0 elements)
+    collect(Base.IdentityUnitRange(1:2))[collect(StepRange(true, -1, false))] = [1]
+    REPRODUCED reducecov-identityrange-bool-step
+reproduced: {release: true, nightly: true}
+expected: |
+  A one-element result [1], the element where the mask is true.
+promised_by: |
+  Manual, "Logical indexing" (doc/src/manual/arrays.md): a boolean index selects the
+  elements at the positions where it is true.
+cause: |
+  base/indices.jl:395-399: range(first(i) ? first(S) : last(S), length = last(i),
+  step = Int(step(i))) uses last(i) as the number of selected elements. That is right
+  for the masks [false], [true] and [false, true], but for [true, false] last(i) is
+  false, so the result is empty. The same formula appears in
+  getindex(r::AbstractUnitRange, s::StepRange{Bool}) (base/range.jl:1023-1028):
+  (1:2)[StepRange(true, -1, false)] is the empty 1:1:0.
+possible_fix: |
+  Use count(i) (the number of true elements) as the length.
+duplicates:
+  issues:
+    - {number: 54783, state: open, relation: related}
+  queries: ["IdentityUnitRange StepRange Bool", "logical indexing StepRange Bool", "StepRange{Bool}", "IdentityUnitRange"]
+lean:
+  property: JuliaLean.ReduceCov.Indices.IdentityBoolStep
+  theorem: JuliaLean.ReduceCov.Indices.identityBoolStep_refuted

@@ -1,0 +1,60 @@
+id: dictscov-merge-iddict
+title: "merge/mergewith of IdDicts return a Dict and silently drop ===-distinct keys"
+priority: P2
+kind: wrong-result
+area: DictsCov
+files: [base/abstractdict.jl]
+functions: ["merge(d::AbstractDict, others::AbstractDict...)", "mergewith(combine, d::AbstractDict, others::AbstractDict...)", "_typeddict(d, others...)"]
+summary: |
+  merge and mergewith build their result with _typeddict, which is always
+  Dict{K,V}(d). For IdDict arguments the keys are then compared with isequal
+  instead of ===, so keys that the IdDicts keep apart (1 and 1.0, equal
+  arrays) collapse and entries are lost: merge(IdDict{Any,Any}(1 => :a,
+  1.0 => :b)) has one entry, and merge(IdDict(1 => :a), IdDict(1.0 => :b))
+  keeps only 1.0 => :b, while merge!(copy(a), b) keeps both.
+likelihood: |
+  Needs IdDicts with ===-distinct but isequal keys, which is the reason to
+  use an IdDict. WeakKeyDict arguments likewise turn into a strong Dict.
+maybe_intended: |
+  The behaviour is long-standing and #22738 ("Should merge always return a
+  Dict?") asks whether it is intended; the docstring only promises type
+  promotion. The lost entries are not discussed there.
+reproducer: |
+  merge(IdDict{Any,Any}(1 => :a, 1.0 => :b))              # Dict(1 => :a)
+  merge(IdDict{Any,Any}(1 => :a), IdDict{Any,Any}(1.0 => :b))   # Dict(1.0 => :b)
+output:
+  release: |
+    merge(a) = Dict{Any, Any}(1 => :a) (Dict{Any, Any}), length 1; length(a) = 2
+    merge(IdDict(1 => :a), IdDict(1.0 => :b)) = Dict{Any, Any}(1.0 => :b)
+    mergewith(+, IdDict(1 => 1), IdDict(1.0 => 2)) = Dict{Any, Int64}(1 => 3)
+    merge!(copy(IdDict(1 => :a)), IdDict(1.0 => :b)) = IdDict{Any, Any}(1.0 => :b, 1 => :a), length 2
+    REPRODUCED dictscov-merge-iddict
+  nightly: |
+    merge(a) = Dict{Any, Any}(1 => :a) (Dict{Any, Any}), length 1; length(a) = 2
+    merge(IdDict(1 => :a), IdDict(1.0 => :b)) = Dict{Any, Any}(1.0 => :b)
+    mergewith(+, IdDict(1 => 1), IdDict(1.0 => 2)) = Dict{Any, Int64}(1 => 3)
+    merge!(copy(IdDict(1 => :a)), IdDict(1.0 => :b)) = IdDict{Any, Any}(1.0 => :b, 1 => :a), length 2
+    REPRODUCED dictscov-merge-iddict
+reproduced: {release: true, nightly: true}
+expected: |
+  The merged collection holds every key of every argument under the
+  arguments' own key comparison (===), like merge!(copy(a), b): two entries.
+promised_by: |
+  merge docstring, base/abstractdict.jl:330-333: "Construct a merged
+  collection from the given collections. ... If the same key is present in
+  another collection, the value for that key will be the value it has in the
+  last collection listed."
+cause: |
+  base/abstractdict.jl:413-417: _typeddict(d, others...) = Dict{K,V}(d),
+  used by merge (base/abstractdict.jl:361-362) and mergewith
+  (base/abstractdict.jl:404-405) whatever the type of d.
+possible_fix: |
+  Build the result with empty(d, K, V) (IdDict for IdDict) and merge! d into
+  it.
+duplicates:
+  issues:
+    - {number: 22738, state: open, relation: duplicate}
+  queries: ["merge IdDict Dict", "merge returns Dict", "merge WeakKeyDict", "merge in:title", "IdDict", "PR: merge IdDict"]
+lean:
+  property: JuliaLean.DictsCov.MergeKeepsIdKeys
+  theorem: JuliaLean.DictsCov.mergeKeepsIdKeys_refuted

@@ -1,0 +1,80 @@
+id: memsafety-sort-send-to-end-window
+title: "send_to_end! reads out of bounds when lo or hi is outside the vector"
+priority: P2
+kind: crash
+area: MemSafety
+files: [base/sort.jl]
+functions: ["Base.Sort.send_to_end!(f, v; lo, hi)"]
+summary: |
+  Base.Sort.send_to_end! accepts caller-supplied lo and hi keywords and reads v[lo]
+  under @inbounds without checking the window. With lo=0 and a two-element vector,
+  forced bounds checks report an access at index 0 from the first loop.
+likelihood: |
+  Low. send_to_end! is an internal Base.Sort helper, and its normal sorting callers
+  pass checked windows. Direct callers can compute an empty or shifted window, however,
+  and the function has a docstring that exposes the lo and hi keywords.
+maybe_intended: |
+  The helper is not exported and its sorting callers establish valid bounds. Its
+  docstring does not assign bounds checking to the caller, and instead says that the
+  keyword form is equivalent to applying send_to_end! to view(v, lo:hi), which checks.
+reproducer: |
+  code = "Base.Sort.send_to_end!(iszero, [1, 2]; lo=0, hi=2)"
+  cmd = `$(Base.julia_cmd()) --startup-file=no --check-bounds=yes -e $code`
+  run(cmd)
+output:
+  release: |
+    ERROR: BoundsError: attempt to access 2-element Vector{Int64} at index [0]
+    Stacktrace:
+     [1] throw_boundserror(A::Vector{Int64}, I::Tuple{Int64})
+       @ Base ./essentials.jl:14
+     [2] checkbounds
+       @ ./essentials.jl:389 [inlined]
+     [3] getindex
+       @ ./essentials.jl:974 [inlined]
+     [4] send_to_end!(f::typeof(iszero), v::Vector{Int64}; lo::Int64, hi::Int64)
+       @ Base.Sort ./sort.jl:624
+     [5] top-level scope
+       @ none:1
+     [6] eval(m::Module, e::Any)
+       @ Core ./boot.jl:489
+     [7] exec_options(opts::Base.JLOptions)
+       @ Base ./client.jl:310
+     [8] _start()
+       @ Base ./client.jl:577
+    child exit code = 1, signal = 0
+    REPRODUCED memsafety-sort-send-to-end-window
+  nightly: |
+    ERROR: BoundsError: attempt to access 2-element Vector{Int64} at index [0]
+    Stacktrace:
+     [1] _throw_boundserror_indices(::Vector{Int64}, ::Int64)
+       @ Base essentials.jl:19
+     [2] checkbounds(A::Vector{Int64}, I::Int64)
+       @ Base essentials.jl:391 [inlined]
+     [3] getindex(A::Vector{Int64}, i::Int64)
+       @ Base essentials.jl:1065 [inlined]
+     [4] send_to_end!(f::typeof(iszero), v::Vector{Int64}; lo::Int64, hi::Int64)
+       @ Base.Sort sort.jl:622
+     [5] top-level scope
+       @ none:1
+    child exit code = 1, signal = 0
+    REPRODUCED memsafety-sort-send-to-end-window
+reproduced: {release: true, nightly: true}
+expected: |
+  The function should reject a window outside axes(v), as view(v, lo:hi) does,
+  before disabling bounds checks.
+promised_by: |
+  base/sort.jl:610-618 documents the lo and hi keywords and says
+  send_to_end!(f, v, lo, hi) is equivalent to send_to_end!(f, view(v, lo:hi))+lo-1.
+  An in-bounds Julia array operation must not access storage outside the array.
+cause: |
+  base/sort.jl:620-626 assigns i=lo and reads v[i] in an @inbounds loop, then
+  assigns j=i+1 and reads v[j] in another @inbounds loop. No checkbounds call
+  precedes either loop.
+possible_fix: |
+  Check view bounds for lo:hi before entering the two @inbounds loops.
+duplicates:
+  issues: []
+  queries: ["issues: send_to_end bounds", "issues: send_to_end out of bounds", "prs: send_to_end bounds", "prs: send_to_end out of bounds"]
+lean:
+  property: JuliaLean.MemSafety.G4.SendToEndInBounds
+  theorem: JuliaLean.MemSafety.G4.sendToEndInBounds_refuted

@@ -1,0 +1,23 @@
+file	line	endline	name	signature	status	entry	note
+base/error.jl	33	33	error	error	excluded		no-behaviour: generic function declaration defines no method body
+base/error.jl	47	57	error	error(s::Vararg{Any,N}) where {N}	modelled	errorshow-error-l47	method-specific source model:errorshow-error-l47
+base/error.jl	73	73	rethrow	rethrow()	modelled	errorshow-error-l73	method-specific source model:errorshow-error-l73
+base/error.jl	74	74	rethrow	rethrow(@nospecialize(e))	modelled	errorshow-error-l74	method-specific source model:errorshow-error-l74
+base/error.jl	84	114	_reformat_bt	_reformat_bt(bt::Array{Ptr{Cvoid},1}, bt2::Array{Any,1})	modelled	errorshow-error-l84	method-specific source model:errorshow-error-l84
+base/error.jl	121	128	backtrace	backtrace()	modelled	errorshow-error-l121	method-specific source model:errorshow-error-l121
+base/error.jl	152	155	catch_backtrace	catch_backtrace()	modelled	errorshow-error-l152	method-specific source model:errorshow-error-l152
+base/error.jl	179	189	current_exceptions	current_exceptions(task::Task=current_task(); backtrace::Bool=true)	modelled	errorshow-error-l179	method-specific source model:errorshow-error-l179
+base/error.jl	192	195	kwerr	kwerr(kw, args::Vararg{Any,N}) where {N}	modelled	errorshow-error-l192	method-specific source model:errorshow-error-l192
+base/error.jl	204	204	systemerror	systemerror(p, b::Bool; extrainfo=nothing)	modelled	errorshow-error-l204	method-specific source model:errorshow-error-l204
+base/error.jl	205	205	systemerror	systemerror(p, errno::Cint=Libc.errno(); extrainfo=nothing)	modelled	errorshow-error-l205	method-specific source model:errorshow-error-l205
+base/error.jl	219	219	windowserror	windowserror(p, b::Bool; extrainfo=nothing)	excluded		platform: Windows GetLastError wrapper
+base/error.jl	220	220	windowserror	windowserror(p, code::UInt32=Libc.GetLastError(); extrainfo=nothing)	excluded		platform: Windows GetLastError wrapper
+base/error.jl	249	263	assert	assert(ex, msgs...)	modelled	errorshow-error-l249	method-specific source model:errorshow-error-l249
+base/error.jl	266	266	_assert_tostring	_assert_tostring(@nospecialize(msg))	modelled	errorshow-error-l266	method-specific source model:errorshow-error-l266
+base/error.jl	267	268	__assert_tostring	__assert_tostring(msg)	modelled	errorshow-error-l267	method-specific source model:errorshow-error-l267
+base/error.jl	277	280	ExponentialBackOff	ExponentialBackOff(n, first_delay, max_delay, factor, jitter)	modelled	errorshow-error-l277	method-specific source model:errorshow-error-l277
+base/error.jl	290	291	ExponentialBackOff	ExponentialBackOff(; n=1, first_delay=0.05, max_delay=10.0, factor=5.0, jitter=0.1)	modelled	errorshow-error-l290	method-specific source model:errorshow-error-l290
+base/error.jl	292	298	iterate	iterate(ebo::ExponentialBackOff, state= (ebo.n, min(ebo.first_delay, ebo.max_delay)))	modelled	errorshow-error-l292	method-specific source model:errorshow-error-l292
+base/error.jl	299	299	length	length(ebo::ExponentialBackOff)	modelled	errorshow-error-l299	method-specific source model:errorshow-error-l299
+base/error.jl	300	300	eltype	eltype(::Type{ExponentialBackOff})	modelled	errorshow-error-l300	method-specific source model:errorshow-error-l300
+base/error.jl	322	342	retry	retry(f; delays=ExponentialBackOff(), check=nothing)	modelled	errorshow-error-l322	method-specific source model:errorshow-error-l322

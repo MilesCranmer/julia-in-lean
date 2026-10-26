@@ -1,0 +1,49 @@
+id: docssyntaxcov-library-files-unrelated-invalid
+title: "library_files throws when a directory contains an unrelated library with a four-part version"
+priority: P2
+kind: wrong-exception
+area: DocsSyntaxCov
+files: [base/linking.jl]
+functions: ["Base.Linking.library_files!", "Base.Linking.is_library_file"]
+summary: |
+  `library_files!` parses every directory entry before deciding whether its name
+  matches the requested library. Looking up `libfoo` therefore throws on an
+  unrelated `libbar.1.2.3.4.so` and never reaches a valid `libfoo.so` entry.
+likelihood: |
+  Moderate on installations containing four-part library versions, including
+  CUDA libraries. Runtime-library discovery scans whole Julia library directories.
+maybe_intended: ""
+reproducer: |
+  paths = String[]
+  listings = ["/d" => ["libbar.1.2.3.4.so", "libfoo.so"]]
+  Base.Linking.library_files!(paths, "libfoo", listings)
+output:
+  release: |
+    result = UndefVarError: `library_files!` not defined in `Base.Linking`
+    Suggestion: check for spelling errors or missing imports.
+    paths = String[]
+  nightly: |
+    result = ArgumentError: invalid version string: 1.2.3.4
+    paths = String[]
+    REPRODUCED docssyntaxcov-library-files-unrelated-invalid
+reproduced: {release: false, nightly: true}
+expected: |
+  The unrelated file should contribute nothing, and `libfoo.so` should be added
+  to `paths` with a return value of `true`.
+promised_by: |
+  `library_files` at base/linking.jl:288-295 promises paths for the requested
+  names and says names the installation does not ship contribute nothing.
+cause: |
+  `is_library_file` catches `ArgumentError` only around the first
+  `parse_dl_name_version` call at base/linking.jl:256-261. The fallback call at
+  line 265 is unguarded and parses four-part versions through `VersionNumber`,
+  whose exception aborts the loop in `library_files!` at lines 274-285.
+possible_fix: |
+  Treat an `ArgumentError` from the fallback parse as a non-matching filename,
+  as the first parse already does.
+duplicates:
+  issues: []
+  queries: ["library_files invalid version unrelated file", "is_library_file parse_dl_name_version"]
+lean:
+  property: JuliaLean.DocsSyntaxCov.Linking.LibraryFilesNoThrow
+  theorem: JuliaLean.DocsSyntaxCov.Linking.libraryFilesNoThrow_refuted

@@ -1,0 +1,58 @@
+file	line	endline	name	signature	status	entry	note
+base/strings/substring.jl	47	47	raw_substring	raw_substring	excluded		no-behaviour: generic raw_substring declaration has no method body
+base/strings/substring.jl	76	84	SubString{T}	SubString{T}(s::T, i::Int, j::Int) where T<:AbstractString	modelled	stringscova-sub-typed-ctor-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	86	91	raw_substring	raw_substring(s::T, first_index::Int, n_codeunits::Int) where {T <: AbstractString}	modelled	stringscova-sub-raw-ctor-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	93	98	raw_substring	raw_substring(s::SubString{T}, first_index::Int, n_codeunits::Int) where {T <: AbstractString}	modelled	stringscova-sub-raw-nested-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	103	105	SubString{T}	SubString{T}(s::T) where {T <: AbstractString}	modelled	stringscova-sub-typed-whole-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	108	108	SubString	SubString(s::T, i::Int, j::Int) where {T<:AbstractString}	modelled	stringscova-sub-int-ctor-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	109	109	SubString	SubString(s::AbstractString, i::Integer, j::Integer=lastindex(s))	modelled	stringscova-sub-integer-ctor-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	110	110	SubString	SubString(s::AbstractString, r::AbstractUnitRange{<:Integer})	modelled	stringscova-sub-range-ctor-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	112	115	SubString	SubString(s::SubString, i::Int, j::Int)	modelled	stringscova-sub-nested-ctor-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	117	117	SubString	SubString(s::AbstractString)	modelled	stringscova-sub-whole-abstract-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	118	118	SubString	SubString(s::SubString)	modelled	stringscova-sub-whole-identity-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	120	120	view	view(s::AbstractString, r::AbstractUnitRange{<:Integer})	modelled	stringscova-sub-view-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	121	121	maybeview	maybeview(s::AbstractString, r::AbstractUnitRange{<:Integer})	modelled	stringscova-sub-maybeview-range-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	122	122	maybeview	maybeview(s::AbstractString, args...)	modelled	stringscova-sub-maybeview-args-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	124	125	convert	convert(::Type{SubString{S}}, s::AbstractString) where {S<:AbstractString}	modelled	stringscova-sub-convert-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	126	126	convert	convert(::Type{T}, s::T) where {T<:SubString}	modelled	stringscova-sub-convert-identity-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	129	129	convert	convert(::Type{Union{String, SubString{String}}}, s::String)	modelled	stringscova-sub-union-string-faithful	
+base/strings/substring.jl	130	130	convert	convert(::Type{Union{String, SubString{String}}}, s::SubString{String})	modelled	stringscova-sub-union-sub-faithful	
+base/strings/substring.jl	131	131	convert	convert(::Type{Union{String, SubString{String}}}, s::AbstractString)	modelled	stringscova-sub-union-abstract-faithful	
+base/strings/substring.jl	133	137	String	String(s::SubString{String})	modelled	stringscova-sub-to-string-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	139	139	ncodeunits	ncodeunits(s::SubString)	modelled	stringscova-sub-ncodeunits-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	140	140	codeunit	codeunit(s::SubString)	modelled	stringscova-sub-codeunit-type-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	141	141	length	length(s::SubString)	modelled	stringscova-sub-length-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	144	144	length	length(s::SubString{String})	modelled	stringscova-sub-length-string-faithful	
+base/strings/substring.jl	146	149	codeunit	codeunit(s::SubString, i::Integer)	modelled	stringscova-sub-codeunit-at-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	151	158	iterate	iterate(s::SubString, i::Integer=firstindex(s))	modelled	strings-raw-substring-iterate	
+base/strings/substring.jl	160	163	getindex	getindex(s::SubString, i::Integer)	modelled	stringscova-sub-getindex-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	166	166	isascii	isascii(ss::SubString{String})	modelled	stringscova-sub-isascii-faithful	
+base/strings/substring.jl	168	172	isvalid	isvalid(s::SubString, i::Integer)	modelled	stringscova-sub-isvalid-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	174	174	thisind	thisind(s::SubString{String}, i::Int)	modelled	stringscova-sub-thisind-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	175	175	nextind	nextind(s::SubString{String}, i::Int)	modelled	stringscova-sub-nextind-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	178	178	lastindex	lastindex(s::SubString{String})	modelled	stringscova-sub-lastindex-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	180	180	parent	parent(s::SubString)	modelled	stringscova-sub-parent-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	181	181	parentindices	parentindices(s::SubString)	modelled	stringscova-sub-parentindices-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	183	185	==	==(a::Union{String, SubString{String}}, b::Union{String, SubString{String}})	modelled	stringscova-sub-eq-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	187	190	cmp	cmp(a::SubString{String}, b::SubString{String})	modelled	stringscova-sub-cmp-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	193	193	cconvert	cconvert(::Type{Ptr{UInt8}}, s::SubString{String})	modelled	stringscova-sub-cconvert-u8-faithful	
+base/strings/substring.jl	194	194	cconvert	cconvert(::Type{Ptr{Int8}}, s::SubString{String})	modelled	stringscova-sub-cconvert-i8-faithful	
+base/strings/substring.jl	196	198	unsafe_convert	unsafe_convert(::Type{Ptr{R}}, s::SubString{String}) where R<:Union{Int8, UInt8}	modelled	stringscova-sub-unsafe-convert-faithful	
+base/strings/substring.jl	200	200	pointer	pointer(x::SubString{String})	modelled	stringscova-sub-pointer-faithful	
+base/strings/substring.jl	201	201	pointer	pointer(x::SubString{String}, i::Integer)	modelled	stringscova-sub-pointer-at-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	203	204	hash	hash(data::SubString{String}, h::UInt)	modelled	stringscova-sub-hash-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	206	206	_isannotated	_isannotated(::SubString{T}) where {T}	modelled	stringscova-sub-isannotated-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	208	208	string	string(a::String)	modelled	stringscova-sub-string-string-faithful	
+base/strings/substring.jl	209	209	string	string(a::SubString{String})	modelled	stringscova-sub-string-sub-faithful	
+base/strings/substring.jl	211	213	Symbol	Symbol(s::SubString{String})	modelled	stringscova-sub-symbol-faithful	
+base/strings/substring.jl	215	231	__unsafe_string!	__unsafe_string!(out, c::Char, offs::Integer)	modelled	stringscova-sub-write-char-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	233	237	__unsafe_string!	__unsafe_string!(out, s::String, offs::Integer)	modelled	stringscova-sub-write-string-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	239	243	__unsafe_string!	__unsafe_string!(out, s::SubString{String}, offs::Integer)	modelled	stringscova-sub-write-substring-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	245	249	__unsafe_string!	__unsafe_string!(out, s::Symbol, offs::Integer)	modelled	stringscova-sub-write-symbol-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	252	252	string	string(a::Union{Char, String, Symbol}...)	modelled	stringscova-sub-string-restricted-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	254	254	string	string(a::Union{Char, String, SubString{String}, Symbol}...)	modelled	stringscova-sub-string-all-faithful	
+base/strings/substring.jl	256	283	_string	_string(a::Union{Char, String, SubString{String}, Symbol}...)	modelled	stringscova-sub-build-string-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	287	287	repeat	repeat(s::String, r::BitInteger)	modelled	stringscova-sub-repeat-bit-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	289	307	repeat	repeat(s::Union{String, SubString{String}}, r::Integer)	modelled	stringscova-sub-repeat-integer-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	309	320	filter	filter(f, s::Union{String, SubString{String}})	modelled	stringscova-sub-filter-rebuilt	rebuilt after fixed review
+base/strings/substring.jl	322	322	getindex	getindex(s::AbstractString, r::AbstractUnitRange{<:Integer})	modelled	stringscova-sub-range-getindex-rebuilt	rebuilt after fixed review

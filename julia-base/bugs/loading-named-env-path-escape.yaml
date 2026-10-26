@@ -1,0 +1,76 @@
+id: loading-named-env-path-escape
+title: "Named environments with .. escape the depot and can create files outside it"
+priority: P2
+kind: wrong-result
+area: Loading
+files: [base/initdefs.jl]
+functions: ["load_path_expand(::AbstractString)", "init_named_env!"]
+summary: |
+  A named environment containing parent-directory components is joined directly to
+  DEPOT_PATH[1]/environments. Base.load_path_expand("@../../outside") therefore returns
+  ../outside/Project.toml relative to the depot, outside both the named-environment
+  directory and the depot itself. On nightly it also creates that Project.toml.
+likelihood: |
+  This requires an explicit @ name containing .., so ordinary package loading does not
+  trigger it. A malformed JULIA_PROJECT or JULIA_LOAD_PATH value can silently create a
+  project file in an unrelated writable directory.
+maybe_intended: |
+  Bare paths are supported separately, and slash-containing @ names may have been left
+  flexible intentionally. The LOAD_PATH documentation nevertheless defines @name as a
+  named environment stored under a depot's environments subdirectory.
+reproducer: |
+  mktempdir() do root
+      depot = joinpath(root, "depot")
+      mkpath(depot)
+      old_depot_path = copy(DEPOT_PATH)
+      try
+          empty!(DEPOT_PATH)
+          push!(DEPOT_PATH, depot)
+          result = Base.load_path_expand("@../../outside")
+          relative = relpath(result, depot)
+          created = isfile(result)
+          escaped = startswith(relative, ".." * Base.Filesystem.path_separator)
+          println("path relative to depot = ", relative)
+          println("created Project.toml    = ", created)
+          println("escaped depot           = ", escaped)
+          if relative == joinpath("..", "outside", "Project.toml") && escaped
+              println("REPRODUCED loading-named-env-path-escape")
+          end
+      finally
+          empty!(DEPOT_PATH)
+          append!(DEPOT_PATH, old_depot_path)
+      end
+  end
+output:
+  release: |
+    path relative to depot = ../outside/Project.toml
+    created Project.toml    = false
+    escaped depot           = true
+    REPRODUCED loading-named-env-path-escape
+  nightly: |
+    path relative to depot = ../outside/Project.toml
+    created Project.toml    = true
+    escaped depot           = true
+    REPRODUCED loading-named-env-path-escape
+reproduced: {release: true, nightly: true}
+expected: |
+  The name should be rejected, or the returned and created path should remain below
+  DEPOT_PATH[1]/environments.
+promised_by: |
+  base/initdefs.jl:209-217 documents that @name environments are stored in depots under
+  the environments subdirectory. The path-containment invariant also requires joining
+  an environment name not to escape that directory.
+cause: |
+  base/initdefs.jl:346-361 replaces version placeholders and passes env[2:end] directly
+  to joinpath(depot, "environments", name), then abspath normalizes .. components. No
+  validation rejects an absolute name or a parent-directory component before
+  init_named_env! creates the file.
+possible_fix: |
+  Reject absolute names and any path component equal to .. before probing or creating a
+  named environment.
+duplicates:
+  issues: []
+  queries: ["load_path_expand traversal", "JULIA_LOAD_PATH named environment ..", "named environment escape depot", "load_path_expand"]
+lean:
+  property: JuliaLean.Loading.NamedEnvContained
+  theorem: JuliaLean.Loading.namedEnvContained_refuted

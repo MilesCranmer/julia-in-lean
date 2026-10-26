@@ -1,0 +1,98 @@
+file	line	endline	name	signature	status	entry	note
+base/task.jl	5	9	Core.Task	Core.Task(@nospecialize(f), reserved_stack::Int=0)	modelled	tasks-coverage-task-core	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	16	23	CapturedException	CapturedException(ex, bt_raw::Vector)	modelled	tasks-coverage-task-exceptions	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	25	25	CapturedException	CapturedException(ex, processed_bt::Vector{Any})	modelled	tasks-coverage-task-exceptions	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	28	30	showerror	showerror(io::IO, ce::CapturedException)	modelled	tasks-coverage-task-exceptions	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	40	40	capture_exception	capture_exception(ex, bt)	modelled	tasks-coverage-task-exceptions	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	52	52	CompositeException	CompositeException()	modelled	tasks-coverage-task-exceptions	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	53	53	CompositeException	CompositeException(exceptions)	modelled	tasks-coverage-task-exceptions	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	55	55	length	length(c::CompositeException)	modelled	tasks-coverage-task-exceptions	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	56	56	push!	push!(c::CompositeException, ex)	modelled	tasks-coverage-task-exceptions	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	57	57	pushfirst!	pushfirst!(c::CompositeException, ex)	modelled	tasks-coverage-task-exceptions	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	58	58	isempty	isempty(c::CompositeException)	modelled	tasks-coverage-task-exceptions	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	59	59	iterate	iterate(c::CompositeException, state...)	modelled	tasks-coverage-task-exceptions	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	61	71	showerror	showerror(io::IO, ex::CompositeException)	modelled	tasks-coverage-task-exceptions	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	83	91	showerror	showerror(io::IO, ex::TaskFailedException, bt = nothing; backtrace=true)	modelled	tasks-coverage-task-exceptions	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	93	107	show_task_exception	show_task_exception(io::IO, t::Task; indent = true)	modelled	tasks-coverage-task-exceptions	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	109	113	show	show(io::IO, t::Task)	modelled	tasks-coverage-task-exceptions	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	145	148	task	task(ex)	modelled	tasks-coverage-task-core	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	158	188	getproperty	getproperty(t::Task, field::Symbol)	modelled	tasks-coverage-task-core	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	190	199	setproperty!	setproperty!(t::Task, field::Symbol, @nospecialize(v))	modelled	tasks-coverage-task-core	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	223	223	istaskdone	istaskdone(t::Task)	modelled	tasks-state-monotone,tasks-coverage-task-core	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	240	240	istaskstarted	istaskstarted(t::Task)	modelled	tasks-state-monotone,tasks-coverage-task-core	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	267	270	istaskfailed	istaskfailed(t::Task)	modelled	tasks-state-monotone,tasks-coverage-task-core	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	301	302	unsafe_abandon!	unsafe_abandon!(t::Task, next_task::Task)	modelled	tasks-coverage-task-core	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	304	354	unsafe_abandon!	unsafe_abandon!(t::Task, next_task::Task, @nospecialize(result))	modelled	tasks-coverage-task-core	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	356	356	Threads.threadid	Threads.threadid(t::Task)	modelled	tasks-coverage-task-core	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	357	360	Threads.threadpool	Threads.threadpool(t::Task)	modelled	tasks-coverage-task-core	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	362	362	task_result	task_result(t::Task)	modelled	tasks-coverage-task-core	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	364	364	task_local_storage	task_local_storage()	modelled	tasks-coverage-task-core	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	365	370	get_task_tls	get_task_tls(t::Task)	modelled	tasks-coverage-task-core	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	377	377	task_local_storage	task_local_storage(key)	modelled	tasks-coverage-task-core	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	384	384	task_local_storage	task_local_storage(key, val)	modelled	tasks-coverage-task-core	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	393	403	task_local_storage	task_local_storage(body::Function, key, val)	modelled	tasks-coverage-task-core	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	406	407	_wait	_wait(t::Task; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	tasks-coverage-task-wait	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	411	433	_wait	_wait(t::Task, tok::MaybeToken; min_severity::UInt8=0x00, cancel_value::Bool=false)	modelled	tasks-coverage-task-wait	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	435	435	waitqueue	waitqueue(t::Task)	modelled	tasks-coverage-task-wait	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	440	476	schedule_on_notify!	schedule_on_notify!(t::Task, waiter::Task)	modelled	tasks-coverage-task-wait	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	494	502	wait	wait(t::Task; throw=true, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	tasks-wait-fetch-contract,tasks-coverage-task-wait	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	503	510	wait	wait(t::Task, tok::MaybeToken; throw=true)	modelled	tasks-wait-fetch-contract,tasks-coverage-task-wait	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	534	535	waitany	waitany(tasks; throw=true, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	tasks-coverage-task-wait	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	555	556	waitall	waitall(tasks; failfast=true, throw=true, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	tasks-coverage-task-wait	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	558	565	collect_tasks	collect_tasks(waiting_tasks)	modelled	tasks-coverage-task-wait	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	577	591	wait_enqueue!	wait_enqueue!(x::DoneWait, w::WaitEntry, first::Bool)	modelled	tasks-coverage-task-wait	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	593	597	wait_recheck	wait_recheck(x::DoneWait, w::WaitEntry)	modelled	tasks-coverage-task-wait	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	599	610	wait_dequeue!	wait_dequeue!(x::DoneWait, w::WaitEntry, why::UInt8)	modelled	tasks-coverage-task-wait	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	612	717	_wait_multiple	_wait_multiple(tasks::Vector{Task}, throwexc::Bool=false, all::Bool=false, failfast::Bool=false, tok::MaybeToken=default_cancel_token())	modelled	tasks-coverage-task-wait	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	724	724	fetch	fetch(@nospecialize x)	modelled	tasks-coverage-task-wait	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	733	742	fetch	fetch(t::Task; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	tasks-wait-fetch-contract,tasks-coverage-task-wait	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	750	761	showerror	showerror(io::IO, cr::CancellationRequest)	modelled	tasks-coverage-task-sync	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	763	780	showerror	showerror(io::IO, ex::ScheduledAfterSyncException)	modelled	tasks-coverage-task-sync	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	782	839	sync_end	sync_end(c::Channel{Any}, src::Union{Nothing, CancellationTokenSource}=nothing)	modelled	tasks-sync-failures-once,tasks-coverage-task-sync	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	848	892	sync_cancel!	sync_cancel!(c::Channel{Any}, t::Task, cr::CancellationRequest, tok::CancellationToken, c_ex::CompositeException)	modelled	tasks-coverage-task-sync	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	915	935	sync	sync(block)	modelled	tasks-sync-failures-once,tasks-coverage-task-sync	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	959	961	async	async(expr)	modelled	tasks-sync-failures-once,tasks-coverage-task-sync	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	965	980	do_async_macro	do_async_macro(expr, linenums, wrap)	modelled	tasks-coverage-task-sync	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	988	998	unwrap_task_failed	unwrap_task_failed(f::Function, t::UnwrapTaskFailedException)	modelled	tasks-coverage-task-sync	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1001	1001	wait	wait(t::UnwrapTaskFailedException)	modelled	tasks-coverage-task-sync	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1004	1004	fetch	fetch(t::UnwrapTaskFailedException)	modelled	tasks-coverage-task-sync	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1007	1009	async_unwrap	async_unwrap(expr)	modelled	tasks-coverage-task-sync	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1024	1059	errormonitor	errormonitor(t::Task)	modelled	tasks-coverage-task-sync	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1062	1066	_lift_one_interp!	_lift_one_interp!(@nospecialize e)	modelled	tasks-coverage-task-sync	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1067	1067	_lift_one_interp_helper	_lift_one_interp_helper(@nospecialize(v), _::Bool, _::Int, _::Vector{Any})	modelled	tasks-coverage-task-sync	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1068	1095	_lift_one_interp_helper	_lift_one_interp_helper(expr::Expr, in_quote_context::Bool, escs::Int, letargs::Vector{Any})	modelled	tasks-coverage-task-sync	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1099	1106	sync_add	sync_add(expr)	modelled	tasks-coverage-task-sync	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1108	1117	repl_backend_task	repl_backend_task()	modelled	tasks-coverage-task-queue	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1120	1166	task_done_hook	task_done_hook(t::Task)	modelled	tasks-coverage-task-queue	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1168	1172	init_task_lock	init_task_lock(t::Task)	modelled	tasks-coverage-task-queue	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1179	1179	IntrusiveLinkedListSynchronized{T}	IntrusiveLinkedListSynchronized{T}() where {T}	modelled	tasks-coverage-task-queue	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1181	1181	waitqueue	waitqueue(W::IntrusiveLinkedListSynchronized)	modelled	tasks-coverage-task-queue	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1182	1182	isempty	isempty(W::IntrusiveLinkedListSynchronized)	modelled	tasks-coverage-task-queue	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1183	1183	length	length(W::IntrusiveLinkedListSynchronized)	modelled	tasks-coverage-task-queue	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1184	1192	push!	push!(W::IntrusiveLinkedListSynchronized{T}, t::T) where T	modelled	tasks-coverage-task-queue	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1193	1201	pushfirst!	pushfirst!(W::IntrusiveLinkedListSynchronized{T}, t::T) where T	modelled	tasks-coverage-task-queue	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1202	1209	pop!	pop!(W::IntrusiveLinkedListSynchronized)	modelled	tasks-coverage-task-queue	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1210	1217	popfirst!	popfirst!(W::IntrusiveLinkedListSynchronized)	modelled	tasks-coverage-task-queue	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1218	1226	list_deletefirst!	list_deletefirst!(W::IntrusiveLinkedListSynchronized{T}, t::T) where T	modelled	tasks-coverage-task-queue	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1232	1232	workqueue_for	workqueue_for(tid::Int)	modelled	tasks-coverage-task-queue	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1234	1312	enq_work	enq_work(t::Task)	modelled	tasks-coverage-task-queue	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1314	1318	schedule	schedule(t::Task)	modelled	tasks-coverage-task-queue	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1374	1394	schedule	schedule(t::Task, @nospecialize(arg); error=false)	modelled	tasks-coverage-task-scheduling	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1405	1420	deliver_claimed_wake!	deliver_claimed_wake!(t::Task, w::WaitEntry, @nospecialize(exc))	modelled	tasks-coverage-task-scheduling	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1426	1436	deliver_claimed_value_wake!	deliver_claimed_value_wake!(t::Task, w::WaitEntry, @nospecialize(val))	modelled	tasks-coverage-task-scheduling	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1445	1454	yield	yield()	modelled	tasks-coverage-task-scheduling	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1456	1456	set_next_task	set_next_task(t::Task)	modelled	tasks-coverage-task-scheduling	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1466	1479	yield	yield(t::Task, @nospecialize(x=nothing))	modelled	tasks-coverage-task-scheduling	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1489	1505	yieldto	yieldto(t::Task, @nospecialize(x=nothing))	modelled	tasks-coverage-task-scheduling	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1507	1528	try_yieldto	try_yieldto(undo)	modelled	tasks-coverage-task-scheduling	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1531	1541	throwto	throwto(t::Task, @nospecialize exc)	modelled	tasks-coverage-task-scheduling	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1543	1586	wait_forever	wait_forever()	modelled	tasks-coverage-task-scheduling	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1588	1602	_new_sched_task	_new_sched_task()	modelled	tasks-coverage-task-scheduling	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1606	1621	ensure_rescheduled	ensure_rescheduled(othertask::Task)	modelled	tasks-coverage-task-scheduling	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1623	1637	discard_stale_workqueue_task	discard_stale_workqueue_task(t::Task)	modelled	tasks-coverage-task-scheduling	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1639	1657	trypoptask	trypoptask(W::StickyWorkqueue)	modelled	tasks-coverage-task-scheduling	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1661	1692	wait	wait()	modelled	tasks-coverage-task-scheduling	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1695	1695	pause	pause()	modelled	tasks-coverage-task-scheduling	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1697	1697	pause	pause()	modelled	tasks-coverage-task-scheduling	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1701	1706	record_running_time!	record_running_time!(t::Task)	modelled	tasks-coverage-task-scheduling	source-body: Lean model mirrors this method's branch and mutation order.
+base/task.jl	1711	1716	maybe_record_enqueued!	maybe_record_enqueued!(t::Task)	modelled	tasks-coverage-task-scheduling	source-body: Lean model mirrors this method's branch and mutation order.

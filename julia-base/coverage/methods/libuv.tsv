@@ -1,0 +1,39 @@
+file	line	endline	name	signature	status	entry	note
+base/libuv.jl	8	13	uv_sizeof_handle	uv_sizeof_handle(handle)	modelled	streams-method-libuv-l8	method-specific source model and quantified all-input behavior property
+base/libuv.jl	15	20	uv_sizeof_req	uv_sizeof_req(req)	modelled	streams-method-libuv-l15	method-specific source model and quantified all-input behavior property
+base/libuv.jl	29	29	uv_handle_data	uv_handle_data(handle)	modelled	streams-method-libuv-l29	method-specific source model and quantified all-input behavior property
+base/libuv.jl	30	30	uv_req_data	uv_req_data(handle)	modelled	streams-method-libuv-l30	method-specific source model and quantified all-input behavior property
+base/libuv.jl	31	31	uv_req_set_data	uv_req_set_data(req, data)	modelled	streams-method-libuv-l31	method-specific source model and quantified all-input behavior property
+base/libuv.jl	32	32	uv_req_set_data	uv_req_set_data(req, data::Ptr{Cvoid})	modelled	streams-method-libuv-l32	method-specific source model and quantified all-input behavior property
+base/libuv.jl	34	40	handle_as	handle_as(hand, typ)	modelled	streams-method-libuv-l34	method-specific source model and quantified all-input behavior property
+base/libuv.jl	42	42	_uv_hook_close	_uv_hook_close	excluded		no-behaviour: generic callback declaration without an implementation body in this file.
+base/libuv.jl	44	50	associate_julia_struct	associate_julia_struct(handle::Ptr{Cvoid}, jlobj::T) where T	modelled	streams-method-libuv-l44	method-specific source model and quantified all-input behavior property
+base/libuv.jl	51	51	disassociate_julia_struct	disassociate_julia_struct(uv)	modelled	streams-method-libuv-l51	method-specific source model and quantified all-input behavior property
+base/libuv.jl	52	53	disassociate_julia_struct	disassociate_julia_struct(handle::Ptr{Cvoid})	modelled	streams-method-libuv-l52	method-specific source model and quantified all-input behavior property
+base/libuv.jl	55	55	iolock_begin	iolock_begin()	modelled	streams-method-libuv-l55	method-specific source model and quantified all-input behavior property
+base/libuv.jl	56	56	iolock_end	iolock_end()	modelled	streams-method-libuv-l56	method-specific source model and quantified all-input behavior property
+base/libuv.jl	62	68	preserve_handle	preserve_handle(@nospecialize(x))	modelled	streams-method-libuv-l62	method-specific source model and quantified all-input behavior property
+base/libuv.jl	69	82	unpreserve_handle	unpreserve_handle(@nospecialize(x))	modelled	streams-method-libuv-l69	method-specific source model and quantified all-input behavior property
+base/libuv.jl	89	89	IOError	IOError(msg::AbstractString, code::Integer)	modelled	streams-method-libuv-l89	method-specific source model and quantified all-input behavior property
+base/libuv.jl	92	98	showerror	showerror(io::IO, e::IOError)	modelled	streams-method-libuv-l92	method-specific source model and quantified all-input behavior property
+base/libuv.jl	100	103	_UVError	_UVError(pfx::AbstractString, code::Integer)	modelled	streams-method-libuv-l100	method-specific source model and quantified all-input behavior property
+base/libuv.jl	104	107	_UVError	_UVError(pfx::AbstractString, code::Integer, sfxs::AbstractString...)	modelled	streams-method-libuv-l104	method-specific source model and quantified all-input behavior property
+base/libuv.jl	109	109	struverror	struverror(err::Int32)	modelled	streams-method-libuv-l109	method-specific source model and quantified all-input behavior property
+base/libuv.jl	110	110	uverrorname	uverrorname(err::Int32)	modelled	streams-method-libuv-l110	method-specific source model and quantified all-input behavior property
+base/libuv.jl	112	112	uv_error	uv_error(prefix::Symbol, c::Integer)	modelled	streams-method-libuv-l112	method-specific source model and quantified all-input behavior property
+base/libuv.jl	113	113	uv_error	uv_error(prefix::AbstractString, c::Integer)	modelled	streams-method-libuv-l113	method-specific source model and quantified all-input behavior property
+base/libuv.jl	114	114	uv_error	uv_error(prefix::AbstractString, c::Bool)	modelled	streams-method-libuv-l114	method-specific source model and quantified all-input behavior property
+base/libuv.jl	115	115	_uv_error	_uv_error(prefix::AbstractString, c::Integer)	modelled	streams-method-libuv-l115	method-specific source model and quantified all-input behavior property
+base/libuv.jl	119	119	eventloop	eventloop()	modelled	streams-method-libuv-l119	method-specific source model and quantified all-input behavior property
+base/libuv.jl	121	125	uv_unref	uv_unref(h::Ptr{Cvoid})	modelled	streams-method-libuv-l121	method-specific source model and quantified all-input behavior property
+base/libuv.jl	127	131	uv_ref	uv_ref(h::Ptr{Cvoid})	modelled	streams-method-libuv-l127	method-specific source model and quantified all-input behavior property
+base/libuv.jl	133	135	process_events	process_events()	modelled	streams-method-libuv-l133	method-specific source model and quantified all-input behavior property
+base/libuv.jl	137	137	uv_alloc_buf	uv_alloc_buf	excluded		no-behaviour: generic callback declaration without an implementation body in this file.
+base/libuv.jl	138	138	uv_readcb	uv_readcb	excluded		no-behaviour: generic callback declaration without an implementation body in this file.
+base/libuv.jl	139	139	uv_writecb_task	uv_writecb_task	excluded		no-behaviour: generic callback declaration without an implementation body in this file.
+base/libuv.jl	140	140	uv_shutdowncb_task	uv_shutdowncb_task	excluded		no-behaviour: generic callback declaration without an implementation body in this file.
+base/libuv.jl	141	141	uv_return_spawn	uv_return_spawn	excluded		no-behaviour: generic callback declaration without an implementation body in this file.
+base/libuv.jl	142	142	uv_asynccb	uv_asynccb	excluded		no-behaviour: generic callback declaration without an implementation body in this file.
+base/libuv.jl	143	143	uv_timercb	uv_timercb	excluded		no-behaviour: generic callback declaration without an implementation body in this file.
+base/libuv.jl	145	145	reinit_stdio	reinit_stdio()	modelled	streams-method-libuv-l145	method-specific source model and quantified all-input behavior property
+base/libuv.jl	148	163	_reinit_stdio	_reinit_stdio()	modelled	streams-method-libuv-l148	method-specific source model and quantified all-input behavior property

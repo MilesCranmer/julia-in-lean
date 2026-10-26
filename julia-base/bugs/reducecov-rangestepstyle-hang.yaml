@@ -1,0 +1,61 @@
+id: reducecov-rangestepstyle-hang
+title: "Base.RangeStepStyle(x) never returns for a value or type that is not a range"
+priority: P2
+kind: hang
+area: ReduceCov
+files: [base/traits.jl]
+functions: ["RangeStepStyle(instance)"]
+summary: |
+  Base.RangeStepStyle(1), Base.RangeStepStyle(Int) and Base.RangeStepStyle([1, 2])
+  loop forever instead of returning or throwing. The sibling traits OrderStyle and
+  ArithmeticStyle return at once for the same arguments, and IndexStyle(Int)
+  throws a MethodError.
+likelihood: |
+  Low: RangeStepStyle is meant to be asked about ranges, and Base only calls it on
+  range types (hash of a range). Generic code that queries the trait for an
+  arbitrary type, or a typo passing the element type instead of the range type,
+  hangs the session instead of failing.
+maybe_intended: |
+  The docstring only describes range types ("By default, all range types are
+  assumed to be RangeStepIrregular"), so a non-range argument is outside the
+  documented domain. A hang is still not an acceptable answer for a call outside
+  the domain; every other trait method in traits.jl either returns or throws.
+reproducer: |
+  Base.RangeStepStyle(1)   # never returns
+output:
+  release: |
+    Base.RangeStepStyle(1): still running after 30 s (killed)
+    Base.ArithmeticStyle(1) = Base.ArithmeticWraps()
+    REPRODUCED reducecov-rangestepstyle-hang
+  nightly: |
+    Base.RangeStepStyle(1): still running after 30 s (killed)
+    Base.ArithmeticStyle(1) = Base.ArithmeticWraps()
+    REPRODUCED reducecov-rangestepstyle-hang
+reproduced: {release: true, nightly: true}
+expected: |
+  A MethodError (no method for a non-range type), as IndexStyle(Int) throws, or
+  RangeStepIrregular().
+promised_by: |
+  Invariant: a trait query terminates. The RangeStepStyle docstring
+  (base/traits.jl:36-65) documents RangeStepStyle(instance) and RangeStepStyle(T::Type)
+  as the two forms of the call.
+cause: |
+  base/traits.jl:72: RangeStepStyle(instance) = RangeStepStyle(typeof(instance)).
+  The only type methods are RangeStepStyle(::Type{<:AbstractRange}) and
+  RangeStepStyle(::Type{<:AbstractRange{<:Integer}}) (base/range.jl:285-286) and
+  RangeStepStyle(::Type{Union{}}) (base/traits.jl:69). A type T that is not a range
+  is itself an instance (of DataType), so the instance method calls
+  RangeStepStyle(DataType), which calls RangeStepStyle(typeof(DataType)) =
+  RangeStepStyle(DataType) again. The self tail call becomes a loop, so there is no
+  StackOverflowError either.
+possible_fix: |
+  Add RangeStepStyle(::Type) = RangeStepIrregular() (or a method that throws
+  MethodError) so that a type never falls through to the instance method, as
+  OrderStyle(::Type{<:Any}) and ArithmeticStyle(::Type{<:Any}) do.
+duplicates:
+  issues:
+    - {number: 34985, state: closed, relation: related}
+  queries: ["RangeStepStyle", "RangeStepStyle hang", "RangeStepStyle infinite recursion", "RangeStepStyle infinite", "f(x) = f(typeof(x)) infinite recursion"]
+lean:
+  property: JuliaLean.ReduceCov.RangeStepStyleTerminates
+  theorem: JuliaLean.ReduceCov.rangeStepStyleTerminates_refuted

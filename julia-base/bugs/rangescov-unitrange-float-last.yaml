@@ -1,0 +1,46 @@
+id: rangescov-unitrange-float-last
+title: "UnitRange(0.7, 3.6999999999999997) has last element 3.7, beyond its stop"
+priority: P2
+kind: wrong-result
+area: RangesCov
+files: ["base/range.jl"]
+functions: ["unitrange_last(start, stop)", "UnitRange(::T, ::T) where T<:Real"]
+summary: |
+  For floating-point UnitRange, the stored stop start + floor(stop - start) can exceed the given
+  stop because stop - start rounds up to an integer.
+likelihood: |
+  UnitRange of floats is built only explicitly (UnitRange(a, b)); needs a stop just below
+  start + k. Uncommon.
+maybe_intended: ""
+reproducer: |
+  a, b = 0.7, 3.6999999999999997
+  r = UnitRange(a, b)
+  println("UnitRange(", a, ", ", b, ") = ", collect(r))
+  println("last(r) = ", last(r), " > stop: ", last(r) > b)
+  last(r) > b && println("REPRODUCED rangescov-unitrange-float-last")
+output:
+  release: |
+    UnitRange(0.7, 3.6999999999999997) = [0.7, 1.7, 2.7, 3.7]
+    last(r) = 3.7 > stop: true
+    REPRODUCED rangescov-unitrange-float-last
+  nightly: |
+    UnitRange(0.7, 3.6999999999999997) = [0.7, 1.7, 2.7, 3.7]
+    last(r) = 3.7 > stop: true
+    REPRODUCED rangescov-unitrange-float-last
+reproduced: {release: true, nightly: true}
+expected: |
+  [0.7, 1.7, 2.7]: elements spaced by 1 that do not exceed the stop.
+promised_by: |
+  UnitRange docstring, base/range.jl:406-411: "filled with elements spaced by 1 from start until stop is exceeded".
+cause: |
+  base/range.jl:443-445 computes floor(stop - start) with a rounded subtraction (2.9999999999999996
+  rounds to 3.0 here), then start + 3.0 == 3.7 > stop.
+possible_fix: |
+  After computing last = start + floor(stop - start), step back by one while last > stop.
+duplicates:
+  issues:
+    - {number: 60261, state: closed, relation: related}
+  queries: ["issues: UnitRange float last", "issues: UnitRange Float64 stop", "prs: UnitRange float last", "prs: UnitRange Float64 stop"]
+lean:
+  property: JuliaLean.RangesCov.Floats.UnitRangeFloatStop
+  theorem: JuliaLean.RangesCov.Floats.unitRangeFloatStop_refuted

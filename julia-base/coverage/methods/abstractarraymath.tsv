@@ -1,0 +1,54 @@
+file	line	endline	name	signature	status	entry	note
+base/abstractarraymath.jl	5	5	isreal	isreal(x::AbstractArray)	modelled	multidimcov-abstractarraymath-line5	source-order model and quantified behavior
+base/abstractarraymath.jl	6	6	iszero	iszero(x::AbstractArray)	modelled	multidimcov-abstractarraymath-line6	source-order model and quantified behavior
+base/abstractarraymath.jl	7	7	isreal	isreal(x::AbstractArray{<:Real})	modelled	multidimcov-abstractarraymath-line7	source-order model and quantified behavior
+base/abstractarraymath.jl	41	41	vec	vec(a::AbstractArray)	modelled	multidimcov-abstractarraymath-line41	source-order model and quantified behavior
+base/abstractarraymath.jl	42	42	vec	vec(a::AbstractVector)	modelled	multidimcov-abstractarraymath-line42	source-order model and quantified behavior
+base/abstractarraymath.jl	44	44	_sub	_sub(::Tuple{}, ::Tuple{})	modelled	multidimcov-abstractarraymath-line44	source-order model and quantified behavior
+base/abstractarraymath.jl	45	45	_sub	_sub(t::Tuple, ::Tuple{})	modelled	multidimcov-abstractarraymath-line45	source-order model and quantified behavior
+base/abstractarraymath.jl	46	46	_sub	_sub(t::Tuple, s::Tuple)	modelled	multidimcov-abstractarraymath-line46	source-order model and quantified behavior
+base/abstractarraymath.jl	85	85	dropdims	dropdims(A; dims)	modelled	multidimcov-abstractarraymath-line85	source-order model and quantified behavior
+base/abstractarraymath.jl	86	103	_dropdims	_dropdims(A::AbstractArray, dims::Dims)	modelled	multidimcov-abstractarraymath-faithful-86	row-specific faithful source-order replacement
+base/abstractarraymath.jl	104	104	_dropdims	_dropdims(A::AbstractArray, dim::Integer)	modelled	multidimcov-abstractarraymath-line104	source-order model and quantified behavior
+base/abstractarraymath.jl	146	146	insertdims	insertdims(A; dims)	modelled	multidimcov-abstractarraymath-line146	source-order model and quantified behavior
+base/abstractarraymath.jl	147	165	_insertdims	_insertdims(A::AbstractArray{T, N}, dims::NTuple{M, Int}) where {T, N, M}	modelled	multidimcov-abstractarraymath-line147	source-order model and quantified behavior
+base/abstractarraymath.jl	166	166	_insertdims	_insertdims(A::AbstractArray, dim::Integer)	modelled	multidimcov-abstractarraymath-line166	source-order model and quantified behavior
+base/abstractarraymath.jl	194	194	conj!	conj!(A::AbstractArray{<:Number})	modelled	multidimcov-abstractarraymath-faithful-194	row-specific faithful source-order replacement
+base/abstractarraymath.jl	195	195	conj!	conj!(x::AbstractArray{<:Real})	modelled	multidimcov-abstractarraymath-faithful-195	row-specific faithful source-order replacement
+base/abstractarraymath.jl	196	196	conj!	conj!(A::AbstractArray)	modelled	multidimcov-abstractarraymath-faithful-196	row-specific faithful source-order replacement
+base/abstractarraymath.jl	220	220	conj	conj(A::AbstractArray)	modelled	multidimcov-abstractarraymath-faithful-220	row-specific faithful source-order replacement
+base/abstractarraymath.jl	221	221	conj	conj(A::AbstractArray{<:Real})	modelled	multidimcov-abstractarraymath-faithful-221	row-specific faithful source-order replacement
+base/abstractarraymath.jl	245	245	real	real(A::AbstractArray)	modelled	multidimcov-abstractarraymath-faithful-245	row-specific faithful source-order replacement
+base/abstractarraymath.jl	246	246	real	real(A::AbstractArray{<:Real})	modelled	multidimcov-abstractarraymath-faithful-246	row-specific faithful source-order replacement
+base/abstractarraymath.jl	269	269	imag	imag(A::AbstractArray)	modelled	multidimcov-abstractarraymath-faithful-269	row-specific faithful source-order replacement
+base/abstractarraymath.jl	270	270	imag	imag(A::AbstractArray{<:Real})	modelled	multidimcov-abstractarraymath-line270	source-order model and quantified behavior
+base/abstractarraymath.jl	293	293	-	-(A::AbstractArray)	modelled	multidimcov-abstractarraymath-faithful-293	row-specific faithful source-order replacement
+base/abstractarraymath.jl	295	295	+	+(x::AbstractArray{<:Number})	modelled	multidimcov-abstractarraymath-faithful-295	row-specific faithful source-order replacement
+base/abstractarraymath.jl	296	296	*	*(x::AbstractArray{<:Number,2})	modelled	multidimcov-abstractarraymath-faithful-296	row-specific faithful source-order replacement
+base/abstractarraymath.jl	327	327	selectdim	selectdim(A::AbstractArray, d::Integer, i)	modelled	multidimcov-abstractarraymath-line327	source-order model and quantified behavior
+base/abstractarraymath.jl	328	333	_selectdim	_selectdim(A, d, i, idxs)	modelled	multidimcov-abstractarraymath-faithful-328	row-specific faithful source-order replacement
+base/abstractarraymath.jl	335	337	circshift	circshift(a::AbstractArray, shiftamt::Real)	modelled	multidimcov-abstractarraymath-faithful-335	row-specific faithful source-order replacement
+base/abstractarraymath.jl	338	338	circshift	circshift(a::AbstractArray, shiftamt::DimsInteger)	modelled	multidimcov-abstractarraymath-line338	source-order model and quantified behavior
+base/abstractarraymath.jl	411	413	circshift	circshift(a::AbstractArray, shiftamt)	modelled	multidimcov-abstractarraymath-faithful-411	row-specific faithful source-order replacement
+base/abstractarraymath.jl	445	447	repeat	repeat(A::AbstractArray, counts...)	modelled	multidimcov-abstractarraymath-line445	source-order model and quantified behavior
+base/abstractarraymath.jl	482	484	repeat	repeat(A::AbstractArray; inner = nothing, outer = nothing)	modelled	multidimcov-abstractarraymath-line482	source-order model and quantified behavior
+base/abstractarraymath.jl	488	492	repeat	repeat(arr; inner=nothing, outer=nothing)	modelled	multidimcov-abstractarraymath-line488	source-order model and quantified behavior
+base/abstractarraymath.jl	494	494	to_tuple	to_tuple(t::Tuple)	modelled	multidimcov-abstractarraymath-line494	source-order model and quantified behavior
+base/abstractarraymath.jl	495	495	to_tuple	to_tuple(x::Integer)	modelled	multidimcov-abstractarraymath-line495	source-order model and quantified behavior
+base/abstractarraymath.jl	496	496	to_tuple	to_tuple(itr)	modelled	multidimcov-abstractarraymath-faithful-496	row-specific faithful source-order replacement
+base/abstractarraymath.jl	498	501	pad	pad(a, b)	modelled	multidimcov-abstractarraymath-faithful-498	row-specific faithful source-order replacement
+base/abstractarraymath.jl	502	505	pad	pad(a, b, c)	modelled	multidimcov-abstractarraymath-faithful-502	row-specific faithful source-order replacement
+base/abstractarraymath.jl	507	509	resolve	resolve(arr::AbstractArray{<:Any, N}, inner::NTuple{N, Any}, outer::NTuple{N,Any}) where {N}	modelled	multidimcov-abstractarraymath-line507	source-order model and quantified behavior
+base/abstractarraymath.jl	510	513	resolve	resolve(arr, inner, outer)	modelled	multidimcov-abstractarraymath-line510	source-order model and quantified behavior
+base/abstractarraymath.jl	514	516	resolve	resolve(arr, inner::Nothing, outer::Nothing)	modelled	multidimcov-abstractarraymath-line514	source-order model and quantified behavior
+base/abstractarraymath.jl	517	520	resolve	resolve(arr, inner::Nothing, outer)	modelled	multidimcov-abstractarraymath-line517	source-order model and quantified behavior
+base/abstractarraymath.jl	521	524	resolve	resolve(arr, inner, outer::Nothing)	modelled	multidimcov-abstractarraymath-line521	source-order model and quantified behavior
+base/abstractarraymath.jl	526	552	check	check(arr, inner, outer)	modelled	multidimcov-abstractarraymath-faithful-526	row-specific faithful source-order replacement
+base/abstractarraymath.jl	554	554	repeat_inner_outer	repeat_inner_outer(arr, inner::Nothing, outer::Nothing)	modelled	multidimcov-abstractarraymath-line554	source-order model and quantified behavior
+base/abstractarraymath.jl	555	555	repeat_inner_outer	repeat_inner_outer(arr, ::Nothing, outer)	modelled	multidimcov-abstractarraymath-line555	source-order model and quantified behavior
+base/abstractarraymath.jl	556	556	repeat_inner_outer	repeat_inner_outer(arr, inner, ::Nothing)	modelled	multidimcov-abstractarraymath-line556	source-order model and quantified behavior
+base/abstractarraymath.jl	557	557	repeat_inner_outer	repeat_inner_outer(arr, inner, outer)	modelled	multidimcov-abstractarraymath-line557	source-order model and quantified behavior
+base/abstractarraymath.jl	559	571	repeat_outer	repeat_outer(a::AbstractMatrix, (m,n)::NTuple{2, Any})	modelled	multidimcov-abstractarraymath-faithful-559	row-specific faithful source-order replacement
+base/abstractarraymath.jl	573	581	repeat_outer	repeat_outer(a::AbstractVector, (m,)::Tuple{Any})	modelled	multidimcov-abstractarraymath-faithful-573	row-specific faithful source-order replacement
+base/abstractarraymath.jl	583	597	repeat_outer	repeat_outer(arr::AbstractArray{<:Any,N}, dims::NTuple{N,Any}) where {N}	modelled	multidimcov-abstractarraymath-faithful-583	row-specific faithful source-order replacement
+base/abstractarraymath.jl	599	612	repeat_inner	repeat_inner(arr, inner)	modelled	multidimcov-abstractarraymath-faithful-599	row-specific faithful source-order replacement

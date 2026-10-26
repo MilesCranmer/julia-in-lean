@@ -1,0 +1,9 @@
+file	line	endline	name	signature	status	entry	note
+base/docs/core.jl	10	10	DocLinkedList	DocLinkedList()	modelled	docssyntaxcov-core-records	
+base/docs/core.jl	11	11	DocLinkedList	DocLinkedList(doc::SimpleVector, next::DocLinkedList)	modelled	docssyntaxcov-core-records	
+base/docs/core.jl	15	19	doc!	doc!(source::LineNumberNode, mod::Module, str, ex)	modelled	docssyntaxcov-core-records	
+base/docs/core.jl	21	21	isexpr	isexpr(x, h::Symbol)	modelled	docssyntaxcov-core-expr	
+base/docs/core.jl	23	23	lazy_iterpolate	lazy_iterpolate(s::AbstractString)	modelled	docssyntaxcov-core-expr	
+base/docs/core.jl	24	24	lazy_iterpolate	lazy_iterpolate(x)	modelled	docssyntaxcov-core-expr	
+base/docs/core.jl	26	35	docm	docm(source::LineNumberNode, mod::Module, str, x)	modelled	docssyntaxcov-core-docm	
+base/docs/core.jl	36	37	docm	docm(source::LineNumberNode, mod::Module, x)	modelled	docssyntaxcov-core-docm	

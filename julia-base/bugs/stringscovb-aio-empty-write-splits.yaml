@@ -1,0 +1,62 @@
+id: stringscovb-aio-empty-write-splits
+title: Writing an empty AnnotatedString into the middle of an AnnotatedIOBuffer splits annotations
+priority: P3
+kind: wrong-result
+area: StringsCovB
+files:
+- base/strings/annotated_io.jl
+functions:
+- _clear_annotations_in_region!(annotations, span)
+- write(io::AnnotatedIOBuffer, astr::AnnotatedString)
+summary: |
+  write(io, AnnotatedString("")) at a position inside an annotated region writes no bytes
+  but splits the annotation (1:5) into (1:2) and (3:5). _clear_annotations_in_region! treats
+  the empty span 3:2 as overlapping, truncates the region to first(region):first(span)-1 and
+  adds the tail last(span)+1:last(region). The buffer then compares unequal to the same text
+  with the original annotation.
+likelihood: |
+  Rare: writing empty annotated strings at a non-final position (for example in a loop of styled pieces after a seek).
+maybe_intended: |
+  The two pieces cover the same bytes, so styled output is unchanged; only the annotation list differs.
+reproducer: |
+  using Base: AnnotatedString, AnnotatedIOBuffer, annotations
+  io = AnnotatedIOBuffer(); write(io, AnnotatedString("abcde", [(1:5, :s, 1)])); seek(io, 2)
+  nb = write(io, AnnotatedString(""))
+  seekstart(io)
+  r = read(io, AnnotatedString)
+  println("bytes written = ", nb, ", annotations = ", [(a.region, a.label) for a in annotations(r)])
+  println("r == AnnotatedString(\"abcde\", [(1:5, :s, 1)]): ", r == AnnotatedString("abcde", [(1:5, :s, 1)]))
+  r != AnnotatedString("abcde", [(1:5, :s, 1)]) && length(annotations(r)) == 2 &&
+      println("REPRODUCED stringscovb-aio-empty-write-splits")
+output:
+  release: |
+    bytes written = 0, annotations = Tuple{UnitRange{Int64}, Symbol}[(1:2, :s), (3:5, :s)]
+    r == AnnotatedString("abcde", [(1:5, :s, 1)]): false
+    REPRODUCED stringscovb-aio-empty-write-splits
+  nightly: |
+    bytes written = 0, annotations = Tuple{UnitRange{Int64}, Symbol}[(1:2, :s), (3:5, :s)]
+    r == AnnotatedString("abcde", [(1:5, :s, 1)]): false
+    REPRODUCED stringscovb-aio-empty-write-splits
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Annotations unchanged: [(1:5, :s)], since no byte is written.
+promised_by: |
+  Invariant of _clear_annotations_in_region! (docstring base/strings/annotated_io.jl:111-119):
+  only annotations within span are removed or truncated; an empty span contains no code
+  units.
+cause: |
+  base/strings/annotated_io.jl:126-138: the partial-overlap test and the split do not check
+  isempty(span).
+possible_fix: |
+  Return early from _clear_annotations_in_region! when span is empty.
+duplicates:
+  issues: []
+  queries:
+  - 'prs: _clear_annotations_in_region'
+  - 'issues: AnnotatedIOBuffer'
+  - 'issues: AnnotatedIOBuffer write empty'
+lean:
+  property: JuliaLean.StringsCovB.AIO.WriteEmptyKeeps
+  theorem: JuliaLean.StringsCovB.AIO.writeEmptyKeeps_refuted

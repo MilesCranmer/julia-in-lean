@@ -1,0 +1,26 @@
+line	name	verdict	mirror	property	settled	reason
+141	logb	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+142	logb	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+143	logb	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+144	logbU	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+145	logbL	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+146	logbU	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+147	logbL	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+148	logbU	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+149	logbL	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+152	log_proc1	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+184	log_proc2	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+210	log_proc1	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+233	log_proc2	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+251	log2	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+252	log	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+253	log10	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+254	log2	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+255	log	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+256	log10	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+258	_log	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+294	_log	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+330	log1p	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+364	log1p	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+542	log_tab_unpack	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+555	_log_ext	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.

@@ -1,0 +1,149 @@
+line	name	verdict	mirror	property	settled	reason
+28	SystemError	HOLLOW	no	no	yes	The model restricts AbstractString and arbitrary extrainfo to String and Option String, so it neither mirrors every field conversion nor states the constructor behavior for all allowed inputs.
+29	SystemError	HOLLOW	no	no	yes	The model restricts the prefix to String and the proposition covers only in-range integers, omitting allowed AbstractString prefixes and the out-of-range conversion error.
+30	SystemError	HOLLOW	no	no	yes	The model receives an errno value as an argument instead of calling Libc.errno and also restricts the prefix to String, so the proposition does not cover this constructor over all inputs.
+33	lock	FAITHFUL	-	-	-	The exclusion is valid because this exact fallback body only returns nothing and has no observable effect.
+35	unlock	FAITHFUL	-	-	-	The exclusion is valid because this exact fallback body only returns nothing and has no observable effect.
+45	reseteof	FAITHFUL	-	-	-	The exclusion is valid because this exact generic fallback only returns nothing and does not change the stream.
+48	buffer_writes	HOLLOW	yes	no	yes	The identity model mirrors the body, but the proposition restricts the untyped bufsize argument to Nat instead of quantifying over every value the Julia method accepts.
+70	isopen	FAITHFUL	-	-	-	The exclusion is valid because this is an empty generic-function declaration with no method body.
+88	close	FAITHFUL	-	-	-	The exclusion is valid because this is an empty generic-function declaration with no method body.
+116	closewrite	FAITHFUL	-	-	-	The exclusion is valid because this is an empty generic-function declaration with no method body.
+126	flush	FAITHFUL	-	-	-	The exclusion is valid because this is an empty generic-function declaration with no method body.
+142	bytesavailable	FAITHFUL	-	-	-	The exclusion is valid because this is an empty generic-function declaration with no method body.
+156	readavailable	FAITHFUL	-	-	-	The exclusion is valid because this is an empty generic-function declaration with no method body.
+159	isexecutable	FAITHFUL	-	-	-	The exclusion is valid because this is an empty generic-function declaration with no method body.
+183	isreadable	HOLLOW	no	yes	yes	The proposition states the documented equality universally, but the model replaces the isopen call with direct access to a state field instead of mirroring this method's call.
+206	iswritable	HOLLOW	no	yes	yes	The proposition states the documented equality universally, but the model replaces the isopen call with direct access to a state field instead of mirroring this method's call.
+230	eof	FAITHFUL	-	-	-	The exclusion is valid because this is an empty generic-function declaration with no method body.
+233	copy	FAITHFUL	-	-	-	The exclusion is valid because this is an empty generic-function declaration with no method body.
+234	wait_readnb	FAITHFUL	-	-	-	The exclusion is valid because this is an empty generic-function declaration with no method body.
+235	wait_close	FAITHFUL	-	-	-	The exclusion is valid because this is an empty generic-function declaration with no method body.
+263	read	FAITHFUL	yes	yes	yes	The model constructs the same ErrorException for every stream and result type, and the universal proposition is proven.
+330	write	FAITHFUL	-	-	-	The exclusion is valid because this is an empty generic-function declaration with no method body.
+343	writepartial	FAITHFUL	yes	yes	yes	The higher-order model performs the same single write delegation and the proposition covers every writer, stream, and result type.
+346	read	HOLLOW	no	no	yes	The model accepts an unrelated type-name string instead of computing typeof(s), and the proposition omits the stream and its relationship to the reported type.
+347	write	HOLLOW	no	no	yes	The shared model accepts an unrelated type-name string instead of computing typeof(s), and the proposition omits both the stream and byte argument.
+358	unsafe_write	HOLLOW	no	yes	yes	The model receives an already loaded byte list and omits the pointer index, unsafe_load calls, and arbitrary write results, although its proposition states the documented copy and count behavior.
+375	unsafe_read	HOLLOW	no	yes	yes	The model returns a byte list and omits the pointer index and unsafe_store! calls, although its proposition states the documented next-byte and EOF behavior for every length.
+382	peek	HOLLOW	no	no	yes	The model fixes T to a one-byte IOBuffer read instead of calling read(s,T) for arbitrary IO and T, and the proposition is restricted to readable nonempty IOBuffer states.
+389	peek	HOLLOW	no	no	yes	The model omits the slurp arguments and the MethodError argument tuple, while the proposition does not quantify over the accepted slurp arguments.
+391	peek	HOLLOW	no	no	yes	The model forces the generic mark-read-reset implementation instead of dispatching peek(s,UInt8) and the proposition covers only seekable nonempty streams.
+401	open_flags	FAITHFUL	yes	yes	yes	The model follows both source-order defaulting branches and the universal documented-table proposition is settled, including the refuted append case with its reproducer.
+449	open	HOLLOW	no	no	yes	The model receives an already opened result and uses an infallible close instead of forwarding args and kwargs through open and finally calling a possibly failing close.
+478	getproperty	FAITHFUL	yes	yes	yes	The model follows the stream-name branch, field access, and IO assertion, and the proposition covers every field name and field result.
+486	pipe_reader	FAITHFUL	-	-	-	The exclusion is valid because this is an empty generic-function declaration with no method body.
+487	pipe_writer	FAITHFUL	-	-	-	The exclusion is valid because this is an empty generic-function declaration with no method body.
+489	iswritable	FAITHFUL	yes	yes	yes	The model performs the same writer selection and iswritable call and the proposition covers every modeled pipe.
+496	$(f)	HOLLOW	no	no	yes	The model omits the DEFAULT_CANCEL branch and keyword forwarding, while the proposition assumes a successful writer operation and covers neither errors nor cancellation inputs.
+500	write	FAITHFUL	yes	yes	yes	The model forwards the byte write to the writer and the proposition states its observable writer-only effect for every pipe and byte.
+501	writepartial	HOLLOW	yes	no	yes	The higher-order model forwards the operation to the writer, but the proposition assumes that operation succeeds instead of covering every allowed result.
+502	write	FAITHFUL	yes	yes	yes	The model makes the same write call with the destination and pipe reader and the proposition quantifies over every modeled writer, destination, and pipe.
+503	unsafe_write	HOLLOW	no	no	yes	The model omits the cancellation branch and Union type assertion, and the proposition states only successful appending with no cancellation, error, or type-assertion behavior.
+506	buffer_writes	HOLLOW	no	no	yes	The model drops args and always calls the no-argument generic fallback, so the proposition does not cover the method's accepted argument list.
+513	$(f)	HOLLOW	yes	no	yes	The forwarding model selects the reader exactly once, but the proposition assumes the forwarded operation succeeds instead of covering all allowed operation results.
+517	readavailable	HOLLOW	no	no	yes	The model omits the DEFAULT_CANCEL branch and keyword forwarding, and the proposition assumes a successful inner read with no cancellation or error behavior.
+520	read	HOLLOW	no	no	yes	The model omits the cancellation branch and UInt8 type assertion, and the proposition covers only a successful non-EOF byte read.
+523	unsafe_read	HOLLOW	yes	no	yes	The model forwards the requested read to the reader, but the proposition assumes enough input and omits the allowed EOF case.
+524	copyuntil	HOLLOW	yes	no	yes	The model forwards the closed-over arguments to the reader, but the proposition assumes the forwarded operation succeeds instead of covering every allowed result.
+525	copyuntil	HOLLOW	yes	no	yes	The model forwards the closed-over arguments to the reader, but the proposition assumes the forwarded operation succeeds instead of covering every allowed result.
+526	copyuntil	HOLLOW	yes	no	yes	The model forwards the closed-over arguments to the reader, but the proposition assumes the forwarded operation succeeds instead of covering every allowed result.
+527	copyuntil	HOLLOW	yes	no	yes	The model forwards the closed-over arguments to the reader, but the proposition assumes the forwarded operation succeeds instead of covering every allowed result.
+528	readuntil_vector!	HOLLOW	yes	no	yes	The model forwards the closed-over arguments to the reader, but the proposition assumes the forwarded operation succeeds instead of covering every allowed result.
+531	readbytes!	HOLLOW	no	no	yes	The model omits the default n calculation and cancellation-token branch, and the success-only proposition covers neither keywords nor errors.
+534	peek	HOLLOW	no	no	yes	The model omits the T type assertion after the forwarded peek call, and the proposition assumes success instead of covering all values and errors.
+535	wait_readnb	HOLLOW	yes	no	yes	The model forwards the wait to the reader in the same order, but the proposition assumes a successful result rather than covering every allowed result.
+536	eof	HOLLOW	no	no	yes	The model omits the cancellation branch and Bool type assertion, and the proposition covers only the uncancelled Boolean result.
+540	isopen	FAITHFUL	yes	yes	yes	The model uses the same writer-first disjunction and the proposition covers every combination of reader and writer open state.
+541	close	HOLLOW	no	no	yes	The model closes both sides infallibly, omitting that an exception from closing the writer prevents the reader call, and the proposition asserts both sides close without that allowed behavior.
+542	wait_close	HOLLOW	no	yes	yes	The event-list model records the two calls but does not model their return or exception behavior, although the proposition universally states their writer-then-reader order.
+555	write	HOLLOW	no	no	yes	The model omits filename conversion, the w mode, varargs forwarding, and exception-safe open and close, while the proposition only restates a supplied callback application.
+571	read	HOLLOW	no	no	yes	The model omits filename conversion, varargs forwarding, and exception-safe open and close, while the proposition only restates a supplied callback application.
+573	read	HOLLOW	no	no	yes	The model omits filename conversion, type forwarding through open, and close behavior, while the proposition only restates a supplied callback application.
+581	read!	FAITHFUL	-	-	-	The exclusion is valid because this is an empty generic-function declaration with no method body.
+584	read!	HOLLOW	no	no	yes	The model omits filename conversion and exception-safe open and close, while the proposition only restates a supplied callback application.
+623	readuntil	HOLLOW	no	no	yes	The filename model omits conversion, kwargs forwarding, and exception-safe open and close, while its proposition only restates a supplied callback application.
+624	readuntil	HOLLOW	no	no	yes	The model directly searches bytes instead of constructing an IOBuffer, branching on cancel, calling copyuntil, and taking the buffer, and the proposition omits cancellation and keyword inputs.
+627	readuntil	HOLLOW	no	no	yes	The model directly searches encoded bytes instead of constructing an IOBuffer and following the cancellation and copyuntil calls, and the proposition omits cancellation, keywords, and character decoding behavior.
+630	readuntil	HOLLOW	no	no	yes	The referenced proposition concerns the different generic copyuntil method and never uses a model of this readuntil allocation, cancellation check, and _copyuntil call.
+666	copyuntil	HOLLOW	no	no	yes	The filename model omits conversion, kwargs forwarding, and exception-safe open and close, while its proposition only restates a supplied callback application.
+710	readline	HOLLOW	no	no	yes	The model omits cancel-token resolution, opening and closing the file, and forwarding keep and cancel to the stream method, while its proposition only applies a supplied callback.
+714	readline	HOLLOW	no	no	yes	The model directly computes a line instead of constructing an IOBuffer and calling copyline through the cancellation branch, and the proposition omits cancellation inputs.
+753	copyline	HOLLOW	no	no	yes	The model omits token resolution, opening and closing the file, and the inner copyline call, while its proposition only applies a supplied callback.
+760	copyline	HOLLOW	no	no	yes	The loop model covers only keep=false and omits cancellation checks and the keep=true delegation, while the two propositions omit allowed keep and cancellation cases or add undocumented input restrictions.
+807	readlines	HOLLOW	no	no	yes	The model omits the do-block open and close and keyword forwarding, while its proposition only restates a supplied callback application.
+812	readlines	HOLLOW	no	no	yes	The model replaces collect(eachline(...)) with a hand-written readline loop and the proposition omits cancellation and keyword inputs.
+821	ntoh	HOLLOW	yes	no	yes	The identity model mirrors this big-endian branch, but the proposition restricts the untyped x argument to Nat and therefore omits other accepted values.
+822	hton	HOLLOW	yes	no	yes	The identity model mirrors this big-endian branch, but the proposition restricts the untyped x argument to Nat and therefore omits other accepted values.
+823	ltoh	HOLLOW	yes	no	yes	The model makes the same byte-swap call, but the proposition restricts the untyped x argument to Nat and therefore omits other values with bswap methods.
+824	htol	HOLLOW	yes	no	yes	The model makes the same byte-swap call, but the proposition restricts the untyped x argument to Nat and therefore omits other values with bswap methods.
+827	ntoh	HOLLOW	yes	no	yes	The model makes the same byte-swap call, but the proposition restricts the untyped x argument to Nat and therefore omits other values with bswap methods.
+828	hton	HOLLOW	yes	no	yes	The model makes the same byte-swap call, but the proposition restricts the untyped x argument to Nat and therefore omits other values with bswap methods.
+829	ltoh	HOLLOW	yes	no	yes	The identity model mirrors this little-endian branch, but the proposition restricts the untyped x argument to Nat and therefore omits other accepted values.
+830	htol	HOLLOW	yes	no	yes	The identity model mirrors this little-endian branch, but the proposition restricts the untyped x argument to Nat and therefore omits other accepted values.
+893	isreadonly	HOLLOW	no	no	yes	The model receives bare readability and writability Booleans instead of calling both methods on s, and the proposition is about unrelated Booleans rather than all streams.
+897	write	HOLLOW	no	no	yes	The model omits io, x, and the MethodError argument tuple, so its proposition does not describe the observable exception for this method over all inputs.
+898	write	HOLLOW	no	no	yes	The model omits check_cancel_arg and restricts the heterogeneous varargs to one homogeneous list, while the proposition specializes further to byte writes only.
+907	unsafe_write	HOLLOW	no	no	yes	The model omits unsafe_convert and the Ref-to-Ptr type assertion and does not state the overflow conversion error for every Integer n.
+909	unsafe_write	HOLLOW	no	no	yes	The shared model omits pointer conversion and models memory slicing directly, while the proposition does not cover every Integer conversion outcome.
+910	write	HOLLOW	no	no	yes	The model receives arbitrary bytes instead of computing Core.sizeof(T) and writing exactly that many bytes, so the proposition permits states that cannot represent this method.
+918	write	FAITHFUL	yes	yes	yes	The model performs the reinterpretation and byte write and the round-trip proposition covers every Int8 value using only its type bounds.
+919	write	HOLLOW	no	no	yes	The model hardcodes little-endian bytes instead of the host-native Ref memory used by Julia, so the claimed little-endian behavior is not promised on every platform.
+923	write	FAITHFUL	yes	yes	yes	The model converts Bool to byte zero or one and writes it, and the proposition covers both Boolean inputs and their round trips.
+924	write	HOLLOW	no	no	yes	The model hardcodes a 64-bit UInt representation although the Julia method uses the host UInt width, so the proposition does not cover supported 32-bit behavior.
+926	write	HOLLOW	no	yes	yes	The model receives precomputed element bytes and omits the Ref allocation, assignments, Core.sizeof calls, and arbitrary unsafe_write results, although its proposition states the documented ordered-byte behavior.
+940	write	HOLLOW	yes	no	yes	The model follows the contiguous, fallback, merged-run, and pointer-offset branches, but the proposition proves only selected one-dimensional and matrix cases rather than all allowed shapes and strides.
+973	write	HOLLOW	yes	no	yes	The model follows the byte-swap and low-byte loop, but the proposition assumes a structurally valid UTF-8 representation even though Julia Char values can contain other bit patterns.
+984	write	FAITHFUL	yes	yes	yes	The model follows pointer conversion, strlen termination, and unsafe_write on the symbol name bytes, and the proposition uses the Symbol no-NUL invariant.
+989	write	HOLLOW	no	no	yes	The model replaces each dynamic readavailable call with a fixed-size direct slice and cannot represent empty chunks or call errors, so the proposition does not cover every IO implementation.
+997	unsafe_read	HOLLOW	no	no	yes	The model omits unsafe_convert and the Ref-to-Ptr type assertion and does not state every Integer conversion and read outcome.
+998	unsafe_read	HOLLOW	no	no	yes	The shared model omits pointer conversion and directly reads bytes, while the proposition does not cover every Integer conversion and EOF outcome.
+999	read!	HOLLOW	yes	no	yes	The model follows the Ptr, isbits, and non-isbits branches, but the proposition assumes successful reads or enough input and omits allowed EOF and callback errors.
+1009	read	FAITHFUL	yes	yes	yes	The model reads one byte and reinterprets its Int8 bit pattern, and the round-trip proposition covers every Int8 value using only type bounds.
+1010	read	HOLLOW	no	no	yes	The model hardcodes little-endian reconstruction instead of reading host-native Ref memory, so the claimed behavior is not valid for every supported platform and input type.
+1016	read	FAITHFUL	yes	yes	yes	The model performs the same byte read and nonzero comparison and the proposition covers all byte values and remaining inputs.
+1017	read	HOLLOW	no	no	yes	The model hardcodes a 64-bit UInt read although Julia uses the host UInt width, so the proposition omits supported 32-bit behavior.
+1019	read!	HOLLOW	no	no	yes	The model uses unsafe byte reads even for non-isbits elements instead of calling read(s,T), and the proposition covers only successful isbits paths.
+1043	write	HOLLOW	no	no	yes	The model omits check_cancel_arg and cancellation inputs, and the proposition states only the successful chunk write.
+1047	read!	HOLLOW	no	no	yes	The model omits cancellation, loses the mutation that masks the last chunk before throwing, and represents DimensionMismatch as an ArgumentError, while the proposition assumes the inner read succeeds.
+1059	read!	HOLLOW	no	no	yes	The model replaces every generic invoke path with an unchanged-state marker instead of performing the call, and its proposition covers only selected one-dimensional plans.
+1091	read	HOLLOW	yes	no	yes	The model follows the leading-byte and continuation-byte loop, but the proposition covers only valid UTF-8 sequences even though arbitrary byte sequences are allowed inputs to read.
+1110	copyuntil	HOLLOW	no	no	yes	The model omits cancellation checks and replaces non-ASCII character iteration with encoded-byte subsequence search, while the proposition omits those inputs and error paths.
+1128	copyuntil	HOLLOW	no	no	yes	The model omits check_cancel_arg before delegating to _copyuntil and the proposition has no cancellation input or error behavior.
+1134	_copyuntil	HOLLOW	no	no	yes	The model replaces the readeach loop and runtime IO-or-vector output selection with direct list search, and the referenced proposition only compares two helper models.
+1161	readuntil_vector!	HOLLOW	no	no	yes	The model uses naive whole-list sublist search instead of the source KMP cache, backtracking, and ordered output loop, and the registered proposition concerns a wrapper rather than this core method.
+1232	copyuntil	HOLLOW	no	no	yes	The model omits peel, the one-byte ASCII branch, AbstractString conversion, codeunits, and cancellation forwarding, while the proposition only restates its simplified list function.
+1253	readuntil	HOLLOW	no	no	yes	The model omits the cancellation gate and UInt8-specific output allocation and represents mutation as a returned list, so the proposition does not cover every target and keyword input.
+1261	copyuntil	HOLLOW	no	no	yes	The model omits the cancellation gate and arbitrary IO output mutation and errors, so its list-only proposition does not cover every allowed output and keyword input.
+1285	readchomp	HOLLOW	no	no	yes	The model accepts already read bytes and only strips their ending, omitting check_cancel_arg and read(x,String), while the proposition never quantifies over readable x values or cancellation.
+1301	readbytes!	HOLLOW	no	no	yes	The model replaces the eof-read-resize loop with a closed-form copy and omits one-based indexing, resize failures, and cancellation, while the proposition covers only list buffers.
+1326	read	HOLLOW	no	no	yes	The model omits allocation size, the DEFAULT_CANCEL branch, and allocation failures, while the proposition describes only a simplified empty-buffer read.
+1337	read	HOLLOW	no	no	yes	The model returns bytes directly instead of following the cancellation branch, read call, type assertion, and String conversion, and the proposition omits cancellation inputs.
+1345	read	HOLLOW	no	no	yes	The model receives a type-name string instead of interpolating the actual Type T and omits the stream, so the proposition does not cover this method's observable error arguments.
+1354	EachLine	HOLLOW	no	no	yes	The model omits the ondone callback and cancel field and adds an unrelated doneCalled field, while the proposition covers only stream and keep.
+1392	eachline	HOLLOW	no	no	yes	The model omits the cancel argument and the EachLine type assertion, so the proposition does not cover every allowed keyword input.
+1396	eachline	HOLLOW	no	no	yes	The model omits the close callback and cancel field after opening the filename, while the proposition merely applies a supplied openFile function.
+1401	iterate	HOLLOW	no	no	yes	The model omits the cancellation gate, ondone call, and conditional cancel forwarding and returns an updated immutable iterator instead of the method's nothing state.
+1411	eltype	FAITHFUL	yes	yes	yes	The model returns the same String element-type marker and the proposition states it universally.
+1413	IteratorSize	FAITHFUL	yes	yes	yes	The model returns the same SizeUnknown marker and the proposition states it universally.
+1415	isdone	FAITHFUL	yes	yes	yes	The model calls eof on the stored stream and the proposition covers every modeled EachLine stream and keep value.
+1419	iterate	HOLLOW	no	no	yes	The model only splits the whole input into reversed chunks and omits position saving, seekend, newline search, readbytes calls, and construction of the full iteration state.
+1440	iterate	HOLLOW	no	no	yes	The model implements only two simplified branches of the multi-chunk state machine, and the propositions cover only the remaining-line bug and chunk-emptying consequence rather than all states.
+1441	_stripnewline	FAITHFUL	yes	yes	yes	The model follows the keep, LF, and CR checks in order and the universal proposition proves the helper never advances the supplied position.
+1520	isdone	FAITHFUL	yes	yes	yes	The model tests whether the state chunk buffer is empty and the proposition covers every reverse state.
+1521	isdone	HOLLOW	no	no	yes	The model receives a bare underlying-done Boolean instead of calling isdone(r.itr), and the proposition is about that Boolean rather than every reverse iterator.
+1524	last	HOLLOW	no	no	yes	The model receives a precomputed reverse-first result instead of calling reverse and first, and the proposition states only the identity of that supplied result.
+1551	readeach	FAITHFUL	yes	yes	yes	The model constructs a stream-and-type-width iterator and the proposition covers every modeled stream and element representation.
+1553	iterate	HOLLOW	no	no	yes	The model slices a fixed number of bytes directly instead of calling read(itr.stream,T), so the proposition omits arbitrary T dispatch, errors, and short reads.
+1556	eltype	HOLLOW	no	no	yes	The model returns a supplied type-name string instead of the Type parameter T, so the proposition does not preserve or quantify over actual Julia types.
+1557	eltype	HOLLOW	no	no	yes	The model represents the Type value Any as a string marker, so the proposition does not state the actual method result in the Lean type system.
+1559	IteratorSize	FAITHFUL	yes	yes	yes	The model returns the same SizeUnknown marker and the proposition states it universally.
+1561	isdone	FAITHFUL	yes	yes	yes	The model calls eof on the stored stream and the proposition covers every modeled ReadEach iterator.
+1575	mark	FAITHFUL	yes	yes	yes	The model reads position, assigns it to mark, and returns the assigned position, and the proposition covers every modeled stream.
+1586	unmark	FAITHFUL	yes	yes	yes	The model follows the ismarked branch and assignment and the proposition covers marked and unmarked streams universally.
+1600	reset	HOLLOW	no	no	yes	The model omits the concrete type in LazyString and uses an IOBuffer-specific seek model, while the proposition covers only an abbreviated error and successful seekable mark-read states.
+1615	ismarked	FAITHFUL	yes	yes	yes	The model performs the same nonnegative mark test and the proposition covers every modeled stream.
+1620	flush	FAITHFUL	-	-	-	The exclusion is valid because this exact generic fallback only returns nothing and has no observable effect.
+1643	skipchars	HOLLOW	no	no	yes	The model replaces the readeach loop with explicit eof and readChar recursion, and the refuted and proven propositions cover only ASCII linecomment-free cases rather than every predicate, comment marker, stream, and character.
+1700	countlines	HOLLOW	no	yes	yes	The model replaces the 8192-byte readbytes loop and running counters with a closed-form list count, although its universal proposition states the documented ASCII terminator count and final-line behavior.
+1717	countlines	HOLLOW	no	no	yes	The filename model omits open, close, keyword forwarding, and the Int type assertion, while the proposition only restates a supplied callback application.

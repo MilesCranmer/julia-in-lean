@@ -21,7 +21,7 @@ def entries : List Entry := [
     prop := ``InvariantHolds, thm := some ``invariantHolds },
   { id := "iobuffers-no-out-of-bounds", juliaFile := "base/iobuffer.jl"
     juliaFns := ["unsafe_write", "unsafe_read", "read(::GenericIOBuffer, ::Type{UInt8})", "peek", "compact!", "_resize!"]
-    statement := "No operation on a buffer built from in-range constructor arguments reads or writes outside its memory."
+    statement := "Every operation on a reachable buffer reads or writes only within its allocated memory."
     source := "invariant base/iobuffer.jl:55-70", status := .proven
     prop := ``NoOutOfBounds, thm := some ``noOutOfBounds },
   { id := "iobuffers-write-at-position", juliaFile := "base/iobuffer.jl"

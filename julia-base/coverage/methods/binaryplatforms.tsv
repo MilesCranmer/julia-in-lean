@@ -1,0 +1,81 @@
+file	line	endline	name	signature	status	entry	note
+base/binaryplatforms.jl	45	100	Platform	Platform(arch::String, os::String, _tags::Dict{String}; validate_strict::Bool = false, compare_strategies::Dict{String,<:Function} = Dict{String,Function}())	modelled	platforms-constructor-defaults	
+base/binaryplatforms.jl	104	110	Platform	Platform(arch::String, os::String; validate_strict::Bool = false, compare_strategies::Dict{String,<:Function} = Dict{String,Function}(), kwargs...)	modelled	platforms-constructor-defaults	
+base/binaryplatforms.jl	112	112	tagvalue	tagvalue(v::Union{String,VersionNumber,Nothing})	modelled	docssyntaxcov-binary-tagvalue	
+base/binaryplatforms.jl	113	113	tagvalue	tagvalue(v::Symbol)	modelled	docssyntaxcov-binary-tagvalue	
+base/binaryplatforms.jl	114	114	tagvalue	tagvalue(v::AbstractString)	modelled	docssyntaxcov-binary-tagvalue	
+base/binaryplatforms.jl	116	151	add_platform_tag!	add_platform_tag!(tags::Dict{String,String}, tag::String, value::Union{String,VersionNumber,Nothing})	modelled	docssyntaxcov-binary-add-platform-tag	
+base/binaryplatforms.jl	154	171	add_tag!	add_tag!(tags::Dict{String,String}, tag::String, value::String)	modelled	platforms-addtag-nonos	
+base/binaryplatforms.jl	174	174	tags	tags(p::Platform)	modelled	docssyntaxcov-binary-dict	
+base/binaryplatforms.jl	177	177	Base.getindex	Base.getindex(p::AbstractPlatform, k::String)	modelled	docssyntaxcov-binary-dict	
+base/binaryplatforms.jl	178	178	Base.haskey	Base.haskey(p::AbstractPlatform, k::String)	modelled	docssyntaxcov-binary-dict	
+base/binaryplatforms.jl	179	182	Base.setindex!	Base.setindex!(p::AbstractPlatform, v::String, k::String)	modelled	docssyntaxcov-binary-dict	
+base/binaryplatforms.jl	185	190	Base.hash	Base.hash(p::Platform, h::UInt)	modelled	docssyntaxcov-binary-hash-show	
+base/binaryplatforms.jl	193	195	Base.:(==)	Base.:(==)(a::Platform, b::Platform)	modelled	docssyntaxcov-binary-hash-show	
+base/binaryplatforms.jl	199	209	Base.show	Base.show(io::IO, p::Platform)	modelled	docssyntaxcov-binary-hash-show	
+base/binaryplatforms.jl	212	220	Base.show	"Base.show(io::IO, ::MIME""text/plain"", p::Platform)"	modelled	docssyntaxcov-binary-hash-show	
+base/binaryplatforms.jl	222	293	validate_tags	validate_tags(tags::Dict)	modelled	platforms-validate-os-version	
+base/binaryplatforms.jl	223	223	throw_invalid_key	throw_invalid_key(k)	modelled	docssyntaxcov-binary-validation-helpers	
+base/binaryplatforms.jl	233	233	throw_os_mismatch	throw_os_mismatch()	modelled	docssyntaxcov-binary-validation-helpers	
+base/binaryplatforms.jl	242	242	throw_libc_mismatch	throw_libc_mismatch()	modelled	docssyntaxcov-binary-validation-helpers	
+base/binaryplatforms.jl	260	260	throw_call_abi_mismatch	throw_call_abi_mismatch()	modelled	docssyntaxcov-binary-validation-helpers	
+base/binaryplatforms.jl	274	274	throw_version_number	throw_version_number(k)	modelled	docssyntaxcov-binary-validation-helpers	
+base/binaryplatforms.jl	295	300	set_compare_strategy!	set_compare_strategy!(p::Platform, key::String, f::Function)	modelled	docssyntaxcov-binary-compare-strategy	
+base/binaryplatforms.jl	302	307	get_compare_strategy	get_compare_strategy(p::Platform, key::String, default = compare_default)	modelled	docssyntaxcov-binary-compare-strategy	
+base/binaryplatforms.jl	308	308	get_compare_strategy	get_compare_strategy(p::AbstractPlatform, key::String, default = compare_default)	modelled	docssyntaxcov-binary-compare-strategy	
+base/binaryplatforms.jl	321	323	compare_default	compare_default(a::String, b::String, a_requested::Bool, b_requested::Bool)	modelled	docssyntaxcov-binary-compare-strategy	
+base/binaryplatforms.jl	340	355	compare_version_cap	compare_version_cap(a::String, b::String, a_requested::Bool, b_requested::Bool)	modelled	platforms-strategy-semantics	
+base/binaryplatforms.jl	370	378	HostPlatform	HostPlatform(p::AbstractPlatform)	modelled	docssyntaxcov-binary-host-accessors	
+base/binaryplatforms.jl	394	394	arch	arch(p::AbstractPlatform)	modelled	platforms-constructor-defaults,docssyntaxcov-binary-host-accessors	
+base/binaryplatforms.jl	410	410	os	os(p::AbstractPlatform)	modelled	platforms-constructor-defaults,docssyntaxcov-binary-host-accessors	
+base/binaryplatforms.jl	413	425	os	os()	modelled	platforms-constructor-defaults,docssyntaxcov-binary-host-accessors	
+base/binaryplatforms.jl	445	445	libc	libc(p::AbstractPlatform)	modelled	platforms-constructor-defaults,docssyntaxcov-binary-host-accessors	
+base/binaryplatforms.jl	461	461	call_abi	call_abi(p::AbstractPlatform)	modelled	platforms-constructor-defaults,docssyntaxcov-binary-host-accessors	
+base/binaryplatforms.jl	477	479	platform_name	platform_name(p::AbstractPlatform)	modelled	docssyntaxcov-binary-host-accessors,docssyntaxcov-binary-strings,docssyntaxcov-binary-direct-parse	
+base/binaryplatforms.jl	481	487	VNorNothing	VNorNothing(d::Dict, key)	modelled	docssyntaxcov-binary-host-accessors,docssyntaxcov-binary-strings,docssyntaxcov-binary-direct-parse	
+base/binaryplatforms.jl	495	495	libgfortran_version	libgfortran_version(p::AbstractPlatform)	modelled	docssyntaxcov-binary-host-accessors,docssyntaxcov-binary-strings,docssyntaxcov-binary-direct-parse	
+base/binaryplatforms.jl	504	513	libstdcxx_version	libstdcxx_version(p::AbstractPlatform)	modelled	docssyntaxcov-binary-host-accessors,docssyntaxcov-binary-strings,docssyntaxcov-binary-direct-parse	
+base/binaryplatforms.jl	520	520	cxxstring_abi	cxxstring_abi(p::AbstractPlatform)	modelled	docssyntaxcov-binary-host-accessors,docssyntaxcov-binary-strings,docssyntaxcov-binary-direct-parse	
+base/binaryplatforms.jl	530	530	os_version	os_version(p::AbstractPlatform)	modelled	docssyntaxcov-binary-host-accessors,docssyntaxcov-binary-strings,docssyntaxcov-binary-direct-parse	
+base/binaryplatforms.jl	546	546	wordsize	wordsize(p::AbstractPlatform)	modelled	docssyntaxcov-binary-host-accessors,docssyntaxcov-binary-strings,docssyntaxcov-binary-direct-parse	
+base/binaryplatforms.jl	565	603	triplet	triplet(p::AbstractPlatform)	modelled	platforms-core-triplet-roundtrip,docssyntaxcov-binary-direct-parse	
+base/binaryplatforms.jl	605	629	os_str	os_str(p::AbstractPlatform)	modelled	platforms-core-triplet-roundtrip,docssyntaxcov-binary-direct-parse	
+base/binaryplatforms.jl	632	645	libc_str	libc_str(p::AbstractPlatform)	modelled	docssyntaxcov-binary-strings	
+base/binaryplatforms.jl	646	649	call_abi_str	call_abi_str(p::AbstractPlatform)	modelled	docssyntaxcov-binary-strings	
+base/binaryplatforms.jl	651	651	Sys.isapple	Sys.isapple(p::AbstractPlatform)	modelled	docssyntaxcov-binary-system	
+base/binaryplatforms.jl	652	652	Sys.islinux	Sys.islinux(p::AbstractPlatform)	modelled	docssyntaxcov-binary-system	
+base/binaryplatforms.jl	653	653	Sys.iswindows	Sys.iswindows(p::AbstractPlatform)	modelled	docssyntaxcov-binary-system	
+base/binaryplatforms.jl	654	654	Sys.isfreebsd	Sys.isfreebsd(p::AbstractPlatform)	modelled	docssyntaxcov-binary-system	
+base/binaryplatforms.jl	655	655	Sys.isopenbsd	Sys.isopenbsd(p::AbstractPlatform)	modelled	docssyntaxcov-binary-system	
+base/binaryplatforms.jl	656	656	Sys.isbsd	Sys.isbsd(p::AbstractPlatform)	modelled	docssyntaxcov-binary-system	
+base/binaryplatforms.jl	657	657	Sys.isunix	Sys.isunix(p::AbstractPlatform)	modelled	docssyntaxcov-binary-system	
+base/binaryplatforms.jl	671	674	get_set	get_set(arch, name)	modelled	docssyntaxcov-binary-mapping-parse,docssyntaxcov-binary-direct-parse,platforms-triplet-roundtrip	
+base/binaryplatforms.jl	736	736	c	c(mapping)	modelled	docssyntaxcov-binary-mapping-parse,docssyntaxcov-binary-direct-parse,platforms-triplet-roundtrip	
+base/binaryplatforms.jl	760	825	Base.parse	Base.parse(::Type{Platform}, triplet::String; validate_strict::Bool = false)	modelled	docssyntaxcov-binary-mapping-parse,docssyntaxcov-binary-direct-parse,platforms-triplet-roundtrip	
+base/binaryplatforms.jl	765	782	get_field	get_field(m, mapping)	modelled	docssyntaxcov-binary-mapping-parse,docssyntaxcov-binary-direct-parse,platforms-triplet-roundtrip	
+base/binaryplatforms.jl	793	799	split_tags	split_tags(tagstr)	modelled	docssyntaxcov-binary-mapping-parse,docssyntaxcov-binary-direct-parse,platforms-triplet-roundtrip	
+base/binaryplatforms.jl	803	809	extract_os_version	extract_os_version(os_name, pattern)	modelled	docssyntaxcov-binary-mapping-parse,docssyntaxcov-binary-direct-parse,platforms-triplet-roundtrip	
+base/binaryplatforms.jl	826	827	Base.parse	Base.parse(::Type{Platform}, triplet::AbstractString; kwargs...)	modelled	docssyntaxcov-binary-mapping-parse,docssyntaxcov-binary-direct-parse,platforms-triplet-roundtrip	
+base/binaryplatforms.jl	829	838	Base.tryparse	Base.tryparse(::Type{Platform}, triplet::AbstractString)	modelled	docssyntaxcov-binary-mapping-parse,docssyntaxcov-binary-direct-parse,platforms-triplet-roundtrip	
+base/binaryplatforms.jl	847	855	platform_dlext	platform_dlext(p::AbstractPlatform = HostPlatform())	modelled	platforms-dl-name-inverse,docssyntaxcov-binary-strings	
+base/binaryplatforms.jl	858	866	_this_os_name	_this_os_name()	modelled	docssyntaxcov-binary-dl-helpers	
+base/binaryplatforms.jl	893	924	parse_dl_name_version	parse_dl_name_version(path::String, os::String=_this_os_name())	modelled	platforms-dl-name-inverse,platforms-dl-name-four-part	
+base/binaryplatforms.jl	927	929	parse_dl_name_version	parse_dl_name_version(path::AbstractString, os::AbstractString=_this_os_name())	modelled	docssyntaxcov-binary-dl-helpers,platforms-detect-libstdcxx-csl	
+base/binaryplatforms.jl	931	944	get_csl_member	get_csl_member(member::Symbol)	modelled	docssyntaxcov-binary-dl-helpers,platforms-detect-libstdcxx-csl	
+base/binaryplatforms.jl	947	963	_get_libgfortran_path	_get_libgfortran_path()	modelled	docssyntaxcov-binary-dl-helpers,platforms-detect-libstdcxx-csl	
+base/binaryplatforms.jl	965	980	_get_libstdcxx_handle	_get_libstdcxx_handle()	modelled	docssyntaxcov-binary-dl-helpers,platforms-detect-libstdcxx-csl	
+base/binaryplatforms.jl	989	1004	detect_libgfortran_version	detect_libgfortran_version()	modelled	docssyntaxcov-binary-dl-helpers,platforms-detect-libstdcxx-csl	
+base/binaryplatforms.jl	1013	1027	detect_libstdcxx_version	detect_libstdcxx_version(max_minor_version::Int=30)	modelled	platforms-detect-libstdcxx-csl	
+base/binaryplatforms.jl	1038	1071	detect_cxxstring_abi	detect_cxxstring_abi()	modelled	docssyntaxcov-binary-cxx-host	
+base/binaryplatforms.jl	1046	1058	open_libllvm	open_libllvm(f::Function)	modelled	docssyntaxcov-binary-cxx-host	
+base/binaryplatforms.jl	1082	1114	host_triplet	host_triplet(build_triplet::String = Base.BUILD_TRIPLET, ext_tags::String = Base.BUILD_EXT_TAGS)	modelled	docssyntaxcov-binary-cxx-host	
+base/binaryplatforms.jl	1124	1126	HostPlatform	HostPlatform()	modelled	docssyntaxcov-binary-cxx-host	
+base/binaryplatforms.jl	1153	1188	platforms_match	platforms_match(a::AbstractPlatform, b::AbstractPlatform)	modelled	platforms-match-semantics,docssyntaxcov-binary-match-adapters	
+base/binaryplatforms.jl	1190	1192	platforms_match	platforms_match(a::String, b::AbstractPlatform)	modelled	platforms-match-semantics,docssyntaxcov-binary-match-adapters	
+base/binaryplatforms.jl	1193	1195	platforms_match	platforms_match(a::AbstractPlatform, b::String)	modelled	platforms-match-semantics,docssyntaxcov-binary-match-adapters	
+base/binaryplatforms.jl	1196	1196	platforms_match	platforms_match(a::String, b::String)	modelled	platforms-match-semantics,docssyntaxcov-binary-match-adapters	
+base/binaryplatforms.jl	1199	1199	platforms_match	platforms_match(a::AbstractString, b::AbstractPlatform)	modelled	platforms-match-semantics,docssyntaxcov-binary-match-adapters	
+base/binaryplatforms.jl	1200	1200	platforms_match	platforms_match(a::AbstractPlatform, b::AbstractString)	modelled	platforms-match-semantics,docssyntaxcov-binary-match-adapters	
+base/binaryplatforms.jl	1201	1201	platforms_match	platforms_match(a::AbstractString, b::AbstractString)	modelled	platforms-match-semantics,docssyntaxcov-binary-match-adapters	
+base/binaryplatforms.jl	1215	1246	select_platform	select_platform(download_info::Dict, platform::AbstractPlatform = HostPlatform())	modelled	platforms-select-best,docssyntaxcov-binary-match-adapters	
+base/binaryplatforms.jl	1226	1230	match_loss	match_loss(a, b)	modelled	platforms-select-best,docssyntaxcov-binary-match-adapters	

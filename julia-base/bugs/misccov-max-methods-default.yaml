@@ -1,0 +1,45 @@
+id: misccov-max-methods-default
+title: "Experimental.@max_methods default throws MethodError although the docstring lists default as a supported value"
+priority: P3
+kind: documentation
+area: MiscCov
+files: [base/experimental.jl]
+functions: ["Base.Experimental.@max_methods"]
+summary: |
+  The docstring of `Base.Experimental.@max_methods n` says "Supported values are `1`, `2`, `3`, `4`, and `default`", but the macro has only the methods `@max_methods(n::Int)` and `@max_methods(n::Int, fdef::Expr)`. `@max_methods default` therefore fails at macro expansion with a MethodError. `@compiler_options max_methods=default` does accept `default`.
+likelihood: |
+  Low: code that follows the docstring and writes `@max_methods default` to restore the default limit in a module. The failure is immediate and loud.
+maybe_intended: |
+  The `default` wording may have been copied from `@compiler_options`, which handles `default`; the macro itself was never meant to take a symbol. Then only the docstring is wrong.
+reproducer: |
+  Base.Experimental.@max_methods default   # MethodError: no method matching var"@max_methods"(::LineNumberNode, ::Module, ::Symbol)
+  Base.Experimental.@max_methods 3         # Expr(:meta, :max_methods, 3)
+output:
+  release: |
+    @max_methods default => MethodError: no method matching var"@max_methods"(::LineNumberNode, ::Module, ::Symbol)
+    The function `@max_methods` exists, but no method is
+    @max_methods 3       => :($(Expr(:meta, :max_methods, 3)))
+    REPRODUCED misccov-max-methods-default
+  nightly: |
+    @max_methods default => MethodError: no method matching var"@max_methods"(::LineNumberNode, ::Module, ::Symbol)
+    The function `@max_methods` exists, but no method is
+    @max_methods 3       => :($(Expr(:meta, :max_methods, 3)))
+    REPRODUCED misccov-max-methods-default
+reproduced: {release: true, nightly: true}
+expected: |
+  Either `@max_methods default` expands to `Expr(:meta, :max_methods, 3)` like `@compiler_options max_methods=default`, or the docstring stops listing `default`.
+promised_by: |
+  base/experimental.jl:178 (docstring of `Experimental.@max_methods n::Int`): "Supported values are `1`, `2`, `3`, `4`, and `default` (currently equivalent to `3`)."
+cause: |
+  base/experimental.jl:180 defines only `macro max_methods(n::Int)`; there is no method for a Symbol argument. Same in 1.13.2.
+possible_fix: |
+  Add `macro max_methods(s::Symbol)` that maps `:default` to 3 (as `@compiler_options` does at base/experimental.jl:233-236), or drop `default` from the docstring.
+duplicates:
+  issues: []
+  queries:
+    - "issues: max_methods default"
+    - "issues: max_methods MethodError"
+    - "prs: max_methods"
+lean:
+  property: JuliaLean.MiscCov.Experimental.MaxMethodsDoc
+  theorem: JuliaLean.MiscCov.Experimental.maxMethodsDoc_refuted

@@ -1,0 +1,264 @@
+file	line	endline	name	signature	status	entry	note
+base/array.jl	14	14	DimensionMismatch	DimensionMismatch()	modelled	multidimcov-array-faithful-14	typed array construction, storage, fill, and collection model
+base/array.jl	132	134	_safeindex	_safeindex(ex)	modelled	arraycov-array-syntax-vect	
+base/array.jl	135	156	_safeindex	_safeindex(ex)	modelled	multidimcov-array-faithful-135	typed array construction, storage, fill, and collection model
+base/array.jl	158	158	vect	vect()	modelled	multidimcov-array-faithful-158	typed array construction, storage, fill, and collection model
+base/array.jl	159	166	vect	vect(X::T...) where T	modelled	arraycov-array-syntax-vect	
+base/array.jl	183	186	vect	vect(X...)	modelled	arraycov-array-syntax-vect	
+base/array.jl	188	188	asize_from	asize_from(a::Array, n)	modelled	multidimcov-array-faithful-188	typed array construction, storage, fill, and collection model
+base/array.jl	190	190	allocatedinline	allocatedinline(@nospecialize T::Type)	modelled	multidimcov-array-faithful-190	typed array construction, storage, fill, and collection model
+base/array.jl	206	206	isbitsunion	isbitsunion(u::Type)	modelled	arraycov-array-basics	
+base/array.jl	208	208	unsetindex!	unsetindex!(A::Array, i::Integer)	modelled	arraycov-array-copy-routes	
+base/array.jl	209	214	unsetindex!	unsetindex!(A::Array, i::Int)	modelled	arraycov-array-storage-routes	
+base/array.jl	218	218	elsize	elsize(::Type{A}) where {T,A<:Array{T}}	modelled	arraycov-array-basics	
+base/array.jl	219	225	elsize	elsize(::Type{Ptr{T}}) where T	modelled	multidimcov-array-faithful-219	typed array construction, storage, fill, and collection model
+base/array.jl	226	226	elsize	elsize(::Type{Union{}})	modelled	arraycov-array-basics	
+base/array.jl	227	227	elsize	elsize(::Type{Union{}}, slurp...)	modelled	multidimcov-array-faithful-227	typed array construction, storage, fill, and collection model
+base/array.jl	229	229	sizeof	sizeof(a::Array)	modelled	multidimcov-array-faithful-229	typed array construction, storage, fill, and collection model
+base/array.jl	231	237	isassigned	isassigned(a::Array, i::Int...)	modelled	arraycov-array-storage-routes	
+base/array.jl	239	244	isassigned	isassigned(a::Vector, i::Int)	modelled	arraycov-array-storage-routes	
+base/array.jl	259	264	unsafe_copyto!	unsafe_copyto!(dest::Ptr{T}, src::Ptr{T}, n) where T	modelled	multidimcov-array-faithful-259	typed array construction, storage, fill, and collection model
+base/array.jl	276	280	unsafe_copyto!	unsafe_copyto!(dest::Array, doffs, src::Array, soffs, n)	modelled	multidimcov-array-faithful-276	typed array construction, storage, fill, and collection model
+base/array.jl	288	289	copyto!	copyto!(dest::Array, doffs::Integer, src::Array, soffs::Integer, n::Integer)	modelled	arraycov-array-storage-routes	
+base/array.jl	290	291	copyto!	copyto!(dest::Array, doffs::Integer, src::Memory, soffs::Integer, n::Integer)	modelled	arraycov-array-storage-routes	
+base/array.jl	292	293	copyto!	copyto!(dest::Memory, doffs::Integer, src::Array, soffs::Integer, n::Integer)	modelled	arraycov-array-storage-routes	
+base/array.jl	296	297	copyto!	copyto!(dest::Array{T}, doffs::Integer, src::Array{T}, soffs::Integer, n::Integer) where {T}	modelled	arraycov-array-storage-routes	
+base/array.jl	299	315	_copyto_impl!	_copyto_impl!(dest::Union{Array,Memory}, doffs::Integer, src::Union{Array,Memory}, soffs::Integer, n::Integer)	modelled	multidimcov-array-faithful-299	typed array construction, storage, fill, and collection model
+base/array.jl	321	321	_throw_argerror	_throw_argerror(s)	modelled	multidimcov-array-faithful-321	typed array construction, storage, fill, and collection model
+base/array.jl	323	323	_copyto2arg!	_copyto2arg!(dest, src)	modelled	multidimcov-array-faithful-323	typed array construction, storage, fill, and collection model
+base/array.jl	325	325	copyto!	copyto!(dest::Array, src::Array)	modelled	arraycov-array-copy-routes	
+base/array.jl	326	326	copyto!	copyto!(dest::Array, src::Memory)	modelled	arraycov-array-copy-routes	
+base/array.jl	327	327	copyto!	copyto!(dest::Memory, src::Array)	modelled	arraycov-array-copy-routes	
+base/array.jl	330	330	copyto!	copyto!(dest::Array{T}, src::Array{T}) where {T}	modelled	arraycov-array-copy-routes	
+base/array.jl	331	331	copyto!	copyto!(dest::Array{T}, src::Memory{T}) where {T}	modelled	arraycov-array-copy-routes	
+base/array.jl	332	332	copyto!	copyto!(dest::Memory{T}, src::Array{T}) where {T}	modelled	arraycov-array-copy-routes	
+base/array.jl	368	372	fill!	fill!(A::AbstractArray{T}, x) where T	modelled	multidimcov-array-faithful-368	typed array construction, storage, fill, and collection model
+base/array.jl	373	378	_fill!	_fill!(A::AbstractArray{T}, x::T) where T	modelled	multidimcov-array-faithful-373	typed array construction, storage, fill, and collection model
+base/array.jl	391	399	copy	copy(a::Array)	modelled	multidimcov-array-faithful-391	typed array construction, storage, fill, and collection model
+base/array.jl	402	410	_take!	_take!(dst::Array{T,N}, src::Array{T,N}) where {T,N}	modelled	arraycov-array-fill-copy-literal	
+base/array.jl	414	414	similar	similar(a::Vector{T}) where {T}	modelled	arraycov-array-similar	
+base/array.jl	415	415	similar	similar(a::Matrix{T}) where {T}	modelled	arraycov-array-similar	
+base/array.jl	416	416	similar	similar(a::Vector{T}, S::Type) where {T}	modelled	arraycov-array-similar	
+base/array.jl	417	417	similar	similar(a::Matrix{T}, S::Type) where {T}	modelled	arraycov-array-similar	
+base/array.jl	418	418	similar	similar(a::Array{T}, m::Int) where {T}	modelled	arraycov-array-similar	
+base/array.jl	419	419	similar	similar(a::Array, T::Type, dims::Dims{N}) where {N}	modelled	arraycov-array-similar	
+base/array.jl	420	420	similar	similar(a::Array{T}, dims::Dims{N}) where {T,N}	modelled	arraycov-array-similar	
+base/array.jl	421	421	similar	similar(::Type{Array{T,N}}, dims::Dims) where {T,N}	modelled	multidimcov-array-faithful-421	typed array construction, storage, fill, and collection model
+base/array.jl	445	461	getindex	getindex(::Type{T}, vals...) where T	modelled	multidimcov-array-faithful-445	typed array construction, storage, fill, and collection model
+base/array.jl	463	470	getindex	getindex(::Type{Any}, @nospecialize vals...)	modelled	multidimcov-array-faithful-463	typed array construction, storage, fill, and collection model
+base/array.jl	471	471	getindex	getindex(::Type{Any})	modelled	multidimcov-array-faithful-471	typed array construction, storage, fill, and collection model
+base/array.jl	473	480	fill!	fill!(a::Union{Array{UInt8}, Array{Int8}}, x::Integer)	modelled	multidimcov-array-faithful-473	typed array construction, storage, fill, and collection model
+base/array.jl	482	482	to_dim	to_dim(d::Integer)	modelled	multidimcov-array-faithful-482	typed array construction, storage, fill, and collection model
+base/array.jl	483	483	to_dim	to_dim(d::OneTo)	modelled	multidimcov-array-faithful-483	typed array construction, storage, fill, and collection model
+base/array.jl	581	581	fill	fill	excluded		no-behaviour: documentation binding for fill; the methods follow at lines 583-587
+base/array.jl	583	583	fill	fill(v, dims::DimOrInd...)	modelled	multidimcov-array-faithful-583	typed array construction, storage, fill, and collection model
+base/array.jl	584	584	fill	fill(v, dims::NTuple{N, Union{Integer, OneTo}}) where {N}	modelled	multidimcov-array-faithful-584	typed array construction, storage, fill, and collection model
+base/array.jl	585	585	fill	fill(v, dims::NTuple{N, Integer}) where {N}	modelled	multidimcov-array-faithful-585	typed array construction, storage, fill, and collection model
+base/array.jl	586	586	fill	fill(v, dims::NTuple{N, DimOrInd}) where {N}	modelled	multidimcov-array-faithful-586	typed array construction, storage, fill, and collection model
+base/array.jl	587	587	fill	fill(v, dims::Tuple{})	modelled	multidimcov-array-faithful-587	typed array construction, storage, fill, and collection model
+base/array.jl	608	608	zeros	zeros	excluded		no-behaviour: documentation binding for zeros; generated methods follow at lines 633-651
+base/array.jl	629	629	ones	ones	excluded		no-behaviour: documentation binding for ones; generated methods follow at lines 633-651
+base/array.jl	633	633	$fname	$fname(dims::DimOrInd...)	modelled	multidimcov-array-faithful-633	typed array construction, storage, fill, and collection model
+base/array.jl	634	634	$fname	$fname(::Type{T}, dims::DimOrInd...) where {T}	modelled	multidimcov-array-faithful-634	typed array construction, storage, fill, and collection model
+base/array.jl	635	635	$fname	$fname(dims::Tuple{Vararg{DimOrInd}})	modelled	multidimcov-array-faithful-635	typed array construction, storage, fill, and collection model
+base/array.jl	636	636	$fname	$fname(::Type{T}, dims::NTuple{N, Union{Integer, OneTo}}) where {T,N}	modelled	multidimcov-array-faithful-636	typed array construction, storage, fill, and collection model
+base/array.jl	637	641	$fname	$fname(::Type{T}, dims::NTuple{N, Integer}) where {T,N}	modelled	multidimcov-array-faithful-637	typed array construction, storage, fill, and collection model
+base/array.jl	642	646	$fname	$fname(::Type{T}, dims::Tuple{}) where {T}	modelled	multidimcov-array-faithful-642	typed array construction, storage, fill, and collection model
+base/array.jl	647	651	$fname	$fname(::Type{T}, dims::NTuple{N, DimOrInd}) where {T,N}	modelled	multidimcov-array-faithful-647	typed array construction, storage, fill, and collection model
+base/array.jl	657	657	convert	convert(::Type{T}, a::AbstractArray) where {T<:Array}	modelled	multidimcov-array-faithful-657	typed array construction, storage, fill, and collection model
+base/array.jl	659	659	promote_rule	promote_rule(a::Type{Array{T,n}}, b::Type{Array{S,n}}) where {T,n,S}	modelled	multidimcov-array-faithful-659	typed array construction, storage, fill, and collection model
+base/array.jl	664	664	Array{T,N}	Array{T,N}(x::AbstractArray{S,N}) where {T,N,S}	modelled	multidimcov-array-faithful-664	typed array construction, storage, fill, and collection model
+base/array.jl	665	665	AbstractArray{T,N}	AbstractArray{T,N}(A::AbstractArray{S,N}) where {T,N,S}	modelled	multidimcov-array-faithful-665	typed array construction, storage, fill, and collection model
+base/array.jl	684	684	collect	collect(::Type{T}, itr) where {T}	modelled	multidimcov-array-faithful-684	typed array construction, storage, fill, and collection model
+base/array.jl	686	687	_collect	_collect(::Type{T}, itr, isz::Union{HasLength,HasShape}) where {T}	modelled	multidimcov-array-faithful-686	typed array construction, storage, fill, and collection model
+base/array.jl	688	694	_collect	_collect(::Type{T}, itr, isz::SizeUnknown) where T	modelled	multidimcov-array-faithful-688	typed array construction, storage, fill, and collection model
+base/array.jl	697	697	_similar_for	_similar_for(c, ::Type{T}, itr, isz, shp) where {T}	modelled	multidimcov-array-faithful-697	typed array construction, storage, fill, and collection model
+base/array.jl	699	699	_similar_shape	_similar_shape(itr, ::SizeUnknown)	modelled	multidimcov-array-faithful-699	typed array construction, storage, fill, and collection model
+base/array.jl	700	700	_similar_shape	_similar_shape(itr, ::HasLength)	modelled	multidimcov-array-faithful-700	typed array construction, storage, fill, and collection model
+base/array.jl	701	701	_similar_shape	_similar_shape(itr, ::HasShape)	modelled	multidimcov-array-faithful-701	typed array construction, storage, fill, and collection model
+base/array.jl	703	704	_similar_for	_similar_for(c::AbstractArray, ::Type{T}, itr, ::SizeUnknown, ::Nothing) where {T}	modelled	multidimcov-array-faithful-703	typed array construction, storage, fill, and collection model
+base/array.jl	705	706	_similar_for	_similar_for(c::AbstractArray, ::Type{T}, itr, ::HasLength, len::Integer) where {T}	modelled	multidimcov-array-faithful-705	typed array construction, storage, fill, and collection model
+base/array.jl	707	708	_similar_for	_similar_for(c::AbstractArray, ::Type{T}, itr, ::HasShape, axs) where {T}	modelled	multidimcov-array-faithful-707	typed array construction, storage, fill, and collection model
+base/array.jl	711	711	_array_for_inner	_array_for_inner(::Type{T}, ::SizeUnknown, ::Nothing) where {T}	modelled	multidimcov-array-faithful-711	typed array construction, storage, fill, and collection model
+base/array.jl	712	712	_array_for_inner	_array_for_inner(::Type{T}, ::HasLength, len::Integer) where {T}	modelled	multidimcov-array-faithful-712	typed array construction, storage, fill, and collection model
+base/array.jl	713	713	_array_for_inner	_array_for_inner(::Type{T}, ::HasShape{N}, axs) where {T,N}	modelled	multidimcov-array-faithful-713	typed array construction, storage, fill, and collection model
+base/array.jl	716	716	_array_for	_array_for(::Type{T}, itr, isz) where {T}	modelled	multidimcov-array-faithful-716	typed array construction, storage, fill, and collection model
+base/array.jl	771	771	collect	collect(itr)	modelled	multidimcov-array-faithful-771	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	773	773	collect	collect(A::AbstractArray)	modelled	multidimcov-array-faithful-773	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	775	775	collect_similar	collect_similar(cont, itr)	modelled	multidimcov-array-faithful-775	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	777	778	_collect	_collect(cont, itr, ::HasEltype, isz::Union{HasLength,HasShape})	modelled	multidimcov-array-faithful-777	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	780	786	_collect	_collect(cont, itr, ::HasEltype, isz::SizeUnknown)	modelled	multidimcov-array-faithful-780	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	788	792	_collect_indices	_collect_indices(::Tuple{}, A)	modelled	multidimcov-array-faithful-788	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	793	797	_collect_indices	_collect_indices(indsA::Tuple{Vararg{OneTo}}, A)	modelled	multidimcov-array-faithful-793	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	798	801	_collect_indices	_collect_indices(indsA, A)	modelled	multidimcov-array-faithful-798	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	805	815	_iterator_upper_bound	_iterator_upper_bound(itr)	modelled	multidimcov-array-faithful-805	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	821	831	default_eltype	default_eltype(itr)	modelled	multidimcov-array-faithful-821	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	833	853	collect	collect(itr::Generator)	modelled	multidimcov-array-faithful-833	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	855	856	_collect	_collect(c, itr, ::EltypeUnknown, isz::SizeUnknown)	modelled	multidimcov-array-faithful-855	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	858	873	_collect	_collect(c, itr, ::EltypeUnknown, isz::Union{HasLength,HasShape})	modelled	multidimcov-array-faithful-858	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	875	879	collect_to_with_first!	collect_to_with_first!(dest::AbstractArray, v1, itr, st)	modelled	multidimcov-array-faithful-875	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	881	884	collect_to_with_first!	collect_to_with_first!(dest, v1, itr, st)	modelled	multidimcov-array-faithful-881	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	886	893	setindex_widen_up_to	setindex_widen_up_to(dest::AbstractArray{T}, el, i) where T	modelled	multidimcov-array-faithful-886	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	895	912	collect_to!	collect_to!(dest::AbstractArray{T}, itr, offs, st) where T	modelled	multidimcov-array-faithful-895	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	914	920	grow_to!	grow_to!(dest, itr)	modelled	multidimcov-array-faithful-914	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	922	933	push_widen	push_widen(dest, el)	modelled	multidimcov-array-faithful-922	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	935	949	grow_to!	grow_to!(dest, itr, st)	modelled	multidimcov-array-faithful-935	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	972	972	getindex	getindex	excluded		no-behaviour: documentation binding for getindex; concrete methods follow
+base/array.jl	974	978	getindex	getindex(A::Array, i1::Int, i2::Int, I::Int...)	modelled	multidimcov-array-faithful-974	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	981	990	getindex	getindex(A::Array, I::AbstractUnitRange{<:Integer})	modelled	multidimcov-array-faithful-981	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	993	993	getindex	getindex(a::Array, r::AbstractUnitRange{Bool})	modelled	multidimcov-array-faithful-993	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	995	1002	getindex	getindex(A::Array, c::Colon)	modelled	multidimcov-array-faithful-995	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	1005	1007	getindex	getindex(A::Array{S}, I::AbstractRange{Int}) where S	modelled	multidimcov-array-faithful-1005	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	1029	1029	setindex!	setindex!	excluded		no-behaviour: documentation binding for setindex!; concrete methods follow
+base/array.jl	1031	1035	setindex!	setindex!(A::Array{T}, x, i::Int) where {T}	modelled	multidimcov-array-faithful-1031	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	1036	1041	_setindex!	_setindex!(A::Array{T}, x::T, i::Int) where {T}	modelled	multidimcov-array-faithful-1036	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	1042	1046	setindex!	setindex!(A::Array{T}, x, i1::Int, i2::Int, I::Int...) where {T}	modelled	multidimcov-array-faithful-1042	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	1047	1053	_setindex!	_setindex!(A::Array{T}, x::T, i1::Int, i2::Int, I::Int...) where {T}	modelled	multidimcov-array-faithful-1047	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	1055	1056	__safe_setindex!	__safe_setindex!(A::Vector{Any}, @nospecialize(x), i::Int)	modelled	multidimcov-array-faithful-1055	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	1057	1058	__safe_setindex!	__safe_setindex!(A::Vector{T}, x::T, i::Int) where {T}	modelled	multidimcov-array-faithful-1057	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	1059	1060	__safe_setindex!	__safe_setindex!(A::Vector{T}, x, i::Int) where {T}	modelled	multidimcov-array-faithful-1059	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	1063	1075	setindex!	setindex!(A::Array, X::AbstractArray, I::AbstractVector{Int})	modelled	multidimcov-array-faithful-1063	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	1078	1087	setindex!	setindex!(A::Array{T}, X::Array{T}, I::AbstractUnitRange{Int}) where T	modelled	multidimcov-array-faithful-1078	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	1088	1096	setindex!	setindex!(A::Array{T}, X::Array{T}, c::Colon) where T	modelled	multidimcov-array-faithful-1088	typed iterator, collection, dense indexing, and mutation model
+base/array.jl	1102	1112	overallocation	overallocation(maxsize::Int)	modelled	multidimcov-array-faithful-1102	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1114	1114	array_new_memory	array_new_memory(mem::Memory, newlen::Int)	modelled	multidimcov-array-faithful-1114	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1116	1149	_growbeg_internal!	_growbeg_internal!(a::Vector, delta::Int, len::Int)	modelled	multidimcov-array-faithful-1116	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1151	1169	_growbeg!	_growbeg!(a::Vector, delta::Integer)	modelled	multidimcov-array-faithful-1151	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1171	1210	_growend_internal!	_growend_internal!(a::Vector, delta::Int, len::Int)	modelled	multidimcov-array-faithful-1171	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1212	1228	_growend!	_growend!(a::Vector, delta::Integer)	modelled	multidimcov-array-faithful-1212	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1230	1275	_growat!	_growat!(a::Vector, i::Integer, delta::Integer)	modelled	multidimcov-array-faithful-1230	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1278	1295	_deletebeg!	_deletebeg!(a::Vector, delta::Integer)	modelled	multidimcov-array-faithful-1278	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1296	1311	_deleteend!	_deleteend!(a::Vector, delta::Integer)	modelled	multidimcov-array-faithful-1296	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1312	1327	_deleteat!	_deleteat!(a::Vector, i::Integer, delta::Integer)	modelled	multidimcov-array-faithful-1312	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1356	1356	push!	push!	excluded		no-behaviour: documentation binding for push!; concrete methods follow
+base/array.jl	1358	1365	push!	push!(a::Vector{T}, item) where T	modelled	multidimcov-array-faithful-1358	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1366	1370	_push!	_push!(a::Vector{T}, item::T) where T	modelled	multidimcov-array-faithful-1366	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1373	1377	push!	push!(a::Vector{Any}, @nospecialize x)	modelled	multidimcov-array-faithful-1373	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1378	1387	push!	push!(a::Vector{Any}, @nospecialize x...)	modelled	multidimcov-array-faithful-1378	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1425	1425	append!	append!	excluded		no-behaviour: documentation binding for append!; concrete methods follow
+base/array.jl	1427	1433	append!	append!(a::Vector{T}, items::Union{AbstractVector{<:T},Tuple}) where T	modelled	multidimcov-array-faithful-1427	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1435	1435	append!	append!(a::AbstractVector, iter)	modelled	multidimcov-array-faithful-1435	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1436	1436	push!	push!(a::AbstractVector, iter...)	modelled	multidimcov-array-faithful-1436	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1437	1437	append!	append!(a::AbstractVector, iter...)	modelled	multidimcov-array-faithful-1437	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1439	1446	_append!	_append!(a::AbstractVector, ::Union{HasLength,HasShape}, iter)	modelled	multidimcov-array-faithful-1439	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1447	1452	_append!	_append!(a::AbstractVector, ::IteratorSize, iter)	modelled	multidimcov-array-faithful-1447	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1483	1483	prepend!	prepend!	excluded		no-behaviour: documentation binding for prepend!; concrete methods follow
+base/array.jl	1485	1498	prepend!	prepend!(a::Vector{T}, items::Union{AbstractVector{<:T},Tuple}) where T	modelled	multidimcov-array-faithful-1485	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1500	1500	prepend!	prepend!(a::AbstractVector, iter)	modelled	multidimcov-array-faithful-1500	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1501	1501	pushfirst!	pushfirst!(a::AbstractVector, iter...)	modelled	multidimcov-array-faithful-1501	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1502	1502	prepend!	prepend!(a::AbstractVector, iter...)	modelled	multidimcov-array-faithful-1502	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1504	1516	_prepend!	_prepend!(a::Vector, ::Union{HasLength,HasShape}, iter)	modelled	multidimcov-array-faithful-1504	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1517	1525	_prepend!	_prepend!(a::Vector, ::IteratorSize, iter)	modelled	multidimcov-array-faithful-1517	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1564	1579	resize!	resize!(a::Vector, nl_::Integer; first::Bool=false)	modelled	multidimcov-array-faithful-1564	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1615	1615	sizehint!	sizehint!	excluded		no-behaviour: empty generic-function declaration for sizehint!
+base/array.jl	1617	1648	sizehint!	sizehint!(a::Vector, sz::Integer; first::Bool=false, shrink::Bool=true)	modelled	multidimcov-array-faithful-1617	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1652	1657	Core.kwcall	Core.kwcall(kwargs::NamedTuple{names}, ::typeof(sizehint!), a, sz) where names	modelled	multidimcov-array-faithful-1652	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1700	1707	pop!	pop!(a::Vector)	modelled	multidimcov-array-faithful-1700	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1741	1746	popat!	popat!(a::Vector, i::Integer)	modelled	multidimcov-array-faithful-1741	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1748	1756	popat!	popat!(a::Vector, i::Integer, default)	modelled	multidimcov-array-faithful-1748	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1777	1781	pushfirst!	pushfirst!(a::Vector{T}, item) where T	modelled	multidimcov-array-faithful-1777	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1782	1786	_pushfirst!	_pushfirst!(a::Vector{T}, item::T) where T	modelled	multidimcov-array-faithful-1782	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1789	1793	pushfirst!	pushfirst!(a::Vector{Any}, @nospecialize x)	modelled	multidimcov-array-faithful-1789	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1794	1802	pushfirst!	pushfirst!(a::Vector{Any}, @nospecialize x...)	modelled	multidimcov-array-faithful-1794	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1836	1843	popfirst!	popfirst!(a::Vector)	modelled	multidimcov-array-faithful-1836	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1866	1870	insert!	insert!(a::Vector{T}, i::Integer, item) where T	modelled	multidimcov-array-faithful-1866	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1871	1878	_insert!	_insert!(a::Vector{T}, i::Integer, item::T) where T	modelled	multidimcov-array-faithful-1871	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1899	1903	deleteat!	deleteat!(a::Vector, i::Integer)	modelled	multidimcov-array-faithful-1899	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1905	1914	deleteat!	deleteat!(a::Vector, r::AbstractUnitRange{<:Integer})	modelled	multidimcov-array-faithful-1905	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1945	1945	deleteat!	deleteat!(a::Vector, inds)	modelled	multidimcov-array-faithful-1945	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1946	1946	deleteat!	deleteat!(a::Vector, inds::AbstractVector)	modelled	multidimcov-array-faithful-1946	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1949	1949	push!	push!(::Nowhere, _)	modelled	multidimcov-array-faithful-1949	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1950	1950	_growend!	_growend!(::Nowhere, _)	modelled	multidimcov-array-faithful-1950	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1952	1959	_push_deleted!	_push_deleted!(dltd, a::Vector, ind)	modelled	multidimcov-array-faithful-1952	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1961	1968	_copy_item!	_copy_item!(a::Vector, p, q)	modelled	multidimcov-array-faithful-1961	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	1970	2002	_deleteat!	_deleteat!(a::Vector, inds, dltd=Nowhere())	modelled	multidimcov-array-faithful-1970	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	2005	2015	deleteat!	deleteat!(a::Vector, inds::AbstractVector{Bool})	modelled	multidimcov-array-faithful-2005	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	2070	2086	splice!	splice!(a::Vector, i::Integer, ins=_default_splice)	modelled	multidimcov-array-faithful-2070	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	2125	2151	splice!	splice!(a::Vector, r::AbstractUnitRange{<:Integer}, ins=_default_splice)	modelled	multidimcov-array-faithful-2125	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	2153	2153	splice!	splice!(a::Vector, inds)	modelled	multidimcov-array-faithful-2153	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	2155	2158	empty!	empty!(a::Vector)	modelled	multidimcov-array-faithful-2155	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	2161	2172	cmp	cmp(a::Array{UInt8,1}, b::Array{UInt8,1})	modelled	multidimcov-array-faithful-2161	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	2176	2191	==	==(a::Arr, b::Arr) where {Arr <: BitIntegerArray}	modelled	multidimcov-array-faithful-2176	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	2193	2210	==	==(a::Arr, b::Arr) where Arr <: BitIntegerArray{1}	modelled	multidimcov-array-faithful-2193	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	2253	2266	reverse	reverse(A::AbstractVector, start::Integer, stop::Integer=lastindex(A))	modelled	multidimcov-array-faithful-2253	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	2271	2271	$f	$f(A::AbstractVector; dims::D=:) where {D}	modelled	multidimcov-array-faithful-2271	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	2272	2272	$_f	$_f(A::AbstractVector, ::Colon)	modelled	multidimcov-array-faithful-2272	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	2273	2273	$_f	$_f(A::AbstractVector, dim::Tuple{Integer})	modelled	multidimcov-array-faithful-2273	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	2274	2277	$_f	$_f(A::AbstractVector, dim::Integer)	modelled	multidimcov-array-faithful-2274	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	2281	2284	reverseind	reverseind(a::AbstractVector, i::Integer)	modelled	multidimcov-array-faithful-2281	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	2288	2288	midpoint	midpoint(lo::T, hi::T) where T<:Integer	modelled	multidimcov-array-faithful-2288	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	2289	2289	midpoint	midpoint(lo::Integer, hi::Integer)	modelled	multidimcov-array-faithful-2289	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	2317	2333	reverse!	reverse!(v::AbstractVector, start::Integer, stop::Integer=lastindex(v))	modelled	multidimcov-array-faithful-2317	typed vector growth, mutation, deletion, splice, comparison, and reverse model
+base/array.jl	2337	2337	vcat	vcat()	modelled	multidimcov-array-faithful-2337	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2338	2338	hcat	hcat()	modelled	multidimcov-array-faithful-2338	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2340	2348	hcat	hcat(V::Vector{T}...) where T	modelled	multidimcov-array-faithful-2340	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2349	2349	hcat	hcat(A::Vector...)	modelled	multidimcov-array-faithful-2349	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2351	2365	vcat	vcat(arrays::Vector{T}...) where T	modelled	multidimcov-array-faithful-2351	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2366	2366	vcat	vcat(A::Vector...)	modelled	multidimcov-array-faithful-2366	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2368	2368	_cat	_cat(n::Integer, x::Integer...)	modelled	multidimcov-array-faithful-2368	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2404	2404	findnext	findnext(A, start)	modelled	multidimcov-array-faithful-2404	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2441	2441	findfirst	findfirst(A)	modelled	multidimcov-array-faithful-2441	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2444	2444	findfirst	findfirst(A::AbstractArray)	modelled	multidimcov-array-faithful-2444	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2475	2486	findnext	findnext(testf::Function, A, start)	modelled	multidimcov-array-faithful-2475	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2523	2528	findfirst	findfirst(testf::Function, A)	modelled	multidimcov-array-faithful-2523	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2531	2532	findfirst	findfirst(testf::Function, A::Union{AbstractArray, AbstractString})	modelled	multidimcov-array-faithful-2531	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2534	2535	findfirst	findfirst(p::Union{Fix2{typeof(isequal),T},Fix2{typeof(==),T}}, r::OneTo) where {T<:Integer}	modelled	multidimcov-array-faithful-2534	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2537	2537	findfirst	findfirst(::typeof(iszero), ::OneTo)	modelled	arraycov-array-range-find	
+base/array.jl	2538	2538	findfirst	findfirst(::typeof(isone), r::OneTo)	modelled	multidimcov-array-faithful-2538	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2540	2544	findfirst	findfirst(p::Union{Fix2{typeof(isequal),T},Fix2{typeof(==),T}}, r::AbstractUnitRange{<:Integer}) where {T<:Integer}	modelled	multidimcov-array-faithful-2540	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2546	2552	findfirst	findfirst(p::Union{Fix2{typeof(isequal),T},Fix2{typeof(==),T}}, r::StepRange{T,S}) where {T,S}	modelled	multidimcov-array-faithful-2546	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2554	2554	findfirst	findfirst(::typeof(iszero), r::AbstractRange)	modelled	multidimcov-array-faithful-2554	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2555	2555	findfirst	findfirst(::typeof(isone), r::AbstractRange)	modelled	multidimcov-array-faithful-2555	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2591	2591	findprev	findprev(A, start)	modelled	multidimcov-array-faithful-2591	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2629	2629	findlast	findlast(A)	modelled	multidimcov-array-faithful-2629	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2632	2632	findlast	findlast(A::AbstractArray)	modelled	multidimcov-array-faithful-2632	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2671	2682	findprev	findprev(testf::Function, A, start)	modelled	multidimcov-array-faithful-2671	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2716	2721	findlast	findlast(testf::Function, A)	modelled	multidimcov-array-faithful-2716	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2724	2725	findlast	findlast(testf::Function, A::Union{AbstractArray, AbstractString})	modelled	multidimcov-array-faithful-2724	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2728	2731	findlast	findlast(p::Union{Fix2{typeof(isequal),<:Integer},Fix2{typeof(==),<:Integer},typeof(iszero),typeof(isone)}, r::AbstractUnitRange{<:Integer})	modelled	multidimcov-array-faithful-2728	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2733	2736	findlast	findlast(p::Union{Fix2{typeof(isequal),T},Fix2{typeof(==),T},typeof(iszero),typeof(isone)}, r::StepRange{T,S}) where {T,S}	modelled	multidimcov-array-faithful-2733	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2789	2792	findall	findall(testf::Function, A)	modelled	multidimcov-array-faithful-2789	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2796	2796	findall	findall(testf::F, A::AbstractArray) where {F<:Function}	modelled	multidimcov-array-faithful-2796	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2838	2840	findall	findall(A)	modelled	multidimcov-array-faithful-2838	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2843	2854	findall	findall(A::AbstractArray{Bool})	modelled	multidimcov-array-faithful-2843	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2856	2856	findall	findall(x::Bool)	modelled	multidimcov-array-faithful-2856	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2857	2857	findall	findall(testf::Function, x::Number)	modelled	multidimcov-array-faithful-2857	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2858	2858	findall	findall(p::Fix2{typeof(in)}, x::Number)	modelled	multidimcov-array-faithful-2858	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2892	2901	indexin	indexin(a, b::AbstractArray)	modelled	multidimcov-array-faithful-2892	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2903	2909	_findin	_findin(a::Union{AbstractArray, Tuple}, b::AbstractSet)	modelled	multidimcov-array-faithful-2903	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2910	2910	_findin	_findin(a::Union{AbstractArray, Tuple}, b)	modelled	multidimcov-array-faithful-2910	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2915	2955	_sortedfindin	_sortedfindin(v::Union{AbstractArray, Tuple}, w)	modelled	multidimcov-array-faithful-2915	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2957	2963	findall	findall(pred::Fix2{typeof(in),<:Union{Array{<:Real},Real}}, x::Array{<:Real})	modelled	multidimcov-array-faithful-2957	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2966	2966	findall	findall(pred::Fix2{typeof(in)}, x::AbstractArray)	modelled	multidimcov-array-faithful-2966	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2967	2967	findall	findall(pred::Fix2{typeof(in)}, x::Tuple)	modelled	multidimcov-array-faithful-2967	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2970	2979	indcopy	indcopy(sz::Dims, I::Vector)	modelled	multidimcov-array-faithful-2970	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	2981	2991	indcopy	indcopy(sz::Dims, I::Tuple{Vararg{RangeIndex}})	modelled	multidimcov-array-faithful-2981	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3020	3030	filter	filter(f, a::Array{T, N}) where {T, N}	modelled	multidimcov-array-faithful-3020	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3032	3047	filter	filter(f, a::AbstractArray)	modelled	multidimcov-array-faithful-3032	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3066	3080	filter!	filter!(f, a::AbstractVector)	modelled	multidimcov-array-faithful-3066	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3105	3107	filter	filter(f)	modelled	multidimcov-array-faithful-3105	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3134	3134	keepat!	keepat!(a::Vector, inds)	modelled	multidimcov-array-faithful-3134	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3159	3159	keepat!	keepat!(a::Vector, m::AbstractVector{Bool})	modelled	multidimcov-array-faithful-3159	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3164	3172	_unique_filter!	_unique_filter!(pred::P, update!::U, state) where {P,U}	modelled	multidimcov-array-faithful-3164	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3174	3174	_grow_filter!	_grow_filter!(seen)	modelled	multidimcov-array-faithful-3174	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3175	3175	_shrink_filter!	_shrink_filter!(keep)	modelled	multidimcov-array-faithful-3175	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3177	3183	_grow!	_grow!(pred!, v::AbstractVector, itrs)	modelled	multidimcov-array-faithful-3177	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3185	3186	union!	union!(v::AbstractVector{T}, itrs...) where {T}	modelled	multidimcov-array-faithful-3185	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3188	3189	symdiff!	symdiff!(v::AbstractVector{T}, itrs...) where {T}	modelled	multidimcov-array-faithful-3188	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3191	3196	_shrink!	_shrink!(shrinker!::F, v::AbstractVector, itrs) where F	modelled	multidimcov-array-faithful-3191	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3198	3198	intersect!	intersect!(v::AbstractVector, itrs...)	modelled	multidimcov-array-faithful-3198	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3199	3199	setdiff!	setdiff!( v::AbstractVector, itrs...)	modelled	multidimcov-array-faithful-3199	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3201	3201	vectorfilter	vectorfilter(T::Type, f, v)	modelled	multidimcov-array-faithful-3201	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3203	3207	intersect	intersect(itr, itrs...)	modelled	multidimcov-array-faithful-3203	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3209	3213	setdiff	setdiff(itr, itrs...)	modelled	multidimcov-array-faithful-3209	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3215	3220	intersect	intersect(v::AbstractVector, r::AbstractRange)	modelled	multidimcov-array-faithful-3215	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3221	3221	intersect	intersect(r::AbstractRange, v::AbstractVector)	modelled	multidimcov-array-faithful-3221	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3224	3230	getindex	getindex(v::AbstractRange, i::Integer)	modelled	multidimcov-array-faithful-3224	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3238	3238	wrap	wrap	excluded		no-behaviour: empty generic-function declaration for wrap
+base/array.jl	3241	3247	_wrap	_wrap(ref::MemoryRef{T}, dims::NTuple{N, Int}) where {T, N}	modelled	multidimcov-array-faithful-3241	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3249	3252	invalid_wrap_err	invalid_wrap_err(len, dims, proddims)	modelled	multidimcov-array-faithful-3249	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3254	3258	wrap	wrap(::Type{Array}, m::MemoryRef{T}, dims::NTuple{N, Integer}) where {T, N}	modelled	multidimcov-array-faithful-3254	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3260	3264	wrap	wrap(::Type{Array}, m::Memory{T}, dims::NTuple{N, Integer}) where {T, N}	modelled	multidimcov-array-faithful-3260	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3265	3269	wrap	wrap(::Type{Array}, m::MemoryRef{T}, l::Integer) where {T}	modelled	multidimcov-array-faithful-3265	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3270	3274	wrap	wrap(::Type{Array}, m::Memory{T}, l::Integer) where {T}	modelled	multidimcov-array-faithful-3270	typed generic search, filtering, set algebra, and memory wrapping model
+base/array.jl	3275	3279	wrap	wrap(::Type{Array}, m::Memory{T}) where {T}	modelled	multidimcov-array-faithful-3275	typed generic search, filtering, set algebra, and memory wrapping model

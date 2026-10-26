@@ -1,0 +1,78 @@
+id: transcode-cwstring-overlong-nul
+title: "Base.cwstring lets overlong NUL encodings through, so Windows APIs receive a truncated string"
+priority: P2
+kind: missing-error
+area: Transcode
+files: [base/strings/cstring.jl, base/env.jl, base/path.jl]
+functions: ["Base.cwstring(::AbstractString)", "transcode(::Type{UInt16}, ::AbstractVector{UInt8})"]
+summary: |
+  cwstring checks for NUL by looking for a 0x00 byte in the UTF-8 data, but
+  transcode(UInt16, ...) decodes the overlong forms "\xc0\x80", "\xe0\x80\x80"
+  and "\xf0\x80\x80\x80" to the code unit 0x0000. cwstring("PATH\xc0\x80X")
+  therefore returns UTF-16 data with an embedded NUL instead of throwing, and a
+  Windows API sees only "PATH". On Windows, ENV uses cwstring for variable names
+  and values (base/env.jl:16,42), as do longpath, homedir lookups and
+  clipboard (base/path.jl:638,711; stdlib/InteractiveUtils clipboard.jl:108).
+likelihood: |
+  Needs invalid UTF-8 with an overlong NUL, which only crafted or corrupted
+  input contains. NUL truncation of names is a classic way to make a check and
+  the operating system disagree on which name is meant.
+maybe_intended: |
+  transcode decodes overlong forms on purpose (the "overlong encoding" branch
+  in base/strings/cstring.jl:213-214). The Cwstring ccall conversion on Windows
+  catches the same input, because it checks the UTF-16 result
+  (cstring.jl:92-100); only cwstring checks the bytes instead.
+reproducer: |
+  # Base.cwstring (base/strings/cstring.jl:119-123) is defined only on Windows. Its body:
+  #     bytes = codeunits(String(s))
+  #     0 in bytes && throw(ArgumentError("embedded NULs are not allowed in C strings: $(repr(s))"))
+  #     return push!(transcode(UInt16, bytes), 0)
+  # The lines below run the same calls on any platform.
+  s = "PATH\xc0\x80X"
+  bytes = codeunits(String(s))
+  w = transcode(UInt16, bytes)
+  println("'\\0' in s = ", '\0' in s, ", 0 in bytes = ", 0 in bytes)
+  println("transcode(UInt16, bytes) = ", repr(w))
+  !(0 in bytes) && (0 in w) && println("REPRODUCED transcode-cwstring-overlong-nul")
+output:
+  release: |
+    '\0' in s = false, 0 in bytes = false
+    transcode(UInt16, bytes) = UInt16[0x0050, 0x0041, 0x0054, 0x0048, 0x0000, 0x0058]
+    REPRODUCED transcode-cwstring-overlong-nul
+  nightly: |
+    '\0' in s = false, 0 in bytes = false
+    transcode(UInt16, bytes) = UInt16[0x0050, 0x0041, 0x0054, 0x0048, 0x0000, 0x0058]
+    REPRODUCED transcode-cwstring-overlong-nul
+reproduced: {release: true, nightly: true}
+expected: |
+  cwstring("PATH\xc0\x80X") throws ArgumentError("embedded NULs are not
+  allowed in C strings: ..."), as cconvert(Cwstring, s) does on Windows.
+promised_by: |
+  base/strings/cstring.jl:112-113: cwstring converts "to a NUL-terminated
+  `Vector{Cwchar_t}`, suitable for passing to C functions", with the embedded
+  NUL check at line 121. Data with an embedded NUL is not suitable: C stops at
+  the first NUL.
+cause: |
+  base/strings/cstring.jl:121 tests `0 in bytes` on the UTF-8 input, but line
+  122 returns transcode(UInt16, bytes), whose overlong branches
+  (cstring.jl:199-200, 206-207, 213-214) produce 0x0000 from the nonzero
+  bytes c0 80, e0 80 80 and f0 80 80 80. Not reproducible directly on Linux,
+  where cwstring does not exist; the reproducer runs its body.
+possible_fix: |
+  Check the transcoded vector instead of the bytes:
+  `w = transcode(UInt16, bytes); 0 in w && throw(...); push!(w, 0)`.
+duplicates:
+  issues:
+    - {number: 25452, state: closed, relation: related}
+    - {number: 56795, state: closed, relation: related}
+  queries:
+    - "issues: cwstring"
+    - "issues: Cwstring"
+    - "issues: cwstring overlong"
+    - "issues: cwstring NUL"
+    - "issues: overlong NUL transcode"
+    - "issues: transcode overlong"
+    - "prs: transcode"
+lean:
+  property: JuliaLean.Transcode.CwstringNoEmbeddedNul
+  theorem: JuliaLean.Transcode.cwstringNoEmbeddedNul_refuted

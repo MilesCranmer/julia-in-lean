@@ -1,0 +1,61 @@
+id: concurrencycov-threadpooldescription-gc-range
+title: "Threads.threadpooldescription reports the first adopted foreign thread as \"foreign: gc\""
+priority: P3
+kind: wrong-result
+area: Threads
+files: [base/threadingconstructs.jl]
+functions: ["Threads.threadpooldescription", "Threads.ngcthreads"]
+summary: |
+  GC threads take the ids just after the interactive and default pools, and there
+  are jl_n_gcthreads of them. threadpooldescription treats ngcthreads() ids as GC
+  threads, but ngcthreads() is jl_n_gcthreads + 1 (it also counts the mutator
+  thread). The first thread adopted from C after the GC threads is therefore
+  described as "foreign: gc"; with no GC threads at all it still is.
+likelihood: |
+  Only code that adopts foreign threads (C libraries calling back into Julia) and
+  then asks for the description sees it. The function is used for display, so the
+  effect is a wrong label.
+maybe_intended: ""
+reproducer: |
+  # adopt one foreign thread by calling a @cfunction from a pthread
+  const TID = Ref(0)
+  f(::Ptr{Cvoid})::Ptr{Cvoid} = (TID[] = Threads.threadid(); C_NULL)
+  h = Ref{UInt}(0)
+  ccall(:pthread_create, Cint, (Ptr{UInt}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}),
+        h, C_NULL, @cfunction(f, Ptr{Cvoid}, (Ptr{Cvoid},)), C_NULL)
+  ccall(:pthread_join, Cint, (UInt, Ptr{Cvoid}), h[], C_NULL)
+  Threads.threadpooldescription(TID[])   # "foreign: gc"
+output:
+  release: |
+    pools: interactive=1 default=1 gc threads=0 ngcthreads()=1
+    adopted foreign thread id = 3, threadpool = foreign
+    threadpooldescription(3) = "foreign: gc"
+    thread is a GC thread: false
+    REPRODUCED concurrencycov-threadpooldescription-gc-range
+  nightly: |
+    pools: interactive=1 default=1 gc threads=0 ngcthreads()=1
+    adopted foreign thread id = 3, threadpool = foreign
+    threadpooldescription(3) = "foreign: gc"
+    thread is a GC thread: false
+    REPRODUCED concurrencycov-threadpooldescription-gc-range
+reproduced: {release: true, nightly: true}
+expected: |
+  "foreign" for every foreign thread that is not one of the jl_n_gcthreads GC threads.
+promised_by: |
+  base/threadingconstructs.jl:101-104: "Return the specified thread's threadpool name
+  with extended description where appropriate"; the comment at line 111 says the GC
+  threads come first in the foreign pool, and src/threading.c:836-850 creates
+  jl_n_markthreads + jl_n_sweepthreads of them starting at gc_first_tid.
+cause: |
+  base/threadingconstructs.jl:112 tests `tid <= n_others + ngcthreads()`, and
+  line 169 defines `ngcthreads() = jl_n_gcthreads + 1`, one more than the number of
+  GC thread ids.
+possible_fix: |
+  Compare against `n_others + unsafe_load(cglobal(:jl_n_gcthreads, Cint))`, or
+  `ngcthreads() - 1`.
+duplicates:
+  issues: []
+  queries: ["threadpooldescription", "ngcthreads foreign"]
+lean:
+  property: JuliaLean.ConcurrencyCov.Threads.ThreadpoolDescriptionGc
+  theorem: JuliaLean.ConcurrencyCov.Threads.threadpoolDescriptionGc_refuted

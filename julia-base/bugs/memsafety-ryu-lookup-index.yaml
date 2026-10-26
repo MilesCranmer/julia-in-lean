@@ -1,0 +1,100 @@
+id: memsafety-ryu-lookup-index
+title: "Ryu pow5 lookup helpers read outside their tables for unchecked indices"
+priority: P2
+kind: crash
+area: MemSafety
+files: [base/ryu/utils.jl]
+functions: ["Base.Ryu.pow5invsplit_lookup(T, i)", "Base.Ryu.pow5split_lookup(T, i)"]
+summary: |
+  Both documented Ryu lookup helpers index their generated tuples at i+1 under
+  @inbounds without checking i. Passing i=-1 reaches tuple index 0; forced bounds
+  checks report the out-of-bounds access in both functions.
+likelihood: |
+  Low. These are internal Ryu helpers and the float-formatting callers compute
+  nonnegative indices within the generated table ranges. Direct callers can pass
+  any value because the method signatures and docstrings state no index restriction.
+maybe_intended: |
+  The helpers are not exported and were written for internal formatting paths.
+  Their docstrings describe them as lookup-table implementations of the corresponding
+  arithmetic functions without documenting a caller precondition.
+reproducer: |
+  Base.Ryu.pow5invsplit_lookup(Float64, -1)
+  Base.Ryu.pow5split_lookup(Float64, -1)
+  # Each call runs in a child Julia process with --check-bounds=yes.
+output:
+  release: |
+    pow5invsplit_lookup child:
+    ERROR: BoundsError: attempt to access NTuple{292, UInt128} at index [0]
+    Stacktrace:
+     [1] getindex
+       @ ./tuple.jl:33 [inlined]
+     [2] pow5invsplit_lookup(::Type{Float64}, i::Int64)
+       @ Base.Ryu ./ryu/utils.jl:275
+     [3] top-level scope
+       @ none:1
+     [4] eval(m::Module, e::Any)
+       @ Core ./boot.jl:489
+     [5] exec_options(opts::Base.JLOptions)
+       @ Base ./client.jl:310
+     [6] _start()
+       @ Base ./client.jl:577
+    child exit code = 1, signal = 0
+    pow5split_lookup child:
+    ERROR: BoundsError: attempt to access NTuple{326, UInt128} at index [0]
+    Stacktrace:
+     [1] getindex
+       @ ./tuple.jl:33 [inlined]
+     [2] pow5split_lookup(::Type{Float64}, i::Int64)
+       @ Base.Ryu ./ryu/utils.jl:303
+     [3] top-level scope
+       @ none:1
+     [4] eval(m::Module, e::Any)
+       @ Core ./boot.jl:489
+     [5] exec_options(opts::Base.JLOptions)
+       @ Base ./client.jl:310
+     [6] _start()
+       @ Base ./client.jl:577
+    child exit code = 1, signal = 0
+    REPRODUCED memsafety-ryu-lookup-index
+  nightly: |
+    pow5invsplit_lookup child:
+    ERROR: BoundsError: attempt to access NTuple{292, UInt128} at index [0]
+    Stacktrace:
+     [1] getindex(t::NTuple{292, UInt128}, i::Int64)
+       @ Base tuple.jl:33 [inlined]
+     [2] pow5invsplit_lookup(::Type{Float64}, i::Int64)
+       @ Base.Ryu ryu/utils.jl:297
+     [3] top-level scope
+       @ none:1
+    child exit code = 1, signal = 0
+    pow5split_lookup child:
+    ERROR: BoundsError: attempt to access NTuple{326, UInt128} at index [0]
+    Stacktrace:
+     [1] getindex(t::NTuple{326, UInt128}, i::Int64)
+       @ Base tuple.jl:33 [inlined]
+     [2] pow5split_lookup(::Type{Float64}, i::Int64)
+       @ Base.Ryu ryu/utils.jl:325
+     [3] top-level scope
+       @ none:1
+    child exit code = 1, signal = 0
+    REPRODUCED memsafety-ryu-lookup-index
+reproduced: {release: true, nightly: true}
+expected: |
+  Each helper should reject indices outside its generated table before the access,
+  or document and enforce a caller contract that keeps i+1 within the tuple.
+promised_by: |
+  base/ryu/utils.jl:286-291 and 301-319 describe the helpers as lookup-table
+  implementations of pow5invsplit and pow5split and state no index precondition.
+  An in-bounds Julia operation must not read outside its tuple.
+cause: |
+  base/ryu/utils.jl:292-297 and 320-325 generate a table for 0:i_max, then define
+  the lookup as @inbounds table[i+1] for an unconstrained i.
+possible_fix: |
+  Add an explicit range check before indexing, or make the accepted index interval
+  part of a checked internal API.
+duplicates:
+  issues: []
+  queries: ["issues: pow5invsplit_lookup bounds", "issues: Ryu lookup negative index", "prs: pow5invsplit_lookup bounds", "prs: Ryu lookup negative index"]
+lean:
+  property: JuliaLean.MemSafety.G4.RyuLookupInBounds
+  theorem: JuliaLean.MemSafety.G4.ryuLookupInBounds_refuted

@@ -1,0 +1,71 @@
+file	line	endline	name	signature	status	entry	note
+base/strings/unicode.jl	58	58	isvalid	isvalid(c::AbstractChar)	modelled	stringscovb-unicode-isvalid	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	59	59	isvalid	isvalid(::Type{<:AbstractChar}, c::Unsigned)	modelled	stringscovb-unicode-isvalid	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	60	60	isvalid	isvalid(::Type{T}, c::Integer) where {T<:AbstractChar}	modelled	stringscovb-unicode-isvalid	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	61	61	isvalid	isvalid(::Type{<:AbstractChar}, c::AbstractChar)	modelled	stringscovb-unicode-isvalid	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	62	62	isvalid	isvalid(::Type{Union{}}, value)	modelled	stringscovb-unicode-isvalid	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	63	63	isvalid	isvalid(::Type{Union{}}, slurp...)	modelled	stringscovb-unicode-isvalid	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	153	153	utf8proc_error	utf8proc_error(result)	modelled	stringscovb-normalize-impure-chartransform	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	156	157	utf8proc_custom_func	utf8proc_custom_func(codepoint::UInt32, callback::Any)	modelled	stringscovb-normalize-impure-chartransform	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	159	164	utf8proc_decompose	utf8proc_decompose(str, options, buffer, nwords, chartransform::typeof(identity))	modelled	stringscovb-normalize-impure-chartransform	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	165	171	utf8proc_decompose	utf8proc_decompose(str, options, buffer, nwords, chartransform::F) where F	modelled	stringscovb-normalize-impure-chartransform	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	173	180	utf8proc_map	utf8proc_map(str::Union{String,SubString{String}}, options::Integer, chartransform::F = identity) where F	modelled	stringscovb-normalize-impure-chartransform	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	199	199	utf8proc_map	utf8proc_map(s::AbstractString, flags::Integer, chartransform::F = identity) where F	modelled	stringscovb-normalize-impure-chartransform	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	202	241	normalize	normalize( s::AbstractString; stable::Bool=false, compat::Bool=false, compose::Bool=true, decompose::Bool=false, stripignore::Bool=false, rejectna::Bool=false, newline2ls::Bool=false, newline2ps::Bool=false, newline2lf::Bool=false, stripcc::Bool=false, casefold::Bool=false, lump::Bool=false, stripmark::Bool=false, chartransform=identity, )	modelled	stringscovb-unicode-normalize,stringscovb-normalize-impure-chartransform	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	243	251	normalize	normalize(s::AbstractString, nf::Symbol)	modelled	stringscovb-unicode-normalize,stringscovb-normalize-impure-chartransform	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	270	270	textwidth	textwidth(c::AbstractChar)	modelled	stringscovb-unicode-textwidth	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	272	282	textwidth	textwidth(c::Char)	modelled	stringscovb-unicode-textwidth	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	295	295	textwidth	textwidth(s::AbstractString)	modelled	stringscovb-unicode-textwidth	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	297	297	textwidth	textwidth(s::String)	modelled	stringscovb-unicode-textwidth	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	298	298	textwidth	textwidth(s::SubString{String})	modelled	stringscovb-unicode-textwidth	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	300	300	textwidth	textwidth(s::AnnotatedString)	modelled	stringscovb-unicode-textwidth	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	318	319	lowercase	lowercase(c::T) where {T<:AbstractChar}	modelled	stringscovb-unicode-case-annotated	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	321	321	lowercase	lowercase(c::AnnotatedChar)	modelled	stringscovb-unicode-case-annotated	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	339	340	uppercase	uppercase(c::T) where {T<:AbstractChar}	modelled	stringscovb-unicode-case-annotated	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	342	342	uppercase	uppercase(c::AnnotatedChar)	modelled	stringscovb-unicode-case-annotated	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	364	365	titlecase	titlecase(c::T) where {T<:AbstractChar}	modelled	stringscovb-unicode-case-annotated	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	367	367	titlecase	titlecase(c::AnnotatedChar)	modelled	stringscovb-unicode-case-annotated	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	372	377	category_code	category_code(c::AbstractChar)	modelled	stringscovb-unicode-category	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	379	381	category_code	category_code(x::Integer)	modelled	stringscovb-unicode-category	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	384	388	category_abbrev	category_abbrev(c::AbstractChar)	modelled	stringscovb-unicode-category	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	392	396	category_abbrev	category_abbrev(c::Char)	modelled	stringscovb-unicode-category	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	400	400	category_string	category_string(c)	modelled	stringscovb-unicode-category	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	403	403	category_string	category_string(c::Char)	modelled	stringscovb-unicode-category	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	405	405	isassigned	isassigned(c)	modelled	stringscovb-isassigned-negative	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	429	434	islowercase	islowercase(c::AbstractChar)	modelled	stringscovb-unicode-predicates	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	458	463	isuppercase	isuppercase(c::AbstractChar)	modelled	stringscovb-unicode-predicates	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	472	477	iscased	iscased(c::AbstractChar)	modelled	stringscovb-unicode-predicates	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	499	499	isdigit	isdigit(c::AbstractChar)	modelled	stringscovb-unicode-predicates	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	522	522	isletter	isletter(c::AbstractChar)	modelled	stringscovb-unicode-predicates	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	549	549	isnumeric	isnumeric(c::AbstractChar)	modelled	stringscovb-unicode-predicates	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	568	568	iscntrl	iscntrl(c::AbstractChar)	modelled	regexunicode-iscntrl-malformed	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	594	594	ispunct	ispunct(c::AbstractChar)	modelled	stringscovb-unicode-predicates	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	624	626	isspace	isspace(c::AbstractChar)	modelled	stringscovb-unicode-predicates	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	642	642	isprint	isprint(c::AbstractChar)	modelled	stringscovb-unicode-predicates	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	659	659	isxdigit	isxdigit(c::AbstractChar)	modelled	stringscovb-unicode-predicates	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	676	676	uppercase	uppercase(s::AbstractString)	modelled	regexunicode-uppercase-malformed	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	677	677	uppercase	uppercase(s::AnnotatedString)	modelled	stringscovb-unicode-case-annotated	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	678	678	uppercase	uppercase(s::SubString{<:AnnotatedString})	modelled	stringscovb-unicode-case-annotated	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	693	693	lowercase	lowercase(s::AbstractString)	modelled	regexunicode-uppercase-malformed	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	694	694	lowercase	lowercase(s::AnnotatedString)	modelled	stringscovb-unicode-case-annotated	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	695	695	lowercase	lowercase(s::SubString{<:AnnotatedString})	modelled	stringscovb-unicode-case-annotated	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	723	742	titlecase	titlecase(s::AbstractString; wordsep::Function = !isletter, strict::Bool=true)	modelled	regexunicode-titlecase-nonstrict	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	745	759	titlecase	titlecase(s::AnnotatedString; wordsep::Function = !isletter, strict::Bool=true)	modelled	stringscovb-unicode-titlecase	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	761	762	titlecase	titlecase(s::SubString{<:AnnotatedString}; wordsep::Function = !isletter, strict::Bool=true)	modelled	stringscovb-unicode-titlecase	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	780	786	uppercasefirst	uppercasefirst(s::AbstractString)	modelled	stringscovb-unicode-firstcase	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	789	797	uppercasefirst	uppercasefirst(s::AnnotatedString)	modelled	stringscovb-unicode-firstcase	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	798	798	uppercasefirst	uppercasefirst(s::SubString{<:AnnotatedString})	modelled	stringscovb-unicode-firstcase	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	814	820	lowercasefirst	lowercasefirst(s::AbstractString)	modelled	stringscovb-unicode-firstcase	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	823	831	lowercasefirst	lowercasefirst(s::AnnotatedString)	modelled	stringscovb-unicode-firstcase	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	832	832	lowercasefirst	lowercasefirst(s::SubString{<:AnnotatedString})	modelled	stringscovb-unicode-firstcase	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	837	839	isgraphemebreak	isgraphemebreak(c1::AbstractChar, c2::AbstractChar)	modelled	stringscovb-unicode-graphemes	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	844	851	isgraphemebreak!	isgraphemebreak!(state::Ref{Int32}, c1::AbstractChar, c2::AbstractChar)	modelled	regexunicode-titlecase-nonstrict	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	858	858	graphemes	graphemes(s::AbstractString)	modelled	stringscovb-unicode-graphemes	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	860	860	eltype	eltype(::Type{GraphemeIterator{S}}) where {S}	modelled	stringscovb-unicode-graphemes	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	861	861	eltype	eltype(::Type{GraphemeIterator{SubString{S}}}) where {S}	modelled	stringscovb-unicode-graphemes	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	863	872	length	length(g::GraphemeIterator{S}) where {S}	modelled	stringscovb-unicode-graphemes	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	874	890	iterate	iterate(g::GraphemeIterator, i_=(Int32(0),firstindex(g.s)))	modelled	stringscovb-unicode-graphemes	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	892	892	==	==(g1::GraphemeIterator, g2::GraphemeIterator)	modelled	stringscovb-unicode-graphemes	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	893	893	hash	hash(g::GraphemeIterator, h::UInt)	modelled	stringscovb-unicode-graphemes	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	894	894	isless	isless(g1::GraphemeIterator, g2::GraphemeIterator)	modelled	stringscovb-unicode-graphemes	Lean property and source-matched model cited by entry.
+base/strings/unicode.jl	896	896	show	show(io::IO, g::GraphemeIterator{S}) where {S}	modelled	stringscovb-unicode-graphemes	Lean property and source-matched model cited by entry.

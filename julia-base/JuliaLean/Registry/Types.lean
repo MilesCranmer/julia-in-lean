@@ -5,9 +5,9 @@ Property registry types.
 
 Every property of Julia Base is a closed `Prop` constant (`prop`). A `proven`
 entry names a theorem whose type is exactly `prop`; a `refuted` entry names a
-theorem whose type is exactly `¬ prop` and a Julia reproducer
-`repro/<id>.jl`. `Audit.lean` checks these types and the axioms each theorem
-depends on.
+theorem whose type is exactly `¬ prop`. Base refutations use a Julia reproducer
+`repro/<id>.jl`; C-runtime refutations may instead record a formal model
+counterexample. The audits check theorem types, evidence classes and axioms.
 -/
 
 namespace JuliaLean.Registry
@@ -17,6 +17,11 @@ inductive Status where
   | todo
   | proven
   | refuted
+  deriving Repr, BEq, DecidableEq
+
+inductive RefutationEvidence where
+  | runtime
+  | modelCounterexample
   deriving Repr, BEq, DecidableEq
 
 structure Entry where
@@ -31,6 +36,8 @@ structure Entry where
   /-- Where Julia promises the property: a docstring, the manual, or "invariant". -/
   source : String
   status : Status
+  /-- Evidence supporting a refutation. -/
+  refutationEvidence : RefutationEvidence := .runtime
   /-- Closed `Prop` constant stating the property. -/
   prop : Lean.Name
   /-- Theorem proving `prop` (proven) or `¬ prop` (refuted). -/

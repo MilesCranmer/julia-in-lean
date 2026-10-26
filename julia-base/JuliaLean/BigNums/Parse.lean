@@ -179,34 +179,47 @@ def StringParseRoundtrip : Prop :=
   ∀ (n : Int) (b : Nat) (pad : Int), 2 ≤ b → b ≤ 62 → 1 ≤ pad →
     (do let s ← stringBig n b pad; parseBig s b) = .ok n
 
-/-! ## `tryparse(BigFloat, s)` (`base/mpfr.jl:407-412`) -/
+/-! ## `tryparse(BigFloat, s; base)` (`base/mpfr.jl:407-412`) -/
 
-/-- A call's outcome: a value or a thrown exception. -/
+/-- A call's outcome: a value, a thrown exception, or a process abort. -/
 inductive Outcome (α : Type) where
   | ok (a : α)
   | throw (e : JlError)
+  | abort
   deriving DecidableEq, Repr
 
-/-- `tryparse(BigFloat, s)` with the default base, `base/mpfr.jl:407-412`. Trailing whitespace
-is stripped first; the `Cstring` conversion of the argument throws `ArgumentError` for embedded
-NULs (`base/strings/cstring.jl:85`). `setStr` is MPFR's documented parser (MPFR manual §5.2
-`mpfr_strtofr`); its numeric grammar does not matter for the property below, so it is a
-parameter. -/
-def tryparseBF (setStr : List Char → Option BF) (s : List Char) : Outcome (Option BF) :=
+/-- `tryparse(BigFloat, s; base)`, `base/mpfr.jl:407-412`. Trailing whitespace is stripped first;
+the `Cstring` conversion of the argument throws `ArgumentError` for embedded NULs
+(`base/strings/cstring.jl:85`); `mpfr_set_str` asserts `base == 0 || 2 <= base <= 62`
+(MPFR `strtofr.c`, `MPFR_ASSERTN`, active in release builds), aborting the process otherwise.
+For a valid base, `setStr` is MPFR's documented parser (MPFR manual §5.2 `mpfr_strtofr`); its
+numeric grammar does not matter for the properties below, so it is a parameter. -/
+def tryparseBF (setStr : List Char → Nat → Option BF) (s : List Char) (base : Int) :
+    Outcome (Option BF) :=
   let s := (s.reverse.dropWhile isSpace).reverse
   if s.contains (Char.ofNat 0) then .throw (.argumentError "embedded NULs are not allowed in C strings")
-  else .ok (setStr s)
+  else if ¬ (base = 0 ∨ (2 ≤ base ∧ base ≤ 62)) then .abort
+  else .ok (setStr s base.toNat)
+
+/-- `tryparse(BigFloat, s; base)` never aborts the process, whatever `s` and `base`. -/
+def TryparseBigFloatTotal : Prop :=
+  ∀ (setStr : List Char → Nat → Option BF) (s : List Char) (base : Int),
+    tryparseBF setStr s base ≠ .abort
+
+theorem tryparseBigFloatTotal_refuted : ¬ TryparseBigFloatTotal := by
+  intro h
+  exact h (fun _ _ => none) ['1'] 1 (by decide)
 
 /-- `tryparse(BigFloat, s)` returns a value or `nothing` and never throws (the `tryparse`
 docstring, `base/parse.jl:241-246`). -/
 def TryparseBigFloatNoThrow : Prop :=
-  ∀ (setStr : List Char → Option BF) (s : List Char),
-    ∃ v, tryparseBF setStr s = .ok v
+  ∀ (setStr : List Char → Nat → Option BF) (s : List Char),
+    ∃ v, tryparseBF setStr s 0 = .ok v
 
 theorem tryparseBigFloatNoThrow_refuted : ¬ TryparseBigFloatNoThrow := by
   intro h
-  obtain ⟨v, hv⟩ := h (fun _ => none) ['1', Char.ofNat 0]
-  have h2 : tryparseBF (fun _ => none) ['1', Char.ofNat 0] =
+  obtain ⟨v, hv⟩ := h (fun _ _ => none) ['1', Char.ofNat 0]
+  have h2 : tryparseBF (fun _ _ => none) ['1', Char.ofNat 0] 0 =
       .throw (.argumentError "embedded NULs are not allowed in C strings") := by decide
   rw [h2] at hv
   cases hv

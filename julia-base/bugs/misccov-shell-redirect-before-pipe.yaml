@@ -1,0 +1,42 @@
+id: misccov-shell-redirect-before-pipe
+title: "A backtick redirect with no filename before | is silently dropped: `echo a > | cat`"
+priority: P2
+kind: missing-error
+area: MiscCov
+files: [base/shell.jl]
+functions: ["Base.shell_parse", "Base.__repl_entry_shell_parse"]
+summary: |
+  On master, command literals support `|`, `<` and `>`. A redirect operator without a filename at the end of the command throws "redirect operator without filename", but when a `|` follows the operator directly, the pending redirect is discarded without an error: `echo a > | cat` becomes `pipeline(`echo a`, `cat`)`, so the output that was meant to go to a file goes to `cat`.
+likelihood: |
+  Low: a typo or a missing interpolated filename (e.g. `> $f |` with an empty word) in a command literal with a pipe.
+maybe_intended: ""
+reproducer: |
+  Base.shell_parse("echo a >")        # ErrorException: redirect operator without filename
+  Base.shell_parse("echo a > | cat")  # pipeline(cmd_gen(("echo",),("a",)), cmd_gen(("cat",))): the redirect is gone
+output:
+  release: |
+    shell_parse("echo a >")       => :((("echo",), ("a",), (">",)))
+    shell_parse("echo a > | cat") => :((("echo",), ("a",), (">",), ("|",), ("cat",)))
+  nightly: |
+    shell_parse("echo a >")       => parsing command `echo a >`: redirect operator without filename
+    shell_parse("echo a > | cat") => :(Base.pipeline(Base.cmd_gen((("echo",), ("a",))), Base.cmd_gen((("cat",),))))
+    REPRODUCED misccov-shell-redirect-before-pipe
+reproduced: {release: false, nightly: true}
+expected: |
+  `echo a > | cat` throws the same "redirect operator without filename" parse error as `echo a >`.
+promised_by: |
+  Invariant: the end-of-command check at base/shell.jl:302-303 rejects a redirect operator without a filename; the same condition at a pipe boundary should not silently drop the redirect.
+cause: |
+  base/shell.jl:149-169 (master): at `|`, `redirect_mode != :none` with an empty word falls through both branches, and line 165 resets `redirect_mode = :none` without the check done at line 303. Not present in 1.13.2, which has no pipelines in command literals.
+possible_fix: |
+  At the `|` branch, throw "redirect operator without filename" when `redirect_mode != :none` and the word is empty.
+duplicates:
+  issues: []
+  queries:
+    - "issues: redirect pipeline backtick"
+    - "issues: cmd redirection pipe"
+    - "issues: shell_parse redirect"
+    - "prs: shell redirect"
+lean:
+  property: JuliaLean.MiscCov.Shell.RedirectNeedsFilename
+  theorem: JuliaLean.MiscCov.Shell.redirectNeedsFilename_refuted

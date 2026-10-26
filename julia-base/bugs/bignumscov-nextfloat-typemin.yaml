@@ -1,0 +1,71 @@
+id: bignumscov-nextfloat-typemin
+title: "nextfloat(::BigFloat, typemin(Int)) and prevfloat(::BigFloat, typemin(Int)) never return"
+priority: P1
+kind: hang
+area: BigNums
+files: [base/mpfr.jl]
+functions: ["nextfloat(::BigFloat, ::Integer)", "prevfloat(::BigFloat, ::Integer)", "nextfloat!(::BigFloat, ::Integer)", "prevfloat!(::BigFloat, ::Integer)"]
+summary: |
+  nextfloat and prevfloat on a BigFloat never return when the step count is
+  typemin(Int). The mutating helpers pass abs(n) to each other for a negative
+  count, but abs(typemin(Int)) is still typemin(Int), so they recurse forever.
+likelihood: |
+  This needs the extreme negative Int step count. Generic code can produce that
+  value from unchecked arithmetic or data, but ordinary small step counts work.
+maybe_intended: |
+  Large-magnitude BigFloat stepping is inherently expensive because the method
+  iterates. The endless mutual recursion is still inconsistent with the
+  documented negative-count behavior and with the generic AbstractFloat method.
+reproducer: |
+  function outcome(fn)
+      code = "Base.$fn(big(1.0), typemin(Int))"
+      proc = run(pipeline(`$(Base.julia_cmd()) --startup-file=no -e $code`,
+                          stdout=devnull, stderr=devnull); wait=false)
+      status = timedwait(() -> process_exited(proc), 2.0)
+      if status == :timed_out
+          kill(proc)
+          wait(proc)
+          return "hangs"
+      end
+      return "returned"
+  end
+
+  next_result = outcome("nextfloat")
+  prev_result = outcome("prevfloat")
+
+  println("nextfloat(big(1.0), typemin(Int)) -> ", next_result)
+  println("prevfloat(big(1.0), typemin(Int)) -> ", prev_result)
+
+  if next_result == "hangs" && prev_result == "hangs"
+      println("REPRODUCED bignumscov-nextfloat-typemin")
+  end
+output:
+  release: |
+    nextfloat(big(1.0), typemin(Int)) -> hangs
+    prevfloat(big(1.0), typemin(Int)) -> hangs
+    REPRODUCED bignumscov-nextfloat-typemin
+  nightly: |
+    nextfloat(big(1.0), typemin(Int)) -> hangs
+    prevfloat(big(1.0), typemin(Int)) -> hangs
+    REPRODUCED bignumscov-nextfloat-typemin
+reproduced: {release: true, nightly: true}
+expected: |
+  Both calls should terminate with the result of 2^63 applications of the
+  opposite stepping function, as the docstrings specify for negative counts.
+promised_by: |
+  base/float.jl:848-851 says nextfloat(x, n) applies prevfloat -n times when
+  n < 0. Lines 866-869 make the symmetric promise for prevfloat.
+cause: |
+  base/mpfr.jl:1151-1164 passes abs(n) from nextfloat! to prevfloat! and back.
+  Julia Int arithmetic wraps, so abs(typemin(Int)) == typemin(Int); each helper
+  therefore sees another negative count and calls the other helper forever.
+  The same code is at base/mpfr.jl:1150-1163 in Julia 1.13.2.
+possible_fix: |
+  Compute the magnitude without signed overflow, as the generic method does
+  with uabs, and avoid converting it back to Int before stepping.
+duplicates:
+  issues: []
+  queries: ["nextfloat typemin BigFloat", "prevfloat typemin BigFloat", "nextfloat! hang", "PR nextfloat typemin BigFloat", "PR prevfloat typemin BigFloat"]
+lean:
+  property: JuliaLean.BigNumsCov.Mpfr.BigFloatStepTerminates
+  theorem: JuliaLean.BigNumsCov.Mpfr.bigFloatStepTerminates_refuted

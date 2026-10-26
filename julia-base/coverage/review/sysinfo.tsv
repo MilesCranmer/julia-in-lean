@@ -1,0 +1,27 @@
+line	name	verdict	mirror	property	settled	reason
+155	__init__	HOLLOW	no	yes	yes	The model omits the SC_CLK_TCK, CPU_NAME, and JIT assignments and the __init_build call, although its thread and page-size invariants are universal.
+180	__init_build	HOLLOW	no	no	yes	The model omits the BINDIR ccall, abspath call, and global assignments, while the proposition only constrains a synthetic component list rather than the resulting STDLIB path.
+221	CPUinfo	FAITHFUL	yes	yes	yes	The Lean constructor copies the seven typed fields in source order, and the proposition universally checks constructor fields.
+223	CPUinfo	HOLLOW	no	yes	yes	The model receives an already decoded model string and omits unsafe_string on the source pointer, although the field-copying property is universal.
+229	_show_cpuinfo	HOLLOW	no	no	yes	The model replaces division by 1000 and round(Int64, i) with an arbitrary rounding function, so neither the body nor the proposition establishes the method's numeric formatting.
+239	d	HOLLOW	no	no	yes	The model accepts an already rounded Int and therefore omits round(Int64, i) for the method's allowed numeric inputs.
+246	show	HOLLOW	no	no	yes	The model returns a string through the incomplete showCpuinfo abstraction, and its reflexive delegation equality states no exact observable IO output.
+248	_cpu_summary	HOLLOW	no	yes	yes	The model returns row descriptors instead of performing the ordered IO writes and final println, although its row-count and header invariants are universal.
+284	cpu_summary	HOLLOW	no	yes	yes	The model returns grouping ranges and omits every _cpu_summary call and IO effect, although it universally states the empty-input error and first-run invariant.
+309	cpu_info	HOLLOW	no	yes	yes	The model starts from decoded records and omits Ref allocation, the uv_cpu_info call, pointer loads, and uv_free_cpu_info, although its length, replacement, and error properties are universal.
+342	sysimage_target	HOLLOW	no	no	yes	The model returns a bare supplied runtime string, and the identity proposition does not relate that string to jl_get_sysimage_cpu_target.
+359	matched_sysimage_target	HOLLOW	no	yes	yes	The model starts from a supplied index and pre-split parts, omitting the runtime call, sysimage_target call, split, and String conversion, although its fallback-index and bounds properties are universal.
+372	uptime	HOLLOW	no	yes	yes	The model takes the libuv status and uptime value as inputs and omits the Ref allocation and uv_uptime call, although it universally states the negative-status error.
+384	loadavg	HOLLOW	no	yes	yes	The model takes three supplied values and omits the vector allocation and uv_loadavg call, although it universally establishes the three-element result invariant.
+396	free_physical_memory	HOLLOW	no	no	yes	The model returns a bare supplied Nat, and its identity proposition does not relate that value to uv_get_free_memory.
+404	total_physical_memory	HOLLOW	no	no	yes	The model returns a bare supplied Nat, and its identity proposition does not relate that value to uv_get_total_memory.
+411	free_memory	HOLLOW	no	no	yes	The model returns a bare supplied Nat, and its identity proposition does not relate that value to uv_get_available_memory.
+420	total_memory	HOLLOW	no	yes	yes	The model receives both memory-query results as parameters and omits the two calls and their order, although it universally proves the constrained-versus-physical selection invariants.
+435	get_process_title	HOLLOW	no	yes	yes	The model starts from a supplied buffer and status and omits allocation, the uv_get_process_title call, pointer conversion, and unsafe_string, although its error and bounded-string properties are universal.
+447	set_process_title	HOLLOW	no	yes	yes	The model ignores the title and omits uv_set_process_title, although it universally states the error behavior for negative statuses.
+460	maxrss	HOLLOW	no	no	yes	The model returns a bare supplied Nat, and its identity proposition does not relate that value to jl_maxrss.
+463	windows_version	HOLLOW	no	yes	yes	The model starts from a supplied unbounded Nat and omits GetVersion and VersionNumber construction, although its component-extraction formula is universal.
+468	windows_version	FAITHFUL	yes	yes	yes	The model returns the fixed zero version represented by its three numeric components, and the proposition states that result exactly.
+495	which	HOLLOW	no	yes	yes	The model collapses the ordered isfile and isexecutable checks and their exception handling into one Probe oracle, although its returned-path and directory-selection invariants are universal.
+562	which	HOLLOW	no	yes	yes	The model substitutes an arbitrary conversion function for String(program_name)::String, although it universally states delegation after that supplied conversion.
+581	username	HOLLOW	no	yes	yes	The model starts from a supplied username string and omits Libc.getpw and field access, although it universally states the documented empty-name error and nonempty return.

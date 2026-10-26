@@ -1,0 +1,18 @@
+file	line	endline	name	signature	status	entry	note
+base/summarysize.jl	12	12	nth_pointer_isdefined	nth_pointer_isdefined(obj, i::Int)	modelled	nummisc-coverage-summarysize	source-family: nummisc-coverage-summarysize mirrors this method body and branch order.
+base/summarysize.jl	13	13	get_nth_pointer	get_nth_pointer(obj, i::Int)	modelled	nummisc-coverage-summarysize	source-family: nummisc-coverage-summarysize mirrors this method body and branch order.
+base/summarysize.jl	45	118	summarysize	summarysize(obj; count::Bool = false, exclude = Union{DataType, Core.TypeName, Core.MethodInstance}, chargeall = Union{Core.TypeMapEntry, Method})	modelled	nummisc-coverage-summarysize,memsafety-summarysize-memory	source-family: nummisc-coverage-summarysize mirrors this method body and branch order.
+base/summarysize.jl	120	120	(ss::SummarySize)	(ss::SummarySize)(@nospecialize obj)	modelled	nummisc-coverage-summarysize	source-family: nummisc-coverage-summarysize mirrors this method body and branch order.
+base/summarysize.jl	122	143	_summarysize	_summarysize(ss::SummarySize, @nospecialize(obj), count::Bool)	modelled	nummisc-coverage-summarysize	source-family: nummisc-coverage-summarysize mirrors this method body and branch order.
+base/summarysize.jl	145	145	(::SummarySize)	(::SummarySize)(obj::Symbol)	modelled	nummisc-coverage-summarysize	source-family: nummisc-coverage-summarysize mirrors this method body and branch order.
+base/summarysize.jl	146	146	(::SummarySize)	(::SummarySize)(obj::SummarySize)	modelled	nummisc-coverage-summarysize	source-family: nummisc-coverage-summarysize mirrors this method body and branch order.
+base/summarysize.jl	148	152	(ss::SummarySize)	(ss::SummarySize)(obj::String)	modelled	nummisc-coverage-summarysize	source-family: nummisc-coverage-summarysize mirrors this method body and branch order.
+base/summarysize.jl	154	163	(ss::SummarySize)	(ss::SummarySize)(obj::DataType)	modelled	nummisc-coverage-summarysize	source-family: nummisc-coverage-summarysize mirrors this method body and branch order.
+base/summarysize.jl	165	169	(ss::SummarySize)	(ss::SummarySize)(obj::Core.TypeName)	modelled	nummisc-coverage-summarysize	source-family: nummisc-coverage-summarysize mirrors this method body and branch order.
+base/summarysize.jl	171	190	(ss::SummarySize)	(ss::SummarySize)(obj::GenericMemory)	modelled	nummisc-coverage-summarysize,memsafety-summarysize-memory	source-family: nummisc-coverage-summarysize mirrors this method body and branch order.
+base/summarysize.jl	192	201	(ss::SummarySize)	(ss::SummarySize)(obj::Core.SimpleVector)	modelled	nummisc-coverage-summarysize	source-family: nummisc-coverage-summarysize mirrors this method body and branch order.
+base/summarysize.jl	203	222	(ss::SummarySize)	(ss::SummarySize)(obj::Module)	modelled	nummisc-coverage-summarysize	source-family: nummisc-coverage-summarysize mirrors this method body and branch order.
+base/summarysize.jl	224	237	(ss::SummarySize)	(ss::SummarySize)(obj::Core.CancellationTokenSource)	modelled	nummisc-coverage-summarysize	source-family: nummisc-coverage-summarysize mirrors this method body and branch order.
+base/summarysize.jl	239	248	(ss::SummarySize)	(ss::SummarySize)(obj::Core.WaitEntryN)	modelled	nummisc-coverage-summarysize	source-family: nummisc-coverage-summarysize mirrors this method body and branch order.
+base/summarysize.jl	250	261	(ss::SummarySize)	(ss::SummarySize)(obj::Task)	modelled	nummisc-coverage-summarysize	source-family: nummisc-coverage-summarysize mirrors this method body and branch order.
+base/summarysize.jl	263	263	(ss::SummarySize)	(ss::SummarySize)(obj::BigInt)	modelled	nummisc-coverage-summarysize	source-family: nummisc-coverage-summarysize mirrors this method body and branch order.

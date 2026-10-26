@@ -127,6 +127,14 @@ def SpliceRangeSpec : Prop :=
       ⟨(a.take (f.val - 1).toNat ++ ins ++ a.drop l.val.toNat).map some,
        .ok (((a.drop (f.val - 1).toNat).take (l.val - f.val + 1).toNat).map some)⟩
 
+/-- When `splice!(a, r, ins)` throws, for instance because a replacement value cannot
+be converted to the element type, every element of `a` is still assigned. -/
+def SpliceErrorAssigned : Prop :=
+  ∀ (α β : Type) (conv : β → Jl α) (a : List α) (f l : JInt64) (ins : List β), a.length < 2 ^ 62 →
+    f.val ≤ l.val + 1 →
+    (∃ e, (spliceRange conv (a.map some) f l ins).res = .error e) →
+    ∀ x ∈ (spliceRange conv (a.map some) f l ins).vec, x.isSome
+
 /-- `resize!(a, n; first)` for `n` of any integer type: a negative `n` throws
 `ArgumentError`; otherwise the length becomes `n`, keeping the first (or, with
 `first=true`, the last) `min(n, length(a))` elements and adding unassigned slots
@@ -199,6 +207,31 @@ theorem deleteatErrorUnchanged_refuted : ¬ DeleteatErrorUnchanged := by
   rw [deleteatPartial.2] at e
   revert e
   decide
+
+/-- A conversion that fails on `none` (standing for `5.5` stored into a `Vector{Int}`). -/
+def convInt : Option Int → Jl Int
+  | some x => .ok x
+  | none => .error (.inexactError "Int64")
+
+/-- `splice!([1,2,3], 2:1, [4, 5.5])`: the vector grows by two slots, `4` is stored,
+converting `5.5` throws, and an unassigned slot remains. -/
+theorem spliceUndef :
+    errOf (spliceRange convInt ([1, 2, 3].map some : Vec Int) (JInt.lit .i64 2) (JInt.lit .i64 1)
+        [some 4, none]).res = some (.inexactError "Int64") ∧
+    (spliceRange convInt ([1, 2, 3].map some : Vec Int) (JInt.lit .i64 2) (JInt.lit .i64 1)
+        [some 4, none]).vec = [some 1, some 4, none, some 2, some 3] := by
+  decide +kernel
+
+theorem spliceErrorAssigned_refuted : ¬ SpliceErrorAssigned := by
+  intro h
+  have hr := spliceUndef.1
+  have e := h Int (Option Int) convInt [1, 2, 3] (JInt.lit .i64 2) (JInt.lit .i64 1)
+    [some 4, none] (by decide) (by decide) ⟨.inexactError "Int64", by
+      revert hr
+      cases (spliceRange convInt ([1, 2, 3].map some : Vec Int) (JInt.lit .i64 2)
+        (JInt.lit .i64 1) [some 4, none]).res <;> simp [errOf]⟩
+    none (by rw [spliceUndef.2]; decide)
+  exact absurd e (by decide)
 
 /-- `append!(a, a, a)` for `a = [1]` gives `[1, 1, 1, 1]`. -/
 theorem appendTwiceSelf :

@@ -1,0 +1,40 @@
+file	line	endline	name	signature	status	entry	note
+base/ryu/utils.jl	6	6	pow5_bitcount	pow5_bitcount(::Type{Float16})	modelled	misccov-ryu-table-formulas	
+base/ryu/utils.jl	7	7	pow5_bitcount	pow5_bitcount(::Type{Float32})	modelled	misccov-ryu-table-formulas	
+base/ryu/utils.jl	8	8	pow5_bitcount	pow5_bitcount(::Type{Float64})	modelled	misccov-ryu-table-formulas	
+base/ryu/utils.jl	10	10	pow5_inv_bitcount	pow5_inv_bitcount(::Type{Float16})	modelled	misccov-ryu-table-formulas,misccov-ryu-pow5invsplit-bitcount	
+base/ryu/utils.jl	11	11	pow5_inv_bitcount	pow5_inv_bitcount(::Type{Float32})	modelled	misccov-ryu-table-formulas,misccov-ryu-pow5invsplit-bitcount	
+base/ryu/utils.jl	12	12	pow5_inv_bitcount	pow5_inv_bitcount(::Type{Float64})	modelled	misccov-ryu-table-formulas,misccov-ryu-pow5invsplit-bitcount	
+base/ryu/utils.jl	14	14	qinvbound	qinvbound(::Type{Float16})	modelled	misccov-ryu-powers	
+base/ryu/utils.jl	15	15	qinvbound	qinvbound(::Type{Float32})	modelled	misccov-ryu-powers	
+base/ryu/utils.jl	16	16	qinvbound	qinvbound(::Type{Float64})	modelled	misccov-ryu-powers	
+base/ryu/utils.jl	18	18	qbound	qbound(::Type{Float16})	modelled	misccov-ryu-powers	
+base/ryu/utils.jl	19	19	qbound	qbound(::Type{Float32})	modelled	misccov-ryu-powers	
+base/ryu/utils.jl	20	20	qbound	qbound(::Type{Float64})	modelled	misccov-ryu-powers	
+base/ryu/utils.jl	27	27	log10pow2	log10pow2(e)	modelled	misccov-ryu-log-range,misccov-ryu-log10pow-negative	
+base/ryu/utils.jl	35	35	log10pow5	log10pow5(e)	modelled	misccov-ryu-log-range,misccov-ryu-log10pow-negative	
+base/ryu/utils.jl	42	42	pow5bits	pow5bits(e)	modelled	misccov-ryu-log-range	
+base/ryu/utils.jl	49	53	mulshift	mulshift(m::U, mul, j) where {U<:Unsigned}	modelled	misccov-ryu-mulshift	
+base/ryu/utils.jl	55	55	indexforexp	indexforexp(e)	modelled	misccov-ryu-index	
+base/ryu/utils.jl	56	56	pow10bitsforindex	pow10bitsforindex(idx)	modelled	misccov-ryu-index	
+base/ryu/utils.jl	57	57	lengthforindex	lengthforindex(idx)	modelled	misccov-ryu-index	
+base/ryu/utils.jl	64	80	pow5	pow5(x, p)	modelled	misccov-ryu-powers	
+base/ryu/utils.jl	87	87	pow2	pow2(x, p)	modelled	misccov-ryu-powers	
+base/ryu/utils.jl	94	112	decimallength	decimallength(v)	modelled	misccov-ryu-decimallength-doc,misccov-ryu-decimallength-range	
+base/ryu/utils.jl	113	123	decimallength	decimallength(v::UInt32)	modelled	misccov-ryu-decimallength-doc,misccov-ryu-decimallength-range	
+base/ryu/utils.jl	124	130	decimallength	decimallength(v::UInt16)	modelled	misccov-ryu-decimallength-doc,misccov-ryu-decimallength-range	
+base/ryu/utils.jl	132	138	mulshiftinvsplit	mulshiftinvsplit(::Type{T}, mv, mp, mm, i, j) where {T}	modelled	misccov-ryu-mulshift	
+base/ryu/utils.jl	140	146	mulshiftsplit	mulshiftsplit(::Type{T}, mv, mp, mm, i, j) where {T}	modelled	misccov-ryu-mulshift	
+base/ryu/utils.jl	153	176	umul256	umul256(a::UInt128, bHi::UInt64, bLo::UInt64)	modelled	misccov-ryu-umul256	
+base/ryu/utils.jl	183	183	umul256_hi	umul256_hi(a::UInt128, bHi::UInt64, bLo::UInt64)	modelled	misccov-ryu-umul256	
+base/ryu/utils.jl	185	191	mod1e9	mod1e9(v::UInt128)	modelled	misccov-ryu-mod1e9	
+base/ryu/utils.jl	198	206	mulshiftmod1e9	mulshiftmod1e9(m, mula, mulb, mulc, j)	modelled	misccov-ryu-mod1e9	
+base/ryu/utils.jl	208	220	append_sign	append_sign(x, plus::Bool, space::Bool, buf, pos::Int)	modelled	misccov-ryu-output-helpers	
+base/ryu/utils.jl	225	230	append_d_digits	append_d_digits(olength::Int, digits::Unsigned, buf, pos::Int, decchar)	modelled	misccov-ryu-output-helpers	
+base/ryu/utils.jl	242	268	generateinversetables	generateinversetables()	modelled	misccov-ryu-inverse-tables	
+base/ryu/utils.jl	279	284	pow5invsplit	pow5invsplit(::Type{T}, i) where {T<:AbstractFloat}	modelled	misccov-ryu-table-formulas,misccov-ryu-pow5invsplit-bitcount	
+base/ryu/utils.jl	291	291	pow5invsplit_lookup	pow5invsplit_lookup	modelled	misccov-ryu-lookups	
+base/ryu/utils.jl	297	297	pow5invsplit_lookup	pow5invsplit_lookup(::Type{$T}, i)	modelled	misccov-ryu-lookups	generated-loop: T in (Float64, Float32, Float16)
+base/ryu/utils.jl	308	312	pow5split	pow5split(::Type{T}, i) where {T<:AbstractFloat}	modelled	misccov-ryu-table-formulas	
+base/ryu/utils.jl	319	319	pow5split_lookup	pow5split_lookup	modelled	misccov-ryu-lookups	
+base/ryu/utils.jl	325	325	pow5split_lookup	pow5split_lookup(::Type{$T}, i)	modelled	misccov-ryu-lookups	generated-loop: T in (Float64, Float32, Float16)

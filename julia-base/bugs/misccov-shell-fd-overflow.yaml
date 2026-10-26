@@ -1,0 +1,41 @@
+id: misccov-shell-fd-overflow
+title: "Backtick redirect with a huge fd number throws OverflowError instead of the \"unsupported fd\" parse error"
+priority: P3
+kind: wrong-exception
+area: MiscCov
+files: [base/shell.jl]
+functions: ["Base.shell_parse", "Base.__repl_entry_shell_parse"]
+summary: |
+  A digit word right before `>` or `<` in a command literal is taken as a file descriptor; fds other than 0, 1 and 2 are rejected with ErrorException("parsing command ...: unsupported fd N in redirection"). When the digits do not fit in an Int, `parse(Int, ...)` throws OverflowError first.
+likelihood: |
+  Very low: a long number glued to `>`.
+maybe_intended: ""
+reproducer: |
+  Base.shell_parse("echo 3>x")                     # ErrorException: unsupported fd 3 in redirection
+  Base.shell_parse("echo 99999999999999999999>x")  # OverflowError: overflow parsing "99999999999999999999"
+output:
+  release: |
+    shell_parse("echo 3>x")                    => :((("echo",), ("3>x",)))
+    shell_parse("echo 99999999999999999999>x") => :((("echo",), ("99999999999999999999>x",)))
+  nightly: |
+    shell_parse("echo 3>x")                    => ErrorException: parsing command `echo 3>x`: unsupported fd 3 in redirection
+    shell_parse("echo 99999999999999999999>x") => OverflowError: OverflowError: overflow parsing "99999999999999999999"
+    REPRODUCED misccov-shell-fd-overflow
+reproduced: {release: false, nightly: true}
+expected: |
+  The same ErrorException "unsupported fd ... in redirection" for every fd other than 0, 1, 2.
+promised_by: |
+  Invariant: base/shell.jl:195,199 report unsupported redirect fds with a parse error naming the command.
+cause: |
+  base/shell.jl:177 (master) calls `parse(Int, arg[1])` on any all-digit word. Not present in 1.13.2.
+possible_fix: |
+  Use `tryparse(Int, ...)` and treat `nothing` as an unsupported fd.
+duplicates:
+  issues: []
+  queries:
+    - "issues: redirect fd OverflowError"
+    - "issues: shell_parse redirect"
+    - "prs: shell redirect"
+lean:
+  property: JuliaLean.MiscCov.Shell.FdErrorType
+  theorem: JuliaLean.MiscCov.Shell.fdErrorType_refuted

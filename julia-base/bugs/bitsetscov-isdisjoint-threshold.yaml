@@ -1,0 +1,54 @@
+id: bitsetscov-isdisjoint-threshold
+title: "isdisjoint(a, b::Vector) switches from == to isequal when length(b) reaches 70"
+priority: P2
+kind: wrong-result
+area: BitSetsCov
+files: [base/abstractset.jl]
+functions: ["isdisjoint(a, b)", "_isdisjoint(a, b)"]
+summary: |
+  For two collections without fast in (e.g. vectors), isdisjoint uses
+  !any(in(b), a) while length(b) < FASTIN_SET_THRESHOLD = 70 and
+  !any(in(Set(b)), a) otherwise. in on a vector uses ==, in on a Set uses
+  isequal, so the result for 0.0/-0.0 and NaN depends on the length of b:
+  isdisjoint([0.0], fill(-0.0, 69)) is false but
+  isdisjoint([0.0], fill(-0.0, 70)) is true, and the reverse for NaN.
+likelihood: |
+  Needs signed zeros or NaN in float vectors; the answer silently changes
+  at an undocumented size.
+maybe_intended: |
+  #61893 discusses that isdisjoint, issubset and intersect mix == and
+  isequal. Whichever equality is chosen, the answer should not depend on
+  the length of b.
+reproducer: |
+  isdisjoint([0.0], fill(-0.0, 69))   # false
+  isdisjoint([0.0], fill(-0.0, 70))   # true
+output:
+  release: |
+    isdisjoint([0.0], fill(-0.0, 69)) = false
+    isdisjoint([0.0], fill(-0.0, 70)) = true
+    isdisjoint([NaN], fill(NaN, 69)) = true
+    isdisjoint([NaN], fill(NaN, 70)) = false
+    REPRODUCED bitsetscov-isdisjoint-threshold
+  nightly: |
+    isdisjoint([0.0], fill(-0.0, 69)) = false
+    isdisjoint([0.0], fill(-0.0, 70)) = true
+    isdisjoint([NaN], fill(NaN, 69)) = true
+    isdisjoint([NaN], fill(NaN, 70)) = false
+    REPRODUCED bitsetscov-isdisjoint-threshold
+reproduced: {release: true, nightly: true}
+expected: |
+  The same answer for both lengths.
+promised_by: |
+  isdisjoint docstring, base/abstractset.jl:556: "Equivalent to
+  isempty(a ∩ b)"; the size threshold is an implementation detail.
+cause: |
+  base/abstractset.jl:576-578: below the threshold the generic in(b) (==)
+  is used, above it in(Set(b)) (isequal).
+possible_fix: ""
+duplicates:
+  issues:
+    - {number: 61893, state: open, relation: related}
+  queries: ["isdisjoint threshold", "isdisjoint isequal", "isdisjoint range", "isdisjoint DivideError"]
+lean:
+  property: JuliaLean.BitSetsCov.IsdisjointSizeIndependent
+  theorem: JuliaLean.BitSetsCov.isdisjointSizeIndependent_refuted

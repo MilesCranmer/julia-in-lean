@@ -1,0 +1,162 @@
+line	name	verdict	mirror	property	settled	reason
+29	getproperty	HOLLOW	no	no	yes	The model replaces the Symbol branches, type assertions, cond field, and arbitrary getfield fallback with a narrower EndpointField lookup, so it neither mirrors nor covers all allowed names.
+58	getproperty	HOLLOW	no	no	yes	The model omits the handle, status, buffer, sendbuf, cond, lock, and throttle Symbol branches with their type assertions and the arbitrary getfield fallback, so it neither mirrors nor covers all allowed names.
+102	bytesavailable	HOLLOW	no	yes	yes	The proposition states the available-byte count invariant, but the model replaces the ordered bytesavailable field call and Int assertion with direct list length.
+104	eof	HOLLOW	no	no	yes	The model collapses cancellation checking, both buffer checks, waiting, readability ordering, and pending read-error propagation into streamEof, so its proposition does not cover the method's allowed outcomes.
+139	uv_status_string	FAITHFUL	yes	yes	yes	
+179	PipeEndpoint	HOLLOW	no	no	yes	The model reduces construction to endpointCtor and omits the concrete fields, handle association, and finalizer calls, while the proposition asserts synthetic readable and writable state absent from this constructor.
+194	PipeEndpoint	HOLLOW	no	no	yes	The model returns a null uninitialized endpoint and omits allocation, locking, uv_pipe_init, error checking, and the transition to StatusInit, so the stated result is not this constructor's behavior.
+204	PipeEndpoint	HOLLOW	no	no	yes	The model directly constructs an init-state endpoint instead of calling PipeEndpoint() and open_pipe!, whose successful result is StatusOpen.
+209	PipeEndpoint	FAITHFUL	-	-	-	The platform exclusion applies because this RawFD adapter is defined only when OS_HANDLE differs from RawFD, which is the Windows configuration.
+224	TTY	HOLLOW	no	no	yes	The model reduces construction to endpointCtor and omits the concrete fields, association, finalizer, and Windows ispty initialization, so its synthetic endpoint equality is not the constructor's full allowed behavior.
+244	TTY	HOLLOW	no	no	yes	The model directly constructs an init-state endpoint and omits allocation, locking, uv_tty_init, error checking, and the successful StatusOpen transition.
+255	TTY	FAITHFUL	-	-	-	The platform exclusion applies because this RawFD adapter is defined only when OS_HANDLE differs from RawFD, which is the Windows configuration.
+258	show	HOLLOW	no	no	yes	The model uses the LibuvStream formatter with a byte-count suffix, while this LibuvServer method prints only the type, descriptor, and status.
+261	show	HOLLOW	no	no	yes	The model takes the type name and descriptor as unrelated inputs and bypasses typeof, _fd, uv_status_string, and bytesavailable, so the proposition does not determine the output from the stream.
+268	isreadable	HOLLOW	no	no	yes	The model replaces the ordered bytesavailable and isopen checks plus uv_is_readable call with a Boolean formula that returns false rather than propagating isopen errors for uninitialized streams.
+275	iswritable	HOLLOW	no	no	yes	The model replaces the ordered isopen and closing checks plus uv_is_writable call with a Boolean formula that returns false rather than propagating isopen errors for uninitialized streams.
+281	lock	HOLLOW	no	no	yes	The model has no lock object or task ownership and replaces lock(s.lock) with arithmetic on an unrelated depth input, so its proposition is not an all-input lock behavior claim.
+282	unlock	HOLLOW	no	no	yes	The model has no lock object, ownership, or unlocked-error case and replaces unlock(s.lock) with saturating Nat subtraction on an unrelated depth input.
+284	setup_stdio	FAITHFUL	yes	yes	yes	
+285	rawhandle	HOLLOW	no	no	yes	The model returns only a has-handle Boolean and therefore loses the exact pointer returned by stream.handle.
+286	unsafe_convert	HOLLOW	no	no	yes	The model returns only a has-handle Boolean and therefore loses the exact pointer returned by s.handle.
+288	init_stdio	HOLLOW	no	no	yes	The model maps a preselected handle kind to a fresh abstract stream and omits locking, handle-type discovery, platform conversion, concrete constructors, and the invalid-type throw.
+328	open	HOLLOW	no	no	yes	The model ignores uv_guess_handle and every file, TTY, TCP, named-pipe, Windows replacement, and invalid-type branch, reducing the result to an unrelated Boolean handle flag.
+364	open	HOLLOW	no	no	yes	The model omits descriptor conversion and duplication, the delegated open, both success and catch cleanup calls, and rethrowing, so it does not state the Windows RawFD method's behavior.
+377	isopen	FAITHFUL	yes	yes	yes	
+384	check_open	HOLLOW	no	no	yes	The model converts an ArgumentError from isopen on uninitialized streams into IOError, so it does not mirror or correctly state all source error branches.
+390	wait_readnb	HOLLOW	no	no	yes	The model replaces the two fast paths, ordered error checks, lock and preservation protocol, wait loop, throttle restoration, and cleanup with one state formula.
+493	_uvreq_witness_slot	HOLLOW	no	no	yes	The model has no slot list or loop and returns whether a request owner is waiter rather than the first qualifying one-based slot index or zero.
+502	_mark_uvreq_cancel_requested!	HOLLOW	no	no	yes	The model unconditionally sets a request Boolean and omits _find_slot, the zero-index guard, and the auxiliary-word bit update, so it is wrong when the witness is absent.
+511	_uvreq_cancel_requested	HOLLOW	no	no	yes	The model reads a request Boolean directly and omits request-data lookup, null and detached guards, object recovery, witness search, and auxiliary-bit testing.
+530	_root_detached_uvreq!	HOLLOW	no	no	yes	The model always marks the request rooted and changes its owner, while the source only inserts a non-nothing owner into the detached-root dictionary.
+534	_unroot_detached_uvreq!	HOLLOW	no	yes	yes	The proposition captures absence of the request root after the call, but the model omits the dictionary emptiness check and conditional delete! call.
+540	_iolocked_checkcancel	HOLLOW	no	no	yes	The model uses one unrelated Boolean and a generic IO error, omitting the optional source, iscancelled check, ordered iolock_end call, and actual checkcancel exception.
+553	_begin_uvreq_wait!	HOLLOW	no	no	yes	The model invents a cancellation-error branch and omits task lookup, wait-entry selection, arming, witness installation, preservation, sigatomic entry, and request-data assignment.
+575	_end_uvreq_wait!	HOLLOW	no	no	yes	The model collapses request ownership, free versus detach, optional cancellation, rooting, witness cleanup, queue cleanup, and ordered lock and preservation unwinding into three Boolean inputs.
+615	wait_enqueue!	HOLLOW	no	no	yes	The model returns an arbitrary input flag and synthetic count instead of setting the witness, assigning request data, and always returning true.
+626	wait_dequeue!	HOLLOW	no	no	yes	The model branches on an unrelated byte and omits the wake-reason lock choice, request ownership resolution, cancellation, detachment, rooting, witness cleanup, and lock release.
+650	_wait_uvreq	HOLLOW	no	no	yes	The model replaces wait-set construction, registration refusal, cancellation delivery, parking, interruption cleanup, withdrawal, and resource unwinding with finishReq over arbitrary Booleans.
+700	_claim_uvreq_waiter	HOLLOW	no	no	yes	The model omits request-data guards, detached-root cleanup, freeing, task recovery, atomic task access, claim_wait, witness clearing, and the returned Task or nothing.
+719	closewrite	HOLLOW	no	no	yes	The model omits cancellation, shutdown request allocation and submission, waiting, conditional close, and error ordering, and its endpointCloseWrite state does not match the method's outcomes.
+750	wait_close	HOLLOW	no	no	yes	The model performs no preservation, condition locking, wait loop, or cleanup and incorrectly branches on handle presence instead of waiting until isopen becomes false.
+770	close	HOLLOW	no	no	yes	The model immediately clears the handle and all capabilities, omitting the StatusInit and isopen branches, distinct close calls, StatusClosing transition, lock bracket, and wait_close.
+786	uvfinalize	HOLLOW	no	no	yes	The model always applies endpointClose, while the source branches on handle and status, disassociates, frees or closes conditionally, and leaves a preexisting null-handle status unchanged.
+809	ispty	HOLLOW	no	no	yes	The model always returns true instead of reading the Windows-only TTY ispty field.
+810	ispty	FAITHFUL	yes	yes	yes	
+836	displaysize	HOLLOW	no	no	yes	The model returns two unrelated numeric inputs and does not call the zero-argument displaysize method that reads the environment.
+837	displaysize	HOLLOW	no	no	yes	The model hard-codes the fallback 24 by 80 result and omits both environment lookups and integer parsing, so it fails whenever LINES or COLUMNS is set.
+845	displaysize_	HOLLOW	no	no	yes	The model returns unrelated numeric inputs and omits tls_world_age, invoke_in_world, the displaysize call, and the tuple assertion.
+847	displaysize	HOLLOW	no	no	yes	The model returns unrelated numeric inputs and omits open checking, defaults, the Windows pty branch, the libuv size query, and positive-dimension fallbacks.
+885	alloc_request	HOLLOW	no	no	yes	The model records only a simplified size and omits ensureroom, append-dependent pointer selection, offsets, the data pointer result, and the full maxsize arithmetic.
+893	notify_filled	HOLLOW	no	no	yes	The model calls an unrelated EndpointM state transition rather than forwarding the IOBuffer and nread to the two-argument notify_filled method.
+895	notify_filled	HOLLOW	no	no	yes	The model uses stream read-status logic instead of the IOBuffer append branch and ptr and size mutations performed by this method.
+905	alloc_buf_hook	HOLLOW	no	no	yes	The model omits UInt conversion, the ordered throttle comparison, the alloc_request call, and its pointer result, using a simplified capacity formula instead.
+910	uv_alloc_buf	HOLLOW	no	no	yes	The model reduces all handle-data, status, allocation, null-pointer, platform-limit, and two buffer-field ccall branches to a single size formula.
+938	uv_readcb	HOLLOW	no	no	yes	The model omits handle conversion, requested-length lookup, the nested callback call, and final return, replacing the whole method with notifyFilled.
+941	readcb_specialized	HOLLOW	no	no	yes	The model omits the ENOBUFS, EOF, TTY, PipeEndpoint, writable, error, notification, locking, pause, throttle, maxsize, and uv_read_stop branches.
+992	reseteof	HOLLOW	no	no	yes	The model changes EOF to active, while the source changes EOF to StatusOpen and brackets the conditional update with the IO lock.
+1001	_uv_hook_close	HOLLOW	no	no	yes	The model clears the handle and capabilities and omits condition locking and notification, while the source only sets status closed and notifies waiters.
+1048	Pipe	HOLLOW	no	no	yes	The model constructs two fresh active StreamM values and omits both PipeEndpoint() calls, whose endpoints are initialized through libuv and end in StatusInit.
+1049	pipe_reader	FAITHFUL	yes	yes	yes	
+1050	pipe_writer	FAITHFUL	yes	yes	yes	
+1061	link_pipe!	HOLLOW	no	no	yes	The model directly marks both ends active and ignores both async flags, the four-argument link_pipe! call, its errors, and the returned original pipe.
+1068	show	HOLLOW	no	no	yes	The model prints only two buffer lengths, omitting both descriptors, both statuses, the direction marker, bytesavailable call, and the source text format.
+1076	closewrite	HOLLOW	no	no	yes	The model directly mutates both logical ends instead of calling close(pipe.in), and it asserts immediate peer EOF that the wrapper body does not perform.
+1080	open_pipe!	HOLLOW	no	no	yes	The model omits locking, the StatusInit guard and error, uv_pipe_open, uv_error, and lock release, and uses an unrelated handle flag.
+1093	link_pipe!	HOLLOW	no	no	yes	The model omits descriptor creation, nested cleanup and rethrow paths, both open_pipe! calls, and returns active endpoints rather than the method's nothing result.
+1111	link_pipe	HOLLOW	no	no	yes	The model omits flag arithmetic, descriptor initialization, uv_pipe, uv_error, and the returned descriptor pair, replacing them with active stream records.
+1123	close_pipe_sync	FAITHFUL	-	-	-	The platform exclusion applies because the WindowsRawSocket method is defined only inside the Sys.iswindows() branch.
+1128	close_pipe_sync	HOLLOW	no	no	yes	The model returns an unrelated Boolean flag and omits the close ccall and nothing result.
+1138	start_reading	HOLLOW	no	no	yes	The model omits locking, the unreadable error, uv_read_start and its return code, and all four status branches, and it marks an unreadable open stream active.
+1168	stop_reading	HOLLOW	no	no	yes	The model changes an active stream to paused, while the Windows method changes it to open and calls uv_read_stop under the IO lock.
+1178	stop_reading	HOLLOW	no	yes	yes	The proposition captures the POSIX status transition, but the model omits the ordered iolock_begin and iolock_end calls and the nothing result.
+1190	readbytes!	HOLLOW	no	no	yes	The model directly consumes the current buffer instead of forwarding through Int(nb), and its min-of-current-buffer result ignores waiting and later arriving bytes.
+1191	readbytes!	HOLLOW	no	no	yes	The model omits cancellation, assertions, locking, the nested wait loop, small and large buffer branches, temporary buffer swapping, destination resizing, and cleanup.
+1198	wait_locked	HOLLOW	no	no	yes	The model replaces the loop, ordered readerror and closure checks, IO-lock release and reacquire, and wait_readnb call with waitReadState on a different endpoint abstraction.
+1232	read	HOLLOW	no	no	yes	The model omits cancellation and the typemax wait plus lock bracket, treating read as immediate readAvailable and therefore not covering all allowed cancellation and error outcomes.
+1240	unsafe_read	HOLLOW	no	no	yes	The model omits the pointer destination, cancellation, assertions, locking, nested wait loop, direct and temporary-buffer branches, and finally restoration.
+1247	wait_locked	HOLLOW	no	no	yes	The model replaces the exact-read loop and EOF throws plus IO-lock release and reacquire with waitReadState, which returns normally on closure.
+1277	read	HOLLOW	no	no	yes	The model replaces cancellation, locking, the repeated eof wait, and the one-byte buffer read with unsafeRead and does not quantify over the cancel argument.
+1292	readavailable	HOLLOW	no	no	yes	The model treats the method as immediate readAvailable and omits cancellation, wait_readnb, locking, the seekability assertion, and its allowed errors.
+1302	copyuntil	HOLLOW	no	no	yes	The model replaces the output stream, cancellation, fast path, error checks, preservation, condition wait loop, cleanup, and final copyuntil call with a completed-buffer readUntil specification.
+1347	uv_write	HOLLOW	no	no	yes	The model computes chunk sizes instead of preserving the vector and calling _uv_write_owned with its pointer, size, owner, cancel value, and partial flag.
+1360	_uv_write_wait	HOLLOW	no	no	yes	The model reduces the cancellation gates, submission, split-request loop, registration, refusal, park and catch paths, cleanup, and partial-count arithmetic to writeChunks and completeReq.
+1478	_uv_write_cancelled_finish	HOLLOW	no	no	yes	The model replaces completion tests, cancellation sweeps, severity-dependent waiting, count recovery, detach cleanup, and ownership resolution with finishReq over arbitrary Booleans.
+1558	_split_complete	HOLLOW	no	no	yes	The model returns a transformed request state instead of the Boolean obtained by checking the primary request and every other request in order.
+1576	_end_split_uvreq_wait!	HOLLOW	no	no	yes	The model omits the reverse loop, completed-count sum, free versus cancel-and-detach branches, rooting, witness and queue cleanup, and ordered resource unwinding.
+1604	uv_write	HOLLOW	no	no	yes	The model computes chunk sizes instead of forwarding every argument to _uv_write_owned with partial=false and returning its result.
+1611	_uv_write_owned	HOLLOW	no	no	yes	The model omits token resolution, the nothing-versus-token call branch, _uv_write_wait, cancellation semantics, and returned byte count, replacing them with chunk sizes.
+1634	uv_write_async	HOLLOW	no	no	yes	The model records only ideal chunk sizes and omits check_open, allocation, request-data setup, the submission loop, errors, pointer arithmetic, and returned request objects.
+1669	write	HOLLOW	no	no	yes	The model replaces cancellation checking, GC preservation, pointer and size conversion, owner-carrying _unsafe_write_owned, and Int conversion with a generic immediate unsafeWrite.
+1679	writepartial	HOLLOW	no	no	yes	The model replaces cancellation checking, GC preservation, and the owner-carrying partial write with unsafeWrite of an unrelated requested prefix and does not model all cancel values.
+1691	write	HOLLOW	no	no	yes	The model replaces cancellation checking, string preservation, pointer and size conversion, and owner-carrying write with generic bytes and omits all cancel values.
+1699	writepartial	HOLLOW	no	no	yes	The model replaces cancellation checking, string preservation, and the owner-carrying partial write with unsafeWrite of an unrelated prefix and omits all cancel values.
+1710	write	HOLLOW	no	no	yes	The model omits the isbits branch, fallback invoke, cancellation, pointer conversion, preservation, and owner-carrying write, so it does not cover non-bits arrays or cancel values.
+1720	writepartial	HOLLOW	no	no	yes	The model omits the isbits branch, fallback invoke, cancellation, pointer conversion, preservation, and owner-carrying partial write, so it does not cover non-bits arrays or cancel values.
+1736	unsafe_write	HOLLOW	no	no	yes	The model replaces cancellation checking and the exact _unsafe_write_owned forwarding call with a generic stream write and has no pointer or cancel input.
+1741	_unsafe_write_owned	HOLLOW	no	no	yes	The model omits the send-buffer loop, locking, flush and short-write requeue paths, cancellation delivery, and final delegated kernel write.
+1778	_requeue_unwritten!	HOLLOW	no	no	yes	The model directly concatenates a Nat-indexed tail and queue, omitting the Int guard, optional send buffer, locking, take!, view write, and concurrent-append ordering calls.
+1795	flush	HOLLOW	no	no	yes	The model removes the send buffer entirely, while the source leaves an existing IOBuffer installed, handles empty and nonempty branches, writes or requeues, checks cancellation, and conditionally suppresses IOError.
+1826	buffer_writes	HOLLOW	no	yes	yes	The proposition captures installation of an empty send buffer of the requested size, but the model omits PipeBuffer construction, the IO-lock bracket, assignment call order, and returning s.
+1836	write	HOLLOW	no	no	yes	The model ignores the send-buffer fast path and its capacity test, lock bracket, Ref owner, GC preservation, and direct owner-carrying write.
+1856	uv_writecb_task	HOLLOW	no	no	yes	The model omits split-write pending and error bookkeeping, request-data guards, cancellation classification, waiter claiming, scheduling success or error, and early return.
+1909	uv_shutdowncb_task	HOLLOW	no	no	yes	The model transforms request counters instead of claiming the waiter and conditionally scheduling the exact status.
+1916	_fd	HOLLOW	no	no	yes	The model returns an unrelated integer input and omits fd(x) and the RawFD conversion.
+1917	_fd	FAITHFUL	yes	yes	yes	
+1919	_fd	HOLLOW	no	no	yes	The model supplies the descriptor as an unrelated integer and omits INVALID_OS_HANDLE initialization, all three guards, uv_fileno, and the resulting Ref value.
+1938	_redirect_io_libc	HOLLOW	no	no	yes	The model records unrelated integer and Boolean inputs and omits _fd, the Windows standard-handle branch, GC preservation, dup, and nothing result.
+1949	_redirect_io_cglobal	HOLLOW	no	no	yes	The model records unrelated inputs and omits descriptor selection, cglobal lookup, null guard, handle conversion, unsafe_store!, and nothing result.
+1957	_redirect_io_global	HOLLOW	no	no	yes	The model records unrelated inputs and omits all three descriptor guards and their distinct global assignments.
+1963	(f::RedirectStdStream)	HOLLOW	no	no	yes	The model hard-codes outStream and omits the ordered libc, C-global, and Julia-global redirections, descriptor selection, and returned handle.
+1969	(f::RedirectStdStream)	HOLLOW	no	no	yes	The model hard-codes outStream to devnull and omits platform path selection, open mode, libc redirection, close, C-global and Julia-global updates, and returned devnull.
+1978	(f::RedirectStdStream)	HOLLOW	no	no	yes	The model hard-codes outStream and omits direction-dependent endpoint selection, the delegated redirect, the Julia-global update, and returned original pipe.
+1984	(f::RedirectStdStream)	HOLLOW	no	no	yes	The model hard-codes outStream and omits the dual-init guard, link_pipe!, direction-dependent field selection, delegated redirect, and returned Pipe.
+1992	(f::RedirectStdStream)	HOLLOW	no	no	yes	The model directly marks outStream instead of constructing Pipe() and applying f to it.
+1995	iterate	HOLLOW	no	yes	yes	The proposition captures the constant next-state value 1, but the model omits the returned p.out value.
+1996	iterate	HOLLOW	no	no	yes	The model merely echoes an input count and omits the i==1 branch, p.in result, next state 2, and nothing result.
+1997	getindex	HOLLOW	no	no	yes	The model maps invalid keys to ArgumentError instead of KeyError and therefore does not mirror or correctly state the source's error behavior.
+2052	redirect_stdio	HOLLOW	no	no	yes	The model leaves all streams unchanged and omits the three independent nothing guards and ordered redirect_stdin, redirect_stderr, and redirect_stdout calls.
+2110	redirect_stdio	HOLLOW	no	no	yes	The model replaces path resolution, same-path validation, shared stderr handling, initial redirection, f(), finally restoration, and conditional closes with three Boolean stream choices.
+2112	resolve	HOLLOW	no	no	yes	The model returns an unrelated RedirectM instead of the named tuple with new=nothing, close=false, and old=nothing.
+2115	resolve	HOLLOW	no	no	yes	The model returns only the path text and omits open(path, mode) plus the new, close=true, and oldstream tuple fields.
+2118	resolve	HOLLOW	no	no	yes	The model hard-codes an output stream and omits the returned new value, close=false flag, and oldstream.
+2122	same_path	FAITHFUL	yes	yes	yes	
+2123	same_path	HOLLOW	no	no	yes	The model tests raw string equality and omits abspath normalization, short-circuit order, and samefile, so it misses equivalent paths and hard links.
+2156	(f::RedirectStdStream)	HOLLOW	no	no	yes	The model performs one fixed output redirection and omits descriptor-dependent old-stream selection, the initial f call, thunk result, and finally restoration.
+2194	mark	HOLLOW	no	no	yes	The model returns an unrelated count and has no buffer mark state or delegated mark(x.buffer) call.
+2195	unmark	HOLLOW	no	no	yes	The model returns an unrelated count and has no buffer mark state or delegated unmark(x.buffer) call.
+2196	reset	HOLLOW	no	no	yes	The model returns an unrelated count and has no buffer position or delegated reset(x.buffer) call.
+2197	ismarked	HOLLOW	no	no	yes	The model uses an unrelated Boolean standing for the result and omits the ismarked(x.buffer) call.
+2199	peek	HOLLOW	no	no	yes	The model directly takes n bytes and omits the generic result type, mark, read, guaranteed finally reset, and any read behavior beyond a byte-count slice.
+2216	BufferStream	HOLLOW	no	yes	yes	The proposition captures the fresh active empty stream invariant, but the model omits PipeBuffer, Condition, ReentrantLock, readerror, and buffer_writes field construction.
+2219	isopen	FAITHFUL	yes	yes	yes	
+2225	closewrite	HOLLOW	no	no	yes	The model only clears a synthetic writable field and omits cancellation checking plus close(s), which changes status and notifies waiters.
+2231	close	HOLLOW	no	yes	yes	The proposition captures the final closed stream state, but the model omits condition locking, notify, the do-block return, and unlock behavior.
+2238	uvfinalize	HOLLOW	no	no	yes	The model closes the stream, while the source method is an unconditional nothing-valued no-op.
+2239	setup_stdio	HOLLOW	no	no	yes	The model returns only the child_readable flag and omits invoke of the generic IO setup_stdio method and its result.
+2241	read	HOLLOW	no	no	yes	The model replaces cancellation, condition locking, wait_readnb, and the IOBuffer read with an immediate list-head operation and does not quantify over cancel values.
+2249	unsafe_read	HOLLOW	no	no	yes	The model omits cancellation, condition locking, waiting, destination-pointer mutation, and the nothing result, and it does not cover all cancel values.
+2257	bytesavailable	HOLLOW	no	yes	yes	The proposition states the buffered-byte count invariant, but the model replaces the delegated bytesavailable(s.buffer) call with direct list length.
+2259	isreadable	HOLLOW	no	no	yes	The model omits s.buffer.readable, so it can return true for an open BufferStream whose underlying IOBuffer is not readable.
+2260	iswritable	FAITHFUL	yes	yes	yes	
+2262	wait_readnb	HOLLOW	no	no	yes	The model evaluates the initial buffer and open state once, omitting condition locking, cancellation, the wait loop, and finally unlock, so it is false for open streams that later receive enough bytes.
+2277	readavailable	HOLLOW	no	no	yes	The model performs immediate readAvailable and omits cancellation, condition locking, waiting, the seekability assertion, and all allowed cancel outcomes.
+2288	read	HOLLOW	no	no	yes	The model performs immediate readAvailable and omits cancellation, condition locking, wait_close, and the distinction between waiting for closure and waiting for one byte.
+2297	readbytes!	HOLLOW	no	no	yes	The model directly takes the current buffer and omits cancellation, assertions, condition locking, the nested wait loop, both read branches, temporary buffer swapping, and destination resizing.
+2303	wait_locked	HOLLOW	no	no	yes	The model evaluates one initial-state Boolean and omits the loop, ordered readerror and closure checks, wait_readnb call, and evolving buffer state.
+2337	show	HOLLOW	no	no	yes	The model emits a different string and omits the isopen value and the source's bytes-waiting labels and punctuation.
+2339	readuntil	HOLLOW	no	no	yes	The model immediately splits the current buffer and omits cancellation, condition locking, the delimiter wait loop, finally unlock, and all allowed cancel outcomes.
+2358	wait_close	HOLLOW	no	no	yes	The model reports only the initial closed flag and omits condition locking, cancellation, the wait loop, and finally unlock.
+2373	start_reading	HOLLOW	no	yes	yes	The proposition captures that the BufferStream state is unchanged, but the model does not represent the method's required Int32(0) return value.
+2374	stop_reading	FAITHFUL	yes	yes	yes	
+2376	write	HOLLOW	no	no	yes	The model directly applies unsafeWrite across every StreamKind instead of constructing Ref{UInt8}(b) and dispatching write specifically on BufferStream.
+2382	write	HOLLOW	no	no	yes	The model omits cancellation checking, GC preservation, pointer and size conversion, unsafe_write dispatch, and Int conversion, and it has no cancel input.
+2388	write	HOLLOW	no	no	yes	The model omits cancellation checking, string preservation, pointer and size conversion, unsafe_write dispatch, and Int conversion, and it has no cancel input.
+2395	write	HOLLOW	no	no	yes	The model omits cancellation, the isbits branch, pointer conversion and preservation, and the non-bits invoke fallback, so it does not cover all arrays.
+2404	unsafe_write	HOLLOW	no	no	yes	The model omits cancellation, condition locking, check_open, destination-pointer use, IOBuffer unsafe_write, conditional notify, and the returned byte count path.
+2416	eof	HOLLOW	no	no	yes	The model collapses cancellation, the first buffer fast path, condition locking, waiting, and the final open and byte-count checks into streamEof.
+2427	buffer_writes	HOLLOW	no	no	yes	The model records only the ignored bufsize argument and does not represent setting buffer_writes=true or returning s.
+2428	flush	HOLLOW	no	yes	yes	The proposition captures that flush leaves BufferStream data and status unchanged, but the model omits cancellation, condition locking, check_open, notify, and possible errors.
+2438	skip	HOLLOW	no	no	yes	The model replaces delegated IOBuffer skip with Nat list-drop, omitting the method's full numeric input domain, buffer position semantics, and errors.
+2440	reseteof	HOLLOW	no	no	yes	The model changes only EOF to active, while the source unconditionally sets every input status to StatusOpen under the condition lock.

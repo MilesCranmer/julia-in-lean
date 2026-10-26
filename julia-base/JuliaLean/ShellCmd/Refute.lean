@@ -25,6 +25,15 @@ theorem posixlyNoReservedWord_refuted : ¬ PosixlyNoReservedWord := by
   have := h (S "done") []
   revert this; decide
 
+/-- `shell_escape_csh("'\\\\")` is `"'\\\\"`, which POSIX sh reads as `'\`. -/
+theorem cshPosixRoundTrip_refuted : ¬ CshPosixRoundTrip := by
+  intro h
+  obtain ⟨e, h1, h2⟩ := h [S "'\\\\"] (by decide) (by decide)
+  have he : shellEscapeCsh [S "'\\\\"] = .ok (S "\"'\\\\\"") := by decide
+  rw [he] at h1
+  cases h1
+  revert h2; decide
+
 /-- `shell_escape_csh()` and `escape_microsoft_c_args()` throw. -/
 theorem escapeEmptyArgs_refuted : ¬ EscapeEmptyArgs := by
   intro h

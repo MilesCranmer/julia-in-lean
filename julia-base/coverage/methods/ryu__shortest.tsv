@@ -1,0 +1,3 @@
+file	line	endline	name	signature	status	entry	note
+base/ryu/shortest.jl	7	226	reduce_shortest	reduce_shortest(f::T, maxsignif=nothing) where {T}	modelled	parseprint-ryu-compact-lost-digit,parseprint-ryu-compact-tie-even	
+base/ryu/shortest.jl	228	464	writeshortest	writeshortest(buf::AbstractVector{UInt8}, pos, x::T, plus=false, space=false, hash=true, precision=-1, expchar=UInt8('e'), padexp=false, decchar=UInt8('.'), typed=false, compact=false) where {T}	modelled	parseprint-ryu-compact-lost-digit,parseprint-ryu-precision-pow10-overflow	

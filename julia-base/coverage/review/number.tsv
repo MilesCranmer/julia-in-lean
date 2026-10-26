@@ -1,0 +1,64 @@
+line	name	verdict	mirror	property	settled	reason
+6	convert	FAITHFUL	yes	yes	yes	The identity model matches the source body and its proven proposition covers every input.
+7	convert	HOLLOW	no	no	yes	The model forces the constructor callback to return the target Lean type and omits the observable ::T assertion failure for an invalid constructor result.
+22	isinteger	FAITHFUL	yes	yes	yes	The constant-true model covers every integer value and the proposition is proven.
+44	iszero	FAITHFUL	yes	yes	yes	The fallback model calls equality on x and zero(x), and its proven equation covers every abstract operand.
+66	isone	FAITHFUL	yes	yes	yes	The fallback model calls equality on x and one(x), and its proven equation covers every abstract operand.
+84	isfinite	HOLLOW	no	no	yes	The model expands iszero into equality with zero, so it omits the dispatched iszero call and does not cover specialized iszero behavior.
+86	size	FAITHFUL	yes	yes	yes	The empty-list encoding mirrors the empty scalar shape and the proposition is proven for every input.
+87	size	FAITHFUL	yes	yes	yes	The model preserves the dimension check, BoundsError outcome, and scalar size for every integer dimension.
+88	axes	FAITHFUL	yes	yes	yes	The empty-list encoding mirrors the empty scalar axes tuple and the proposition is proven for every input.
+89	axes	FAITHFUL	yes	yes	yes	The model preserves the dimension check and encodes OneTo(1) as the single axis with endpoints one.
+90	eltype	FAITHFUL	yes	yes	yes	The type-tag identity model mirrors returning T and its proposition is proven.
+91	ndims	FAITHFUL	yes	yes	yes	The model returns zero for every scalar value and the proposition is proven.
+92	ndims	FAITHFUL	yes	yes	yes	The model returns zero for every numeric type tag and the proposition is proven.
+93	length	FAITHFUL	yes	yes	yes	The model returns one for every scalar and the proposition is proven.
+94	firstindex	FAITHFUL	yes	yes	yes	The model returns one for every scalar and the proposition is proven.
+95	firstindex	FAITHFUL	yes	yes	yes	The model preserves the dimension check, BoundsError outcome, and valid first index.
+96	lastindex	FAITHFUL	yes	yes	yes	The model returns one for every scalar and the proposition is proven.
+97	lastindex	FAITHFUL	yes	yes	yes	The model preserves the dimension check, BoundsError outcome, and valid last index.
+98	IteratorSize	FAITHFUL	yes	yes	yes	The model encodes HasShape{0} as rank zero for every numeric type tag and the proposition is proven.
+99	keys	FAITHFUL	yes	yes	yes	The model encodes OneTo(1) as the singleton key list and the proposition is proven.
+101	getindex	FAITHFUL	yes	yes	yes	The zero-argument indexing model returns the scalar unchanged for every input.
+102	getindex	HOLLOW	no	no	yes	The model replaces BoundsError(x, i) with a payload-free boundsError, so neither the exact body nor its observable exception is covered.
+107	getindex	HOLLOW	no	no	yes	The model expands all(isone, I) and replaces BoundsError(x, I) with a payload-free error, so the call sequence and observable exception are missing.
+112	get	HOLLOW	no	yes	yes	The model replaces the dispatched isone(i) call with direct integer equality, although its proposition states the all-index selected-value behavior.
+113	get	HOLLOW	no	no	yes	The model restricts the unrestricted Tuple index to a List Int and replaces each dispatched isone call with equality, so it omits allowed heterogeneous tuples and their outcomes.
+114	get	HOLLOW	no	yes	yes	The model replaces the dispatched isone(i) call with direct integer equality, although its proposition states the selected value and lazy default-call behavior.
+115	get	HOLLOW	no	no	yes	The model restricts the unrestricted Tuple index to a List Int and replaces each dispatched isone call with equality, so it omits allowed heterogeneous tuples and their outcomes.
+117	first	FAITHFUL	yes	yes	yes	The identity model returns every scalar unchanged and the proposition is proven.
+118	last	FAITHFUL	yes	yes	yes	The identity model returns every scalar unchanged and the proposition is proven.
+119	copy	FAITHFUL	yes	yes	yes	The identity model returns every scalar unchanged and the proposition is proven.
+143	signbit	HOLLOW	no	no	yes	The model substitutes x < zero(x) for the source call x < 0, which can dispatch differently and does not capture signed-zero sign bits.
+165	ispositive	HOLLOW	no	no	yes	The model substitutes zero(x) < x for x > 0, so it omits the source comparison dispatch and does not cover every Real implementation.
+187	isnegative	HOLLOW	no	no	yes	The model substitutes x < zero(x) for x < 0, so it omits the source comparison dispatch and does not cover every Real implementation.
+211	sign	HOLLOW	no	no	yes	The model expands iszero, abs, and oneunit through generic operations instead of preserving their dispatched calls, while HasResult is true of every Lean value and states no sign behavior.
+212	sign	HOLLOW	no	no	yes	The model replaces eager ifelse evaluation with lazy branches and simplifies oftype calls, while HasResult states no documented sign behavior.
+213	sign	HOLLOW	no	no	yes	The model replaces eager ifelse and oftype(one(x), 0) with lazy branching and zero(x), while HasResult states no documented unsigned-sign behavior.
+214	abs	HOLLOW	no	no	yes	The model replaces signbit(x) with x < zero(x) and uses a lazy branch, which gives the wrong path for negative zero and omits eager ifelse behavior.
+238	abs2	HOLLOW	no	no	yes	The model expands abs through an ordered-Real sign test, so it cannot mirror abs dispatch or state abs2 behavior for allowed complex Number inputs.
+239	abs2	FAITHFUL	yes	yes	yes	The model multiplies x by itself in source order and its proposition is proven for every abstract Real operand.
+255	flipsign	HOLLOW	no	no	yes	The model uses lazy branching and replaces signbit with x < zero(x), so it misses eager ifelse evaluation and signed-zero behavior.
+271	copysign	HOLLOW	no	no	yes	The model uses lazy branching and replaces both signbit calls with comparisons to zero, so it misses eager evaluation and signed-zero behavior.
+273	conj	FAITHFUL	yes	yes	yes	The identity model matches real conjugation for every input and the proposition is proven.
+274	transpose	FAITHFUL	yes	yes	yes	The identity model matches scalar transpose for every Number input and the proposition is proven.
+275	adjoint	HOLLOW	no	no	yes	The model hard-codes conjugation as identity for every Number and therefore omits nontrivial complex conjugation.
+276	angle	FAITHFUL	yes	yes	yes	The model calls zero and two-argument atan in source order and its proposition is proven.
+305	inv	FAITHFUL	yes	yes	yes	The fallback model calls one(x) and divides by x in source order, and its equation is proven.
+327	widemul	FAITHFUL	yes	yes	yes	The model widens both operands before multiplication in source order and its proposition is proven.
+329	iterate	FAITHFUL	yes	yes	yes	The Option encoding returns the scalar with the initial nothing state and the proposition is proven.
+330	iterate	FAITHFUL	yes	yes	yes	The ignored state is represented by Unit and the model returns no next result for every scalar.
+331	isempty	FAITHFUL	yes	yes	yes	The model returns false for every scalar and the proposition is proven.
+332	in	FAITHFUL	yes	yes	yes	The model delegates directly to equality on the two numbers and its equation is proven.
+334	map	FAITHFUL	yes	yes	yes	The list encoding passes x followed by ys to the supplied variadic callable and the proposition is proven.
+363	zero	FAITHFUL	yes	yes	yes	The model applies the supplied oftype-zero operation to x and its equation is proven.
+364	zero	FAITHFUL	yes	yes	yes	The model converts integer zero with the requested type's conversion function and its equation is proven.
+365	zero	HOLLOW	no	no	yes	The model omits the Union{} type, the fixed zero argument, and all slurped arguments, and uses an arbitrary error-message input instead of the constructor's exact ArgumentError.
+405	one	FAITHFUL	yes	yes	yes	The model converts integer one with the requested type's conversion function and its equation is proven.
+406	one	FAITHFUL	yes	yes	yes	The model calls the supplied one(T) operation and ignores only the source value whose type selects T.
+407	one	HOLLOW	no	no	yes	The model aliases the zero fallback and omits Union{}, the fixed one argument, all slurped arguments, and the constructor's exact ArgumentError.
+430	oneunit	HOLLOW	no	yes	yes	The model receives one(x) as a precomputed value and omits both x and the one call, although its proposition states the documented final cast.
+431	oneunit	HOLLOW	no	yes	yes	The model receives one(T) as a precomputed value and omits the type input and one call, although its proposition states the documented final cast.
+432	oneunit	HOLLOW	no	no	yes	The model aliases the zero fallback and omits Union{}, the fixed one argument, all slurped arguments, and the constructor's exact ArgumentError.
+452	big	FAITHFUL	yes	yes	yes	The model calls zero, big, and typeof in source order and its proposition is proven for every supplied type operation.
+453	big	HOLLOW	no	no	yes	The model aliases the zero fallback and omits Union{}, the fixed zero argument, all slurped arguments, and the constructor's exact ArgumentError.

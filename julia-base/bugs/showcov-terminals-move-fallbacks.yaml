@@ -1,0 +1,73 @@
+id: showcov-terminals-move-fallbacks
+title: "Terminals: TextTerminal cursor-move fallbacks call cmove without the terminal and clamp down/right moves with max"
+priority: P2
+kind: wrong-exception
+area: ShowCov
+files: [base/Terminals.jl]
+functions: ["cmove_up(::TextTerminal, n)", "cmove_down(::TextTerminal, n)", "cmove_left(::TextTerminal, n)", "cmove_right(::TextTerminal, n)", "cmove_line_up(::TextTerminal, n)", "cmove_line_down(::TextTerminal, n)", "cmove_col(::TextTerminal, c)"]
+summary: |
+  The TextTerminal fallbacks for relative cursor moves (base/Terminals.jl:52-70) call
+  cmove(x, y) with two arguments, but the terminal interface only has cmove(t, x, y). A
+  TextTerminal subtype that defines cmove(t, x, y), getX, getY and displaysize therefore
+  gets a MethodError from cmove_up(t, n) and every other relative move. The computed
+  targets are also wrong for the down and right moves: cmove_down uses
+  max(height(t), getY(t)+n) and cmove_right max(width(t), getX(t)+n), so moving down one
+  row from row 5 of a 24-row terminal targets row 24 instead of row 6.
+likelihood: |
+  Low: only terminal types outside Base that subtype TextTerminal and rely on the
+  fallbacks reach this; Base's UnixTerminal overrides all of them.
+maybe_intended: |
+  Open PR #59813 adds cmove(x, y) = cmove(active_repl.t, x, y), so the two-argument call
+  may be meant for a "current terminal" that does not exist yet. The max clamps remain
+  wrong under that reading too.
+reproducer: |
+  const T = Base.Terminals
+  mutable struct GridTerm <: T.TextTerminal
+      x::Int
+      y::Int
+  end
+  T.cmove(t::GridTerm, x, y) = (t.x = x; t.y = y; nothing)
+  T.getX(t::GridTerm) = t.x
+  T.getY(t::GridTerm) = t.y
+  Base.displaysize(::GridTerm) = (24, 80)
+  t = GridTerm(5, 5)
+  T.cmove_up(t, 1)        # MethodError: no method matching cmove(::Int64, ::Int64)
+  targets = Any[]
+  T.cmove(x::Int, y::Int) = (push!(targets, (x, y)); nothing)
+  T.cmove_down(t, 1); T.cmove_right(t, 1)
+  targets                 # [(5, 24), (80, 5)]
+output:
+  release: |
+    cmove_up(t, 1) threw: MethodError
+    cursor after cmove_up: (5, 5)
+    cmove_down(t, 1) target from (5, 5) on a 24x80 terminal: (5, 24)
+    cmove_right(t, 1) target from (5, 5) on a 24x80 terminal: (80, 5)
+    REPRODUCED showcov-terminals-move-fallbacks
+  nightly: |
+    cmove_up(t, 1) threw: MethodError
+    cursor after cmove_up: (5, 5)
+    cmove_down(t, 1) target from (5, 5) on a 24x80 terminal: (5, 24)
+    cmove_right(t, 1) target from (5, 5) on a 24x80 terminal: (80, 5)
+    REPRODUCED showcov-terminals-move-fallbacks
+reproduced: {release: true, nightly: true}
+expected: |
+  cmove_up(t, 1) calls cmove(t, 5, 4); cmove_down(t, 1) calls cmove(t, 5, 6);
+  cmove_right(t, 1) calls cmove(t, 6, 5).
+promised_by: |
+  base/Terminals.jl:42-51: "# Terminal interface:" lists cmove(t::TextTerminal, x, y),
+  getX, getY, displaysize, and "# Relative moves (Absolute position fallbacks)" says the
+  relative moves are implemented on top of the absolute cmove(t, x, y).
+cause: |
+  base/Terminals.jl:52,55,58,61,64,67,70 call cmove(...) without t; lines 55, 61, 67 clamp
+  with max(height(t), ...) / max(width(t), ...) where min is needed.
+possible_fix: |
+  Pass t as the first argument and use min(height(t), getY(t)+n) and
+  min(width(t), getX(t)+n).
+duplicates:
+  issues:
+    - {number: 50109, state: open, relation: related}
+    - {number: 59813, state: open, relation: related}
+  queries: ["cmove_up TextTerminal", "Terminals cmove", "cmove_down max height", "cmove_down", "TextTerminal"]
+lean:
+  property: JuliaLean.ShowCov.TextMoveFallbacks
+  theorem: JuliaLean.ShowCov.textMoveFallbacks_refuted

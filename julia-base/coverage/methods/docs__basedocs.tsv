@@ -1,0 +1,2 @@
+file	line	endline	name	signature	status	entry	note
+base/docs/basedocs.jl	11	13	kw_str	kw_str(text)	modelled	docssyntaxcov-basedocs-keyword	

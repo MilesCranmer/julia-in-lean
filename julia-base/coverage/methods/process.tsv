@@ -1,0 +1,74 @@
+file	line	endline	name	signature	status	entry	note
+base/process.jl	13	20	Process	Process(cmd::Cmd, handle::Ptr{Cvoid}, syncd::Vector{Task})	modelled	streams-method-process-l13	method-specific source model and quantified all-input behavior property
+base/process.jl	22	22	pipe_reader	pipe_reader(p::Process)	modelled	streams-method-process-l22	method-specific source model and quantified all-input behavior property
+base/process.jl	23	23	pipe_writer	pipe_writer(p::Process)	modelled	streams-method-process-l23	method-specific source model and quantified all-input behavior property
+base/process.jl	32	34	ProcessChain	ProcessChain()	modelled	streams-method-process-l32	method-specific source model and quantified all-input behavior property
+base/process.jl	36	36	pipe_reader	pipe_reader(p::ProcessChain)	modelled	streams-method-process-l36	method-specific source model and quantified all-input behavior property
+base/process.jl	37	37	pipe_writer	pipe_writer(p::ProcessChain)	modelled	streams-method-process-l37	method-specific source model and quantified all-input behavior property
+base/process.jl	46	46	rawhandle	rawhandle(io::SyncCloseFD)	modelled	streams-method-process-l46	method-specific source model and quantified all-input behavior property
+base/process.jl	49	60	uvfinalize	uvfinalize(proc::Process)	modelled	streams-method-process-l49	method-specific source model and quantified all-input behavior property
+base/process.jl	63	79	uv_return_spawn	uv_return_spawn(p::Ptr{Cvoid}, exit_status::Int64, termsignal::Int32)	modelled	streams-method-process-l63	method-specific source model and quantified all-input behavior property
+base/process.jl	82	85	_uv_hook_close	_uv_hook_close(proc::Process)	modelled	streams-method-process-l82	method-specific source model and quantified all-input behavior property
+base/process.jl	90	97	as_cpumask	as_cpumask(cpus::Vector{UInt16})	modelled	streams-method-process-l90	method-specific source model and quantified all-input behavior property
+base/process.jl	100	159	_spawn_primitive	_spawn_primitive(file, cmd::Cmd, stdio::SpawnIOs, tok::MaybeToken=default_cancel_token())	modelled	streams-method-process-l100	method-specific source model and quantified all-input behavior property
+base/process.jl	163	164	_spawn	_spawn(cmds::AbstractCmd, tok::MaybeToken=default_cancel_token())	modelled	streams-method-process-l163	method-specific source model and quantified all-input behavior property
+base/process.jl	166	172	_spawn	_spawn(cmd::AbstractCmd, stdios::Vector{Redirectable}, tok::MaybeToken=default_cancel_token())	modelled	streams-method-process-l166	method-specific source model and quantified all-input behavior property
+base/process.jl	175	178	_spawn	_spawn(cmd::Cmd, stdios::SpawnIOs, tok::MaybeToken=default_cancel_token())	modelled	streams-method-process-l175	method-specific source model and quantified all-input behavior property
+base/process.jl	181	183	_spawn	_spawn(cmds::AbstractCmd, stdios::SpawnIOs, tok::MaybeToken=default_cancel_token())	modelled	streams-method-process-l181	method-specific source model and quantified all-input behavior property
+base/process.jl	186	192	_stdio_copy	_stdio_copy(stdios::SpawnIOs, fd::Int, @nospecialize replace)	modelled	streams-method-process-l186	method-specific source model and quantified all-input behavior property
+base/process.jl	194	203	_spawn	_spawn(redirect::CmdRedirect, stdios::SpawnIOs, tok::MaybeToken=default_cancel_token())	modelled	streams-method-process-l194	method-specific source model and quantified all-input behavior property
+base/process.jl	205	214	_spawn	_spawn(redirect::CmdRedirect, stdios::SpawnIOs, chain::ProcessChain, tok::MaybeToken)	modelled	streams-method-process-l205	method-specific source model and quantified all-input behavior property
+base/process.jl	216	228	_spawn	_spawn(cmds::OrCmds, stdios::SpawnIOs, chain::ProcessChain, tok::MaybeToken)	modelled	streams-method-process-l216	method-specific source model and quantified all-input behavior property
+base/process.jl	230	242	_spawn	_spawn(cmds::ErrOrCmds, stdios::SpawnIOs, chain::ProcessChain, tok::MaybeToken)	modelled	streams-method-process-l230	method-specific source model and quantified all-input behavior property
+base/process.jl	244	248	_spawn	_spawn(cmds::AndCmds, stdios::SpawnIOs, chain::ProcessChain, tok::MaybeToken)	modelled	streams-method-process-l244	method-specific source model and quantified all-input behavior property
+base/process.jl	250	255	_spawn	_spawn(cmd::Cmd, stdios::SpawnIOs, chain::ProcessChain, tok::MaybeToken)	modelled	streams-method-process-l250	method-specific source model and quantified all-input behavior property
+base/process.jl	259	274	setup_stdios	setup_stdios(f, stdios::Vector{Redirectable})	modelled	streams-method-process-l259	method-specific source model and quantified all-input behavior property
+base/process.jl	276	294	setup_stdio	setup_stdio(stdio::PipeEndpoint, child_readable::Bool)	modelled	streams-method-process-l276	method-specific source model and quantified all-input behavior property
+base/process.jl	296	302	setup_stdio	setup_stdio(stdio::Pipe, child_readable::Bool)	modelled	streams-method-process-l296	method-specific source model and quantified all-input behavior property
+base/process.jl	304	305	setup_stdio	setup_stdio(stdio::AbstractPipe, readable::Bool)	modelled	streams-method-process-l304	method-specific source model and quantified all-input behavior property
+base/process.jl	307	310	setup_stdio	setup_stdio(stdio::IOStream, child_readable::Bool)	modelled	streams-method-process-l307	method-specific source model and quantified all-input behavior property
+base/process.jl	312	323	setup_stdio	setup_stdio(stdio::FileRedirect, child_readable::Bool)	modelled	streams-method-process-l312	method-specific source model and quantified all-input behavior property
+base/process.jl	329	357	setup_stdio	setup_stdio(stdio::IO, child_readable::Bool)	modelled	streams-method-process-l329	method-specific source model and quantified all-input behavior property
+base/process.jl	359	359	close_stdio	close_stdio(stdio)	modelled	streams-method-process-l359	method-specific source model and quantified all-input behavior property
+base/process.jl	360	360	close_stdio	close_stdio(stdio::OS_HANDLE)	modelled	streams-method-process-l360	method-specific source model and quantified all-input behavior property
+base/process.jl	361	361	close_stdio	close_stdio(stdio::SyncCloseFD)	modelled	streams-method-process-l361	method-specific source model and quantified all-input behavior property
+base/process.jl	373	373	spawn_opts_swallow	spawn_opts_swallow(stdios::StdIOSet)	modelled	streams-method-process-l373	method-specific source model and quantified all-input behavior property
+base/process.jl	374	374	spawn_opts_inherit	spawn_opts_inherit(stdios::StdIOSet)	modelled	streams-method-process-l374	method-specific source model and quantified all-input behavior property
+base/process.jl	375	376	spawn_opts_swallow	spawn_opts_swallow(in::Redirectable=devnull, out::Redirectable=devnull, err::Redirectable=devnull, extra::Redirectable...)	modelled	streams-method-process-l375	method-specific source model and quantified all-input behavior property
+base/process.jl	380	381	spawn_opts_inherit	spawn_opts_inherit(in::Redirectable=RawFD(0), out::Redirectable=RawFD(1), err::Redirectable=RawFD(2), extra::Redirectable...)	modelled	streams-method-process-l380	method-specific source model and quantified all-input behavior property
+base/process.jl	383	391	eachline	eachline(cmd::AbstractCmd; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-process-l383	method-specific source model and quantified all-input behavior property
+base/process.jl	407	418	open	open(cmds::AbstractCmd, mode::AbstractString, stdio::Redirectable=devnull; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-process-l407	method-specific source model and quantified all-input behavior property
+base/process.jl	431	454	open	open(cmds::AbstractCmd, stdio::Redirectable=devnull; write::Bool=false, read::Bool=!write, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-process-l431	method-specific source model and quantified all-input behavior property
+base/process.jl	464	508	open	open(f::Function, cmds::AbstractCmd, args...; kwargs...)	modelled	streams-method-process-l464	method-specific source model and quantified all-input behavior property
+base/process.jl	466	481	waitkill	waitkill(P::Union{Process,ProcessChain})	modelled	streams-method-process-l466	method-specific source model and quantified all-input behavior property
+base/process.jl	515	522	read	read(cmd::AbstractCmd; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-process-l515	method-specific source model and quantified all-input behavior property
+base/process.jl	529	530	read	read(cmd::AbstractCmd, ::Type{String}; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-process-l529	method-specific source model and quantified all-input behavior property
+base/process.jl	553	580	run	run(cmds::AbstractCmd, args...; wait::Bool = true, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-process-l553	method-specific source model and quantified all-input behavior property
+base/process.jl	593	600	test_success	test_success(proc::Process)	modelled	streams-method-process-l593	method-specific source model and quantified all-input behavior property
+base/process.jl	602	605	success	success(x::Process; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-process-l602	method-specific source model and quantified all-input behavior property
+base/process.jl	606	607	success	success(procs::Vector{Process}; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-process-l606	method-specific source model and quantified all-input behavior property
+base/process.jl	608	609	success	success(procs::ProcessChain; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-process-l608	method-specific source model and quantified all-input behavior property
+base/process.jl	618	622	success	success(cmd::AbstractCmd; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-process-l618	method-specific source model and quantified all-input behavior property
+base/process.jl	635	635	ProcessFailedException	ProcessFailedException(proc::Process)	modelled	streams-method-process-l635	method-specific source model and quantified all-input behavior property
+base/process.jl	637	647	showerror	showerror(io::IO, err::ProcessFailedException)	modelled	streams-method-process-l637	method-specific source model and quantified all-input behavior property
+base/process.jl	649	654	pipeline_error	pipeline_error(proc::Process)	modelled	streams-method-process-l649	method-specific source model and quantified all-input behavior property
+base/process.jl	656	665	pipeline_error	pipeline_error(procs::ProcessChain)	modelled	streams-method-process-l656	method-specific source model and quantified all-input behavior property
+base/process.jl	675	686	kill	kill(p::Process, signum::Integer=SIGTERM)	modelled	streams-method-process-l675	method-specific source model and quantified all-input behavior property
+base/process.jl	687	687	kill	kill(ps::Vector{Process}, signum::Integer=SIGTERM)	modelled	streams-method-process-l687	method-specific source model and quantified all-input behavior property
+base/process.jl	688	688	kill	kill(ps::ProcessChain, signum::Integer=SIGTERM)	modelled	streams-method-process-l688	method-specific source model and quantified all-input behavior property
+base/process.jl	698	708	Libc.getpid	Libc.getpid(p::Process)	modelled	streams-method-process-l698	method-specific source model and quantified all-input behavior property
+base/process.jl	717	717	process_running	process_running(s::Process)	modelled	streams-method-process-l717	method-specific source model and quantified all-input behavior property
+base/process.jl	718	718	process_running	process_running(s::Vector{Process})	modelled	streams-method-process-l718	method-specific source model and quantified all-input behavior property
+base/process.jl	719	719	process_running	process_running(s::ProcessChain)	modelled	streams-method-process-l719	method-specific source model and quantified all-input behavior property
+base/process.jl	726	726	process_exited	process_exited(s::Process)	modelled	streams-method-process-l726	method-specific source model and quantified all-input behavior property
+base/process.jl	727	727	process_exited	process_exited(s::Vector{Process})	modelled	streams-method-process-l727	method-specific source model and quantified all-input behavior property
+base/process.jl	728	728	process_exited	process_exited(s::ProcessChain)	modelled	streams-method-process-l728	method-specific source model and quantified all-input behavior property
+base/process.jl	730	730	process_signaled	process_signaled(s::Process)	modelled	streams-method-process-l730	method-specific source model and quantified all-input behavior property
+base/process.jl	732	737	process_status	process_status(s::Process)	modelled	streams-method-process-l732	method-specific source model and quantified all-input behavior property
+base/process.jl	739	765	wait	wait(x::Process, syncd::Bool=true; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-process-l739	method-specific source model and quantified all-input behavior property
+base/process.jl	767	768	wait	wait(x::ProcessChain, syncd::Bool=true; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-process-l767	method-specific source model and quantified all-input behavior property
+base/process.jl	770	770	show	show(io::IO, p::Process)	modelled	streams-method-process-l770	method-specific source model and quantified all-input behavior property
+base/process.jl	774	774	$f	$f(cmd::Cmd)	modelled	streams-method-process-l774	method-specific source model and quantified all-input behavior property
+base/process.jl	776	776	Iterators.reverse	Iterators.reverse(cmd::Cmd)	modelled	streams-method-process-l776	method-specific source model and quantified all-input behavior property
+base/process.jl	777	777	eltype	eltype(::Type{Cmd})	modelled	streams-method-process-l777	method-specific source model and quantified all-input behavior property
+base/process.jl	779	779	$f	$f(cmd::Cmd, i)	modelled	streams-method-process-l779	method-specific source model and quantified all-input behavior property

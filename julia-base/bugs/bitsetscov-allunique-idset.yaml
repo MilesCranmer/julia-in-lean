@@ -1,0 +1,58 @@
+id: bitsetscov-allunique-idset
+title: "allunique and allequal on an IdSet or IdDict ignore isequal: allunique(IdSet{Any}([1, 1.0])) is true"
+priority: P2
+kind: wrong-result
+area: BitSetsCov
+files: [base/set.jl]
+functions: ["allunique(::Union{AbstractSet,AbstractDict})", "allequal(::Union{AbstractSet,AbstractDict})"]
+summary: |
+  allunique(::Union{AbstractSet,AbstractDict}) = true and
+  allequal(c::Union{AbstractSet,AbstractDict}) = length(c) <= 1 assume that
+  the elements of a set or dictionary are pairwise non-isequal. IdSet and
+  IdDict compare by ===, so they can hold 1 and 1.0: allunique returns true
+  and allequal returns false for IdSet{Any}([1, 1.0]), while the same
+  calls on collect(s) give false and true.
+likelihood: |
+  Only IdSet/IdDict (and other ===-keyed collections) holding isequal but
+  distinct values; the result is silently wrong.
+maybe_intended: |
+  PR #33632 added the shortcut for sets and dictionaries with isequal
+  semantics in mind; it does not consider ===-keyed collections.
+reproducer: |
+  s = Base.IdSet{Any}(Any[1, 1.0])
+  allunique(s), allunique(collect(s))   # (true, false)
+  allequal(s), allequal(collect(s))     # (false, true)
+output:
+  release: |
+    allunique(s) = true, allunique(collect(s)) = false
+    allequal(s) = false, allequal(collect(s)) = true
+    allunique(d) = true, allunique(collect(d)) = false
+    allequal(d) = false, allequal(collect(d)) = true
+    REPRODUCED bitsetscov-allunique-idset
+  nightly: |
+    allunique(s) = true, allunique(collect(s)) = false
+    allequal(s) = false, allequal(collect(s)) = true
+    allunique(d) = true, allunique(collect(d)) = false
+    allequal(d) = false, allequal(collect(d)) = true
+    REPRODUCED bitsetscov-allunique-idset
+reproduced: {release: true, nightly: true}
+expected: |
+  allunique(s) == false and allequal(s) == true, as for collect(s).
+promised_by: |
+  allunique docstring, base/set.jl:484: "Return true if all values from
+  itr are distinct when compared with isequal"; allequal docstring,
+  base/set.jl:613: "Return true if all values from itr are equal when
+  compared with isequal."
+cause: |
+  base/set.jl:544 and 658 short-circuit on the container type without
+  checking that its element equality is isequal.
+possible_fix: |
+  Restrict the shortcuts to Set and Dict (or to collections keyed by
+  isequal) and let IdSet/IdDict fall back to the generic methods.
+duplicates:
+  issues:
+    - {number: 61893, state: open, relation: related}
+  queries: ["allunique IdSet", "allunique AbstractSet", "allequal IdDict", "allunique IdDict", "PRs: allunique AbstractSet (#33632 added the method)"]
+lean:
+  property: JuliaLean.BitSetsCov.AlluniqueSetSpec
+  theorem: JuliaLean.BitSetsCov.alluniqueSetSpec_refuted

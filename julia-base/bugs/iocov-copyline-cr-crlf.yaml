@@ -1,0 +1,64 @@
+id: iocov-copyline-cr-crlf
+title: "copyline(out, s) keeps an extra '\\r' before \"\\r\\n\" when out is not an IOBuffer"
+priority: P2
+kind: wrong-result
+area: IOCov
+files: [base/io.jl]
+functions: ["copyline(::IO, ::IO)"]
+summary: |
+  The generic copyline(out::IO, s::IO; keep=false) handles CRLF by reading a byte after
+  each '\r'. When that byte is another '\r' it writes both carriage returns and then
+  does not treat the second one as the start of "\r\n", so for the line "x\r\r\n" it
+  outputs "x\r\r". readline and the IOBuffer method of copyline give "x\r". The result
+  of copyline therefore depends on the type of the output stream.
+likelihood: |
+  Needs a line ending in "\r\r\n" (seen in files whose CRLF line endings were converted
+  twice) read with copyline into a non-IOBuffer stream such as a file, an IOContext or
+  stdout, from a non-IOBuffer source such as a pipe or socket.
+maybe_intended: ""
+reproducer: |
+  function stream(s)
+      bs = Base.BufferStream(); write(bs, s); closewrite(bs); bs
+  end
+  s = "x\r\r\ny"
+  to_buffer = String(take!(copyline(IOBuffer(), stream(s))))
+  o = IOBuffer(); copyline(IOContext(o), stream(s)); to_other = String(take!(o))
+  println("readline(IOBuffer(s))          = ", repr(readline(IOBuffer(s))))
+  println("copyline(IOBuffer(), stream)   = ", repr(to_buffer))
+  println("copyline(IOContext(..), stream) = ", repr(to_other))
+  if to_other != to_buffer
+      println("REPRODUCED iocov-copyline-cr-crlf")
+  end
+output:
+  release: |
+    readline(IOBuffer(s))          = "x\r"
+    copyline(IOBuffer(), stream)   = "x\r"
+    copyline(IOContext(..), stream) = "x\r\r"
+    REPRODUCED iocov-copyline-cr-crlf
+  nightly: |
+    readline(IOBuffer(s))          = "x\r"
+    copyline(IOBuffer(), stream)   = "x\r"
+    copyline(IOContext(..), stream) = "x\r\r"
+    REPRODUCED iocov-copyline-cr-crlf
+reproduced: {release: true, nightly: true}
+expected: |
+  copyline(IOContext(..), stream) = "x\r", like the other methods: only the final
+  "\r\n" is removed.
+promised_by: |
+  copyline docstring (base/io.jl:725-728): "Lines in the input end with '\n' or "\r\n" or
+  the end of an input stream. When `keep` is false (as it is by default), these trailing
+  newline characters are removed".
+cause: |
+  base/io.jl:767-776: after b == 0x0d it reads the next byte; if that byte is not '\n'
+  it writes 0x0d and then writes the new byte, so a second '\r' is written immediately
+  instead of being checked for a following '\n'.
+possible_fix: |
+  Loop while the byte after '\r' is again '\r' (writing one '\r' per iteration), or
+  keep the pending '\r' and test the next byte on the following iteration.
+duplicates:
+  issues:
+    - {number: 64164, state: open, relation: related}
+  queries: ["copyline", "copyline CRLF", "readline carriage return"]
+lean:
+  property: JuliaLean.IOCov.Io.CopylineConsistent
+  theorem: JuliaLean.IOCov.Io.copylineConsistent_refuted

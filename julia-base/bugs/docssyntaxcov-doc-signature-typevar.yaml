@@ -1,0 +1,51 @@
+id: docssyntaxcov-doc-signature-typevar
+title: "Docs.signature adds Tuple{T} for each `where T`, so g(x::Vector{T}) where T docs match g(::Int)"
+priority: P2
+kind: wrong-result
+area: DocsSyntaxCov
+files: [base/docs/Docs.jl]
+functions: ["Base.Docs.signature!(tv::Vector{Any}, expr::Expr)", "Base.Docs._doc(binding::Binding, sig::Type)"]
+summary: |
+    The signature stored for a method docstring includes an extra `Tuple{T}` for every
+    type variable: `g(x::Vector{T}) where T` is stored as
+    `Union{Tuple{Vector{T}}, Tuple{T}} where T`, which contains `Tuple{Int}`. Looking up the
+    docs of `g(::Int)` therefore returns the docstring of the `Vector{T}` method.
+likelihood: |
+    Moderate: any function with a parametric method docstring defined before a more
+    specific one; `@doc g(::Int)` in scripts returns the wrong text, and help for a
+    signature lists unrelated parametric methods.
+maybe_intended: |
+    The extra tuples may exist so that every type variable occurs in the signature; they
+    still make the stored signature a supertype of unrelated call signatures.
+reproducer: |
+    "g vec" g(x::Vector{T}) where T = 1
+    "g int" g(x::Int) = 2
+    Base.Docs._doc(Base.Docs.Binding(Main, :g), Tuple{Int}).text   # svec("g vec")
+output:
+  release: |
+    signature = Union{Tuple{Vector{T}}, Tuple{T}} where T <: Any
+    _doc(g, Tuple{Int}) text = svec("g vec")
+    REPRODUCED docssyntaxcov-doc-signature-typevar
+  nightly: |
+    signature = Union{Tuple{Vector{T}}, Tuple{T}} where T <: Any
+    _doc(g, Tuple{Int}) text = svec("g vec")
+    REPRODUCED docssyntaxcov-doc-signature-typevar
+reproduced: {release: true, nightly: true}
+expected: |
+    `svec("g int")`: `Tuple{Int}` is not a subtype of the signature of `g(x::Vector{T}) where T`.
+promised_by: |
+    `MultiDoc` docstring, base/docs/Docs.jl:206-215: "`f(x::T, y = ?) where {T} = ...` is
+    stored as `Union{Tuple{T, Any}, Tuple{T}} where T`", i.e. one tuple per accepted
+    argument count, no extra tuples.
+cause: |
+    base/docs/Docs.jl:115-117 push `Tuple{T}` for each type variable `T` onto the `Union`
+    built from the arguments. `_doc` (line 628) then picks the first signature `msig` with
+    `sig <: msig`.
+possible_fix: |
+    Drop the loop at lines 115-117 (the `where` wrapping at 118-120 suffices).
+duplicates:
+  issues: []
+  queries: ["Docs signature where", "doc lookup where clause", "docstring signature typevar"]
+lean:
+  property: JuliaLean.DocsSyntaxCov.DocSignatureTypevar
+  theorem: JuliaLean.DocsSyntaxCov.docSignatureTypevar_refuted

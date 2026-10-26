@@ -1,0 +1,484 @@
+line	name	verdict	mirror	property	settled	reason
+16	convert	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+17	convert	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+18	convert	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+42	size	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+79	axes	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+100	axes	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+114	has_offset_axes	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+115	has_offset_axes	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+116	has_offset_axes	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+117	has_offset_axes	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+118	has_offset_axes	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+122	has_offset_axes	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+135	require_one_based_indexing	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+140	axes1	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+141	axes1	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+142	axes1	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+169	keys	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+170	keys	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+192	keytype	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+193	keytype	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+195	keytype	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+196	keytype	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+198	valtype	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+199	valtype	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+217	valtype	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+219	prevind	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+220	nextind	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+243	eltype	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+244	eltype	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+245	eltype	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+246	eltype	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+261	elsize	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+278	ndims	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+279	ndims	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+280	ndims	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+322	eachindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+325	eachindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+329	_join_comma_and	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+330	_join_comma_and	HOLLOW	no	yes	yes	The vararg model invents a two-argument fallback instead of the source recursive call and its MethodError.
+331	throw_eachindex_mismatch_indices	HOLLOW	no	yes	yes	The model invents a fallback second index when indsBs is empty instead of the source MethodError.
+384	eachindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+386	eachindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+390	eachindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+394	eachindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+395	eachindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+396	eachindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+397	eachindex	HOLLOW	no	yes	yes	The mismatch path uses a dummy dynamic value instead of the literal indices argument in the Julia diagnostic.
+407	keys	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+429	lastindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+430	lastindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+452	firstindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+453	firstindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+455	first	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+474	first	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+505	first	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+507	first	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+530	last	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+555	last	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+557	last	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+577	strides	FAITHFUL	yes	-	-	The exclusion applies: no-behaviour: generic function declaration without an implementation.
+597	stride	HOLLOW	no	yes	yes	The model uses unbounded Lean Int arithmetic for the Int stride accumulation and therefore misses Julia overflow behavior.
+609	size_to_strides	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+610	size_to_strides	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+611	size_to_strides	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+613	isstored	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+619	trailingsize	HOLLOW	no	yes	yes	The negative-start loop count is computed with toNat, so it omits trailing dimensions that Julia iterates.
+626	trailingsize	HOLLOW	no	yes	yes	The negative-start loop count is computed with toNat, so it omits tuple axes that Julia iterates.
+634	trailingsize	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+682	checkbounds	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+690	checkbounds	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+722	checkbounds_indices	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+728	checkbounds_indices	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+750	checkindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+751	checkindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+752	checkindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+753	checkindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+754	checkindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+755	checkindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+756	checkindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+759	checkindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+762	checkindex	HOLLOW	no	yes	yes	The model materializes the whole index array before any check instead of interleaving Julia iteration and checkindex calls.
+819	similar	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+820	similar	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+821	similar	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+822	similar	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+823	similar	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+829	similar	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+832	similar	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+834	similar	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+836	to_shape	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+837	to_shape	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+838	to_shape	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+840	to_shape	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+841	to_shape	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+842	to_shape	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+843	_to_shape	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+844	_to_shape	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+845	to_shape	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+869	similar	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+870	similar	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+872	similar	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+873	similar	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+892	empty	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+895	emptymutable	HOLLOW	no	no	yes	The model omits the Type{U} argument and represents Vector{U} as an empty list with an unrelated element type; the proposition therefore does not state the typed allocation behavior.
+896	emptymutable	HOLLOW	no	no	yes	The model omits the Type{U} argument and represents Vector{U} as an empty list with an unrelated element type; the proposition therefore does not state the typed allocation behavior.
+920	copy!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+929	copy!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+939	copyto!	FAITHFUL	yes	-	-	The exclusion applies: internal-bootstrap: sets the generic-function method-table limit during Base bootstrap.
+941	copyto!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+953	copyto!	HOLLOW	no	yes	yes	The model calls length(dest) even when haslength(src) is false, unlike Julias short-circuit condition.
+974	copyto!	HOLLOW	no	yes	yes	The model replaces the source short-iterator diagnostics with generic messages and loses their computed counts.
+1003	copyto!	HOLLOW	no	no	yes	The model fails to detect some short iterators because takeIteration only inspects the outer constructor; the proposition is only the reflexive identity of the model with itself.
+1072	copyto!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1082	copyto!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1088	copyto_unaliased!	HOLLOW	no	no	yes	The model materializes eachindex results as lists and cannot preserve failures from incremental index iteration; the proposition is only the reflexive identity of the model with itself.
+1125	copyto!	HOLLOW	no	yes	yes	For an empty source the model defaults first(LinearIndices(src)) to zero although Julia returns one.
+1129	copyto!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1135	copyto!	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+1154	copy	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1159	copyto!	HOLLOW	no	no	yes	The model evaluates range steps once before copying instead of on each Julia loop increment; the proposition is only the reflexive identity of the model with itself.
+1184	_checkaxs	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1186	copyto_axcheck!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1211	copymutable	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1215	copymutable	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1216	copymutable	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1218	zero	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1219	zero	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1220	zero	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1222	_one	HOLLOW	no	no	yes	The model omits the zero result type assertion and collapses row iteration to a prebuilt list; the proposition is only the reflexive identity of the model with itself.
+1236	one	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1237	oneunit	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1245	iterate_starting_state	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1246	iterate_starting_state	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1247	iterate_starting_state	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1250	iterate	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1251	_iterate_abstractarray	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1256	_iterate_abstractarray	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1262	isempty	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1267	map	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1268	map	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1269	map	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1270	map	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1279	pointer	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1280	pointer	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1286	_memory_offset	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+1287	_memory_offset	HOLLOW	no	no	yes	The model interleaves each mapped offset term with summation although Julia computes the complete map before sum; the proposition is only the reflexive identity of the model with itself.
+1293	getindex	FAITHFUL	yes	-	-	The exclusion applies: no-behaviour: generic function declaration without an implementation.
+1294	setindex!	FAITHFUL	yes	-	-	The exclusion applies: no-behaviour: generic function declaration without an implementation.
+1363	getindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1369	getindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1371	unsafe_getindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1376	CanonicalIndexError	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1379	error_if_canonical_getindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1381	error_if_canonical_getindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1383	error_if_canonical_getindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1386	_getindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1390	_getindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1391	_getindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1392	_getindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1398	_to_linear_index	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1399	_to_linear_index	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1400	_to_linear_index	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1401	_to_linear_index	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1404	_getindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1410	_getindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1414	_to_subscript_indices	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1415	_to_subscript_indices	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1416	_to_subscript_indices	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1417	_to_subscript_indices	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1418	_to_subscript_indices	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1419	_to_subscript_indices	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1424	_to_subscript_indices	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1426	__to_subscript_indices	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1431	_to_subscript_indices	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1432	_to_subscript_indices	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1433	_remaining_size	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1434	_remaining_size	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1435	_unsafe_ind2sub	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1436	_unsafe_ind2sub	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1464	setindex!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1469	unsafe_setindex!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1475	error_if_canonical_setindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1477	error_if_canonical_setindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1479	error_if_canonical_setindex	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1482	_setindex!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1486	_setindex!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1487	_setindex!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1495	_setindex!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1499	_setindex!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1518	unsetindex!	FAITHFUL	yes	-	-	The exclusion applies: no-behaviour: generic function declaration without an implementation.
+1546	parent	FAITHFUL	yes	-	-	The exclusion applies: no-behaviour: generic function declaration without an implementation.
+1548	parent	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1566	unalias	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1567	unalias	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1568	unalias	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1582	unaliascopy	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1583	unaliascopy	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1584	_unaliascopy	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1585	_unaliascopy	HOLLOW	no	no	yes	The model calls typeof(A) once and typename on A, while Julia calls typename(typeof(A)) and later calls typeof(A) again; the proposition is only the reflexive identity of the model with itself.
+1593	unaliascopy	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1603	mightalias	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1604	mightalias	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1606	_isdisjoint	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1607	_isdisjoint	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1608	_isdisjoint	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1609	_isdisjoint	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1610	_isdisjoint	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1611	_isdisjoint	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1612	_isdisjoint	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1613	_isdisjoint	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1614	_isdisjoint	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1626	dataids	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1627	dataids	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1628	dataids	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1629	dataids	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1630	dataids	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1637	get	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1638	get	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1639	get	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1640	get	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1641	get	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1642	get	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1644	get!	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+1653	get!	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+1662	get	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1664	get!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1671	get	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1675	replace_in_print_matrix	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1676	replace_in_print_matrix	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1679	eltypeof	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1680	eltypeof	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1682	promote_eltypeof	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1683	promote_eltypeof	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1684	promote_eltypeof	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1685	promote_eltypeof	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1686	promote_eltypeof	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1687	promote_eltypeof	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1689	promote_eltype	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1690	promote_eltype	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1691	promote_eltype	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1692	promote_eltype	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1693	promote_eltype	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1694	promote_eltype	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1697	_cat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1699	typed_vcat	HOLLOW	no	no	yes	The model ignores the requested Type{T} and returns an empty list with an unrelated element type; the proposition therefore omits the Vector{T} guarantee.
+1700	typed_hcat	HOLLOW	no	no	yes	The model ignores the requested Type{T} and returns an empty list with an unrelated element type; the proposition therefore omits the Vector{T} guarantee.
+1703	vcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1704	vcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1705	hcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1706	hcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1708	vcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1714	hcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1720	typed_vcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1726	typed_hcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1732	vcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1733	vcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1740	_typed_vcat_similar	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1741	_typed_vcat	HOLLOW	no	no	yes	The model adds a collectionLength call before map(length,V), which is absent from the Julia method; the proposition is only the reflexive identity of the model with itself.
+1744	_typed_vcat!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1755	typed_hcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1759	typed_hcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1765	hcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1766	hcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1768	_typed_hcat	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+1802	vcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1803	vcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1805	_typed_vcat	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+1825	typed_vcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1827	reduce	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1830	reduce	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1836	cat_size	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1837	cat_size	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1838	cat_size	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1839	cat_size	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1841	cat_length	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1842	cat_length	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1844	cat_ndims	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1845	cat_ndims	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1847	cat_indices	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1848	cat_indices	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1850	cat_similar	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1851	cat_similar	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1852	cat_similar	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1853	cat_similar	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1854	cat_similar	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1855	cat_similar	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1858	cat_shape	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1859	cat_shape	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1867	cat_size_shape	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1868	cat_size_shape	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1869	_cat_size_shape	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1870	_cat_size_shape	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1872	_cshp	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1873	_cshp	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1874	_cshp	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1875	_cshp	HOLLOW	no	yes	yes	The model uses unbounded Lean Int addition and misses wrapping Julia Int shape arithmetic.
+1877	_cshp	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1879	_cshp	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1883	_cshp	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1887	_cshp	HOLLOW	no	yes	yes	The model uses unbounded Lean Int addition and misses wrapping Julia Int shape arithmetic.
+1894	_cs	HOLLOW	no	yes	yes	The diagnostic encodes integers with natAbs and therefore loses negative values printed by Julia.
+1897	dims2cat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1898	dims2cat	HOLLOW	no	yes	yes	The error payload substitutes the dimensions length for the actual dimensions value printed by Julia.
+1905	_cat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1907	_cat_t	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+1918	cat_t	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1921	__cat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1923	__cat_offset!	HOLLOW	no	yes	yes	The copy callback returns only offsets, so its destination mutation is discarded before recursion.
+1928	__cat_offset!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1930	__cat_offset1!	HOLLOW	no	yes	yes	The dimension loops run tail-first and the copy mutation is discarded, unlike Julias forward ntuple mutation order.
+1941	_copy_or_fill!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+1942	_copy_or_fill!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2003	vcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2053	hcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2055	typed_vcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2056	typed_hcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2169	cat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2171	_cat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2175	vcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2176	vcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2177	vcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2178	vcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2179	hcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2180	hcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2181	hcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2182	hcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2184	typed_vcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2185	typed_vcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2186	typed_vcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2187	typed_hcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2188	typed_hcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2189	typed_hcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2194	hvcat_rows	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2195	typed_hvcat_rows	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2197	hvcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2244	hvcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2245	hvcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2247	rows_to_dimshape	HOLLOW	no	yes	yes	The unbalanced row sum uses unbounded Lean Int addition and misses Julia Int overflow.
+2248	typed_hvcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2250	hvcat	HOLLOW	no	no	yes	The model returns an empty list of arbitrary element type instead of fixing the Any element type of Julias empty vector; the proposition omits that type guarantee.
+2251	typed_hvcat	HOLLOW	no	no	yes	The model ignores Type{T} and returns an empty list with an unrelated element type; the proposition omits the Vector{T} guarantee.
+2253	hvcat	HOLLOW	no	no	yes	The mismatch branches omit the repeated length and row accesses used to construct Julias diagnostics; the proposition is only the reflexive identity of the model with itself.
+2274	hvcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2275	hvcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2277	hvcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2279	typed_hvcat	HOLLOW	no	yes	yes	The row mismatch model replaces Julias indexed diagnostic values with a fixed literal.
+2292	typed_hvcat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2381	hvncat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2382	hvncat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2384	_hvncat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2385	_hvncat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2386	_hvncat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2387	_hvncat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2388	_hvncat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2389	_hvncat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2392	typed_hvncat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2393	typed_hvncat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2397	_typed_hvncat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2398	_typed_hvncat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2399	_typed_hvncat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2400	_typed_hvncat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2401	_typed_hvncat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2402	_typed_hvncat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2403	_typed_hvncat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2405	_typed_hvncat_0d_only_one	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2409	_typed_hvncat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2411	_typed_hvncat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2417	_typed_hvncat	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+2423	_typed_hvncat	HOLLOW	no	no	yes	The model evaluates every trailing-singleton check before testing any result, unlike Julias short-circuit return; the proposition is only the reflexive identity of the model with itself.
+2458	_typed_hvncat	HOLLOW	no	no	yes	The discovered sizes use unbounded Lean Int addition and miss Julia Int overflow; the proposition is only the reflexive identity of the model with itself.
+2492	_typed_hvncat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2493	_typed_hvncat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2498	_typed_hvncat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2499	_typed_hvncat	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2501	_typed_hvncat_1d	HOLLOW	no	no	yes	The model replaces Julias value-bearing ArgumentError messages with fixed abbreviated literals; the proposition is only the reflexive identity of the model with itself.
+2514	_typed_hvncat	HOLLOW	no	no	yes	The model replaces Julias expected and actual length diagnostic with a fixed literal; the proposition is only the reflexive identity of the model with itself.
+2527	_hvncat_fill_loop!	HOLLOW	no	no	yes	The shape products and linear-index formulas use unbounded Lean Int arithmetic instead of Julia Int wrapping; the proposition is only the reflexive identity of the model with itself.
+2556	hvncat_fill!	HOLLOW	no	no	yes	All generated branches delegate to the fallback model, so neither emitted generated body is mirrored; the proposition is only the reflexive identity of the model with itself.
+2629	_typed_hvncat	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+2635	_typed_hvncat_dims	HOLLOW	no	no	yes	The hand-written state machine does not preserve all source indexing and block-transition operations in their original order; the proposition is only the reflexive identity of the model with itself.
+2732	_typed_hvncat	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+2738	_typed_hvncat	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+2744	_typed_hvncat_shape	HOLLOW	no	no	yes	The hand-written state machine changes source validation and dimension-update order and omits exact diagnostics; the proposition is only the reflexive identity of the model with itself.
+2823	hvncat_fill!	HOLLOW	no	no	yes	The model recomputes rank and shape inside each value step and materializes small-array iteration, unlike the source loop; the proposition is only the reflexive identity of the model with itself.
+2865	hvncat_calcindex	HOLLOW	no	no	yes	The index formula uses unbounded Lean Int arithmetic and misses Julia Int wrapping; the proposition is only the reflexive identity of the model with itself.
+2967	stack	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2996	stack	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2997	stack	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+2999	_stack	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3001	_stack	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3003	_stack	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+3016	_typed_stack	HOLLOW	no	no	yes	The model obtains an entire iteration run before allocation instead of advancing Julia iteration between slice copies; the proposition is only the reflexive identity of the model with itself.
+3034	_iterator_axes	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3035	_iterator_axes	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3036	_iterator_axes	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3039	_typed_stack	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3041	_typed_stack	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+3048	_typed_stack	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3051	_vec_axis	HOLLOW	no	yes	yes	The axis-length product uses unbounded Lean Int arithmetic and misses Julia Int wrapping.
+3053	_dim_stack	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+3075	_dim_stack!	HOLLOW	no	no	yes	The view copy result is discarded, so the destination mutation is not threaded through the remaining slices; the proposition is only the reflexive identity of the model with itself.
+3089	_stack_size_check	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+3098	_ensure_array	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3099	_ensure_array	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3101	_empty_stack	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3106	isequal	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+3119	cmp	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+3135	isless	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3145	isless	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3147	OrderStyle	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3149	==	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+3167	_sub2ind	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3172	_ind2sub	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3178	_sub2ind	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3179	_sub2ind	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3180	_sub2ind	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3181	_sub2ind	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3184	_sub2ind	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3185	_sub2ind	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3188	_sub2ind	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3190	_sub2ind	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3191	_sub2ind	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3193	_sub2ind_recurse	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3194	_sub2ind_recurse	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3198	_sub2ind_recurse	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+3204	nextL	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3205	nextL	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3206	nextL	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3207	offsetin	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3208	offsetin	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3210	_ind2sub	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3211	_ind2sub	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3212	_ind2sub	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3213	_ind2sub	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3215	_ind2sub	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3217	_ind2sub_recurse	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3218	_ind2sub_recurse	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3222	_ind2sub_recurse	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+3229	_indexlength	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3230	_indexlength	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3231	_lookup	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3232	_lookup	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3235	_sub2ind	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3238	_sub2ind	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3240	_sub2ind	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3242	_sub2ind_vecs	HOLLOW	no	no	yes	On mismatch Julia calls axes1 on the offending vector again for the diagnostic, but the model does not; the proposition is only the reflexive identity of the model with itself.
+3253	_sub2ind!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3262	sub2ind_vec	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3263	_sub2ind_vec	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3264	_sub2ind_vec	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3266	_ind2sub	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+3307	foreach	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3308	foreach	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3385	mapslices	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+3450	_inner_mapslices!	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+3477	concatenate_setindex!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3478	concatenate_setindex!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3482	map!	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+3491	map	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3493	mapany	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3494	mapany	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+3521	map	HOLLOW	no	yes	yes	The model returns mapped list values and omits Generator construction and collect allocation and widening behavior.
+3523	map	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3524	map	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3527	map!	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+3538	ith_all	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3539	ith_all	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+3544	map_n!	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+3593	map!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3618	map!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3645	map	HOLLOW	no	no	yes	The model returns mapped zip values and omits Generator construction and collect allocation and widening behavior; the proposition is only the reflexive identity of the model with itself.
+3649	push!	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+3659	push!	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+3665	push!	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+3679	push!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3680	push!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3681	pushfirst!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3682	pushfirst!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3685	sizehint!	FAITHFUL	yes	yes	yes	The model follows this method body and the proven proposition covers all allowed inputs.
+3688	rest	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+3699	_keepat!	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+3717	_keepat!	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.
+3756	circshift!	HOLLOW	yes	no	yes	The proposition is only the reflexive identity of the model with itself and states no behavior.

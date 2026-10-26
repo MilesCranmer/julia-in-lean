@@ -1,0 +1,52 @@
+id: iocov-systemsleep-large
+title: "Libc.systemsleep(s) throws InexactError for s ≥ 4294.97 seconds"
+priority: P3
+kind: wrong-exception
+area: IOCov
+files: [base/libc.jl]
+functions: ["Libc.systemsleep(::Real)"]
+summary: |
+  systemsleep converts s*1e6 to UInt32 microseconds for usleep, so any duration of
+  about 71.6 minutes or more throws InexactError instead of sleeping (and negative
+  durations throw InexactError rather than an ArgumentError or returning at once).
+likelihood: |
+  Needs a blocking sleep of more than 71 minutes through Libc.systemsleep; rare, but
+  the error message gives no hint about the limit.
+maybe_intended: |
+  usleep itself takes useconds_t, and POSIX allows it to reject values of a million
+  or more; the docstring promises no range.
+reproducer: |
+  for s in (-1.0, 4295.0)
+      try
+          Libc.systemsleep(s)
+          println("systemsleep($s) returned")
+      catch e
+          println("systemsleep($s) threw ", typeof(e))
+          s == 4295.0 && e isa InexactError && println("REPRODUCED iocov-systemsleep-large")
+      end
+  end
+output:
+  release: |
+    systemsleep(-1.0) threw InexactError
+    systemsleep(4295.0) threw InexactError
+    REPRODUCED iocov-systemsleep-large
+  nightly: |
+    systemsleep(-1.0) threw InexactError
+    systemsleep(4295.0) threw InexactError
+    REPRODUCED iocov-systemsleep-large
+reproduced: {release: true, nightly: true}
+expected: |
+  systemsleep(4295.0) sleeps for 4295 seconds (for example by looping over shorter
+  usleep or nanosleep calls).
+promised_by: |
+  systemsleep docstring (base/libc.jl:172-174): "Suspends execution for `s` seconds."
+cause: |
+  base/libc.jl:162: ccall(:usleep, Int32, (UInt32,), round(UInt32, s*1e6)).
+possible_fix: |
+  Use nanosleep with a timespec, or sleep in chunks below 2^32 microseconds.
+duplicates:
+  issues: []
+  queries: ["systemsleep", "systemsleep InexactError"]
+lean:
+  property: JuliaLean.IOCov.Libc.SystemsleepAny
+  theorem: JuliaLean.IOCov.Libc.systemsleepAny_refuted

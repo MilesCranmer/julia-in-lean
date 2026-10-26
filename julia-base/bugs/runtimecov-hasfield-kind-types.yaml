@@ -1,0 +1,55 @@
+id: runtimecov-hasfield-kind-types
+title: "`hasfield(T, name)` throws `MethodError` for `T = Union{}` and, on master, for `T = Type{Int}`"
+priority: P2
+kind: wrong-exception
+area: RuntimeCov
+files: [base/runtime_internals.jl]
+functions: ["hasfield(::Type, ::Symbol)", "fieldindex"]
+summary: |
+  `hasfield(T::Type, name) = fieldindex(T, name, false) > 0`, but `fieldindex` only has
+  methods for `DataType`, `UnionAll` and `Union`. `hasfield(Union{}, :name)` therefore
+  throws a `MethodError` on 1.13.2 and master. On master, `Type{Int}` is a value of the
+  new `TypeEq` kind, which also has no `fieldindex` method, so
+  `hasfield(Type{Int}, :name)` now throws where 1.13.2 returned `false`.
+likelihood: |
+  Generic code that calls `hasfield` on types it receives (for example the parameter
+  of a `Type{T}` argument, or a type computed by inference such as `Union{}`) can hit
+  it. The `Type{...}` case is a regression in master.
+maybe_intended: |
+  `fieldnames(Type{Int})` and `fieldcount(Type{Int})` throw `ArgumentError` ("type
+  does not have a definite number of fields"), so throwing could be intended, but
+  `hasfield` is documented to return a boolean and `fieldindex(..., false)` is the
+  non-throwing query.
+reproducer: |
+  hasfield(Union{}, :name)    # MethodError on 1.13.2 and master
+  hasfield(Type{Int}, :name)  # false on 1.13.2, MethodError on master
+output:
+  release: |
+    hasfield(Union{}, :name) throws MethodError
+    hasfield(Type{Int64}, :name) = false
+    REPRODUCED runtimecov-hasfield-kind-types
+  nightly: |
+    hasfield(Union{}, :name) throws MethodError
+    hasfield(Type{Int64}, :name) throws MethodError
+    REPRODUCED runtimecov-hasfield-kind-types
+reproduced: {release: true, nightly: true}
+expected: |
+  `false` in both cases (neither type has a field `name`).
+promised_by: |
+  `hasfield` docstring (base/runtime_internals.jl:444-466): "Return a boolean
+  indicating whether `T` has `name` as one of its own fields." The signature accepts
+  any `T::Type`.
+cause: |
+  base/runtime_internals.jl:467 calls `fieldindex(T, name, false)`; the methods at
+  lines 1326, 1342 and 1346 cover only `DataType`, `UnionAll` and `Union`, not
+  `Core.TypeofBottom` or the `TypeEq`/`Core.TypeEgal` kinds.
+possible_fix: |
+  Add `fieldindex(::Core.TypeofBottom, ::Symbol, err::Bool=true)` and kind methods
+  (returning 0 or throwing per `err`), or have `hasfield` return `false` when
+  `fieldindex` has no applicable method.
+duplicates:
+  issues: []
+  queries: ["hasfield Union{}", "hasfield MethodError", "fieldindex TypeEq", "hasfield Type", "TypeEgal hasfield", "Type{Int} fieldindex"]
+lean:
+  property: JuliaLean.RuntimeCov.Fields.HasfieldTotal
+  theorem: JuliaLean.RuntimeCov.Fields.hasfieldTotal_refuted

@@ -1,0 +1,57 @@
+id: showcov-terminfo-extended-labels
+title: "terminfo: extended capability names are read at the wrong offset when the extended section has no strings or its last string is absent"
+priority: P2
+kind: wrong-result
+area: ShowCov
+files: [base/terminfo.jl]
+functions: ["extendedterminfo(::IO, ::Type{Int16})", "read(::IO, ::Type{TermInfoRaw})"]
+summary: |
+  extendedterminfo locates the extended capability names as "offset of the last string
+  value + its length + 1" (base/terminfo.jl:131-132). When the extended section has no
+  string capabilities this gives 1 instead of 0, so every name loses its first byte (the
+  flag AX is read as :X). When the last extended string is absent (offset -1) it gives 0,
+  so the names are read from the string values (the flag names become the string values).
+likelihood: |
+  Low to moderate: compiled terminfo files whose extended section has only booleans or
+  numbers, or that cancel their last extended string capability, get garbled
+  extended capabilities (for example a missing RGB or Tc flag for truecolor detection).
+maybe_intended: ""
+reproducer: |
+  le16(x) = reinterpret(UInt8, [htol(Int16(x))])
+  header() = vcat(le16(0o432), le16(2), le16(0), le16(0), le16(0), le16(0), Vector{UInt8}("x\0"))
+  ext1 = vcat(le16(1), le16(0), le16(0), le16(1), le16(3), [0x01, 0x00], le16(0), Vector{UInt8}("AX\0"))
+  read(IOBuffer(vcat(header(), ext1)), Base.TermInfoRaw).extended   # Dict(:X => true)
+  tbl = Vector{UInt8}("ab\0Sa\0Sb\0")
+  ext2 = vcat(le16(0), le16(0), le16(2), le16(4), le16(length(tbl)), le16(0), le16(-1), le16(0), le16(3), tbl)
+  read(IOBuffer(vcat(header(), ext2)), Base.TermInfoRaw).extended   # Dict(:ab => "ab", :Sa => nothing)
+output:
+  release: |
+    flag only: Dict{Symbol, Union{Nothing, Bool, Int64, String}}(:X => true)
+    last string absent: Dict{Symbol, Union{Nothing, Bool, Int64, String}}(:ab => "ab", :Sa => nothing)
+    REPRODUCED showcov-terminfo-extended-labels
+  nightly: |
+    flag only: Dict{Symbol, Union{Nothing, Bool, Int64, String}}(:X => true)
+    last string absent: Dict{Symbol, Union{Nothing, Bool, Int64, String}}(:ab => "ab", :Sa => nothing)
+    REPRODUCED showcov-terminfo-extended-labels
+reproduced: {release: true, nightly: true}
+expected: |
+  Dict(:AX => true) and Dict(:Sa => "ab", :Sb => nothing).
+promised_by: |
+  base/terminfo.jl:103-108 (extendedterminfo docstring): "This will accept any terminfo
+  content that conforms with `term(5)`." term(5): the name offsets are relative to the
+  start of the names, which follow the string values in the string table.
+cause: |
+  base/terminfo.jl:131-132 derives the start of the names from the last string value
+  only; get(table_indices, 0, 0) is 0 when string_count == 0, and an absent last string
+  has offset -1 and length 0.
+possible_fix: |
+  Start the names after the end of all string values: the maximum over present strings of
+  offset + ncodeunits + 1, or 0 when there is none (ncurses sums the stored lengths).
+duplicates:
+  issues:
+    - {number: 51110, state: closed, relation: related}
+    - {number: 51190, state: closed, relation: related}
+  queries: ["terminfo extended", "extendedterminfo", "terminfo labels", "terminfo extended capability names", "terminfo string_count"]
+lean:
+  property: JuliaLean.ShowCov.ExtendedLabels
+  theorem: JuliaLean.ShowCov.extendedLabels_refuted

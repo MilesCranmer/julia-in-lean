@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build the Lean project, reject forbidden proof escapes, and audit the registry.
-# Writes .lake/audit.out.
+# Run from the package root. Writes .lake/audit.out.
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 

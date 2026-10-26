@@ -29,7 +29,7 @@ def rawDays : List Int := [0,1,-1,-365,-730,737090,737148,737152,
 def shifts : List Int := [-13,-1,0,1,2,13,9223372036854775807,-9223372036854775808]
 def periodInputs : List Int := [-9223372036854775808,-9223372036854775807,-25,-12,-1,0,1,12,25,9223372036854775807]
 
-/-- A Julia differential script constructs identical deterministic inputs.
+/-- Deterministic differential inputs.
 Rows exercise real source operations, including invalid fields and wrapped counts. -/
 def differential (release : Bool := false) : IO Unit := do
   for y in years do

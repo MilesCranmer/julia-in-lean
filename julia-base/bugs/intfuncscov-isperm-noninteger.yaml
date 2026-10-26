@@ -1,0 +1,76 @@
+id: intfuncscov-isperm-noninteger
+title: "isperm and invperm throw for vectors of non-Int numbers but accept the same tuples"
+priority: P3
+kind: wrong-exception
+area: IntFuncsCov
+files: [base/combinatorics.jl]
+functions: ["isperm(A)", "_isperm", "isperm(P::Tuple)", "invperm(a::AbstractVector)", "invperm(P::Tuple)"]
+summary: |
+  isperm([2.0, 1.0]) and isperm([true]) throw ArgumentError ("invalid index"), while
+  isperm((2.0, 1.0)) and isperm((true,)) return true. Likewise invperm((2.0, 1.0))
+  returns (2, 1) but invperm([2.0, 1.0]) throws. isperm([1.5, 2.0]) also throws instead of
+  returning false, contrary to its documented Bool result.
+likelihood: |
+  Low: permutations are normally integer vectors. Code that builds permutations as
+  Float64 or Bool arrays, or checks arbitrary input with isperm, gets an exception.
+maybe_intended: |
+  Non-integer arrays are arguably not permutations, so an error could be acceptable for
+  invperm. But isperm is documented as returning a Bool, and the tuple methods already
+  treat integer-valued floats as permutations, so the two code paths disagree.
+reproducer: |
+  res(f) = try f() catch e; sprint(showerror, e) end
+  t = res(() -> isperm((2.0, 1.0)))
+  v = res(() -> isperm([2.0, 1.0]))
+  tb = res(() -> isperm((true,)))
+  vb = res(() -> isperm([true]))
+  it = res(() -> invperm((2.0, 1.0)))
+  iv = res(() -> invperm([2.0, 1.0]))
+  println("isperm((2.0, 1.0)) = ", t)
+  println("isperm([2.0, 1.0]) = ", v)
+  println("isperm((true,)) = ", tb)
+  println("isperm([true]) = ", vb)
+  println("invperm((2.0, 1.0)) = ", it)
+  println("invperm([2.0, 1.0]) = ", iv)
+  if t === true && v isa String && startswith(v, "ArgumentError") && tb === true && vb isa String
+      println("REPRODUCED intfuncscov-isperm-noninteger")
+  else
+      println("not reproduced")
+  end
+output:
+  release: |
+    isperm((2.0, 1.0)) = true
+    isperm([2.0, 1.0]) = ArgumentError: invalid index: 2.0 of type Float64
+    isperm((true,)) = true
+    isperm([true]) = ArgumentError: invalid index: true of type Bool
+    invperm((2.0, 1.0)) = (2, 1)
+    invperm([2.0, 1.0]) = ArgumentError: invalid index: 2.0 of type Float64
+    REPRODUCED intfuncscov-isperm-noninteger
+  nightly: |
+    isperm((2.0, 1.0)) = true
+    isperm([2.0, 1.0]) = ArgumentError: invalid index: 2.0 of type Float64
+    isperm((true,)) = true
+    isperm([true]) = ArgumentError: invalid index: true of type Bool
+    invperm((2.0, 1.0)) = (2, 1)
+    invperm([2.0, 1.0]) = ArgumentError: invalid index: 2.0 of type Float64
+    REPRODUCED intfuncscov-isperm-noninteger
+reproduced: {release: true, nightly: true}
+expected: |
+  isperm returns a Bool for every input, and the vector and tuple forms agree (either
+  both true for [2.0, 1.0], or both false).
+promised_by: |
+  base/combinatorics.jl:63-66: "isperm(v)::Bool  Return true if v is a valid
+  permutation." Invariant: isperm(Tuple(v)) == isperm(v).
+cause: |
+  base/combinatorics.jl:82 indexes the BitVector `used` with the element itself
+  (used[a]), which throws for non-Int indices such as 2.0 or true. The tuple methods at
+  base/combinatorics.jl:87-99 and :303-314 compare with == instead. invperm at
+  base/combinatorics.jl:290-294 indexes b[j] the same way.
+possible_fix: |
+  Return false (or convert with Int(a) after an isinteger check) for non-integer elements
+  in _isperm, so that it returns a Bool and agrees with the tuple methods.
+duplicates:
+  issues: []
+  queries: ["isperm", "isperm float", "isperm ArgumentError", "invperm tuple"]
+lean:
+  property: JuliaLean.IntFuncsCov.Combinatorics.IspermTotal
+  theorem: JuliaLean.IntFuncsCov.Combinatorics.ispermTotal_refuted

@@ -1,0 +1,49 @@
+file	line	endline	name	signature	status	entry	note
+base/stat.jl	76	83	Base.:(==)	Base.:(==)(x::StatStruct, y::StatStruct)	modelled	files-method-stat-values	
+base/stat.jl	84	89	Base.hash	Base.hash(obj::StatStruct, h::UInt)	modelled	files-method-stat-values	
+base/stat.jl	91	91	StatStruct	StatStruct()	modelled	files-method-stat-values	
+base/stat.jl	92	92	StatStruct	StatStruct(buf::Union{Memory{UInt8},Vector{UInt8},Ptr{UInt8}}, ioerrno::Int32)	modelled	files-method-stat-values	
+base/stat.jl	93	108	StatStruct	StatStruct(desc::Union{AbstractString, OS_HANDLE}, buf::Union{Memory{UInt8},Vector{UInt8},Ptr{UInt8}}, ioerrno::Int32)	modelled	files-method-stat-values	
+base/stat.jl	110	122	iso_datetime_with_relative	iso_datetime_with_relative(t, tnow)	modelled	files-method-stat-display	
+base/stat.jl	125	130	getusername	getusername(uid::Unsigned)	modelled	files-method-stat-display	
+base/stat.jl	132	137	getgroupname	getgroupname(gid::Unsigned)	modelled	files-method-stat-display	
+base/stat.jl	139	179	show_statstruct	show_statstruct(io::IO, st::StatStruct, oneline::Bool)	modelled	files-method-stat-display	
+base/stat.jl	181	181	show	show(io::IO, st::StatStruct)	modelled	files-method-stat-display	
+base/stat.jl	182	182	show	"show(io::IO, ::MIME""text/plain"", st::StatStruct)"	modelled	files-method-stat-display	
+base/stat.jl	186	187	checkstat	checkstat(s::StatStruct)	modelled	files-method-stat-calls	
+base/stat.jl	189	197	stat_call	stat_call(sym, arg1type, arg)	modelled	files-method-stat-calls	
+base/stat.jl	199	199	stat	stat(fd::OS_HANDLE)	modelled	files-method-stat-calls	
+base/stat.jl	200	203	stat	stat(path::AbstractString)	modelled	files-method-stat-calls	
+base/stat.jl	204	207	lstat	lstat(path::AbstractString)	modelled	files-method-stat-calls	
+base/stat.jl	209	209	stat	stat(fd::RawFD)	modelled	files-method-stat-calls	
+base/stat.jl	237	237	stat	stat(path)	modelled	files-method-stat-calls	
+base/stat.jl	238	238	stat	stat(path...)	modelled	files-method-stat-calls	
+base/stat.jl	250	250	lstat	lstat(path)	modelled	files-method-stat-calls	
+base/stat.jl	251	251	lstat	lstat(path...)	modelled	files-method-stat-calls	
+base/stat.jl	310	310	filemode	filemode(st::StatStruct)	modelled	files-method-stat-fields	
+base/stat.jl	311	311	filemode_string	filemode_string(st::StatStruct)	modelled	files-method-stat-fields	
+base/stat.jl	312	326	filemode_string	filemode_string(mode)	modelled	files-method-stat-fields	
+base/stat.jl	338	338	filesize	filesize(st::StatStruct)	modelled	files-method-stat-fields	
+base/stat.jl	350	350	mtime	mtime(st::StatStruct)	modelled	files-method-stat-fields	
+base/stat.jl	362	362	ctime	ctime(st::StatStruct)	modelled	files-method-stat-fields	
+base/stat.jl	375	375	ispath	ispath(st::StatStruct)	modelled	files-method-stat-fields	
+base/stat.jl	376	384	ispath	ispath(path::String)	modelled	files-method-stat-paths	
+base/stat.jl	385	385	ispath	ispath(path::AbstractString)	modelled	files-method-stat-paths	
+base/stat.jl	394	394	isfifo	isfifo(st::StatStruct)	modelled	files-method-stat-fields	
+base/stat.jl	403	403	ischardev	ischardev(st::StatStruct)	modelled	files-method-stat-fields	
+base/stat.jl	422	422	isdir	isdir(st::StatStruct)	modelled	files-method-stat-fields	
+base/stat.jl	431	431	isblockdev	isblockdev(st::StatStruct)	modelled	files-method-stat-fields	
+base/stat.jl	459	459	isfile	isfile(st::StatStruct)	modelled	files-method-stat-fields	
+base/stat.jl	467	467	islink	islink(st::StatStruct)	modelled	files-method-stat-fields	
+base/stat.jl	475	475	issocket	issocket(st::StatStruct)	modelled	files-method-stat-fields	
+base/stat.jl	486	486	issetuid	issetuid(st::StatStruct)	modelled	files-method-stat-fields	
+base/stat.jl	495	495	issetgid	issetgid(st::StatStruct)	modelled	files-method-stat-fields	
+base/stat.jl	504	504	issticky	issticky(st::StatStruct)	modelled	files-method-stat-fields	
+base/stat.jl	543	543	uperm	uperm(st::StatStruct)	modelled	files-method-stat-fields	
+base/stat.jl	554	554	gperm	gperm(st::StatStruct)	modelled	files-method-stat-fields	
+base/stat.jl	566	566	operm	operm(st::StatStruct)	modelled	files-method-stat-fields	
+base/stat.jl	589	589	$f	($f)(path...)	modelled	files-method-stat-paths	generated-loop: f in Symbol[ :ispath, :isfifo, :ischardev, :isdir, :isblockdev, :isfile, :issocket, :issetuid, :issetgid, :issticky, :uperm, :gperm, :operm, :filemode, :filesize, :mtime, :ctime, ]
+base/stat.jl	592	592	islink	islink(path...)	modelled	files-method-stat-paths	
+base/stat.jl	595	597	samefile	samefile(a::StatStruct, b::StatStruct)	modelled	files-method-stat-paths	
+base/stat.jl	604	604	samefile	samefile(a::AbstractString, b::AbstractString)	modelled	files-method-stat-paths	
+base/stat.jl	612	625	ismount	ismount(path...)	modelled	files-method-stat-paths	

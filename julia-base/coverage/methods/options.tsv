@@ -1,0 +1,6 @@
+file	line	endline	name	signature	status	entry	note
+base/options.jl	85	85	JLOptions	JLOptions()	modelled	runtimecov-options	
+base/options.jl	93	103	colored_text	colored_text(opts::JLOptions)	modelled	runtimecov-options	
+base/options.jl	105	119	show	show(io::IO, opt::JLOptions)	modelled	runtimecov-options	
+base/options.jl	121	133	unsafe_load_commands	unsafe_load_commands(v::Ptr{Ptr{UInt8}})	modelled	runtimecov-options	
+base/options.jl	135	137	is_file_tracked	is_file_tracked(file::Symbol)	modelled	runtimecov-options	

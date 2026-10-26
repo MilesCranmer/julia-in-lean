@@ -4,6 +4,7 @@ Also checks that every refuted id in registry.tsv (when present) has a bug file
 and a reproducer. Prints one line per problem and exits nonzero on any.
 """
 
+import argparse
 import sys
 from pathlib import Path
 
@@ -62,6 +63,9 @@ def check(path: Path) -> list[str]:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.parse_args()
+
     files = sorted((ROOT / "bugs").glob("*.yaml"))
     problems = [p for f in files for p in check(f)]
     registry = ROOT / "registry.tsv"

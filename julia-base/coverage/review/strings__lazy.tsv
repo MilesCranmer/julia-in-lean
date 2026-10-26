@@ -1,0 +1,16 @@
+line	name	verdict	mirror	property	settled	reason
+41	_LazyString	FAITHFUL	yes	yes	yes	The model performs the two field conversions in source order, constructs the three fields exactly, states the constructor invariant for every conversion outcome, and is proven.
+42	LazyString	FAITHFUL	yes	yes	yes	The model stores every captured part and the Boolean compact flag with an empty cache, states that invariant for all typed inputs, and is proven.
+73	lazy_str	FAITHFUL	yes	yes	yes	The model follows flag validation, byte-indexed dollar search, literal slicing, parsing, escaping, tail handling, and construction in source order, while the proven property universally states documented flag behavior.
+89	String	FAITHFUL	yes	yes	yes	The model follows the acquired-cache fast path, ordered printing with the selected IO properties, failure propagation, and compare-exchange outcomes, and its universal case property is proven.
+103	hash	FAITHFUL	yes	yes	yes	The model materializes the lazy string before applying the String byte hash with the same seed, covers success and failure for all inputs, and is proven.
+104	lastindex	FAITHFUL	yes	yes	yes	The model materializes first and then delegates to the modelled String lastindex operation, covers both materialization outcomes, and is proven.
+105	iterate	FAITHFUL	yes	yes	yes	The model materializes first and then invokes String iteration at its default first index, covers both materialization outcomes, and is proven.
+106	iterate	HOLLOW	no	no	yes	The model collapses every non-Int Integer subtype to a mathematical value and hard-codes Int64 range conversion, so it neither mirrors unchanged delegated dispatch nor quantifies over custom Integer conversion behavior and failures.
+107	isequal	FAITHFUL	yes	yes	yes	The model materializes left then right with short-circuiting before applying String value equality, covers every success and failure branch, and is proven.
+108	==	FAITHFUL	yes	yes	yes	The model materializes left then right with short-circuiting before applying String equality, covers every success and failure branch, and is proven.
+109	ncodeunits	FAITHFUL	yes	yes	yes	The model materializes first and then delegates to the modelled String code-unit count, covers both materialization outcomes, and is proven.
+110	codeunit	HOLLOW	no	yes	yes	The Lean function hard-codes the UInt8 result and never models the source call to codeunit on the empty String.
+111	codeunit	HOLLOW	no	no	yes	The model collapses every non-Int Integer subtype to a mathematical value and hard-codes Int64 range conversion, so it neither mirrors unchanged delegated dispatch nor quantifies over custom Integer conversion behavior and failures.
+112	codeunits	FAITHFUL	yes	yes	yes	The model materializes first and then constructs the String CodeUnits wrapper, covers both materialization outcomes, and is proven.
+113	isvalid	HOLLOW	no	no	yes	The model collapses every non-Int Integer subtype to a mathematical value and hard-codes Int64 range conversion, so it neither mirrors unchanged delegated dispatch nor quantifies over custom Integer conversion behavior and failures.

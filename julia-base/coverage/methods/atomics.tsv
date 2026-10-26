@@ -1,0 +1,38 @@
+file	line	endline	name	signature	status	entry	note
+base/atomics.jl	68	68	Atomic{T}	Atomic{T}() where {T}	modelled	tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	69	69	Atomic{T}	Atomic{T}(value) where {T}	modelled	tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	72	72	Atomic	Atomic()	modelled	tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	75	75	lock_profiling	lock_profiling(state::Bool)	modelled	tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	76	76	lock_profiling	lock_profiling()	modelled	tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	79	79	inc_lock_conflict_count	inc_lock_conflict_count()	modelled	tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	114	114	atomic_cas!	atomic_cas!	excluded		no-behaviour: declares atomic_cas! without defining a method.
+base/atomics.jl	138	138	atomic_xchg!	atomic_xchg!	excluded		no-behaviour: declares atomic_xchg! without defining a method.
+base/atomics.jl	162	162	atomic_add!	atomic_add!	excluded		no-behaviour: declares atomic_add! without defining a method.
+base/atomics.jl	186	186	atomic_sub!	atomic_sub!	excluded		no-behaviour: declares atomic_sub! without defining a method.
+base/atomics.jl	209	209	atomic_and!	atomic_and!	excluded		no-behaviour: declares atomic_and! without defining a method.
+base/atomics.jl	232	232	atomic_nand!	atomic_nand!	excluded		no-behaviour: declares atomic_nand! without defining a method.
+base/atomics.jl	255	255	atomic_or!	atomic_or!	excluded		no-behaviour: declares atomic_or! without defining a method.
+base/atomics.jl	278	278	atomic_xor!	atomic_xor!	excluded		no-behaviour: declares atomic_xor! without defining a method.
+base/atomics.jl	301	301	atomic_max!	atomic_max!	excluded		no-behaviour: declares atomic_max! without defining a method.
+base/atomics.jl	324	324	atomic_min!	atomic_min!	excluded		no-behaviour: declares atomic_min! without defining a method.
+base/atomics.jl	327	327	nand	nand(x, y)	modelled	tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	329	329	getindex	getindex(x::Atomic)	modelled	tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	337	337	getindex_atomic	getindex_atomic(x::Atomic, order::Symbol)	modelled	tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	338	340	setindex_atomic!	setindex_atomic!(x::Atomic{T}, order::Symbol, v) where {T}	modelled	tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	341	343	swapindex_atomic!	swapindex_atomic!(x::Atomic{T}, order::Symbol, v) where {T}	modelled	tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	344	345	modifyindex_atomic!	modifyindex_atomic!(x::Atomic, order::Symbol, op, v)	modelled	tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	346	348	replaceindex_atomic!	replaceindex_atomic!(x::Atomic{T}, success_order::Symbol, fail_order::Symbol, expected, desired) where {T}	modelled	tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	349	351	setindexonce_atomic!	setindexonce_atomic!(x::Atomic{T}, success_order::Symbol, fail_order::Symbol, v) where {T}	modelled	tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	352	352	atomic_cas!	atomic_cas!(x::Atomic, cmp, new)	modelled	tasks-atomics-rmw,tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	353	353	atomic_add!	atomic_add!(x::Atomic, v)	modelled	tasks-atomics-rmw,tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	354	354	atomic_sub!	atomic_sub!(x::Atomic, v)	modelled	tasks-atomics-rmw,tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	355	355	atomic_and!	atomic_and!(x::Atomic, v)	modelled	tasks-atomics-rmw,tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	356	356	atomic_or!	atomic_or!(x::Atomic, v)	modelled	tasks-atomics-rmw,tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	357	357	atomic_xor!	atomic_xor!(x::Atomic, v)	modelled	tasks-atomics-rmw,tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	358	358	atomic_nand!	atomic_nand!(x::Atomic, v)	modelled	tasks-atomics-rmw,tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	359	359	atomic_xchg!	atomic_xchg!(x::Atomic, v)	modelled	tasks-atomics-rmw,tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	360	360	atomic_min!	atomic_min!(x::Atomic, v)	modelled	tasks-atomics-rmw,tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	361	361	atomic_max!	atomic_max!(x::Atomic, v)	modelled	tasks-atomics-rmw,tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	378	378	atomic_fence	atomic_fence()	modelled	tasks-coverage-atomics-fences	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	393	393	atomic_fence_light	atomic_fence_light()	modelled	tasks-coverage-atomics-fences	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	402	402	atomic_fence_heavy	atomic_fence_heavy()	modelled	tasks-coverage-atomics-fences	source-body: Lean model mirrors this method's branch and mutation order.

@@ -1,0 +1,58 @@
+id: reducecov-findmax-inplace-init
+title: "findmax!(rval, rind, A; init=false) ignores the values already in rval, unlike maximum!(r, A; init=false)"
+priority: P3
+kind: wrong-result
+area: ReduceCov
+files: [base/reducedim.jl]
+functions: ["findmax!(rval, rind, A; init)", "findmin!(rval, rind, A; init)"]
+summary: |
+  findmax! and findmin! accept init::Bool like maximum! and minimum!, but init=false
+  has no effect on the result: findmax!(fill(100.0, 1), zeros(Int, 1), [1.0, 2.0];
+  init=false) returns ([2.0], [2]) although rval already holds 100.0, while
+  maximum!(fill(100.0, 1), [1.0, 2.0]; init=false) returns [100.0].
+likelihood: |
+  Low: the init keyword of findmax! is not in its docstring, but it is part of the
+  signature and code written by analogy with maximum!(r, A; init=false) to
+  accumulate over several arrays silently loses the earlier results.
+maybe_intended: |
+  The findmax! docstring does not mention init; with init=false the function only
+  skips filling rval, and the earlier contents are ignored by design of the zero
+  index sentinel. If so, the keyword is dead and misleading.
+reproducer: |
+  findmax!(fill(100.0, 1), zeros(Int, 1), [1.0, 2.0]; init=false)  # ([2.0], [2])
+  maximum!(fill(100.0, 1), [1.0, 2.0]; init=false)                 # [100.0]
+output:
+  release: |
+    findmax!(fill(100.0, 1), zeros(Int, 1), [1.0, 2.0]; init=false) = ([2.0], [2])
+    maximum!(fill(100.0, 1), [1.0, 2.0]; init=false) = [100.0]
+    findmin!(fill(-100.0, 1), zeros(Int, 1), [1.0, 2.0]; init=false) = ([1.0], [1])
+    minimum!(fill(-100.0, 1), [1.0, 2.0]; init=false) = [-100.0]
+    REPRODUCED reducecov-findmax-inplace-init
+  nightly: |
+    findmax!(fill(100.0, 1), zeros(Int, 1), [1.0, 2.0]; init=false) = ([2.0], [2])
+    maximum!(fill(100.0, 1), [1.0, 2.0]; init=false) = [100.0]
+    findmin!(fill(-100.0, 1), zeros(Int, 1), [1.0, 2.0]; init=false) = ([1.0], [1])
+    minimum!(fill(-100.0, 1), [1.0, 2.0]; init=false) = [-100.0]
+    REPRODUCED reducecov-findmax-inplace-init
+reproduced: {release: true, nightly: true}
+expected: |
+  ([100.0], [0]) or another result that combines the existing rval and rind with A,
+  or no init keyword at all.
+promised_by: |
+  Consistency with maximum!(r, A; init=false) and minimum!, whose init=false keeps
+  and combines the values in r (base/reducedim.jl:1020-1021, 45-46).
+cause: |
+  base/reducedim.jl:1091-1094 and 1164-1167: rind is always replaced by
+  fill!(rind, zero(eltype(keys(A)))), and findminmax! (base/reducedim.jl:1032-1080)
+  overwrites the stored value whenever the stored index is zero
+  (tmpRi == zi || op(tmpRv, tmpAv)), so the old rval is never compared.
+possible_fix: |
+  Leave rind unchanged when init=false, or remove the init keyword from findmax! and
+  findmin!.
+duplicates:
+  issues:
+    - {number: 38660, state: open, relation: related}
+  queries: ["findmax! init", "findmin! init false", "findmax!"]
+lean:
+  property: JuliaLean.ReduceCov.Dims.FindInplaceInit
+  theorem: JuliaLean.ReduceCov.Dims.findInplaceInit_refuted

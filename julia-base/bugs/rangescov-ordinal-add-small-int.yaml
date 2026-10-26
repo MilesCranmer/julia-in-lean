@@ -1,0 +1,55 @@
+id: rangescov-ordinal-add-small-int
+title: "(Int8(126):Int8(127)) + (Int8(1):Int8(2)) is a range whose elements throw InexactError"
+priority: P2
+kind: wrong-exception
+area: RangesCov
+files: ["base/range.jl"]
+functions: ["+(::OrdinalRange, ::OrdinalRange)", "-(::OrdinalRange, ::OrdinalRange)"]
+summary: |
+  Adding two Int8 ordinal ranges returns StepRangeLen{Int8,Int8,Int8,Int64}; its elements are computed
+  in Int64 and converted exactly, so collect throws where elementwise Int8 addition wraps to [127, -127].
+likelihood: |
+  Needs small-integer ranges whose elementwise sums wrap; boundary cases of Int8/Int16/UInt8 data.
+maybe_intended: |
+  Same element computation as the r .* x case reported in #64133.
+reproducer: |
+  r, s = Int8(126):Int8(127), Int8(1):Int8(2)
+  println("collect(r) + collect(s) = ", collect(r) + collect(s))
+  bug = false
+  try
+      t = r + s
+      println(typeof(t))
+      println("collect(r + s) = ", collect(t))
+  catch e
+      println("collect(r + s) throws ", sprint(showerror, e))
+      global bug = e isa InexactError
+  end
+  bug && println("REPRODUCED rangescov-ordinal-add-small-int")
+output:
+  release: |
+    collect(r) + collect(s) = Int8[127, -127]
+    StepRangeLen{Int8, Int8, Int8, Int64}
+    collect(r + s) throws InexactError: trunc(Int8, 129)
+    REPRODUCED rangescov-ordinal-add-small-int
+  nightly: |
+    collect(r) + collect(s) = Int8[127, -127]
+    StepRangeLen{Int8, Int8, Int8, Int64}
+    collect(r + s) throws InexactError: trunc(Int8, 129)
+    REPRODUCED rangescov-ordinal-add-small-int
+reproduced: {release: true, nightly: true}
+expected: |
+  Int8[127, -127], the elementwise sum of the collected ranges.
+promised_by: |
+  + on arrays is elementwise (base/arraymath.jl); range arithmetic should agree with it.
+cause: |
+  base/range.jl:1498 builds StepRangeLen(first(r1)+first(r2), step(r1)+step(r2), r1l); unsafe_getindex
+  (base/range.jl:986-989) computes ref + u*step with u::Int and converts exactly.
+possible_fix: |
+  As for #64133: compute elements with wrapping arithmetic in T, or return a widened element type.
+duplicates:
+  issues:
+    - {number: 64133, state: open, relation: related}
+  queries: ["issues: range addition Int8 InexactError", "prs: range addition Int8 InexactError", "issues: StepRangeLen == elements"]
+lean:
+  property: JuliaLean.RangesCov.Ops.OrdinalAddElementwise
+  theorem: JuliaLean.RangesCov.Ops.ordinalAddElementwise_refuted

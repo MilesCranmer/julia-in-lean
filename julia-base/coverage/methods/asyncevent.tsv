@@ -1,0 +1,26 @@
+file	line	endline	name	signature	status	entry	note
+base/asyncevent.jl	23	38	AsyncCondition	AsyncCondition()	modelled	streams-method-asyncevent-l23	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	47	70	AsyncCondition	AsyncCondition(cb::Function)	modelled	streams-method-asyncevent-l47	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	129	150	Timer	Timer(timeout::Real; interval::Real = 0.0)	modelled	streams-method-asyncevent-l129	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	152	161	getproperty	getproperty(t::Timer, f::Symbol)	modelled	streams-method-asyncevent-l152	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	162	162	propertynames	propertynames(::Timer)	modelled	streams-method-asyncevent-l162	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	164	169	show	show(io::IO, t::Timer)	modelled	streams-method-asyncevent-l164	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	171	171	unsafe_convert	unsafe_convert(::Type{Ptr{Cvoid}}, t::Timer)	modelled	streams-method-asyncevent-l171	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	172	172	unsafe_convert	unsafe_convert(::Type{Ptr{Cvoid}}, async::AsyncCondition)	modelled	streams-method-asyncevent-l172	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	177	178	_trywait	_trywait(t::Union{Timer, AsyncCondition}; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-asyncevent-l177	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	179	233	_trywait	_trywait(t::Union{Timer, AsyncCondition}, tok::MaybeToken)	modelled	streams-method-asyncevent-l179	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	235	235	waitqueue	waitqueue(t::Union{Timer, AsyncCondition})	modelled	streams-method-asyncevent-l235	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	237	238	wait	wait(t::Union{Timer, AsyncCondition}; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-asyncevent-l237	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	239	244	wait	wait(t::Union{Timer, AsyncCondition}, tok::MaybeToken)	modelled	streams-method-asyncevent-l239	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	247	247	isopen	isopen(t::Union{Timer, AsyncCondition})	modelled	streams-method-asyncevent-l247	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	257	292	close	close(t::Union{Timer, AsyncCondition})	modelled	streams-method-asyncevent-l257	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	294	312	uvfinalize	uvfinalize(t::Union{Timer, AsyncCondition})	modelled	streams-method-asyncevent-l294	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	314	326	_uv_hook_close	_uv_hook_close(t::Union{Timer, AsyncCondition})	modelled	streams-method-asyncevent-l314	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	328	338	uv_asynccb	uv_asynccb(handle::Ptr{Cvoid})	modelled	streams-method-asyncevent-l328	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	340	359	uv_timercb	uv_timercb(handle::Ptr{Cvoid})	modelled	streams-method-asyncevent-l340	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	371	381	sleep	sleep(sec::Real; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-asyncevent-l371	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	421	454	Timer	Timer(cb::Function, timeout; spawn::Union{Nothing,Bool}=nothing, kwargs...)	modelled	streams-method-asyncevent-l421	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	478	496	timedwait	timedwait(testcb, timeout::Real; pollint::Real=0.1)	modelled	streams-method-asyncevent-l478	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	512	512	TimeoutWait	TimeoutWait(timeout::Real)	modelled	streams-method-asyncevent-l512	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	515	537	wait_enqueue!	wait_enqueue!(x::TimeoutWait, w::WaitEntry, first::Bool)	modelled	streams-method-asyncevent-l515	method-specific source model and quantified all-input behavior property
+base/asyncevent.jl	539	544	wait_dequeue!	wait_dequeue!(x::TimeoutWait, w::WaitEntry, why::UInt8)	modelled	streams-method-asyncevent-l539	method-specific source model and quantified all-input behavior property

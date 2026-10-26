@@ -210,7 +210,7 @@ def fma (x y z : F64) : F64 :=
       (a.2 * b.2 * c.2) (negative && signbit z)
 
 /--
-`base/float.jl:492`: the fused x86-64 interpretation of `muladd_float`.
+`base/float.jl:492`: the fused x86 interpretation of `muladd_float`.
 Julia permits contraction with surrounding expressions and compiler-dependent
 results; this fixes the single-call fused interpretation for this model.
 -/

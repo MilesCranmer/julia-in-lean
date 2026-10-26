@@ -1,0 +1,6 @@
+file	line	endline	name	signature	status	entry	note
+base/scope.jl	28	28	Scope	Scope(scope::Scope)	modelled	misccov-scope	
+base/scope.jl	30	36	Scope	Scope(parent::Union{Nothing, Scope}, key::AbstractScopedValue{T}, value) where T	modelled	misccov-scope	
+base/scope.jl	38	40	Scope	Scope(scope, pair::Pair{<:AbstractScopedValue})	modelled	misccov-scope	
+base/scope.jl	42	46	Scope	Scope(scope, pair1::Pair{<:AbstractScopedValue}, pair2::Pair{<:AbstractScopedValue}, pairs::Pair{<:AbstractScopedValue}...)	modelled	misccov-scope	
+base/scope.jl	47	47	Scope	Scope(::Nothing)	modelled	misccov-scope	

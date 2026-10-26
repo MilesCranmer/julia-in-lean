@@ -38,13 +38,13 @@ def entries : List Entry := [
     statement := "For a fast linear view(A, r, c2, ..., ck) with a range r and integer scalars, V[i] reads the parent at the linear index of (r[i], c2, ..., ck), for every in-bounds view of a parent whose length is an Int."
     source := "base/subarray.jl:175-183 (view docstring)", status := .proven
     prop := ``ViewIndexCorrect, thm := some ``viewIndexCorrect
-    notes := "Wrapping Int arithmetic in offset1/stride1 cancels modulo 2^64. Strides and pointers of random views and reshaped views also matched element addresses in Julia (28593 cases)." },
+    notes := "Wrapping Int arithmetic in offset1/stride1 cancels modulo 2^64. Strides and pointers of random views and reshaped views also matched element addresses (28593 cases)." },
   { id := "reinterpretarrays-permuted-index", juliaFile := "base/permuteddimsarray.jl"
     juliaFns := ["PermutedDimsArray(A, perm)", "getindex(::PermutedDimsArray, I...)", "invperm", "isperm"]
     statement := "PermutedDimsArray(A, perm) with Int entries is constructed exactly when perm is a permutation of 1:N, and B[I...] reads A[J...] with J[perm[d]] == I[d], in bounds whenever I is in bounds of size(B)."
     source := "base/permuteddimsarray.jl:20-40 (PermutedDimsArray docstring: B[3,1,2] == A[1,2,3])", status := .proven
     prop := ``PermutedCorrect, thm := some ``permutedCorrect
-    notes := "Element access, permutedims, permutedims!, copyto! and dims-reductions also agreed with the reference in Julia for all 3-d permutations and several sizes including empty ones." },
+    notes := "Element access, permutedims, permutedims!, copyto! and dims-reductions also agreed with the reference for all 3-d permutations and several sizes including empty ones." },
   { id := "reinterpretarrays-ra-getindex-bytes", juliaFile := "base/reinterpretarray.jl"
     juliaFns := ["getindex(::ReinterpretArray, i1, tailinds...)", "_getindex_ra(::NonReshapedReinterpretArray)"]
     statement := "reinterpret(T, A)[i1, J...] returns exactly the sizeof(T) parent bytes starting at byte (i1-1)*sizeof(T) of column J (all three _getindex_ra branches), and throws BoundsError outside 1:size(R, 1)."

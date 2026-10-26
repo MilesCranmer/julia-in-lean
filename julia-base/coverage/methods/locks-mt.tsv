@@ -1,0 +1,8 @@
+file	line	endline	name	signature	status	entry	note
+base/locks-mt.jl	46	46	SpinLock	SpinLock()	modelled	concurrencycov-locks-mt-SpinLock	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/locks-mt.jl	70	74	PaddedSpinLock	PaddedSpinLock()	modelled	concurrencycov-locks-mt-PaddedSpinLock	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/locks-mt.jl	79	79	Base.assert_havelock	Base.assert_havelock(l::AbstractSpinLock)	modelled	concurrencycov-locks-mt-assert-havelock	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/locks-mt.jl	81	90	lock	lock(l::AbstractSpinLock)	modelled	concurrencycov-locks-mt-lock	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/locks-mt.jl	92	102	trylock	trylock(l::AbstractSpinLock)	modelled	concurrencycov-locks-mt-trylock	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/locks-mt.jl	104	111	unlock	unlock(l::AbstractSpinLock)	modelled	concurrencycov-locks-mt-unlock	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/locks-mt.jl	113	115	islocked	islocked(l::AbstractSpinLock)	modelled	concurrencycov-locks-mt-islocked	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.

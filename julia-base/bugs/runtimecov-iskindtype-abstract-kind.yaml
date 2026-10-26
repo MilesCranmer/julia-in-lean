@@ -1,0 +1,56 @@
+id: runtimecov-iskindtype-abstract-kind
+title: "`Base.iskindtype` accepts the abstract `Core.AnyType`, but its docstring says all kinds are concrete"
+priority: P3
+kind: documentation
+area: RuntimeCov
+files: [base/runtime_internals.jl]
+functions: ["iskindtype(::Any)"]
+summary: |
+  On master the `iskindtype` docstring says a kind is "a `DataType`, `Union`,
+  `UnionAll`, or `Core.TypeofBottom`" and that "All kinds are concrete because
+  types are Julia values." The method also returns `true` for `Core.AnyType`,
+  `TypeEq` and `Core.TypeEgal`. `Core.AnyType` is created by
+  `jl_new_abstracttype` (src/jltypes.c:3595), so `iskindtype(Core.AnyType)` is
+  `true` while `isconcretetype(Core.AnyType)` is `false` and
+  `isabstracttype(Core.AnyType)` is `true`. The docstring's list of kinds is
+  also missing the three newer kinds.
+likelihood: |
+  Master only (`Core.AnyType` does not exist in 1.13.2). Callers that rely on the
+  documented "kind implies concrete" fact, for example to skip a concreteness
+  check after `iskindtype`, get the wrong answer for `Core.AnyType`.
+maybe_intended: |
+  `Core.AnyType` may be listed on purpose as the supertype of all kinds; then
+  only the docstring is wrong.
+reproducer: |
+  Base.iskindtype(Core.AnyType), isconcretetype(Core.AnyType)   # (true, false)
+output:
+  release: |
+    Core.AnyType does not exist in 1.13.2
+  nightly: |
+    iskindtype(Core.AnyType) = true
+    isconcretetype(Core.AnyType) = false
+    isabstracttype(Core.AnyType) = true
+    REPRODUCED runtimecov-iskindtype-abstract-kind
+reproduced: {release: false, nightly: true}
+expected: |
+  Either `iskindtype(Core.AnyType) == false`, or a docstring that lists all seven
+  kinds and does not claim that every kind is concrete.
+promised_by: |
+  base/runtime_internals.jl:1041-1048 (iskindtype docstring).
+cause: |
+  base/runtime_internals.jl:1049 includes `t === Core.AnyType` (and `TypeEq`,
+  `Core.TypeEgal`) in the test, added with the `Type{}` refactor (#61915), while
+  the docstring was not updated.
+possible_fix: |
+  Update the docstring to list `Core.AnyType`, `TypeEq` and `Core.TypeEgal` and
+  to say that every kind except the abstract `Core.AnyType` is concrete, or drop
+  `Core.AnyType` from the test if it should not count as a kind.
+duplicates:
+  issues: []
+  prs:
+    - {number: 61915, state: merged, relation: related}
+    - {number: 58774, state: merged, relation: related}
+  queries: ["iskindtype", "AnyType abstract kind", "iskindtype docstring"]
+lean:
+  property: JuliaLean.RuntimeCov.TypePreds.KindsConcrete
+  theorem: JuliaLean.RuntimeCov.TypePreds.kindsConcrete_refuted

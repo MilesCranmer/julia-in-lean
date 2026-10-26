@@ -1,0 +1,54 @@
+id: stringscovb-isassigned-negative
+title: Unicode.isassigned(x) throws InexactError for negative integers instead of returning false
+priority: P3
+kind: wrong-exception
+area: StringsCovB
+files:
+- base/strings/unicode.jl
+functions:
+- isassigned(c)
+- category_code(x::Integer)
+- category_string(c)
+summary: |
+  category_code(x::Integer) only guards x <= 0x10ffff before UInt32(x), so a negative
+  integer throws InexactError. Unicode.isassigned(-1), category_code(-1) and
+  category_string(-1) all throw, while isassigned(0x110000) returns false.
+likelihood: |
+  Code testing arbitrary integers (for example parsed values) with Unicode.isassigned.
+maybe_intended: ''
+reproducer: |
+  using Base.Unicode: isassigned
+  r = try isassigned(-1) catch e e end
+  println("isassigned(-1) -> ", repr(r))
+  println("isassigned(0x110000) -> ", isassigned(0x110000))
+  r isa InexactError && println("REPRODUCED stringscovb-isassigned-negative")
+output:
+  release: |
+    isassigned(-1) -> InexactError(:trunc, (UInt32, -1))
+    isassigned(0x110000) -> false
+    REPRODUCED stringscovb-isassigned-negative
+  nightly: |
+    isassigned(-1) -> InexactError(:trunc, (UInt32, -1))
+    isassigned(0x110000) -> false
+    REPRODUCED stringscovb-isassigned-negative
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  false: a negative integer is not an assigned code point.
+promised_by: "stdlib/Unicode/src/Unicode.jl (isassigned docstring): \"Return true if the given char or integer\nis an assigned Unicode code point.\" \n"
+cause: |
+  base/strings/unicode.jl:380-382: `x ≤ 0x10ffff ? utf8proc_category(UInt32(x)) : Cint(30)` converts
+  negative x with UInt32.
+possible_fix: |
+  Use `0 ≤ x ≤ 0x10ffff` (returning 30 or another invalid code otherwise).
+duplicates:
+  issues: []
+  queries:
+  - 'issues: isassigned negative'
+  - 'prs: isassigned negative'
+  - 'issues: Unicode.isassigned InexactError'
+  - 'issues: isassigned'
+lean:
+  property: JuliaLean.StringsCovB.Uni.IsassignedTotal
+  theorem: JuliaLean.StringsCovB.Uni.isassignedTotal_refuted

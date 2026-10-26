@@ -1,0 +1,72 @@
+file	line	endline	name	signature	status	entry	note
+base/regex.jl	29	45	Regex	Regex(pattern::AbstractString, compile_options::Integer, match_options::Integer)	modelled	stringscovb-regex-constructor,stringscovb-regex-show-flags,stringscovb-regex-execute-mask	Lean property and source-matched model cited by entry.
+base/regex.jl	48	67	Regex	Regex(pattern::AbstractString, flags::AbstractString)	modelled	stringscovb-regex-constructor,stringscovb-regex-show-flags,stringscovb-regex-execute-mask	Lean property and source-matched model cited by entry.
+base/regex.jl	68	68	Regex	Regex(pattern::AbstractString)	modelled	stringscovb-regex-constructor,stringscovb-regex-show-flags,stringscovb-regex-execute-mask	Lean property and source-matched model cited by entry.
+base/regex.jl	70	89	compile	compile(regex::Regex)	modelled	stringscovb-regex-constructor	Lean property and source-matched model cited by entry.
+base/regex.jl	123	123	r_str	r_str(pattern, flags...)	modelled	stringscovb-regex-show-flags	Lean property and source-matched model cited by entry.
+base/regex.jl	125	159	show	show(io::IO, re::Regex)	modelled	stringscovb-regex-show-flags	Lean property and source-matched model cited by entry.
+base/regex.jl	234	236	RegexMatch	RegexMatch(match::SubString{S}, captures::Vector{Union{Nothing,SubString{S}}}, offset::Union{Int, UInt}, offsets::Vector{Int}, regex::Regex) where {S<:AbstractString}	modelled	stringscovb-regex-match	Lean property and source-matched model cited by entry.
+base/regex.jl	260	266	keys	keys(m::RegexMatch)	modelled	regexunicode-dupnames-haskey	Lean property and source-matched model cited by entry.
+base/regex.jl	268	283	show	show(io::IO, m::RegexMatch)	modelled	stringscovb-regex-misc	Lean property and source-matched model cited by entry.
+base/regex.jl	286	286	getindex	getindex(m::RegexMatch, idx::Integer)	modelled	stringscovb-regex-match	Lean property and source-matched model cited by entry.
+base/regex.jl	287	291	getindex	getindex(m::RegexMatch, name::Union{AbstractString,Symbol})	modelled	stringscovb-regex-match	Lean property and source-matched model cited by entry.
+base/regex.jl	293	293	haskey	haskey(m::RegexMatch, idx::Integer)	modelled	stringscovb-regex-match,stringscovb-haskey-nul	Lean property and source-matched model cited by entry.
+base/regex.jl	294	297	haskey	haskey(m::RegexMatch, name::Union{AbstractString,Symbol})	modelled	stringscovb-regex-match,stringscovb-haskey-nul	Lean property and source-matched model cited by entry.
+base/regex.jl	299	299	iterate	iterate(m::RegexMatch, args...)	modelled	stringscovb-regex-match	Lean property and source-matched model cited by entry.
+base/regex.jl	300	300	length	length(m::RegexMatch)	modelled	stringscovb-regex-match	Lean property and source-matched model cited by entry.
+base/regex.jl	301	301	eltype	eltype(m::RegexMatch)	modelled	stringscovb-regex-match	Lean property and source-matched model cited by entry.
+base/regex.jl	303	303	NamedTuple	NamedTuple(m::RegexMatch)	modelled	stringscovb-regex-match	Lean property and source-matched model cited by entry.
+base/regex.jl	304	304	Dict	Dict(m::RegexMatch)	modelled	stringscovb-regex-match	Lean property and source-matched model cited by entry.
+base/regex.jl	306	309	occursin	occursin(r::Regex, s::AbstractString; offset::Integer=0)	modelled	stringscovb-regex-exec-free,stringscovb-match-data-leak	Lean property and source-matched model cited by entry.
+base/regex.jl	311	314	occursin	occursin(r::Regex, s::DenseUTF8String; offset::Integer=0)	modelled	stringscovb-regex-exec-free,stringscovb-match-data-leak	Lean property and source-matched model cited by entry.
+base/regex.jl	338	341	startswith	startswith(s::AbstractString, r::Regex)	modelled	stringscovb-regex-exec-free,stringscovb-match-data-leak	Lean property and source-matched model cited by entry.
+base/regex.jl	343	346	startswith	startswith(s::DenseUTF8String, r::Regex)	modelled	stringscovb-regex-exec-free,stringscovb-match-data-leak	Lean property and source-matched model cited by entry.
+base/regex.jl	370	373	endswith	endswith(s::AbstractString, r::Regex)	modelled	stringscovb-regex-exec-free,stringscovb-match-data-leak	Lean property and source-matched model cited by entry.
+base/regex.jl	375	378	endswith	endswith(s::DenseUTF8String, r::Regex)	modelled	stringscovb-regex-exec-free,stringscovb-match-data-leak	Lean property and source-matched model cited by entry.
+base/regex.jl	380	384	chopprefix	chopprefix(s::AbstractString, prefix::Regex)	modelled	stringscovb-regex-chop	Lean property and source-matched model cited by entry.
+base/regex.jl	386	391	chopsuffix	chopsuffix(s::AbstractString, suffix::Regex)	modelled	stringscovb-regex-chop	Lean property and source-matched model cited by entry.
+base/regex.jl	428	428	match	match	modelled	stringscovb-match-data-leak,stringscovb-regex-misc	Lean property and source-matched model cited by entry.
+base/regex.jl	430	454	match	match(re::Regex, str::DenseUTF8String, idx::Integer, add_opts::UInt32=UInt32(0))	modelled	stringscovb-match-data-leak,stringscovb-regex-misc	Lean property and source-matched model cited by entry.
+base/regex.jl	456	464	_annotatedmatch	_annotatedmatch(m::RegexMatch{S}, str::AnnotatedString{S}) where {S<:AbstractString}	modelled	stringscovb-regex-misc	Lean property and source-matched model cited by entry.
+base/regex.jl	466	471	match	match(re::Regex, str::AnnotatedString)	modelled	stringscovb-match-data-leak,stringscovb-regex-misc	Lean property and source-matched model cited by entry.
+base/regex.jl	473	478	match	match(re::Regex, str::AnnotatedString, idx::Integer, add_opts::UInt32=UInt32(0))	modelled	stringscovb-match-data-leak,stringscovb-regex-misc	Lean property and source-matched model cited by entry.
+base/regex.jl	480	480	match	match(r::Regex, s::AbstractString)	modelled	stringscovb-match-data-leak,stringscovb-regex-misc	Lean property and source-matched model cited by entry.
+base/regex.jl	481	483	match	match(r::Regex, s::AbstractString, i::Integer)	modelled	stringscovb-match-data-leak,stringscovb-regex-misc	Lean property and source-matched model cited by entry.
+base/regex.jl	485	487	findnext	findnext(re::Regex, str::DenseUTF8String, idx::Integer)	modelled	stringscovb-match-data-leak,stringscovb-regex-pat-replacer	Lean property and source-matched model cited by entry.
+base/regex.jl	491	512	_findnext_re	_findnext_re(re::Regex, str, idx::Integer, match_data::Ptr{Cvoid})	modelled	regexunicode-findnext-range,regexunicode-findnext-start-below	Lean property and source-matched model cited by entry.
+base/regex.jl	513	515	findnext	findnext(r::Regex, s::AbstractString, idx::Integer)	modelled	stringscovb-match-data-leak,stringscovb-regex-pat-replacer	Lean property and source-matched model cited by entry.
+base/regex.jl	516	516	findfirst	findfirst(r::Regex, s::AbstractString)	modelled	regexunicode-eachmatch-offset-inside-malformed	Lean property and source-matched model cited by entry.
+base/regex.jl	536	536	findall	findall(c::AbstractChar, s::AbstractString)	modelled	regexunicode-count-findall	Lean property and source-matched model cited by entry.
+base/regex.jl	573	585	count	count(t::Union{AbstractChar,AbstractString,AbstractPattern}, s::AbstractString; overlap::Bool=false)	modelled	regexunicode-count-findall	Lean property and source-matched model cited by entry.
+base/regex.jl	609	609	ncodeunits	ncodeunits(s::SubstitutionString)	modelled	stringscovb-regex-misc	Lean property and source-matched model cited by entry.
+base/regex.jl	610	610	codeunit	codeunit(s::SubstitutionString)	modelled	stringscovb-regex-misc	Lean property and source-matched model cited by entry.
+base/regex.jl	611	611	codeunit	codeunit(s::SubstitutionString, i::Integer)	modelled	stringscovb-regex-misc	Lean property and source-matched model cited by entry.
+base/regex.jl	612	612	isvalid	isvalid(s::SubstitutionString, i::Integer)	modelled	stringscovb-regex-misc	Lean property and source-matched model cited by entry.
+base/regex.jl	613	613	iterate	iterate(s::SubstitutionString, i::Integer...)	modelled	stringscovb-regex-misc	Lean property and source-matched model cited by entry.
+base/regex.jl	615	619	show	show(io::IO, s::SubstitutionString)	modelled	stringscovb-regex-misc	Lean property and source-matched model cited by entry.
+base/regex.jl	636	636	s_str	s_str(string)	modelled	stringscovb-regex-misc	Lean property and source-matched model cited by entry.
+base/regex.jl	643	643	RegexAndMatchData	RegexAndMatchData(re::Regex)	modelled	stringscovb-regex-pat-replacer	Lean property and source-matched model cited by entry.
+base/regex.jl	646	646	findnext	findnext(pat::RegexAndMatchData, str, i)	modelled	stringscovb-match-data-leak,stringscovb-regex-pat-replacer	Lean property and source-matched model cited by entry.
+base/regex.jl	648	648	_pat_replacer	_pat_replacer(r::Regex)	modelled	stringscovb-regex-pat-replacer	Lean property and source-matched model cited by entry.
+base/regex.jl	650	650	_free_pat_replacer	_free_pat_replacer(r::RegexAndMatchData)	modelled	stringscovb-regex-pat-replacer	Lean property and source-matched model cited by entry.
+base/regex.jl	652	652	replace_err	replace_err(repl)	modelled	stringscovb-regex-misc	Lean property and source-matched model cited by entry.
+base/regex.jl	654	664	_write_capture	_write_capture(io::IO, group::Int, str, r, re::RegexAndMatchData)	todo		
+base/regex.jl	665	668	_write_capture	_write_capture(io::IO, group::Int, str, r, re)	modelled	stringscovb-regex-misc	Lean property and source-matched model cited by entry.
+base/regex.jl	675	733	_replace	_replace(io, repl_s::SubstitutionString, str, r, re)	modelled	regexunicode-subst-empty-group-name,regexunicode-subst-group-overflow,regexunicode-subst-literal	Lean property and source-matched model cited by entry.
+base/regex.jl	740	741	RegexMatchIterator	RegexMatchIterator(regex::Regex, string::AbstractString, ovr::Bool=false)	modelled	stringscovb-regex-misc	Lean property and source-matched model cited by entry.
+base/regex.jl	742	743	RegexMatchIterator	RegexMatchIterator(regex::Regex, string::AnnotatedString, ovr::Bool=false)	modelled	stringscovb-regex-misc	Lean property and source-matched model cited by entry.
+base/regex.jl	745	745	compile	compile(itr::RegexMatchIterator)	modelled	stringscovb-regex-misc	Lean property and source-matched model cited by entry.
+base/regex.jl	746	746	eltype	eltype(::Type{<:RegexMatchIterator})	modelled	stringscovb-regex-misc	Lean property and source-matched model cited by entry.
+base/regex.jl	747	747	IteratorSize	IteratorSize(::Type{<:RegexMatchIterator})	modelled	stringscovb-regex-misc	Lean property and source-matched model cited by entry.
+base/regex.jl	749	777	iterate	iterate(itr::RegexMatchIterator, (offset,prevempty)=(1,false))	modelled	regexunicode-eachmatch-offset-inside-malformed,regexunicode-eachmatch-progress	Lean property and source-matched model cited by entry.
+base/regex.jl	809	810	eachmatch	eachmatch(re::Regex, str::AbstractString; overlap = false)	modelled	regexunicode-eachmatch-offset-inside-malformed,regexunicode-eachmatch-progress	Lean property and source-matched model cited by entry.
+base/regex.jl	814	816	==	==(a::Regex, b::Regex)	modelled	stringscovb-regex-eq-hash	Lean property and source-matched model cited by entry.
+base/regex.jl	820	825	hash	hash(r::Regex, h::UInt)	modelled	stringscovb-regex-eq-hash	Lean property and source-matched model cited by entry.
+base/regex.jl	856	875	*	*(r1::Union{Regex,AbstractString,AbstractChar}, rs::Union{Regex,AbstractString,AbstractChar}...)	modelled	stringscovb-regex-multiply	Lean property and source-matched model cited by entry.
+base/regex.jl	877	877	*	*(r::Regex)	modelled	stringscovb-regex-multiply	Lean property and source-matched model cited by entry.
+base/regex.jl	879	879	wrap_string	wrap_string(r::Regex, unshared::UInt32)	modelled	regexunicode-regex-concat-comment	Lean property and source-matched model cited by entry.
+base/regex.jl	881	881	wrap_string	wrap_string(s::AbstractString, ::UInt32)	modelled	regexunicode-concat-quote	Lean property and source-matched model cited by entry.
+base/regex.jl	882	882	wrap_string	wrap_string(s::AbstractChar, ::UInt32)	modelled	stringscovb-regex-opts-str	Lean property and source-matched model cited by entry.
+base/regex.jl	884	884	regex_opts_str	regex_opts_str(opts)	modelled	stringscovb-regex-opts-str	Lean property and source-matched model cited by entry.
+base/regex.jl	889	909	init_regex	init_regex()	modelled	stringscovb-regex-opts-str	Lean property and source-matched model cited by entry.
+base/regex.jl	929	929	^	^(r::Regex, i::Integer)	modelled	regexunicode-regex-pow-negative	Lean property and source-matched model cited by entry.

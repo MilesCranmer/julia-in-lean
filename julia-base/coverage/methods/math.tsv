@@ -1,0 +1,91 @@
+file	line	endline	name	signature	status	entry	note
+base/math.jl	32	35	throw_complex_domainerror	throw_complex_domainerror(f::Symbol, x)	modelled	mathcov-math-l32	method-specific source model and quantified behavior property
+base/math.jl	36	39	throw_complex_domainerror_neg1	throw_complex_domainerror_neg1(f::Symbol, x)	modelled	mathcov-math-l36	method-specific source model and quantified behavior property
+base/math.jl	40	42	throw_finite_domainerror	throw_finite_domainerror(f::Symbol, x)	modelled	mathcov-math-l40	method-specific source model and quantified behavior property
+base/math.jl	43	48	throw_exp_domainerror	throw_exp_domainerror(x)	modelled	mathcov-math-l43	method-specific source model and quantified behavior property
+base/math.jl	75	86	evalpoly	evalpoly(x, p::Tuple)	modelled	mathfuncs-evalpoly-empty,mathfuncs-evalpoly-one	source model and quantified behavior property
+base/math.jl	88	88	evalpoly	evalpoly(x, p::AbstractVector)	modelled	mathfuncs-evalpoly-empty	source model and quantified behavior property
+base/math.jl	90	98	_evalpoly	_evalpoly(x, p)	modelled	mathcov-math-l90	method-specific source model and quantified behavior property
+base/math.jl	100	124	evalpoly	evalpoly(z::Complex, p::Tuple)	modelled	mathcov-math-l100	method-specific source model and quantified behavior property
+base/math.jl	125	125	evalpoly	evalpoly(z::Complex, p::Tuple{<:Any})	modelled	mathcov-math-l125	method-specific source model and quantified behavior property
+base/math.jl	128	128	evalpoly	evalpoly(z::Complex, p::AbstractVector)	modelled	mathcov-math-l128	method-specific source model and quantified behavior property
+base/math.jl	130	148	_evalpoly	_evalpoly(z::Complex, p)	modelled	mathcov-math-l130	method-specific source model and quantified behavior property
+base/math.jl	157	160	horner	horner(x, p...)	modelled	mathcov-math-l157	method-specific source model and quantified behavior property
+base/math.jl	189	192	evalpoly	evalpoly(z, p...)	modelled	mathcov-math-l189	method-specific source model and quantified behavior property
+base/math.jl	196	201	exthorner	exthorner(x::T, p::Tuple{T,T,T}) where T<:Union{Float32,Float64}	modelled	mathcov-math-l196	method-specific source model and quantified behavior property
+base/math.jl	203	210	_exthorner	_exthorner(i::Int, x::T, p::Tuple{T,T,T}, hi::T, lo::T) where T<:Union{Float32,Float64}	modelled	mathcov-math-l203	method-specific source model and quantified behavior property
+base/math.jl	213	215	_180_over_pi	_180_over_pi(z::AbstractFloat)	modelled	mathcov-math-l213	method-specific source model and quantified behavior property
+base/math.jl	216	218	_pi_over_180	_pi_over_180(z::AbstractFloat)	modelled	mathcov-math-l216	method-specific source model and quantified behavior property
+base/math.jl	221	221	_180_over_pi	_180_over_pi(::Float16)	modelled	mathcov-math-l221	method-specific source model and quantified behavior property
+base/math.jl	222	222	_180_over_pi	_180_over_pi(::Float32)	modelled	mathcov-math-l222	method-specific source model and quantified behavior property
+base/math.jl	223	223	_pi_over_180	_pi_over_180(::Float16)	modelled	mathcov-math-l223	method-specific source model and quantified behavior property
+base/math.jl	238	238	rad2deg	rad2deg(z::AbstractFloat)	modelled	mathcov-math-l238	method-specific source model and quantified behavior property
+base/math.jl	253	253	deg2rad	deg2rad(z::AbstractFloat)	modelled	mathcov-math-l253	method-specific source model and quantified behavior property
+base/math.jl	254	254	rad2deg	rad2deg(z::Real)	modelled	mathcov-math-l254	method-specific source model and quantified behavior property
+base/math.jl	255	255	deg2rad	deg2rad(z::Real)	modelled	mathcov-math-l255	method-specific source model and quantified behavior property
+base/math.jl	256	256	rad2deg	rad2deg(z::Number)	modelled	mathcov-math-l256	method-specific source model and quantified behavior property
+base/math.jl	257	257	deg2rad	deg2rad(z::Number)	modelled	mathcov-math-l257	method-specific source model and quantified behavior property
+base/math.jl	259	259	log	log(b::T, x::T) where {T<:Number}	modelled	mathcov-math-l259	method-specific source model and quantified behavior property
+base/math.jl	304	304	log	log(b::Number, x::Number)	modelled	mathcov-math-l304	method-specific source model and quantified behavior property
+base/math.jl	399	399	nan_dom_err	nan_dom_err(out, x)	modelled	mathcov-math-l399	method-specific source model and quantified behavior property
+base/math.jl	629	632	sqrt	sqrt(x::IEEEFloat)	modelled	mathcov-math-l629	method-specific source model and quantified behavior property
+base/math.jl	685	685	fourthroot	fourthroot(x::Number)	modelled	mathcov-math-l685	method-specific source model and quantified behavior property
+base/math.jl	729	729	hypot	hypot(x::Number)	modelled	mathcov-math-l729	method-specific source model and quantified behavior property
+base/math.jl	730	730	hypot	hypot(x::Number, y::Number)	modelled	mathcov-math-l730	method-specific source model and quantified behavior property
+base/math.jl	731	731	hypot	hypot(x::Number, y::Number, xs::Number...)	modelled	mathcov-math-l731	method-specific source model and quantified behavior property
+base/math.jl	732	786	_hypot	_hypot(x, y)	modelled	mathcov-math-l732	method-specific source model and quantified behavior property
+base/math.jl	789	795	_hypot	_hypot(x::Float32, y::Float32)	modelled	mathcov-math-l789	method-specific source model and quantified behavior property
+base/math.jl	796	802	_hypot	_hypot(x::Float16, y::Float16)	modelled	mathcov-math-l796	method-specific source model and quantified behavior property
+base/math.jl	803	803	_hypot	_hypot(x::ComplexF16, y::ComplexF16)	modelled	mathcov-math-l803	method-specific source model and quantified behavior property
+base/math.jl	805	814	_hypot	_hypot(x::NTuple{N,<:Number}) where {N}	modelled	mathcov-math-l805	method-specific source model and quantified behavior property
+base/math.jl	816	828	_hypot	_hypot(x::NTuple{N,<:IEEEFloat}) where {N}	modelled	mathcov-math-l816	method-specific source model and quantified behavior property
+base/math.jl	826	826	add_fast	add_fast(x, y)	modelled	mathcov-math-l826	method-specific source model and quantified behavior property
+base/math.jl	830	830	atan	atan(y::Real, x::Real)	modelled	mathcov-math-l830	method-specific source model and quantified behavior property
+base/math.jl	831	831	atan	atan(y::T, x::T) where {T<:AbstractFloat}	modelled	mathcov-math-l831	method-specific source model and quantified behavior property
+base/math.jl	833	833	_isless	_isless(x::T, y::T) where {T<:AbstractFloat}	modelled	mathcov-math-l833	method-specific source model and quantified behavior property
+base/math.jl	834	834	min	min(x::T, y::T) where {T<:AbstractFloat}	modelled	mathcov-math-l834	method-specific source model and quantified behavior property
+base/math.jl	835	835	max	max(x::T, y::T) where {T<:AbstractFloat}	modelled	mathcov-math-l835	method-specific source model and quantified behavior property
+base/math.jl	836	836	minmax	minmax(x::T, y::T) where {T<:AbstractFloat}	modelled	mathfuncs-minmax-nan	source model and quantified behavior property
+base/math.jl	838	838	min	min(x::T, y::T) where {T<:IEEEFloat}	modelled	mathcov-math-l838	method-specific source model and quantified behavior property
+base/math.jl	839	839	max	max(x::T, y::T) where {T<:IEEEFloat}	modelled	mathcov-math-l839	method-specific source model and quantified behavior property
+base/math.jl	854	897	ldexp	ldexp(x::T, e::Integer) where T<:IEEEFloat	modelled	mathcov-math-l854	method-specific source model and quantified behavior property
+base/math.jl	898	898	ldexp	ldexp(x::Float16, q::Integer)	modelled	mathcov-math-l898	method-specific source model and quantified behavior property
+base/math.jl	936	950	exponent	exponent(x::T) where T<:IEEEFloat	modelled	mathcov-math-l936	method-specific source model and quantified behavior property
+base/math.jl	937	937	throw1	throw1(x)	modelled	mathcov-math-l937	method-specific source model and quantified behavior property
+base/math.jl	938	938	throw2	throw2(x)	modelled	mathcov-math-l938	method-specific source model and quantified behavior property
+base/math.jl	956	965	_exponent_finite_nonzero	_exponent_finite_nonzero(x::T) where T<:IEEEFloat	modelled	mathcov-math-l956	method-specific source model and quantified behavior property
+base/math.jl	967	978	_ilog2_step	_ilog2_step(y::T, d::T, s) where {T<:Integer}	modelled	mathcov-math-l967	method-specific source model and quantified behavior property
+base/math.jl	980	985	exponent	exponent(x::Integer)	modelled	mathcov-math-l980	method-specific source model and quantified behavior property
+base/math.jl	987	991	exponent	exponent(x::Base.BitInteger)	modelled	mathcov-math-l987	method-specific source model and quantified behavior property
+base/math.jl	993	999	exponent	exponent(x::Bool)	modelled	mathcov-math-l993	method-specific source model and quantified behavior property
+base/math.jl	1026	1038	significand	significand(x::T) where T<:IEEEFloat	modelled	mathfuncs-significand-range	source model and quantified behavior property
+base/math.jl	1060	1077	frexp	frexp(x::T) where T<:IEEEFloat	modelled	mathfuncs-frexp-range	source model and quantified behavior property
+base/math.jl	1100	1111	scaleinv	scaleinv(x::T) where T<:IEEEFloat	modelled	mathcov-math-l1100	method-specific source model and quantified behavior property
+base/math.jl	1122	1145	rem	rem(x::T, p::T, ::RoundingMode{:Nearest}) where T<:IEEEFloat	modelled	mathcov-math-l1122	method-specific source model and quantified behavior property
+base/math.jl	1163	1163	modf	modf(x)	modelled	mathcov-math-l1163	method-specific source model and quantified behavior property
+base/math.jl	1165	1170	modf	modf(x::T) where T<:IEEEFloat	modelled	mathcov-math-l1165	method-specific source model and quantified behavior property
+base/math.jl	1176	1185	add22condh	add22condh(xh::Float64, xl::Float64, yh::Float64, yl::Float64)	modelled	mathcov-math-l1176	method-specific source model and quantified behavior property
+base/math.jl	1218	1218	rem2pi	rem2pi	excluded		no-behaviour: generic function declaration has no method body.
+base/math.jl	1241	1241	mod2pi	mod2pi(x)	modelled	mathcov-math-l1241	method-specific source model and quantified behavior property
+base/math.jl	1265	1265	muladd	muladd(x,y,z)	modelled	mathcov-math-l1265	method-specific source model and quantified behavior property
+base/math.jl	1275	1275	highword	highword(x::Float64)	modelled	mathcov-math-l1275	method-specific source model and quantified behavior property
+base/math.jl	1276	1276	highword	highword(x::UInt64)	modelled	mathcov-math-l1276	method-specific source model and quantified behavior property
+base/math.jl	1277	1277	highword	highword(x::Float32)	modelled	mathcov-math-l1277	method-specific source model and quantified behavior property
+base/math.jl	1279	1279	fromhighword	fromhighword(::Type{Float64}, u::UInt32)	modelled	mathcov-math-l1279	method-specific source model and quantified behavior property
+base/math.jl	1280	1280	fromhighword	fromhighword(::Type{Float32}, u::UInt32)	modelled	mathcov-math-l1280	method-specific source model and quantified behavior property
+base/math.jl	1288	1288	poshighword	poshighword(x::Float64)	modelled	mathcov-math-l1288	method-specific source model and quantified behavior property
+base/math.jl	1289	1289	poshighword	poshighword(x::UInt64)	modelled	mathcov-math-l1289	method-specific source model and quantified behavior property
+base/math.jl	1290	1290	poshighword	poshighword(x::Float32)	modelled	mathcov-math-l1290	method-specific source model and quantified behavior property
+base/math.jl	1309	1309	$func	$func(a::Float16)	modelled	mathcov-math-l1309	method-specific source model and quantified behavior property
+base/math.jl	1310	1310	$func	$func(a::ComplexF16)	modelled	mathcov-math-l1310	method-specific source model and quantified behavior property
+base/math.jl	1315	1315	$func	$func(a::ComplexF16)	modelled	mathcov-math-l1315	method-specific source model and quantified behavior property
+base/math.jl	1319	1319	atan	atan(a::Float16,b::Float16)	modelled	mathcov-math-l1319	method-specific source model and quantified behavior property
+base/math.jl	1320	1320	sincos	sincos(a::Float16)	modelled	mathcov-math-l1320	method-specific source model and quantified behavior property
+base/math.jl	1326	1330	$f	($f)(x::Real)	modelled	mathcov-math-l1326	method-specific source model and quantified behavior property
+base/math.jl	1331	1331	$(f)	$(f)(::Missing)	modelled	mathcov-math-l1331	method-specific source model and quantified behavior property
+base/math.jl	1335	1335	$(f)	$(f)(::Missing, ::Missing)	modelled	mathcov-math-l1335	method-specific source model and quantified behavior property
+base/math.jl	1336	1336	$(f)	$(f)(::Number, ::Missing)	modelled	mathcov-math-l1336	method-specific source model and quantified behavior property
+base/math.jl	1337	1337	$(f)	$(f)(::Missing, ::Number)	modelled	mathcov-math-l1337	method-specific source model and quantified behavior property
+base/math.jl	1340	1340	exp2	exp2(x::AbstractFloat)	modelled	mathcov-math-l1340	method-specific source model and quantified behavior property
+base/math.jl	1341	1341	exp10	exp10(x::AbstractFloat)	modelled	mathcov-math-l1341	method-specific source model and quantified behavior property
+base/math.jl	1342	1342	fourthroot	fourthroot(::Missing)	modelled	mathcov-math-l1342	method-specific source model and quantified behavior property

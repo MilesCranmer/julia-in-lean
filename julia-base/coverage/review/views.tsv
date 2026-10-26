@@ -1,0 +1,14 @@
+line	name	verdict	mirror	property	settled	reason
+17	replace_ref_begin_end!	FAITHFUL	yes	yes	yes	The Lean wrapper matches the Julia call arguments and result projection, states that invariant for all typed inputs, and is proven.
+19	replace_ref_begin_end_!	HOLLOW	no	no	yes	The nonrecursive boundaryReplace abstraction omits macro expansion, ref handling, recursive traversal, quote and escape state changes, errors, and accumulated use, while Views19Property checks only four cases.
+22	escapes	HOLLOW	no	no	yes	The registered proposition never uses viewsEscapes and instead checks four boundaryReplace cases, so it neither mirrors the escape loop nor states its quantified behavior.
+28	handle_refexpr!	HOLLOW	no	no	yes	viewsHandleRef collapses the one-index and multi-index branches, dimension arithmetic, splat scans, temporaries, escape handling, and mutation into callback variables, and its proposition only restates that abstraction.
+210	view	HOLLOW	no	no	yes	views210 replaces the AST construction, exception paths, block-tail check, view call, and final escape with opaque callbacks and output tags, and its proposition only restates that abstraction.
+235	maybeview	FAITHFUL	yes	yes	yes	The Lean function mirrors the one-line getindex delegation for all inputs and the bundled proposition is proven.
+236	maybeview	FAITHFUL	yes	yes	yes	The Lean function mirrors the one-line view delegation for all inputs and the bundled proposition is proven.
+237	maybeview	FAITHFUL	yes	yes	yes	The Lean function mirrors the scalar-index getindex delegation for all inputs and the bundled proposition is proven.
+238	maybeview	FAITHFUL	yes	yes	yes	The Lean function mirrors the zero-index getindex delegation for all inputs and the bundled proposition is proven.
+239	maybeview	FAITHFUL	yes	yes	yes	The Lean function mirrors the AbstractArray zero-index getindex delegation for all inputs and the bundled proposition is proven.
+247	_views	HOLLOW	no	no	yes	Views247Property is a tautology about rewriteViews over a custom ViewExpr type and does not model the generic identity method _views(x)=x or state that it returns its input.
+248	_views	HOLLOW	no	no	yes	rewriteViews omits the operator-assignment branch, temporary and splat logic, hygienic-scope construction, and arbitrary Expr heads, so ViewsDocumentedRewrite covers only a restricted subset of allowed expressions.
+332	views	FAITHFUL	yes	yes	yes	The Lean wrapper mirrors boundary replacement, view rewriting, and escaping in Julia source order for all typed inputs, and its proposition is proven.

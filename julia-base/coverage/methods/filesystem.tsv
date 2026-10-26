@@ -1,0 +1,41 @@
+file	line	endline	name	signature	status	entry	note
+base/filesystem.jl	155	155	uv_fs_req_cleanup	uv_fs_req_cleanup(req)	modelled	files-method-filesystem-lifecycle	
+base/filesystem.jl	174	174	File	File(fd::OS_HANDLE)	modelled	files-method-filesystem-lifecycle	
+base/filesystem.jl	177	177	File	File(fd::RawFD)	modelled	files-method-filesystem-lifecycle	
+base/filesystem.jl	180	180	rawhandle	rawhandle(file::File)	modelled	files-method-filesystem-lifecycle	
+base/filesystem.jl	181	181	setup_stdio	setup_stdio(file::File, ::Bool)	modelled	files-method-filesystem-lifecycle	
+base/filesystem.jl	184	198	open	open(path::AbstractString, flags::Integer, mode::Integer=0)	modelled	files-method-filesystem-lifecycle	
+base/filesystem.jl	200	200	isopen	isopen(f::File)	modelled	files-method-filesystem-lifecycle	
+base/filesystem.jl	202	206	check_open	check_open(f::File)	modelled	files-method-filesystem-lifecycle	
+base/filesystem.jl	208	216	close	close(f::File)	modelled	files-method-filesystem-lifecycle	
+base/filesystem.jl	268	284	trylockfile	trylockfile(f::File; shared::Bool=false)	modelled	files-method-filesystem-locks	
+base/filesystem.jl	294	304	unlockfile	unlockfile(f::File)	modelled	files-method-filesystem-locks	
+base/filesystem.jl	306	306	closewrite	closewrite(f::File)	modelled	files-method-filesystem-locks	
+base/filesystem.jl	309	322	sendfile	sendfile(dst::File, src::File, src_offset::Int64, bytes::Int)	modelled	files-method-filesystem-writes	
+base/filesystem.jl	324	330	unsafe_write	unsafe_write(f::File, buf::Ptr{UInt8}, len::UInt, offset::Int64=Int64(-1))	modelled	files-method-filesystem-writes	
+base/filesystem.jl	332	332	write	write(f::File, c::UInt8)	modelled	files-method-filesystem-writes	
+base/filesystem.jl	334	343	truncate	truncate(f::File, n::Integer)	modelled	files-method-filesystem-writes	
+base/filesystem.jl	345	354	futime	futime(f::File, atime::Float64, mtime::Float64)	modelled	files-method-filesystem-writes	
+base/filesystem.jl	356	365	read	read(f::File, ::Type{UInt8})	modelled	files-method-filesystem-scalar-reads	
+base/filesystem.jl	367	387	read	read(f::File, ::Type{Char})	modelled	files-method-filesystem-scalar-reads	
+base/filesystem.jl	389	389	read	read(f::File, ::Type{T}) where {T<:AbstractChar}	modelled	files-method-filesystem-scalar-reads	
+base/filesystem.jl	391	398	unsafe_read	unsafe_read(f::File, p::Ptr{UInt8}, nel::UInt)	modelled	files-method-filesystem-scalar-reads	
+base/filesystem.jl	400	400	bytesavailable	bytesavailable(f::File)	modelled	files-method-filesystem-bulk-reads	
+base/filesystem.jl	402	402	eof	eof(f::File)	modelled	files-method-filesystem-bulk-reads	
+base/filesystem.jl	404	413	readbytes!	readbytes!(f::File, b::MutableDenseArrayType{UInt8}, nb=length(b))	modelled	files-method-filesystem-bulk-reads	
+base/filesystem.jl	414	414	read	read(io::File)	modelled	files-method-filesystem-bulk-reads	
+base/filesystem.jl	415	415	readavailable	readavailable(io::File)	modelled	files-method-filesystem-bulk-reads	
+base/filesystem.jl	416	416	read	read(io::File, nb::Integer)	modelled	files-method-filesystem-bulk-reads	
+base/filesystem.jl	422	426	seek	seek(f::File, n::Integer)	modelled	files-method-filesystem-seek-descriptors	
+base/filesystem.jl	428	432	seekend	seekend(f::File)	modelled	files-method-filesystem-seek-descriptors	
+base/filesystem.jl	434	438	skip	skip(f::File, n::Integer)	modelled	files-method-filesystem-seek-descriptors	
+base/filesystem.jl	440	445	position	position(f::File)	modelled	files-method-filesystem-seek-descriptors	
+base/filesystem.jl	447	447	fd	fd(f::File)	modelled	files-method-filesystem-seek-descriptors	
+base/filesystem.jl	448	448	stat	stat(f::File)	modelled	files-method-filesystem-seek-descriptors	
+base/filesystem.jl	450	459	touch	touch(f::File)	modelled	files-method-filesystem-seek-descriptors	
+base/filesystem.jl	479	484	isexecutable	isexecutable(path::String)	modelled	files-method-filesystem-access	
+base/filesystem.jl	485	485	isexecutable	isexecutable(path::AbstractString)	modelled	files-method-filesystem-access	
+base/filesystem.jl	506	511	isreadable	isreadable(path::String)	modelled	files-method-filesystem-access	
+base/filesystem.jl	512	512	isreadable	isreadable(path::AbstractString)	modelled	files-method-filesystem-access	
+base/filesystem.jl	533	538	iswritable	iswritable(path::String)	modelled	files-method-filesystem-access	
+base/filesystem.jl	539	539	iswritable	iswritable(path::AbstractString)	modelled	files-method-filesystem-access	

@@ -1,0 +1,18 @@
+file	line	endline	name	signature	status	entry	note
+base/slicearray.jl	39	39	unitaxis	unitaxis(::AbstractArray)	modelled	multidimcov-slice-l39-unitaxis	row-specific source-order model and quantified return-value property; awaiting fixed-prompt review
+base/slicearray.jl	41	49	Slices	Slices(A::P, slicemap::SM, ax::AX) where {P,SM,AX}	modelled	multidimcov-slicearray-faithful-41	row-specific faithful source-order replacement
+base/slicearray.jl	51	51	_slice_check_dims	_slice_check_dims()	modelled	multidimcov-slice-l51-check-empty	row-specific source-order model and quantified return-value property; awaiting fixed-prompt review
+base/slicearray.jl	52	56	_slice_check_dims	_slice_check_dims(dim, dims...)	modelled	multidimcov-slicearray-faithful-52	row-specific faithful source-order replacement
+base/slicearray.jl	58	77	_eachslice	_eachslice(A::AbstractArray{T,N}, dims::NTuple{M,Integer}, drop::Bool) where {T,N,M}	modelled	multidimcov-slicearray-faithful-58	row-specific faithful source-order replacement
+base/slicearray.jl	78	80	_eachslice	_eachslice(A::AbstractArray, dim::Integer, drop::Bool)	modelled	multidimcov-slicearray-faithful-78	row-specific faithful source-order replacement
+base/slicearray.jl	132	134	eachslice	eachslice(A; dims, drop=true)	modelled	multidimcov-slicearray-faithful-132	row-specific faithful source-order replacement
+base/slicearray.jl	171	171	eachrow	eachrow(A::AbstractMatrix)	modelled	multidimcov-slicearray-faithful-171	row-specific faithful source-order replacement
+base/slicearray.jl	172	172	eachrow	eachrow(A::AbstractVector)	modelled	multidimcov-slicearray-faithful-172	row-specific faithful source-order replacement
+base/slicearray.jl	209	209	eachcol	eachcol(A::AbstractMatrix)	modelled	multidimcov-slicearray-faithful-209	row-specific faithful source-order replacement
+base/slicearray.jl	210	210	eachcol	eachcol(A::AbstractVector)	modelled	multidimcov-slicearray-faithful-210	row-specific faithful source-order replacement
+base/slicearray.jl	233	233	axes	axes(s::Slices)	modelled	multidimcov-slice-l233-axes	row-specific stored-axis model and quantified property; awaiting fixed-prompt review
+base/slicearray.jl	234	234	size	size(s::Slices)	modelled	multidimcov-slice-l234-size	row-specific map-length model and quantified property; awaiting fixed-prompt review
+base/slicearray.jl	236	238	_slice_index	_slice_index(s::Slices, c...)	modelled	multidimcov-slicearray-faithful-236	row-specific faithful source-order replacement
+base/slicearray.jl	240	243	getindex	getindex(s::Slices{P,SM,AX,S,N}, I::Vararg{Int,N}) where {P,SM,AX,S,N}	modelled	multidimcov-slicearray-faithful-240	row-specific faithful source-order replacement
+base/slicearray.jl	244	247	setindex!	setindex!(s::Slices{P,SM,AX,S,N}, val, I::Vararg{Int,N}) where {P,SM,AX,S,N}	modelled	multidimcov-slicearray-faithful-244	row-specific faithful source-order replacement
+base/slicearray.jl	249	249	parent	parent(s::Slices)	modelled	multidimcov-slicearray-faithful-249	row-specific faithful source-order replacement

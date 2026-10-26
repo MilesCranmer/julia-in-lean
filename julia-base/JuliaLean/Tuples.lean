@@ -22,8 +22,15 @@ def entries : List Entry := [
     statement := "For every valid iteration state 1 <= i <= length(t)+1 and n >= 0, Base.split_rest(t, n, i) on a tuple or named tuple agrees with split_rest on the corresponding Vector: the same values, or the same exception type."
     source := "base/tuple.jl:215-246 (split_rest docstring: the tail of the collection starting from itr_state, split into all but the last n and the last n); manual, destructuring assignment"
     status := .refuted, prop := ``SplitRestAgrees, thm := some ``splitRestAgrees_refuted
-    issue := "none found (related: #47326, #59611; queries: split_rest, split_rest NamedTuple, slurping tuple, destructuring slurp middle)"
+    issue := "none found (related: #47326, #59611; queries: split_rest, split_rest NamedTuple, split_rest negative, slurping tuple, destructuring slurp middle)"
     notes := "_split_tuple(t, length(t)-n, i) computes the split point from length(t) instead of length(t)-i+1 (tuple.jl:265-267), so it never checks that the rest holds n elements and returns already consumed elements: split_rest((1,), 1, 2) == ((), (1,)), hence `a, b..., c = (1,)` binds a = 1, b = (), c = 1 (theorem destructureMid_duplicates); for a tuple literal on the right-hand side lowering throws BoundsError instead. The NamedTuple method (namedtuple.jl:585-589) checks length(t) < n on the whole named tuple and then calls the tuple method on the names (theorem splitRestNT_refuted). Vectors and strings throw ArgumentError. Same on 1.13.2." },
+  { id := "tuples-split-rest-negative", juliaFile := "base/bitarray.jl"
+    juliaFns := ["split_rest(v::Vector, n)", "_split_rest(a::Union{Vector,BitVector}, n)"]
+    statement := "Base.split_rest(v, n) for a Vector either throws or returns (rest_but_n, last_n) whose concatenation is v."
+    source := "base/tuple.jl:215-226 (split_rest docstring: the first collection contains all elements but the n last ones, which make up the second)"
+    status := .refuted, prop := ``SplitRestPartition, thm := some ``splitRestPartition_refuted
+    issue := "none found (queries: split_rest, split_rest negative, split_rest resize)"
+    notes := "For n < 0, _split_rest (bitarray.jl:1932-1937) passes _check_length_split_rest, takes last_n = a[end-n+1:end] (empty) and calls resize!(a, length(a) - n), which grows the vector: split_rest([1, 2, 3], -1) returns a 4-element vector whose last element is uninitialised memory (#undef for Vector{Any}). Strings throw ArgumentError(\"n cannot be negative\"), tuples BoundsError. Same on 1.13.2." },
   { id := "tuples-namedtuple-haskey-integer", juliaFile := "base/namedtuple.jl"
     juliaFns := ["haskey(nt::NamedTuple, key::Union{Integer,Symbol})", "get(nt::NamedTuple, key::Union{Integer,Symbol}, default)", "get(f, nt::NamedTuple, key)"]
     statement := "haskey(nt, k) and get(nt, k, d) accept every Integer key, as their signatures declare: haskey is 1 <= k <= length(nt), and get returns the field or the default."

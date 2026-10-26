@@ -1,0 +1,59 @@
+id: stringscovb-repeat-char-zero
+title: repeat(c::AnnotatedChar, 0) keeps annotations with empty regions, unlike repeat(::AnnotatedString, 0)
+priority: P3
+kind: wrong-result
+area: StringsCovB
+files:
+- base/strings/annotated.jl
+functions:
+- repeat(c::AnnotatedChar, r::Integer)
+summary: |
+  repeat(AnnotatedChar('a', [(:l, 1)]), 0) returns an empty AnnotatedString that still has
+  the annotation (1:0, :l, 1), so it compares unequal to "" and to repeat of the equivalent
+  AnnotatedString, which returns an empty string without annotations.
+likelihood: |
+  Repeating annotated characters a computed number of times that can be zero (padding, rules).
+maybe_intended: ''
+reproducer: |
+  using Base: AnnotatedString, AnnotatedChar, annotations
+  c = AnnotatedChar('a', [(:l, 1)])
+  s = AnnotatedString("a", [(1:1, :l, 1)])
+  rc, rs = repeat(c, 0), repeat(s, 0)
+  println("repeat(AnnotatedChar, 0) == \"\": ", rc == "", ", annotations ", [(a.region, a.label) for a in annotations(rc)])
+  println("repeat(AnnotatedString, 0) == \"\": ", rs == "", ", annotations ", annotations(rs))
+  println("rc == rs: ", rc == rs)
+  !(rc == "") && rs == "" && println("REPRODUCED stringscovb-repeat-char-zero")
+output:
+  release: |
+    repeat(AnnotatedChar, 0) == "": false, annotations Tuple{UnitRange{Int64}, Symbol}[(1:0, :l)]
+    repeat(AnnotatedString, 0) == "": true, annotations @NamedTuple{region::UnitRange{Int64}, label::Symbol, value}[]
+    rc == rs: false
+    REPRODUCED stringscovb-repeat-char-zero
+  nightly: |
+    repeat(AnnotatedChar, 0) == "": false, annotations Tuple{UnitRange{Int64}, Symbol}[(1:0, :l)]
+    repeat(AnnotatedString, 0) == "": true, annotations @NamedTuple{region::UnitRange{Int64}, label::Symbol, value}[]
+    rc == rs: false
+    REPRODUCED stringscovb-repeat-char-zero
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  repeat(c, 0) == "" (no annotations), as repeat(AnnotatedString(c), 0).
+promised_by: |
+  Consistency between repeat(c::AnnotatedChar, r) and repeat(str::AnnotatedString, r)
+  (base/strings/annotated.jl:314-316 returns one(AnnotatedString) for r == 0); an annotation
+  with an empty region applies to no character.
+cause: |
+  base/strings/annotated.jl:340-344: the annotations are copied with region firstindex(str):lastindex(str),
+  which is 1:0 for r == 0.
+possible_fix: |
+  Return `one(AnnotatedString)` (or drop the annotations) when r == 0.
+duplicates:
+  issues: []
+  queries:
+  - 'issues: repeat AnnotatedChar'
+  - 'prs: repeat AnnotatedChar'
+  - 'issues: AnnotatedChar'
+lean:
+  property: JuliaLean.StringsCovB.Ann.RepeatCharAsString
+  theorem: JuliaLean.StringsCovB.Ann.repeatCharAsString_refuted

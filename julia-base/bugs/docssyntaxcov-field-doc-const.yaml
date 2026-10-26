@@ -1,0 +1,52 @@
+id: docssyntaxcov-field-doc-const
+title: "The docstring of a const field of a mutable struct is attached to the next field"
+priority: P2
+kind: wrong-result
+area: DocsSyntaxCov
+files: [base/docs/Docs.jl]
+functions: ["Base.Docs.metadata(__source__, __module__, expr, ismodule)"]
+summary: |
+    Field docstrings are collected only before `x` or `x::T` field declarations. A
+    docstring before a `const x::T` (or `@atomic x::T`) field is dropped for that field and,
+    if the next field has no docstring of its own, attached to it: for
+    `mutable struct S; "doc for a"; const a::Int; b::Int; end` the field docs are
+    `Dict(:b => "doc for a")`.
+likelihood: |
+    Moderate: const fields in mutable structs (Julia 1.8+) with field docstrings are
+    ordinary code; `?S.b` then shows the documentation of `a`.
+maybe_intended: ""
+reproducer: |
+    "S doc"
+    mutable struct S
+        "doc for a"
+        const a::Int
+        b::Int
+    end
+    Base.Docs.meta(Main)[Base.Docs.Binding(Main, :S)].docs[Union{}].data[:fields]
+    # Dict(:b => "doc for a")
+output:
+  release: |
+    fields = Dict{Symbol, Any}(:b => "doc for a")
+    REPRODUCED docssyntaxcov-field-doc-const
+  nightly: |
+    fields = Dict{Symbol, Any}(:b => "doc for a")
+    REPRODUCED docssyntaxcov-field-doc-const
+reproduced: {release: true, nightly: true}
+expected: |
+    `Dict(:a => "doc for a")`.
+promised_by: |
+    `Docs.metadata` docstring, base/docs/Docs.jl:343-354: `:fields` is the "Dict of all field docs
+    found in expr"; the manual documents field docstrings placed before each field.
+cause: |
+    base/docs/Docs.jl:374 recognises a field only when `eachex` is a `Symbol` or an `x::T`
+    expression, so `Expr(:const, :(a::Int))` is skipped without clearing `last_docstr`, which
+    the next ordinary field (line 376-378) then takes.
+possible_fix: |
+    Unwrap `:const` and `:atomic` (and `@atomic` macrocalls) before the test at line 374, and
+    reset `last_docstr` on any non-docstring statement.
+duplicates:
+  issues: [{number: 58820, state: open, relation: duplicate}]
+  queries: ["field docstring const", "struct field documentation const field", "docstring field wrong"]
+lean:
+  property: JuliaLean.DocsSyntaxCov.FieldDocsAttach
+  theorem: JuliaLean.DocsSyntaxCov.fieldDocsAttach_refuted

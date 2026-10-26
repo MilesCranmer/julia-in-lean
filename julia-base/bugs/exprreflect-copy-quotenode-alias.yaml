@@ -1,0 +1,75 @@
+id: exprreflect-copy-quotenode-alias
+title: "copy(::Expr) leaves mutable Expr values inside QuoteNode shared with the original"
+priority: P2
+kind: wrong-result
+area: ExprReflect
+files: [base/expr.jl]
+functions: ["copy(::Expr)", "copy_exprargs", "copy_exprs"]
+summary: |
+  copy(::Expr) recursively copies direct Expr arguments, but copy_exprs returns a
+  QuoteNode unchanged even when its value is another mutable Expr. Mutating that Expr
+  through the copy silently mutates the original expression too.
+likelihood: |
+  QuoteNode normally contains literal data, but macro and compiler tooling can construct
+  QuoteNode values containing Expr objects. The alias only appears for a mutable AST node
+  behind a QuoteNode or another unrecognised container.
+maybe_intended: |
+  The generic copy docstring promises only a shallow copy, and base/expr.jl:67-68 says
+  copy_exprs copies only IR parts that the compiler mutates rather than every possible
+  Expr AST. The Expr-specific method nevertheless recursively copies ordinary Expr
+  descendants, so this partial deep copy is easy to rely on incorrectly.
+reproducer: |
+  inner = Expr(:call, :f, :x)
+  original = Expr(:tuple, QuoteNode(inner))
+  copied = copy(original)
+
+  shared = copied.args[1].value === original.args[1].value
+  push!(copied.args[1].value.args, :y)
+  changed = original.args[1].value.args == Any[:f, :x, :y]
+
+  println("copy(original) == original: ", copied == original)
+  println("quoted Expr shared: ", shared)
+  println("original after mutating copy: ", sprint(Meta.show_sexpr, original))
+
+  if shared && changed
+      println("REPRODUCED exprreflect-copy-quotenode-alias")
+  else
+      println("NOT REPRODUCED exprreflect-copy-quotenode-alias")
+  end
+output:
+  release: |
+    copy(original) == original: true
+    quoted Expr shared: true
+    original after mutating copy: (:tuple, (:quote, #QuoteNode
+        (:call, :f, :x, :y)
+      ))
+    REPRODUCED exprreflect-copy-quotenode-alias
+  nightly: |
+    copy(original) == original: true
+    quoted Expr shared: true
+    original after mutating copy: (:tuple, (:quote, #QuoteNode
+        (:call, :f, :x, :y)
+      ))
+    REPRODUCED exprreflect-copy-quotenode-alias
+reproduced: {release: true, nightly: true}
+expected: |
+  The Expr inside the copied QuoteNode should have a distinct mutable identity, so adding
+  :y through copied must leave original as (:tuple, QuoteNode(Expr(:call, :f, :x))).
+promised_by: |
+  Requested tree-independence invariant for copy(::Expr). The recursive implementation at
+  base/expr.jl:45 and base/expr.jl:69-79 establishes independence for direct Expr children.
+cause: |
+  base/expr.jl:69-78 recurses only when an argument is Expr, PhiNode, or PhiCNode.
+  QuoteNode is returned unchanged, including its mutable value.
+possible_fix: |
+  If copy(::Expr) is meant to copy the complete AST graph, copy a QuoteNode whose value is
+  mutable AST data and document the stronger behavior. Otherwise document the alias boundary.
+duplicates:
+  issues: []
+  queries:
+    - "issues: copy Expr QuoteNode alias OR shared"
+    - "prs: copy Expr QuoteNode alias OR shared"
+    - "issues: QuoteNode copy"
+lean:
+  property: JuliaLean.ExprReflect.CopyIndependent
+  theorem: JuliaLean.ExprReflect.copyIndependent_refuted

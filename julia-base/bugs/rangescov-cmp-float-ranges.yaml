@@ -1,0 +1,58 @@
+id: rangescov-cmp-float-ranges
+title: "cmp(r1, r2) returns 0 for different Float64 ranges on master (regression from #60337)"
+priority: P2
+kind: wrong-result
+area: RangesCov
+files: ["base/range.jl"]
+functions: ["cmp(::T, ::T) where T<:AbstractRange", "isless(::AbstractVector, ::AbstractVector)"]
+summary: |
+  On master, cmp(StepRangeLen(0.0, 0.1, 4), StepRangeLen(0.0, nextfloat(0.1), 4)) == 0 and
+  isless(r1, r2) == false, although the ranges differ at index 2 and the lexicographic comparison
+  of the collected vectors is -1. The same holds for TwicePrecision ranges built by range(...).
+likelihood: |
+  Needs two floating-point ranges of the same type with equal first elements whose steps differ
+  by a few ulps, so that some later element rounds equal. Plausible when sorting or comparing
+  computed ranges; affects sort(::Vector{<:StepRangeLen}) and other isless users.
+maybe_intended: |
+  The code comment assumes monotonic ranges and uses the last shared element as a proxy for the
+  step; that proxy is not exact for rounded elements.
+reproducer: |
+  r1 = StepRangeLen(0.0, 0.1, 4)
+  r2 = StepRangeLen(0.0, nextfloat(0.1), 4)
+  println("collect(r1) = ", collect(r1))
+  println("collect(r2) = ", collect(r2))
+  println("cmp(r1, r2) = ", cmp(r1, r2), ", cmp(collect(r1), collect(r2)) = ", cmp(collect(r1), collect(r2)))
+  println("isless(r1, r2) = ", isless(r1, r2), ", isless(collect(r1), collect(r2)) = ", isless(collect(r1), collect(r2)))
+  (cmp(r1, r2) == 0 && collect(r1) != collect(r2)) && println("REPRODUCED rangescov-cmp-float-ranges")
+output:
+  release: |
+    collect(r1) = [0.0, 0.1, 0.2, 0.30000000000000004]
+    collect(r2) = [0.0, 0.10000000000000002, 0.20000000000000004, 0.30000000000000004]
+    cmp(r1, r2) = -1, cmp(collect(r1), collect(r2)) = -1
+    isless(r1, r2) = true, isless(collect(r1), collect(r2)) = true
+  nightly: |
+    collect(r1) = [0.0, 0.1, 0.2, 0.30000000000000004]
+    collect(r2) = [0.0, 0.10000000000000002, 0.20000000000000004, 0.30000000000000004]
+    cmp(r1, r2) = 0, cmp(collect(r1), collect(r2)) = -1
+    isless(r1, r2) = false, isless(collect(r1), collect(r2)) = true
+    REPRODUCED rangescov-cmp-float-ranges
+reproduced: {release: false, nightly: true}
+expected: |
+  cmp(r1, r2) == -1, the lexicographic result that release 1.13.2 returns.
+promised_by: |
+  cmp docstring (base/operators.jl:500-508) and the lexicographic cmp(::AbstractVector, ::AbstractVector),
+  base/abstractarray.jl; isless(A, B) = cmp(A, B) < 0.
+cause: |
+  base/range.jl:1189-1193 compares only r1[n] and r2[n] at n = min(lastindex) after the first elements;
+  for rounded element types r1[n] == r2[n] does not imply equal earlier elements.
+possible_fix: |
+  Use the specialization only for integer-like ranges (RangeStepStyle regular), or compare
+  steps exactly and fall back to the generic lexicographic loop otherwise.
+duplicates:
+  issues:
+    - {number: 60337, state: merged, relation: related}
+    - {number: 60334, state: closed, relation: related}
+  queries: ["issues: cmp range", "issues: cmp AbstractRange", "issues: isless range", "prs: cmp range", "prs: cmp AbstractRange", "prs: isless range"]
+lean:
+  property: JuliaLean.RangesCov.Compare.CmpLexicographic
+  theorem: JuliaLean.RangesCov.Compare.cmpLexicographic_refuted

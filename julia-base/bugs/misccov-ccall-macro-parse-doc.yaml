@@ -1,0 +1,41 @@
+id: misccov-ccall-macro-parse-doc
+title: "Docstring of Base.ccall_macro_parse describes a 4-tuple with a bare function name; it returns a 7-tuple (6 in 1.13)"
+priority: P3
+kind: documentation
+area: MiscCov
+files: [base/c.jl]
+functions: ["Base.ccall_macro_parse"]
+summary: |
+  The docstring says `ccall_macro_parse` returns `(function_name, return_type, arg_types, args)` and that `:(printf("%d"::Cstring, value::Cuint)::Cvoid)` gives `(:printf, :Cvoid, [:Cstring, :Cuint], ["%d", :value])`. It actually returns `(:((:printf,)), :Cvoid, Any[:Cstring, :Cuint], Any["%d", :value], false, nothing, 0)`: the name is wrapped in a tuple expression and gc_safe, cancel and nreq are appended.
+likelihood: |
+  Low: the function is an internal helper of `@ccall`, but packages that build on it read this docstring.
+maybe_intended: |
+  The docstring calls it an implementation detail of `@ccall`; it was not updated when gc_safe, varargs and cancel_handler were added.
+reproducer: |
+  Base.ccall_macro_parse(:(printf("%d"::Cstring, value::Cuint)::Cvoid))
+output:
+  release: |
+    ccall_macro_parse(:(printf("%d"::Cstring, value::Cuint)::Cvoid)) = (:((:printf,)), :Cvoid, Any[:Cstring, :Cuint], Any["%d", :value], false, 0)
+    length = 6, first element = :((:printf,))
+    REPRODUCED misccov-ccall-macro-parse-doc
+  nightly: |
+    ccall_macro_parse(:(printf("%d"::Cstring, value::Cuint)::Cvoid)) = (:((:printf,)), :Cvoid, Any[:Cstring, :Cuint], Any["%d", :value], false, nothing, 0)
+    length = 7, first element = :((:printf,))
+    REPRODUCED misccov-ccall-macro-parse-doc
+reproduced: {release: true, nightly: true}
+expected: |
+  The documented `(:printf, :Cvoid, [:Cstring, :Cuint], ["%d", :value])`, or a docstring that describes the current 7-tuple.
+promised_by: |
+  base/c.jl:262-266: "returns: a tuple of `(function_name, return_type, arg_types, args)` ... The above input outputs this: (:printf, :Cvoid, [:Cstring, :Cuint], ["%d", :value])".
+cause: |
+  base/c.jl:300-317 wraps the name as `Expr(:tuple, QuoteNode(f))` and base/c.jl:368 returns seven values.
+possible_fix: |
+  Update the docstring.
+duplicates:
+  issues: []
+  queries:
+    - "issues: ccall_macro_parse"
+    - "issues: ccall_macro_parse docstring"
+lean:
+  property: JuliaLean.MiscCov.CInterface.CcallMacroParseDoc
+  theorem: JuliaLean.MiscCov.CInterface.ccallMacroParseDoc_refuted

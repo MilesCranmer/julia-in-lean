@@ -1,9 +1,8 @@
 import JuliaLean.Float.Validation
 
 /-- Run with `lake env lean --run JuliaLean/Float/Check.lean release|nightly [start] [count]`.
-Compare output with `julia repro/float-differential.jl` on the matching Julia version
-(`release` is 1.13.2, `nightly` is master). Optional indices select a slice of the
-deterministic corpus. -/
+Compare output with `julia repro/float-differential.jl`.
+Optional indices divide the deterministic corpus into shorter commands. -/
 def main (args : List String) : IO Unit :=
   JuliaLean.Float.Validation.differential
     (args[0]? == some "release")

@@ -1,0 +1,46 @@
+id: runtimecov-datatype-npointers-return-type
+title: "`Base.datatype_npointers` returns `UInt32`, but its docstring declares `::Int`"
+priority: P3
+kind: documentation
+area: RuntimeCov
+files: [base/runtime_internals.jl]
+functions: ["datatype_npointers(::DataType)", "datatype_npointers(::DataTypeLayout)"]
+summary: |
+  The docstring signature is `Base.datatype_npointers(dt::DataType)::Int`, but the
+  function returns the layout's `npointers::UInt32` field unchanged, e.g.
+  `0x00000002` for `Pair{String,String}`. The neighbouring `datatype_nfields`
+  documents its `UInt32` result correctly, and `datatype_alignment` converts to `Int`.
+likelihood: |
+  Cosmetic for most callers; arithmetic mixing the result with signed values (for
+  example subtracting from it) wraps as `UInt32` instead of going negative.
+maybe_intended: ""
+reproducer: |
+  typeof(Base.datatype_npointers(Pair{String,String}))   # UInt32
+output:
+  release: |
+    Base.datatype_npointers(dt::DataType)::Int
+    Return the number of pointers in the layout of a datatype.
+    datatype_npointers(Pair{String,String}) = 0x00000002 :: UInt32
+    REPRODUCED runtimecov-datatype-npointers-return-type
+  nightly: |
+    Base.datatype_npointers(dt::DataType)::Int
+    Return the number of pointers in the layout of a datatype.
+    datatype_npointers(Pair{String,String}) = 0x00000002 :: UInt32
+    REPRODUCED runtimecov-datatype-npointers-return-type
+reproduced: {release: true, nightly: true}
+expected: |
+  `2::Int`, or a docstring saying `::UInt32`.
+promised_by: |
+  base/runtime_internals.jl:725-729 (docstring signature `...::Int`).
+cause: |
+  base/runtime_internals.jl:731 `datatype_npointers(dtl::DataTypeLayout) = dtl.npointers`
+  returns the `UInt32` field without the `Int(...)` conversion used by
+  `datatype_alignment` (line 656).
+possible_fix: |
+  Return `Int(dtl.npointers)`, or change the docstring to `::UInt32`.
+duplicates:
+  issues: []
+  queries: ["datatype_npointers"]
+lean:
+  property: JuliaLean.RuntimeCov.Layout.NpointersReturnType
+  theorem: JuliaLean.RuntimeCov.Layout.npointersReturnType_refuted

@@ -1,0 +1,65 @@
+id: reducecov-slice-bool-range
+title: "Base.Slice(r)[false:true] returns the Bool range instead of logical indexing"
+priority: P2
+kind: wrong-result
+area: ReduceCov
+files: [base/indices.jl]
+functions: ["getindex(S::Slice, i::AbstractUnitRange{<:Integer})", "getindex(S::Slice, i::StepRange{<:Integer})"]
+summary: |
+  Indexing a Base.Slice with a Bool range returns the index range itself:
+  Base.Slice(Base.OneTo(2))[false:true] === false:true, a two-element Bool range,
+  where logical indexing selects one element ([2]). The Slice returned by
+  to_indices for a colon behaves the same. IdentityUnitRange and collected
+  arrays perform logical indexing for the same mask.
+likelihood: |
+  Low: Slice is an internal index type, and the usual indexing paths convert Bool
+  arrays to LogicalIndex before they reach a Slice. Code that indexes the result of
+  to_indices or the indices of a SubArray directly with a Bool range gets a wrong,
+  silently longer result.
+maybe_intended: |
+  The methods exist so that a Slice returns the requested integer indices unchanged;
+  Bool ranges were probably not considered. Nothing documents that a Slice treats
+  Bool masks as integers.
+reproducer: |
+  Base.Slice(Base.OneTo(2))[false:true]          # false:true
+  collect(Base.Slice(Base.OneTo(2)))[false:true] # [2]
+output:
+  release: |
+    Base.Slice(Base.OneTo(2))[false:true] = false:true
+    collect(Base.Slice(Base.OneTo(2)))[false:true] = [2]
+    Base.IdentityUnitRange(Base.OneTo(2))[false:true] = 2:2
+    to_indices([10, 20], (:,))[1][false:true] = false:true
+    REPRODUCED reducecov-slice-bool-range
+  nightly: |
+    Base.Slice(Base.OneTo(2))[false:true] = false:true
+    collect(Base.Slice(Base.OneTo(2)))[false:true] = [2]
+    Base.IdentityUnitRange(Base.OneTo(2))[false:true] = 2:2
+    to_indices([10, 20], (:,))[1][false:true] = false:true
+    REPRODUCED reducecov-slice-bool-range
+reproduced: {release: true, nightly: true}
+expected: |
+  [2] (or the range 2:2), the elements selected by the mask, as for
+  Base.IdentityUnitRange(Base.OneTo(2))[false:true] == 2:2.
+promised_by: |
+  Manual, "Logical indexing" (doc/src/manual/arrays.md): indexing by a boolean
+  array selects the elements at the indices where its values are true. The Slice
+  docstring (base/indices.jl:325-336): Slice objects "are themselves unit ranges
+  with the same indices as those they wrap".
+cause: |
+  base/indices.jl:351-352: getindex(S::Slice, i::AbstractUnitRange{<:Integer}) and
+  getindex(S::Slice, i::StepRange{<:Integer}) return i after checkbounds. Bool <:
+  Integer, so Bool ranges take these methods; checkbounds accepts the mask
+  (axes1(I) == inds, base/multidimensional.jl:917) and the mask itself is returned.
+  IdentityUnitRange has separate AbstractUnitRange{Bool} and StepRange{Bool}
+  methods (base/indices.jl:385-399); Slice does not.
+possible_fix: |
+  Add getindex(S::Slice, i::AbstractUnitRange{Bool}) and
+  getindex(S::Slice, i::StepRange{Bool}) methods that select like the
+  IdentityUnitRange methods, or restrict the existing methods to non-Bool integers.
+duplicates:
+  issues:
+    - {number: 30740, state: open, relation: related}
+  queries: ["Slice getindex Bool", "logical indexing Slice", "Base.Slice", "Slice Bool"]
+lean:
+  property: JuliaLean.ReduceCov.Indices.SliceBoolMask
+  theorem: JuliaLean.ReduceCov.Indices.sliceBoolMask_refuted

@@ -1,0 +1,5 @@
+r = typemax(Int):-1:typemin(Int)
+println("first(r) = ", first(r), ", r[2] = ", r[2], ", last(r) = ", last(r))
+println("issorted(r) = ", issorted(r), ", length(r) = ", length(r))
+println("first(sort(r)) = ", first(sort(r)), " (expected typemin(Int))")
+(issorted(r) && r[2] < first(r)) && println("REPRODUCED rangescov-issorted-full-width")

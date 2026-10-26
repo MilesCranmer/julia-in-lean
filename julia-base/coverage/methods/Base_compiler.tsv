@@ -1,0 +1,61 @@
+file	line	endline	name	signature	status	entry	note
+base/Base_compiler.jl	16	29	include	include(mod::Module, path::String)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	30	30	include	include(path::String)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	34	34	IncludeInto	IncludeInto(m::Module)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	36	36	(this::IncludeInto)	(this::IncludeInto)(fname::AbstractString)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	44	44	inline	inline()	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	45	45	noinline	noinline()	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	47	47	_boundscheck	_boundscheck()	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	52	52	getproperty	getproperty(x::Module, f::Symbol)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	53	53	getproperty	getproperty(x::Type, f::Symbol)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	54	54	setproperty!	setproperty!(x::Type, f::Symbol, v)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	55	55	setproperty!	setproperty!(x::Array, f::Symbol, v)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	56	56	getproperty	getproperty(x::Tuple, f::Int)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	57	57	setproperty!	setproperty!(x::Tuple, f::Int, v)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	59	59	getproperty	getproperty(x, f::Symbol)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	60	64	setproperty!	setproperty!(x, f::Symbol, v)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	66	66	getproperty	getproperty	excluded		no-behaviour: declares a generic function without a method body.
+base/Base_compiler.jl	67	67	setproperty!	setproperty!	excluded		no-behaviour: declares a generic function without a method body.
+base/Base_compiler.jl	69	69	dotgetproperty	dotgetproperty(x, f)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	71	71	getproperty	getproperty(x::Module, f::Symbol, order::Symbol)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	72	77	setproperty!	setproperty!(x::Module, f::Symbol, v, order::Symbol=:monotonic)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	78	78	getproperty	getproperty(x::Type, f::Symbol, order::Symbol)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	79	79	setproperty!	setproperty!(x::Type, f::Symbol, v, order::Symbol)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	80	80	getproperty	getproperty(x::Tuple, f::Int, order::Symbol)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	81	81	setproperty!	setproperty!(x::Tuple, f::Int, v, order::Symbol)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	83	83	getproperty	getproperty(x, f::Symbol, order::Symbol)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	84	89	setproperty!	setproperty!(x, f::Symbol, v, order::Symbol)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	91	96	swapproperty!	swapproperty!(x, f::Symbol, v, order::Symbol=:not_atomic)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	97	100	modifyproperty!	modifyproperty!(x, f::Symbol, op, v, order::Symbol=:not_atomic)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	101	106	replaceproperty!	replaceproperty!(x, f::Symbol, expected, desired, success_order::Symbol=:not_atomic, fail_order::Symbol=success_order)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	107	112	setpropertyonce!	setpropertyonce!(x, f::Symbol, desired, success_order::Symbol=:not_atomic, fail_order::Symbol=success_order)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	114	119	swapproperty!	swapproperty!(x::Module, f::Symbol, v, order::Symbol=:not_atomic)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	120	123	modifyproperty!	modifyproperty!(x::Module, f::Symbol, op, v, order::Symbol=:not_atomic)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	124	129	replaceproperty!	replaceproperty!(x::Module, f::Symbol, expected, desired, success_order::Symbol=:not_atomic, fail_order::Symbol=success_order)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	130	135	setpropertyonce!	setpropertyonce!(x::Module, f::Symbol, desired, success_order::Symbol=:not_atomic, fail_order::Symbol=success_order)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	137	137	convert	convert(::Type{Any}, Core.@nospecialize x)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	138	138	convert	convert(::Type{T}, x::T) where {T}	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	146	146	set_syntax_version	set_syntax_version	excluded		no-behaviour: declares a generic function without a method body.
+base/Base_compiler.jl	147	147	_topmod	_topmod(m::Module)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	148	163	_setup_module!	_setup_module!(mod::Module, edition)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	169	169	eval	eval(x)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	170	170	eval	eval(m::Module, x)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	179	179	show	show(io::IO, x)	excluded		internal-bootstrap: enclosed in a literal `if false` debugging block and never defined.
+base/Base_compiler.jl	180	180	print	print(io::IO, a...)	excluded		internal-bootstrap: enclosed in a literal `if false` debugging block and never defined.
+base/Base_compiler.jl	181	181	println	println(io::IO, x...)	excluded		internal-bootstrap: enclosed in a literal `if false` debugging block and never defined.
+base/Base_compiler.jl	189	189	string	string	excluded		no-behaviour: declares a generic function without a method body.
+base/Base_compiler.jl	194	206	strcat	strcat(x::String, y::String)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	219	219	time_ns	time_ns()	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	235	240	Core.kwcall	Core.kwcall(kwargs::NamedTuple, ::typeof(invoke), f, T, args...)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	246	249	Core.kwcall	Core.kwcall(kwargs::NamedTuple, ::typeof(applicable), @nospecialize(args...))	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	250	255	Core._hasmethod	Core._hasmethod(@nospecialize(f), @nospecialize(t))	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	274	277	Core.kwcall	Core.kwcall(kwargs::NamedTuple, ::typeof(invokelatest), f, args...)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	308	311	Core.kwcall	Core.kwcall(kwargs::NamedTuple, ::typeof(invoke_in_world), world::UInt, f, args...)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	318	326	(vp::VersionedParse)	(vp::VersionedParse)(code, filename::String, lineno::Int, offset::Int, options::Symbol)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	338	338	==	==(x, y)	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	347	347	nextfloat	nextfloat	excluded		no-behaviour: declares a generic function without a method body.
+base/Base_compiler.jl	348	348	prevfloat	prevfloat	excluded		no-behaviour: declares a generic function without a method body.
+base/Base_compiler.jl	355	355	cld	cld	excluded		no-behaviour: declares a generic function without a method body.
+base/Base_compiler.jl	356	356	fld	fld	excluded		no-behaviour: declares a generic function without a method body.
+base/Base_compiler.jl	395	410	process_sysimg_args!	process_sysimg_args!()	modelled	runtimecov-base-compiler	
+base/Base_compiler.jl	413	413	isready	isready	excluded		no-behaviour: declares a generic function without a method body.

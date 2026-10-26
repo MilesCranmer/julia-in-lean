@@ -1,0 +1,62 @@
+id: runtimecov-load-path-expand-script-prefix
+title: "Named environments whose name starts with `script` (e.g. `@scripts`) are treated as `@script`"
+priority: P2
+kind: wrong-result
+area: RuntimeCov
+files: [base/initdefs.jl]
+functions: ["load_path_expand(::AbstractString)"]
+summary: |
+  `load_path_expand` recognizes the `@script` load-path entry with
+  `startswith(env, "@script")`, so every named environment whose name merely
+  begins with "script" (`@scripts`, `@scripting`, `@script_tools`) takes the
+  `@script` branch. Without a script file it returns `nothing`; with one it
+  searches `dirname(PROGRAM_FILE) * "s"` (the rest of the name glued onto the
+  script directory) instead of `~/.julia/environments/scripts`.
+likelihood: |
+  Needs a named environment whose name starts with "script", used through
+  `--project=@scripts`, `JULIA_PROJECT=@scripts` or a `LOAD_PATH` entry. Such names
+  are plausible for collections of utility scripts. The failure is silent: the
+  environment is simply not found (or a different project is used).
+maybe_intended: |
+  `@script` accepts a trailing relative path (HISTORY.md: "`--project=@script/foo`
+  for the `foo` subdirectory"), so the prefix test is deliberate, but the
+  documented form has a path separator after `@script`; nothing documents
+  `@scriptsXYZ` as a relative path.
+reproducer: |
+  depot = mktempdir()
+  project = joinpath(depot, "environments", "scripts", "Project.toml")
+  mkpath(dirname(project)); write(project, "")
+  empty!(DEPOT_PATH); push!(DEPOT_PATH, depot)
+  Base.load_path_expand("@scripts")   # nothing, expected `project`
+output:
+  release: |
+    named environment file: <temp>/environments/scripts/Project.toml
+    load_path_expand("@scripts") = nothing
+    REPRODUCED runtimecov-load-path-expand-script-prefix
+  nightly: |
+    named environment file: <temp>/environments/scripts/Project.toml
+    load_path_expand("@scripts") = nothing
+    REPRODUCED runtimecov-load-path-expand-script-prefix
+reproduced: {release: true, nightly: true}
+expected: |
+  The path of `environments/scripts/Project.toml` in the depot, as for any other
+  named environment such as `@foo`.
+promised_by: |
+  `LOAD_PATH` docstring (base/initdefs.jl:205-212): "`@name` refers to a named
+  environment, which are stored in depots ... under the `environments`
+  subdirectory ... `@name` would refer to the environment in
+  `~/.julia/environments/name` if it exists and contains a `Project.toml` file."
+cause: |
+  base/initdefs.jl:336 tests `startswith(env, "@script")` and line 343 appends
+  `env[length("@script")+1:end]` to the script directory without checking that
+  the next character is a path separator.
+possible_fix: |
+  Match `env == "@script" || startswith(env, "@script/")` (and `\\` on Windows), so
+  other names fall through to the named-environment search.
+duplicates:
+  issues:
+    - {number: 55069, state: closed, relation: related}
+  queries: ["@script load path named environment", "load_path_expand @script", "startswith @script", "prs: load_path_expand"]
+lean:
+  property: JuliaLean.RuntimeCov.InitDefs.LoadPathNamedEnv
+  theorem: JuliaLean.RuntimeCov.InitDefs.loadPathNamedEnv_refuted

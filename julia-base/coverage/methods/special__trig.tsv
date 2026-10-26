@@ -1,0 +1,155 @@
+file	line	endline	name	signature	status	entry	note
+base/special/trig.jl	28	51	sin	sin(x::T) where T<:Union{Float32, Float64}	modelled	mathcov-special-trig-l28	method-specific source model and quantified behavior property
+base/special/trig.jl	68	74	sin_kernel	sin_kernel(y::DoubleFloat64)	modelled	mathcov-special-trig-l68	method-specific source model and quantified behavior property
+base/special/trig.jl	75	81	sin_kernel	sin_kernel(y::Float64)	modelled	mathcov-special-trig-l75	method-specific source model and quantified behavior property
+base/special/trig.jl	84	84	sin_kernel	sin_kernel(x::Float32)	modelled	mathcov-special-trig-l84	method-specific source model and quantified behavior property
+base/special/trig.jl	85	93	sin_kernel	sin_kernel(y::DoubleFloat32)	modelled	mathcov-special-trig-l85	method-specific source model and quantified behavior property
+base/special/trig.jl	96	120	cos	cos(x::T) where T<:Union{Float32, Float64}	modelled	mathcov-special-trig-l96	method-specific source model and quantified behavior property
+base/special/trig.jl	134	141	cos_kernel	cos_kernel(y::DoubleFloat64)	modelled	mathcov-special-trig-l134	method-specific source model and quantified behavior property
+base/special/trig.jl	142	149	cos_kernel	cos_kernel(y::Float64)	modelled	mathcov-special-trig-l142	method-specific source model and quantified behavior property
+base/special/trig.jl	152	152	cos_kernel	cos_kernel(x::Float32)	modelled	mathcov-special-trig-l152	method-specific source model and quantified behavior property
+base/special/trig.jl	153	160	cos_kernel	cos_kernel(y::DoubleFloat32)	modelled	mathcov-special-trig-l153	method-specific source model and quantified behavior property
+base/special/trig.jl	174	200	sincos	sincos(x::T) where T<:Union{Float32, Float64}	modelled	mathcov-special-trig-l174	method-specific source model and quantified behavior property
+base/special/trig.jl	202	202	_sincos	_sincos(x::AbstractFloat)	modelled	mathcov-special-trig-l202	method-specific source model and quantified behavior property
+base/special/trig.jl	203	203	_sincos	_sincos(x)	modelled	mathcov-special-trig-l203	method-specific source model and quantified behavior property
+base/special/trig.jl	205	205	sincos	sincos(x)	modelled	mathcov-special-trig-l205	method-specific source model and quantified behavior property
+base/special/trig.jl	211	211	sincos_kernel	sincos_kernel(y::Union{Float32, Float64, DoubleFloat32, DoubleFloat64})	modelled	mathcov-special-trig-l211	method-specific source model and quantified behavior property
+base/special/trig.jl	214	232	tan	tan(x::T) where T<:Union{Float32, Float64}	modelled	mathcov-special-trig-l214	method-specific source model and quantified behavior property
+base/special/trig.jl	234	234	tan_kernel	tan_kernel(y::Float64)	modelled	mathcov-special-trig-l234	method-specific source model and quantified behavior property
+base/special/trig.jl	235	334	tan_kernel	tan_kernel(y::DoubleFloat64, k)	modelled	mathcov-special-trig-l235	method-specific source model and quantified behavior property
+base/special/trig.jl	336	336	tan_kernel	tan_kernel(y::Float32)	modelled	mathcov-special-trig-l336	method-specific source model and quantified behavior property
+base/special/trig.jl	337	351	tan_kernel	tan_kernel(y::DoubleFloat32, k)	modelled	mathcov-special-trig-l337	method-specific source model and quantified behavior property
+base/special/trig.jl	354	354	sin_kernel	sin_kernel(x::Real)	modelled	mathcov-special-trig-l354	method-specific source model and quantified behavior property
+base/special/trig.jl	355	355	cos_kernel	cos_kernel(x::Real)	modelled	mathcov-special-trig-l355	method-specific source model and quantified behavior property
+base/special/trig.jl	356	356	tan_kernel	tan_kernel(x::Real)	modelled	mathcov-special-trig-l356	method-specific source model and quantified behavior property
+base/special/trig.jl	357	357	sincos_kernel	sincos_kernel(x::Real)	modelled	mathcov-special-trig-l357	method-specific source model and quantified behavior property
+base/special/trig.jl	361	361	ASIN_X_MIN_THRESHOLD	ASIN_X_MIN_THRESHOLD(::Type{Float32})	modelled	mathcov-special-trig-l361	method-specific source model and quantified behavior property
+base/special/trig.jl	362	362	ASIN_X_MIN_THRESHOLD	ASIN_X_MIN_THRESHOLD(::Type{Float64})	modelled	mathcov-special-trig-l362	method-specific source model and quantified behavior property
+base/special/trig.jl	364	371	arc_p	arc_p(t::Float64)	modelled	mathcov-special-trig-l364	method-specific source model and quantified behavior property
+base/special/trig.jl	373	379	arc_q	arc_q(z::Float64)	modelled	mathcov-special-trig-l373	method-specific source model and quantified behavior property
+base/special/trig.jl	381	385	arc_p	arc_p(t::Float32)	modelled	mathcov-special-trig-l381	method-specific source model and quantified behavior property
+base/special/trig.jl	387	387	arc_q	arc_q(t::Float32)	modelled	mathcov-special-trig-l387	method-specific source model and quantified behavior property
+base/special/trig.jl	389	389	arc_tRt	arc_tRt(t)	modelled	mathcov-special-trig-l389	method-specific source model and quantified behavior property
+base/special/trig.jl	392	418	asin_kernel	asin_kernel(t::Float64, x::Float64)	modelled	mathcov-special-trig-l392	method-specific source model and quantified behavior property
+base/special/trig.jl	419	423	asin_kernel	asin_kernel(t::Float32, x::Float32)	modelled	mathcov-special-trig-l419	method-specific source model and quantified behavior property
+base/special/trig.jl	425	425	asin_domain_error	asin_domain_error(x)	modelled	mathcov-special-trig-l425	method-specific source model and quantified behavior property
+base/special/trig.jl	426	450	asin	asin(x::T) where T<:Union{Float32, Float64}	modelled	mathcov-special-trig-l426	method-specific source model and quantified behavior property
+base/special/trig.jl	453	453	ATAN_1_O_2_HI	ATAN_1_O_2_HI(::Type{Float64})	modelled	mathcov-special-trig-l453	method-specific source model and quantified behavior property
+base/special/trig.jl	454	454	ATAN_2_O_2_HI	ATAN_2_O_2_HI(::Type{Float64})	modelled	mathcov-special-trig-l454	method-specific source model and quantified behavior property
+base/special/trig.jl	455	455	ATAN_3_O_2_HI	ATAN_3_O_2_HI(::Type{Float64})	modelled	mathcov-special-trig-l455	method-specific source model and quantified behavior property
+base/special/trig.jl	456	456	ATAN_INF_HI	ATAN_INF_HI(::Type{Float64})	modelled	mathcov-special-trig-l456	method-specific source model and quantified behavior property
+base/special/trig.jl	458	458	ATAN_1_O_2_HI	ATAN_1_O_2_HI(::Type{Float32})	modelled	mathcov-special-trig-l458	method-specific source model and quantified behavior property
+base/special/trig.jl	459	459	ATAN_2_O_2_HI	ATAN_2_O_2_HI(::Type{Float32})	modelled	mathcov-special-trig-l459	method-specific source model and quantified behavior property
+base/special/trig.jl	460	460	ATAN_3_O_2_HI	ATAN_3_O_2_HI(::Type{Float32})	modelled	mathcov-special-trig-l460	method-specific source model and quantified behavior property
+base/special/trig.jl	461	461	ATAN_INF_HI	ATAN_INF_HI(::Type{Float32})	modelled	mathcov-special-trig-l461	method-specific source model and quantified behavior property
+base/special/trig.jl	463	463	ATAN_1_O_2_LO	ATAN_1_O_2_LO(::Type{Float64})	modelled	mathcov-special-trig-l463	method-specific source model and quantified behavior property
+base/special/trig.jl	464	464	ATAN_2_O_2_LO	ATAN_2_O_2_LO(::Type{Float64})	modelled	mathcov-special-trig-l464	method-specific source model and quantified behavior property
+base/special/trig.jl	465	465	ATAN_3_O_2_LO	ATAN_3_O_2_LO(::Type{Float64})	modelled	mathcov-special-trig-l465	method-specific source model and quantified behavior property
+base/special/trig.jl	466	466	ATAN_INF_LO	ATAN_INF_LO(::Type{Float64})	modelled	mathcov-special-trig-l466	method-specific source model and quantified behavior property
+base/special/trig.jl	468	468	ATAN_1_O_2_LO	ATAN_1_O_2_LO(::Type{Float32})	modelled	mathcov-special-trig-l468	method-specific source model and quantified behavior property
+base/special/trig.jl	469	469	ATAN_2_O_2_LO	ATAN_2_O_2_LO(::Type{Float32})	modelled	mathcov-special-trig-l469	method-specific source model and quantified behavior property
+base/special/trig.jl	470	470	ATAN_3_O_2_LO	ATAN_3_O_2_LO(::Type{Float32})	modelled	mathcov-special-trig-l470	method-specific source model and quantified behavior property
+base/special/trig.jl	471	471	ATAN_INF_LO	ATAN_INF_LO(::Type{Float32})	modelled	mathcov-special-trig-l471	method-specific source model and quantified behavior property
+base/special/trig.jl	473	473	ATAN_LARGE_X	ATAN_LARGE_X(::Type{Float64})	modelled	mathcov-special-trig-l473	method-specific source model and quantified behavior property
+base/special/trig.jl	474	474	ATAN_SMALL_X	ATAN_SMALL_X(::Type{Float64})	modelled	mathcov-special-trig-l474	method-specific source model and quantified behavior property
+base/special/trig.jl	475	475	ATAN_LARGE_X	ATAN_LARGE_X(::Type{Float32})	modelled	mathcov-special-trig-l475	method-specific source model and quantified behavior property
+base/special/trig.jl	476	476	ATAN_SMALL_X	ATAN_SMALL_X(::Type{Float32})	modelled	mathcov-special-trig-l476	method-specific source model and quantified behavior property
+base/special/trig.jl	478	484	atan_p	atan_p(z::Float64, w::Float64)	modelled	mathcov-special-trig-l478	method-specific source model and quantified behavior property
+base/special/trig.jl	485	490	atan_q	atan_q(w::Float64)	modelled	mathcov-special-trig-l485	method-specific source model and quantified behavior property
+base/special/trig.jl	491	491	atan_p	atan_p(z::Float32, w::Float32)	modelled	mathcov-special-trig-l491	method-specific source model and quantified behavior property
+base/special/trig.jl	492	492	atan_q	atan_q(w::Float32)	modelled	mathcov-special-trig-l492	method-specific source model and quantified behavior property
+base/special/trig.jl	493	498	atan_pq	atan_pq(x)	modelled	mathcov-special-trig-l493	method-specific source model and quantified behavior property
+base/special/trig.jl	500	554	atan	atan(x::T) where T<:Union{Float32, Float64}	modelled	mathcov-special-trig-l500	method-specific source model and quantified behavior property
+base/special/trig.jl	556	556	ATAN2_PI_LO	ATAN2_PI_LO(::Type{Float32})	modelled	mathcov-special-trig-l556	method-specific source model and quantified behavior property
+base/special/trig.jl	557	557	ATAN2_RATIO_BIT_SHIFT	ATAN2_RATIO_BIT_SHIFT(::Type{Float32})	modelled	mathcov-special-trig-l557	method-specific source model and quantified behavior property
+base/special/trig.jl	558	558	ATAN2_RATIO_THRESHOLD	ATAN2_RATIO_THRESHOLD(::Type{Float32})	modelled	mathcov-special-trig-l558	method-specific source model and quantified behavior property
+base/special/trig.jl	560	560	ATAN2_PI_LO	ATAN2_PI_LO(::Type{Float64})	modelled	mathcov-special-trig-l560	method-specific source model and quantified behavior property
+base/special/trig.jl	561	561	ATAN2_RATIO_BIT_SHIFT	ATAN2_RATIO_BIT_SHIFT(::Type{Float64})	modelled	mathcov-special-trig-l561	method-specific source model and quantified behavior property
+base/special/trig.jl	562	562	ATAN2_RATIO_THRESHOLD	ATAN2_RATIO_THRESHOLD(::Type{Float64})	modelled	mathcov-special-trig-l562	method-specific source model and quantified behavior property
+base/special/trig.jl	564	655	atan	atan(y::T, x::T) where T<:Union{Float32, Float64}	modelled	mathcov-special-trig-l564	method-specific source model and quantified behavior property
+base/special/trig.jl	657	657	ACOS_X_MIN_THRESHOLD	ACOS_X_MIN_THRESHOLD(::Type{Float32})	modelled	mathcov-special-trig-l657	method-specific source model and quantified behavior property
+base/special/trig.jl	658	658	ACOS_X_MIN_THRESHOLD	ACOS_X_MIN_THRESHOLD(::Type{Float64})	modelled	mathcov-special-trig-l658	method-specific source model and quantified behavior property
+base/special/trig.jl	659	659	PIO2_HI	PIO2_HI(::Type{Float32})	modelled	mathcov-special-trig-l659	method-specific source model and quantified behavior property
+base/special/trig.jl	660	660	PIO2_LO	PIO2_LO(::Type{Float32})	modelled	mathcov-special-trig-l660	method-specific source model and quantified behavior property
+base/special/trig.jl	661	661	PIO2_HI	PIO2_HI(::Type{Float64})	modelled	mathcov-special-trig-l661	method-specific source model and quantified behavior property
+base/special/trig.jl	662	662	PIO2_LO	PIO2_LO(::Type{Float64})	modelled	mathcov-special-trig-l662	method-specific source model and quantified behavior property
+base/special/trig.jl	663	663	ACOS_PI	ACOS_PI(::Type{Float32})	modelled	mathcov-special-trig-l663	method-specific source model and quantified behavior property
+base/special/trig.jl	664	664	ACOS_PI	ACOS_PI(::Type{Float64})	modelled	mathcov-special-trig-l664	method-specific source model and quantified behavior property
+base/special/trig.jl	665	665	ACOS_CORRECT_LOWWORD	ACOS_CORRECT_LOWWORD(::Type{Float32}, x)	modelled	mathcov-special-trig-l665	method-specific source model and quantified behavior property
+base/special/trig.jl	666	666	ACOS_CORRECT_LOWWORD	ACOS_CORRECT_LOWWORD(::Type{Float64}, x)	modelled	mathcov-special-trig-l666	method-specific source model and quantified behavior property
+base/special/trig.jl	668	668	acos_domain_error	acos_domain_error(x)	modelled	mathcov-special-trig-l668	method-specific source model and quantified behavior property
+base/special/trig.jl	669	722	acos	acos(x::T) where T <: Union{Float32, Float64}	modelled	mathcov-special-trig-l669	method-specific source model and quantified behavior property
+base/special/trig.jl	725	727	sinpi_kernel	sinpi_kernel(x::Float64)	modelled	mathcov-special-trig-l725	method-specific source model and quantified behavior property
+base/special/trig.jl	728	730	sinpi_kernel_wide	sinpi_kernel_wide(x::Float64)	modelled	mathcov-special-trig-l728	method-specific source model and quantified behavior property
+base/special/trig.jl	731	733	sinpi_kernel	sinpi_kernel(x::Float32)	modelled	mathcov-special-trig-l731	method-specific source model and quantified behavior property
+base/special/trig.jl	734	738	sinpi_kernel_wide	sinpi_kernel_wide(x::Float32)	modelled	mathcov-special-trig-l734	method-specific source model and quantified behavior property
+base/special/trig.jl	740	742	sinpi_kernel	sinpi_kernel(x::Float16)	modelled	mathcov-special-trig-l740	method-specific source model and quantified behavior property
+base/special/trig.jl	743	746	sinpi_kernel_wide	sinpi_kernel_wide(x::Float16)	modelled	mathcov-special-trig-l743	method-specific source model and quantified behavior property
+base/special/trig.jl	749	751	cospi_kernel	cospi_kernel(x::Float64)	modelled	mathcov-special-trig-l749	method-specific source model and quantified behavior property
+base/special/trig.jl	752	754	cospi_kernel_wide	cospi_kernel_wide(x::Float64)	modelled	mathcov-special-trig-l752	method-specific source model and quantified behavior property
+base/special/trig.jl	755	757	cospi_kernel	cospi_kernel(x::Float32)	modelled	mathcov-special-trig-l755	method-specific source model and quantified behavior property
+base/special/trig.jl	758	762	cospi_kernel_wide	cospi_kernel_wide(x::Float32)	modelled	mathcov-special-trig-l758	method-specific source model and quantified behavior property
+base/special/trig.jl	763	765	cospi_kernel	cospi_kernel(x::Float16)	modelled	mathcov-special-trig-l763	method-specific source model and quantified behavior property
+base/special/trig.jl	766	769	cospi_kernel_wide	cospi_kernel_wide(x::Float16)	modelled	mathcov-special-trig-l766	method-specific source model and quantified behavior property
+base/special/trig.jl	771	783	_cospi_kernel	_cospi_kernel(x::AbstractFloat, sch)	modelled	mathcov-special-trig-l771	method-specific source model and quantified behavior property
+base/special/trig.jl	785	795	_sinpi_kernel	_sinpi_kernel(x::AbstractFloat, sch)	modelled	mathcov-special-trig-l785	method-specific source model and quantified behavior property
+base/special/trig.jl	934	957	sinpi	sinpi(_x::T) where T<:IEEEFloat	modelled	mathcov-special-trig-l934	method-specific source model and quantified behavior property
+base/special/trig.jl	968	990	cospi	cospi(x::T) where T<:IEEEFloat	modelled	mathcov-special-trig-l968	method-specific source model and quantified behavior property
+base/special/trig.jl	1005	1030	sincospi	sincospi(_x::T) where T<:IEEEFloat	modelled	mathcov-special-trig-l1005	method-specific source model and quantified behavior property
+base/special/trig.jl	1044	1072	tanpi	tanpi(_x::T) where T<:IEEEFloat	modelled	mathcov-special-trig-l1044	method-specific source model and quantified behavior property
+base/special/trig.jl	1074	1074	sinpi	sinpi(x::Integer)	modelled	mathcov-special-trig-l1074	method-specific source model and quantified behavior property
+base/special/trig.jl	1075	1075	cospi	cospi(x::Integer)	modelled	mathcov-special-trig-l1075	method-specific source model and quantified behavior property
+base/special/trig.jl	1076	1077	tanpi	tanpi(x::Integer)	modelled	mathcov-special-trig-l1076	method-specific source model and quantified behavior property
+base/special/trig.jl	1078	1078	sincospi	sincospi(x::Integer)	modelled	mathcov-special-trig-l1078	method-specific source model and quantified behavior property
+base/special/trig.jl	1079	1079	sinpi	sinpi(x::AbstractFloat)	modelled	mathcov-special-trig-l1079	method-specific source model and quantified behavior property
+base/special/trig.jl	1080	1080	cospi	cospi(x::AbstractFloat)	modelled	mathcov-special-trig-l1080	method-specific source model and quantified behavior property
+base/special/trig.jl	1081	1081	sincospi	sincospi(x::AbstractFloat)	modelled	mathcov-special-trig-l1081	method-specific source model and quantified behavior property
+base/special/trig.jl	1082	1082	tanpi	tanpi(x::AbstractFloat)	modelled	mathcov-special-trig-l1082	method-specific source model and quantified behavior property
+base/special/trig.jl	1084	1091	tanpi	tanpi(z::Complex)	modelled	mathcov-special-trig-l1084	method-specific source model and quantified behavior property
+base/special/trig.jl	1093	1124	sinpi	sinpi(z::Complex{T}) where T	modelled	mathcov-special-trig-l1093	method-specific source model and quantified behavior property
+base/special/trig.jl	1126	1160	cospi	cospi(z::Complex{T}) where T	modelled	mathcov-special-trig-l1126	method-specific source model and quantified behavior property
+base/special/trig.jl	1162	1207	sincospi	sincospi(z::Complex{T}) where T	modelled	mathcov-special-trig-l1162	method-specific source model and quantified behavior property
+base/special/trig.jl	1217	1217	fastabs	fastabs(x::Number)	modelled	mathcov-special-trig-l1217	method-specific source model and quantified behavior property
+base/special/trig.jl	1218	1218	fastabs	fastabs(z::Complex)	modelled	mathcov-special-trig-l1218	method-specific source model and quantified behavior property
+base/special/trig.jl	1221	1221	isinf_real	isinf_real(x::Real)	modelled	mathcov-special-trig-l1221	method-specific source model and quantified behavior property
+base/special/trig.jl	1222	1222	isinf_real	isinf_real(x::Complex)	modelled	mathcov-special-trig-l1222	method-specific source model and quantified behavior property
+base/special/trig.jl	1223	1223	isinf_real	isinf_real(x::Number)	modelled	mathcov-special-trig-l1223	method-specific source model and quantified behavior property
+base/special/trig.jl	1234	1234	sinc	sinc(x::Number)	modelled	mathcov-special-trig-l1234	method-specific source model and quantified behavior property
+base/special/trig.jl	1235	1235	sinc	sinc(x::Integer)	modelled	mathcov-special-trig-l1235	method-specific source model and quantified behavior property
+base/special/trig.jl	1236	1236	_sinc	_sinc(x::Number)	modelled	mathcov-special-trig-l1236	method-specific source model and quantified behavior property
+base/special/trig.jl	1237	1237	_sinc_threshold	_sinc_threshold(::Type{Float64})	modelled	mathcov-special-trig-l1237	method-specific source model and quantified behavior property
+base/special/trig.jl	1238	1238	_sinc_threshold	_sinc_threshold(::Type{Float32})	modelled	mathcov-special-trig-l1238	method-specific source model and quantified behavior property
+base/special/trig.jl	1239	1240	_sinc	_sinc(x::Union{T,Complex{T}}) where {T<:Union{Float32,Float64}}	modelled	mathcov-special-trig-l1239	method-specific source model and quantified behavior property
+base/special/trig.jl	1241	1241	_sinc	_sinc(x::Float16)	modelled	mathcov-special-trig-l1241	method-specific source model and quantified behavior property
+base/special/trig.jl	1242	1242	_sinc	_sinc(x::ComplexF16)	modelled	mathcov-special-trig-l1242	method-specific source model and quantified behavior property
+base/special/trig.jl	1254	1254	cosc	cosc(x::Number)	modelled	mathcov-special-trig-l1254,mathcov-cosc-large-argument	method-specific source model and quantified behavior property
+base/special/trig.jl	1255	1258	_cosc_generic	_cosc_generic(x)	modelled	mathcov-special-trig-l1255	method-specific source model and quantified behavior property
+base/special/trig.jl	1259	1281	_cosc	_cosc(x::Number)	modelled	mathcov-special-trig-l1259	method-specific source model and quantified behavior property
+base/special/trig.jl	1333	1366	_cos_cardinal_eval	_cos_cardinal_eval(x::AbstractFloat, polynomials_close_to_origin::NTuple)	modelled	mathcov-special-trig-l1333	method-specific source model and quantified behavior property
+base/special/trig.jl	1334	1341	choose_poly	choose_poly(a::AbstractFloat, polynomials_close_to_origin::NTuple{2})	modelled	mathcov-special-trig-l1334	method-specific source model and quantified behavior property
+base/special/trig.jl	1342	1357	choose_poly	choose_poly(a::AbstractFloat, polynomials_close_to_origin::NTuple{4})	modelled	mathcov-special-trig-l1342	method-specific source model and quantified behavior property
+base/special/trig.jl	1384	1391	_cosc	_cosc(x::Union{Float32, Float64})	modelled	mathcov-special-trig-l1384,mathcov-cosc-large-argument	method-specific source model and quantified behavior property
+base/special/trig.jl	1395	1397	_cosc	_cosc(x::ComplexF64)	modelled	mathcov-special-trig-l1395	method-specific source model and quantified behavior property
+base/special/trig.jl	1398	1400	_cosc	_cosc(x::ComplexF32)	modelled	mathcov-special-trig-l1398	method-specific source model and quantified behavior property
+base/special/trig.jl	1401	1401	_cosc	_cosc(x::Float16)	modelled	mathcov-special-trig-l1401	method-specific source model and quantified behavior property
+base/special/trig.jl	1402	1402	_cosc	_cosc(x::ComplexF16)	modelled	mathcov-special-trig-l1402	method-specific source model and quantified behavior property
+base/special/trig.jl	1417	1417	$finv	($finv)(z::Number)	modelled	mathcov-special-trig-l1417	method-specific source model and quantified behavior property
+base/special/trig.jl	1424	1424	$finvh	($finvh)(z::Number)	modelled	mathcov-special-trig-l1424	method-specific source model and quantified behavior property
+base/special/trig.jl	1431	1431	$finvd	($finvd)(z::Number)	modelled	mathcov-special-trig-l1431	method-specific source model and quantified behavior property
+base/special/trig.jl	1445	1445	$tfa	($tfa)(y::Number)	modelled	mathcov-special-trig-l1445	method-specific source model and quantified behavior property
+base/special/trig.jl	1450	1450	$hfa	($hfa)(y::Number)	modelled	mathcov-special-trig-l1450	method-specific source model and quantified behavior property
+base/special/trig.jl	1456	1469	deg2rad_ext	deg2rad_ext(x::Float64)	modelled	mathcov-special-trig-l1456	method-specific source model and quantified behavior property
+base/special/trig.jl	1470	1470	deg2rad_ext	deg2rad_ext(x::Float32)	modelled	mathcov-special-trig-l1470	method-specific source model and quantified behavior property
+base/special/trig.jl	1471	1471	deg2rad_ext	deg2rad_ext(x::Real)	modelled	mathcov-special-trig-l1471	method-specific source model and quantified behavior property
+base/special/trig.jl	1473	1502	sind	sind(x::Real)	modelled	mathcov-special-trig-l1473	method-specific source model and quantified behavior property
+base/special/trig.jl	1504	1528	cosd	cosd(x::Real)	modelled	mathcov-special-trig-l1504	method-specific source model and quantified behavior property
+base/special/trig.jl	1530	1530	tand	tand(x::Real)	modelled	mathcov-special-trig-l1530	method-specific source model and quantified behavior property
+base/special/trig.jl	1543	1543	sincosd	sincosd(x)	modelled	mathcov-special-trig-l1543	method-specific source model and quantified behavior property
+base/special/trig.jl	1547	1547	sincosd	sincosd(::Missing)	modelled	mathcov-special-trig-l1547	method-specific source model and quantified behavior property
+base/special/trig.jl	1563	1563	$fd	($fd)(x)	modelled	mathcov-special-trig-l1563	method-specific source model and quantified behavior property
+base/special/trig.jl	1582	1582	$fd	($fd)(x)	modelled	mathcov-special-trig-l1582	method-specific source model and quantified behavior property
+base/special/trig.jl	1600	1600	atand	atand(y)	modelled	mathcov-special-trig-l1600	method-specific source model and quantified behavior property
+base/special/trig.jl	1601	1601	atand	atand(y, x)	modelled	mathcov-special-trig-l1601	method-specific source model and quantified behavior property
+base/special/trig.jl	1605	1605	$f	$f(x::Float16)	modelled	mathcov-special-trig-l1605	method-specific source model and quantified behavior property
+base/special/trig.jl	1608	1608	$f	$f(x::Float16)	modelled	mathcov-special-trig-l1608	method-specific source model and quantified behavior property
+base/special/trig.jl	1610	1610	atand	atand(y::Float16, x::Float16)	modelled	mathcov-special-trig-l1610	method-specific source model and quantified behavior property

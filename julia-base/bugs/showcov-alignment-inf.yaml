@@ -1,0 +1,64 @@
+id: showcov-alignment-inf
+title: "Base.alignment splits Inf at its 'f', so Inf is misaligned against the decimal point in array display"
+priority: P3
+kind: wrong-result
+area: ShowCov
+files: [base/show.jl]
+functions: ["alignment(::IO, ::Real)"]
+summary: |
+  alignment(io, x::Real) splits the printed number at the first '.', 'e', 'E', 'f' or 'F'
+  to find the decimal point (base/show.jl:3196). The 'f'/'F' are there for Float32's
+  exponent marker ("1.5f0"), but they also match the last letter of Inf, so
+  alignment(io, Inf) == (2, 1) and Inf is printed with its "f" in the decimal-point
+  column, while NaN (3, 0) ends just before it.
+likelihood: |
+  Every array display containing Inf or -Inf; cosmetic.
+maybe_intended: |
+  Arguably a layout choice; the docstring only describes alignment around "an alignment
+  feature such as a decimal point".
+reproducer: |
+  Base.alignment(stdout, Inf)   # (2, 1)
+  Base.alignment(stdout, NaN)   # (3, 0)
+  display([1.5, Inf, NaN])
+output:
+  release: |
+    1.5    alignment = (1, 2)
+    Inf    alignment = (2, 1)
+    -Inf   alignment = (3, 1)
+    NaN    alignment = (3, 0)
+    Inf32  alignment = (2, 3)
+    3-element Vector{Float64}:
+       1.5
+      Inf
+     NaN
+    REPRODUCED showcov-alignment-inf
+  nightly: |
+    1.5    alignment = (1, 2)
+    Inf    alignment = (2, 1)
+    -Inf   alignment = (3, 1)
+    NaN    alignment = (3, 0)
+    Inf32  alignment = (2, 3)
+    3-element Vector{Float64}:
+       1.5
+      Inf
+     NaN
+    REPRODUCED showcov-alignment-inf
+reproduced: {release: true, nightly: true}
+expected: |
+  (3, 0) for Inf (no decimal point, like NaN) and (4, 0) for -Inf, so non-finite values
+  line up consistently.
+promised_by: |
+  base/show.jl:3175-3177: "`alignment(io, X)` returns a tuple (left,right) showing how many
+  characters are needed on either side of an alignment feature such as a decimal point."
+cause: |
+  base/show.jl:3196: the regex r"^(.*?)((?:[\.eEfF].*)?)$" takes the 'f' of "Inf" as the
+  start of the fractional part.
+possible_fix: |
+  Only treat f/F as an exponent marker when followed by a digit or sign, e.g.
+  r"^(.*?)((?:[\.eE].*|[fF][-+\d].*)?)$".
+duplicates:
+  issues: []
+  queries: ["alignment Inf", "Inf alignment vector display", "alignment Float Inf column", "show Inf NaN vector alignment"]
+lean:
+  property: JuliaLean.ShowCov.AlignmentInf
+  theorem: JuliaLean.ShowCov.alignmentInf_refuted

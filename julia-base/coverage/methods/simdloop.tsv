@@ -1,0 +1,11 @@
+file	line	endline	name	signature	status	entry	note
+base/simdloop.jl	17	22	parse_iteration_space	parse_iteration_space(x)	modelled	iteratorscov-simdloop-semantics	
+base/simdloop.jl	25	35	check_body!	check_body!(x::Expr)	modelled	iteratorscov-simdloop-semantics	
+base/simdloop.jl	36	36	check_body!	check_body!(x::QuoteNode)	modelled	iteratorscov-simdloop-semantics	
+base/simdloop.jl	37	37	check_body!	check_body!(x)	modelled	iteratorscov-simdloop-semantics	
+base/simdloop.jl	48	48	simd_outer_range	simd_outer_range(r)	modelled	iteratorscov-simdloop-semantics	
+base/simdloop.jl	51	51	simd_inner_length	simd_inner_length(r, j)	modelled	iteratorscov-simdloop-semantics	
+base/simdloop.jl	54	54	simd_index	simd_index(r, j, i)	modelled	iteratorscov-simdloop-semantics	
+base/simdloop.jl	57	88	compile	compile(x, ivdep)	modelled	iteratorscov-simdloop-semantics	
+base/simdloop.jl	127	129	simd	simd(forloop)	modelled	iteratorscov-simdloop-semantics	
+base/simdloop.jl	131	137	simd	simd(ivdep, forloop)	modelled	iteratorscov-simdloop-semantics	

@@ -1,0 +1,56 @@
+file	line	endline	name	signature	status	entry	note
+base/deprecated.jl	110	113	__has_internal_change	__has_internal_change(version_or::VersionNumber, change_name::Symbol)	modelled	misccov-deprecated-internal-change	
+base/deprecated.jl	179	231	deprecate	deprecate(old, new, export_old=true)	modelled	misccov-deprecated-macro	
+base/deprecated.jl	180	188	cannot_export_nonsymbol	cannot_export_nonsymbol()	modelled	misccov-deprecated-macro	generated-macro: deprecate
+base/deprecated.jl	222	226	$(esc(old))	$(esc(old))(args...; kwargs...)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	253	259	depwarn	depwarn(msg, funcsym; force::Bool=false)	modelled	misccov-depwarn	
+base/deprecated.jl	260	289	_depwarn	_depwarn(msg, funcsym, force::Bool)	modelled	misccov-depwarn	
+base/deprecated.jl	291	291	firstcaller	firstcaller(bt::Vector, ::Nothing)	modelled	misccov-depwarn	
+base/deprecated.jl	292	292	firstcaller	firstcaller(bt::Vector, funcsym::Symbol)	modelled	misccov-depwarn	
+base/deprecated.jl	293	317	firstcaller	firstcaller(bt::Vector, funcsyms)	modelled	misccov-depwarn	
+base/deprecated.jl	319	319	deprecate	deprecate(m::Module, s::Symbol, flag=1)	modelled	misccov-deprecated-bindings	
+base/deprecated.jl	346	353	deprecate_binding	deprecate_binding(old, new, export_old=true, dep_message=:nothing, constant=true)	modelled	misccov-deprecated-bindings	
+base/deprecated.jl	355	365	deprecate_stdlib	deprecate_stdlib(old, mod, export_old=true, newname=old)	modelled	misccov-deprecated-bindings	
+base/deprecated.jl	367	376	deprecate_moved	deprecate_moved(old, new, export_old=true)	modelled	misccov-deprecated-bindings	
+base/deprecated.jl	373	373	$eold	$eold(args...; kwargs...)	modelled	misccov-deprecated-bindings	generated-macro: deprecate_moved
+base/deprecated.jl	410	410	isimmutable	isimmutable(@nospecialize(x))	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	414	420	get!	get!(h, key0, default)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	422	422	pointer	pointer(V::SubArray{<:Any,<:Any,<:Array,<:Tuple{Vararg{RangeIndex}}}, is::Tuple)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	431	432	iterate	iterate(match::Core.MethodMatch, field::Int=1)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	433	434	getindex	getindex(match::Core.MethodMatch, field::Int)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	438	438	tuple_type_head	tuple_type_head(T::Type)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	439	439	tuple_type_cons	tuple_type_cons(::Type, ::Type{Union{}})	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	440	441	tuple_type_cons	tuple_type_cons(::Type{S}, ::Type{T}) where T<:Tuple where S	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	442	443	parameter_upper_bound	parameter_upper_bound(t::UnionAll, idx)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	447	447	cat_shape	cat_shape(dims, shape::Tuple{})	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	463	467	getproperty	getproperty(x::Pairs, s::Symbol)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	487	490	getproperty	getproperty(ci::CodeInfo, s::Symbol)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	492	495	setproperty!	setproperty!(ci::CodeInfo, s::Symbol, v)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	497	497	nthreads	nthreads()	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	516	524	resize_nthreads!	resize_nthreads!(A::AbstractVector, copyvalue=A[1])	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	545	547	pure	pure(ex)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	588	591	to_power_type	to_power_type(x::Number)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	592	592	to_power_type	to_power_type(x)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	607	607	*%	*%(a::T, b::T) where {T}	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	608	608	+%	+%(a::T, b::T) where {T}	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	609	609	-%	-%(a::T, b::T) where {T}	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	611	611	*%	*%(a::T, b::T) where {T<:IEEEFloat}	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	612	612	+%	+%(a::T, b::T) where {T<:IEEEFloat}	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	613	613	-%	-%(a::T, b::T) where {T<:IEEEFloat}	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	616	620	explicit_manifest_entry_path	explicit_manifest_entry_path(args...)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	630	634	depwarn_if_not_pure	depwarn_if_not_pure(args...)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	636	648	getproperty	getproperty(x::TypeEq, s::Symbol)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	650	653	typename	typename(x::TypeEq)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	655	658	nameof	nameof(x::TypeEq)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	660	663	parentmodule	parentmodule(x::TypeEq)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	665	668	isabstracttype	isabstracttype(x::TypeEq)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	670	682	getproperty	getproperty(x::Core.TypeEgal, s::Symbol)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	684	687	typename	typename(x::Core.TypeEgal)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	689	692	nameof	nameof(x::Core.TypeEgal)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	694	697	parentmodule	parentmodule(x::Core.TypeEgal)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	699	702	isabstracttype	isabstracttype(x::Core.TypeEgal)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	736	739	setindex!	setindex!(x::Threads.Atomic, v)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	744	744	sin_domain_error	sin_domain_error(x)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	745	745	cos_domain_error	cos_domain_error(x)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	746	746	sincos_domain_error	sincos_domain_error(x)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	747	747	tan_domain_error	tan_domain_error(x)	excluded		deprecated: compatibility definition retained only for deprecated behavior

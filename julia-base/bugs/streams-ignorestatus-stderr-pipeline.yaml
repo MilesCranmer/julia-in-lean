@@ -1,0 +1,50 @@
+id: streams-ignorestatus-stderr-pipeline
+title: "ignorestatus rejects pipelines that redirect stderr to a command"
+priority: P2
+kind: wrong-exception
+area: Streams
+files: [base/cmd.jl]
+functions: ["ignorestatus(::AbstractCmd)", "pipeline(::AbstractCmd; stderr=::AbstractCmd)"]
+summary: |
+  A pipeline that sends stdout to another command can be passed to ignorestatus, but the
+  equivalent pipeline that sends stderr to another command throws MethodError. Both are command
+  objects accepted by run, and ignorestatus already recurses over the other command composites.
+likelihood: |
+  Low to moderate: stderr-processing pipelines are less common than stdout pipelines, but are a
+  documented pipeline form and often need nonzero statuses suppressed for diagnostic commands.
+maybe_intended: ""
+reproducer: |
+  cmd = pipeline(`/bin/sh -c 'echo error >&2; exit 7'`; stderr=`/bin/cat`)
+  ignorestatus(cmd)  # MethodError for Base.ErrOrCmds
+output:
+  release: |
+    typeof(cmd) = Base.ErrOrCmds
+    ignorestatus(cmd) = MethodError(ignorestatus, (pipeline(`/bin/sh -c 'echo error >&2; exit 7'`, stderr=`/bin/cat`),), 0x000000000000994d)
+    REPRODUCED streams-ignorestatus-stderr-pipeline
+  nightly: |
+    typeof(cmd) = Base.ErrOrCmds
+    ignorestatus(cmd) = MethodError(ignorestatus, (pipeline(`/bin/sh -c 'echo error >&2; exit 7'`, stderr=`/bin/cat`),), 0x000000000000b1fb)
+    REPRODUCED streams-ignorestatus-stderr-pipeline
+reproduced: {release: true, nightly: true}
+expected: |
+  ignorestatus recursively marks both commands in the stderr pipeline, as it does for the stdout
+  pipeline represented by OrCmds and the concurrent group represented by AndCmds.
+promised_by: |
+  base/cmd.jl:297-300 documents ignorestatus(command) for a command object. base/cmd.jl:512-518
+  documents stderr command redirection as a pipeline, and run accepts the resulting AbstractCmd.
+cause: |
+  base/cmd.jl:302-303 defines recursive ignorestatus only for Union{OrCmds,AndCmds}; ErrOrCmds,
+  constructed for command-to-command stderr redirection at lines 497 and 537-538, is omitted.
+possible_fix: |
+  Include ErrOrCmds in the recursive composite-command method's union.
+duplicates:
+  issues:
+    - {number: 64219, state: open, relation: duplicate}
+  queries:
+    - "issues: ignorestatus ErrOrCmds"
+    - "issues: ignorestatus stderr pipeline"
+    - "prs: ignorestatus ErrOrCmds"
+    - "prs: ignorestatus stderr pipeline"
+lean:
+  property: JuliaLean.Streams.IgnoreStatusAllCommands
+  theorem: JuliaLean.Streams.ignoreStatusAllCommands_refuted

@@ -1,0 +1,44 @@
+id: showcov-truncate-ansi-reset
+title: "_truncate_at_width_or_chars always appends an ANSI reset, even after an existing reset"
+priority: P3
+kind: wrong-result
+area: ShowCov
+files: [base/show.jl]
+functions: ["_truncate_at_width_or_chars"]
+summary: |
+  The ANSI-aware truncation used for limited, colored Dict/Set display is meant to append
+  "\e[0m" only when the last escape sequence before the cut is not already "\e[0m"
+  (base/show.jl:110). The test `c != "\033[0m"` compares an ANSIDelimiter with a String,
+  which is always unequal, so a reset is appended after any escape sequence, including a
+  reset.
+likelihood: |
+  Common in colored limited display, but harmless: the extra reset changes no colors.
+maybe_intended: ""
+reproducer: |
+  Base._truncate_at_width_or_chars(true, "ab\e[0mcdefgh", 4)   # "ab\e[0mc\e[0m…"
+output:
+  release: |
+    "ab\e[0mc\e[0m…"
+    "Dict{Int64, Text{String}} with 1 entry:\n  1 => ab\e[0mcdef\e[0m…"
+    REPRODUCED showcov-truncate-ansi-reset
+  nightly: |
+    "ab\e[0mc\e[0m…"
+    "Dict{Int64, Text{String}} with 1 entry:\n  1 => ab\e[0mcdef\e[0m…"
+    REPRODUCED showcov-truncate-ansi-reset
+reproduced: {release: true, nightly: true}
+expected: |
+  "ab\e[0mc…": the only escape sequence before the cut is already a reset.
+promised_by: |
+  base/show.jl:110: "needANSIend = false # set if the last ANSI delimiter before truncidx
+  is not "\033[0m"."
+cause: |
+  base/show.jl:114 compares c (an ANSIDelimiter, not an AbstractString) with a String; ==
+  falls back to ===, so != is always true.
+possible_fix: |
+  Compare c.del != "\033[0m".
+duplicates:
+  issues: []
+  queries: ["ANSIDelimiter", "needANSIend", "ANSI reset truncate", "_truncate_at_width_or_chars"]
+lean:
+  property: JuliaLean.ShowCov.TruncateResetOnlyWhenNeeded
+  theorem: JuliaLean.ShowCov.truncateResetOnlyWhenNeeded_refuted

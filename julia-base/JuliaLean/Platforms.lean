@@ -70,7 +70,7 @@ def entries : List Entry := [
     source := "base/binaryplatforms.jl:1006-1012 (docstring: finds the libstdc++ version Julia is linked against)"
     status := .refuted, prop := ``DetectLibstdcxx, thm := some ``detectLibstdcxx_refuted
     issue := "#63967 (open, duplicate); queries: detect_libstdcxx_version, libstdcxx HostPlatform, _get_libstdcxx_handle"
-    notes := "When CompilerSupportLibraries_jll is loaded (always on master), _get_libstdcxx_handle returns nothing in the branch meant to open its libstdc++. Reproduced on 1.13.2 after `using CompilerSupportLibraries_jll`. Separately, the default max_minor_version = 30 is below what the bundled libstdc++ exports (GLIBCXX_3.4.34 on Linux x86-64), so 1.13.2 reports v\"3.4.30\" without CSL (documented cap, not written up)." },
+    notes := "When CompilerSupportLibraries_jll is loaded (always on master), _get_libstdcxx_handle returns nothing in the branch meant to open its libstdc++. Reproduced on 1.13.2 after `using CompilerSupportLibraries_jll`. Separately, the default max_minor_version = 30 is below what the bundled libstdc++ exports (GLIBCXX_3.4.34 observed), so 1.13.2 reports v\"3.4.30\" without CSL (documented cap, not written up)." },
   { id := "platforms-match-symmetric", juliaFile := "base/binaryplatforms.jl"
     juliaFns := ["platforms_match(::AbstractPlatform, ::AbstractPlatform)", "compare_version_cap", "compare_default"]
     statement := "platforms_match(a, b) == platforms_match(b, a) whenever both return, for platforms using the comparison strategies defined in binaryplatforms.jl."

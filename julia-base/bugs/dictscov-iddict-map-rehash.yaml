@@ -1,0 +1,72 @@
+id: dictscov-iddict-map-rehash
+title: "map!(f, values(::IdDict)) and mergewith!(f, d, d) skip values when setindex! rehashes mid-iteration"
+priority: P1
+kind: wrong-result
+area: DictsCov
+files: [base/abstractdict.jl, base/iddict.jl]
+functions: ["map!(f, ::ValueIterator{<:IdDict})", "mergewith!(combine, ::IdDict, ::IdDict)", "setindex!(::IdDict, v, k)"]
+summary: |
+  IdDict has no map!(f, values(d)) method, so the generic fallback
+  (base/abstractdict.jl:673-681) iterates the dictionary and assigns
+  dict[key] = f(val) for each pair. setindex!(::IdDict) rehashes the table
+  whenever d.ndel >= 3*length(d.ht)>>2 (base/iddict.jl:84-87), even when the
+  key is already present. After enough deletions the first assignment
+  rehashes, the remaining pairs move to new slots, and the iteration, which
+  continues at its old slot index, skips some of them (or visits some twice).
+  mergewith!(combine, d, d) on an IdDict iterates and assigns the same way
+  (base/abstractdict.jl:288-293) and loses combinations.
+likelihood: |
+  Needs an IdDict that has had many deletions since its last rehash (ndel at
+  least three quarters of length(d.ht), e.g. 24 deletions in a fresh IdDict)
+  and live keys whose slots move on rehash. Long-lived IdDicts used as caches
+  with deletions reach this state; the failure is silent. Random insert and
+  delete sequences of 20-120 calls followed by map! failed 5 times in 3000.
+maybe_intended: ""
+reproducer: |
+  ks = [k for k in 1:100_000 if objectid(k) & 15 == 0][1:3]   # (2, 11, 25)
+  f, x, y = ks
+  d = IdDict{Int,Int}(); d[f] = 0; d[x] = 1; d[y] = 2
+  delete!(d, f)
+  for j in 1:23; d[-j] = 0; delete!(d, -j); end   # ndel = 24
+  map!(v -> v + 10, values(d))
+  d[y]   # 2, expected 12
+output:
+  release: |
+    keys f, x, y = (2, 11, 25); ndel = 24, length(d.ht) = 32
+    before map!: [11 => 1, 25 => 2]
+    after  map!(v -> v + 10, values(d)): [11 => 11, 25 => 2]  (expected x => 11, y => 12)
+    after  mergewith!(+, d2, d2): [11 => 2, 25 => 2]  (expected x => 2, y => 4)
+    REPRODUCED dictscov-iddict-map-rehash
+  nightly: |
+    keys f, x, y = (2, 11, 25); ndel = 24, length(d.ht) = 32
+    before map!: [11 => 1, 25 => 2]
+    after  map!(v -> v + 10, values(d)): [11 => 11, 25 => 2]  (expected x => 11, y => 12)
+    after  mergewith!(+, d2, d2): [11 => 2, 25 => 2]  (expected x => 2, y => 4)
+    REPRODUCED dictscov-iddict-map-rehash
+reproduced: {release: true, nightly: true}
+expected: |
+  Every value is replaced exactly once: d[x] == 11 and d[y] == 12 after
+  map!, and d2[x] == 2, d2[y] == 4 after mergewith!(+, d2, d2).
+promised_by: |
+  map! docstring, base/abstractdict.jl:653: "Modifies dict by
+  transforming each value from val to f(val)." mergewith! docstring,
+  base/abstractdict.jl:243-244: "Values with the same key will be combined
+  using the combiner function."
+cause: |
+  base/iddict.jl:84-87 rehashes inside setindex! before jl_eqtable_put,
+  regardless of whether the key exists; jl_idtable_rehash
+  (src/iddict.c:13-30) reinserts the live pairs into a fresh array, so they
+  can move below the iteration index used by iterate(d, idx)
+  (base/iddict.jl:141-145). The generic map! (base/abstractdict.jl:673-681)
+  and mergewith! (base/abstractdict.jl:288-293) assign while iterating.
+  Dict avoids this with its own map! (base/dict.jl:741-751).
+possible_fix: |
+  Give IdDict a map!(f, ::ValueIterator{<:IdDict}) that overwrites d.ht
+  values in place (or collect the pairs first in the generic fallback), and
+  skip the ndel rehash in setindex! when the key is already present.
+duplicates:
+  issues: []
+  queries: ["IdDict map", "map! values", "IdDict mergewith", "IdDict rehash", "IdDict iterate setindex", "IdDict", "ValueIterator map", "mergewith IdDict", "PR: IdDict map", "PR: IdDict rehash"]
+lean:
+  property: JuliaLean.DictsCov.IdDictMapOnce
+  theorem: JuliaLean.DictsCov.idDictMapOnce_refuted

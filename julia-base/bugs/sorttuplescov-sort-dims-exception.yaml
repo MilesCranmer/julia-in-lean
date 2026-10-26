@@ -1,0 +1,47 @@
+id: sorttuplescov-sort-dims-exception
+title: "sort!(A; dims=0) throws BoundsError instead of the ArgumentError its dimension check raises"
+priority: P3
+kind: wrong-exception
+area: Sort
+files: [base/sort.jl]
+functions: ["sort!(A::AbstractArray{T}; dims::Integer, alg, lt, by, rev, order, scratch)"]
+summary: |
+  sort!(A; dims) checks 1 <= dims <= ndims(A) and throws
+  ArgumentError("dimension out of range"), but the default value of the scratch
+  keyword calls size(A, dims) first. For dims < 1 that call throws BoundsError, so
+  sort!(A; dims=0) throws BoundsError while sort!(A; dims=3) and
+  sort!(A; dims=0, scratch=nothing) throw the intended ArgumentError.
+likelihood: |
+  Low: only an invalid dims value reaches it, and an exception is thrown either way.
+maybe_intended: |
+  Both are exceptions for an invalid argument; nothing documents the exception type.
+reproducer: |
+  A = [3 1; 2 4]
+  sort!(copy(A); dims=3)                  # ArgumentError: dimension out of range
+  sort!(copy(A); dims=0)                  # BoundsError
+  sort!(copy(A); dims=0, scratch=nothing) # ArgumentError: dimension out of range
+output:
+  release: |
+    ArgumentError BoundsError ArgumentError
+    REPRODUCED sorttuplescov-sort-dims-exception
+  nightly: |
+    ArgumentError BoundsError ArgumentError
+    REPRODUCED sorttuplescov-sort-dims-exception
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError("dimension out of range") for every dims outside 1:ndims(A), as
+  the check at base/sort.jl:2196 intends.
+promised_by: |
+  The explicit check at base/sort.jl:2196,
+  1 <= dims <= nd || throw(ArgumentError("dimension out of range")).
+cause: |
+  The keyword default scratch = size(A, dims) < 10 ? nothing : ... (base/sort.jl:2194)
+  is evaluated before the body, and size(A, 0) throws BoundsError.
+possible_fix: |
+  Default scratch to nothing and allocate it in the body after the dims check.
+duplicates:
+  issues: []
+  queries: ["issues: sort! dims BoundsError", "issues: sort dims out of range"]
+lean:
+  property: JuliaLean.SortTuplesCov.SortDimsChecked
+  theorem: JuliaLean.SortTuplesCov.sortDimsChecked_refuted

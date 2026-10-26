@@ -1,0 +1,8 @@
+line	name	verdict	mirror	property	settled	reason
+46	SpinLock	HOLLOW	no	yes	yes	spinLockCtor adds and resets per-task finalizer counters that new(0) does not construct, although the proposition states the unlocked owned value for every construction.
+70	PaddedSpinLock	HOLLOW	no	yes	yes	paddedSpinLockCtor preinitializes owned and synthetic finalizer counters and replaces the source atomic store with a plain record update, although the proposition states the resulting owned value universally.
+79	Base.assert_havelock	HOLLOW	no	no	yes	spinAssertHavelock uses a supplied arbitrary result instead of calling Base.concurrency_violation and calls the plain-field Locks.spinIslocked model, so the proposition permits normal return when an unlocked lock is given an ok violation result.
+81	lock	HOLLOW	no	no	yes	spinLockLoop consumes caller-supplied successive lock states through the incomplete Locks.spinTrylock model, while its proposition covers only immediate acquisition and says nothing about any failed iteration, suspend, safepoint, or retry.
+92	trylock	HOLLOW	no	no	yes	spinTrylock rereads the same immutable owned value for the atomic swap, making the contended-swap failure branch unreachable, and its proposition only equates this model with the same reduced Locks.spinTrylock model.
+104	unlock	HOLLOW	no	no	yes	SpinUnlockProp specializes the CPU wake operation to identity and equates plain load and record updates with a model that also omits the release atomic swap and wake effect.
+113	islocked	FAITHFUL	yes	yes	yes	spinIslocked calls the supplied monotonic load on owned before the nonzero comparison, and the universal proposition states exactly that Boolean result.

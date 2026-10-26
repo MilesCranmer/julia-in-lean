@@ -1,0 +1,58 @@
+id: broadcastcov-linrange-shift-elementwise
+title: "Broadcasting + or - between a LinRange and a scalar changes elementwise results"
+priority: P2
+kind: wrong-result
+area: BroadcastCov
+files: [base/broadcast.jl, base/range.jl]
+functions:
+  - "broadcasted(::DefaultArrayStyle{1}, ::typeof(+), ::LinRange, ::Number)"
+  - "broadcasted(::DefaultArrayStyle{1}, ::typeof(-), ::LinRange, ::Number)"
+summary: |
+  The LinRange broadcast fast paths shift the two endpoints and construct another
+  LinRange. Re-interpolating between those shifted endpoints changes ordinary
+  Float64 results by one ulp compared with applying + or - to each original element.
+likelihood: |
+  Ordinary LinRange values and scalar shifts can hit this. Code that compares the
+  broadcast with a materialized calculation or depends on exact Float64 values sees it.
+maybe_intended: |
+  Returning a lazy LinRange avoids allocation, and LinRange documents that it does not
+  correct floating-point interpolation error. The broadcast documentation still says
+  that the function is applied to the elements, which gives different values here.
+reproducer: |
+  r = LinRange(0.0, 1.0, 7)
+  x = 2.0
+  collect(r .+ x) != collect(r) .+ x
+  collect(r .- x) != collect(r) .- x
+output:
+  release: |
+    collect(r .+ x) = [2.0, 2.166666666666667, 2.3333333333333335, 2.5, 2.666666666666667, 2.833333333333333, 3.0]
+    collect(r) .+ x = [2.0, 2.1666666666666665, 2.3333333333333335, 2.5, 2.6666666666666665, 2.8333333333333335, 3.0]
+    collect(r .- x) = [-2.0, -1.8333333333333335, -1.6666666666666667, -1.5, -1.3333333333333335, -1.1666666666666665, -1.0]
+    collect(r) .- x = [-2.0, -1.8333333333333333, -1.6666666666666667, -1.5, -1.3333333333333335, -1.1666666666666665, -1.0]
+    REPRODUCED broadcastcov-linrange-shift-elementwise
+  nightly: |
+    collect(r .+ x) = [2.0, 2.166666666666667, 2.3333333333333335, 2.5, 2.666666666666667, 2.833333333333333, 3.0]
+    collect(r) .+ x = [2.0, 2.1666666666666665, 2.3333333333333335, 2.5, 2.6666666666666665, 2.8333333333333335, 3.0]
+    collect(r .- x) = [-2.0, -1.8333333333333335, -1.6666666666666667, -1.5, -1.3333333333333335, -1.1666666666666665, -1.0]
+    collect(r) .- x = [-2.0, -1.8333333333333333, -1.6666666666666667, -1.5, -1.3333333333333335, -1.1666666666666665, -1.0]
+    REPRODUCED broadcastcov-linrange-shift-elementwise
+reproduced: {release: true, nightly: true}
+expected: |
+  The specialized broadcasts have the same Float64 elements as collect(r) .+ x and
+  collect(r) .- x, respectively.
+promised_by: |
+  base/broadcast.jl:785-792 says broadcasting applies the function over the elements
+  of the container arguments and indexes other arguments elementwise.
+cause: |
+  base/broadcast.jl:1196 and 1210 construct LinRange(r.start +/- x, r.stop +/- x,
+  length(r)). base/range.jl:990-995 then interpolates again between the new endpoints,
+  so rounding does not match shifting each previously interpolated element.
+possible_fix: |
+  Remove these LinRange specializations when exact elementwise behavior is required,
+  or document that range-preserving broadcast can change Float64 rounding.
+duplicates:
+  issues: []
+  queries: ["LinRange broadcast scalar rounding", "range broadcast not elementwise"]
+lean:
+  property: JuliaLean.BroadcastCov.Refutations.LinRangeShiftElementwise
+  theorem: JuliaLean.BroadcastCov.Refutations.linRangeShiftElementwise_refuted

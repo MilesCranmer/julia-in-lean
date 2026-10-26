@@ -1,0 +1,70 @@
+id: stringscovb-match-data-leak
+title: match, findnext and occursin leak PCRE match data when pcre2_match or the offset conversion throws
+priority: P3
+kind: wrong-result
+area: StringsCovB
+files:
+- base/pcre.jl
+- base/regex.jl
+functions:
+- PCRE.exec_r(re, subject, offset, options)
+- PCRE.exec_r_data(re, subject, offset, options)
+- match(re::Regex, str::DenseUTF8String, idx::Integer, add_opts::UInt32=UInt32(0))
+- occursin(r::Regex, s::AbstractString; offset::Integer=0)
+summary: |
+  exec_r and exec_r_data allocate match data with pcre2_match_data_create_from_pattern and
+  call exec, whose ccall throws InexactError for a negative offset (match(r, s, 0),
+  occursin(r, s; offset=-1)) and which raises ErrorException for other pcre2_match errors
+  (an offset past the end, match(r, "a", 3); bad options; match limits). Neither exec_r nor
+  match/_findnext_re frees the match data on that path (no try/finally). The block is C
+  memory, so the garbage collector never reclaims it: about 300 bytes per failed call for a
+  pattern with ten groups.
+likelihood: |
+  Loops that probe positions with try/catch around match or occursin, or that hit PCRE match limits repeatedly.
+maybe_intended: ''
+reproducer: |
+  # match/occursin allocate PCRE match data and do not free it when pcre2_match
+  # (or the offset conversion) throws; the C memory is never reclaimed.
+  r = r"(a)(b)(c)(d)(e)(f)(g)(h)(i)(j)"
+  function growth(f, n)
+      for _ in 1:1000; try f() catch end; end
+      GC.gc()
+      before = Sys.maxrss()
+      for _ in 1:n; try f() catch end; end
+      GC.gc()
+      return (Sys.maxrss() - before) / 2^20
+  end
+  ok = growth(() -> match(r, "abcdefghij", 2), 1_000_000)
+  bad = growth(() -> match(r, "abcdefghij", 0), 1_000_000)
+  println("max RSS growth over 10^6 calls: match(r, s, 2) = ", round(ok; digits=1),
+          " MiB, match(r, s, 0) (throws InexactError) = ", round(bad; digits=1), " MiB")
+  bad > 150 && ok < 50 && println("REPRODUCED stringscovb-match-data-leak")
+output:
+  release: |
+    max RSS growth over 10^6 calls: match(r, s, 2) = 0.0 MiB, match(r, s, 0) (throws InexactError) = 315.9 MiB
+    REPRODUCED stringscovb-match-data-leak
+  nightly: |
+    max RSS growth over 10^6 calls: match(r, s, 2) = 0.0 MiB, match(r, s, 0) (throws InexactError) = 331.4 MiB
+    REPRODUCED stringscovb-match-data-leak
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  No growth: the match data freed on every path, as on the successful one.
+promised_by: |
+  Obvious invariant: exec_r and match free the match data they allocate (base/pcre.jl:219-224, base/regex.jl:436-438, 452); a thrown exception must not leak C memory.
+cause: |
+  base/pcre.jl:219-230 and base/regex.jl:430-454, 491-512: free_match_data is not in a finally block, so an exception from exec skips it.
+possible_fix: |
+  Wrap the code after create_match_data in try/finally (or check the offset before allocating).
+duplicates:
+  issues: []
+  queries:
+  - 'issues: regex match_data leak'
+  - 'prs: regex match_data leak'
+  - 'issues: free_match_data'
+  - 'issues: PCRE match data leak'
+  - 'issues: pcre memory leak'
+lean:
+  property: JuliaLean.StringsCovB.Rx.MatchDataFreed
+  theorem: JuliaLean.StringsCovB.Rx.matchDataFreed_refuted

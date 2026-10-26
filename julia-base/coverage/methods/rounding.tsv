@@ -1,0 +1,58 @@
+file	line	endline	name	signature	status	entry	note
+base/rounding.jl	115	115	rounds_to_nearest	rounds_to_nearest(::RoundingMode)	modelled	mathcov-rounding-l115	method-specific source model and quantified behavior property
+base/rounding.jl	116	116	rounds_to_nearest	rounds_to_nearest(::RoundingMode{:Nearest})	modelled	mathcov-rounding-l116	method-specific source model and quantified behavior property
+base/rounding.jl	117	117	rounds_to_nearest	rounds_to_nearest(::RoundingMode{:NearestTiesUp})	modelled	mathcov-rounding-l117	method-specific source model and quantified behavior property
+base/rounding.jl	118	118	rounds_to_nearest	rounds_to_nearest(::RoundingMode{:NearestTiesAway})	modelled	mathcov-rounding-l118	method-specific source model and quantified behavior property
+base/rounding.jl	119	119	rounds_away_from_zero	rounds_away_from_zero(::RoundingMode{:Up}, sign_bit::Bool)	modelled	mathcov-rounding-l119	method-specific source model and quantified behavior property
+base/rounding.jl	120	120	rounds_away_from_zero	rounds_away_from_zero(::RoundingMode{:Down}, sign_bit::Bool)	modelled	mathcov-rounding-l120	method-specific source model and quantified behavior property
+base/rounding.jl	121	121	rounds_away_from_zero	rounds_away_from_zero(::RoundingMode{:FromZero}, ::Bool)	modelled	mathcov-rounding-l121	method-specific source model and quantified behavior property
+base/rounding.jl	122	122	rounds_away_from_zero	rounds_away_from_zero(::RoundingMode{:ToZero}, ::Bool)	modelled	mathcov-rounding-l122	method-specific source model and quantified behavior property
+base/rounding.jl	123	123	tie_breaker_is_to_even	tie_breaker_is_to_even(::RoundingMode{:Nearest})	modelled	mathcov-rounding-l123	method-specific source model and quantified behavior property
+base/rounding.jl	124	124	tie_breaker_is_to_even	tie_breaker_is_to_even(::RoundingMode{:NearestTiesUp})	modelled	mathcov-rounding-l124	method-specific source model and quantified behavior property
+base/rounding.jl	125	125	tie_breaker_is_to_even	tie_breaker_is_to_even(::RoundingMode{:NearestTiesAway})	modelled	mathcov-rounding-l125	method-specific source model and quantified behavior property
+base/rounding.jl	126	126	tie_breaker_rounds_away_from_zero	tie_breaker_rounds_away_from_zero(::RoundingMode{:NearestTiesUp}, sign_bit::Bool)	modelled	mathcov-rounding-l126	method-specific source model and quantified behavior property
+base/rounding.jl	127	127	tie_breaker_rounds_away_from_zero	tie_breaker_rounds_away_from_zero(::RoundingMode{:NearestTiesAway}, ::Bool)	modelled	mathcov-rounding-l127	method-specific source model and quantified behavior property
+base/rounding.jl	129	129	rounds_to_nearest	rounds_to_nearest(t::Tuple{Any,Bool})	modelled	mathcov-rounding-l129	method-specific source model and quantified behavior property
+base/rounding.jl	130	130	rounds_away_from_zero	rounds_away_from_zero(t::Tuple{Any,Bool})	modelled	mathcov-rounding-l130	method-specific source model and quantified behavior property
+base/rounding.jl	131	131	tie_breaker_is_to_even	tie_breaker_is_to_even(t::Tuple{Any,Bool})	modelled	mathcov-rounding-l131	method-specific source model and quantified behavior property
+base/rounding.jl	132	132	tie_breaker_rounds_away_from_zero	tie_breaker_rounds_away_from_zero(t::Tuple{Any,Bool})	modelled	mathcov-rounding-l132	method-specific source model and quantified behavior property
+base/rounding.jl	138	168	correct_rounding_requires_increment	correct_rounding_requires_increment(x, rounding_mode, sign_bit::Bool)	modelled	mathcov-rounding-l138	method-specific source model and quantified behavior property
+base/rounding.jl	170	170	to_fenv	to_fenv(::RoundingMode{:Nearest})	modelled	mathcov-rounding-l170	method-specific source model and quantified behavior property
+base/rounding.jl	171	171	to_fenv	to_fenv(::RoundingMode{:ToZero})	modelled	mathcov-rounding-l171	method-specific source model and quantified behavior property
+base/rounding.jl	172	172	to_fenv	to_fenv(::RoundingMode{:Up})	modelled	mathcov-rounding-l172	method-specific source model and quantified behavior property
+base/rounding.jl	173	173	to_fenv	to_fenv(::RoundingMode{:Down})	modelled	mathcov-rounding-l173	method-specific source model and quantified behavior property
+base/rounding.jl	175	187	from_fenv	from_fenv(r::Integer)	modelled	mathcov-rounding-l175	method-specific source model and quantified behavior property
+base/rounding.jl	219	219	setrounding_raw	setrounding_raw(::Type{<:Union{Float32,Float64}}, i::Integer)	modelled	mathcov-rounding-l219	method-specific source model and quantified behavior property
+base/rounding.jl	220	220	rounding_raw	rounding_raw(::Type{<:Union{Float32,Float64}})	modelled	mathcov-rounding-l220	method-specific source model and quantified behavior property
+base/rounding.jl	222	222	rounding	rounding(::Type{T}) where {T<:Union{Float32,Float64}}	modelled	mathcov-rounding-l222	method-specific source model and quantified behavior property
+base/rounding.jl	223	223	rounding	rounding(::Type{Union{}}, slurp...)	modelled	mathcov-rounding-l223	method-specific source model and quantified behavior property
+base/rounding.jl	238	246	setrounding	setrounding(f::Function, ::Type{T}, rounding::RoundingMode) where T	modelled	mathcov-rounding-l238	method-specific source model and quantified behavior property
+base/rounding.jl	247	247	setrounding	setrounding(f, ::Type{Union{}}, slurp...)	modelled	mathcov-rounding-l247	method-specific source model and quantified behavior property
+base/rounding.jl	248	256	setrounding_raw	setrounding_raw(f::Function, ::Type{T}, rounding) where T	modelled	mathcov-rounding-l248	method-specific source model and quantified behavior property
+base/rounding.jl	267	267	(::Type{T})	(::Type{T})(x::Real, r::RoundingMode) where {T<:AbstractFloat}	modelled	mathcov-rounding-l267	method-specific source model and quantified behavior property
+base/rounding.jl	269	269	_convert_rounding	_convert_rounding(::Type{T}, x::Real, r::RoundingMode{:Nearest}) where {T<:AbstractFloat}	modelled	mathcov-rounding-l269	method-specific source model and quantified behavior property
+base/rounding.jl	270	273	_convert_rounding	_convert_rounding(::Type{T}, x::Real, r::RoundingMode{:Down}) where T<:AbstractFloat	modelled	mathcov-rounding-l270	method-specific source model and quantified behavior property
+base/rounding.jl	274	277	_convert_rounding	_convert_rounding(::Type{T}, x::Real, r::RoundingMode{:Up}) where T<:AbstractFloat	modelled	mathcov-rounding-l274	method-specific source model and quantified behavior property
+base/rounding.jl	278	285	_convert_rounding	_convert_rounding(::Type{T}, x::Real, r::RoundingMode{:ToZero}) where T<:AbstractFloat	modelled	mathcov-rounding-l278	method-specific source model and quantified behavior property
+base/rounding.jl	286	293	_convert_rounding	_convert_rounding(::Type{T}, x::Real, r::RoundingMode{:FromZero}) where T<:AbstractFloat	modelled	mathcov-rounding-l286	method-specific source model and quantified behavior property
+base/rounding.jl	313	313	set_zero_subnormals	set_zero_subnormals(yes::Bool)	modelled	mathcov-rounding-l313	method-specific source model and quantified behavior property
+base/rounding.jl	325	325	get_zero_subnormals	get_zero_subnormals()	modelled	mathcov-rounding-l325	method-specific source model and quantified behavior property
+base/rounding.jl	413	413	round	round	excluded		no-behaviour: generic function declaration has no method body.
+base/rounding.jl	444	444	trunc	trunc	excluded		no-behaviour: generic function declaration has no method body.
+base/rounding.jl	461	461	floor	floor	excluded		no-behaviour: generic function declaration has no method body.
+base/rounding.jl	478	478	ceil	ceil	excluded		no-behaviour: generic function declaration has no method body.
+base/rounding.jl	480	480	trunc	trunc(x; kws...)	modelled	mathcov-rounding-l480	method-specific source model and quantified behavior property
+base/rounding.jl	481	481	floor	floor(x; kws...)	modelled	mathcov-rounding-l481	method-specific source model and quantified behavior property
+base/rounding.jl	482	482	ceil	ceil(x; kws...)	modelled	mathcov-rounding-l482	method-specific source model and quantified behavior property
+base/rounding.jl	483	483	round	round(x; kws...)	modelled	mathcov-rounding-l483	method-specific source model and quantified behavior property
+base/rounding.jl	485	485	trunc	trunc(::Type{T}, x) where T	modelled	mathcov-rounding-l485	method-specific source model and quantified behavior property
+base/rounding.jl	486	486	floor	floor(::Type{T}, x) where T	modelled	mathcov-rounding-l486	method-specific source model and quantified behavior property
+base/rounding.jl	487	487	ceil	ceil(::Type{T}, x) where T	modelled	mathcov-rounding-l487	method-specific source model and quantified behavior property
+base/rounding.jl	488	488	round	round(::Type{T}, x) where T	modelled	mathcov-rounding-l488	method-specific source model and quantified behavior property
+base/rounding.jl	490	490	round	round(::Type{T}, x, r::RoundingMode) where T	modelled	mathcov-rounding-l490	method-specific source model and quantified behavior property
+base/rounding.jl	491	491	_round_convert	_round_convert(::Type{T}, x_integer, x, r) where T	modelled	floatfuncs-round-float-type-double	source model and quantified behavior property
+base/rounding.jl	492	492	trunc	trunc(::Type{Union{}}, slurp...; kwargs...)	modelled	mathcov-rounding-l492	method-specific source model and quantified behavior property
+base/rounding.jl	493	493	floor	floor(::Type{Union{}}, slurp...; kwargs...)	modelled	mathcov-rounding-l493	method-specific source model and quantified behavior property
+base/rounding.jl	494	494	ceil	ceil(::Type{Union{}}, slurp...; kwargs...)	modelled	mathcov-rounding-l494	method-specific source model and quantified behavior property
+base/rounding.jl	495	495	round	round(::Type{Union{}}, slurp...; kwargs...)	modelled	mathcov-rounding-l495	method-specific source model and quantified behavior property
+base/rounding.jl	497	497	round	round(x::Integer, r::RoundingMode)	modelled	mathcov-rounding-l497	method-specific source model and quantified behavior property

@@ -4,8 +4,7 @@ import JuliaLean.Toml.Parser
 # Canonical rendering of a parse outcome
 
 A printable, canonical form of what `tryparse` returns, used to compare the
-model with Julia (a Julia script printed the same form from Julia's
-result) and to state properties about parsed values:
+model with Julia and to state properties about parsed values:
 
 * a string is its bytes in hex between quotes;
 * an integer is `i64:`/`i128:`/`big:`/`u64:`/`u128:` and its decimal value;

@@ -48,6 +48,37 @@ import JuliaLean.Artifacts
 import JuliaLean.MemSafety
 import JuliaLean.Combinatorics
 import JuliaLean.Logging
+import JuliaLean.Loading
+import JuliaLean.Streams
+import JuliaLean.Files
+import JuliaLean.ExprReflect
+import JuliaLean.ErrorShow
+import JuliaLean.Tasks
+import JuliaLean.NumMisc
+import JuliaLean.AbstractArrayCov
+import JuliaLean.BroadcastCov
+import JuliaLean.IteratorsCov
+import JuliaLean.MultidimCov
+import JuliaLean.ShowCov
+import JuliaLean.RangesCov
+import JuliaLean.ArrayCov
+import JuliaLean.BigNumsCov
+import JuliaLean.FloatIntCov
+import JuliaLean.BootCov
+import JuliaLean.RuntimeCov
+import JuliaLean.MathCov
+import JuliaLean.BitSetsCov
+import JuliaLean.IOCov
+import JuliaLean.NumbersCov
+import JuliaLean.SortTuplesCov
+import JuliaLean.ReduceCov
+import JuliaLean.IntFuncsCov
+import JuliaLean.DictsCov
+import JuliaLean.StringsCovA
+import JuliaLean.StringsCovB
+import JuliaLean.ConcurrencyCov
+import JuliaLean.DocsSyntaxCov
+import JuliaLean.MiscCov
 
 namespace JuliaLean.Registry
 
@@ -101,5 +132,36 @@ def all : List Entry :=
     ++ JuliaLean.MemSafety.entries
     ++ JuliaLean.Combinatorics.entries
     ++ JuliaLean.Logging.entries
+    ++ JuliaLean.Loading.entries
+    ++ JuliaLean.Streams.entries
+    ++ JuliaLean.Files.entries
+    ++ JuliaLean.ExprReflect.entries
+    ++ JuliaLean.ErrorShow.entries
+    ++ JuliaLean.Tasks.entries
+    ++ JuliaLean.NumMisc.entries
+    ++ JuliaLean.AbstractArrayCov.entries
+    ++ JuliaLean.BroadcastCov.entries
+    ++ JuliaLean.IteratorsCov.entries
+    ++ JuliaLean.MultidimCov.entries
+    ++ JuliaLean.ShowCov.entries
+    ++ JuliaLean.RangesCov.entries
+    ++ JuliaLean.ArrayCov.entries
+    ++ JuliaLean.BigNumsCov.entries
+    ++ JuliaLean.FloatIntCov.entries
+    ++ JuliaLean.BootCov.entries
+    ++ JuliaLean.RuntimeCov.entries
+    ++ JuliaLean.MathCov.entries
+    ++ JuliaLean.BitSetsCov.entries
+    ++ JuliaLean.IOCov.entries
+    ++ JuliaLean.NumbersCov.entries
+    ++ JuliaLean.SortTuplesCov.entries
+    ++ JuliaLean.ReduceCov.entries
+    ++ JuliaLean.IntFuncsCov.entries
+    ++ JuliaLean.DictsCov.entries
+    ++ JuliaLean.StringsCovA.entries
+    ++ JuliaLean.StringsCovB.entries
+    ++ JuliaLean.ConcurrencyCov.entries
+    ++ JuliaLean.DocsSyntaxCov.entries
+    ++ JuliaLean.MiscCov.entries
 
 end JuliaLean.Registry

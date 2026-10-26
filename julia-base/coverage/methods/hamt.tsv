@@ -1,0 +1,27 @@
+file	line	endline	name	signature	status	entry	note
+base/hamt.jl	65	65	HAMT{K,V}	HAMT{K,V}(data, bitmap) where {K,V}	modelled	dictscov-hamt-l65	
+base/hamt.jl	66	66	HAMT{K, V}	HAMT{K, V}() where {K, V}	modelled	dictscov-hamt-l66	
+base/hamt.jl	69	74	init_hamt	init_hamt(K, V, k, v)	modelled	dictscov-hamt-l69	
+base/hamt.jl	76	81	HAMT{K,V}	HAMT{K,V}((k,v)::Pair{K,V}) where {K, V}	modelled	dictscov-hamt-l76	
+base/hamt.jl	82	82	HAMT{K,V}	HAMT{K,V}(kv::Pair) where {K, V}	modelled	dictscov-hamt-l82	
+base/hamt.jl	84	84	HAMT	HAMT(pair::Pair{K,V}) where {K, V}	modelled	dictscov-hamt-l84	
+base/hamt.jl	93	93	HashState	HashState(key)	modelled	dictscov-hamt-l93	
+base/hamt.jl	94	100	HashState{K}	HashState{K}(@nospecialize(other::HashState), @nospecialize(key)) where {K}	modelled	dictscov-hamt-l94	
+base/hamt.jl	101	101	HashState	HashState(other::HashState, key)	modelled	dictscov-hamt-l101	
+base/hamt.jl	103	117	next	next(h::HashState{K}) where {K}	modelled	dictscov-hamt-l103	
+base/hamt.jl	122	122	BitmapIndex	BitmapIndex(h::HashState)	modelled	dictscov-hamt-l122	
+base/hamt.jl	124	124	Base.:(<<)	Base.:(<<)(v, bi::BitmapIndex)	modelled	dictscov-hamt-l124	
+base/hamt.jl	125	125	Base.:(>>)	Base.:(>>)(v, bi::BitmapIndex)	modelled	dictscov-hamt-l125	
+base/hamt.jl	127	127	isset	isset(trie::HAMT, bi::BitmapIndex)	modelled	dictscov-hamt-l127	
+base/hamt.jl	128	131	set!	set!(trie::HAMT, bi::BitmapIndex)	modelled	dictscov-hamt-l128	
+base/hamt.jl	133	136	unset!	unset!(trie::HAMT, bi::BitmapIndex)	modelled	dictscov-hamt-l133	
+base/hamt.jl	138	141	entry_index	entry_index(trie::HAMT, bi::BitmapIndex)	modelled	dictscov-hamt-l138	
+base/hamt.jl	143	143	islevel_empty	islevel_empty(trie::HAMT)	modelled	dictscov-hamt-l143	
+base/hamt.jl	144	144	islevel_empty	islevel_empty(::Leaf)	modelled	dictscov-hamt-l144	
+base/hamt.jl	158	186	path	path(trie::HAMT{K,V}, h::HashState, copy=false) where {K, V}	modelled	dictscov-hamt-l158	
+base/hamt.jl	192	240	insert!	insert!(found, present, trie::HAMT{K,V}, i, bi, h, val) where {K,V}	modelled	dicts-persistentdict-objectid-collision	
+base/hamt.jl	242	242	Base.length	Base.length(::Leaf)	modelled	dictscov-hamt-l242	
+base/hamt.jl	243	243	Base.length	Base.length(trie::HAMT)	modelled	dictscov-hamt-l243	
+base/hamt.jl	245	245	Base.isempty	Base.isempty(::Leaf)	modelled	dictscov-hamt-l245	
+base/hamt.jl	246	251	Base.isempty	Base.isempty(trie::HAMT)	modelled	dictscov-hamt-l246	
+base/hamt.jl	254	275	Base.iterate	Base.iterate(trie::HAMT, state=nothing)	modelled	dictscov-hamt-l254	

@@ -1,0 +1,89 @@
+id: loading-v1-manifest-format-name
+title: "A package named manifest_format disappears from v1 manifests"
+priority: P2
+kind: wrong-result
+area: Loading
+files: [base/loading.jl]
+functions: ["is_v1_format_manifest", "get_deps", "find_package"]
+summary: |
+  Julia misclassifies an old-format manifest whose package is named manifest_format as
+  a v2 manifest. get_deps then reads the absent top-level deps table and returns an empty
+  dictionary, so find_package cannot locate the package even though its project dependency,
+  manifest stanza, path, and source file are all present.
+likelihood: |
+  This needs the uncommon package name manifest_format and a v1 manifest, so current Pkg
+  output will rarely hit it. Existing environments created by older Julia versions can
+  still use v1 manifests, and manifest_format is a valid Julia identifier.
+maybe_intended: ""
+reproducer: |
+  mktempdir() do root
+      env = joinpath(root, "env")
+      package = joinpath(root, "manifest_format")
+      source = joinpath(package, "src", "manifest_format.jl")
+      mkpath(env)
+      mkpath(dirname(source))
+      write(source, "module manifest_format\nend\n")
+      uuid = "11111111-1111-1111-1111-111111111111"
+      write(joinpath(env, "Project.toml"), "[deps]\nmanifest_format = \"$uuid\"\n")
+      write(joinpath(env, "Manifest.toml"), """
+      [[manifest_format]]
+      uuid = "$uuid"
+      path = "../manifest_format"
+      """)
+
+      manifest = Base.parsed_toml(joinpath(env, "Manifest.toml"))
+      old_load_path = copy(LOAD_PATH)
+      try
+          empty!(LOAD_PATH)
+          push!(LOAD_PATH, env)
+          found = Base.find_package("manifest_format")
+          println("parsed manifest_format type = ", typeof(manifest["manifest_format"]))
+          println("is v1 manifest              = ", Base.is_v1_format_manifest(manifest))
+          println("manifest dependency names   = ", collect(keys(Base.get_deps(manifest))))
+          println("find_package                 = ", found)
+          println("source file exists           = ", isfile(source))
+          if found === nothing && isfile(source) && !Base.is_v1_format_manifest(manifest)
+              println("REPRODUCED loading-v1-manifest-format-name")
+          end
+      finally
+          empty!(LOAD_PATH)
+          append!(LOAD_PATH, old_load_path)
+      end
+  end
+output:
+  release: |
+    parsed manifest_format type = Vector{Any}
+    is v1 manifest              = false
+    manifest dependency names   = String[]
+    find_package                 = nothing
+    source file exists           = true
+    REPRODUCED loading-v1-manifest-format-name
+  nightly: |
+    parsed manifest_format type = Vector{Any}
+    is v1 manifest              = false
+    manifest dependency names   = String[]
+    find_package                 = nothing
+    source file exists           = true
+    REPRODUCED loading-v1-manifest-format-name
+reproduced: {release: true, nightly: true}
+expected: |
+  The manifest should be recognized as v1, get_deps should retain its manifest_format
+  entry, and find_package should return the package's src/manifest_format.jl path.
+promised_by: |
+  base/loading.jl:1112-1114 explicitly says the format test handles "the off-chance where
+  an old format manifest has a dep called manifest_format". The code-loading invariant is
+  that a direct dependency with a matching UUID and valid manifest path can be located.
+cause: |
+  base/loading.jl:1110-1116 treats manifest_format as an old-format package only when its
+  parsed value is Dict{String}. TOML [[manifest_format]] is an array of tables and parses as
+  Vector{Any}, so the test falls through to the v2 classification. base/loading.jl:1127-1128
+  then returns the absent deps table as an empty dictionary.
+possible_fix: |
+  Recognize the v1 collision when manifest_format is a vector containing a dictionary with
+  a uuid field, matching the representation used by all v1 package stanzas.
+duplicates:
+  issues: []
+  queries: ["is_v1_format_manifest", "manifest_format package name", "old manifest manifest_format", "package named manifest_format"]
+lean:
+  property: JuliaLean.Loading.V1ManifestFormatPackagePreserved
+  theorem: JuliaLean.Loading.v1ManifestFormatPackagePreserved_refuted

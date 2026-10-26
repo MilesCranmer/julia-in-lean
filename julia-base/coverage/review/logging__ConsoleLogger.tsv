@@ -1,0 +1,12 @@
+line	name	verdict	mirror	property	settled	reason
+37	ConsoleLogger	HOLLOW	no	no	yes	consoleLoggerStream omits the ReentrantLock and meta_formatter fields, and its proposition only equates an alias to that incomplete helper instead of stating an independent behavioral property.
+43	ConsoleLogger	HOLLOW	no	no	yes	consoleLoggerDefault omits the ReentrantLock and meta_formatter fields, and its proposition only equates an alias to that incomplete helper instead of stating an independent behavioral property.
+51	shouldlog	HOLLOW	no	no	yes	consoleShouldlog omits the lock and get(..., id, 1) default lookup, so its arbitrary total limits function does not cover absent ids in every valid logger state.
+54	min_enabled_level	FAITHFUL	yes	yes	yes	consoleMinEnabledLevel directly returns the stored minimum for every modeled ConsoleLogger, exactly as the method and its filtering contract require.
+57	showvalue	HOLLOW	no	no	yes	showValuePlain ignores io and msg and replaces the text/plain show call with a constant tag, so the proposition states neither delegation nor observable output.
+58	showvalue	HOLLOW	no	no	yes	showValueTuple takes a precomputed backtrace-presence Boolean and omits tuple destructuring, scrub_repl_backtrace, and the showerror call, so its proposition does not state the method's output behavior.
+63	showvalue	HOLLOW	no	no	yes	showValueException ignores io and ex and replaces the showerror call with a constant tag, so the proposition states neither delegation nor observable output.
+65	default_logcolor	FAITHFUL	yes	yes	yes	defaultLogcolor preserves the three ordered level comparisons and four corresponding Base color results for every LogLevel.
+72	default_metafmt	HOLLOW	no	no	yes	defaultMetafmt omits contractuser and UnitRange lines and incorrectly appends a line when file is absent, while its proposition only equates the alias to that incomplete helper.
+92	termlength	HOLLOW	no	no	yes	termlengthM takes an already filtered cell list and returns its length, omitting the character loop and escape-state transitions, so its proposition does not cover input strings containing ANSI escapes.
+111	handle_message	HOLLOW	no	no	yes	consoleHandleM takes remaining count, split lines, and padding as precomputed inputs and omits the method's maxlog, annotation, keyword, metadata, width, printing, and locked-write control flow, while its proposition only repeats that reduced trace.

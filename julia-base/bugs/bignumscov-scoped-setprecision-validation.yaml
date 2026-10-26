@@ -1,0 +1,76 @@
+id: bignumscov-scoped-setprecision-validation
+title: "Callback-scoped BigFloat setprecision accepts invalid precision and base values"
+priority: P2
+kind: missing-error
+area: BigNums
+files: [base/mpfr.jl]
+functions: ["setprecision(::Function, ::Type{BigFloat}, ::Integer; base)", "setprecision(::Function, ::Integer; base)"]
+summary: |
+  The callback-scoped BigFloat setprecision methods accept precision 0 and base
+  1 when the callback does not allocate a BigFloat. The global setter rejects
+  the same arguments with DomainError, despite the scoped method's docstring
+  saying that it is logically equivalent to calling that setter around f().
+likelihood: |
+  This needs an invalid precision or base. It affects validation and generic
+  code that expects every setprecision overload to reject the same bad input.
+maybe_intended: |
+  ScopedValue defers use of the precision until a BigFloat is allocated, but
+  the documented equivalent setter validates before calling the callback.
+reproducer: |
+  function outcome(f)
+      try
+          return repr(f())
+      catch err
+          return "throws " * string(typeof(err))
+      end
+  end
+
+  global_precision = outcome(() -> setprecision(BigFloat, 0))
+  scoped_precision = outcome(() -> setprecision(() -> 7, BigFloat, 0))
+  global_base = outcome(() -> setprecision(BigFloat, 10; base=1))
+  scoped_base = outcome(() -> setprecision(() -> 7, BigFloat, 10; base=1))
+
+  println("setprecision(BigFloat, 0) -> ", global_precision)
+  println("setprecision(() -> 7, BigFloat, 0) -> ", scoped_precision)
+  println("setprecision(BigFloat, 10; base=1) -> ", global_base)
+  println("setprecision(() -> 7, BigFloat, 10; base=1) -> ", scoped_base)
+
+  if global_precision == "throws DomainError" && scoped_precision == "7" &&
+          global_base == "throws DomainError" && scoped_base == "7"
+      println("REPRODUCED bignumscov-scoped-setprecision-validation")
+  end
+output:
+  release: |
+    setprecision(BigFloat, 0) -> throws DomainError
+    setprecision(() -> 7, BigFloat, 0) -> 7
+    setprecision(BigFloat, 10; base=1) -> throws DomainError
+    setprecision(() -> 7, BigFloat, 10; base=1) -> 7
+    REPRODUCED bignumscov-scoped-setprecision-validation
+  nightly: |
+    setprecision(BigFloat, 0) -> throws DomainError
+    setprecision(() -> 7, BigFloat, 0) -> 7
+    setprecision(BigFloat, 10; base=1) -> throws DomainError
+    setprecision(() -> 7, BigFloat, 10; base=1) -> 7
+    REPRODUCED bignumscov-scoped-setprecision-validation
+reproduced: {release: true, nightly: true}
+expected: |
+  Both callback-scoped calls should throw DomainError before running the
+  callback, as the global setter does for the same precision and base.
+promised_by: |
+  base/mpfr.jl:1175-1183 says callback-scoped setprecision is logically
+  equivalent to saving the old precision, calling setprecision(BigFloat,
+  precision), running f(), and restoring the old precision. The global method
+  validates base > 1 and precision > 0 at base/mpfr.jl:1069-1073.
+cause: |
+  base/mpfr.jl:1214-1215 writes _convert_precision_from_base(prec, base)
+  directly into CURRENT_PRECISION and runs f(), bypassing both validation
+  checks. The same code is at base/mpfr.jl:1213-1214 in Julia 1.13.2.
+possible_fix: |
+  Apply the same base and precision checks as the global setter before entering
+  the ScopedValue context, without mutating DEFAULT_PRECISION.
+duplicates:
+  issues: []
+  queries: ["setprecision BigFloat scoped validation", "setprecision BigFloat DomainError", "PR setprecision BigFloat scoped validation", "PR setprecision BigFloat DomainError"]
+lean:
+  property: JuliaLean.BigNumsCov.Mpfr.ScopedPrecisionValidates
+  theorem: JuliaLean.BigNumsCov.Mpfr.scopedPrecisionValidates_refuted

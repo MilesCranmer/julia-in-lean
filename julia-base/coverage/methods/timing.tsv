@@ -1,0 +1,38 @@
+file	line	endline	name	signature	status	entry	note
+base/timing.jl	79	79	gc_num	gc_num()	modelled	concurrencycov-timing-gc-num	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	94	95	gc_total_bytes	gc_total_bytes(gc_num::GC_Num)	modelled	concurrencycov-timing-gc-total-bytes	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	97	110	GC_Diff	GC_Diff(new::GC_Num, old::GC_Num)	modelled	concurrencycov-timing-gc-diff	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	112	114	gc_alloc_count	gc_alloc_count(diff::GC_Diff)	modelled	concurrencycov-timing-gc-alloc-count	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	117	121	cumulative_compile_time_ns	cumulative_compile_time_ns()	modelled	concurrencycov-timing-compile-time	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	123	130	cumulative_compile_timing	cumulative_compile_timing(b::Bool)	modelled	concurrencycov-timing-compile-toggle	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	133	133	gc_time_ns	gc_time_ns()	modelled	concurrencycov-timing-gc-time	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	143	146	gc_live_bytes	gc_live_bytes()	modelled	concurrencycov-timing-live-bytes	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	150	153	gc_page_utilization_data	gc_page_utilization_data()	modelled	concurrencycov-timing-page-util	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	175	187	full_sweep_reasons	full_sweep_reasons()	modelled	concurrencycov-timing-sweep-reasons	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	195	197	jit_total_bytes	jit_total_bytes()	modelled	concurrencycov-timing-jit-bytes	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	202	210	prettyprint_getunits	prettyprint_getunits(value, numunits, factor)	modelled	concurrencycov-timing-pretty-units	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	212	217	padded_nonzero_print	padded_nonzero_print(value, str, always_print = true)	modelled	concurrencycov-timing-padded-method	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	243	252	format_bytes	format_bytes(bytes; binary=true)	modelled	concurrencycov-timing-format-bytes-method	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	254	305	time_print	time_print(io::IO, elapsedtime, bytes=0, gctime=0, allocs=0, lock_conflicts=0, compile_time=0, recompile_time=0, newline=false; msg::Union{String,Nothing}=nothing)	modelled	concurrencycov-timing-time-print-method	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	307	324	timev_print	timev_print(elapsedtime, diff::GC_Diff, lock_conflicts, compile_times; msg::Union{String,Nothing}=nothing)	modelled	concurrencycov-timing-timev-print-method	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	329	334	__tryfinally	__tryfinally(ex, fin)	modelled	concurrencycov-timing-tryfinally	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	395	399	time	time(ex)	modelled	concurrencycov-timing-time	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	400	408	time	time(msg, ex)	modelled	concurrencycov-timing-time-msg	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	425	429	showtime	showtime(ex)	modelled	concurrencycov-timing-showtime	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	468	472	timev	timev(ex)	modelled	concurrencycov-timing-timev	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	473	481	timev	timev(msg, ex)	modelled	concurrencycov-timing-timev-msg	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	501	508	elapsed	elapsed(ex)	modelled	concurrencycov-timing-elapsed	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	511	511	gc_bytes	gc_bytes(b::Ref{Int64})	modelled	concurrencycov-timing-gc-bytes-ref	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	513	517	gc_bytes	gc_bytes()	modelled	concurrencycov-timing-gc-bytes	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	519	526	allocated	allocated(f, args::Vararg{Any,N}) where {N}	modelled	concurrencycov-timing-allocated	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	529	534	allocations	allocations(f, args::Vararg{Any,N}) where {N}	modelled	concurrencycov-timing-allocations	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	537	554	is_simply_call	is_simply_call(@nospecialize ex)	modelled	concurrencycov-timing-is-simply-call	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	538	538	is_simple_atom	is_simple_atom(a)	modelled	concurrencycov-timing-is-simple-atom	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	556	592	_gen_allocation_measurer	_gen_allocation_measurer(ex, fname::Symbol)	modelled	concurrencycov-timing-gen-measurer	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	622	624	allocated	allocated(ex)	modelled	concurrencycov-timing-allocated-macro	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	643	645	allocations	allocations(ex)	modelled	concurrencycov-timing-allocations-macro	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	672	683	lock_conflicts	lock_conflicts(ex)	modelled	concurrencycov-timing-lock-conflicts	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	732	760	timed	timed(ex)	modelled	concurrencycov-timing-timed	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	764	774	time_imports	time_imports(ex)	modelled	concurrencycov-timing-time-imports	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	776	786	trace_compile	trace_compile(ex)	modelled	concurrencycov-timing-trace-compile	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/timing.jl	788	798	trace_dispatch	trace_dispatch(ex)	modelled	concurrencycov-timing-trace-dispatch	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.

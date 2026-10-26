@@ -1,0 +1,50 @@
+id: dictscov-show-limit-ellipsis
+title: "show(::AbstractDict) with :limit prints an ellipsis for a dict with exactly 10 entries"
+priority: P3
+kind: wrong-result
+area: DictsCov
+files: [base/dict.jl]
+functions: ["show(io::IO, t::AbstractDict)"]
+summary: |
+  The compact show of an AbstractDict under :limit => true prints at most 10
+  pairs and then "…". The check `limit && n >= 10 && (print(io, "…"); break)`
+  runs after printing each pair, so a dictionary with exactly 10 entries is
+  printed in full and still followed by "…", which suggests omitted entries.
+likelihood: |
+  Any dict with exactly 10 entries shown with :limit (repr with context,
+  string interpolation of nested containers in the REPL, logging). Cosmetic.
+maybe_intended: ""
+reproducer: |
+  repr(Dict(i => i for i in 1:10); context = :limit => true)
+  # "Dict(3 => 3, ..., 10 => 10…)"  all 10 pairs plus "…"
+output:
+  release: |
+    Dict(3 => 3, 2 => 2, 1 => 1, 4 => 4, 5 => 5, 6 => 6, 8 => 8, 7 => 7, 9 => 9, 10 => 10…)
+    pairs shown: 10 of 10; ends with an ellipsis: true
+    Dict(3 => 3, 2 => 2, 1 => 1, 4 => 4, 5 => 5, 6 => 6, 8 => 8, 7 => 7, 9 => 9)
+    REPRODUCED dictscov-show-limit-ellipsis
+  nightly: |
+    Dict(3 => 3, 2 => 2, 1 => 1, 4 => 4, 5 => 5, 6 => 6, 8 => 8, 7 => 7, 9 => 9, 10 => 10…)
+    pairs shown: 10 of 10; ends with an ellipsis: true
+    Dict(3 => 3, 2 => 2, 1 => 1, 4 => 4, 5 => 5, 6 => 6, 8 => 8, 7 => 7, 9 => 9)
+    REPRODUCED dictscov-show-limit-ellipsis
+reproduced: {release: true, nightly: true}
+expected: |
+  Dict(3 => 3, 2 => 2, 1 => 1, 4 => 4, 5 => 5, 6 => 6, 8 => 8, 7 => 7, 9 => 9, 10 => 10)
+  with no ellipsis, since no entry is omitted.
+promised_by: |
+  Invariant of limited printing: an ellipsis marks omitted elements (IOContext
+  docstring, base/show.jl:397-398: ":limit: Boolean specifying that containers
+  should be truncated, e.g. showing … in place of most elements").
+cause: |
+  base/dict.jl:19: `limit && n >= 10 && (print(io, "…"); break)` tests the
+  count after printing the n-th pair instead of before printing the next one.
+possible_fix: |
+  Check before printing a pair: `if limit && n >= 10; print(io, "…"); break;
+  end` at the top of the loop body.
+duplicates:
+  issues: []
+  queries: ["Dict show limit ellipsis", "show Dict limit 10 entries", "show dict truncation", "ellipsis in:title", "show Dict in:title"]
+lean:
+  property: JuliaLean.DictsCov.ShowEllipsisOmits
+  theorem: JuliaLean.DictsCov.showEllipsisOmits_refuted

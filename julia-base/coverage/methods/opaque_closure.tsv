@@ -1,0 +1,5 @@
+file	line	endline	name	signature	status	entry	note
+base/opaque_closure.jl	20	22	opaque	opaque(ex)	modelled	misccov-opaque-closure	
+base/opaque_closure.jl	24	38	opaque	opaque(ty, ex)	modelled	misccov-opaque-closure	
+base/opaque_closure.jl	43	45	Core.OpaqueClosure	Core.OpaqueClosure(src::CodeInfo, @nospecialize env...; rettype, sig, nargs, isva=false, kwargs...)	modelled	misccov-opaque-closure	
+base/opaque_closure.jl	47	56	generate_opaque_closure	generate_opaque_closure(@nospecialize(sig), @nospecialize(rt_lb), @nospecialize(rt_ub), src::CodeInfo, nargs::Int, isva::Bool, @nospecialize env...; mod::Module=@__MODULE__, lineno::Int=0, file::Union{Nothing,Symbol}=nothing, do_compile::Bool=true, isinferred::Bool=true)	modelled	misccov-opaque-closure	

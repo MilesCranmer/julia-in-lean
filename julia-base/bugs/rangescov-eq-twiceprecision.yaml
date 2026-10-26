@@ -1,0 +1,52 @@
+id: rangescov-eq-twiceprecision
+title: "r1 == r2 for Float64 ranges with different elements: == compares only first, length and last"
+priority: P2
+kind: wrong-result
+area: RangesCov
+files: ["base/range.jl"]
+functions: ["==(::T, ::T) where T<:Union{StepRangeLen,LinRange}"]
+summary: |
+  range(0.0; step=0.30000000000000004, length=8) == range(0.0; step=0.3000000000000001, length=8)
+  is true although the collected elements differ from index 2 on.
+likelihood: |
+  Needs two same-type float ranges with equal first and last elements and length whose steps
+  differ by a rounding error. Plausible when ranges are recomputed from measured endpoints.
+maybe_intended: ""
+reproducer: |
+  r1 = range(0.0; step=0.30000000000000004, length=8)
+  r2 = range(0.0; step=0.3000000000000001, length=8)
+  println(typeof(r1))
+  println("r1 == r2: ", r1 == r2)
+  println("collect(r1) == collect(r2): ", collect(r1) == collect(r2))
+  println("first differing index: ", findfirst(collect(r1) .!= collect(r2)), " values ", collect(r1)[2], " ", collect(r2)[2])
+  (r1 == r2 && collect(r1) != collect(r2)) && println("REPRODUCED rangescov-eq-twiceprecision")
+output:
+  release: |
+    StepRangeLen{Float64, Base.TwicePrecision{Float64}, Base.TwicePrecision{Float64}, Int64}
+    r1 == r2: true
+    collect(r1) == collect(r2): false
+    first differing index: 2 values 0.30000000000000004 0.3000000000000001
+    REPRODUCED rangescov-eq-twiceprecision
+  nightly: |
+    StepRangeLen{Float64, Base.TwicePrecision{Float64}, Base.TwicePrecision{Float64}, Int64}
+    r1 == r2: true
+    collect(r1) == collect(r2): false
+    first differing index: 2 values 0.30000000000000004 0.3000000000000001
+    REPRODUCED rangescov-eq-twiceprecision
+reproduced: {release: true, nightly: true}
+expected: |
+  false, since collect(r1) != collect(r2).
+promised_by: |
+  == on AbstractArrays compares elements (== docstring, base/operators.jl; isequal/== for arrays,
+  base/abstractarray.jl).
+cause: |
+  base/range.jl:1158-1159 decides equality from first, length and last only; for TwicePrecision
+  StepRangeLen these do not determine the intermediate elements.
+possible_fix: |
+  Also compare the high-precision steps (r.step and s.step) or fall back to elementwise comparison.
+duplicates:
+  issues: []
+  queries: ["issues: StepRangeLen == elements", "issues: range equality TwicePrecision", "issues: == StepRangeLen different", "prs: StepRangeLen == elements", "prs: range equality TwicePrecision"]
+lean:
+  property: JuliaLean.RangesCov.Compare.SrlEqElementwise
+  theorem: JuliaLean.RangesCov.Compare.srlEqElementwise_refuted

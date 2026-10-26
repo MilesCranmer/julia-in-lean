@@ -1,0 +1,52 @@
+id: stringscova-cwstring-pointer-type
+title: "Ptr{Cvoid}(::Cwstring) returns Ptr{Cwchar_t} instead of the requested pointer type"
+priority: P2
+kind: wrong-result
+area: StringsCovA
+files: [base/strings/cstring.jl]
+functions: ["Ptr{T}(::Cwstring)", "convert(::Type{Ptr{T}}, ::Cwstring)"]
+summary: |
+  `Ptr{Cvoid}(cw::Cwstring)` returns a value whose runtime type is
+  `Ptr{Cwchar_t}` (shown as `Ptr{Int32}` in Julia's display), although the caller explicitly requested
+  `Ptr{Cvoid}` (`Ptr{Nothing}`). The pointer address is preserved, but its Julia type is wrong.
+likelihood: |
+  Converting a wide-string pointer to `Ptr{Cvoid}` is a normal FFI operation. Code
+  that dispatches on the returned pointer type or asserts `::Ptr{Cvoid}` observes the mismatch.
+maybe_intended: ""
+reproducer: |
+  cw = Cwstring(Ptr{Cwchar_t}(C_NULL))
+  p = Ptr{Cvoid}(cw)
+  println("typeof(Ptr{Cvoid}(cw)) = ", typeof(p))
+  println("requested type = ", Ptr{Cvoid})
+  if typeof(p) !== Ptr{Cvoid}
+      println("REPRODUCED stringscova-cwstring-pointer-type")
+  end
+output:
+  release: |
+    typeof(Ptr{Cvoid}(cw)) = Ptr{Int32}
+    requested type = Ptr{Nothing}
+    REPRODUCED stringscova-cwstring-pointer-type
+  nightly: |
+    typeof(Ptr{Cvoid}(cw)) = Ptr{Int32}
+    requested type = Ptr{Nothing}
+    REPRODUCED stringscova-cwstring-pointer-type
+reproduced: {release: true, nightly: true}
+expected: |
+  `Ptr{Cvoid}(cw)` returns the same address with runtime type `Ptr{Cvoid}`, as the
+  analogous `Ptr{T}(::Cstring)` method does.
+promised_by: |
+  Constructor and conversion invariant: calling `Ptr{T}(x)` and
+  `convert(Ptr{T}, x)` returns a value of the requested `Ptr{T}` type.
+cause: |
+  base/strings/cstring.jl:34 defines `Ptr{T}(p::Cwstring)` but evaluates
+  `bitcast(Ptr{Cwchar_t}, p)`, ignoring `T`. Line 33 correctly uses `Ptr{T}` in
+  the corresponding `Cstring` method, and line 39 delegates conversion to the faulty method.
+possible_fix: |
+  Change the bitcast target at base/strings/cstring.jl:34 from `Ptr{Cwchar_t}` to `Ptr{T}`.
+duplicates:
+  issues:
+    - {number: 64224, state: open, relation: duplicate}
+  queries: ["Cwstring Ptr Cvoid", "Ptr{Cvoid} Cwstring", "Cwstring bitcast Cwchar_t"]
+lean:
+  property: JuliaLean.StringsCovA.CStrings.CwstringPointerType
+  theorem: JuliaLean.StringsCovA.CStrings.cwstringPointerType_refuted

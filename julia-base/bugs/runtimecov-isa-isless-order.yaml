@@ -1,0 +1,56 @@
+id: runtimecov-isa-isless-order
+title: "`isless(::ISA, ::ISA)` is the subset partial order, not the total order `isless` requires"
+priority: P3
+kind: wrong-result
+area: RuntimeCov
+files: [base/cpuid.jl]
+functions: ["isless(::ISA, ::ISA)", "<(::ISA, ::ISA)", "<=(::ISA, ::ISA)"]
+summary: |
+  `Base.BinaryPlatforms.CPUID.ISA` defines `isless(a, b) = a < b`, where `<` is proper
+  subset of the feature sets. Feature sets such as {1} and {3} are neither `isless`
+  nor `isequal`, and incomparability is not transitive ({1} ~ {3} ~ {1,2} but
+  {1} < {1,2}). `ISA` has no `==`, so two ISAs with equal feature sets satisfy
+  `a <= b && b <= a` but are not `isequal`.
+likelihood: |
+  Low: Base only looks ISAs up by name. Code that sorts ISAs, takes `maximum`, or
+  puts them in sorted containers gets order-dependent results.
+maybe_intended: |
+  A subset order is the natural order on instruction sets; `isless` may have been
+  defined only to make `<` usable, without intending sorting.
+reproducer: |
+  ISA = Base.BinaryPlatforms.CPUID.ISA
+  x, y, z = ISA(Set{UInt32}([1])), ISA(Set{UInt32}([3])), ISA(Set{UInt32}([1, 2]))
+  isless(x, y), isless(y, x), isequal(x, y)   # all false
+  isless(y, z), isless(z, y), isless(x, z)    # false, false, true
+output:
+  release: |
+    isless(x, y) = false, isless(y, x) = false, isequal(x, y) = false
+    isless(y, z) = false, isless(z, y) = false, isequal(y, z) = false
+    isless(x, z) = true
+    x <= x2 = true, x2 <= x = true, isequal(x, x2) = false
+    REPRODUCED runtimecov-isa-isless-order
+  nightly: |
+    isless(x, y) = false, isless(y, x) = false, isequal(x, y) = false
+    isless(y, z) = false, isless(z, y) = false, isequal(y, z) = false
+    isless(x, z) = true
+    x <= x2 = true, x2 <= x = true, isequal(x, x2) = false
+    REPRODUCED runtimecov-isa-isless-order
+reproduced: {release: true, nightly: true}
+expected: |
+  Either no `isless` method for `ISA` (so sorting fails loudly) or one that is a
+  total order consistent with `isequal` (for example comparing sorted feature lists),
+  plus `==`/`hash` on the feature set.
+promised_by: |
+  `isless` docstring (base/operators.jl): "Test whether `x` is less than `y`,
+  according to a fixed total order (defined together with `isequal`)."
+cause: |
+  base/cpuid.jl:20-22 define `<=`, `<` as set inclusion and `isless(a, b) = a < b`.
+possible_fix: |
+  Drop the `isless` method (keep `<=`/`<` as the partial order), or define it as a
+  lexicographic order on `sort(collect(features))` and add `==`/`hash`.
+duplicates:
+  issues: []
+  queries: ["CPUID ISA isless", "ISA partial order isless", "prs: CPUID ISA"]
+lean:
+  property: JuliaLean.RuntimeCov.CpuId.IsaIslessStrictWeak
+  theorem: JuliaLean.RuntimeCov.CpuId.isaIslessStrictWeak_refuted

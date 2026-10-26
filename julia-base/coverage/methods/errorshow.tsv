@@ -1,0 +1,95 @@
+file	line	endline	name	signature	status	entry	note
+base/errorshow.jl	30	30	showerror	showerror(io::IO, ex)	modelled	errorshow-errorshow-l30	method-specific source model:errorshow-errorshow-l30
+base/errorshow.jl	32	32	show_index	show_index(io::IO, x::Any)	modelled	errorshow-errorshow-l32	method-specific source model:errorshow-errorshow-l32
+base/errorshow.jl	33	33	show_index	show_index(io::IO, x::Slice)	modelled	errorshow-errorshow-l33	method-specific source model:errorshow-errorshow-l33
+base/errorshow.jl	34	34	show_index	show_index(io::IO, x::LogicalIndex)	modelled	errorshow-errorshow-l34	method-specific source model:errorshow-errorshow-l34
+base/errorshow.jl	35	35	show_index	show_index(io::IO, x::OneTo)	modelled	errorshow-errorshow-l35	method-specific source model:errorshow-errorshow-l35
+base/errorshow.jl	36	36	show_index	show_index(io::IO, x::Colon)	modelled	errorshow-errorshow-l36	method-specific source model:errorshow-errorshow-l36
+base/errorshow.jl	38	44	showerror	showerror(io::IO, ex::Meta.ParseError)	modelled	errorshow-errorshow-l38	method-specific source model:errorshow-errorshow-l38
+base/errorshow.jl	46	53	showerror	showerror(io::IO, ex::Core.TypeNameError)	modelled	errorshow-errorshow-l46	method-specific source model:errorshow-errorshow-l46
+base/errorshow.jl	55	76	showerror	showerror(io::IO, ex::BoundsError)	modelled	errorshow-errorshow-l55	method-specific source model:errorshow-errorshow-l55
+base/errorshow.jl	78	105	showerror	showerror(io::IO, ex::TypeError)	modelled	errorshow-errorshow-l78	method-specific source model:errorshow-errorshow-l78
+base/errorshow.jl	107	113	showerror	showerror(io::IO, ex, bt; backtrace=true)	modelled	errorshow-errorshow-l107	method-specific source model:errorshow-errorshow-l107
+base/errorshow.jl	115	119	showerror	showerror(io::IO, ex::LoadError, bt; backtrace=true)	modelled	errorshow-errorshow-l115	method-specific source model:errorshow-errorshow-l115
+base/errorshow.jl	120	120	showerror	showerror(io::IO, ex::LoadError)	modelled	errorshow-errorshow-l120	method-specific source model:errorshow-errorshow-l120
+base/errorshow.jl	122	126	showerror	showerror(io::IO, ex::InitError, bt; backtrace=true)	modelled	errorshow-errorshow-l122	method-specific source model:errorshow-errorshow-l122
+base/errorshow.jl	127	127	showerror	showerror(io::IO, ex::InitError)	modelled	errorshow-errorshow-l127	method-specific source model:errorshow-errorshow-l127
+base/errorshow.jl	129	143	showerror	showerror(io::IO, ex::DomainError)	modelled	errorshow-errorshow-l129	method-specific source model:errorshow-errorshow-l129
+base/errorshow.jl	145	158	showerror	showerror(io::IO, ex::SystemError)	modelled	errorshow-errorshow-l145	method-specific source model:errorshow-errorshow-l145
+base/errorshow.jl	160	160	showerror	showerror(io::IO, ::DivideError)	modelled	errorshow-errorshow-l160	method-specific source model:errorshow-errorshow-l160
+base/errorshow.jl	161	161	showerror	showerror(io::IO, ::StackOverflowError)	modelled	errorshow-errorshow-l161	method-specific source model:errorshow-errorshow-l161
+base/errorshow.jl	162	162	showerror	showerror(io::IO, ::UndefRefError)	modelled	errorshow-errorshow-l162	method-specific source model:errorshow-errorshow-l162
+base/errorshow.jl	163	163	showerror	showerror(io::IO, ::EOFError)	modelled	errorshow-errorshow-l163	method-specific source model:errorshow-errorshow-l163
+base/errorshow.jl	164	164	showerror	showerror(io::IO, ex::ErrorException)	modelled	errorshow-errorshow-l164	method-specific source model:errorshow-errorshow-l164
+base/errorshow.jl	165	167	showerror	showerror(io::IO, ex::KeyError)	modelled	errorshow-errorshow-l165	method-specific source model:errorshow-errorshow-l165
+base/errorshow.jl	168	168	showerror	showerror(io::IO, ex::InterruptException)	modelled	errorshow-errorshow-l168	method-specific source model:errorshow-errorshow-l168
+base/errorshow.jl	169	169	showerror	showerror(io::IO, ex::ArgumentError)	modelled	errorshow-errorshow-l169	method-specific source model:errorshow-errorshow-l169
+base/errorshow.jl	170	170	showerror	showerror(io::IO, ex::DimensionMismatch)	modelled	errorshow-errorshow-l170	method-specific source model:errorshow-errorshow-l170
+base/errorshow.jl	171	171	showerror	showerror(io::IO, ex::AssertionError)	modelled	errorshow-errorshow-l171	method-specific source model:errorshow-errorshow-l171
+base/errorshow.jl	172	172	showerror	showerror(io::IO, ex::OverflowError)	modelled	errorshow-errorshow-l172	method-specific source model:errorshow-errorshow-l172
+base/errorshow.jl	174	175	showerror	showerror(io::IO, ex::UndefKeywordError)	modelled	errorshow-errorshow-l174	method-specific source model:errorshow-errorshow-l174
+base/errorshow.jl	177	190	showerror	showerror(io::IO, ex::UndefVarError)	modelled	errorshow-errorshow-l177	method-specific source model:errorshow-errorshow-l177
+base/errorshow.jl	192	205	showerror	showerror(io::IO, ex::InexactError)	modelled	errorshow-errorshow-l192	method-specific source model:errorshow-errorshow-l192
+base/errorshow.jl	207	209	showerror	showerror(io::IO, ex::CanonicalIndexError)	modelled	errorshow-errorshow-l207	method-specific source model:errorshow-errorshow-l207
+base/errorshow.jl	213	213	typesof	typesof(@nospecialize args...)	modelled	errorshow-errorshow-l213	method-specific source model:errorshow-errorshow-l213
+base/errorshow.jl	215	233	print_with_compare	print_with_compare(io::IO, @nospecialize(a::DataType), @nospecialize(b::DataType), color::Symbol)	modelled	errorshow-errorshow-l215	method-specific source model:errorshow-errorshow-l215
+base/errorshow.jl	235	241	print_with_compare	print_with_compare(io::IO, @nospecialize(a), @nospecialize(b), color::Symbol)	modelled	errorshow-errorshow-l235	method-specific source model:errorshow-errorshow-l235
+base/errorshow.jl	243	258	show_convert_error	show_convert_error(io::IO, ex::MethodError, arg_types_param)	modelled	errorshow-errorshow-l243	method-specific source model:errorshow-errorshow-l243
+base/errorshow.jl	260	409	showerror	showerror(io::IO, ex::MethodError)	modelled	errorshow-errorshow-l260	method-specific source model:errorshow-errorshow-l260
+base/errorshow.jl	411	415	showerror	showerror(io::IO, exc::FieldError)	modelled	errorshow-errorshow-l411	method-specific source model:errorshow-errorshow-l411
+base/errorshow.jl	417	417	striptype	striptype(::Type{T}) where {T}	modelled	errorshow-errorshow-l417	method-specific source model:errorshow-errorshow-l417
+base/errorshow.jl	418	418	striptype	striptype(::Any)	modelled	errorshow-errorshow-l418	method-specific source model:errorshow-errorshow-l418
+base/errorshow.jl	420	446	showerror_ambiguous	showerror_ambiguous(io::IO, meths, f, args::Type)	modelled	errorshow-errorshow-l420	method-specific source model:errorshow-errorshow-l420
+base/errorshow.jl	450	456	showerror_nostdio	showerror_nostdio(@nospecialize(err), msg::AbstractString)	modelled	errorshow-errorshow-l450	method-specific source model:errorshow-errorshow-l450
+base/errorshow.jl	458	458	stacktrace_expand_basepaths	stacktrace_expand_basepaths()::Bool	modelled	errorshow-errorshow-l458	method-specific source model:errorshow-errorshow-l458
+base/errorshow.jl	459	459	stacktrace_contract_userdir	stacktrace_contract_userdir()::Bool	modelled	errorshow-errorshow-l459	method-specific source model:errorshow-errorshow-l459
+base/errorshow.jl	460	460	stacktrace_linebreaks	stacktrace_linebreaks()::Bool	modelled	errorshow-errorshow-l460	method-specific source model:errorshow-errorshow-l460
+base/errorshow.jl	461	461	stacktrace_full_loading	stacktrace_full_loading()::Bool	modelled	errorshow-errorshow-l461	method-specific source model:errorshow-errorshow-l461
+base/errorshow.jl	466	493	show_type_diff	show_type_diff(io::IO, @nospecialize(sig), @nospecialize(called), use_color::Bool, top_level::Bool=true)	modelled	errorshow-errorshow-l466	method-specific source model:errorshow-errorshow-l466
+base/errorshow.jl	495	501	show_separator	show_separator(io::IO, use_color::Bool)	modelled	errorshow-errorshow-l495	method-specific source model:errorshow-errorshow-l495
+base/errorshow.jl	503	511	show_type_match	show_type_match(io::IO, @nospecialize(ty), use_color::Bool)	modelled	errorshow-errorshow-l503	method-specific source model:errorshow-errorshow-l503
+base/errorshow.jl	513	543	show_namedtuple_diff	show_namedtuple_diff(io::IO, @nospecialize(sig), @nospecialize(called), use_color::Bool, top_level::Bool)	modelled	errorshow-errorshow-l513	method-specific source model:errorshow-errorshow-l513
+base/errorshow.jl	550	574	descend_params	descend_params(io::IO, @nospecialize(sig), @nospecialize(called))	modelled	errorshow-errorshow-l550	method-specific source model:errorshow-errorshow-l550
+base/errorshow.jl	576	590	show_type_mismatch	show_type_mismatch(io::IO, @nospecialize(ty), use_color::Bool, top_level::Bool)	modelled	errorshow-errorshow-l576	method-specific source model:errorshow-errorshow-l576
+base/errorshow.jl	592	601	_resolves_to_self	_resolves_to_self(tn::Core.TypeName)	modelled	errorshow-errorshow-l592	method-specific source model:errorshow-errorshow-l592
+base/errorshow.jl	603	654	show_shadowed_type_hint	show_shadowed_type_hint(io::IO, @nospecialize(f), san_arg_types_param::Vector{Any})	modelled	errorshow-errorshow-l603	method-specific source model:errorshow-errorshow-l603
+base/errorshow.jl	656	869	show_method_candidates	show_method_candidates(io::IO, ex::MethodError, kwargs=[])	modelled	errorshow-errorshow-l656	method-specific source model:errorshow-errorshow-l656
+base/errorshow.jl	887	889	get_stacktrace_color	get_stacktrace_color(key, colordict=STACKTRACE_FIXEDCOLORS, colorcycler=STACKTRACE_MODULECOLORS)	modelled	errorshow-errorshow-l887	method-specific source model:errorshow-errorshow-l887
+base/errorshow.jl	893	956	_backtrace_find_and_remove_cycles	_backtrace_find_and_remove_cycles(t)	modelled	errorshow-errorshow-l893	method-specific source model:errorshow-errorshow-l893
+base/errorshow.jl	958	992	_backtrace_print_repetition_closings!	_backtrace_print_repetition_closings!(io::IO, i, current_cycles, frame_counter, max_nested_cycles, nactive_cycles, ndigits_max; prefix = nothing)	modelled	errorshow-errorshow-l958	method-specific source model:errorshow-errorshow-l958
+base/errorshow.jl	994	1031	show_processed_backtrace	show_processed_backtrace(io::IO, trace::Vector, num_frames::Int, repeated_cycles::Vector{NTuple{3, Int}}, max_nested_cycles::Int; print_linebreaks::Bool, prefix = nothing)	modelled	errorshow-errorshow-l994	method-specific source model:errorshow-errorshow-l994
+base/errorshow.jl	1036	1045	print_stackframe	print_stackframe(io, i, frame::StackFrame, ndigits_max::Int, max_nested_cycles::Int, nactive_cycles::Int, ncycle_starts::Int, modulecolordict, modulecolorcycler; prefix = nothing)	modelled	errorshow-errorshow-l1036	method-specific source model:errorshow-errorshow-l1036
+base/errorshow.jl	1048	1055	parentmodule_before_main	parentmodule_before_main(m::Module)	modelled	errorshow-errorshow-l1048	method-specific source model:errorshow-errorshow-l1048
+base/errorshow.jl	1056	1056	parentmodule_before_main	parentmodule_before_main(x)	modelled	errorshow-errorshow-l1056	method-specific source model:errorshow-errorshow-l1056
+base/errorshow.jl	1059	1100	print_stackframe	print_stackframe(io, i, frame::StackFrame, ndigits_max::Int, max_nested_cycles::Int, nactive_cycles::Int, ncycle_starts::Int, modulecolor; prefix = nothing)	modelled	errorshow-errorshow-l1059	method-specific source model:errorshow-errorshow-l1059
+base/errorshow.jl	1102	1124	print_module_path_file	print_module_path_file(io, modul, file, line, col = 0; modulecolor = :light_black, digit_align_width = 0)	modelled	errorshow-errorshow-l1102	method-specific source model:errorshow-errorshow-l1102
+base/errorshow.jl	1145	1188	show_backtrace	show_backtrace(io::IO, t::Vector; prefix = nothing)	modelled	errorshow-errorshow-l1145	method-specific source model:errorshow-errorshow-l1145
+base/errorshow.jl	1190	1210	_backtrace_collapse_and_count_repeated_frames	_backtrace_collapse_and_count_repeated_frames(frames::Vector{StackFrame})	modelled	errorshow-errorshow-l1190	method-specific source model:errorshow-errorshow-l1190
+base/errorshow.jl	1212	1229	_backtrace_remove_kwcall_frames!	_backtrace_remove_kwcall_frames!(trace)	modelled	errorshow-errorshow-l1212	method-specific source model:errorshow-errorshow-l1212
+base/errorshow.jl	1233	1267	_backtrace_simplify_include_frames!	_backtrace_simplify_include_frames!(trace)	modelled	errorshow-errorshow-l1233	method-specific source model:errorshow-errorshow-l1233
+base/errorshow.jl	1283	1301	_is_loading_frame	_is_loading_frame(frame::StackFrame)	modelled	errorshow-errorshow-l1283	method-specific source model:errorshow-errorshow-l1283
+base/errorshow.jl	1303	1303	_is_loading_anchor	_is_loading_anchor(frame::StackFrame)	modelled	errorshow-errorshow-l1303	method-specific source model:errorshow-errorshow-l1303
+base/errorshow.jl	1309	1344	_backtrace_simplify_loading_frames!	_backtrace_simplify_loading_frames!(trace)	modelled	errorshow-errorshow-l1309	method-specific source model:errorshow-errorshow-l1309
+base/errorshow.jl	1347	1408	_backtrace_collapse_repeated_locations!	_backtrace_collapse_repeated_locations!(trace)	modelled	errorshow-errorshow-l1347	method-specific source model:errorshow-errorshow-l1347
+base/errorshow.jl	1410	1413	process_backtrace	process_backtrace(t::Vector{StackFrame})	modelled	errorshow-errorshow-l1410	method-specific source model:errorshow-errorshow-l1410
+base/errorshow.jl	1415	1421	process_backtrace	process_backtrace(tracecount::Vector{Any})	modelled	errorshow-errorshow-l1415	method-specific source model:errorshow-errorshow-l1415
+base/errorshow.jl	1423	1436	show_exception_stack	show_exception_stack(io::IO, stack)	modelled	errorshow-errorshow-l1423	method-specific source model:errorshow-errorshow-l1423
+base/errorshow.jl	1439	1446	show	show(io::IO, ip::InterpreterIP)	modelled	errorshow-errorshow-l1439	method-specific source model:errorshow-errorshow-l1439
+base/errorshow.jl	1451	1458	noncallable_number_hint_handler	noncallable_number_hint_handler(io, ex, arg_types, kwargs)	modelled	errorshow-errorshow-l1451	method-specific source model:errorshow-errorshow-l1451
+base/errorshow.jl	1468	1483	nonsetable_type_hint_handler	nonsetable_type_hint_handler(io, ex, arg_types, kwargs)	modelled	errorshow-errorshow-l1468	method-specific source model:errorshow-errorshow-l1468
+base/errorshow.jl	1489	1495	string_concatenation_hint_handler	string_concatenation_hint_handler(@nospecialize(io::IO), ex::MethodError, arg_types::Vector{Any}, kwargs::Vector{Any})	modelled	errorshow-errorshow-l1489	method-specific source model:errorshow-errorshow-l1489
+base/errorshow.jl	1501	1507	string_replace_hint_handler	string_replace_hint_handler(@nospecialize(io::IO), ex::MethodError, arg_types::Vector{Any}, kwargs::Vector{Any})	modelled	errorshow-errorshow-l1501	method-specific source model:errorshow-errorshow-l1501
+base/errorshow.jl	1513	1532	methods_on_iterable	methods_on_iterable(io, ex, arg_types, kwargs)	modelled	errorshow-errorshow-l1513	method-specific source model:errorshow-errorshow-l1513
+base/errorshow.jl	1537	1546	fielderror_dict_hint_handler	fielderror_dict_hint_handler(io, exc)	modelled	errorshow-errorshow-l1537	method-specific source model:errorshow-errorshow-l1537
+base/errorshow.jl	1550	1564	fielderror_listfields_hint_handler	fielderror_listfields_hint_handler(io, exc)	modelled	errorshow-errorshow-l1550	method-specific source model:errorshow-errorshow-l1550
+base/errorshow.jl	1566	1573	_propertynames_bytype	_propertynames_bytype(T::Type)	modelled	errorshow-errorshow-l1566	method-specific source model:errorshow-errorshow-l1566
+base/errorshow.jl	1577	1582	apply_type_unionall_hint_handler	apply_type_unionall_hint_handler(io, ex)	modelled	errorshow-errorshow-l1577	method-specific source model:errorshow-errorshow-l1577
+base/errorshow.jl	1586	1649	UndefVarError_hint	UndefVarError_hint(io::IO, ex::UndefVarError)	modelled	errorshow-errorshow-l1586	method-specific source model:errorshow-errorshow-l1586
+base/errorshow.jl	1651	1696	_UndefVarError_warnfor	_UndefVarError_warnfor(io::IO, modules, var::Symbol)	modelled	errorshow-errorshow-l1651	method-specific source model:errorshow-errorshow-l1651
+base/errorshow.jl	1701	1701	size	size(s::ExceptionStack)	modelled	errorshow-errorshow-l1701	method-specific source model:errorshow-errorshow-l1701
+base/errorshow.jl	1702	1702	getindex	getindex(s::ExceptionStack, i::Int)	modelled	errorshow-errorshow-l1702	method-specific source model:errorshow-errorshow-l1702
+base/errorshow.jl	1704	1708	show	"show(io::IO, ::MIME""text/plain"", stack::ExceptionStack)"	modelled	errorshow-errorshow-l1704	method-specific source model:errorshow-errorshow-l1704
+base/errorshow.jl	1709	1709	show	show(io::IO, stack::ExceptionStack)	modelled	errorshow-errorshow-l1709	method-specific source model:errorshow-errorshow-l1709
+base/errorshow.jl	1714	1714	incomplete_tag	incomplete_tag(ex)	modelled	errorshow-errorshow-l1714	method-specific source model:errorshow-errorshow-l1714
+base/errorshow.jl	1715	1733	incomplete_tag	incomplete_tag(ex::Expr)	modelled	errorshow-errorshow-l1715	method-specific source model:errorshow-errorshow-l1715
+base/errorshow.jl	1734	1734	incomplete_tag	incomplete_tag(exc::Meta.ParseError)	modelled	errorshow-errorshow-l1734	method-specific source model:errorshow-errorshow-l1734

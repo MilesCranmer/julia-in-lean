@@ -1,0 +1,65 @@
+line	name	verdict	mirror	property	settled	reason
+10	current_task	HOLLOW	no	no	yes	currentTaskM returns a supplied current-task value instead of calling jl_get_current_task, so its identity proposition is not tied to the running task.
+85	ReentrantLock	HOLLOW	no	yes	yes	The record model omits ThreadSynchronizer construction and the atomic fields' semantics, although the proposition states the constructor's unlocked initial state.
+88	assert_havelock	HOLLOW	no	no	yes	assertHavelockM takes the current task as an input and reads plain fields instead of following the current_task and atomic islocked calls, while its proposition only equates the alias with that model.
+90	show	HOLLOW	no	no	yes	showLockM returns a String instead of calling print on the supplied IO and cannot represent the IO effect or return value, so its proposition does not state this method's behaviour.
+92	show	HOLLOW	no	no	yes	showPlainM returns an invented Task-number String instead of performing the ordered show and print calls on IO, while its proposition only repeats that String model.
+139	islocked	FAITHFUL	yes	-	-	The no-behaviour exclusion applies because this line only declares the generic function and defines no method body.
+143	islocked	HOLLOW	no	yes	yes	islockedM reads a plain Nat field and omits the monotonic atomic load, although its proposition states the documented locked-bit predicate for every modeled lock.
+161	trylock	FAITHFUL	yes	-	-	The no-behaviour exclusion applies because this line only declares the generic function and defines no method body.
+165	trylock	HOLLOW	no	no	yes	trylockM takes the current task as an input and delegates to a model without the source atomics, while its proposition only equates the alias with that incomplete model.
+173	_trylock	HOLLOW	no	no	yes	trylockSlow combines ordered atomic loads, replacement, stores, and field mutations into plain state updates, while its proposition only equates the alias with that model.
+194	lock	HOLLOW	no	no	yes	lockM omits cancellation precheck and relies on a one-step slowlock without the source loop, spinning, condition locking, or rechecks, while its proposition is reflexive.
+196	slowlock	HOLLOW	no	no	yes	slowlockM models one acquisition-or-park step and omits profiling, token resolution, retries, spinning, compare-exchange failure, condition locking, and wait_no_relock, while its proposition is reflexive.
+263	lock	HOLLOW	no	yes	yes	conditionLockM forwards to the incomplete lock state model rather than a model of the full called method, although its proposition states the documented cancellation-preserving delegation.
+266	wait_no_relock	HOLLOW	no	no	yes	waitNoRelock reduces the method to a cancelled-token branch and omits wait-entry construction, park registration, withdrawal, unlocking, cancellation delivery, and waiting, while its proposition is reflexive.
+299	_uncancellable_lock	HOLLOW	no	yes	yes	uncancellableM delegates to the incomplete lock model rather than the full lock call, although its proposition states the explicit cancel=nothing forwarding.
+301	relockall_but_one	HOLLOW	no	no	yes	relockallButOne returns an Option count and never calls relockall or changes lock state, so its proposition describes an invented plan instead of this method's behaviour.
+315	unlock	HOLLOW	no	no	yes	unlockM replaces ordered atomic access and the condition notification path with plain state updates and an incomplete notifywaiters model, while its proposition is reflexive.
+318	_unlock	HOLLOW	no	no	yes	unlockInner collapses ordered count mutation, atomic owner clearing, compare-exchange, and notification into plain state updates, while its proposition is reflexive.
+327	notifywaiters	HOLLOW	no	no	yes	notifywaiters omits condition-lock acquisition, notify, queue observation under that lock, atomic release stores, and unlock, while its proposition only repeats the reduced state transformer.
+350	unlockall	HOLLOW	no	no	yes	unlockall uses a plain count replacement and the incomplete unlock model instead of the atomic swap and full call, while its proposition is reflexive.
+356	relockall	HOLLOW	no	no	yes	relockall starts after the uncancellable lock acquisition and omits that call and its failures, while its proposition only equates an alias with the partial model.
+382	lock	HOLLOW	no	no	yes	genericLockDo receives an already evaluated Outcome instead of invoking f after acquisition, so it cannot state callback timing or finally behaviour for arbitrary functions.
+392	lock	HOLLOW	no	no	yes	reentrantLockDo omits the cancel argument and delegates to incomplete lock and unlock models with an already evaluated body outcome, while its proposition is reflexive.
+401	trylock	HOLLOW	no	no	yes	genericTrylockDo receives an already evaluated body outcome and uses incomplete lock operations, so it cannot state that f is called only after successful acquisition and always followed by unlock.
+431	lock	HOLLOW	no	no	yes	lockMacroM omits escaped expression evaluation, single evaluation of l, generated syntax, and callback timing by aliasing the closure model, so its proposition does not cover the macro expansion.
+450	lock_nofail	HOLLOW	no	no	yes	lockNofailM uses an already evaluated outcome and incomplete lock operations, so it cannot mirror expression evaluation between lock and unlock while its proposition is reflexive.
+490	Lockable	HOLLOW	no	yes	yes	lockableCtor builds the incomplete ReentrantLock record and omits construction of its condition state, although the proposition states that the wrapped value is preserved.
+491	getindex	HOLLOW	no	no	yes	lockableGet supplies the current task to an assert model instead of performing the nested current_task and atomic lock checks, while its proposition is reflexive.
+506	lock	HOLLOW	no	no	yes	lockableDo evaluates f(l.value) as an Outcome outside the modeled lock call and uses incomplete lock operations, while its proposition only repeats that model.
+513	lock	HOLLOW	no	no	yes	lockableLock delegates to the incomplete ReentrantLock lock model, and its proposition merely equates the alias with that same model instead of stating a promised result.
+514	trylock	HOLLOW	no	no	yes	lockableTrylock delegates to the incomplete ReentrantLock trylock model, and its proposition merely equates the alias with that same model instead of stating a promised result.
+515	unlock	HOLLOW	no	no	yes	lockableUnlock delegates to the incomplete ReentrantLock unlock model, and its proposition merely equates the alias with that same model instead of stating a promised result.
+569	Semaphore	HOLLOW	no	no	yes	semaphore omits Threads.Condition construction and models only size and count, while the proposition merely equates its alias with that incomplete constructor.
+578	acquire	HOLLOW	no	no	yes	acquire models only immediate permit availability and omits cancellation, condition locking, the wait loop, locked-state cleanup, and return behaviour, while its proposition is reflexive.
+623	acquire	HOLLOW	no	no	yes	acquireDo omits the cancel argument, blocking and condition state, and receives an already evaluated body outcome, while its proposition is reflexive.
+650	acquire	HOLLOW	no	no	yes	semaphoreMacro aliases the closure model and omits escaped expression evaluation, generated syntax, and ordered acquire and release calls, so its proposition does not cover the macro expansion.
+669	release	HOLLOW	no	no	yes	release models only the count check and decrement and omits condition locking, notification, finally-unlock, and return ordering, while its proposition is reflexive.
+705	Event	HOLLOW	no	yes	yes	eventCtor omits Threads.Condition construction and atomic field semantics, although its proposition states the documented autoreset value and initially unset state.
+708	wait	HOLLOW	no	no	yes	eventWait models only a set-bit test and optional reset, omitting cancellation, atomic operations, locking, the second check, blocking wait, and finally-unlock, so its proposition does not state the documented wait behaviour.
+732	notify	HOLLOW	no	no	yes	eventNotify always sets the flag and omits locking, waiter notification, and the autoreset waiter branch where the flag stays false, making its all-input proposition invalid for the Julia method.
+755	reset	HOLLOW	no	yes	yes	eventResetM replaces the full-barrier atomic store with a plain record update, although its proposition states the documented unset result for every modeled event.
+808	OncePerProcess{T,F}	HOLLOW	no	yes	yes	procCtor omits value, allow_compile_time, lock construction, and ordered new and return operations, although the proposition states that the initializer is stored.
+813	OncePerProcess{T}	HOLLOW	no	yes	yes	ProcCtorTypeProp uses the same direct procCtor for every constructor and omits forwarding the Type parameter to OncePerProcess{T,Type{U}}, although it states initializer preservation.
+814	OncePerProcess{T}	HOLLOW	no	yes	yes	ProcCtorTProp uses the same direct procCtor and omits forwarding the inferred F parameter to OncePerProcess{T,F}, although it states initializer preservation.
+815	OncePerProcess	HOLLOW	no	yes	yes	ProcCtorAnyTypeProp omits promote_op and the Type{U} specialization and directly builds the reduced record, although it states initializer preservation.
+816	OncePerProcess	HOLLOW	no	yes	yes	ProcCtorAnyProp omits promote_op, typeof, and delegation to the parametric constructor and directly builds the reduced record, although it states initializer preservation.
+817	(once::OncePerProcess{T,F})	HOLLOW	no	no	yes	callOnceProc omits the acquire atomic load, allow_compile_time check, locking, precompile-field calls, ordered unlocks, and type assertion, while its proposition is reflexive.
+820	init_perprocesss	HOLLOW	no	no	yes	initPerprocess omits allow_compile_time, locking, precompile-field replacement calls, catch-state atomic stores, unlocks, and rethrow ordering, while its proposition is reflexive.
+850	copyto_monotonic!	HOLLOW	no	no	yes	copytoMonotonic restricts src to a one-based List and replaces ordered monotonic atomic writes over arbitrary eachindex values with a bulk pure map, while its proposition is reflexive.
+863	fill_monotonic!	HOLLOW	no	no	yes	fillMonotonic replaces the ordered monotonic atomic store loop with a pure List map, while its proposition only equates the alias with that reduced model.
+919	OncePerThread{T,F}	HOLLOW	no	yes	yes	threadCtor omits construction of two typed AtomicMemory objects and the ordered new and return operations, although the proposition states that the initializer is stored.
+925	OncePerThread{T}	HOLLOW	no	yes	yes	ThreadCtorTypeProp uses the same direct reduced constructor and omits forwarding Type{U} to OncePerThread{T,Type{U}}, although it states initializer preservation.
+926	OncePerThread{T}	HOLLOW	no	yes	yes	ThreadCtorTProp uses the same direct reduced constructor and omits forwarding the inferred F parameter to OncePerThread{T,F}, although it states initializer preservation.
+927	OncePerThread	HOLLOW	no	yes	yes	ThreadCtorAnyTypeProp omits promote_op and the Type{U} specialization and directly builds the reduced record, although it states initializer preservation.
+928	OncePerThread	HOLLOW	no	yes	yes	ThreadCtorAnyProp omits promote_op, typeof, and delegation to the parametric constructor and directly builds the reduced record, although it states initializer preservation.
+929	(once::OncePerThread{T,F})	HOLLOW	no	no	yes	callThreadM takes a supplied thread id instead of calling Threads.threadid and delegates to a reduced getindex model, while its proposition is reflexive.
+930	getindex	HOLLOW	no	no	yes	onceThreadGet assumes no interference and omits atomic reloads, allocation races, assertions, locking, concurrent-state spin loops, safepoints, and finally-unlock, while its proposition is reflexive.
+936	init_perthread	HOLLOW	no	no	yes	initThreadM aliases the different full getindex model and therefore includes its outer fast path while omitting this method's atomic, allocation, lock, spin, initializer, and cleanup sequence.
+1055	OncePerTask{T}	HOLLOW	no	yes	yes	taskCtor ignores the Type{U} field type and new{T,Type{U}} construction and adds an unrelated cell, although the proposition states initializer preservation.
+1056	OncePerTask{T}	HOLLOW	no	yes	yes	taskCtor ignores the inferred F field type and new{T,F} construction and adds an unrelated cell, although the proposition states initializer preservation.
+1057	OncePerTask{T,F}	HOLLOW	no	yes	yes	taskCtor ignores the explicit T and F parameters and new{T,F} construction and adds an unrelated cell, although the proposition states initializer preservation.
+1058	OncePerTask	HOLLOW	no	yes	yes	taskCtor omits promote_op and the Type{U} specialization and adds an unrelated cell, although the proposition states initializer preservation.
+1059	OncePerTask	HOLLOW	no	yes	yes	taskCtor omits promote_op, typeof, and the corresponding new construction and adds an unrelated cell, although the proposition states initializer preservation.
+1061	(once::OncePerTask{T,F})	HOLLOW	no	no	yes	callOnceTask takes a supplied task and synthetic store instead of calling task_local_storage and get!, and its proposition only equates the alias with that model.

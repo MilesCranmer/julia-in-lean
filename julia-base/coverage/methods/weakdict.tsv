@@ -1,0 +1,79 @@
+file	line	endline	name	signature	status	entry	note
+base/weakdict.jl	8	8	(d::WeakKeyDictFinalizer)	(d::WeakKeyDictFinalizer)(k)	modelled	dictscov-weakdict-l8	
+base/weakdict.jl	31	35	WeakKeyDict{K,V}	WeakKeyDict{K,V}() where {K, V}	modelled	dictscov-weakdict-l31	
+base/weakdict.jl	37	43	WeakKeyDict{K,V}	WeakKeyDict{K,V}(kv) where V where K	modelled	dictscov-weakdict-l37	
+base/weakdict.jl	44	44	WeakKeyDict{K,V}	WeakKeyDict{K,V}(p::Pair) where V where K	modelled	dictscov-weakdict-l44	
+base/weakdict.jl	45	52	WeakKeyDict{K,V}	WeakKeyDict{K,V}(ps::Pair...) where V where K	modelled	dictscov-weakdict-l45	
+base/weakdict.jl	53	53	WeakKeyDict	WeakKeyDict()	modelled	dictscov-weakdict-l53	
+base/weakdict.jl	55	55	WeakKeyDict	WeakKeyDict(kv::Tuple{})	modelled	dictscov-weakdict-l55	
+base/weakdict.jl	56	56	copy	copy(d::WeakKeyDict)	modelled	dictscov-weakdict-l56	
+base/weakdict.jl	58	58	WeakKeyDict	WeakKeyDict(ps::Pair{K,V}...) where {K,V}	modelled	dictscov-weakdict-l58	
+base/weakdict.jl	59	59	WeakKeyDict	WeakKeyDict(ps::Pair{K}...) where {K}	modelled	dictscov-weakdict-l59	
+base/weakdict.jl	60	60	WeakKeyDict	WeakKeyDict(ps::(Pair{K,V} where K)...) where {V}	modelled	dictscov-weakdict-l60	
+base/weakdict.jl	61	61	WeakKeyDict	WeakKeyDict(ps::Pair...)	modelled	dictscov-weakdict-l61	
+base/weakdict.jl	63	63	WeakKeyDict	WeakKeyDict(kv)	modelled	dictscov-weakdict-l63	
+base/weakdict.jl	65	77	_cleanup_locked	_cleanup_locked(h::WeakKeyDict)	modelled	dictscov-weakdict-l65	
+base/weakdict.jl	79	79	sizehint!	sizehint!(d::WeakKeyDict, newsz::Integer; shrink::Bool = true)	modelled	dictscov-weakdict-l79	
+base/weakdict.jl	80	80	empty	empty(d::WeakKeyDict, ::Type{K}, ::Type{V}) where {K, V}	modelled	dictscov-weakdict-l80	
+base/weakdict.jl	82	82	IteratorSize	IteratorSize(::Type{<:WeakKeyDict})	modelled	dictscov-weakdict-l82	
+base/weakdict.jl	84	84	islocked	islocked(wkh::WeakKeyDict)	modelled	dictscov-weakdict-l84	
+base/weakdict.jl	85	85	lock	lock(wkh::WeakKeyDict)	modelled	dictscov-weakdict-l85	
+base/weakdict.jl	86	86	unlock	unlock(wkh::WeakKeyDict)	modelled	dictscov-weakdict-l86	
+base/weakdict.jl	87	87	lock	lock(f, wkh::WeakKeyDict)	modelled	dictscov-weakdict-l87	
+base/weakdict.jl	88	88	trylock	trylock(f, wkh::WeakKeyDict)	modelled	dictscov-weakdict-l88	
+base/weakdict.jl	90	107	setindex!	setindex!(wkh::WeakKeyDict{K}, v, key) where K	modelled	dictscov-weakdict-l90	
+base/weakdict.jl	108	117	get!	get!(wkh::WeakKeyDict{K}, key, default) where {K}	modelled	dictscov-weakdict-l108	
+base/weakdict.jl	118	127	get!	get!(default::Callable, wkh::WeakKeyDict{K}, key) where {K}	modelled	dictscov-weakdict-l118	
+base/weakdict.jl	129	136	getkey	getkey(wkh::WeakKeyDict{K}, kk, default) where K	modelled	dictscov-weakdict-l129	
+base/weakdict.jl	138	138	map!	map!(f, iter::ValueIterator{<:WeakKeyDict})	modelled	dictscov-weakdict-l138	
+base/weakdict.jl	140	145	get	get(wkh::WeakKeyDict{K}, key, default) where {K}	modelled	dictscov-weakdict-l140	
+base/weakdict.jl	146	151	get	get(default::Callable, wkh::WeakKeyDict{K}, key) where {K}	modelled	dictscov-weakdict-l146	
+base/weakdict.jl	152	157	pop!	pop!(wkh::WeakKeyDict{K}, key) where {K}	modelled	dictscov-weakdict-l152	
+base/weakdict.jl	158	163	pop!	pop!(wkh::WeakKeyDict{K}, key, default) where {K}	modelled	dictscov-weakdict-l158	
+base/weakdict.jl	164	170	delete!	delete!(wkh::WeakKeyDict, key)	modelled	dictscov-weakdict-l164	
+base/weakdict.jl	171	176	empty!	empty!(wkh::WeakKeyDict)	modelled	dictscov-weakdict-l171	
+base/weakdict.jl	177	182	haskey	haskey(wkh::WeakKeyDict{K}, key) where {K}	modelled	dictscov-weakdict-l177	
+base/weakdict.jl	183	188	getindex	getindex(wkh::WeakKeyDict{K}, key) where {K}	modelled	dictscov-weakdict-l183	
+base/weakdict.jl	189	189	isempty	isempty(wkh::WeakKeyDict)	modelled	dictscov-weakdict-l189	
+base/weakdict.jl	190	195	length	length(t::WeakKeyDict)	modelled	iddicts-weakkeydict-length	
+base/weakdict.jl	197	210	iterate	iterate(t::WeakKeyDict{K,V}, state...) where {K, V}	modelled	dictscov-weakdict-l197	
+base/weakdict.jl	212	212	Iterators.only	Iterators.only(d::WeakKeyDict)	modelled	dictscov-weakdict-l212	
+base/weakdict.jl	214	214	filter!	filter!(f, d::WeakKeyDict)	modelled	dictscov-weakdict-l214	
+base/weakdict.jl	222	222	(d::WeakValueIdDictFinalizer)	(d::WeakValueIdDictFinalizer)(v)	modelled	dictscov-weakdict-l222	
+base/weakdict.jl	244	248	WeakValueIdDict{K,V}	WeakValueIdDict{K,V}() where {K, V}	modelled	dictscov-weakdict-l244	
+base/weakdict.jl	250	256	WeakValueIdDict{K,V}	WeakValueIdDict{K,V}(kv) where V where K	modelled	dictscov-weakdict-l250	
+base/weakdict.jl	257	257	WeakValueIdDict{K,V}	WeakValueIdDict{K,V}(p::Pair) where V where K	modelled	dictscov-weakdict-l257	
+base/weakdict.jl	258	264	WeakValueIdDict{K,V}	WeakValueIdDict{K,V}(ps::Pair...) where V where K	modelled	dictscov-weakdict-l258	
+base/weakdict.jl	265	265	WeakValueIdDict	WeakValueIdDict()	modelled	dictscov-weakdict-l265	
+base/weakdict.jl	267	267	WeakValueIdDict	WeakValueIdDict(kv::Tuple{})	modelled	dictscov-weakdict-l267	
+base/weakdict.jl	268	268	copy	copy(d::WeakValueIdDict)	modelled	dictscov-weakdict-l268	
+base/weakdict.jl	270	270	WeakValueIdDict	WeakValueIdDict(ps::Pair{K,V}...) where {K,V}	modelled	dictscov-weakdict-l270	
+base/weakdict.jl	271	271	WeakValueIdDict	WeakValueIdDict(ps::Pair{K}...) where {K}	modelled	dictscov-weakdict-l271	
+base/weakdict.jl	272	272	WeakValueIdDict	WeakValueIdDict(ps::(Pair{K,V} where K)...) where {V}	modelled	dictscov-weakdict-l272	
+base/weakdict.jl	273	273	WeakValueIdDict	WeakValueIdDict(ps::Pair...)	modelled	dictscov-weakdict-l273	
+base/weakdict.jl	275	275	WeakValueIdDict	WeakValueIdDict(kv)	modelled	dictscov-weakdict-l275	
+base/weakdict.jl	279	289	_sweep_locked	_sweep_locked(h::WeakValueIdDict{K}) where {K}	modelled	dictscov-weakdict-l279	
+base/weakdict.jl	290	290	_cleanup_locked	_cleanup_locked(h::WeakValueIdDict)	modelled	dictscov-weakdict-l290	
+base/weakdict.jl	292	292	empty	empty(d::WeakValueIdDict, ::Type{K}, ::Type{V}) where {K, V}	modelled	dictscov-weakdict-l292	
+base/weakdict.jl	294	294	IteratorSize	IteratorSize(::Type{<:WeakValueIdDict})	modelled	dictscov-weakdict-l294	
+base/weakdict.jl	296	296	islocked	islocked(h::WeakValueIdDict)	modelled	dictscov-weakdict-l296	
+base/weakdict.jl	297	297	lock	lock(h::WeakValueIdDict)	modelled	dictscov-weakdict-l297	
+base/weakdict.jl	298	298	unlock	unlock(h::WeakValueIdDict)	modelled	dictscov-weakdict-l298	
+base/weakdict.jl	299	299	lock	lock(f, h::WeakValueIdDict)	modelled	dictscov-weakdict-l299	
+base/weakdict.jl	300	300	trylock	trylock(f, h::WeakValueIdDict)	modelled	dictscov-weakdict-l300	
+base/weakdict.jl	302	315	setindex!	setindex!(h::WeakValueIdDict{K,V}, v, key) where {K,V}	modelled	dictscov-weakdict-l302	
+base/weakdict.jl	318	322	_getvalue	_getvalue(h::WeakValueIdDict, key)	modelled	dictscov-weakdict-l318	
+base/weakdict.jl	324	330	get	get(h::WeakValueIdDict{K,V}, key, default) where {K,V}	modelled	dictscov-weakdict-l324	
+base/weakdict.jl	331	337	get	get(default::Callable, h::WeakValueIdDict{K,V}, key) where {K,V}	modelled	dictscov-weakdict-l331	
+base/weakdict.jl	338	345	get!	get!(h::WeakValueIdDict{K,V}, key, default) where {K,V}	modelled	dictscov-weakdict-l338	
+base/weakdict.jl	346	354	get!	get!(default::Callable, h::WeakValueIdDict{K,V}, key) where {K,V}	modelled	dictscov-weakdict-l346	
+base/weakdict.jl	356	362	getkey	getkey(h::WeakValueIdDict{K}, kk, default) where {K}	modelled	dictscov-weakdict-l356	
+base/weakdict.jl	364	371	getindex	getindex(h::WeakValueIdDict{K,V}, key) where {K,V}	modelled	dictscov-weakdict-l364	
+base/weakdict.jl	373	378	haskey	haskey(h::WeakValueIdDict, key)	modelled	dictscov-weakdict-l373	
+base/weakdict.jl	380	386	delete!	delete!(h::WeakValueIdDict, key)	modelled	dictscov-weakdict-l380	
+base/weakdict.jl	388	396	pop!	pop!(h::WeakValueIdDict{K,V}, key) where {K,V}	modelled	dictscov-weakdict-l388	
+base/weakdict.jl	397	404	pop!	pop!(h::WeakValueIdDict{K,V}, key, default) where {K,V}	modelled	dictscov-weakdict-l397	
+base/weakdict.jl	406	412	empty!	empty!(h::WeakValueIdDict)	modelled	dictscov-weakdict-l406	
+base/weakdict.jl	414	422	length	length(h::WeakValueIdDict)	modelled	dictscov-weakdict-l414	
+base/weakdict.jl	423	423	isempty	isempty(h::WeakValueIdDict)	modelled	dictscov-weakdict-l423	
+base/weakdict.jl	425	444	iterate	iterate(h::WeakValueIdDict{K,V}, snapshot::Union{Nothing,Tuple{Vector{Pair{K,V}},Int}}=nothing) where {K,V}	modelled	dictscov-weakdict-l425	

@@ -1,0 +1,148 @@
+line	name	verdict	mirror	property	settled	reason
+23	_counttuple	FAITHFUL	yes	yes	yes	
+24	_counttuple	FAITHFUL	yes	yes	yes	
+28	length	FAITHFUL	yes	yes	yes	
+29	firstindex	FAITHFUL	yes	yes	yes	
+30	lastindex	HOLLOW	no	yes	yes	The Lean function returns the encoded length directly and omits this method's call to length.
+31	size	HOLLOW	no	no	yes	The Lean Idx domain covers fixed-width integers and Bool only, so it does not model or state size behavior for every Integer subtype accepted by this method.
+32	axes	HOLLOW	no	no	yes	The Lean function reduces the returned one-tuple containing OneTo(length(t)) to a list containing only the length, so the actual axis value and type are missing.
+33	getindex	FAITHFUL	yes	yes	yes	
+34	getindex	HOLLOW	no	no	yes	All three propositions restrict Integer to fixed-width IntTy values or Bool, so arbitrary Integer subtypes accepted by this method are missing from both model and property.
+35	__safe_getindex	FAITHFUL	yes	yes	yes	
+36	getindex	HOLLOW	no	no	yes	The model accepts only a one-based list of fixed-width scalar indices and omits arbitrary AbstractVector axes, element types, and their getindex dispatch outcomes.
+37	getindex	HOLLOW	no	no	yes	The model replaces every AbstractVector{Bool} with a one-based Bool list, so offset axes and the keys returned by findall are absent from the model and property.
+38	getindex	HOLLOW	yes	no	yes	TupleIndexVecCorrect never states the behavior of the modeled Colon method.
+40	get	HOLLOW	no	no	yes	The model and both propositions restrict the Integer index to fixed-width IntTy values or Bool and therefore omit other accepted Integer subtypes.
+41	get	HOLLOW	no	no	yes	The model forces the callable result to the tuple element type and restricts the index to fixed-width values, so it does not cover every Callable and Integer input.
+55	setindex	HOLLOW	no	no	yes	The model and both propositions restrict the Integer index to fixed-width IntTy values or Bool and therefore omit other accepted Integer subtypes.
+61	_setindex	HOLLOW	no	no	yes	There is no method-specific model or proposition for the unchecked ntuple reconstruction, and the combined setindex model covers only fixed-width indices.
+69	iterate	FAITHFUL	yes	yes	yes	
+75	keys	HOLLOW	no	no	yes	The Lean function returns only the encoded length and the proposition does not state that the result is OneTo(length(t)).
+109	prevind	FAITHFUL	yes	-	-	The exclusion reason applies because this line declares the prevind generic without a method body.
+143	nextind	FAITHFUL	yes	-	-	The exclusion reason applies because this line declares the nextind generic without a method body.
+145	prevind	HOLLOW	no	no	yes	The model and proposition cover fixed-width IntTy indices and Bool only, so arbitrary Integer subtypes accepted by this method are missing.
+146	nextind	HOLLOW	no	no	yes	The model and proposition cover fixed-width IntTy indices and Bool only, so arbitrary Integer subtypes accepted by this method are missing.
+148	keys	HOLLOW	no	no	yes	The model keeps only tuple lengths and an optional length, omitting axes, map and only calls, the mismatch indices, and the thrown DimensionMismatch.
+161	indexed_iterate	HOLLOW	no	no	yes	The model replaces the Int index with Nat and drops the state argument, so negative indices and every state value accepted by the source signature are not covered.
+162	indexed_iterate	HOLLOW	no	no	yes	The model replaces the Int index with Nat and the Array or Memory with a list, so negative indices, storage behavior, and the ignored state argument are missing.
+163	indexed_iterate	HOLLOW	no	no	yes	The model restricts the otherwise unconstrained diagnostic index i to Int, so the proposition does not cover every allowed i value.
+168	indexed_iterate	HOLLOW	no	no	yes	The model restricts the otherwise unconstrained diagnostic index i to Int, so the proposition does not cover every allowed i value.
+205	rest	FAITHFUL	yes	-	-	The exclusion reason applies because this line declares the rest generic without a method body.
+206	rest	FAITHFUL	yes	yes	yes	
+207	rest	HOLLOW	no	no	yes	The model starts from an already converted Int64 state and the property covers natural states only, omitting the source type assertion and all other accepted argument values.
+212	rest	HOLLOW	no	no	yes	The model starts from an Int64 and a one-based list, omitting the source type assertion, unassigned storage, and every Array, Memory, and SimpleVector representation.
+213	rest	HOLLOW	no	no	yes	The model supports at most one precomputed iterator state and cannot represent forwarding an arbitrary state tuple to Iterators.rest.
+247	split_rest	FAITHFUL	yes	-	-	The exclusion reason applies because this line declares the split_rest generic without a method body.
+248	split_rest	HOLLOW	no	no	yes	The model receives an infinite flag and a precomputed remaining list instead of calling IteratorSize, rest, collect, and _split_rest on every iterator and state tuple.
+254	_split_rest	HOLLOW	no	no	yes	No proposition uses a method-specific model of collect followed by _split_rest for every iterator.
+255	_check_length_split_rest	HOLLOW	no	no	yes	The model narrows the untyped len and n arguments to Nat and Int64, and the property tests only nonnegative natural lengths and counts.
+260	_split_rest	HOLLOW	no	no	yes	The list model omits arbitrary AbstractArray axes, slicing result types, SimpleVector storage, and negative Int counts.
+265	_split_tuple	HOLLOW	no	no	yes	The Lean function combines this helper with the split_rest wrapper, while the proposition never states the helper's behavior for an arbitrary split point n.
+267	split_rest	FAITHFUL	yes	yes	yes	
+270	first	FAITHFUL	yes	yes	yes	
+271	first	FAITHFUL	yes	yes	yes	
+279	_eltype_ntuple	HOLLOW	no	no	yes	The model cannot represent an undefined or non-Type E and the proposition never constrains eltypeNTuple on all matching tuple types.
+282	eltype	HOLLOW	no	no	yes	The transitive computeTupleEltype model skips recursive union and UnionAll handling, and the proposition tests tupleEltype only on the empty tuple branch.
+291	_compute_eltype	HOLLOW	no	no	yes	The model replaces recursive rewrap_unionall, unwrapva, type checks, and the parameter loop with simplified TupleTy cases, while the property covers only one union equation.
+316	keytype	HOLLOW	no	yes	yes	The value-level model returns Int64 directly and omits the source call to keytype(typeof(t)).
+317	keytype	FAITHFUL	yes	yes	yes	
+319	valtype	HOLLOW	no	no	yes	The model computes a join directly instead of calling valtype(typeof(t)), and its proposition only equates that model with its own helper.
+320	valtype	HOLLOW	no	no	yes	The model calls computeTupleEltype instead of the source eltype dispatch and its proposition merely repeats that replacement.
+323	safe_tail	FAITHFUL	yes	yes	yes	
+324	safe_tail	FAITHFUL	yes	yes	yes	
+344	front	FAITHFUL	yes	yes	yes	
+348	_front	FAITHFUL	yes	yes	yes	
+349	_front	FAITHFUL	yes	yes	yes	
+350	_front	HOLLOW	yes	no	yes	FrontTailCorrect reaches the recursive _front model only through public front dispatch and therefore does not cover direct calls on every nonempty vararg tuple.
+358	map	FAITHFUL	yes	yes	yes	
+359	map	FAITHFUL	yes	yes	yes	
+360	map	FAITHFUL	yes	yes	yes	
+361	map	FAITHFUL	yes	yes	yes	
+362	map	FAITHFUL	yes	yes	yes	
+375	front	FAITHFUL	yes	yes	yes	
+380	front	HOLLOW	no	no	yes	The model omits allocation, the ntuple loop's type assertion, _front_type, and the asserted return type, while the property states values only.
+387	_front_type	HOLLOW	no	no	yes	No Lean definition models this method's DataType and isvatuple checks, parameter slicing, or returned tuple type.
+394	map	HOLLOW	no	yes	yes	The model omits Vector{Any} allocation, indexed assignments, and tuple reconstruction from the source loop.
+403	map	FAITHFUL	yes	yes	yes	
+404	map	FAITHFUL	yes	yes	yes	
+405	map	FAITHFUL	yes	yes	yes	
+406	map	FAITHFUL	yes	yes	yes	
+407	map	FAITHFUL	yes	yes	yes	
+408	map	FAITHFUL	yes	yes	yes	
+412	map	HOLLOW	no	yes	yes	The model omits Vector{Any} allocation, the indexed mutation loop, and tuple reconstruction.
+421	heads	HOLLOW	yes	no	yes	MapNForeachCorrect constrains heads only through map calls with at least three tuples and does not state this helper's behavior for every allowed tuple vararg.
+422	tails	HOLLOW	yes	no	yes	MapNForeachCorrect constrains tails only through map calls with at least three tuples and does not state this helper's behavior for every allowed tuple vararg.
+423	map	FAITHFUL	yes	yes	yes	
+424	anyempty	HOLLOW	yes	no	yes	The proposition uses anyempty only inside mapN and does not state this helper's behavior for every allowed vararg tail.
+425	anyempty	HOLLOW	yes	no	yes	The proposition uses anyempty only inside mapN and does not state this helper's behavior for every allowed vararg tail.
+426	anyempty	HOLLOW	yes	no	yes	The proposition uses anyempty only inside mapN and contains no claim about the zero-argument helper itself.
+427	map	FAITHFUL	yes	yes	yes	
+432	map	HOLLOW	no	yes	yes	The model omits Vector{Any} allocation, indexed assignments, and tuple reconstruction from the long-tuple loop.
+442	fill_to_length	FAITHFUL	yes	yes	yes	
+443	fill_to_length	FAITHFUL	yes	yes	yes	
+444	fill_to_length	FAITHFUL	yes	yes	yes	
+445	fill_to_length	FAITHFUL	yes	yes	yes	
+453	tuple_type_tail	HOLLOW	no	no	yes	The model mishandles unbounded Vararg and value parameters and omits source type assertions, while the property covers only selected tuple and union forms.
+470	(::Type{T})	HOLLOW	yes	no	yes	The proposition covers only the x isa T branch and says nothing about the convert branch for nonmatching tuples.
+472	Tuple	HOLLOW	no	no	yes	The model receives a precomputed element instead of a Ref and omits getindex failures such as an unassigned reference.
+473	Tuple	HOLLOW	no	no	yes	The model receives a precomputed element instead of a zero-dimensional Array and omits getindex and unassigned-storage failures.
+475	(::Type{T})	HOLLOW	no	no	yes	There is no method-specific model or property for forwarding an arbitrary iterator to _totuple.
+477	_totuple	FAITHFUL	yes	yes	yes	
+479	_totuple_err	HOLLOW	no	yes	yes	The model omits construction of the LazyString containing the requested tuple type T.
+484	_totuple	HOLLOW	no	no	yes	The list recursion omits iterator state, iterate, fieldtype, tuple_type_tail, and both source type assertions, and the proposition tests only the empty target case.
+498	_totuple	HOLLOW	no	no	yes	The model takes a precomputed list and conversion callback instead of collecting an arbitrary iterator, and no proposition mentions toTupleLong.
+509	_totuple	HOLLOW	no	no	yes	The model replaces Iterators.rest and typed collect on an arbitrary iterator state with mapM over a precomputed list.
+511	_totuple	HOLLOW	no	no	yes	The model replaces Iterators.rest and collect on an arbitrary iterator state with the identity on a precomputed list.
+514	_totuple	HOLLOW	no	no	yes	The model assumes a fully assigned list and the proposition does not cover the Array splat path or its possible access failures.
+515	_totuple	HOLLOW	no	no	yes	The model assumes a fully assigned list and the proposition does not state the SimpleVector splat path.
+516	_totuple	HOLLOW	no	no	yes	The model erases NamedTuple names and the proposition does not state the values splatted in field order.
+517	_totuple	FAITHFUL	yes	yes	yes	
+518	_totuple	FAITHFUL	yes	yes	yes	
+522	_findfirst_rec	HOLLOW	yes	no	yes	FindFilterCorrect reaches this base case only with the public caller's generated index and never states behavior for every Int i accepted by the helper.
+523	_findfirst_rec	HOLLOW	yes	no	yes	FindFilterCorrect reaches this recursion only from i equal to one and its successors, so direct calls with every allowed Int i are not covered.
+524	_findfirst_loop	HOLLOW	no	no	yes	The model restricts t to a list and a fixed loop start, while the source helper accepts any object supporting eachindex and getindex and the proposition covers only long tuples.
+530	findfirst	FAITHFUL	yes	yes	yes	
+532	findlast	FAITHFUL	yes	yes	yes	
+533	_findlast_rec	HOLLOW	yes	no	yes	FindFilterCorrect constrains this helper only when public findlast selects the short-tuple path, leaving direct calls on longer tuples uncovered.
+537	_findlast_loop	HOLLOW	no	no	yes	The model restricts t to a list and a fixed reverse range, while the source helper accepts any indexable object and the proposition covers only long tuples.
+546	filter_rec	HOLLOW	yes	no	yes	FindFilterCorrect constrains this helper only when public filter selects the short-tuple path, leaving direct calls on longer tuples uncovered.
+549	filter	FAITHFUL	yes	yes	yes	
+553	isequal	FAITHFUL	yes	yes	yes	
+554	_isequal	FAITHFUL	yes	yes	yes	
+555	_isequal	HOLLOW	no	no	yes	The Lean recursion returns false when one tuple ends first, but a direct source call on unequal nonempty lengths eventually has no matching _isequal method and is not covered by the public length check.
+558	_isequal	HOLLOW	no	no	yes	The loop model silently returns true when one list ends, while direct Any32 calls may have unequal lengths and are outside the public proposition's equal-length path.
+567	==	FAITHFUL	yes	yes	yes	
+568	_eq	FAITHFUL	yes	yes	yes	
+569	_eq_missing	FAITHFUL	yes	yes	yes	
+570	_eq	HOLLOW	no	no	yes	The model supplies a result when unequal nonempty tuples reach mismatched ends, while the direct source helper has no matching terminal method and the proposition relies on the public length check.
+580	_eq_missing	HOLLOW	no	no	yes	The model supplies none when unequal nonempty tuples reach mismatched ends, while the direct source helper has no matching terminal method and the proposition covers only public equal-length calls.
+588	_eq	HOLLOW	no	no	yes	The loop model supplies a result when one Any32 list ends, while direct calls may have unequal lengths and the proposition covers only the public equal-length path.
+602	hash	HOLLOW	yes	no	yes	HashIsequal compares the sole empty tuple value only with itself, so the resulting reflexive equality does not constrain this method's seed xor result.
+603	hash	FAITHFUL	yes	yes	yes	
+604	hash	FAITHFUL	yes	yes	yes	
+612	<	HOLLOW	yes	no	yes	LtLexicographic only equates the dispatcher with ltRec, whose empty-empty branch is itself the model of this method, so the proposition does not independently state the false result.
+613	<	HOLLOW	yes	no	yes	LtLexicographic only equates the dispatcher with ltRec, whose empty-left branch is itself the model of this method, so the proposition does not independently state the true result.
+614	<	HOLLOW	yes	no	yes	LtLexicographic only equates the dispatcher with ltRec, whose empty-right branch is itself the model of this method, so the proposition does not independently state the false result.
+615	<	HOLLOW	yes	no	yes	For the recursive dispatch path LtLexicographic reduces to the model equalling its own ltRec helper, so it does not independently state lexicographic behavior.
+625	<	FAITHFUL	yes	yes	yes	
+639	isless	FAITHFUL	yes	yes	yes	
+640	isless	FAITHFUL	yes	yes	yes	
+641	isless	FAITHFUL	yes	yes	yes	
+648	isless	FAITHFUL	yes	yes	yes	
+652	isless	FAITHFUL	yes	yes	yes	
+665	isempty	FAITHFUL	yes	yes	yes	
+666	isempty	FAITHFUL	yes	yes	yes	
+668	revargs	FAITHFUL	yes	yes	yes	
+669	revargs	FAITHFUL	yes	yes	yes	
+671	reverse	HOLLOW	no	yes	yes	No Lean wrapper models the source call revargs(t...); the proposition mentions only the callee revargs directly.
+681	isassigned	HOLLOW	no	no	yes	Both entries restrict Integer to fixed-width IntTy values or Bool, so arbitrary Integer subtypes accepted by this method are missing.
+688	prod	FAITHFUL	yes	yes	yes	
+693	prod	HOLLOW	no	yes	yes	The model replaces the source variadic multiplication call *(x...) with a hand-written fold and therefore does not mirror its dispatch or call structure.
+696	sym_in	FAITHFUL	yes	yes	yes	
+704	in	FAITHFUL	yes	yes	yes	
+712	empty	FAITHFUL	yes	yes	yes	
+714	foreach	HOLLOW	no	no	yes	The state-fold model replaces calls to f and Julia's nothing return with a pure state transformer, and the proposition never states the method's return behavior.
+715	foreach	HOLLOW	no	no	yes	The state-fold model replaces zip iteration, calls to f, and Julia's nothing return with a pure state transformer, so the method's full behavior is not stated.
+717	circshift	HOLLOW	no	no	yes	The model and proposition accept fixed-width IntTy shifts only, omitting Bool, BigInt, and other Integer subtypes allowed by this method.
+718	circshift	HOLLOW	no	no	yes	The model and proposition accept fixed-width IntTy shifts only, omitting Bool, BigInt, and other Integer subtypes allowed by this method.
+719	circshift	HOLLOW	no	no	yes	The model and proposition accept fixed-width IntTy shifts only, omitting Bool, BigInt, and other Integer subtypes allowed by this method.

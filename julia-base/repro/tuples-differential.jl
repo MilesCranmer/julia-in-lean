@@ -44,7 +44,7 @@ end
 mknt(names, vals) = NamedTuple{Tuple(Symbol.(names))}(Tuple(vals))
 ntof(names) = mknt(names, [10k for k in 1:length(names)])
 for len in 0:4
-    for n in (0, 1, 2, 3, 5), i in 1:len+2
+    for n in (-1, 0, 1, 2, 3, 5), i in 1:len+2
         t = tup(len)
         a = res(() -> Base.split_rest(t, n, i), ((x, y),) -> fmt(x) * fmt(y))
         L = max(0, len - i + 1)

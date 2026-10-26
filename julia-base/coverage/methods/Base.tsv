@@ -1,0 +1,26 @@
+file	line	endline	name	signature	status	entry	note
+base/Base.jl	10	13	(P::Type{Pair{A, B}})	(P::Type{Pair{A, B}})(@nospecialize(a), @nospecialize(b)) where {A, B}	modelled	misccov-base-pair	
+base/Base.jl	34	34	syntax_to_expr	syntax_to_expr	excluded		no-behaviour: empty generic declaration
+base/Base.jl	46	57	array_new_memory	array_new_memory(mem::Memory{UInt8}, newlen::Int)	modelled	misccov-base-small	
+base/Base.jl	87	87	sizeof	sizeof(s::String)	modelled	misccov-base-small	
+base/Base.jl	135	137	isdebugbuild	isdebugbuild()	modelled	misccov-base-small	
+base/Base.jl	203	203	rand	rand	excluded		no-behaviour: empty generic declaration
+base/Base.jl	204	204	randn	randn	excluded		no-behaviour: empty generic declaration
+base/Base.jl	229	239	include	include(mod::Module, path::String)	excluded		internal-bootstrap: temporary include method deleted after Base finishes loading
+base/Base.jl	257	257	deepcopy_internal	deepcopy_internal	excluded		no-behaviour: empty generic declaration
+base/Base.jl	350	350	a_method_to_overwrite_in_test	a_method_to_overwrite_in_test()	modelled	misccov-base-small	
+base/Base.jl	354	354	include	include(mod::Module, _path::AbstractString)	modelled	misccov-base-small	
+base/Base.jl	355	355	include	include(mapexpr::Function, mod::Module, _path::AbstractString)	modelled	misccov-base-small	
+base/Base.jl	356	356	(this::IncludeInto)	(this::IncludeInto)(fname::AbstractString)	modelled	misccov-base-small	
+base/Base.jl	357	357	(this::IncludeInto)	(this::IncludeInto)(mapexpr::Function, fname::AbstractString)	modelled	misccov-base-small	
+base/Base.jl	363	363	in_sysimage	in_sysimage(pkgid::PkgId)	modelled	misccov-base-small	
+base/Base.jl	370	388	profile_printing_listener	profile_printing_listener(cond::AsyncCondition)	modelled	misccov-base-listeners	
+base/Base.jl	390	407	start_profile_listener	start_profile_listener()	modelled	misccov-base-listeners	
+base/Base.jl	445	454	sigint_new_episode!	sigint_new_episode!(src::CancellationTokenSource=CancellationTokenSource())	modelled	misccov-base-sigint	
+base/Base.jl	459	464	sigint_close_episode!	sigint_close_episode!()	modelled	misccov-base-sigint	
+base/Base.jl	468	468	sigint_active_severity	sigint_active_severity(src::CancellationTokenSource)	modelled	misccov-base-sigint	
+base/Base.jl	480	517	_sigint_dispatch_pass	_sigint_dispatch_pass()	modelled	misccov-base-sigint	
+base/Base.jl	527	546	maybe_dispatch_sigint	maybe_dispatch_sigint()	modelled	misccov-base-sigint	
+base/Base.jl	548	553	sigint_listener	sigint_listener(cond::AsyncCondition)	modelled	misccov-base-sigint	
+base/Base.jl	563	589	start_sigint_listener	start_sigint_listener()	modelled	misccov-base-listeners	
+base/Base.jl	591	623	__init__	__init__()	modelled	misccov-base-init	

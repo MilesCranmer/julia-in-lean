@@ -1,0 +1,60 @@
+id: reducecov-maximum-inplace-empty
+title: "maximum!(r, A), minimum! and extrema! throw BoundsError instead of ArgumentError when A is empty along a reduced dimension"
+priority: P3
+kind: wrong-exception
+area: ReduceCov
+files: [base/reducedim.jl]
+functions: ["maximum!(r, A)", "minimum!(r, A)", "extrema!(r, A)", "initarray!", "mapfirst!"]
+summary: |
+  With the default init=true, maximum!(zeros(1), zeros(0)),
+  minimum!(zeros(2), zeros(2, 0)) and extrema!([(0.0, 0.0)], zeros(0)) throw a
+  BoundsError about an internal view (index [1:1]) instead of the ArgumentError
+  "reducing over an empty collection is not allowed" that maximum(A; dims),
+  minimum(A; dims) and extrema(A; dims) throw for the same reduction.
+likelihood: |
+  Low to moderate: in-place reductions over arrays that may be empty along the
+  reduced dimension occur in generic code; the error is still thrown, only with a
+  misleading type and message.
+maybe_intended: |
+  An error is the right outcome; only its type and message are wrong.
+reproducer: |
+  maximum!(zeros(1), zeros(0))     # BoundsError
+  maximum(zeros(0); dims=1)        # ArgumentError
+output:
+  release: |
+    maximum!(zeros(1), zeros(0)) -> BoundsError
+    maximum(zeros(0); dims=1) -> ArgumentError
+    minimum!(zeros(2), zeros(2, 0)) -> BoundsError
+    minimum(zeros(2, 0); dims=2) -> ArgumentError
+    extrema!([(0.0, 0.0)], zeros(0)) -> BoundsError
+    REPRODUCED reducecov-maximum-inplace-empty
+  nightly: |
+    maximum!(zeros(1), zeros(0)) -> BoundsError
+    maximum(zeros(0); dims=1) -> ArgumentError
+    minimum!(zeros(2), zeros(2, 0)) -> BoundsError
+    minimum(zeros(2, 0); dims=2) -> ArgumentError
+    extrema!([(0.0, 0.0)], zeros(0)) -> BoundsError
+    REPRODUCED reducecov-maximum-inplace-empty
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError("reducing over an empty collection is not allowed; ..."), as from
+  maximum(zeros(0); dims=1).
+promised_by: |
+  Consistency between maximum!(r, A) ("Compute the maximum value of A over the
+  singleton dimensions of r", base/reducedim.jl) and maximum(A; dims), which
+  throws the empty-reduction ArgumentError (base/reducedim.jl:95).
+cause: |
+  base/reducedim.jl:45-46: initarray! for min/max/_extrema_rf calls mapfirst!(f, a, src),
+  which (base/reducedim.jl:241-245) takes view(A, _firstreducedslice(axes(R), axes(A))...);
+  _firstslice(::OneTo) = OneTo(1) (base/reducedim.jl:252) is out of bounds for an empty
+  axis. Nothing checks for an empty reduced dimension first, as reducedim_init does
+  with _empty_reduce_error.
+possible_fix: |
+  In initarray! for min/max/_extrema_rf, throw _empty_reduce_error() when a reduced
+  dimension of src is empty and r is nonempty, before calling mapfirst!.
+duplicates:
+  issues: []
+  queries: ["maximum! empty BoundsError", "maximum! empty array", "maximum! empty", "maximum!"]
+lean:
+  property: JuliaLean.ReduceCov.Dims.InplaceEmptyError
+  theorem: JuliaLean.ReduceCov.Dims.inplaceEmptyError_refuted

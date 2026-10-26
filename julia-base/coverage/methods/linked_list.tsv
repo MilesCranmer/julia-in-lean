@@ -1,0 +1,38 @@
+file	line	endline	name	signature	status	entry	note
+base/linked_list.jl	7	7	IntrusiveLinkedList{T}	IntrusiveLinkedList{T}() where {T}	modelled	tasks-coverage-linked-generic	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	17	17	waitqueue	waitqueue	excluded		no-behaviour: declares the waitqueue generic without defining a method.
+base/linked_list.jl	22	22	eltype	eltype(::Type{<:IntrusiveLinkedList{T}}) where {T}	modelled	tasks-coverage-linked-generic	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	24	24	iterate	iterate(q::IntrusiveLinkedList)	modelled	tasks-coverage-linked-generic	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	25	25	iterate	iterate(q::IntrusiveLinkedList{T}, v::T) where {T}	modelled	tasks-coverage-linked-generic	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	27	27	isempty	isempty(q::IntrusiveLinkedList)	modelled	tasks-coverage-linked-generic	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	29	37	length	length(q::IntrusiveLinkedList)	modelled	tasks-coverage-linked-generic	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	39	59	list_append!!	list_append!!(q::IntrusiveLinkedList{T}, q2::IntrusiveLinkedList{T}) where T	modelled	tasks-coverage-linked-generic	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	61	61	isempty	isempty(qr::ILLRef)	modelled	tasks-coverage-linked-generic	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	62	62	length	length(qr::ILLRef)	modelled	tasks-coverage-linked-generic	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	64	76	push!	push!(qr::ILLRef{T}, val::T) where T	modelled	tasks-linked-list-wellformed,tasks-coverage-linked-generic	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	78	90	pushfirst!	pushfirst!(qr::ILLRef{T}, val::T) where T	modelled	tasks-coverage-linked-generic	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	92	96	pop!	pop!(qr::ILLRef{T}) where {T}	modelled	tasks-linked-list-wellformed,tasks-coverage-linked-generic	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	98	102	popfirst!	popfirst!(qr::ILLRef{T}) where {T}	modelled	tasks-coverage-linked-generic	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	107	110	list_deletefirst!	list_deletefirst!(qr::ILLRef{T}, val::T) where T	modelled	tasks-linked-list-wellformed,tasks-coverage-linked-generic	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	112	112	push!	push!(q::IntrusiveLinkedList{T}, val::T) where T	modelled	tasks-coverage-linked-generic	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	113	113	pushfirst!	pushfirst!(q::IntrusiveLinkedList{T}, val::T) where T	modelled	tasks-coverage-linked-generic	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	114	114	pop!	pop!(q::IntrusiveLinkedList{T}) where T	modelled	tasks-coverage-linked-generic	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	115	115	popfirst!	popfirst!(q::IntrusiveLinkedList{T}) where T	modelled	tasks-coverage-linked-generic	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	116	116	list_deletefirst!	list_deletefirst!(q::IntrusiveLinkedList{T}, val::T) where T	modelled	tasks-coverage-linked-generic	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	119	143	_list_deletefirst!	_list_deletefirst!(q::IntrusiveLinkedList{T}, val::T) where T	modelled	tasks-linked-list-wellformed,tasks-coverage-linked-generic	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	157	157	LinkedListItem{T}	LinkedListItem{T}(value::T) where {T}	modelled	tasks-coverage-linked-boxed	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	162	162	eltype	eltype(::Type{<:LinkedList{T}}) where {T}	modelled	tasks-coverage-linked-boxed	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	163	163	iterate	iterate(q::LinkedList)	modelled	tasks-coverage-linked-boxed	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	164	164	iterate	iterate(q::IntrusiveLinkedList{LLT}, v::LLT) where {LLT<:LinkedListItem}	modelled	tasks-coverage-linked-boxed	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	165	165	push!	push!(q::LinkedList{T}, val::T) where {T}	modelled	tasks-coverage-linked-boxed	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	166	166	pushfirst!	pushfirst!(q::LinkedList{T}, val::T) where {T}	modelled	tasks-coverage-linked-boxed	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	167	167	pop!	pop!(q::LinkedList)	modelled	tasks-coverage-linked-boxed	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	168	168	popfirst!	popfirst!(q::LinkedList)	modelled	tasks-coverage-linked-boxed	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	169	179	list_deletefirst!	list_deletefirst!(q::LinkedList{T}, val::T) where T	modelled	tasks-coverage-linked-boxed	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	190	203	push!	push!(qr::ILLRef{WaitEntry}, val::WaitEntry)	modelled	tasks-coverage-linked-waitentry	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	205	217	pushfirst!	pushfirst!(qr::ILLRef{WaitEntry}, val::WaitEntry)	modelled	tasks-coverage-linked-waitentry	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	219	228	popfirst!	popfirst!(qr::ILLRef{WaitEntry})	modelled	tasks-coverage-linked-waitentry	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	230	234	pop!	pop!(qr::ILLRef{WaitEntry})	modelled	tasks-coverage-linked-waitentry	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	239	270	list_deletefirst!	list_deletefirst!(qr::ILLRef{WaitEntry}, val::WaitEntry)	modelled	tasks-coverage-linked-waitentry	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	272	280	length	length(qr::ILLRef{WaitEntry})	modelled	tasks-coverage-linked-waitentry	source-body: Lean model mirrors this method's branch and mutation order.
+base/linked_list.jl	284	293	_waitq_isempty	_waitq_isempty(qr::ILLRef{WaitEntry})	modelled	tasks-coverage-linked-waitentry	source-body: Lean model mirrors this method's branch and mutation order.

@@ -1,0 +1,61 @@
+id: bitsetscov-replace-generic-set
+title: "replace(f, s) on a BitSet or IdSet loses elements when a new value equals another old element"
+priority: P1
+kind: wrong-result
+area: BitSetsCov
+files: [base/set.jl]
+functions: ["replace(new::Callable, A)", "replace(A, old_new::Pair...)", "_replace!(new, res::Union{AbstractDict,AbstractSet}, A, count)"]
+summary: |
+  replace(f, s) and replace(s, old => new, ...) on an AbstractSet other than
+  Set (BitSet, IdSet) copy s into res and then walk s, doing
+  pop!(res, x); push!(res, f(x)) one element at a time. When f(x) equals an
+  element that is replaced later, that later step pops the value just
+  pushed, so replace(x -> x + 1, BitSet([1, 2])) returns BitSet([3]) instead
+  of BitSet([2, 3]). replace! on the same set (res === A) collects all pairs
+  first and is correct.
+likelihood: |
+  Any replace on a BitSet or IdSet whose mapping sends some element onto
+  another element of the set, e.g. shifting a BitSet of consecutive
+  integers. The result is silently missing elements. Set and Dict have
+  their own method and are not affected.
+maybe_intended: ""
+reproducer: |
+  replace(x -> x + 1, BitSet([1, 2]))       # BitSet([3])
+  replace!(x -> x + 1, BitSet([1, 2]))      # BitSet([2, 3])
+  replace(BitSet([1, 2]), 1 => 2, 2 => 1)   # BitSet([1])
+output:
+  release: |
+    replace(x -> x + 1, BitSet([1, 2]))  = BitSet([3])
+    replace!(x -> x + 1, BitSet([1, 2])) = BitSet([2, 3])
+    replace(BitSet([1, 2]), 1 => 2, 2 => 1) = BitSet([1])
+    collect(replace(x -> x + 1, IdSet{Int}([1, 2]))) = [3]
+    REPRODUCED bitsetscov-replace-generic-set
+  nightly: |
+    replace(x -> x + 1, BitSet([1, 2]))  = BitSet([3])
+    replace!(x -> x + 1, BitSet([1, 2])) = BitSet([2, 3])
+    replace(BitSet([1, 2]), 1 => 2, 2 => 1) = BitSet([1])
+    collect(replace(x -> x + 1, IdSet{Int}([1, 2]))) = [3]
+    REPRODUCED bitsetscov-replace-generic-set
+reproduced: {release: true, nightly: true}
+expected: |
+  BitSet([2, 3]) for the first call (the same as replace!), BitSet([1, 2])
+  for the pair call, and [2, 3] for the IdSet.
+promised_by: |
+  replace docstring, base/set.jl:871: "Return a copy of A where each
+  value x in A is replaced by new(x)", and base/set.jl:810-811 for the pair
+  form ("all occurrences of old are replaced by new").
+cause: |
+  base/set.jl:931-940: the res !== A branch of
+  _replace!(new, res::Union{AbstractDict,AbstractSet}, A, count) pops and
+  pushes inside the loop over A. The res === A branch (base/set.jl:915-930)
+  already does the two-phase pop-then-push that is needed here too.
+possible_fix: |
+  Use the two-phase collection of replacement pairs in both branches (pop
+  all replaced elements from res, then push all new values).
+duplicates:
+  issues:
+    - {number: 64235, state: open, relation: duplicate}
+  queries: ["replace BitSet", "replace IdSet", "replace AbstractSet", "replace Set function", "replace iterating pop push"]
+lean:
+  property: JuliaLean.BitSetsCov.ReplaceGenericSetSpec
+  theorem: JuliaLean.BitSetsCov.replaceGenericSetSpec_refuted

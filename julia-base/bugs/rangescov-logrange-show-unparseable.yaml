@@ -1,0 +1,57 @@
+id: rangescov-logrange-show-unparseable
+title: "repr(logrange(1.0, 4.0, 5)) is \"LogRange{Float64}(...)\", which does not parse outside Base"
+priority: P3
+kind: wrong-result
+area: RangesCov
+files: ["base/range.jl"]
+functions: ["show(::IO, ::LogRange)"]
+summary: |
+  show(io, ::LogRange) prints the unexported name LogRange without the Base. prefix, so
+  eval(Meta.parse(repr(r))) throws UndefVarError in Main. show(::OneTo) prints Base.OneTo.
+likelihood: |
+  Affects copy-pasting printed values and repr round trips; cosmetic.
+maybe_intended: |
+  The summary line printed by display uses Base.LogRange; show uses a literal string.
+reproducer: |
+  r = logrange(1.0, 4.0, 5)
+  s = repr(r)
+  println("repr(logrange(1.0, 4.0, 5)) = ", s)
+  println("repr(Base.OneTo(3)) = ", repr(Base.OneTo(3)))
+  bug = false
+  try
+      println("eval(Meta.parse(s)) == r: ", eval(Meta.parse(s)) == r)
+  catch e
+      println("eval(Meta.parse(s)) throws ", sprint(showerror, e))
+      global bug = e isa UndefVarError
+  end
+  bug && println("REPRODUCED rangescov-logrange-show-unparseable")
+output:
+  release: |
+    repr(logrange(1.0, 4.0, 5)) = LogRange{Float64}(1.0, 4.0, 5)
+    repr(Base.OneTo(3)) = Base.OneTo(3)
+    eval(Meta.parse(s)) throws UndefVarError: `LogRange` not defined in `Main`
+    Suggestion: check for spelling errors or missing imports.
+    Hint: a global variable of this name also exists in Base.
+    REPRODUCED rangescov-logrange-show-unparseable
+  nightly: |
+    repr(logrange(1.0, 4.0, 5)) = LogRange{Float64}(1.0, 4.0, 5)
+    repr(Base.OneTo(3)) = Base.OneTo(3)
+    eval(Meta.parse(s)) throws UndefVarError: `LogRange` not defined in `Main`
+    Suggestion: check for spelling errors or missing imports.
+    Hint: a global variable of this name also exists in Base.
+    REPRODUCED rangescov-logrange-show-unparseable
+reproduced: {release: true, nightly: true}
+expected: |
+  Base.LogRange{Float64}(1.0, 4.0, 5), which round-trips like Base.OneTo(3).
+promised_by: |
+  show docstring (base/show.jl): the output should be parseable Julia code when possible.
+cause: |
+  base/range.jl:1717 prints the literal "LogRange{".
+possible_fix: |
+  Print the type through show(io, LogRange) or prefix "Base." as show(::OneTo) does (base/range.jl:1131).
+duplicates:
+  issues: []
+  queries: ["issues: LogRange show", "issues: LogRange repr", "prs: LogRange show", "prs: LogRange repr"]
+lean:
+  property: JuliaLean.RangesCov.Log.LogRangeShowQualified
+  theorem: JuliaLean.RangesCov.Log.logRangeShowQualified_refuted

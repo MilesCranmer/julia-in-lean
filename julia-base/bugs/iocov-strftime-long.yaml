@@ -1,0 +1,54 @@
+id: iocov-strftime-long
+title: "strftime returns \"\" when the formatted time is longer than 127 characters"
+priority: P2
+kind: wrong-result
+area: IOCov
+files: [base/libc.jl]
+functions: ["Libc.strftime(::AbstractString, ::TmStruct)", "Libc.strftime(::AbstractString, ::Real)"]
+summary: |
+  strftime formats into a fixed buffer of 128 wide characters. When the result does
+  not fit, C wcsftime returns 0 and strftime returns the empty string, without an
+  error. Any format whose expansion exceeds 127 characters silently gives "".
+likelihood: |
+  Needs a long format string, such as a log-line template or a format with a long
+  literal prefix; short date formats are unaffected. The failure is silent, so the
+  caller just loses the timestamp text.
+maybe_intended: |
+  The C function has the same limitation when called with a fixed buffer, and the
+  docstring says the supported formats are those of the C library. But the Julia
+  function chooses the buffer size and does not document a length limit.
+reproducer: |
+  fmt = "%Y-" * "x"^130
+  s = Libc.strftime(fmt, 0.0)
+  println("length(strftime(fmt, 0.0)) = ", length(s), "  (", repr(first(s, 10)), ")")
+  println("short format: ", repr(Libc.strftime("%Y-xx", 0.0)))
+  if isempty(s)
+      println("REPRODUCED iocov-strftime-long")
+  end
+output:
+  release: |
+    length(strftime(fmt, 0.0)) = 0  ("")
+    short format: "1969-xx"
+    REPRODUCED iocov-strftime-long
+  nightly: |
+    length(strftime(fmt, 0.0)) = 0  ("")
+    short format: "1969-xx"
+    REPRODUCED iocov-strftime-long
+reproduced: {release: true, nightly: true}
+expected: |
+  A 135-character string "1969-xxx...x" (the year depends on the local time zone).
+promised_by: |
+  strftime docstring, base/libc.jl:229-234: "Convert time, given as a number of seconds
+  since the epoch or a `TmStruct`, to a formatted string using the given format."
+cause: |
+  base/libc.jl:240-243: wctimestr = Vector{Cwchar_t}(undef, 128), then
+  n == 0 && return "" treats wcsftime's "buffer too small" result as an empty result.
+possible_fix: |
+  On n == 0 with a nonempty format, retry with a larger buffer (doubling up to a
+  limit), as other wrappers of strftime do.
+duplicates:
+  issues: []
+  queries: ["strftime long", "strftime empty string", "strftime 128", "strftime empty", "strftime buffer"]
+lean:
+  property: JuliaLean.IOCov.Libc.StrftimeFormats
+  theorem: JuliaLean.IOCov.Libc.strftimeFormats_refuted

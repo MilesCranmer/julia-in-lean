@@ -1,0 +1,73 @@
+file	line	endline	name	signature	status	entry	note
+base/special/exp.jl	6	6	MAGIC_ROUND_CONST	MAGIC_ROUND_CONST(::Type{Float64})	modelled	mathcov-special-exp-l6	method-specific source model and quantified behavior property
+base/special/exp.jl	7	7	MAGIC_ROUND_CONST	MAGIC_ROUND_CONST(::Type{Float32})	modelled	mathcov-special-exp-l7	method-specific source model and quantified behavior property
+base/special/exp.jl	11	11	MAX_EXP	MAX_EXP(n::Val{2}, ::Type{Float32})	modelled	mathcov-special-exp-l11	method-specific source model and quantified behavior property
+base/special/exp.jl	12	12	MAX_EXP	MAX_EXP(n::Val{2}, ::Type{Float64})	modelled	mathcov-special-exp-l12	method-specific source model and quantified behavior property
+base/special/exp.jl	13	13	MAX_EXP	MAX_EXP(n::Val{:ℯ}, ::Type{Float32})	modelled	mathcov-special-exp-l13	method-specific source model and quantified behavior property
+base/special/exp.jl	14	14	MAX_EXP	MAX_EXP(n::Val{:ℯ}, ::Type{Float64})	modelled	mathcov-special-exp-l14	method-specific source model and quantified behavior property
+base/special/exp.jl	15	15	MAX_EXP	MAX_EXP(n::Val{10}, ::Type{Float32})	modelled	mathcov-special-exp-l15	method-specific source model and quantified behavior property
+base/special/exp.jl	16	16	MAX_EXP	MAX_EXP(n::Val{10}, ::Type{Float64})	modelled	mathcov-special-exp-l16	method-specific source model and quantified behavior property
+base/special/exp.jl	19	19	MIN_EXP	MIN_EXP(n::Val{2}, ::Type{Float32})	modelled	mathcov-special-exp-l19	method-specific source model and quantified behavior property
+base/special/exp.jl	20	20	MIN_EXP	MIN_EXP(n::Val{2}, ::Type{Float64})	modelled	mathcov-special-exp-l20	method-specific source model and quantified behavior property
+base/special/exp.jl	21	21	MIN_EXP	MIN_EXP(n::Val{:ℯ}, ::Type{Float32})	modelled	mathcov-special-exp-l21	method-specific source model and quantified behavior property
+base/special/exp.jl	22	22	MIN_EXP	MIN_EXP(n::Val{:ℯ}, ::Type{Float64})	modelled	mathcov-special-exp-l22	method-specific source model and quantified behavior property
+base/special/exp.jl	23	23	MIN_EXP	MIN_EXP(n::Val{10}, ::Type{Float32})	modelled	mathcov-special-exp-l23	method-specific source model and quantified behavior property
+base/special/exp.jl	24	24	MIN_EXP	MIN_EXP(n::Val{10}, ::Type{Float64})	modelled	mathcov-special-exp-l24	method-specific source model and quantified behavior property
+base/special/exp.jl	28	28	SUBNORM_EXP	SUBNORM_EXP(n::Val{2}, ::Type{Float32})	modelled	mathcov-special-exp-l28	method-specific source model and quantified behavior property
+base/special/exp.jl	29	29	SUBNORM_EXP	SUBNORM_EXP(n::Val{2}, ::Type{Float64})	modelled	mathcov-special-exp-l29	method-specific source model and quantified behavior property
+base/special/exp.jl	30	30	SUBNORM_EXP	SUBNORM_EXP(n::Val{:ℯ}, ::Type{Float32})	modelled	mathcov-special-exp-l30	method-specific source model and quantified behavior property
+base/special/exp.jl	31	31	SUBNORM_EXP	SUBNORM_EXP(n::Val{:ℯ}, ::Type{Float64})	modelled	mathcov-special-exp-l31	method-specific source model and quantified behavior property
+base/special/exp.jl	32	32	SUBNORM_EXP	SUBNORM_EXP(n::Val{10}, ::Type{Float32})	modelled	mathcov-special-exp-l32	method-specific source model and quantified behavior property
+base/special/exp.jl	33	33	SUBNORM_EXP	SUBNORM_EXP(n::Val{10}, ::Type{Float64})	modelled	mathcov-special-exp-l33	method-specific source model and quantified behavior property
+base/special/exp.jl	36	36	LogBo256INV	LogBo256INV(::Val{2}, ::Type{Float64})	modelled	mathcov-special-exp-l36	method-specific source model and quantified behavior property
+base/special/exp.jl	37	37	LogBo256INV	LogBo256INV(::Val{:ℯ}, ::Type{Float64})	modelled	mathcov-special-exp-l37	method-specific source model and quantified behavior property
+base/special/exp.jl	38	38	LogBo256INV	LogBo256INV(::Val{10}, ::Type{Float64})	modelled	mathcov-special-exp-l38	method-specific source model and quantified behavior property
+base/special/exp.jl	44	44	LogBo256U	LogBo256U(::Val{2}, ::Type{Float64})	modelled	mathcov-special-exp-l44	method-specific source model and quantified behavior property
+base/special/exp.jl	45	45	LogBo256U	LogBo256U(::Val{:ℯ}, ::Type{Float64})	modelled	mathcov-special-exp-l45	method-specific source model and quantified behavior property
+base/special/exp.jl	46	46	LogBo256U	LogBo256U(::Val{10}, ::Type{Float64})	modelled	mathcov-special-exp-l46	method-specific source model and quantified behavior property
+base/special/exp.jl	47	47	LogBo256L	LogBo256L(::Val{2}, ::Type{Float64})	modelled	mathcov-special-exp-l47	method-specific source model and quantified behavior property
+base/special/exp.jl	48	48	LogBo256L	LogBo256L(::Val{:ℯ}, ::Type{Float64})	modelled	mathcov-special-exp-l48	method-specific source model and quantified behavior property
+base/special/exp.jl	49	49	LogBo256L	LogBo256L(::Val{10}, ::Type{Float64})	modelled	mathcov-special-exp-l49	method-specific source model and quantified behavior property
+base/special/exp.jl	52	52	LogBINV	LogBINV(::Val{2}, ::Type{Float32})	modelled	mathcov-special-exp-l52	method-specific source model and quantified behavior property
+base/special/exp.jl	53	53	LogBINV	LogBINV(::Val{:ℯ}, ::Type{Float32})	modelled	mathcov-special-exp-l53	method-specific source model and quantified behavior property
+base/special/exp.jl	54	54	LogBINV	LogBINV(::Val{10}, ::Type{Float32})	modelled	mathcov-special-exp-l54	method-specific source model and quantified behavior property
+base/special/exp.jl	60	60	LogBU	LogBU(::Val{2}, ::Type{Float32})	modelled	mathcov-special-exp-l60	method-specific source model and quantified behavior property
+base/special/exp.jl	61	61	LogBU	LogBU(::Val{:ℯ}, ::Type{Float32})	modelled	mathcov-special-exp-l61	method-specific source model and quantified behavior property
+base/special/exp.jl	62	62	LogBU	LogBU(::Val{10}, ::Type{Float32})	modelled	mathcov-special-exp-l62	method-specific source model and quantified behavior property
+base/special/exp.jl	63	63	LogBL	LogBL(::Val{2}, ::Type{Float32})	modelled	mathcov-special-exp-l63	method-specific source model and quantified behavior property
+base/special/exp.jl	64	64	LogBL	LogBL(::Val{:ℯ}, ::Type{Float32})	modelled	mathcov-special-exp-l64	method-specific source model and quantified behavior property
+base/special/exp.jl	65	65	LogBL	LogBL(::Val{10}, ::Type{Float32})	modelled	mathcov-special-exp-l65	method-specific source model and quantified behavior property
+base/special/exp.jl	68	68	LogB	LogB(::Val{2}, ::Type{Float16})	modelled	mathcov-special-exp-l68	method-specific source model and quantified behavior property
+base/special/exp.jl	69	69	LogB	LogB(::Val{:ℯ}, ::Type{Float16})	modelled	mathcov-special-exp-l69	method-specific source model and quantified behavior property
+base/special/exp.jl	70	70	LogB	LogB(::Val{10}, ::Type{Float16})	modelled	mathcov-special-exp-l70	method-specific source model and quantified behavior property
+base/special/exp.jl	73	76	expm1b_kernel	expm1b_kernel(::Val{2}, x::Float64)	modelled	mathcov-special-exp-l73	method-specific source model and quantified behavior property
+base/special/exp.jl	77	80	expm1b_kernel	expm1b_kernel(::Val{:ℯ}, x::Float64)	modelled	mathcov-special-exp-l77	method-specific source model and quantified behavior property
+base/special/exp.jl	81	84	expm1b_kernel	expm1b_kernel(::Val{10}, x::Float64)	modelled	mathcov-special-exp-l81	method-specific source model and quantified behavior property
+base/special/exp.jl	86	90	expb_kernel	expb_kernel(::Val{2}, x::Float32)	modelled	mathcov-special-exp-l86	method-specific source model and quantified behavior property
+base/special/exp.jl	91	95	expb_kernel	expb_kernel(::Val{:ℯ}, x::Float32)	modelled	mathcov-special-exp-l91	method-specific source model and quantified behavior property
+base/special/exp.jl	96	100	expb_kernel	expb_kernel(::Val{10}, x::Float32)	modelled	mathcov-special-exp-l96	method-specific source model and quantified behavior property
+base/special/exp.jl	178	184	table_unpack	table_unpack(ind::Int32)	modelled	mathcov-special-exp-l178	method-specific source model and quantified behavior property
+base/special/exp.jl	207	231	exp_impl	exp_impl(x::Float64, base)	modelled	mathcov-special-exp-l207	method-specific source model and quantified behavior property
+base/special/exp.jl	233	259	exp_impl	exp_impl(x::Float64, xlo::Float64, base)	modelled	mathcov-special-exp-l233	method-specific source model and quantified behavior property
+base/special/exp.jl	260	274	exp_impl_fast	exp_impl_fast(x::Float64, base)	modelled	mathcov-special-exp-l260	method-specific source model and quantified behavior property
+base/special/exp.jl	276	295	exp_impl	exp_impl(x::Float32, base)	modelled	mathcov-special-exp-l276	method-specific source model and quantified behavior property
+base/special/exp.jl	297	308	exp_impl_fast	exp_impl_fast(x::Float32, base)	modelled	mathcov-special-exp-l297	method-specific source model and quantified behavior property
+base/special/exp.jl	310	323	exp_impl	exp_impl(a::Float16, base)	modelled	mathcov-special-exp-l310	method-specific source model and quantified behavior property
+base/special/exp.jl	329	329	$func	$func(x::Union{Float16,Float32,Float64})	modelled	mathcov-special-exp-l329	method-specific source model and quantified behavior property
+base/special/exp.jl	330	330	$fast_func	$fast_func(x::Union{Float32,Float64})	modelled	mathcov-special-exp-l330	method-specific source model and quantified behavior property
+base/special/exp.jl	391	403	exp2	exp2(x::Base.BitInteger)	modelled	mathfuncs-exp-zero,mathfuncs-exp2-int128-wrap,mathfuncs-exp2-integer	source model and quantified behavior property
+base/special/exp.jl	406	406	MAX_EXP	MAX_EXP(::Type{Float64})	modelled	mathcov-special-exp-l406	method-specific source model and quantified behavior property
+base/special/exp.jl	407	407	MIN_EXP	MIN_EXP(::Type{Float64})	modelled	mathcov-special-exp-l407	method-specific source model and quantified behavior property
+base/special/exp.jl	408	408	MAX_EXP	MAX_EXP(::Type{Float32})	modelled	mathcov-special-exp-l408	method-specific source model and quantified behavior property
+base/special/exp.jl	409	409	MIN_EXP	MIN_EXP(::Type{Float32})	modelled	mathcov-special-exp-l409	method-specific source model and quantified behavior property
+base/special/exp.jl	410	410	MAX_EXP	MAX_EXP(::Type{Float16})	modelled	mathcov-special-exp-l410	method-specific source model and quantified behavior property
+base/special/exp.jl	411	411	MIN_EXP	MIN_EXP(::Type{Float16})	modelled	mathcov-special-exp-l411	method-specific source model and quantified behavior property
+base/special/exp.jl	413	413	Ln2INV	Ln2INV(::Type{Float64})	modelled	mathcov-special-exp-l413	method-specific source model and quantified behavior property
+base/special/exp.jl	414	414	Ln2	Ln2(::Type{Float64})	modelled	mathcov-special-exp-l414	method-specific source model and quantified behavior property
+base/special/exp.jl	415	415	Ln2INV	Ln2INV(::Type{Float32})	modelled	mathcov-special-exp-l415	method-specific source model and quantified behavior property
+base/special/exp.jl	416	416	Ln2	Ln2(::Type{Float32})	modelled	mathcov-special-exp-l416	method-specific source model and quantified behavior property
+base/special/exp.jl	419	425	expm1_small	expm1_small(x::Float64)	modelled	mathcov-special-exp-l419	method-specific source model and quantified behavior property
+base/special/exp.jl	426	431	expm1_small	expm1_small(x::Float32)	modelled	mathcov-special-exp-l426	method-specific source model and quantified behavior property
+base/special/exp.jl	433	457	expm1	expm1(x::Float64)	modelled	mathfuncs-exp-zero	source model and quantified behavior property
+base/special/exp.jl	459	474	expm1	expm1(x::Float32)	modelled	mathcov-special-exp-l459	method-specific source model and quantified behavior property
+base/special/exp.jl	476	490	expm1	expm1(x::Float16)	modelled	mathcov-special-exp-l476	method-specific source model and quantified behavior property

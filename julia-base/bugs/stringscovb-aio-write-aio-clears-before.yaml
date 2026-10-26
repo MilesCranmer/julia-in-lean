@@ -1,0 +1,68 @@
+id: stringscovb-aio-write-aio-clears-before
+title: write(::AnnotatedIOBuffer, ::AnnotatedIOBuffer) also clears annotations on the byte before the written region
+priority: P2
+kind: wrong-result
+area: StringsCovB
+files:
+- base/strings/annotated_io.jl
+functions:
+- write(dest::AnnotatedIOBuffer, src::AnnotatedIOBuffer)
+summary: |
+  When dest is not at its end, write(dest, src) clears dest's annotations over
+  destpos:destpos+nb, where destpos = position(dest) is the zero-based position, so the
+  already-present byte destpos (one-based) loses its annotations although it is not
+  overwritten. Writing the same content as an AnnotatedString clears destpos+1:destpos+nb.
+likelihood: |
+  Copying one AnnotatedIOBuffer into the middle of another (overwriting). Appending
+  at the end is unaffected because the clearing is skipped.
+maybe_intended: ''
+reproducer: |
+  using Base: AnnotatedString, AnnotatedIOBuffer, annotations
+  src = AnnotatedIOBuffer(); write(src, AnnotatedString("abcde", [(1:5, :s, 1)])); seekstart(src)
+  dst = AnnotatedIOBuffer(); write(dst, AnnotatedString("XYZW", [(1:1, :p, 1), (2:4, :d, 2)])); seek(dst, 1)
+  write(dst, src)                           # overwrite bytes 2:6 of dst
+  viabuffer = [(a.region, a.label) for a in annotations(dst)]
+  ref = AnnotatedIOBuffer(); write(ref, AnnotatedString("XYZW", [(1:1, :p, 1), (2:4, :d, 2)])); seek(ref, 1)
+  write(ref, AnnotatedString("abcde", [(1:5, :s, 1)]))
+  viastring = [(a.region, a.label) for a in annotations(ref)]
+  println("write(dst, src::AnnotatedIOBuffer) -> ", viabuffer)
+  println("write(dst, AnnotatedString)        -> ", viastring)
+  viabuffer == [(2:6, :s)] && viastring == [(1:1, :p), (2:6, :s)] &&
+      println("REPRODUCED stringscovb-aio-write-aio-clears-before")
+output:
+  release: |
+    write(dst, src::AnnotatedIOBuffer) -> Tuple{UnitRange{Int64}, Symbol}[(2:6, :s)]
+    write(dst, AnnotatedString)        -> Tuple{UnitRange{Int64}, Symbol}[(1:1, :p), (2:6, :s)]
+    REPRODUCED stringscovb-aio-write-aio-clears-before
+  nightly: |
+    write(dst, src::AnnotatedIOBuffer) -> Tuple{UnitRange{Int64}, Symbol}[(2:6, :s)]
+    write(dst, AnnotatedString)        -> Tuple{UnitRange{Int64}, Symbol}[(1:1, :p), (2:6, :s)]
+    REPRODUCED stringscovb-aio-write-aio-clears-before
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  [(1:1, :p), (2:6, :s)]: the annotation of the untouched first byte survives, as with
+  write(dst, ::AnnotatedString).
+promised_by: |
+  Invariant: writing bytes only changes the annotations of the bytes written
+  (_clear_annotations_in_region! docstring, base/strings/annotated_io.jl:111-119, "Erase the
+  presence of annotations within a certain span"); consistency with
+  write(io::AnnotatedIOBuffer, ::AnnotatedString), base/strings/annotated_io.jl:35-41, which
+  clears offset+1:offset+ncodeunits(astr).
+cause: |
+  base/strings/annotated_io.jl:55: `_clear_annotations_in_region!(dest.annotations,
+  destpos:destpos+nb)` should start at destpos+1.
+possible_fix: |
+  Clear `destpos+1:destpos+nb`.
+duplicates:
+  issues: []
+  queries:
+  - 'issues: AnnotatedIOBuffer write AnnotatedIOBuffer'
+  - 'prs: AnnotatedIOBuffer write AnnotatedIOBuffer'
+  - 'prs: _clear_annotations_in_region'
+  - 'issues: AnnotatedIOBuffer annotations lost'
+  - 'issues: AnnotatedIOBuffer'
+lean:
+  property: JuliaLean.StringsCovB.AIO.WriteAioKeepsBefore
+  theorem: JuliaLean.StringsCovB.AIO.writeAioKeepsBefore_refuted

@@ -1,0 +1,84 @@
+id: loading-workspace-home-prefix
+title: "Workspace lookup mistakes a home-directory name prefix for containment"
+priority: P2
+kind: wrong-result
+area: Loading
+files: [base/loading.jl]
+functions: ["base_project", "workspace_manifest"]
+summary: |
+  base_project decides whether a project starts below the user's home directory with a
+  raw string-prefix test. A project under a sibling named home2 is therefore classified
+  as being under home, and the upward search stops before checking a valid workspace root
+  above home2. base_project returns nothing even though the root Project.toml lists the
+  member's exact relative path.
+likelihood: |
+  The project must be outside the home directory in a path whose text begins with the home
+  path, such as /srv/user and /srv/user-work. This is uncommon but plausible on mounted,
+  container, CI, and shared filesystems.
+maybe_intended: ""
+reproducer: |
+  mktempdir() do root
+      fake_home = joinpath(root, "home")
+      sibling = joinpath(root, "home2")
+      member = joinpath(sibling, "nested", "member")
+      workspace_project = joinpath(root, "Project.toml")
+      member_project = joinpath(member, "Project.toml")
+      mkpath(fake_home)
+      mkpath(member)
+      write(workspace_project, "[workspace]\nprojects = [\"home2/nested/member\"]\n")
+      write(member_project, "name = \"Member\"\n")
+      old_home = get(ENV, "HOME", nothing)
+      try
+          ENV["HOME"] = fake_home
+          found = Base.base_project(member_project)
+          lexical_prefix = startswith(abspath(member_project), abspath(fake_home))
+          inside_home = !startswith(relpath(member_project, fake_home), "..")
+          println("homedir override          = ", homedir() == fake_home)
+          println("project has home prefix   = ", lexical_prefix)
+          println("project is inside home    = ", inside_home)
+          println("workspace project exists  = ", isfile(workspace_project))
+          println("base_project found        = ", found)
+          if lexical_prefix && !inside_home && isfile(workspace_project) && found === nothing
+              println("REPRODUCED loading-workspace-home-prefix")
+          end
+      finally
+          old_home === nothing ? delete!(ENV, "HOME") : (ENV["HOME"] = old_home)
+      end
+  end
+output:
+  release: |
+    homedir override          = true
+    project has home prefix   = true
+    project is inside home    = false
+    workspace project exists  = true
+    base_project found        = nothing
+    REPRODUCED loading-workspace-home-prefix
+  nightly: |
+    homedir override          = true
+    project has home prefix   = true
+    project is inside home    = false
+    workspace project exists  = true
+    base_project found        = nothing
+    REPRODUCED loading-workspace-home-prefix
+reproduced: {release: true, nightly: true}
+expected: |
+  base_project should return the root Project.toml because the project is outside the
+  home directory and the root workspace lists it as a member.
+promised_by: |
+  base/loading.jl:729-730 says the home boundary applies only when the search starts under
+  home. base/loading.jl:743-759 searches parent workspace definitions, and the code-loading
+  manual at doc/src/manual/code-loading.md:409-411 says nested workspace members are found
+  by searching upward.
+cause: |
+  base/loading.jl:730 uses startswith(project_dir, home_dir), which treats sibling paths
+  such as /tmp/home2 as children of /tmp/home. base/loading.jl:739-740 then stops when the
+  next parent no longer has that textual prefix, before inspecting the real workspace root.
+possible_fix: |
+  Test path-component containment, for example equality with home or a prefix ending in
+  the platform path separator.
+duplicates:
+  issues: []
+  queries: ["base_project home prefix", "workspace home directory prefix", "workspace sibling homedir", "base_project startswith"]
+lean:
+  property: JuliaLean.Loading.WorkspaceHomeBoundary
+  theorem: JuliaLean.Loading.workspaceHomeBoundary_refuted

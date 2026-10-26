@@ -1,0 +1,52 @@
+id: rangescov-steprange-unsigned-step-empty
+title: "StepRange(-5, UInt(1), -10) throws InexactError instead of returning an empty range"
+priority: P2
+kind: wrong-exception
+area: RangesCov
+files: ["base/range.jl"]
+functions: ["steprange_last_empty(::Integer, step, stop)", "StepRange(::T, ::S, ::T)"]
+summary: |
+  An empty StepRange with a negative signed start and an unsigned step throws, because the empty
+  normalization start - oneunit(step) is computed in the unsigned type and wraps.
+likelihood: |
+  Mixed signed endpoints and unsigned steps are documented (StepRange(1, Int8(2), 10)); empty ranges
+  with negative starts are ordinary.
+maybe_intended: |
+  Mixed signedness between element and step types is unusual.
+reproducer: |
+  println("StepRange(-5, 1, -10) = ", repr(StepRange(-5, 1, -10)), " (empty)")
+  bug = false
+  try
+      r = StepRange(-5, UInt(1), -10)
+      println("StepRange(-5, UInt(1), -10) = ", repr(r), ", isempty = ", isempty(r))
+  catch e
+      println("StepRange(-5, UInt(1), -10) throws ", sprint(showerror, e))
+      global bug = e isa InexactError
+  end
+  bug && println("REPRODUCED rangescov-steprange-unsigned-step-empty")
+output:
+  release: |
+    StepRange(-5, 1, -10) = -5:1:-6 (empty)
+    StepRange(-5, UInt(1), -10) throws InexactError: convert(Int64, 0xfffffffffffffffa)
+    REPRODUCED rangescov-steprange-unsigned-step-empty
+  nightly: |
+    StepRange(-5, 1, -10) = -5:1:-6 (empty)
+    StepRange(-5, UInt(1), -10) throws InexactError: convert(Int64, 0xfffffffffffffffa)
+    REPRODUCED rangescov-steprange-unsigned-step-empty
+reproduced: {release: true, nightly: true}
+expected: |
+  An empty range, as StepRange(-5, 1, -10) == -5:1:-6.
+promised_by: |
+  StepRange docstring, base/range.jl:313-338 (mixed step type example); (:) docstring base/range.jl:54-55.
+cause: |
+  base/range.jl:393 _range_wrapping_sub(start, oneunit(step)) promotes Int64 and UInt64 to UInt64
+  (0xfffffffffffffffa) and the ::typeof(stop) return conversion (base/range.jl:389) throws.
+possible_fix: |
+  Compute start - oneunit(typeof(start)) (or convert oneunit(step) to typeof(start)) before wrapping.
+duplicates:
+  issues:
+    - {number: 63679, state: open, relation: related}
+  queries: ["issues: StepRange unsigned step empty", "issues: StepRange UInt step InexactError", "prs: StepRange unsigned step empty"]
+lean:
+  property: JuliaLean.RangesCov.Colon.StepRangeEmptyMixed
+  theorem: JuliaLean.RangesCov.Colon.stepRangeEmptyMixed_refuted

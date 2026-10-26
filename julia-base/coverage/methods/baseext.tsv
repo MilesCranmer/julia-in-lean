@@ -1,0 +1,18 @@
+file	line	endline	name	signature	status	entry	note
+base/baseext.jl	17	17	VecElement{T}	VecElement{T}(arg) where {T}	modelled	misccov-baseext	
+base/baseext.jl	18	18	convert	convert(::Type{T}, arg::T) where {T<:VecElement}	modelled	misccov-baseext	
+base/baseext.jl	19	19	convert	convert(::Type{T}, arg) where {T<:VecElement}	modelled	misccov-baseext	
+base/baseext.jl	22	22	Array{T,N}	Array{T,N}(::UndefInitializer, d::Vararg{Integer,N}) where {T,N}	modelled	misccov-baseext	
+base/baseext.jl	24	24	Array{T}	Array{T}(::UndefInitializer, m::Integer) where {T}	modelled	misccov-baseext	
+base/baseext.jl	25	25	Array{T}	Array{T}(::UndefInitializer, m::Integer, n::Integer) where {T}	modelled	misccov-baseext	
+base/baseext.jl	26	26	Array{T}	Array{T}(::UndefInitializer, m::Integer, n::Integer, o::Integer) where {T}	modelled	misccov-baseext	
+base/baseext.jl	27	27	Array{T}	Array{T}(::UndefInitializer, d::Integer...) where {T}	modelled	misccov-baseext	
+base/baseext.jl	29	29	Vector	Vector(::UndefInitializer, m::Integer)	modelled	misccov-baseext	
+base/baseext.jl	30	30	Matrix	Matrix(::UndefInitializer, m::Integer, n::Integer)	modelled	misccov-baseext	
+base/baseext.jl	32	32	Array{T}	Array{T}(::UndefInitializer, d::NTuple{N,Integer}) where {T,N}	modelled	misccov-baseext	
+base/baseext.jl	33	33	Array{T,N}	Array{T,N}(::UndefInitializer, d::NTuple{N,Integer}) where {T,N}	modelled	misccov-baseext	
+base/baseext.jl	35	35	Vector	Vector()	modelled	misccov-baseext	
+base/baseext.jl	39	39	Array{T,N}	Array{T,N}(::Nothing, d...) where {T,N}	modelled	misccov-baseext	
+base/baseext.jl	40	40	Array{T,N}	Array{T,N}(::Missing, d...) where {T,N}	modelled	misccov-baseext	
+base/baseext.jl	42	42	Array{T}	Array{T}(::Nothing, d...) where {T}	modelled	misccov-baseext	
+base/baseext.jl	43	43	Array{T}	Array{T}(::Missing, d...) where {T}	modelled	misccov-baseext	

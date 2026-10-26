@@ -1,0 +1,57 @@
+file	line	endline	name	signature	status	entry	note
+base/strings/search.jl	34	38	last_utf8_byte	last_utf8_byte(c::Char)	modelled	stringscova-search-last-byte-faithful	
+base/strings/search.jl	42	42	is_standalone_byte	is_standalone_byte(x::UInt8)	modelled	stringscova-search-standalone-faithful	
+base/strings/search.jl	54	58	FwCharPosIter	FwCharPosIter(s::UTF8String, c::AbstractChar)	modelled	stringscova-search-forward-iterator-faithful	
+base/strings/search.jl	62	93	Base.iterate	Base.iterate(s::FwCharPosIter, i::Int=1)	modelled	stringscova-search-forward-iterator-faithful	
+base/strings/search.jl	102	102	IteratorSize	IteratorSize(s::Type{<:Union{FwCharPosIter, RvCharPosIter}})	modelled	stringscova-search-iterator-traits-faithful	
+base/strings/search.jl	103	103	eltype	eltype(::Type{<:Union{FwCharPosIter, RvCharPosIter}})	modelled	stringscova-search-iterator-traits-faithful	
+base/strings/search.jl	105	109	RvCharPosIter	RvCharPosIter(s::UTF8String, c::AbstractChar)	modelled	stringscova-search-reverse-iterator-faithful	
+base/strings/search.jl	117	136	Base.iterate	Base.iterate(s::RvCharPosIter, i::Int=ncodeunits(s.string))	modelled	stringscova-search-reverse-iterator-faithful	
+base/strings/search.jl	138	141	try_next	try_next(x, state)	modelled	stringscova-search-try-next-faithful	
+base/strings/search.jl	143	166	findnext	findnext( pred::Fix2{<:Union{typeof(isequal),typeof(==)},<:AbstractChar}, s::UTF8String, i::Integer, )	modelled	stringscova-search-findnext-char-faithful	
+base/strings/search.jl	168	173	findnext	findnext(pred::Fix2{<:Union{typeof(isequal),typeof(==)},Int8}, a::DenseInt8, i::Integer)	modelled	stringscova-search-findnext-byte-faithful	
+base/strings/search.jl	175	180	findnext	findnext(pred::Fix2{<:Union{typeof(isequal),typeof(==)},UInt8}, a::DenseUInt8, i::Integer)	modelled	stringscova-search-findnext-byte-faithful	
+base/strings/search.jl	182	189	memchr	memchr(a::DenseUInt8, b::UInt8, i::Int)	modelled	stringscova-search-memchr-faithful	
+base/strings/search.jl	191	198	memchr	memchr(a::DenseInt8, b::Int8, i::Int)	modelled	stringscova-search-memchr-faithful	
+base/strings/search.jl	202	207	findnext	findnext(::typeof(iszero), a::DenseUInt8OrInt8, i::Integer)	modelled	stringscova-search-findnext-zero-faithful	
+base/strings/search.jl	209	230	findprev	findprev( pred::Fix2{<:Union{typeof(isequal),typeof(==)},<:AbstractChar}, s::UTF8String, i::Integer, )	modelled	stringscova-search-findprev-char-faithful	
+base/strings/search.jl	232	237	findprev	findprev(pred::Fix2{<:Union{typeof(isequal),typeof(==)},Int8}, a::DenseInt8, i::Integer)	modelled	stringscova-search-findprev-byte-faithful	
+base/strings/search.jl	239	244	findprev	findprev(pred::Fix2{<:Union{typeof(isequal),typeof(==)},UInt8}, a::DenseUInt8, i::Integer)	modelled	stringscova-search-findprev-byte-faithful	
+base/strings/search.jl	246	253	memrchr	memrchr(a::DenseUInt8, b::UInt8, i::Int)	modelled	stringscova-search-memrchr-faithful	
+base/strings/search.jl	255	262	memrchr	memrchr(a::DenseInt8, b::Int8, i::Int)	modelled	stringscova-search-memrchr-faithful	
+base/strings/search.jl	265	270	findprev	findprev(::typeof(iszero), a::DenseUInt8OrInt8, i::Integer)	modelled	stringscova-search-findprev-zero-faithful	
+base/strings/search.jl	272	284	findall	findall( pred::Fix2{<:Union{typeof(isequal),typeof(==)},<:AbstractChar}, s::UTF8String, )	modelled	stringscova-search-findall-char-faithful	
+base/strings/search.jl	301	302	findfirst	findfirst(pattern::AbstractString, string::AbstractString)	modelled	strings-findnext-inside-char	
+base/strings/search.jl	321	321	findfirst	findfirst(ch::AbstractChar, string::AbstractString)	modelled	stringscova-search-findfirst-faithful	
+base/strings/search.jl	338	340	findfirst	findfirst(pattern::AbstractVector{<:Union{Int8,UInt8}}, A::AbstractVector{<:Union{Int8,UInt8}})	modelled	stringscova-search-findfirst-faithful	
+base/strings/search.jl	343	354	findnext	findnext(testf::Function, s::AbstractString, i::Integer)	modelled	stringscova-search-findnext-predicate-faithful	
+base/strings/search.jl	356	356	in	in(c::AbstractChar, s::AbstractString)	modelled	stringscova-search-char-in-faithful	
+base/strings/search.jl	360	363	in	in(c::Char, s::Union{String,SubString{String}})	modelled	stringscova-search-char-in-faithful	
+base/strings/search.jl	365	384	_searchindex	_searchindex(s::Union{AbstractString,DenseUInt8OrInt8}, t::Union{AbstractString,AbstractChar,Int8,UInt8}, i::Integer)	modelled	stringscova-search-searchindex-generic-faithful	
+base/strings/search.jl	386	386	_searchindex	_searchindex(s::AbstractString, t::AbstractChar, i::Integer)	modelled	stringscova-search-searchindex-generic-faithful	
+base/strings/search.jl	388	390	_search_bloom_mask	_search_bloom_mask(c)	modelled	stringscova-search-bloom-faithful	
+base/strings/search.jl	392	392	_nthbyte	_nthbyte(s::DenseUTF8String, i)	modelled	stringscova-search-nth-faithful	
+base/strings/search.jl	393	393	_nthbyte	_nthbyte(t::AbstractVector, index)	modelled	stringscova-search-nth-faithful	
+base/strings/search.jl	395	399	_searchindex	_searchindex(s::DenseUTF8String, t::DenseUTF8String, i::Integer)	modelled	stringscova-search-searchindex-dense-faithful	
+base/strings/search.jl	401	466	_searchindex	_searchindex(s::AbstractVector{<:Union{Int8,UInt8}}, t::AbstractVector{<:Union{Int8,UInt8}}, _i::Integer)	modelled	stringscova-search-searchindex-bytes-faithful	
+base/strings/search.jl	468	479	_search	_search(s::Union{AbstractString,AbstractVector{<:Union{Int8,UInt8}}}, t::Union{AbstractString,AbstractChar,AbstractVector{<:Union{Int8,UInt8}}}, i::Integer)	modelled	stringscova-search-search-range-faithful	
+base/strings/search.jl	507	507	findnext	findnext(t::AbstractString, s::AbstractString, start::Integer)	modelled	strings-findnext-inside-char	
+base/strings/search.jl	526	527	findnext	findnext(ch::AbstractChar, string::AbstractString, start::Integer)	modelled	stringscova-search-findnext-wrappers-faithful	
+base/strings/search.jl	548	551	findnext	findnext(pattern::AbstractVector{<:Union{Int8,UInt8}}, A::AbstractVector{<:Union{Int8,UInt8}}, start::Integer)	modelled	stringscova-search-findnext-wrappers-faithful	
+base/strings/search.jl	568	569	findlast	findlast(pattern::AbstractString, string::AbstractString)	modelled	stringscova-search-findlast-faithful	
+base/strings/search.jl	584	586	findlast	findlast(pattern::AbstractVector{<:Union{Int8,UInt8}}, A::AbstractVector{<:Union{Int8,UInt8}})	modelled	stringscova-search-findlast-faithful	
+base/strings/search.jl	605	605	findlast	findlast(ch::AbstractChar, string::AbstractString)	modelled	stringscova-search-findlast-faithful	
+base/strings/search.jl	651	665	findall	findall(t::Union{AbstractString, AbstractPattern, AbstractVector{UInt8}}, s::Union{AbstractString, AbstractPattern, AbstractVector{UInt8}}, ; overlap::Bool=false)	modelled	stringscova-search-findall-ranges-faithful	
+base/strings/search.jl	668	679	findprev	findprev(testf::Function, s::AbstractString, i::Integer)	modelled	stringscova-search-findprev-predicate-faithful	
+base/strings/search.jl	681	703	_rsearchindex	_rsearchindex(s::AbstractString, t::Union{AbstractString,AbstractChar,Int8,UInt8}, i::Integer)	modelled	stringscova-search-rsearchindex-generic-faithful	
+base/strings/search.jl	705	719	_rsearchindex	_rsearchindex(s::DenseUTF8String, t::DenseUTF8String, i::Integer)	modelled	stringscova-search-rsearchindex-dense-faithful	
+base/strings/search.jl	721	783	_rsearchindex	_rsearchindex(s::AbstractVector{<:Union{Int8,UInt8}}, t::AbstractVector{<:Union{Int8,UInt8}}, _k::Integer)	modelled	stringscova-search-rsearchindex-bytes-faithful	
+base/strings/search.jl	785	796	_rsearch	_rsearch(s::Union{AbstractString,AbstractVector{<:Union{Int8,UInt8}}}, t::Union{AbstractString,AbstractChar,AbstractVector{<:Union{Int8,UInt8}}}, i::Integer)	modelled	stringscova-search-rsearch-range-faithful	
+base/strings/search.jl	821	821	findprev	findprev(t::AbstractString, s::AbstractString, i::Integer)	modelled	strings-findprev-empty-end	
+base/strings/search.jl	840	841	findprev	findprev(ch::AbstractChar, string::AbstractString, start::Integer)	modelled	stringscova-search-findprev-wrappers-faithful	
+base/strings/search.jl	859	862	findprev	findprev(pattern::AbstractVector{<:Union{Int8,UInt8}}, A::AbstractVector{<:Union{Int8,UInt8}}, start::Integer)	modelled	stringscova-search-findprev-wrappers-faithful	
+base/strings/search.jl	886	887	occursin	occursin(needle::Union{AbstractString,AbstractChar}, haystack::AbstractString)	modelled	stringscova-search-occursin-faithful	
+base/strings/search.jl	911	911	occursin	occursin(haystack)	modelled	stringscova-search-occursin-fix-faithful	
+base/strings/search.jl	913	913	in	in(::AbstractString, ::AbstractString)	modelled	stringscova-search-string-in-faithful	
+base/strings/search.jl	915	915	in	in(a::UInt8, b::DenseUInt8)	modelled	stringscova-search-byte-in-faithful	
+base/strings/search.jl	916	916	in	in(a::Int8, b::DenseInt8)	modelled	stringscova-search-byte-in-faithful	

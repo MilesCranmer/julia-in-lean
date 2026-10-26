@@ -1,0 +1,49 @@
+id: docssyntaxcov-toml-print-by-inline
+title: "TOML.print(...; sorted=true, by=f) ignores `by` for inline tables"
+priority: P3
+kind: wrong-result
+area: DocsSyntaxCov
+files: [base/toml/printer.jl]
+functions: ["Base.TOML.Printer.print_inline_table", "Base.TOML.Printer.print_hoisted_inline_comments", "TOML.print"]
+summary: |
+    With `sorted=true`, ordinary tables are sorted with the `by` function, but inline
+    tables are sorted with plain `sort!`: with `by = k -> -Int(k[1])` a table prints
+    `b = 2\na = 1` but the same table printed inline prints `{a = 1, b = 2}`.
+likelihood: |
+    Low: needs both a custom `by` and `inline_tables`.
+maybe_intended: |
+    The docstring only says tables are sorted by `by`; inline tables might be seen as
+    values. But they are tables and the order differs between the two forms of the same data.
+reproducer: |
+    using TOML
+    t = Dict("a" => 1, "b" => 2); by = k -> -Int(k[1])
+    TOML.print(t; sorted = true, by)                       # b = 2, a = 1
+    TOML.print(Dict("x" => t); sorted = true, by,
+               inline_tables = Base.IdSet{Dict{String}}([t]))  # x = {a = 1, b = 2}
+output:
+  release: |
+    "b = 2\na = 1\n"
+    "x = {a = 1, b = 2}\n"
+    REPRODUCED docssyntaxcov-toml-print-by-inline
+  nightly: |
+    "b = 2\na = 1\n"
+    "x = {a = 1, b = 2}\n"
+    REPRODUCED docssyntaxcov-toml-print-by-inline
+reproduced: {release: true, nightly: true}
+expected: |
+    `x = {b = 2, a = 1}`.
+promised_by: |
+    TOML.print docstring (stdlib/TOML/src/TOML.jl:177-178): "If the keyword argument `sorted` is set
+    to `true`, sort tables according to the function given by the keyword argument `by`."
+cause: |
+    base/toml/printer.jl:161-163 (`print_inline_table`) and line 237
+    (`print_hoisted_inline_comments`) call `sort!(vkeys)` without `by`; `print_table` uses
+    `sort!(collect(akeys); by)` at line 296. `by` is not passed to `printvalue`/`print_inline_table`.
+possible_fix: |
+    Thread `by` through `printvalue` to `print_inline_table` and use `sort!(vkeys; by)`.
+duplicates:
+  issues: [{number: 46385, state: closed, relation: related}]
+  queries: ["TOML print", "TOML print sorted by", "TOML inline table"]
+lean:
+  property: JuliaLean.DocsSyntaxCov.TomlPrint.InlineSortedBy
+  theorem: JuliaLean.DocsSyntaxCov.TomlPrint.inlineSortedBy_refuted

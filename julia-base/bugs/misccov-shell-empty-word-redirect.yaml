@@ -1,0 +1,40 @@
+id: misccov-shell-empty-word-redirect
+title: "An empty quoted word directly before a redirect is dropped: `echo ''>x` runs `echo` with no argument"
+priority: P3
+kind: wrong-result
+area: MiscCov
+files: [base/shell.jl]
+functions: ["Base.shell_parse", "Base.__repl_entry_shell_parse"]
+summary: |
+  On master, an empty quoted word (`''` or `""`) is normally an argument: `echo '' >x` runs `echo ""`. When the redirect operator follows the quotes without a space, the empty word is dropped: `echo ''>x` runs plain `echo`. With a space after the operator, `echo ''> x` even takes `x` as an argument and redirects stdout to an empty interpolation.
+likelihood: |
+  Low: needs an empty quoted argument glued to a redirect in a command literal.
+maybe_intended: ""
+reproducer: |
+  Base.shell_parse("echo ''>x")[1]   # pipeline(cmd_gen((("echo",),)); stdout = "x"): the "" argument is gone
+  Base.shell_parse("echo '' >x")[1]  # pipeline(cmd_gen((("echo",), ("",))); stdout = "x")
+output:
+  release: |
+    shell_parse("echo ''>x") => ErrorException: special characters "#{}()[]<>|&*?~;" must be quoted in commands
+  nightly: |
+    "echo ''>x"            => :(Base.pipeline(Base.cmd_gen((("echo",),)); stdout = "x"))
+    "echo '' >x"           => :(Base.pipeline(Base.cmd_gen((("echo",), ("",))); stdout = "x"))
+    "echo ''> x"           => :(Base.pipeline(Base.cmd_gen((("echo",), ("x",))); stdout = Base.cmd_interpolate()))
+reproduced: {release: false, nightly: true}
+expected: |
+  `echo ''>x` and `echo '' >x` both run `echo` with one empty argument and redirect stdout to `x`.
+promised_by: |
+  Invariant: base/shell.jl:129,307 keep an empty quoted word as an argument (word_has_special); a redirect operator ends the word exactly as whitespace does.
+cause: |
+  base/shell.jl (master): the redirect branch finalizes the current word with `isempty(arg) || word_has_special` only in the whitespace path; at a directly following `>`, the quoted-empty flag is not consulted, so the empty word is not pushed. Not present in 1.13.2, which rejects `>` in command literals.
+possible_fix: |
+  Before handling a redirect operator, push the current word when it is nonempty or `word_has_special` is set, as the whitespace branch does.
+duplicates:
+  issues: []
+  queries:
+    - "issues: shell_parse redirect"
+    - "issues: cmd redirection pipe"
+    - "prs: shell redirect"
+lean:
+  property: JuliaLean.MiscCov.Shell.EmptyWordBeforeRedirect
+  theorem: JuliaLean.MiscCov.Shell.emptyWordBeforeRedirect_refuted

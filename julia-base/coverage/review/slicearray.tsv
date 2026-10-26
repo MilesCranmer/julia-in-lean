@@ -1,0 +1,18 @@
+line	name	verdict	mirror	property	settled	reason
+39	unitaxis	FAITHFUL	yes	yes	yes	The method-specific Lean function returns OneTo(1) for every represented array input, and the proven proposition states that invariant directly.
+41	Slices	HOLLOW	no	no	yes	The model replaces A with only its axis list, so it cannot store or distinguish the actual parent array and the proposition does not cover the constructor over every allowed P, SM, and AX input.
+51	_slice_check_dims	FAITHFUL	yes	yes	yes	The zero-argument Lean method returns success directly, and its proven proposition states that behavior for the complete input case.
+52	_slice_check_dims	HOLLOW	no	no	yes	The Lean method accepts only Int64 dimensions and collapses the thrown diagnostics, omitting BigInt and custom Integer inputs and their observable failure behavior.
+58	_eachslice	HOLLOW	yes	no	yes	The body model follows validation, rank computation, both branches, and construction, but the proposition assumes that dimension processing already succeeded and proves only a delegation equality rather than behavior for invalid and successful inputs.
+78	_eachslice	HOLLOW	no	no	yes	The shared proposition calls the tuple constructor model directly and never uses the singleton-dimension wrapper for this method, so it states no all-input behavior of this overload.
+132	eachslice	HOLLOW	no	no	yes	The shared proposition calls the tuple constructor model directly and never uses the public eachslice wrapper, so it does not model or state this method's delegation for every allowed dims value.
+171	eachrow	HOLLOW	no	no	yes	The shared proposition calls the general tuple constructor and never uses the matrix eachrow model that fixes dims to (1,) and drop to true, so this overload's behavior is unstated.
+172	eachrow	HOLLOW	no	no	yes	The shared proposition never uses the vector eachrow model or its reshape call, so neither this method's body nor its behavior is covered.
+209	eachcol	HOLLOW	no	no	yes	The shared proposition calls the general tuple constructor and never uses the matrix eachcol model that fixes dims to (2,) and drop to true, so this overload's behavior is unstated.
+210	eachcol	HOLLOW	no	no	yes	The shared proposition never uses the vector eachcol model or its reshape call, so neither this method's body nor its behavior is covered.
+233	axes	FAITHFUL	yes	yes	yes	The Lean accessor returns the stored outer axes directly, and the proven proposition states that field invariant for every represented Slices value.
+234	size	FAITHFUL	yes	yes	yes	The Lean method maps length over the stored axes in source order, and the proven proposition states the resulting size for every represented Slices value.
+236	_slice_index	HOLLOW	no	no	yes	The Lean function pre-scans every slicemap position before mapping instead of performing each c[l] lookup during map, and the proposition covers only invalid positions rather than all allowed inputs.
+240	getindex	HOLLOW	no	no	yes	The Lean function relies on the reordered slicemap check and a reduced SubArray construction model, while the proposition states only the outer-bounds failure branch and omits every in-bounds view result.
+244	setindex!	HOLLOW	no	no	yes	The Lean function replaces arbitrary Julia assignment and conversion with an equal-length list of Nat values, while the proposition states only the outer-bounds failure branch and omits every in-bounds assignment.
+249	parent	HOLLOW	no	no	yes	The Lean accessor returns only the parent's axis list, so it cannot return or distinguish the actual stored parent object promised by this method.

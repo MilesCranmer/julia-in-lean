@@ -1,0 +1,64 @@
+file	line	endline	name	signature	status	entry	note
+base/number.jl	6	6	convert	convert(::Type{T}, x::T) where {T<:Number}	modelled	numberscov-number-s6	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	7	7	convert	convert(::Type{T}, x::Number) where {T<:Number}	modelled	numberscov-number-s7	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	22	22	isinteger	isinteger(x::Integer)	modelled	numberscov-number-s22	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	44	44	iszero	iszero(x)	modelled	hashops-number-fallbacks	
+base/number.jl	66	66	isone	isone(x)	modelled	hashops-number-fallbacks	
+base/number.jl	84	84	isfinite	isfinite(x::Number)	modelled	numberscov-number-s84	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	86	86	size	size(x::Number)	modelled	numberscov-number-s86	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	87	87	size	size(x::Number, d::Integer)	modelled	numberscov-number-s87	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	88	88	axes	axes(x::Number)	modelled	numberscov-number-s88	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	89	89	axes	axes(x::Number, d::Integer)	modelled	numberscov-number-s89	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	90	90	eltype	eltype(::Type{T}) where {T<:Number}	modelled	numberscov-number-s90	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	91	91	ndims	ndims(x::Number)	modelled	numberscov-number-s91	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	92	92	ndims	ndims(::Type{<:Number})	modelled	numberscov-number-s92	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	93	93	length	length(x::Number)	modelled	numberscov-number-s93	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	94	94	firstindex	firstindex(x::Number)	modelled	numberscov-number-s94	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	95	95	firstindex	firstindex(x::Number, d::Int)	modelled	numberscov-number-s95	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	96	96	lastindex	lastindex(x::Number)	modelled	numberscov-number-s96	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	97	97	lastindex	lastindex(x::Number, d::Int)	modelled	numberscov-number-s97	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	98	98	IteratorSize	IteratorSize(::Type{<:Number})	modelled	numberscov-number-s98	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	99	99	keys	keys(::Number)	modelled	numberscov-number-s99	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	101	101	getindex	getindex(x::Number)	modelled	numberscov-number-s101	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	102	106	getindex	getindex(x::Number, i::Integer)	modelled	numberscov-number-s102	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	107	111	getindex	getindex(x::Number, I::Integer...)	modelled	numberscov-number-s107	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	112	112	get	get(x::Number, i::Integer, default)	modelled	numberscov-number-s112	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	113	113	get	get(x::Number, ind::Tuple, default)	modelled	numberscov-number-s113	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	114	114	get	get(f::Callable, x::Number, i::Integer)	modelled	numberscov-number-s114	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	115	115	get	get(f::Callable, x::Number, ind::Tuple)	modelled	numberscov-number-s115	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	117	117	first	first(x::Number)	modelled	numberscov-number-s117	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	118	118	last	last(x::Number)	modelled	numberscov-number-s118	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	119	119	copy	copy(x::Number)	modelled	numberscov-number-s119	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	143	143	signbit	signbit(x::Real)	modelled	hashops-number-fallbacks	
+base/number.jl	165	165	ispositive	ispositive(x::Real)	modelled	numberscov-number-s165	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	187	187	isnegative	isnegative(x::Real)	modelled	numberscov-number-s187	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	211	211	sign	sign(x::Number)	modelled	numberscov-number-s211	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	212	212	sign	sign(x::Real)	modelled	numberscov-number-s212	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	213	213	sign	sign(x::Unsigned)	modelled	numberscov-number-s213	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	214	214	abs	abs(x::Real)	modelled	hashops-number-fallbacks	
+base/number.jl	238	238	abs2	abs2(x::Number)	modelled	numberscov-number-s238	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	239	239	abs2	abs2(x::Real)	modelled	numberscov-number-s239	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	255	255	flipsign	flipsign(x::Real, y::Real)	modelled	numberscov-number-s255	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	271	271	copysign	copysign(x::Real, y::Real)	modelled	numberscov-number-s271	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	273	273	conj	conj(x::Real)	modelled	numberscov-number-s273	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	274	274	transpose	transpose(x::Number)	modelled	numberscov-number-s274	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	275	275	adjoint	adjoint(x::Number)	modelled	numberscov-number-s275	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	276	276	angle	angle(z::Real)	modelled	numberscov-number-s276	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	305	305	inv	inv(x::Number)	modelled	hashops-number-fallbacks	
+base/number.jl	327	327	widemul	widemul(x::Number, y::Number)	modelled	numberscov-number-s327	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	329	329	iterate	iterate(x::Number)	modelled	numberscov-number-s329	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	330	330	iterate	iterate(x::Number, ::Any)	modelled	numberscov-number-s330	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	331	331	isempty	isempty(x::Number)	modelled	numberscov-number-s331	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	332	332	in	in(x::Number, y::Number)	modelled	numberscov-number-s332	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	334	334	map	map(f, x::Number, ys::Number...)	modelled	numberscov-number-s334	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	363	363	zero	zero(x::Number)	modelled	numberscov-number-s363	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	364	364	zero	zero(::Type{T}) where {T<:Number}	modelled	numberscov-number-s364	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	365	365	zero	zero(::Type{Union{}}, slurp...)	modelled	numberscov-number-s365	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	405	405	one	one(::Type{T}) where {T<:Number}	modelled	numberscov-number-s405	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	406	406	one	one(x::T) where {T<:Number}	modelled	numberscov-number-s406	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	407	407	one	one(::Type{Union{}}, slurp...)	modelled	numberscov-number-s407	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	430	430	oneunit	oneunit(x::T) where {T}	modelled	numberscov-number-s430	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	431	431	oneunit	oneunit(::Type{T}) where {T}	modelled	numberscov-number-s431	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	432	432	oneunit	oneunit(::Type{Union{}}, slurp...)	modelled	numberscov-number-s432	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	452	452	big	big(::Type{T}) where {T<:Number}	modelled	numberscov-number-s452	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/number.jl	453	453	big	big(::Type{Union{}}, slurp...)	modelled	numberscov-number-s453	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review

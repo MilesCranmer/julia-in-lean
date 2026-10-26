@@ -1,0 +1,117 @@
+line	name	verdict	mirror	property	settled	reason
+102	make_fastmath	HOLLOW	no	no	yes	The model omits the Expr head and argument checks, literal-power reconstruction, rewrite_op lookup, Symbol-only assignment rewrite, and exprarray/mapany recursion, so it states no valid method property.
+126	make_fastmath	HOLLOW	no	no	yes	fastName maps seven abstract names to themselves instead of mapping every registered Symbol to its Base.FastMath target while preserving unregistered Symbols.
+133	make_fastmath	HOLLOW	no	no	yes	The proposition has no model for the arbitrary non-Expr, non-Symbol identity fallback, so it states no passthrough property for this method.
+156	fastmath	HOLLOW	no	no	yes	The model has no macro operation and omits esc(expr) before make_fastmath, so it states no expansion or hygiene property for this method.
+165	sub_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
+167	add_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
+168	sub_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
+169	mul_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
+170	div_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
+171	max_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
+172	min_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
+173	minmax_fast	FAITHFUL	yes	yes	yes	fastMinmax mirrors the ordered min_fast and max_fast calls, and the proposition states the componentwise minmax invariant for all inputs.
+176	cmp_fast	HOLLOW	no	yes	yes	fastCmp uses lazy conditionals that can skip lt, whereas Julia ifelse eagerly evaluates both comparisons; its result equation still states the cmp invariant.
+177	log_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
+180	eq_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
+181	ne_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
+182	lt_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
+183	le_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
+184	gt_fast	HOLLOW	no	no	yes	fastBinary does not model the reversed arguments in this comparison method, so the proposition states no method-specific all-input property.
+185	ge_fast	HOLLOW	no	no	yes	fastBinary does not model the reversed arguments in this comparison method, so the proposition states no method-specific all-input property.
+187	isinf_fast	HOLLOW	no	no	yes	fastClassification neither fixes the constant Boolean result of this method nor associates its kind input with this method, so it states no method-specific property.
+188	isfinite_fast	HOLLOW	no	no	yes	fastClassification neither fixes the constant Boolean result of this method nor associates its kind input with this method, so it states no method-specific property.
+189	isnan_fast	HOLLOW	no	no	yes	fastClassification neither fixes the constant Boolean result of this method nor associates its kind input with this method, so it states no method-specific property.
+190	issubnormal_fast	HOLLOW	no	no	yes	fastClassification neither fixes the constant Boolean result of this method nor associates its kind input with this method, so it states no method-specific property.
+197	abs_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no complete method-specific Lean function for this body, so it states no promised all-input behavior for this method.
+198	abs2_fast	FAITHFUL	yes	yes	yes	complexAbs2 mirrors the two squared-component products and their sum, and the proposition states the complex abs2 invariant for all inputs.
+199	conj_fast	FAITHFUL	yes	yes	yes	complexConj mirrors preservation of the real component and negation of the imaginary component, and the proposition states the conjugation invariant for all inputs.
+200	inv_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no complete method-specific Lean function for this body, so it states no promised all-input behavior for this method.
+201	sign_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no complete method-specific Lean function for this body, so it states no promised all-input behavior for this method.
+203	add_fast	FAITHFUL	yes	yes	yes	complexAdd mirrors the two component additions in source order, and the proposition states complex addition for all inputs.
+205	add_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no complete method-specific Lean function for this body, so it states no promised all-input behavior for this method.
+207	add_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no complete method-specific Lean function for this body, so it states no promised all-input behavior for this method.
+210	sub_fast	FAITHFUL	yes	yes	yes	complexSub mirrors the two component subtractions in source order, and the proposition states complex subtraction for all inputs.
+212	sub_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no complete method-specific Lean function for this body, so it states no promised all-input behavior for this method.
+214	sub_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no complete method-specific Lean function for this body, so it states no promised all-input behavior for this method.
+217	mul_fast	FAITHFUL	yes	yes	yes	complexMul mirrors the four products and component combination in source order, and the proposition states complex multiplication for all inputs.
+220	mul_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no complete method-specific Lean function for this body, so it states no promised all-input behavior for this method.
+222	mul_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no complete method-specific Lean function for this body, so it states no promised all-input behavior for this method.
+225	div_fast	HOLLOW	no	no	yes	ComplexFastBehavior models only the division numerator and omits division by abs2(y), so it neither mirrors the complete body nor states the result invariant of this method.
+228	div_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no complete method-specific Lean function for this body, so it states no promised all-input behavior for this method.
+230	div_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no complete method-specific Lean function for this body, so it states no promised all-input behavior for this method.
+233	eq_fast	HOLLOW	no	yes	yes	complexEq uses short-circuit && and can skip the imaginary comparison, whereas Julia & evaluates it; the proposition still states componentwise equality.
+235	eq_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no complete method-specific Lean function for this body, so it states no promised all-input behavior for this method.
+237	eq_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no complete method-specific Lean function for this body, so it states no promised all-input behavior for this method.
+240	ne_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no complete method-specific Lean function for this body, so it states no promised all-input behavior for this method.
+250	$op_fast	HOLLOW	no	no	yes	The propositions have no model for this arbitrary-arity forwarding method, so they state no all-input forwarding property.
+258	$op_fast	HOLLOW	no	no	yes	The propositions have no model for this arbitrary-arity forwarding method, so they state no all-input forwarding property.
+260	$op_fast	HOLLOW	no	no	yes	promoteThen handles exactly two inputs and omits zs, variadic promotion, splatting, and redispatch, so it states no property for all allowed inputs.
+263	$op_fast	HOLLOW	no	no	yes	The propositions have no model for this arbitrary-arity forwarding method, so they state no all-input forwarding property.
+270	$op_fast	HOLLOW	no	no	yes	ScalarFastBehavior has a generic forwarding helper, but ComplexFastBehavior has no corresponding model even though both registry entries claim this method.
+272	$op_fast	HOLLOW	no	no	yes	ScalarFastBehavior has a generic forwarding helper, but ComplexFastBehavior has no corresponding model even though both registry entries claim this method.
+274	$op_fast	HOLLOW	no	no	yes	ScalarFastBehavior has a generic forwarding helper, but ComplexFastBehavior has no corresponding model even though both registry entries claim this method.
+277	$op_fast	HOLLOW	no	no	yes	ScalarFastBehavior has a generic forwarding helper, but ComplexFastBehavior has no corresponding model even though both registry entries claim this method.
+281	$op_fast	HOLLOW	no	no	yes	foldFast begins from an already supplied seed and omits the source calls op(op(a,b),c), so it neither mirrors nor states the full n-ary method behavior.
+286	$op_fast	HOLLOW	no	no	yes	The propositions omit variadic promotion, splatting, redispatch, and the subsequent left fold, so they state no property for all allowed inputs.
+289	$op_fast	HOLLOW	no	no	yes	foldFast begins from an already supplied seed and omits the source calls op(op(a,b),c), so it neither mirrors nor states the full n-ary method behavior.
+294	exp2_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
+295	exp_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
+296	exp10_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
+300	pow_fast	HOLLOW	no	no	yes	powFastPath takes the branch condition and both branch results as bare inputs, omitting the Int32 remainder, equality check, and calls that compute them.
+304	pow_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
+305	pow_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
+306	pow_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
+307	pow_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
+308	pow_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
+310	sqrt_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
+311	sincos_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
+313	sincos_fast	HOLLOW	no	no	yes	No helper models Float32 conversion, recursive sincos_fast, tuple destructuring, and both Float16 conversions, so no all-input method property is stated.
+317	sincos_fast	FAITHFUL	yes	yes	yes	sincosFast mirrors the ordered sin_fast and cos_fast calls and states their paired result for all inputs.
+318	sincos_fast	HOLLOW	no	no	yes	No helper models float conversion, the AbstractFloat assertion, and recursive sincos_fast dispatch, so no all-input method property is stated.
+319	sincos_fast	FAITHFUL	yes	yes	yes	sincosFast mirrors the ordered sin_fast and cos_fast calls and states their paired result for all inputs.
+322	rem_fast	HOLLOW	no	no	yes	fastRemainder gives abs an extra dummy argument and does not model the Julia call arities, so its equation is not a property of this method.
+327	hypot_fast	HOLLOW	no	no	yes	fastHypot gives sqrt an extra dummy argument, while FastMathCoverage is an arity specification instead of a mirror of this body, so the listed entries do not state the behavior of this method.
+331	cis_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no complete method-specific Lean function for this body, so it states no promised all-input behavior for this method.
+337	pow_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+338	pow_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+339	pow_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+340	acos_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+342	acosh_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+343	angle_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+344	asin_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+345	asinh_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+346	atan_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+347	atanh_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+348	cis_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+349	cos_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+350	cosh_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+351	exp10_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+353	exp2_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+355	exp_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+356	expm1_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+357	log10_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+358	log1p_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+359	log2_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+360	log_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+361	log_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+362	sin_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+363	sinh_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+364	sqrt_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+365	tan_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+366	tanh_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
+377	$f_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no forwarding or promotion function for this generated method, so it states no all-input property of its body.
+385	$f_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no forwarding or promotion function for this generated method, so it states no all-input property of its body.
+387	$f_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no forwarding or promotion function for this generated method, so it states no all-input property of its body.
+389	$f_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no forwarding or promotion function for this generated method, so it states no all-input property of its body.
+393	$f_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no forwarding or promotion function for this generated method, so it states no all-input property of its body.
+399	maximum_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no function for this reduction method and reduceFast omits its delegation, arguments, keywords, and array behavior.
+400	minimum_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no function for this reduction method and reduceFast omits its delegation, arguments, keywords, and array behavior.
+402	maximum_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no function for this reduction method and reduceFast omits its delegation, arguments, keywords, and array behavior.
+403	minimum_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no function for this reduction method and reduceFast omits its delegation, arguments, keywords, and array behavior.
+405	Base.reducedim_init	HOLLOW	no	no	yes	ComplexFastBehavior has no function for this reduction method and reduceFast omits its delegation, arguments, keywords, and array behavior.
+407	Base.reducedim_init	HOLLOW	no	no	yes	ComplexFastBehavior has no function for this reduction method and reduceFast omits its delegation, arguments, keywords, and array behavior.
+410	maximum!_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no function for this reduction method and reduceFast omits its delegation, arguments, keywords, and array behavior.
+412	minimum!_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no function for this reduction method and reduceFast omits its delegation, arguments, keywords, and array behavior.
+415	maximum!_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no function for this reduction method and reduceFast omits its delegation, arguments, keywords, and array behavior.
+417	minimum!_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no function for this reduction method and reduceFast omits its delegation, arguments, keywords, and array behavior.

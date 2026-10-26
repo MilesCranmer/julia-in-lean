@@ -1,0 +1,84 @@
+line	name	verdict	mirror	property	settled	reason
+115	(NT::Type{NamedTuple{names,T}})	HOLLOW	no	yes	yes	The Lean model replaces the source T(args) call and splatnew with a fieldwise conversion callback, so it does not mirror the constructor call structure.
+124	(NT::Type{NamedTuple{names, T}})	HOLLOW	no	yes	yes	The Lean model represents only the generated field-selection path and omits the source @generated choice and fallback map call.
+136	NamedTuple{names}	HOLLOW	no	no	yes	NTConstructCorrect never uses selectNames or another model of this field-reordering constructor, so neither the method body nor its behavior is stated.
+148	(NT::Type{NamedTuple{names, T}})	HOLLOW	no	no	yes	The proposition constrains totupleFixed and ofTuple separately but never models their composition for this arbitrary-iterator wrapper.
+149	(NT::Type{NamedTuple{names}})	HOLLOW	no	no	yes	The Lean function receives a precomputed list and omits Tuple(itr), so arbitrary iterator behavior and the source call sequence are missing.
+151	NamedTuple	HOLLOW	no	no	yes	NTConstructCorrect contains no clause about ofItr, and the Lean function receives precomputed key-value records instead of splatting an arbitrary iterator.
+155	_new_NamedTuple	HOLLOW	no	no	yes	The Lean model drops the NamedTuple type and field types and replaces splatnew with names.zip, so layout, arity, and the primitive construction are not modeled or stated.
+159	length	FAITHFUL	yes	yes	yes	The method-specific Lean function mirrors nfields through the named-tuple representation, and the proved proposition states the result for every named tuple.
+160	iterate	HOLLOW	yes	no	yes	The model mirrors the conditional and getfield call, but the proposition says nothing about zero or negative iteration states accepted by the method.
+161	rest	FAITHFUL	yes	yes	yes	The identity model mirrors this method and the proved proposition covers every named tuple.
+162	rest	HOLLOW	no	no	yes	NTAccessCorrect never mentions the modeled indexed rest method, so its Int assertion, name slicing, success cases, and errors are unstated.
+163	firstindex	FAITHFUL	yes	yes	yes	The constant-one model mirrors this method and the proved proposition covers every named tuple.
+164	lastindex	FAITHFUL	yes	yes	yes	The Lean function mirrors nfields through the named-tuple representation, and the proved proposition states the result for every named tuple.
+165	getindex	FAITHFUL	yes	yes	yes	The Lean function calls the checked getfield model and the proposition covers every Int index, including bounds errors.
+166	getindex	FAITHFUL	yes	yes	yes	The Lean lookup models symbol getfield on a valid named tuple, and the proposition covers present and missing symbols.
+167	getindex	FAITHFUL	yes	yes	yes	The identity model mirrors colon indexing and the proved proposition covers every named tuple.
+168	getindex	HOLLOW	yes	no	yes	The model mirrors the NamedTuple selection call, but the proposition assumes distinct existing names and omits duplicate-name and missing-field behavior for allowed tuples of symbols.
+169	getindex	HOLLOW	no	no	yes	NTAccessCorrect never mentions getindexSymVec, and the list model omits arbitrary AbstractVector axes, storage, conversion, and access failures.
+170	indexed_iterate	HOLLOW	no	no	yes	The Lean function drops the accepted state argument, and the proposition covers only in-bounds indices rather than every Int and state value.
+171	isempty	FAITHFUL	yes	yes	yes	The empty-list branch mirrors this specialized method and the proved proposition states emptiness for every named tuple.
+172	isempty	FAITHFUL	yes	yes	yes	The nonempty-list branch mirrors this fallback method and the proved proposition states emptiness for every named tuple.
+173	empty	FAITHFUL	yes	yes	yes	The empty named-tuple result is modeled directly and the proved proposition covers every input named tuple.
+175	prevind	HOLLOW	no	no	yes	Although a Lean prevind function exists, NTAccessCorrect never mentions it, so no proposition states this method's conversion, arithmetic, or errors.
+176	nextind	HOLLOW	no	no	yes	Although a Lean nextind function exists, NTAccessCorrect never mentions it, so no proposition states this method's conversion, arithmetic, or errors.
+178	convert	FAITHFUL	yes	yes	yes	The identity conversion model mirrors this method and the proved proposition covers every value of the matching named-tuple type.
+179	convert	FAITHFUL	yes	yes	yes	The identity conversion model mirrors this method and the proved proposition covers every value of the matching concrete named-tuple type.
+180	convert	HOLLOW	no	no	yes	NTConstructCorrect contains no clause for convertTuple, so the NT(t) call, result assertion, conversions, and errors are not stated for this method.
+182	convert	HOLLOW	no	no	yes	NTConstructCorrect contains no clause for convertNT, so the constructor call and asserted target type are not covered.
+187	convert	HOLLOW	no	no	yes	NTConstructCorrect contains no clause for convertNTAbstract, so fieldtype construction, T1 conversion, assertions, and return behavior are not covered.
+195	Tuple	HOLLOW	no	yes	yes	The Lean function returns pre-extracted values and omits the source splat and iteration calls, although the proposition states the resulting values.
+196	(::Type{T})	HOLLOW	no	no	yes	The Lean model replaces Tuple(nt), the isa branch, convert, and both type assertions with a length check and fieldwise callback, while the proposition covers only length mismatch.
+198	show	HOLLOW	no	no	yes	The model records only a coarse output-form tag, omitting IO writes, value display, typeinfo, separators, and the ordinary multi-field case from both model and proposition.
+231	eltype	HOLLOW	no	no	yes	No proposition uses namedTupleEltype or another wrapper that models this method's call to nteltype(T).
+232	nteltype	FAITHFUL	yes	yes	yes	The constant Any fallback mirrors this method and the proved proposition covers every represented type.
+233	nteltype	HOLLOW	no	no	yes	The Lean model replaces the source eltype(T) dispatch with a simplified computeTupleEltype call using no free type variables, and the proposition merely repeats that replacement.
+235	keytype	HOLLOW	no	yes	yes	The value-level model returns Symbol directly and omits the source typeof and keytype dispatch, although the proposition states the correct result for every named tuple.
+236	keytype	FAITHFUL	yes	yes	yes	The constant Symbol model mirrors this type method and the proved proposition covers every represented NamedTuple type.
+238	valtype	HOLLOW	no	no	yes	NamedTupleTypeMethodsCorrect never mentions namedTupleValtypeValue, so the typeof and valtype calls and their result are unstated.
+239	valtype	HOLLOW	no	no	yes	The model replaces the source eltype(T) dispatch with a simplified field-type computation, and the proposition only equates that model with its own helper.
+241	==	FAITHFUL	yes	yes	yes	The matching-name branch calls the tuple equality model and the proved proposition covers all value comparisons.
+242	==	FAITHFUL	yes	yes	yes	The differing-name branch returns false exactly as this fallback method does, and the proved proposition covers all inputs.
+244	isequal	FAITHFUL	yes	yes	yes	The matching-name branch calls the tuple isequal model and the proved proposition covers all value comparisons.
+245	isequal	FAITHFUL	yes	yes	yes	The differing-name branch returns false exactly as this fallback method does, and the proved proposition covers all inputs.
+247	_nt_names	FAITHFUL	yes	yes	yes	The model returns the names carried by the named-tuple representation, and the proved proposition covers every named tuple.
+248	_nt_names	FAITHFUL	yes	yes	yes	The model returns the names parameter carried by the represented type, and the proved proposition covers every such type.
+250	hash	FAITHFUL	yes	yes	yes	The transitive hashNT and tuple-hash models follow the source xor and calls, and the proved proposition states the required isequal-hash invariant.
+252	<	HOLLOW	yes	no	yes	The Lean lt function mirrors the dispatch, but NTCompareCorrect constrains it only when names differ and never states this matching-name method's tuple comparison.
+253	isless	FAITHFUL	yes	yes	yes	The matching-name branch calls the tuple isless model, and the proved proposition states its behavior for all named tuples.
+255	same_names	FAITHFUL	yes	yes	yes	The all-equal branch of the list model mirrors this variadic specialization, and the proved proposition covers every argument list.
+256	same_names	FAITHFUL	yes	yes	yes	The differing-name branch of the list model mirrors this fallback, and the proved proposition covers every argument list.
+259	map	HOLLOW	no	yes	yes	The model replaces the source nested Tuple and map dispatches and NamedTuple construction with direct zipN mapping, although the proposition states fieldwise behavior for all represented inputs.
+266	filter	FAITHFUL	yes	yes	yes	The Lean function follows keys, field lookup, predicate filtering, and name selection in source order, and the proved proposition states the kept fields for every valid named tuple.
+268	merge_names	HOLLOW	no	no	yes	The model replaces the Symbol array, loop, sym_in checks, and push! calls with append and filter, while no proposition independently states merge_names behavior.
+280	merge_types	HOLLOW	no	no	yes	The filterMap model omits _nt_names, sym_in, indexed fieldtype calls, and missing-field errors, and the proposition only unfolds that simplified model.
+287	merge_fallback	HOLLOW	no	no	yes	The proposition uses a declarative public merge model instead of this helper's type computation, Memory allocation, mutation loop, and explicit an and bn arguments.
+304	merge	FAITHFUL	yes	-	-	The exclusion note applies because this line declares the merge generic and sets its method limit without defining a callable method body.
+331	merge	HOLLOW	no	yes	yes	The declarative Lean merge omits the @generated choice, generated expression, type computation, and fallback call, although its proposition states the documented merged fields and values.
+342	merge	FAITHFUL	yes	yes	yes	The empty-right branch returns a exactly as this specialization does, and the proved proposition covers every valid named tuple.
+343	merge	FAITHFUL	yes	yes	yes	The both-empty branch returns a exactly as this specialization does, and the proved proposition covers its result.
+344	merge	FAITHFUL	yes	yes	yes	The empty-left branch returns b exactly as this specialization does, and the proved proposition covers every valid right named tuple.
+346	merge	HOLLOW	no	yes	yes	The Lean wrapper receives pre-extracted data and omits getfield(b, :data), although the proposition states the resulting merge.
+348	merge	HOLLOW	no	no	yes	The Lean model replaces an arbitrary Zip and its field accesses and iterable conversions with two finite lists, so the universal refuted property does not cover every allowed Zip input.
+350	merge	HOLLOW	no	yes	yes	The recursive wrapper uses the declarative merge model, which omits the callee's generated and fallback bodies, although the proposition states left-associative results.
+352	merge	FAITHFUL	yes	yes	yes	The empty-tail branch of mergeMany returns a exactly as this one-argument method does, and the proved proposition covers every named tuple.
+364	merge	HOLLOW	no	no	yes	The model receives a finite precomputed record list and replaces the source iterator, parallel arrays, IdDict operations, and mutation loop, so arbitrary iterable behavior is missing.
+382	keys	FAITHFUL	yes	yes	yes	The model returns the names parameter of the represented named tuple, and the proved proposition covers every valid named tuple.
+383	values	HOLLOW	no	yes	yes	The Lean function returns pre-extracted values and omits the source call to Tuple(nt), although the proposition states the resulting values.
+384	haskey	HOLLOW	no	no	yes	The model and refuted proposition cover fixed-width IntTy keys but omit Bool, BigInt, and other Integer subtypes accepted by the source signature.
+385	get	HOLLOW	no	no	yes	The model and refuted proposition cover fixed-width IntTy keys but omit Bool, BigInt, and other Integer subtypes accepted by the source signature.
+386	get	HOLLOW	no	no	yes	HaskeyInteger mentions only the value-default getNT overload and never uses getF, so this Callable overload and its lazy default call are not stated.
+387	tail	HOLLOW	no	yes	yes	The model replaces the source NamedTuple constructor dispatch with selectNames after a tuple-tail helper, although the proposition states the resulting fields and empty error.
+388	front	HOLLOW	no	yes	yes	The model replaces the source NamedTuple constructor dispatch with selectNames after a tuple-front helper, although the proposition states the resulting fields and empty error.
+389	reverse	HOLLOW	no	yes	yes	The model flattens keys, values, both reverse dispatches, and NamedTuple construction into list reversals, although the proposition states the reversed fields.
+391	diff_names	HOLLOW	no	no	yes	The filter model omits the Symbol array, source loop, sym_in checks, and push! calls, while no proposition independently states this helper's behavior.
+403	diff_types	HOLLOW	no	no	yes	The filterMap model omits indexed fieldtype calls and their errors, and the proposition only unfolds the simplified model.
+409	diff_fallback	HOLLOW	no	no	yes	The model drops the explicit an argument and replaces diff_names, the empty return, type computation, Memory allocation, and mutation loop with a filter.
+437	delete	HOLLOW	no	yes	yes	The model uses declarative diffNames and selectNames functions instead of the source helper loop and NamedTuple constructor call, although the proposition states the documented deletion result.
+448	structdiff	HOLLOW	no	yes	yes	The declarative model omits the @generated choice, generated indices and types, new construction, and fallback call, although the proposition states the documented retained fields.
+461	structdiff	FAITHFUL	yes	yes	yes	The equal-name branch returns the empty named tuple exactly as this specialization does, and the proved proposition covers every matching name list.
+483	setindex	HOLLOW	no	yes	yes	The wrapper depends on the declarative merge model that omits merge's generated and fallback implementation, although the proposition states the documented replacement or insertion.
+514	NamedTuple	HOLLOW	no	no	yes	The semantic syntax model omits raw Expr traversal, LineNumberNode filtering, QuoteNode and esc construction, while the proposition does not state every valid declaration expansion.
+578	Kwargs	HOLLOW	no	no	yes	The semantic result model omits the quoted let expression and source type calls, and the proposition does not constrain the produced valueType or exact expansion.
+585	split_rest	HOLLOW	no	no	yes	The Lean function accepts one Int64 state instead of the arbitrary st tuple and its proposition only restates that narrowed implementation rather than the promised split behavior.

@@ -1,0 +1,5 @@
+file	line	endline	name	signature	status	entry	note
+base/cmem.jl	12	15	memcpy	memcpy(dst::Ptr, src::Ptr, n::Integer)	modelled	misccov-memcpy-contract,misccov-memcmp-negative-length	
+base/cmem.jl	26	29	memmove	memmove(dst::Ptr, src::Ptr, n::Integer)	modelled	misccov-memcpy-contract,misccov-memcmp-negative-length	
+base/cmem.jl	40	43	memset	memset(p::Ptr, val, n::Integer)	modelled	misccov-memcpy-contract,misccov-memcmp-negative-length	
+base/cmem.jl	54	57	memcmp	memcmp(a::Ptr, b::Ptr, n::Integer)	modelled	misccov-memcpy-contract,misccov-memcmp-negative-length	

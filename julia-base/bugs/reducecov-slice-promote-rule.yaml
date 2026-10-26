@@ -1,0 +1,60 @@
+id: reducecov-slice-promote-rule
+title: "promote_type of two Slice (or IdentityUnitRange) types is the UnionAll Base.Slice: el_same is passed a range type"
+priority: P3
+kind: wrong-result
+area: ReduceCov
+files: [base/indices.jl]
+functions: ["promote_rule(::Type{Slice{T1}}, ::Type{Slice{T2}})", "promote_rule(::Type{IdentityUnitRange{T1}}, ::Type{IdentityUnitRange{T2}})"]
+summary: |
+  promote_type(Base.Slice{Base.OneTo{Int}}, Base.Slice{UnitRange{Int}}) is the
+  UnionAll Base.Slice (and likewise for IdentityUnitRange), so
+  [Base.Slice(Base.OneTo(2)), Base.Slice(1:2)] is a Vector{Base.Slice}. The rule
+  calls el_same(promote_type(T1, T2), a, b) as the Array rule does, but el_same
+  compares its first argument with the element type of a and b, which is Int for
+  every Slice, while T1 and T2 are the wrapped range types. The analogous
+  LinearIndices rule promotes the wrapped ranges and gives
+  LinearIndices{1, Tuple{UnitRange{Int}}}.
+likelihood: |
+  Low: promotion of Slice types happens when slices of different range types are
+  collected or combined; the result is an abstract element type (slower code),
+  values are unaffected.
+maybe_intended: |
+  No document states the promoted type. The result is a correct supertype, so this
+  is a missed precise promotion rather than a wrong value.
+reproducer: |
+  promote_type(Base.Slice{Base.OneTo{Int}}, Base.Slice{UnitRange{Int}})   # Base.Slice
+output:
+  release: |
+    promote_type(Slice{OneTo{Int}}, Slice{UnitRange{Int}}) = Base.Slice
+    promote_type(IdentityUnitRange{OneTo{Int}}, IdentityUnitRange{UnitRange{Int}}) = Base.IdentityUnitRange
+    promote_type(LinearIndices{1,Tuple{OneTo{Int}}}, LinearIndices{1,Tuple{UnitRange{Int}}}) = LinearIndices{1, Tuple{UnitRange{Int64}}}
+    typeof([Base.Slice(Base.OneTo(2)), Base.Slice(1:2)]) = Vector{Base.Slice}
+    REPRODUCED reducecov-slice-promote-rule
+  nightly: |
+    promote_type(Slice{OneTo{Int}}, Slice{UnitRange{Int}}) = Base.Slice
+    promote_type(IdentityUnitRange{OneTo{Int}}, IdentityUnitRange{UnitRange{Int}}) = Base.IdentityUnitRange
+    promote_type(LinearIndices{1,Tuple{OneTo{Int}}}, LinearIndices{1,Tuple{UnitRange{Int}}}) = LinearIndices{1, Tuple{UnitRange{Int64}}}
+    typeof([Base.Slice(Base.OneTo(2)), Base.Slice(1:2)]) = Vector{Base.Slice}
+    REPRODUCED reducecov-slice-promote-rule
+reproduced: {release: true, nightly: true}
+expected: |
+  Base.Slice{UnitRange{Int}} (the Slice of promote_type(OneTo{Int}, UnitRange{Int})),
+  matching the LinearIndices rule at base/indices.jl:497-498.
+promised_by: |
+  Invariant of the el_same pattern (base/range.jl:1321-1324): when promote_type of
+  the parameters equals one of them, the corresponding wrapper type is returned, as
+  for promote_type(Vector{Int}, Vector{Float64}) == Vector{Float64}.
+cause: |
+  base/indices.jl:499-502: el_same(promote_type(T1, T2), a, b) with T1, T2 the
+  wrapped range types. el_same (base/range.jl:1321-1324) matches its first
+  argument against eltype(a) and eltype(b) (Int), never matches, and returns
+  promote_typejoin(a, b).
+possible_fix: |
+  Return Slice{promote_type(T1, T2)} (and IdentityUnitRange{promote_type(T1, T2)}),
+  as the LinearIndices rule does with indices_promote_type.
+duplicates:
+  issues: []
+  queries: ["promote_rule Slice el_same", "el_same", "IdentityUnitRange promote_rule"]
+lean:
+  property: JuliaLean.ReduceCov.Indices.SlicePromoteRule
+  theorem: JuliaLean.ReduceCov.Indices.slicePromoteRule_refuted

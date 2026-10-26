@@ -1,0 +1,16 @@
+file	line	endline	name	signature	status	entry	note
+base/deepcopy.jl	32	35	deepcopy	deepcopy(@nospecialize x)	modelled	dictscov-deepcopy-weakref	
+base/deepcopy.jl	37	39	deepcopy_internal	deepcopy_internal(x::Union{Symbol,Core.MethodInstance,Method,GlobalRef,DataType,Union,UnionAll,Task,Regex, Core.CancellationTokenSource}, stackdict::IdDict)	modelled	dictscov-deepcopy-l37	
+base/deepcopy.jl	40	41	deepcopy_internal	deepcopy_internal(x::Tuple, stackdict::IdDict)	modelled	dictscov-deepcopy-l40	
+base/deepcopy.jl	42	42	deepcopy_internal	deepcopy_internal(x::Module, stackdict::IdDict)	modelled	dictscov-deepcopy-l42	
+base/deepcopy.jl	44	51	deepcopy_internal	deepcopy_internal(x::SimpleVector, stackdict::IdDict)	modelled	dictscov-deepcopy-l44	
+base/deepcopy.jl	53	60	deepcopy_internal	deepcopy_internal(x::String, stackdict::IdDict)	modelled	dictscov-deepcopy-l53	
+base/deepcopy.jl	62	99	deepcopy_internal	deepcopy_internal(@nospecialize(x), stackdict::IdDict)	modelled	dictscov-deepcopy-weakref	
+base/deepcopy.jl	101	106	deepcopy_internal	deepcopy_internal(x::Memory, stackdict::IdDict)	modelled	dictscov-deepcopy-l101	
+base/deepcopy.jl	108	128	_deepcopy_memory_t	_deepcopy_memory_t(@nospecialize(x::Memory), T, stackdict::IdDict)	modelled	dictscov-deepcopy-l108	
+base/deepcopy.jl	129	137	deepcopy_internal	deepcopy_internal(x::Array{T, N}, stackdict::IdDict) where {T, N}	modelled	dictscov-deepcopy-l129	
+base/deepcopy.jl	138	147	deepcopy_internal	deepcopy_internal(x::GenericMemoryRef, stackdict::IdDict)	modelled	dictscov-deepcopy-l138	
+base/deepcopy.jl	150	165	deepcopy_internal	deepcopy_internal(x::Union{Dict,IdDict}, stackdict::IdDict)	modelled	dictscov-deepcopy-l150	
+base/deepcopy.jl	167	174	deepcopy_internal	deepcopy_internal(x::AbstractLock, stackdict::IdDict)	modelled	dictscov-deepcopy-l167	
+base/deepcopy.jl	176	183	deepcopy_internal	deepcopy_internal(x::GenericCondition, stackdict::IdDict)	modelled	dictscov-deepcopy-l176	
+base/deepcopy.jl	194	201	deepcopy_internal	deepcopy_internal(x::Core.WaitEntryN, stackdict::IdDict)	modelled	dictscov-deepcopy-l194	

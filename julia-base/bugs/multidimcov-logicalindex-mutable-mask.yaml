@@ -1,0 +1,62 @@
+id: multidimcov-logicalindex-mutable-mask
+title: "LogicalIndex becomes stale or throws after its Boolean mask is mutated"
+priority: P2
+kind: wrong-result
+area: MultidimCov
+files: [base/multidimensional.jl]
+functions: ["LogicalIndex(mask)", "size(::LogicalIndex)", "iterate(::LogicalIndex)", "collect(::LogicalIndex)"]
+summary: |
+  LogicalIndex stores a reference to its Boolean mask but caches count(mask) at
+  construction. If a false entry becomes true, iteration silently omits it. If a
+  true entry becomes false, iteration continues past the last true entry and throws
+  TypeError when it asserts that iterate returned a tuple.
+likelihood: |
+  LogicalIndex is an internal Base type normally created immediately before array
+  indexing. The failure needs direct construction followed by mutation of the mask,
+  so ordinary code is unlikely to encounter it.
+maybe_intended: |
+  Caching the count is a deliberate performance optimization, but the type keeps the
+  mutable mask itself and its docstring does not require callers to leave that mask
+  unchanged.
+reproducer: |
+  mask = Bool[true, false]
+  L = Base.LogicalIndex(mask)
+  mask[2] = true
+  collect(L)  # [1], expected [1, 2]
+output:
+  release: |
+    growing mask = Bool[1, 1]
+    growing expected = [1, 2]
+    growing actual = [1]
+    shrinking mask = Bool[1, 0]
+    shrinking expected = [1]
+    shrinking threw = TypeError: TypeError: in typeassert, expected Tuple{Any, Any}, got a value of type Nothing
+    REPRODUCED multidimcov-logicalindex-mutable-mask
+  nightly: |
+    growing mask = Bool[1, 1]
+    growing expected = [1, 2]
+    growing actual = [1]
+    shrinking mask = Bool[1, 0]
+    shrinking expected = [1]
+    shrinking threw = TypeError: TypeError: in typeassert, expected Tuple{Any, Any}, got a value of type Nothing
+    REPRODUCED multidimcov-logicalindex-mutable-mask
+reproduced: {release: true, nightly: true}
+expected: |
+  Iteration should yield exactly the indices whose entries are true in the referenced
+  mask, namely [1, 2] after growth and [1] after shrinkage, without throwing.
+promised_by: |
+  base/multidimensional.jl:827-832 documents LogicalIndex as a vector that "simply
+  contains all indices I where mask[I] is true." The structure retains mask itself,
+  so this invariant should continue to describe its observable iteration.
+cause: |
+  base/multidimensional.jl:834-837 stores both mask and the construction-time
+  count(mask). Lines 859-870 use the stale cached count as the iteration limit while
+  reading current mask values. Growth stops early; shrinkage exhausts the underlying
+  index iterator before the cached count is reached.
+possible_fix: ''
+duplicates:
+  issues: []
+  queries: ["issues: LogicalIndex mutate mask stale count", "issues: LogicalIndex TypeError mask", "prs: LogicalIndex mutate mask stale count", "prs: LogicalIndex TypeError mask"]
+lean:
+  property: JuliaLean.MultidimCov.LogicalIndexTracksMask
+  theorem: JuliaLean.MultidimCov.logicalIndexTracksMask_refuted

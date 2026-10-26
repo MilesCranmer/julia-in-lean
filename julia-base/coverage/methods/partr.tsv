@@ -1,0 +1,14 @@
+file	line	endline	name	signature	status	entry	note
+base/partr.jl	13	13	taskheap	taskheap()	modelled	tasks-coverage-partr-heap	source-body: Lean model mirrors this method's branch and mutation order.
+base/partr.jl	28	28	cong	cong(max::UInt32)	modelled	tasks-coverage-partr-rng	source-body: Lean model mirrors this method's branch and mutation order.
+base/partr.jl	30	30	get_ptls_rng	get_ptls_rng()	modelled	tasks-coverage-partr-rng	source-body: Lean model mirrors this method's branch and mutation order.
+base/partr.jl	32	32	set_ptls_rng	set_ptls_rng(seed::UInt64)	modelled	tasks-coverage-partr-rng	source-body: Lean model mirrors this method's branch and mutation order.
+base/partr.jl	40	45	rand_ptls	rand_ptls(max::UInt32)	modelled	tasks-coverage-partr-rng	source-body: Lean model mirrors this method's branch and mutation order.
+base/partr.jl	63	75	rand_uniform_max_int32	rand_uniform_max_int32(max::UInt32, seed::UInt64)	modelled	tasks-coverage-partr-rng	source-body: Lean model mirrors this method's branch and mutation order.
+base/partr.jl	79	91	multiq_sift_up	multiq_sift_up(heap::taskheap, idx::Int32)	modelled	tasks-coverage-partr-heap	source-body: Lean model mirrors this method's branch and mutation order.
+base/partr.jl	94	108	multiq_sift_down	multiq_sift_down(heap::taskheap, idx::Int32)	modelled	tasks-coverage-partr-heap	source-body: Lean model mirrors this method's branch and mutation order.
+base/partr.jl	110	150	multiq_size	multiq_size(tpid::Int8)	modelled	tasks-coverage-partr-heap	source-body: Lean model mirrors this method's branch and mutation order.
+base/partr.jl	152	182	multiq_insert	multiq_insert(task::Task, priority::UInt16)	modelled	tasks-coverage-partr-heap	source-body: Lean model mirrors this method's branch and mutation order.
+base/partr.jl	184	184	yield_os_thread	yield_os_thread()	modelled	tasks-coverage-partr-heap	source-body: Lean model mirrors this method's branch and mutation order.
+base/partr.jl	186	255	multiq_deletemin	multiq_deletemin()	modelled	tasks-coverage-partr-heap	source-body: Lean model mirrors this method's branch and mutation order.
+base/partr.jl	257	269	multiq_check_empty	multiq_check_empty()	modelled	tasks-coverage-partr-heap	source-body: Lean model mirrors this method's branch and mutation order.

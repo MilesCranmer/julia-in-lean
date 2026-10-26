@@ -1,0 +1,65 @@
+file	line	endline	name	signature	status	entry	note
+base/lock.jl	10	10	current_task	current_task()	modelled	concurrencycov-lock-current-task	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	85	85	ReentrantLock	ReentrantLock()	modelled	concurrencycov-lock-reentrant-ctor	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	88	88	assert_havelock	assert_havelock(l::ReentrantLock)	modelled	concurrencycov-lock-assert	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	90	90	show	show(io::IO, ::ReentrantLock)	modelled	concurrencycov-lock-show-short	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	92	102	show	"show(io::IO, ::MIME""text/plain"", l::ReentrantLock)"	modelled	concurrencycov-lock-show-plain	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	139	139	islocked	islocked	excluded		no-behaviour: repeats the islocked generic declaration without defining a method.
+base/lock.jl	143	145	islocked	islocked(rl::ReentrantLock)	modelled	concurrencycov-lock-islocked	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	161	161	trylock	trylock	excluded		no-behaviour: repeats the trylock generic declaration without defining a method.
+base/lock.jl	165	172	trylock	trylock(rl::ReentrantLock)	modelled	concurrencycov-lock-trylock	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	173	183	_trylock	_trylock(rl::ReentrantLock, ct::Task)	modelled	concurrencycov-lock-trylock-internal	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	194	257	lock	lock(rl::ReentrantLock; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	concurrencycov-lock-lock	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	196	255	slowlock	slowlock(rl::ReentrantLock, cancel::CancelTokenArg)	modelled	concurrencycov-lock-slowlock	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	263	264	lock	lock(c::GenericCondition{ReentrantLock}; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	concurrencycov-lock-condition-lock	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	266	296	wait_no_relock	wait_no_relock(c::GenericCondition, tok::MaybeToken)	modelled	concurrencycov-lock-wait-no-relock	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	299	299	_uncancellable_lock	_uncancellable_lock(l::ReentrantLock)	modelled	concurrencycov-lock-uncancellable	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	301	305	relockall_but_one	relockall_but_one(rl::ReentrantLock, state::UInt32)	modelled	concurrencycov-lock-relockall-one	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	315	348	unlock	unlock(rl::ReentrantLock)	modelled	concurrencycov-lock-unlock	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	318	346	_unlock	_unlock(rl::ReentrantLock)	modelled	concurrencycov-lock-unlock-internal	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	327	341	notifywaiters	notifywaiters(rl)	modelled	concurrencycov-lock-notifywaiters	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	350	354	unlockall	unlockall(rl::ReentrantLock)	modelled	concurrencycov-lock-unlockall	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	356	365	relockall	relockall(rl::ReentrantLock, n::UInt32)	modelled	concurrencycov-lock-relockall	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	382	389	lock	lock(f, l::AbstractLock)	modelled	concurrencycov-lock-generic-do	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	392	399	lock	lock(f, l::ReentrantLock; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	concurrencycov-lock-reentrant-do	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	401	410	trylock	trylock(f, l::AbstractLock)	modelled	concurrencycov-lock-generic-try-do	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	431	441	lock	lock(l, expr)	modelled	concurrencycov-lock-macro	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	450	458	lock_nofail	lock_nofail(l, expr)	modelled	concurrencycov-lock-nofail	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	490	490	Lockable	Lockable(value)	modelled	concurrencycov-lock-lockable-ctor	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	491	491	getindex	getindex(l::Lockable)	modelled	concurrencycov-lock-lockable-get	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	506	510	lock	lock(f, l::Lockable)	modelled	concurrencycov-lock-lockable-do	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	513	513	lock	lock(l::Lockable)	modelled	concurrencycov-lock-lockable-lock	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	514	514	trylock	trylock(l::Lockable)	modelled	concurrencycov-lock-lockable-try	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	515	515	unlock	unlock(l::Lockable)	modelled	concurrencycov-lock-lockable-unlock	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	569	569	Semaphore	Semaphore(sem_size)	modelled	concurrencycov-lock-semaphore-ctor	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	578	597	acquire	acquire(s::Semaphore; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	concurrencycov-lock-semaphore-acquire	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	623	630	acquire	acquire(f, s::Semaphore; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	concurrencycov-lock-semaphore-do	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	650	660	acquire	acquire(s, expr)	modelled	concurrencycov-lock-semaphore-macro	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	669	679	release	release(s::Semaphore)	modelled	concurrencycov-lock-semaphore-release	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	705	705	Event	Event(autoreset::Bool=false)	modelled	concurrencycov-lock-event-ctor	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	708	730	wait	wait(e::Event; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	concurrencycov-lock-event-wait	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	732	747	notify	notify(e::Event)	modelled	concurrencycov-lock-event-notify	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	755	758	reset	reset(e::Event)	modelled	concurrencycov-lock-event-reset	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	808	811	OncePerProcess{T,F}	OncePerProcess{T,F}(initializer::F) where {T, F}	modelled	concurrencycov-lock-proc-ctor-tf	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	813	813	OncePerProcess{T}	OncePerProcess{T}(initializer::Type{U}) where {T, U}	modelled	concurrencycov-lock-proc-ctor-type	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	814	814	OncePerProcess{T}	OncePerProcess{T}(initializer::F) where {T, F}	modelled	concurrencycov-lock-proc-ctor-t	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	815	815	OncePerProcess	OncePerProcess(initializer::Type{U}) where U	modelled	concurrencycov-lock-proc-ctor-any-type	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	816	816	OncePerProcess	OncePerProcess(initializer)	modelled	concurrencycov-lock-proc-ctor-any	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	817	848	(once::OncePerProcess{T,F})	(once::OncePerProcess{T,F})() where {T,F}	modelled	concurrencycov-lock-proc-call	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	820	845	init_perprocesss	init_perprocesss(once::OncePerProcess{T,F}, state::UInt8) where {T,F}	modelled	concurrencycov-lock-proc-init	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	850	861	copyto_monotonic!	copyto_monotonic!(dest::AtomicMemory, src)	modelled	concurrencycov-lock-copy-monotonic	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	863	868	fill_monotonic!	fill_monotonic!(dest::AtomicMemory, x)	modelled	concurrencycov-lock-fill-monotonic	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	919	923	OncePerThread{T,F}	OncePerThread{T,F}(initializer::F) where {T, F}	modelled	concurrencycov-lock-thread-ctor-tf	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	925	925	OncePerThread{T}	OncePerThread{T}(initializer::Type{U}) where {T, U}	modelled	concurrencycov-lock-thread-ctor-type	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	926	926	OncePerThread{T}	OncePerThread{T}(initializer::F) where {T, F}	modelled	concurrencycov-lock-thread-ctor-t	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	927	927	OncePerThread	OncePerThread(initializer::Type{U}) where U	modelled	concurrencycov-lock-thread-ctor-any-type	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	928	928	OncePerThread	OncePerThread(initializer)	modelled	concurrencycov-lock-thread-ctor-any	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	929	929	(once::OncePerThread{T,F})	(once::OncePerThread{T,F})() where {T,F}	modelled	concurrencycov-lock-thread-call	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	930	1019	getindex	getindex(once::OncePerThread{T,F}, tid::Integer) where {T,F}	modelled	concurrencycov-lock-thread-get	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	936	1015	init_perthread	init_perthread(once::OncePerThread{T,F}, tid::Int) where {T,F}	modelled	concurrencycov-lock-thread-init	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	1055	1055	OncePerTask{T}	OncePerTask{T}(initializer::Type{U}) where {T, U}	modelled	concurrencycov-lock-task-ctor-type	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	1056	1056	OncePerTask{T}	OncePerTask{T}(initializer::F) where {T, F}	modelled	concurrencycov-lock-task-ctor-t	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	1057	1057	OncePerTask{T,F}	OncePerTask{T,F}(initializer::F) where {T, F}	modelled	concurrencycov-lock-task-ctor-tf	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	1058	1058	OncePerTask	OncePerTask(initializer::Type{U}) where U	modelled	concurrencycov-lock-task-ctor-any-type	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	1059	1059	OncePerTask	OncePerTask(initializer)	modelled	concurrencycov-lock-task-ctor-any	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/lock.jl	1061	1063	(once::OncePerTask{T,F})	(once::OncePerTask{T,F})() where {T,F}	modelled	concurrencycov-lock-task-call	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.

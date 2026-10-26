@@ -1,0 +1,49 @@
+id: misccov-memcmp-negative-length
+title: "Base.memcmp wraps a negative length to a huge one, while memcpy/memmove/memset throw InexactError"
+priority: P3
+kind: missing-error
+area: MiscCov
+files: [base/cmem.jl]
+functions: ["Base.memcmp", "Base.memcpy", "Base.memmove", "Base.memset"]
+summary: |
+  `memcpy`, `memmove` and `memset` let ccall convert `n` to Csize_t, so `n = -1` throws InexactError. `memcmp` passes `n % Csize_t`, so `n = -1` becomes 2^64 - 1 and the C memcmp compares far past both buffers; it returns only because the buffers differ somewhere (and reads out of bounds, possibly segfaulting, when they do not).
+likelihood: |
+  Low: a computed length that goes negative (e.g. `length(a) - k`) passed to the unsafe pointer API.
+maybe_intended: |
+  The functions take raw pointers, so the caller is responsible for valid lengths; the `% Csize_t` may be deliberate to keep memcmp free of a throw path for effect inference. The four siblings still disagree.
+reproducer: |
+  a = UInt8[1,2,3]; b = UInt8[9,2,3]
+  GC.@preserve a b Base.memcpy(pointer(a), pointer(b), -1)  # InexactError
+  GC.@preserve a b Base.memcmp(pointer(a), pointer(b), -1)  # -8 (compared with length 2^64-1)
+output:
+  release: |
+    memcpy(..., -1) => InexactError: convert(UInt64, -1)
+    memmove(..., -1) => InexactError: convert(UInt64, -1)
+    memset(..., -1) => InexactError: convert(UInt64, -1)
+    memcmp(..., -1) => -8
+    REPRODUCED misccov-memcmp-negative-length
+  nightly: |
+    memcpy(..., -1) => InexactError: convert(UInt64, -1)
+    memmove(..., -1) => InexactError: convert(UInt64, -1)
+    memset(..., -1) => InexactError: convert(UInt64, -1)
+    memcmp(..., -1) => -8
+    REPRODUCED misccov-memcmp-negative-length
+reproduced: {release: true, nightly: true}
+expected: |
+  memcmp with a negative `n` throws InexactError like its siblings (or all four document that `n` is reinterpreted).
+promised_by: |
+  Inconsistent behaviour between the four documented C wrappers (base/cmem.jl:3-57, which all document `n::Integer`).
+cause: |
+  base/cmem.jl:56 passes `n % Csize_t`; lines 14, 28, 42 pass `n` and ccall converts it with `convert(Csize_t, n)`.
+possible_fix: |
+  Pass `n` (or `Csize_t(n)`) to ccall in memcmp.
+duplicates:
+  issues: []
+  queries:
+    - "issues: memcmp"
+    - "issues: memcmp negative"
+    - "issues: memcmp Csize_t"
+    - "issues: memcmp Base.memcmp"
+lean:
+  property: JuliaLean.MiscCov.CMem.NegativeLengthConsistent
+  theorem: JuliaLean.MiscCov.CMem.negativeLengthConsistent_refuted

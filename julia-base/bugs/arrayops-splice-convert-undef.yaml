@@ -1,0 +1,71 @@
+id: arrayops-splice-convert-undef
+title: "splice!(a, r, ins) leaves #undef or uninitialized elements in a when converting a replacement fails"
+priority: P2
+kind: wrong-result
+area: ArrayOps
+files: [base/array.jl]
+functions: ["splice!(::Vector, r::AbstractUnitRange{<:Integer}, ins)", "splice!(::Vector, i::Integer, ins)"]
+summary: |
+  splice! first grows the vector to its final length and then stores the
+  replacements one by one, converting each to eltype(a). If a conversion fails, the
+  error leaves new slots unassigned: for Vector{String} reading them throws
+  UndefRefError, and for Vector{Int} they hold uninitialized memory (1.13.2 printed
+  [1, 4, 23455900631048, 2, 3] for splice!([1,2,3], 2:1, [4, 5.5])).
+likelihood: |
+  Needs a replacement collection with a value that does not convert (a
+  heterogeneous Vector{Any}, or floats into an Int vector) and a caught error.
+  Uncommon but plausible in data-cleaning code.
+maybe_intended: |
+  #7642 (closed in 2014) reported exactly this for append!/prepend!/splice!; a
+  maintainer replied that the state after a failed mutation is not well defined and
+  no cheap fix was known. PR #47112 tried to fix splice! and was closed unmerged.
+  append!/prepend! have since stopped leaving holes; splice! still does.
+reproducer: |
+  a = ["a", "b", "c"]
+  err = try
+      splice!(a, 2:1, Any["x", 1])
+      nothing
+  catch e
+      e
+  end
+  println(typeof(err))
+  println("length = ", length(a), ", assigned = ", [isassigned(a, i) for i in eachindex(a)])
+  println(repr(try a[3] catch e; e end))
+  if err isa MethodError && !all(i -> isassigned(a, i), eachindex(a))
+      println("REPRODUCED arrayops-splice-convert-undef")
+  end
+output:
+  release: |
+    MethodError
+    length = 5, assigned = Bool[1, 1, 0, 1, 1]
+    UndefRefError()
+    REPRODUCED arrayops-splice-convert-undef
+  nightly: |
+    MethodError
+    length = 5, assigned = Bool[1, 1, 0, 1, 1]
+    UndefRefError()
+    REPRODUCED arrayops-splice-convert-undef
+reproduced: {release: true, nightly: true}
+expected: |
+  MethodError with a unchanged (or at least with every element assigned), as insert! and push! do.
+promised_by: |
+  Invariant stated in Base itself: push! "convert first so we don't grow the array if
+  the assignment won't work" (base/array.jl:1361) and insert! "Throw convert error
+  before changing the shape of the array" (base/array.jl:1873). The splice!
+  docstring (base/array.jl:2088-2124) says the replacement values are spliced in.
+cause: |
+  base/array.jl:2138-2143 shrinks or grows a (_deleteat!/_growat!) before the store
+  loop at base/array.jl:2145-2149, where setindex! converts each value
+  (base/array.jl:1031-1035). _growat! leaves the new slots unset
+  (base/array.jl:1254-1256). Same for splice!(a, i::Integer, ins), base/array.jl:2078-2083.
+possible_fix: |
+  Convert the replacements first (e.g. into a temporary of eltype(a) when eltype(ins) is not a subtype), then reshape and copy.
+duplicates:
+  issues:
+    - {number: 7642, state: closed, relation: duplicate}
+    - {number: 46399, state: closed, relation: related}
+    - {number: 47112, state: closed, relation: related}
+  queries: ["splice", "splice convert error", "splice undef", "splice InexactError", "prepend!"]
+lean:
+  property: JuliaLean.ArrayOps.SpliceErrorAssigned
+  theorem: JuliaLean.ArrayOps.spliceErrorAssigned_refuted

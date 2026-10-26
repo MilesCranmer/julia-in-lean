@@ -1,0 +1,32 @@
+file	line	endline	name	signature	status	entry	note
+base/toml/printer.jl	7	33	print_toml_escaped	print_toml_escaped(io::IO, s::AbstractString)	modelled	docssyntaxcov-toml-print-escaped	
+base/toml/printer.jl	38	38	is_valid_toml_value	is_valid_toml_value(@nospecialize(::Any))	modelled	docssyntaxcov-toml-print-validity	
+base/toml/printer.jl	39	39	is_valid_toml_value	is_valid_toml_value(@nospecialize(::BaseTOMLValue))	modelled	docssyntaxcov-toml-print-validity	
+base/toml/printer.jl	42	43	_is_valid_toml_value	_is_valid_toml_value(@nospecialize(x))	modelled	docssyntaxcov-toml-print-validity	
+base/toml/printer.jl	49	64	printkey	printkey(io::IO, keys::Vector{String})	modelled	docssyntaxcov-toml-print-key	
+base/toml/printer.jl	66	75	to_toml_value	to_toml_value(@nospecialize(f::Function), value)	modelled	docssyntaxcov-toml-print-validity	
+base/toml/printer.jl	82	85	printvalue	printvalue(f::Function, io::IO, value, sorted::Bool)	modelled	docssyntaxcov-toml-print-value,docssyntaxcov-toml-print-by-inline	
+base/toml/printer.jl	87	94	printvalue	printvalue(f::Function, io::IO, value::AbstractVector, sorted::Bool)	modelled	docssyntaxcov-toml-print-value,docssyntaxcov-toml-print-by-inline	
+base/toml/printer.jl	96	101	printvalue	printvalue(f::Function, io::IO, value::Base.TOML.DateTime, sorted::Bool)	modelled	docssyntaxcov-toml-print-value,docssyntaxcov-toml-print-by-inline	
+base/toml/printer.jl	103	113	printvalue	printvalue(f::Function, io::IO, value::Base.TOML.Time, sorted::Bool)	modelled	docssyntaxcov-toml-print-value,docssyntaxcov-toml-print-by-inline	
+base/toml/printer.jl	115	121	printvalue	printvalue(f::Function, io::IO, value::Base.TOML.Date, sorted::Bool)	modelled	docssyntaxcov-toml-print-value,docssyntaxcov-toml-print-by-inline	
+base/toml/printer.jl	123	125	printvalue	printvalue(f::Function, io::IO, value::Bool, sorted::Bool)	modelled	docssyntaxcov-toml-print-value,docssyntaxcov-toml-print-by-inline	
+base/toml/printer.jl	127	133	printvalue	printvalue(f::Function, io::IO, value::Integer, sorted::Bool)	modelled	docssyntaxcov-toml-print-value,docssyntaxcov-toml-print-by-inline	
+base/toml/printer.jl	135	146	printvalue	printvalue(f::Function, io::IO, value::AbstractFloat, sorted::Bool)	modelled	docssyntaxcov-toml-print-value,docssyntaxcov-toml-print-by-inline	
+base/toml/printer.jl	148	153	printvalue	printvalue(f::Function, io::IO, value::AbstractString, sorted::Bool)	modelled	docssyntaxcov-toml-print-value,docssyntaxcov-toml-print-by-inline	
+base/toml/printer.jl	155	157	printvalue	printvalue(f::Function, io::IO, value::AbstractDict, sorted::Bool)	modelled	docssyntaxcov-toml-print-value,docssyntaxcov-toml-print-by-inline	
+base/toml/printer.jl	159	173	print_inline_table	print_inline_table(f::Function, io::IO, value::AbstractDict, sorted::Bool)	modelled	docssyntaxcov-toml-print-value,docssyntaxcov-toml-print-by-inline	
+base/toml/printer.jl	182	196	print_comment_line	print_comment_line(io::IO, indentstr::String, text::AbstractString)	modelled	docssyntaxcov-toml-print-comments	
+base/toml/printer.jl	198	204	print_comments_above	print_comments_above(io::IO, comments::Comments, path::CommentPath, indentstr::String)	modelled	docssyntaxcov-toml-print-comments	
+base/toml/printer.jl	206	222	print_comment_inline	print_comment_inline(io::IO, comments::Comments, path::CommentPath)	modelled	docssyntaxcov-toml-print-comments	
+base/toml/printer.jl	224	225	has_comments	has_comments(comments::Comments, path::CommentPath)	modelled	docssyntaxcov-toml-print-comments	
+base/toml/printer.jl	228	250	print_hoisted_inline_comments	print_hoisted_inline_comments(io::IO, comments::Comments, a::AbstractDict, path::CommentPath, indentstr::String, sorted::Bool)	modelled	docssyntaxcov-toml-print-hoisted,docssyntaxcov-toml-print-by-inline	
+base/toml/printer.jl	252	259	print_comments_floating	print_comments_floating(io::IO, comments::Comments, path::CommentPath, indentstr::String)	modelled	docssyntaxcov-toml-print-comments	
+base/toml/printer.jl	265	265	is_table	is_table(@nospecialize(value))	modelled	docssyntaxcov-toml-print-tabular	
+base/toml/printer.jl	266	269	is_array_of_tables	is_array_of_tables(@nospecialize(value))	modelled	docssyntaxcov-toml-print-tabular	
+base/toml/printer.jl	270	270	is_tabular	is_tabular(@nospecialize(value))	modelled	docssyntaxcov-toml-print-tabular	
+base/toml/printer.jl	272	379	print_table	print_table(f::Function, io::IO, a::AbstractDict, ks::Vector{String} = String[]; indent::Int = 0, first_block::Bool = true, sorted::Bool = false, inline_tables::IdSet, by::Function = identity, comments::Union{Comments, Nothing} = nothing, )	modelled	docssyntaxcov-toml-print-table,docssyntaxcov-toml-print-inline-array-table	
+base/toml/printer.jl	386	387	print	print(f::Function, io::IO, a::AbstractDict; sorted::Bool=false, by=identity, inline_tables::IdSet{<:AbstractDict}=IdSet{Dict{String}}(), comments::Union{Comments, Nothing}=nothing)	modelled	docssyntaxcov-toml-print-api,docssyntaxcov-toml-print-inline-array-table	
+base/toml/printer.jl	388	389	print	print(f::Function, a::AbstractDict; sorted::Bool=false, by=identity, inline_tables::IdSet{<:AbstractDict}=IdSet{Dict{String}}(), comments::Union{Comments, Nothing}=nothing)	modelled	docssyntaxcov-toml-print-api,docssyntaxcov-toml-print-inline-array-table	
+base/toml/printer.jl	390	391	print	print(io::IO, a::AbstractDict; sorted::Bool=false, by=identity, inline_tables::IdSet{<:AbstractDict}=IdSet{Dict{String}}(), comments::Union{Comments, Nothing}=nothing)	modelled	docssyntaxcov-toml-print-api,docssyntaxcov-toml-print-inline-array-table	
+base/toml/printer.jl	392	393	print	print(a::AbstractDict; sorted::Bool=false, by=identity, inline_tables::IdSet{<:AbstractDict}=IdSet{Dict{String}}(), comments::Union{Comments, Nothing}=nothing)	modelled	docssyntaxcov-toml-print-api,docssyntaxcov-toml-print-inline-array-table	

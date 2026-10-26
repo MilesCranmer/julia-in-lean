@@ -1,0 +1,10 @@
+line	name	verdict	mirror	property	settled	reason
+1	use_power_by_squaring	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+7	^	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+34	^	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+58	^	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+80	^	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+91	pow_body	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+105	pow_body	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+109	pow_body	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
+118	pow_body	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.

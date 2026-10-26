@@ -1,0 +1,56 @@
+id: sorttuplescov-merge-zip
+title: "merge(nt, zip(keys, vals)) throws where merge(nt, collect(zip(keys, vals))) succeeds"
+priority: P2
+kind: wrong-exception
+area: Tuples
+files: [base/namedtuple.jl]
+functions: ["merge(a::NamedTuple, b::Iterators.Zip{<:Tuple{Any,Any}})", "merge(a::NamedTuple, itr)"]
+summary: |
+  merge(a::NamedTuple, itr) interprets any iterable of key-value pairs: a repeated
+  key keeps its last value and the pairs end with the shorter of the zipped
+  collections. The specialized method for a two-argument zip builds
+  NamedTuple{Tuple(keys)}(vals) instead, which throws ErrorException for a
+  repeated key ("duplicate field name") and for keys and values of different
+  lengths. merge((a=1,), zip([:b, :b], [2, 3])) throws, while
+  merge((a=1,), collect(zip([:b, :b], [2, 3]))) returns (a = 1, b = 3).
+likelihood: |
+  Low to moderate: merging zip(names, values) into a named tuple is a natural
+  idiom, and duplicate names or a length mismatch can come from data.
+maybe_intended: |
+  The zip method is an optimization; the documented generic behaviour is that of
+  merge(a, iterable), which this method should match.
+reproducer: |
+  merge((a=1,), zip([:b, :b], [2, 3]))           # ErrorException: duplicate field name
+  merge((a=1,), collect(zip([:b, :b], [2, 3])))  # (a = 1, b = 3)
+  merge((a=1,), zip([:b, :c], [2]))              # ErrorException: names and field types must have matching lengths
+  merge((a=1,), collect(zip([:b, :c], [2])))     # (a = 1, b = 2)
+output:
+  release: |
+    ErrorException (a = 1, b = 3)
+    ErrorException (a = 1, b = 2)
+    REPRODUCED sorttuplescov-merge-zip
+  nightly: |
+    ErrorException (a = 1, b = 3)
+    ErrorException (a = 1, b = 2)
+    REPRODUCED sorttuplescov-merge-zip
+reproduced: {release: true, nightly: true}
+expected: |
+  (a = 1, b = 3) and (a = 1, b = 2), as for the collected iterator.
+promised_by: |
+  merge docstring, base/namedtuple.jl:354-357: "merge(a::NamedTuple, iterable):
+  Interpret an iterable of key-value pairs as a named tuple, and perform a merge."
+  A zip of keys and values iterates exactly those pairs.
+cause: |
+  merge(a::NamedTuple, b::Iterators.Zip{<:Tuple{Any,Any}}) =
+  merge(a, NamedTuple{Tuple(b.is[1])}(b.is[2])) (base/namedtuple.jl:348) uses all
+  keys and all values instead of the zipped pairs, and NamedTuple{names} rejects
+  repeated names.
+possible_fix: |
+  Fall back to the generic merge(a, itr) when the keys are not unique or the
+  lengths differ.
+duplicates:
+  issues: []
+  queries: ["issues: merge NamedTuple zip", "issues: merge zip duplicate", "issues/prs: merge zip", "issues/prs: NamedTuple merge iterator"]
+lean:
+  property: JuliaLean.SortTuplesCov.MergeZipAgrees
+  theorem: JuliaLean.SortTuplesCov.mergeZipAgrees_refuted

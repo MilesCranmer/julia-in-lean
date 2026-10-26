@@ -16,8 +16,8 @@ instance instDecidableSameOutcome {α : Type} [DecidableEq α] : (a b : R α) �
 /-- An `Int` literal. -/
 abbrev I64 (x : Int) : JInt .i64 := JInt.lit .i64 x
 
-/-- `split_rest(v::Vector, n, i)` with the `Option` wrapper removed, used as the
-reference for tuples and named tuples with `n ≥ 0`. -/
+/-- `split_rest(v::Vector, n, i)` with the uninitialised slots dropped, used as
+the reference for tuples and named tuples with `n ≥ 0`. -/
 def splitRestRef {β : Type} (v : List β) (n i : JInt .i64) : R (List β × List β) :=
   (splitRestVector v n i).map fun (f, l) => (f.filterMap id, l)
 
@@ -32,6 +32,14 @@ def SplitRestAgrees : Prop :=
   (∀ (t : NT Int) (n i : Nat), (ntNames t).Nodup → 1 ≤ i → i ≤ t.length + 1 → n < 2 ^ 62 →
     t.length < 2 ^ 62 →
     SameOutcome (splitRestNT t (I64 n) (I64 i)) (splitRestRef t (I64 n) (I64 i)))
+
+/-- `split_rest(v, n)` either throws or returns `(rest_but_n, last_n)` whose
+concatenation is `v`. -/
+def SplitRestPartition : Prop :=
+  ∀ (v : List Int) (n : JInt .i64),
+    match splitRestVector v n (I64 1) with
+    | .ok (f, l) => f ++ l.map some = v.map some
+    | .error _ => True
 
 /-- `haskey(nt, k)` and `get(nt, k, d)` accept every `Integer` key `k`, as
 their signatures `key::Union{Integer, Symbol}` declare: `haskey` is

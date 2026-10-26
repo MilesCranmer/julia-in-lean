@@ -1,0 +1,49 @@
+id: docssyntaxcov-text-hash-isequal
+title: "isequal(Docs.Text(-0.0), Docs.Text(0.0)) is true but their hashes differ"
+priority: P3
+kind: wrong-result
+area: DocsSyntaxCov
+files: [base/docs/utils.jl]
+functions: ["==(::T, ::T) where {T<:Union{HTML,Text}}", "hash(::T, ::UInt) where {T<:Union{HTML,Text}}"]
+summary: |
+    `Docs.Text` and `Docs.HTML` define `==` by comparing contents with `==` and `hash` by
+    hashing the contents, but not `isequal`, which falls back to `==`. For contents where
+    `==` and `isequal` differ, `isequal(a, b)` holds while `hash(a) != hash(b)`:
+    `Set([Text(-0.0), Text(0.0)])` has two elements.
+likelihood: |
+    Very low: Text/HTML normally wrap strings or functions.
+maybe_intended: ""
+reproducer: |
+    using Base.Docs: Text
+    isequal(Text(-0.0), Text(0.0))           # true
+    hash(Text(-0.0)) == hash(Text(0.0))      # false
+output:
+  release: |
+    isequal(Text(-0.0), Text(0.0)) = true
+    hash equal = false
+    length(Set([Text(-0.0), Text(0.0)])) = 2
+    isequal(HTML(-0.0), HTML(0.0)) = true, hash equal = false
+    REPRODUCED docssyntaxcov-text-hash-isequal
+  nightly: |
+    isequal(Text(-0.0), Text(0.0)) = true
+    hash equal = false
+    length(Set([Text(-0.0), Text(0.0)])) = 2
+    isequal(HTML(-0.0), HTML(0.0)) = true, hash equal = false
+    REPRODUCED docssyntaxcov-text-hash-isequal
+reproduced: {release: true, nightly: true}
+expected: |
+    `isequal(Text(-0.0), Text(0.0)) == false` (or equal hashes).
+promised_by: |
+    `hash` docstring (base/hashing.jl): "isequal(x,y) implies hash(x)==hash(y)".
+cause: |
+    base/docs/utils.jl:95-96 define `==` and `hash` only; `isequal` uses the generic
+    fallback `isequal(x, y) = x == y`, i.e. `==` of the contents, while `hash` uses the
+    content's `hash`, which follows `isequal`.
+possible_fix: |
+    Add `isequal(t1::T, t2::T) where {T<:Union{HTML,Text}} = isequal(t1.content, t2.content)`.
+duplicates:
+  issues: []
+  queries: ["HTML hash isequal", "Text hash", "Docs.Text hash"]
+lean:
+  property: JuliaLean.DocsSyntaxCov.TextHashIsequal
+  theorem: JuliaLean.DocsSyntaxCov.textHashIsequal_refuted
