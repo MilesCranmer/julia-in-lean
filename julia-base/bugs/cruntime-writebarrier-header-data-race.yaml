@@ -1,0 +1,48 @@
+id: cruntime-writebarrier-header-data-race
+title: "Concurrent write barriers mix plain GC-header reads with atomic RMWs"
+priority: P2
+kind: model-counterexample
+area: GC
+files: [src/gc-wb-stock.h, src/gc-stock.c, src/julia.h]
+functions: ["jl_gc_wb_object", "jl_gc_queue_root"]
+summary: |
+  An actual source-PC replay reads an old parent's GC bitfield through ordinary
+  C accesses and updates the same modeled header location through relaxed atomic
+  fetch-and operations. The atomic-memory-consistent pre-undefined candidate
+  fails C11 race freedom. It independently violates the supplied ordinary
+  declaration class for GC headers. No Defined execution or native crash is
+  reproduced.
+likelihood: |
+  Requires concurrent barriers on the same old parent. Julia's runtime may
+  receive stronger behavior from current compiler and CPU implementations;
+  no runtime manifestation is reproduced.
+maybe_intended: ""
+reproducer: |
+  println("NOT REPRODUCED cruntime-writebarrier-header-data-race")
+  println("Formal C11 data-race counterexample only; no deterministic Julia trigger is known.")
+output:
+  release: |
+    NOT RUN: formal C11 counterexample only.
+  nightly: |
+    NOT RUN: formal C11 counterexample only.
+reproduced: {release: false, nightly: false}
+expected: |
+  Concurrent header operations must avoid unordered conflicting plain/atomic
+  accesses, and each access should match the header's ordinary C declaration.
+promised_by: |
+  C11 5.1.2.4p25 race freedom, with declared access typing checked separately.
+cause: |
+  jl_gc_wb_object reads bits.gc plainly at src/gc-wb-stock.h:26-29.
+  jl_gc_queue_root casts the same header to _Atomic(uintptr_t) and performs a
+  relaxed fetch-and at src/gc-stock.c:1675-1680.
+possible_fix: |
+  If native and compiler evidence confirms the mixed accesses are unsupported,
+  use one header access class in barrier paths while preserving the existing
+  generational protocol. The formal source replay alone does not select a fix.
+duplicates:
+  issues:
+    - {number: 64205, state: open, relation: duplicate}
+  queries: ["jl_gc_queue_root data race", "GC header atomic bitfield race", "write barrier header atomic"]
+lean:
+  property: JuliaLean.CRuntime.WriteBarrier.HeaderAccessDataRaceFreedom
+  theorem: JuliaLean.CRuntime.WriteBarrier.headerAccessDataRaceFreedom_refuted

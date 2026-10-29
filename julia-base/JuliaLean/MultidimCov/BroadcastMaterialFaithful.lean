@@ -87,7 +87,12 @@ def m754 {I V : Type} (_index : I) : List V := []
 def P754 : Prop := ∀ {I V : Type} (index : I), (m754 index : List V) = []
 theorem p754 : P754 := by simp [P754, m754]
 
-inductive JType where | bottom | known (name : String) | union (members : List String) deriving Repr, DecidableEq
+inductive JType where
+  | bottom
+  | known (name : String)
+  | union (members : List String)
+  | tuple (members : List JType)
+  deriving Repr
 
 def m756 {B A : Type} (argtypes : B → A) (returnType : A → JType)
     (promoteUnion : JType → JType) (bc : B) : JType :=
@@ -111,7 +116,8 @@ def P766 : Prop := ∀ {A : Type} (eltype : A → JType) array, m766 eltype arra
 theorem p766 : P766 := by simp [P766, m766]
 
 def tupleOrBottom : List JType → JType := fun types =>
-  if types.any (fun t => t = .bottom) then .bottom else .known (toString types.length)
+  if types.any (fun t => match t with | .bottom => true | _ => false)
+  then .bottom else .tuple types
 
 def m768 : List JType := []
 def P768 : Prop := ∀ _ : Unit, m768 = []
@@ -126,13 +132,23 @@ def P770 : Prop := ∀ left right, m770 left right = tupleOrBottom [left, right]
 theorem p770 : P770 := by simp [P770, m770]
 
 def eltypes : List JType → JType
-  | [] => .known "Tuple{}"
-  | head :: tail => match eltypes tail with | .bottom => .bottom | rest => tupleOrBottom (head :: [rest])
+  | [] => .tuple []
+  | head :: tail =>
+      match eltypes tail with
+      | .bottom => .bottom
+      | .tuple rest => tupleOrBottom (head :: rest)
+      | _ => .bottom
 
 def m771 (head : JType) (tail : List JType) : JType :=
-  match eltypes tail with | .bottom => .bottom | rest => tupleOrBottom (head :: [rest])
+  match eltypes tail with
+  | .bottom => .bottom
+  | .tuple rest => tupleOrBottom (head :: rest)
+  | _ => .bottom
 def P771 : Prop := ∀ head tail, m771 head tail =
-  match eltypes tail with | .bottom => .bottom | rest => tupleOrBottom (head :: [rest])
+  match eltypes tail with
+  | .bottom => .bottom
+  | .tuple rest => tupleOrBottom (head :: rest)
+  | _ => .bottom
 theorem p771 : P771 := by simp [P771, m771]
 
 def m774 {F : Type} (returnType : F → JType → JType) (promoteUnion : JType → JType)
@@ -162,11 +178,17 @@ def m863 {A V : Type} (f : List A → V) (tuples : List (List A)) : List V := zi
 def P863 : Prop := ∀ {A V : Type} (f : List A → V) tuples, m863 f tuples = zipTuples f tuples
 theorem p863 : P863 := by simp [P863, m863]
 
-def m898 {F D A B : Type} (broadcasted : F → A → B) (materializeBang : D → B → D)
-    (f : F) (dest : D) (args : A) : D := materializeBang dest (broadcasted f args)
-def P898 : Prop := ∀ {F D A B : Type} (broadcasted : F → A → B)
-    (materializeBang : D → B → D) f dest args,
-  m898 broadcasted materializeBang f dest args = materializeBang dest (broadcasted f args)
+def m898 {F D A B : Type} (broadcasted : F → A → Result B)
+    (materializeBang : D → B → Result Unit) (f : F) (dest : D) (args : A) : Result D := do
+  let bc ← broadcasted f args
+  materializeBang dest bc
+  pure dest
+def P898 : Prop := ∀ {F D A B : Type} (broadcasted : F → A → Result B)
+    (materializeBang : D → B → Result Unit) f dest args,
+  m898 broadcasted materializeBang f dest args = do
+    let bc ← broadcasted f args
+    materializeBang dest bc
+    pure dest
 theorem p898 : P898 := by simp [P898, m898]
 
 def m908 {F A B R C T : Type} (broadcasted : F → A → B) (materialize : B → R)
@@ -181,12 +203,17 @@ def P908 : Prop := ∀ {F A B R C T : Type} (broadcasted : F → A → B) (mater
     if (axes bc).isEmpty then .inl (similarFill bc result) else .inr result
 theorem p908 : P908 := by simp [P908, m908]
 
-def m913 {R : Type} (f : Unit → R) : List R := [f ()]
-def P913 : Prop := ∀ {R : Type} (f : Unit → R), m913 f = [f ()]
+structure ZeroD (α : Type) where
+  value : α
+  deriving Repr, DecidableEq
+
+def m913 {R : Type} (f : Unit → R) : ZeroD R := ⟨f ()⟩
+def P913 : Prop := ∀ {R : Type} (f : Unit → R), m913 f = ⟨f ()⟩
 theorem p913 : P913 := by simp [P913, m913]
 
-def m914 {N R : Type} (f : List N → R) (numbers : List N) : List R := [f numbers]
-def P914 : Prop := ∀ {N R : Type} (f : List N → R) numbers, m914 f numbers = [f numbers]
+def m914 {N R : Type} (f : List N → R) (numbers : List N) : ZeroD R := ⟨f numbers⟩
+def P914 : Prop := ∀ {N R : Type} (f : List N → R) numbers,
+  m914 f numbers = (⟨f numbers⟩ : ZeroD R)
 theorem p914 : P914 := by simp [P914, m914]
 
 def m921 {B R : Type} (instantiate : B → B) (copy : B → R) (bc : B) : R := copy (instantiate bc)
@@ -198,12 +225,15 @@ def m922 (value : α) : α := value
 def P922 : Prop := ∀ {α : Type} (value : α), m922 value = value
 theorem p922 : P922 := by simp [P922, m922]
 
-def m924 {D X B R : Type} (axes : D → X) (make : X → B) (instantiate : B → B)
-    (materializeBang : D → B → R) (dest : D) : R :=
-  materializeBang dest (instantiate (make (axes dest)))
-def P924 : Prop := ∀ {D X B R : Type} (axes : D → X) (make : X → B) (instantiate : B → B)
+def m924 {D X I A B R : Type} (axes : D → X)
+    (make : I → List A → X → B) (identity : I) (x : A)
+    (instantiate : B → B) (materializeBang : D → B → R) (dest : D) : R :=
+  materializeBang dest (instantiate (make identity [x] (axes dest)))
+def P924 : Prop := ∀ {D X I A B R : Type} (axes : D → X)
+    (make : I → List A → X → B) identity x (instantiate : B → B)
     (materializeBang : D → B → R) dest,
-  m924 axes make instantiate materializeBang dest = materializeBang dest (instantiate (make (axes dest)))
+  m924 axes make identity x instantiate materializeBang dest =
+    materializeBang dest (instantiate (make identity [x] (axes dest)))
 theorem p924 : P924 := by simp [P924, m924]
 
 def m928 {D B S R : Type} (combineStyles : D → B → S) (materializeStyled : S → D → B → R)
@@ -213,16 +243,29 @@ def P928 : Prop := ∀ {D B S R : Type} (combineStyles : D → B → S)
   m928 combineStyles materializeStyled dest bc = materializeStyled (combineStyles dest bc) dest bc
 theorem p928 : P928 := by simp [P928, m928]
 
-def m932 {S D B X R : Type} (axes : D → X) (rebuild : B → X → B)
-    (instantiate : B → B) (copyto : D → B → R) (_style : S) (dest : D) (bc : B) : R :=
-  copyto dest (instantiate (rebuild bc (axes dest)))
-def P932 : Prop := ∀ {S D B X R : Type} (axes : D → X) (rebuild : B → X → B)
-    (instantiate : B → B) (copyto : D → B → R) (style : S) dest bc,
-  m932 axes rebuild instantiate copyto style dest bc = copyto dest (instantiate (rebuild bc (axes dest)))
+structure MaterializedExpr (S F A X : Type) where
+  style : S
+  f : F
+  args : A
+  axes : X
+  deriving Repr, DecidableEq
+
+def m932 {S D F A X R : Type} (axes : D → X)
+    (instantiate : MaterializedExpr S F A X → MaterializedExpr S F A X)
+    (copyto : D → MaterializedExpr S F A X → R) (_style : S) (dest : D)
+    (bc : MaterializedExpr S F A X) : R :=
+  copyto dest (instantiate ⟨bc.style, bc.f, bc.args, axes dest⟩)
+def P932 : Prop := ∀ {S D F A X R : Type} (axes : D → X)
+    (instantiate : MaterializedExpr S F A X → MaterializedExpr S F A X)
+    (copyto : D → MaterializedExpr S F A X → R) (style : S) dest bc,
+  m932 axes instantiate copyto style dest bc =
+    copyto dest (instantiate ⟨bc.style, bc.f, bc.args, axes dest⟩)
 theorem p932 : P932 := by simp [P932, m932]
 
-def m936 {D B : Type} (_dest : D) (_bc : B) : Result Unit := .error .argument
-def P936 : Prop := ∀ {D B : Type} (dest : D) (bc : B), m936 dest bc = .error .argument
+def m936 {D : Type} (throwUnwritable : D → Result Unit) (dest : D) : Result Unit :=
+  throwUnwritable dest
+def P936 : Prop := ∀ {D : Type} (throwUnwritable : D → Result Unit) dest,
+  m936 throwUnwritable dest = throwUnwritable dest
 theorem p936 : P936 := by simp [P936, m936]
 
 def m937 {D : Type} (_dest : D) : Result Unit := .error .argument
@@ -239,31 +282,54 @@ theorem p943 : P943 := by simp [P943, m943]
 
 inductive Inferred where | bottom | concrete | abstract deriving Repr, DecidableEq
 
-def m948 {B I V D : Type} (resultEltype : B → Inferred) (similar : B → Option V → D)
-    (copyto : D → B → D) (preprocess : B → B) (indices : B → List I)
-    (getindex : B → I → V) (setindex : D → I → V → D)
-    (copyRemaining : D → B → List I → D) (bc : B) : D :=
-  match resultEltype bc with
-  | .concrete => copyto (similar bc none) bc
-  | _inferred =>
-      let ready := preprocess bc
-      match indices ready with
-      | [] => similar ready none
-      | first :: rest =>
-          let value := getindex ready first
-          let dest := setindex (similar ready (some value)) first value
-          copyRemaining dest ready rest
-def P948 : Prop := ∀ {B I V D : Type} (resultEltype : B → Inferred) (similar : B → Option V → D)
-    (copyto : D → B → D) (preprocess : B → B) (indices : B → List I)
-    (getindex : B → I → V) (setindex : D → I → V → D)
-    (copyRemaining : D → B → List I → D) bc,
-  m948 resultEltype similar copyto preprocess indices getindex setindex copyRemaining bc =
-    match resultEltype bc with
-    | .concrete => copyto (similar bc none) bc
-    | _inferred => let ready := preprocess bc; match indices ready with
-      | [] => similar ready none
-      | first :: rest => let value := getindex ready first
-        copyRemaining (setindex (similar ready (some value)) first value) ready rest
+def m948 {B Iter I State V D : Type} (resultEltype : B → Result Inferred)
+    (similar : B → Inferred → Result D) (copyto : D → B → Result D)
+    (preprocess : B → Result B) (eachindex : B → Result Iter)
+    (iterate : Iter → Result (Option (I × State))) (getindex : B → I → Result V)
+    (typeOf : V → Inferred) (setindex : D → I → V → Result D)
+    (normalize : Inferred → Inferred)
+    (copyNonleaf : D → B → Iter → State → Nat → Result D)
+    (assertReturn : Inferred → D → Result D) (bc : B) : Result D := do
+  let elementType ← resultEltype bc
+  if elementType = .concrete then
+    let dest ← similar bc elementType
+    copyto dest bc
+  else
+    let ready ← preprocess bc
+    let iter ← eachindex ready
+    match ← iterate iter with
+    | none => similar ready elementType
+    | some (index, state) => do
+        let value ← getindex ready index
+        let dest ← similar ready (typeOf value)
+        let dest ← setindex dest index value
+        let result ← copyNonleaf dest ready iter state 1
+        assertReturn (normalize elementType) result
+def P948 : Prop := ∀ {B Iter I State V D : Type} (resultEltype : B → Result Inferred)
+    (similar : B → Inferred → Result D) (copyto : D → B → Result D)
+    (preprocess : B → Result B) (eachindex : B → Result Iter)
+    (iterate : Iter → Result (Option (I × State))) (getindex : B → I → Result V)
+    (typeOf : V → Inferred) (setindex : D → I → V → Result D)
+    (normalize : Inferred → Inferred)
+    (copyNonleaf : D → B → Iter → State → Nat → Result D)
+    (assertReturn : Inferred → D → Result D) bc,
+  m948 resultEltype similar copyto preprocess eachindex iterate getindex typeOf
+      setindex normalize copyNonleaf assertReturn bc = do
+    let elementType ← resultEltype bc
+    if elementType = .concrete then
+      let dest ← similar bc elementType
+      copyto dest bc
+    else
+      let ready ← preprocess bc
+      let iter ← eachindex ready
+      match ← iterate iter with
+      | none => similar ready elementType
+      | some (index, state) => do
+          let value ← getindex ready index
+          let dest ← similar ready (typeOf value)
+          let dest ← setindex dest index value
+          let result ← copyNonleaf dest ready iter state 1
+          assertReturn (normalize elementType) result
 theorem p948 : P948 := by simp [P948, m948]
 
 def m980 {D B : Type} (convertNothing : B → B) (copyto : D → B → D) (dest : D) (bc : B) : D :=
@@ -333,27 +399,42 @@ def writeAll {D I V : Type} (setindex : D → I → V → D) (getindex : I → V
   | dest, [] => dest
   | dest, index :: rest => writeAll setindex getindex (setindex dest index (getindex index)) rest
 
+def fallbackCopy {D B I V : Type} (preprocess : D → B → B)
+    (indices : B → List I) (getindex : B → I → V) (setindex : D → I → V → D)
+    (dest : D) (bc : B) : D :=
+  let ready := preprocess dest bc
+  writeAll setindex (getindex ready) dest (indices ready)
+
 def m1015 {D B X I V : Type} (axesDest : D → X) (axesExpr : B → X) (sameAxes : X → X → Bool)
     (identityArray : B → Option D) (copyto : D → D → D) (preprocess : D → B → B)
     (indices : B → List I) (getindex : B → I → V) (setindex : D → I → V → D)
     (dest : D) (bc : B) : Result D :=
   if !sameAxes (axesDest dest) (axesExpr bc) then .error .dimensionMismatch else
   match identityArray bc with
-  | some source => if sameAxes (axesDest dest) (axesDest source) then .ok (copyto dest source) else .ok dest
-  | none => let ready := preprocess dest bc
-    .ok (writeAll setindex (getindex ready) dest (indices ready))
-def P1015 : Prop := ∀ {D B X I V : Type} (axesDest : D → X) (axesExpr : B → X) (sameAxes : X → X → Bool)
-    (identityArray : B → Option D) (copyto : D → D → D) (preprocess : D → B → B)
-    (indices : B → List I) (getindex : B → I → V) (setindex : D → I → V → D) dest bc,
+  | some source =>
+      if sameAxes (axesDest dest) (axesDest source) then .ok (copyto dest source)
+      else .ok (fallbackCopy preprocess indices getindex setindex dest bc)
+  | none => .ok (fallbackCopy preprocess indices getindex setindex dest bc)
+def P1015 : Prop := ∀ {D B X I V : Type} (axesDest : D → X) (axesExpr : B → X)
+    (sameAxes : X → X → Bool) (identityArray : B → Option D) (copyto : D → D → D)
+    (preprocess : D → B → B) (indices : B → List I) (getindex : B → I → V)
+    (setindex : D → I → V → D) dest bc,
   m1015 axesDest axesExpr sameAxes identityArray copyto preprocess indices getindex setindex dest bc =
     if !sameAxes (axesDest dest) (axesExpr bc) then .error .dimensionMismatch else
     match identityArray bc with
-    | some source => if sameAxes (axesDest dest) (axesDest source) then .ok (copyto dest source) else .ok dest
-    | none => let ready := preprocess dest bc; .ok (writeAll setindex (getindex ready) dest (indices ready))
+    | some source =>
+        if sameAxes (axesDest dest) (axesDest source) then .ok (copyto dest source)
+        else .ok (fallbackCopy preprocess indices getindex setindex dest bc)
+    | none => .ok (fallbackCopy preprocess indices getindex setindex dest bc)
 theorem p1015 : P1015 := by simp [P1015, m1015]
 
-def m1133 {X : Type} (_destAxes _sourceAxes : X) : Result Unit := .error .dimensionMismatch
-def P1133 : Prop := ∀ {X : Type} (destAxes sourceAxes : X), m1133 destAxes sourceAxes = .error .dimensionMismatch
+def m1133 {X : Type} (render : X → String) (destAxes sourceAxes : X) : Except String Unit :=
+  .error ("destination axes " ++ render destAxes ++
+    " are not compatible with source axes " ++ render sourceAxes)
+def P1133 : Prop := ∀ {X : Type} (render : X → String) destAxes sourceAxes,
+  m1133 render destAxes sourceAxes =
+    .error ("destination axes " ++ render destAxes ++
+      " are not compatible with source axes " ++ render sourceAxes)
 theorem p1133 : P1133 := by simp [P1133, m1133]
 
 def copyPrefix {D I V : Type} (getindex : D → I → V) (setindex : D → I → V → D)
@@ -361,32 +442,39 @@ def copyPrefix {D I V : Type} (getindex : D → I → V) (setindex : D → I →
   | [] => target
   | index :: rest => copyPrefix getindex setindex source (setindex target index (getindex source index)) rest
 
-def m1136 {D B I V : Type} (getindex : D → I → V) (setindex : D → I → V → D)
-    (continueCopy : D → B → List I → Nat → D) (newdest dest : D) (bc : B)
-    (value : V) (index : I) (iter : List I) (_state count : Nat) : D :=
+def m1136 {D B I V State : Type} (getindex : D → I → V) (setindex : D → I → V → D)
+    (continueCopy : D → B → List I → State → Nat → D) (newdest dest : D) (bc : B)
+    (value : V) (index : I) (iter : List I) (state : State) (count : Nat) : D :=
   let copied := copyPrefix getindex setindex dest newdest (iter.take count)
-  continueCopy (setindex copied index value) bc iter (count + 1)
-def P1136 : Prop := ∀ {D B I V : Type} (getindex : D → I → V) (setindex : D → I → V → D)
-    (continueCopy : D → B → List I → Nat → D) newdest dest bc value index iter state count,
+  continueCopy (setindex copied index value) bc iter state (count + 1)
+def P1136 : Prop := ∀ {D B I V State : Type} (getindex : D → I → V)
+    (setindex : D → I → V → D) (continueCopy : D → B → List I → State → Nat → D)
+    newdest dest bc value index iter state count,
   m1136 getindex setindex continueCopy newdest dest bc value index iter state count =
     let copied := copyPrefix getindex setindex dest newdest (iter.take count)
-    continueCopy (setindex copied index value) bc iter (count + 1)
+    continueCopy (setindex copied index value) bc iter state (count + 1)
 theorem p1136 : P1136 := by simp [P1136, m1136]
 
-def copyNonleaf {D I V : Type} (fits : V → Bool) (getvalue : I → V)
-    (setindex : D → I → V → D) (widen : D → V → D) : D → List I → D
-  | dest, [] => dest
-  | dest, index :: rest =>
+def copyNonleaf {D I V State : Type} (fits : V → Bool) (getvalue : I → V)
+    (setindex : D → I → V → D) (widen : D → V → I → State → Nat → D) :
+    D → List (I × State) → Nat → D
+  | dest, [], _ => dest
+  | dest, (index, state) :: rest, count =>
       let value := getvalue index
-      let next := if fits value then setindex dest index value else widen dest value
-      copyNonleaf fits getvalue setindex widen next rest
+      if fits value then
+        copyNonleaf fits getvalue setindex widen (setindex dest index value) rest (count + 1)
+      else
+        widen dest value index state count
 
-def m1145 {D I V : Type} (fits : V → Bool) (getvalue : I → V)
-    (setindex : D → I → V → D) (widen : D → V → D) (dest : D) (indices : List I) : D :=
-  copyNonleaf fits getvalue setindex widen dest indices
-def P1145 : Prop := ∀ {D I V : Type} (fits : V → Bool) (getvalue : I → V)
-    (setindex : D → I → V → D) (widen : D → V → D) dest indices,
-  m1145 fits getvalue setindex widen dest indices = copyNonleaf fits getvalue setindex widen dest indices
+def m1145 {D I V State : Type} (fits : V → Bool) (getvalue : I → V)
+    (setindex : D → I → V → D) (widen : D → V → I → State → Nat → D)
+    (dest : D) (iterations : List (I × State)) (count : Nat) : D :=
+  copyNonleaf fits getvalue setindex widen dest iterations count
+def P1145 : Prop := ∀ {D I V State : Type} (fits : V → Bool) (getvalue : I → V)
+    (setindex : D → I → V → D) (widen : D → V → I → State → Nat → D)
+    dest iterations count,
+  m1145 fits getvalue setindex widen dest iterations count =
+    copyNonleaf fits getvalue setindex widen dest iterations count
 theorem p1145 : P1145 := by simp [P1145, m1145]
 
 def m1167 {B I V : Type} (axes : B → List (List I)) (getindex : B → Nat → V) (bc : B) : Result (List V) :=
@@ -409,57 +497,6 @@ private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) 
     prop
     thm := some thm }
 
-def entries : List Entry := [
-  entry 736 "broadcastable(::BroadcastScalars)" "Every broadcast scalar is wrapped in a Ref containing the same polymorphic value." ``P736 ``p736,
-  entry 737 "broadcastable(::Type{T})" "Every type value is wrapped in Ref{Type{T}} containing that same type." ``P737 ``p737,
-  entry 738 "broadcastable(already supported)" "Every already supported broadcast value passes through unchanged." ``P738 ``p738,
-  entry 740 "broadcastable(x)" "The fallback delegates to collect and preserves all collection errors." ``P740 ``p740,
-  entry 741 "broadcastable(::AbstractDictOrNamedTuple)" "Every reserved dictionary or NamedTuple input throws ArgumentError." ``P741 ``p741,
-  entry 744 "_bc_eltype(::Broadcasted,i)" "Sampling gathers every argument in order before applying the stored function." ``P744 ``p744,
-  entry 747 "_bc_eltype(::Number,i)" "Number sampling delegates to broadcast indexing." ``P747 ``p747,
-  entry 748 "_bc_eltype(::Tuple,i)" "Tuple sampling delegates to broadcast indexing." ``P748 ``p748,
-  entry 751 "_bc_eltype(x,i)" "General sampling crosses the inference barrier, indexes, then checks the result against eltype(x)." ``P751 ``p751,
-  entry 753 "_bc_eltypes(args,i)" "Recursive sampling evaluates the head before the complete tail." ``P753 ``p753,
-  entry 754 "_bc_eltypes((),i)" "The empty argument tuple yields no samples for every index." ``P754 ``p754,
-  entry 756 "result_eltype(::Broadcasted)" "Result inference computes argument types, returns bottom early, then computes and union-joins the return type." ``P756 ``p756,
-  entry 765 "_broadcast_getindex_eltype(::Broadcasted)" "Nested element inference delegates the stored function and arguments to combine_eltypes." ``P765 ``p765,
-  entry 766 "_broadcast_getindex_eltype(A)" "Leaf element inference returns eltype(A)." ``P766 ``p766,
-  entry 768 "eltypes(())" "The empty input type tuple is empty." ``P768 ``p768,
-  entry 769 "eltypes(singleton)" "Singleton inference applies TupleOrBottom to its element type." ``P769 ``p769,
-  entry 770 "eltypes(pair)" "Pair inference computes both element types before TupleOrBottom." ``P770 ``p770,
-  entry 771 "eltypes(tuple)" "Recursive inference computes the tail first, propagates bottom, then prepends the head type." ``P771 ``p771,
-  entry 774 "combine_eltypes(f,args)" "Combined inference propagates bottom, computes f's return type, then joins unions." ``P774 ``p774,
-  entry 859 "broadcast(f,As...)" "Broadcast constructs the lazy expression before materializing it." ``P859 ``p859,
-  entry 862 "broadcast(f,::Number...)" "All-number broadcast calls f directly with every scalar." ``P862 ``p862,
-  entry 863 "broadcast(f,tuples...)" "Equal-length tuple broadcast maps f pointwise across every tuple." ``P863 ``p863,
-  entry 898 "broadcast!(f,dest,As...)" "In-place broadcast constructs and materializes the expression into dest, then returns dest." ``P898 ``p898,
-  entry 908 "broadcast_preserving_zero_d(f,As...)" "The helper constructs then materializes once, wrapping exactly zero-dimensional results in a similar filled container." ``P908 ``p908,
-  entry 913 "broadcast_preserving_zero_d(f)" "The zero-argument overload calls f once and returns a zero-dimensional filled container." ``P913 ``p913,
-  entry 914 "broadcast_preserving_zero_d(f,numbers...)" "The numeric overload calls f on every scalar and returns a zero-dimensional filled container." ``P914 ``p914,
-  entry 921 "materialize(::Broadcasted)" "Materialization instantiates before copying." ``P921 ``p921,
-  entry 922 "materialize(x)" "Every non-Broadcasted value passes through unchanged." ``P922 ``p922,
-  entry 924 "materialize!(dest,x)" "Scalar assignment reads destination axes, constructs identity Broadcasted, instantiates it, then delegates." ``P924 ``p924,
-  entry 928 "materialize!(dest,bc)" "Styled assignment combines destination and expression styles before dispatching." ``P928 ``p928,
-  entry 932 "materialize!(style,dest,bc)" "Styled materialization rebuilds with destination axes, instantiates, then copies into dest." ``P932 ``p932,
-  entry 936 "materialize!(unwritable,bc)" "Every scalar-like destination delegates to the unwritable-destination error." ``P936 ``p936,
-  entry 937 "_throw_unwritable_dest" "The helper throws ArgumentError for every destination type." ``P937 ``p937,
-  entry 942 "copy(zero-dimensional Broadcasted)" "Zero-dimensional copy reads the expression at the empty Cartesian index." ``P942 ``p942,
-  entry 943 "copy(unassigned Broadcasted)" "Every missing or Unknown style throws ArgumentError." ``P943 ``p943,
-  entry 948 "copy(::Broadcasted)" "Copy uses direct allocation for concrete eltypes; otherwise it preprocesses, handles empty input, seeds from the first value, and copies every remaining index." ``P948 ``p948,
-  entry 980 "copyto!(dest,styled bc)" "The general styled overload converts Style to Nothing before copying." ``P980 ``p980,
-  entry 983 "copyto!(dest,zero-dimensional bc)" "The identity singleton fast path fills; every other expression converts and delegates." ``P983 ``p983,
-  entry 1001 "broadcast_unalias(dest,src)" "An identical source passes through and every other source delegates to unalias." ``P1001 ``p1001,
-  entry 1002 "broadcast_unalias(nothing,src)" "A missing destination returns the source unchanged." ``P1002 ``p1002,
-  entry 1007 "preprocess(dest,bc)" "Nested preprocessing preserves style, function, and axes while preprocessing every argument." ``P1007 ``p1007,
-  entry 1008 "preprocess(dest,x)" "Leaf preprocessing unaliases before extrusion." ``P1008 ``p1008,
-  entry 1010 "preprocess_args(dest,args)" "Recursive preprocessing evaluates the head before every tail argument." ``P1010 ``p1010,
-  entry 1011 "preprocess_args(dest,singleton)" "Singleton preprocessing evaluates its sole argument once." ``P1011 ``p1011,
-  entry 1012 "preprocess_args(dest,())" "Empty preprocessing returns empty." ``P1012 ``p1012,
-  entry 1015 "copyto!(dest,::Broadcasted{Nothing})" "Copy validates axes, applies the matching-axis identity shortcut, or preprocesses and writes every expression index in order." ``P1015 ``p1015,
-  entry 1133 "throwdm" "Every incompatible destination and source axis pair throws DimensionMismatch." ``P1133 ``p1133,
-  entry 1136 "restart_copyto_nonleaf!" "Restart copies the exact written prefix, writes the widening value, increments count, and resumes." ``P1136 ``p1136,
-  entry 1145 "copyto_nonleaf!" "The widening loop consumes every remaining index, writing fitting values and widening at each mismatch." ``P1145 ``p1145,
-  entry 1167 "copy(::Broadcasted{Style{Tuple}})" "Tuple copy accepts exactly one axis and evaluates every one-based position into a tuple." ``P1167 ``p1167
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.BroadcastMaterialFaithful

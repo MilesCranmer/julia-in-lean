@@ -245,6 +245,26 @@ def entries : List Entry := [
     statement := "Bootstrap definitions forward include, expand the meta macros, implement the property protocol with field conversion, and parse sysimage arguments in flag/value pairs."
     source := "base/Base_compiler.jl:1-434", status := .proven
     prop := ``BaseCompilerBodies, thm := some ``baseCompilerBodies_proven },
+  { id := "runtimecov-base-compiler-ordered-get", juliaFile := "base/Base_compiler.jl"
+    juliaFns := ["getproperty(::Module,::Symbol,::Symbol)", "getproperty(::Type,::Symbol,::Symbol)", "getproperty(::Tuple,::Int,::Symbol)", "getproperty(::Any,::Symbol,::Symbol)"]
+    statement := "Ordered property reads forward the original object, field and memory order to the corresponding global or field operation."
+    source := "base/Base_compiler.jl:71,78,80,83", status := .proven
+    prop := ``OrderedGetContract, thm := some ``orderedGetContract_proven },
+  { id := "runtimecov-base-compiler-ordered-set", juliaFile := "base/Base_compiler.jl"
+    juliaFns := ["setproperty!(::Module,::Symbol,::Any,::Symbol)", "setproperty!(::Type,::Symbol,::Any,::Symbol)", "setproperty!(::Tuple,::Int,::Any,::Symbol)", "setproperty!(::Any,::Symbol,::Any,::Symbol)"]
+    statement := "Ordered property writes preserve their memory order, convert values when required, and propagate type-lookup failures; type-object writes raise an error."
+    source := "base/Base_compiler.jl:72-77,79,81,84-89", status := .proven
+    prop := ``OrderedSetContract, thm := some ``orderedSetContract_proven },
+  { id := "runtimecov-base-compiler-modify-property", juliaFile := "base/Base_compiler.jl"
+    juliaFns := ["modifyproperty!(::Any,::Symbol,::Any,::Any,::Symbol)", "modifyproperty!(::Module,::Symbol,::Any,::Any,::Symbol)"]
+    statement := "Field and global modification forward the operator, operand, memory order and runtime result unchanged."
+    source := "base/Base_compiler.jl:97-100,120-123", status := .proven
+    prop := ``ModifyPropertyContract, thm := some ``modifyPropertyContract_proven },
+  { id := "runtimecov-base-compiler-swap-property", juliaFile := "base/Base_compiler.jl"
+    juliaFns := ["swapproperty!(::Any,::Symbol,::Any,::Symbol)", "swapproperty!(::Module,::Symbol,::Any,::Symbol)"]
+    statement := "Field and global swaps convert to the declared type when required, forward the order and return the primitive's old value."
+    source := "base/Base_compiler.jl:91-96,114-119", status := .proven
+    prop := ``SwapPropertyContract, thm := some ``swapPropertyContract_proven },
   { id := "runtimecov-layout", juliaFile := "base/runtime_internals.jl"
     juliaFns := ["DataTypeLayout", "datatype_alignment", "uniontype_layout", "LLT_ALIGN", "aligned_sizeof", "gc_alignment",
       "datatype_haspadding", "datatype_isbitsegal", "datatype_nfields", "datatype_npointers", "datatype_pointerfree",

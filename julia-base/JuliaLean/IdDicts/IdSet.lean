@@ -130,15 +130,28 @@ def maxValues : JTy → Nat
   | .nothing => 1
   | _ => 2 ^ 63 - 1
 
-/-- `union!(s::AbstractSet{T}, itr)`, base/abstractset.jl:105-112 (the
-`sizehint!` call is a no-op for `IdSet`, base/idset.jl:85-97). -/
+/-- `union!(s::AbstractSet{T}, itr)`, `base/abstractset.jl:105-112`. The
+Boolean records whether the iterator's declared element type is a subtype of `T`.
+The `sizehint!` call is a no-op for `IdSet` (`base/idset.jl:85-97`). -/
+def IdSet.unionTyped (s : IdSet) (eltypeSubtype : Bool) : List JVal → Out IdSet Unit
+  | [] => (s, .ok ())
+  | x :: xs =>
+    let r := s.push x
+    match r.2 with
+    | .error e => (r.1, .error e)
+    | .ok () =>
+      if eltypeSubtype && r.1.length == maxValues s.T then (r.1, .ok ())
+      else r.1.unionTyped eltypeSubtype xs
+
+/-- Union with an iterator whose declared element type is `Any`. -/
 def IdSet.union (s : IdSet) : List JVal → Out IdSet Unit
   | [] => (s, .ok ())
   | x :: xs =>
     let r := s.push x
     match r.2 with
     | .error e => (r.1, .error e)
-    | .ok () => if r.1.length == maxValues s.T then (r.1, .ok ()) else r.1.union xs
+    | .ok () =>
+      if (s.T == .any) && r.1.length == maxValues s.T then (r.1, .ok ()) else r.1.union xs
 
 /-- `setdiff!(s, itr)`, base/abstractset.jl:250-255. -/
 def IdSet.setdiff (s : IdSet) (xs : List JVal) : IdSet := xs.foldl IdSet.delete s

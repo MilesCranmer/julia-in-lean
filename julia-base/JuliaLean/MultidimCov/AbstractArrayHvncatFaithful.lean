@@ -19,14 +19,18 @@ def getCatOneBased (values : List α) (index : Int) : CResult α :=
     | none => .error .bounds
 
 /-- `rows_to_dimshape`, line 2247. -/
-def m2247 (rows : List Int) : CResult DimShape := do
+def m2247 (sumRows : List Int → CResult Int) (rows : List Int) : CResult DimShape := do
   let columns ← firstOrBounds rows
   if rows.all (· = columns) then .ok (.balanced rows.length columns)
-  else .ok (.unbalanced rows (rows.foldl (· + ·) 0))
-def P2247 : Prop := ∀ rows, m2247 rows = do
+  else do
+    let total ← sumRows rows
+    .ok (.unbalanced rows total)
+def P2247 : Prop := ∀ sumRows rows, m2247 sumRows rows = do
   let columns ← firstOrBounds rows
   if rows.all (· = columns) then .ok (.balanced rows.length columns)
-  else .ok (.unbalanced rows (rows.foldl (· + ·) 0))
+  else do
+    let total ← sumRows rows
+    .ok (.unbalanced rows total)
 theorem p2247 : P2247 := by unfold P2247; intros; rfl
 
 def hvcatNumberLoop (getRow : List Int → Int → CResult Int)
@@ -36,7 +40,10 @@ def hvcatNumberLoop (getRow : List Int → Int → CResult Int)
   | array, rows, values, row, remainingRows + 1, columns, index => do
       let actualColumns ← getRow rows row
       if actualColumns != columns then
-        .error (.dimensionMismatch (.literal "row has mismatched number of columns"))
+        let printedColumns ← getRow rows row
+        .error (.dimensionMismatch (lazyAppend [.literal "row ", .integer row,
+          .literal " has mismatched number of columns (expected ", .integer columns,
+          .literal ", got ", .integer printedColumns, .literal ")"]))
       else
         let rec columnsLoop (array : A) (column : Int) (remaining : Nat)
             (valueIndex : Int) : CResult (A × Int) :=
@@ -57,34 +64,52 @@ def m2253 (allocate : Int → Int → CResult A) (arrayLength : A → CResult In
   let array ← allocate rows.length columns
   let expected ← arrayLength array
   let actual ← valuesLength values
-  if expected != actual then .error (.argument (.literal "argument count does not match specified shape"))
+  if expected != actual then
+    let printedExpected ← arrayLength array
+    let printedActual ← valuesLength values
+    .error (.argument (lazyAppend [.literal "argument count does not match specified shape (expected ",
+      .integer printedExpected, .literal ", got ", .integer printedActual, .literal ")"]))
   else hvcatNumberLoop (fun rs i => getCatOneBased rs i) getValue set array rows values 1 rows.length columns 1
 def P2253 : Prop := ∀ {A X V : Type} (allocate : Int → Int → CResult A)
     (arrayLength : A → CResult Int) (valuesLength : X → CResult Int)
     (getValue : X → Int → CResult V) (set : A → Int → Int → V → CResult A) rows values,
-  m2253 allocate arrayLength valuesLength getValue set rows values =
-  m2253 allocate arrayLength valuesLength getValue set rows values
+  m2253 allocate arrayLength valuesLength getValue set rows values = do
+    let columns ← firstOrBounds rows
+    let array ← allocate rows.length columns
+    let expected ← arrayLength array
+    let actual ← valuesLength values
+    if expected != actual then
+      let printedExpected ← arrayLength array
+      let printedActual ← valuesLength values
+      .error (.argument (lazyAppend [.literal "argument count does not match specified shape (expected ",
+        .integer printedExpected, .literal ", got ", .integer printedActual, .literal ")"]))
+    else hvcatNumberLoop (fun rs i => getCatOneBased rs i) getValue set array rows values 1 rows.length columns 1
 theorem p2253 : P2253 := by unfold P2253; intros; rfl
 
-def validateRows : List Int → Int → CResult Unit
-  | [], _ => .ok ()
-  | _ :: rest, columns =>
-      if rest.all (· = columns) then .ok ()
-      else .error (.dimensionMismatch (.literal "row has mismatched number of columns"))
+def validateRows : List Int → Int → Int → Nat → CResult Unit
+  | _, _, _, 0 => .ok ()
+  | rows, columns, index, remaining + 1 => do
+      let actual ← getCatOneBased rows index
+      if actual != columns then
+        let printed ← getCatOneBased rows index
+        .error (.dimensionMismatch (lazyAppend [.literal "row ", .integer index,
+          .literal " has mismatched number of columns (expected ", .integer columns,
+          .literal ", got ", .integer printed, .literal ")"]))
+      else validateRows rows columns (index + 1) remaining
 
 /-- Numeric `typed_hvcat`, lines 2279-2292. -/
 def m2279 (allocate : T → Int → Int → CResult A)
     (fill : A → Bool → X → CResult A) (elementType : T)
     (rows : List Int) (values : X) : CResult A := do
   let columns ← firstOrBounds rows
-  validateRows rows columns
+  validateRows rows columns 2 (rows.length - 1)
   let array ← allocate elementType rows.length columns
   fill array true values
 def P2279 : Prop := ∀ {T A X : Type} (allocate : T → Int → Int → CResult A)
     (fill : A → Bool → X → CResult A) elementType rows values,
   m2279 allocate fill elementType rows values = do
     let columns ← firstOrBounds rows
-    validateRows rows columns
+    validateRows rows columns 2 (rows.length - 1)
     let array ← allocate elementType rows.length columns
     fill array true values
 theorem p2279 : P2279 := by unfold P2279; intros; rfl
@@ -119,7 +144,11 @@ def m2417 (convertVector : T → X → CResult V) (reshape : V → List Int → 
 def P2417 : Prop := ∀ {T X V A : Type} (convertVector : T → X → CResult V)
     (reshape : V → List Int → CResult A) (length : X → CResult Int) elementType rank values,
   m2417 convertVector reshape length elementType rank values =
-  m2417 convertVector reshape length elementType rank values
+    if rank < 0 then .error (.argument (.literal "concatenation dimension must be non-negative"))
+    else do
+      let vector ← convertVector elementType values
+      let count ← length values
+      reshape vector (List.replicate (rank - 1).toNat 1 ++ [count])
 theorem p2417 : P2417 := by unfold P2417; intros; rfl
 
 /-- Singleton-dims balanced wrappers, lines 2498-2499. -/
@@ -143,31 +172,52 @@ theorem p2499 : P2499 := by unfold P2499; intros; rfl
 def m2501 (length : X → CResult Int) (delegate : T → Int → X → CResult A)
     (elementType : T) (dimensionSize : Int) (rowFirst : Bool) (values : X) : CResult A := do
   let count ← length values
-  if dimensionSize ≤ 0 then .error (.argument (.literal "dimsshape must consist of positive integers"))
-  else if count != dimensionSize then .error (.argument (.literal "number of elements does not match dimshape"))
+  if dimensionSize ≤ 0 then
+    .error (.argument (.literal "`dimsshape` argument must consist of positive integers"))
+  else if count != dimensionSize then
+    .error (.argument (lazyAppend [.literal "number of elements does not match `dimshape` argument; expected ",
+      .integer dimensionSize, .literal ", got ", .integer count]))
   else delegate elementType (if rowFirst then 2 else 1) values
 def P2501 : Prop := ∀ {X T A : Type} (length : X → CResult Int)
     (delegate : T → Int → X → CResult A) elementType dimensionSize rowFirst values,
-  m2501 length delegate elementType dimensionSize rowFirst values =
-  m2501 length delegate elementType dimensionSize rowFirst values
+  m2501 length delegate elementType dimensionSize rowFirst values = do
+    let count ← length values
+    if dimensionSize ≤ 0 then
+      .error (.argument (.literal "`dimsshape` argument must consist of positive integers"))
+    else if count != dimensionSize then
+      .error (.argument (lazyAppend [.literal "number of elements does not match `dimshape` argument; expected ",
+        .integer dimensionSize, .literal ", got ", .integer count]))
+    else delegate elementType (if rowFirst then 2 else 1) values
 theorem p2501 : P2501 := by unfold P2501; intros; rfl
 
 /-- Balanced numeric `_typed_hvncat`, lines 2514-2525. -/
 def m2514 (allocate : T → List Int → CResult A) (arrayLength : A → CResult Int)
     (valuesLength : X → CResult Int) (fill : A → Bool → X → CResult A)
     (elementType : T) (dimensions : List Int) (rowFirst : Bool) (values : X) : CResult A :=
-  if dimensions.any (· ≤ 0) then .error (.argument (.literal "dims must contain positive integers"))
+  if dimensions.any (· ≤ 0) then
+    .error (.argument (.literal "`dims` argument must contain positive integers"))
   else do
     let array ← allocate elementType dimensions
     let expected ← arrayLength array
     let actual ← valuesLength values
-    if expected != actual then .error (.argument (.literal "argument count does not match specified shape"))
+    if expected != actual then .error (.argument (lazyAppend
+      [.literal "argument count does not match specified shape (expected ",
+       .integer expected, .literal ", got ", .integer actual, .literal ")"]))
     else fill array rowFirst values
 def P2514 : Prop := ∀ {T A X : Type} (allocate : T → List Int → CResult A)
     (arrayLength : A → CResult Int) (valuesLength : X → CResult Int)
     (fill : A → Bool → X → CResult A) elementType dimensions rowFirst values,
   m2514 allocate arrayLength valuesLength fill elementType dimensions rowFirst values =
-  m2514 allocate arrayLength valuesLength fill elementType dimensions rowFirst values
+    if dimensions.any (· ≤ 0) then
+      .error (.argument (.literal "`dims` argument must contain positive integers"))
+    else do
+      let array ← allocate elementType dimensions
+      let expected ← arrayLength array
+      let actual ← valuesLength values
+      if expected != actual then .error (.argument (lazyAppend
+        [.literal "argument count does not match specified shape (expected ",
+         .integer expected, .literal ", got ", .integer actual, .literal ")"]))
+      else fill array rowFirst values
 theorem p2514 : P2514 := by unfold P2514; intros; rfl
 
 def product : List Int → Int := List.foldl (· * ·) 1
@@ -180,7 +230,8 @@ def fillLinear (getValue : X → Int → CResult V) (set : A → Int → V → C
       let next ← set array index value
       fillLinear getValue set next values (index + 1) remaining
 
-def fillRowsPage (getValue : X → Int → CResult V) (set : A → Int → V → CResult A)
+def fillRowsPage (linearIndex : Int → Int → Int → Int → Int → CResult Int)
+    (getValue : X → Int → CResult V) (set : A → Int → V → CResult A)
     (rows columns page : Int) : A → X → Int → Nat → Int → CResult (A × Int)
   | array, _, _, 0, valueIndex => .ok (array, valueIndex)
   | array, values, row, remainingRows + 1, valueIndex => do
@@ -190,54 +241,198 @@ def fillRowsPage (getValue : X → Int → CResult V) (set : A → Int → V →
         | 0 => .ok (array, index)
         | remaining + 1 => do
           let value ← getValue values index
-          let linearIndex := rows * columns * (page - 1) + row + rows * (column - 1)
-          let next ← set array linearIndex value
+          let outputIndex ← linearIndex rows columns page row column
+          let next ← set array outputIndex value
           columnsLoop next (column + 1) remaining (index + 1)
       let result ← columnsLoop array 1 columns.toNat valueIndex
-      fillRowsPage getValue set rows columns page result.1 values (row + 1) remainingRows result.2
+      fillRowsPage linearIndex getValue set rows columns page result.1 values
+        (row + 1) remainingRows result.2
 
-def fillRowFirst (getValue : X → Int → CResult V) (set : A → Int → V → CResult A)
+def fillRowFirst (linearIndex : Int → Int → Int → Int → Int → CResult Int)
+    (getValue : X → Int → CResult V) (set : A → Int → V → CResult A)
     (rows columns : Int) : A → X → Int → Nat → Int → CResult A
   | array, _, _, 0, _ => .ok array
   | array, values, page, remainingPages + 1, valueIndex => do
-      let result ← fillRowsPage getValue set rows columns page array values 1 rows.toNat valueIndex
-      fillRowFirst getValue set rows columns result.1 values (page + 1) remainingPages result.2
+      let result ← fillRowsPage linearIndex getValue set rows columns page
+        array values 1 rows.toNat valueIndex
+      fillRowFirst linearIndex getValue set rows columns result.1 values
+        (page + 1) remainingPages result.2
 
 /-- Fallback `_hvncat_fill_loop!`, lines 2527-2554. -/
-def m2527 (size : A → CResult (List Int)) (valuesLength : X → CResult Int)
-    (getValue : X → Int → CResult V) (set : A → Int → V → CResult A)
+def m2527 (size : A → CResult (List Int)) (product : List Int → CResult Int)
+    (multiply : Int → Int → CResult Int)
+    (linearIndex : Int → Int → Int → Int → Int → CResult Int)
+    (valuesLength : X → CResult Int) (getValue : X → Int → CResult V)
+    (set : A → Int → V → CResult A)
     (array : A) (rowFirst : Bool) (values : X) : CResult A := do
   let shape ← size array
   let rows ← getCatOneBased shape 1
   let columns ← getCatOneBased shape 2
+  let pages ← product (shape.drop 2)
   let count ← valuesLength values
-  let pages := product (shape.drop 2)
-  if rows * columns * pages != count then .error (.argument (.literal "argument count does not match specified shape"))
-  else if rowFirst then fillRowFirst getValue set rows columns array values 1 pages.toNat 1
+  let rowsColumns ← multiply rows columns
+  let expected ← multiply rowsColumns pages
+  if expected != count then
+    let printedShape ← size array
+    .error (.argument (lazyAppend [.literal "argument count ", .integer count,
+      .literal " does not match specified shape ", .dynamic ⟨0, printedShape.length⟩]))
+  else if rowFirst then
+    fillRowFirst linearIndex getValue set rows columns array values 1 pages.toNat 1
   else fillLinear getValue set array values 1 count.toNat
 def P2527 : Prop := ∀ {A X V : Type} (size : A → CResult (List Int))
+    (product : List Int → CResult Int) (multiply : Int → Int → CResult Int)
+    (linearIndex : Int → Int → Int → Int → Int → CResult Int)
     (valuesLength : X → CResult Int) (getValue : X → Int → CResult V)
     (set : A → Int → V → CResult A) array rowFirst values,
-  m2527 size valuesLength getValue set array rowFirst values =
-  m2527 size valuesLength getValue set array rowFirst values
+  m2527 size product multiply linearIndex valuesLength getValue set array rowFirst values = do
+    let shape ← size array
+    let rows ← getCatOneBased shape 1
+    let columns ← getCatOneBased shape 2
+    let pages ← product (shape.drop 2)
+    let count ← valuesLength values
+    let rowsColumns ← multiply rows columns
+    let expected ← multiply rowsColumns pages
+    if expected != count then
+      let printedShape ← size array
+      .error (.argument (lazyAppend [.literal "argument count ", .integer count,
+        .literal " does not match specified shape ", .dynamic ⟨0, printedShape.length⟩]))
+    else if rowFirst then
+      fillRowFirst linearIndex getValue set rows columns array values 1 pages.toNat 1
+    else fillLinear getValue set array values 1 count.toNat
 theorem p2527 : P2527 := by unfold P2527; intros; rfl
 
-/-- Generated `hvncat_fill!`, lines 2556-2626, expressed by the three emitted bodies. -/
-def m2556 (fieldCount : X → Nat) (ndims : A → CResult Int)
-    (size : A → CResult (List Int)) (valuesLength : X → CResult Int)
-    (getValue : X → Int → CResult V) (set : A → Int → V → CResult A)
+structure Generated2DState (A : Type) where
+  array : A
+  row : Int
+  column : Int
+
+def fillGenerated2D (getValue : X → Int → CResult V)
+    (set : A → Int → Int → V → CResult A) (add : Int → Int → CResult Int)
+    (columns : Int) (values : X) : Nat → Int → Generated2DState A → CResult A
+  | 0, _, state => .ok state.array
+  | remaining + 1, valueIndex, state => do
+      let value ← getValue values valueIndex
+      let array ← set state.array state.row state.column value
+      let nextColumn ← add state.column 1
+      if columns < nextColumn then
+        let nextRow ← add state.row 1
+        fillGenerated2D getValue set add columns values remaining (valueIndex + 1)
+          ⟨array, nextRow, 1⟩
+      else
+        fillGenerated2D getValue set add columns values remaining (valueIndex + 1)
+          ⟨array, state.row, nextColumn⟩
+
+structure GeneratedNDState (A : Type) where
+  array : A
+  page : Int
+  row : Int
+  pageOffset : Int
+  linearIndex : Int
+  column : Int
+
+def fillGeneratedND (getValue : X → Int → CResult V)
+    (set : A → Int → V → CResult A) (add subtract multiply : Int → Int → CResult Int)
+    (rows columns rowsColumns : Int) (values : X) :
+    Nat → Int → GeneratedNDState A → CResult A
+  | 0, _, state => .ok state.array
+  | remaining + 1, valueIndex, state => do
+      let value ← getValue values valueIndex
+      let array ← set state.array state.linearIndex value
+      let nextColumn ← add state.column 1
+      let advancedIndex ← add state.linearIndex rows
+      if columns < nextColumn then
+        let nextRow ← add state.row 1
+        if rows < nextRow then
+          let nextPage ← add state.page 1
+          let pageMinusOne ← subtract nextPage 1
+          let pageOffset ← multiply rowsColumns pageMinusOne
+          let linearIndex ← add pageOffset 1
+          fillGeneratedND getValue set add subtract multiply rows columns rowsColumns values
+            remaining (valueIndex + 1) ⟨array, nextPage, 1, pageOffset, linearIndex, 1⟩
+        else
+          let linearIndex ← add state.pageOffset nextRow
+          fillGeneratedND getValue set add subtract multiply rows columns rowsColumns values
+            remaining (valueIndex + 1)
+            ⟨array, state.page, nextRow, state.pageOffset, linearIndex, 1⟩
+      else
+        fillGeneratedND getValue set add subtract multiply rows columns rowsColumns values
+          remaining (valueIndex + 1)
+          ⟨array, state.page, state.row, state.pageOffset, advancedIndex, nextColumn⟩
+
+/-- Generated `hvncat_fill!`, lines 2556-2626, including both emitted loop
+bodies and the large-tuple fallback. -/
+def m2556 (fieldCount : X → Nat) (fallback : A → Bool → X → CResult A)
+    (ndims : A → CResult Int) (sizeDim : A → IntegerValue → CResult Int)
+    (sizeAll : A → CResult (List Int)) (asAny : List Int → AnyValue)
+    (product : List Int → CResult Int) (add subtract multiply : Int → Int → CResult Int)
+    (getValue : X → Int → CResult V) (set2 : A → Int → Int → V → CResult A)
+    (setLinear : A → Int → V → CResult A)
     (array : A) (rowFirst : Bool) (values : X) : CResult A :=
-  if 32 < fieldCount values then m2527 size valuesLength getValue set array rowFirst values
+  let count := fieldCount values
+  if 32 < count then fallback array rowFirst values
   else do
     let rank ← ndims array
-    if rank ≤ 2 then m2527 size valuesLength getValue set array rowFirst values
-    else m2527 size valuesLength getValue set array rowFirst values
-def P2556 : Prop := ∀ {A X V : Type} (fieldCount : X → Nat) (ndims : A → CResult Int)
-    (size : A → CResult (List Int)) (valuesLength : X → CResult Int)
-    (getValue : X → Int → CResult V) (set : A → Int → V → CResult A)
-    array rowFirst values,
-  m2556 fieldCount ndims size valuesLength getValue set array rowFirst values =
-  m2556 fieldCount ndims size valuesLength getValue set array rowFirst values
+    let rows ← sizeDim array ⟨1⟩
+    let columns ← sizeDim array ⟨2⟩
+    let rowsColumns ← multiply rows columns
+    if rank ≤ 2 then
+      if rowsColumns != Int.ofNat count then
+        let shape ← sizeAll array
+        .error (.argument (lazyAppend [.literal "argument count ", .integer (Int.ofNat count),
+          .literal " does not match specified shape ", .dynamic (asAny shape)]))
+      else if rowFirst then
+        fillGenerated2D getValue set2 add columns values count 1 ⟨array, 1, 1⟩
+      else fillLinear getValue setLinear array values 1 count
+    else
+      let shape ← sizeAll array
+      let pages ← product (shape.drop 2)
+      let expected ← multiply rowsColumns pages
+      if expected != Int.ofNat count then
+        let printedShape ← sizeAll array
+        .error (.argument (lazyAppend [.literal "argument count ", .integer (Int.ofNat count),
+          .literal " does not match specified shape ", .dynamic (asAny printedShape)]))
+      else if rowFirst then
+        fillGeneratedND getValue setLinear add subtract multiply rows columns rowsColumns values
+          count 1 ⟨array, 1, 1, 0, 1, 1⟩
+      else fillLinear getValue setLinear array values 1 count
+def P2556 : Prop := ∀ {A X V : Type} (fieldCount : X → Nat)
+    (fallback : A → Bool → X → CResult A) (ndims : A → CResult Int)
+    (sizeDim : A → IntegerValue → CResult Int) (sizeAll : A → CResult (List Int))
+    (asAny : List Int → AnyValue) (product : List Int → CResult Int)
+    (add subtract multiply : Int → Int → CResult Int)
+    (getValue : X → Int → CResult V) (set2 : A → Int → Int → V → CResult A)
+    (setLinear : A → Int → V → CResult A) array rowFirst values,
+  m2556 fieldCount fallback ndims sizeDim sizeAll asAny product add subtract multiply getValue
+    set2 setLinear array rowFirst values =
+    let count := fieldCount values
+    if 32 < count then fallback array rowFirst values
+    else do
+      let rank ← ndims array
+      let rows ← sizeDim array ⟨1⟩
+      let columns ← sizeDim array ⟨2⟩
+      let rowsColumns ← multiply rows columns
+      if rank ≤ 2 then
+        if rowsColumns != Int.ofNat count then
+          let shape ← sizeAll array
+          .error (.argument (lazyAppend [.literal "argument count ",
+            .integer (Int.ofNat count), .literal " does not match specified shape ",
+            .dynamic (asAny shape)]))
+        else if rowFirst then
+          fillGenerated2D getValue set2 add columns values count 1 ⟨array, 1, 1⟩
+        else fillLinear getValue setLinear array values 1 count
+      else
+        let shape ← sizeAll array
+        let pages ← product (shape.drop 2)
+        let expected ← multiply rowsColumns pages
+        if expected != Int.ofNat count then
+          let printedShape ← sizeAll array
+          .error (.argument (lazyAppend [.literal "argument count ",
+            .integer (Int.ofNat count), .literal " does not match specified shape ",
+            .dynamic (asAny printedShape)]))
+        else if rowFirst then
+          fillGeneratedND getValue setLinear add subtract multiply rows columns rowsColumns values
+            count 1 ⟨array, 1, 1, 0, 1, 1⟩
+        else fillLinear getValue setLinear array values 1 count
 theorem p2556 : P2556 := by unfold P2556; intros; rfl
 
 def maxCatRank (catRank : X → CResult Int) : List X → CResult Int
@@ -256,8 +451,11 @@ def m2629 (catRank : X → CResult Int)
 def P2629 : Prop := ∀ {X T A : Type} (catRank : X → CResult Int)
     (delegate : T → List Int → Bool → List X → CResult A)
     elementType dimensions rowFirst values,
-  m2629 catRank delegate elementType dimensions rowFirst values =
-  m2629 catRank delegate elementType dimensions rowFirst values
+  m2629 catRank delegate elementType dimensions rowFirst values = do
+    let discovered ← maxCatRank catRank values
+    let rank := max discovered dimensions.length
+    delegate elementType (dimensions ++ List.replicate (rank - dimensions.length).toNat 1)
+      rowFirst values
 theorem p2629 : P2629 := by unfold P2629; intros; rfl
 
 /-- One-level unbalanced wrapper, lines 2732-2736. -/
@@ -270,8 +468,12 @@ def m2732 (delegate : T → Int → Bool → List X → CResult A)
     delegate elementType count rowFirst values
 def P2732 : Prop := ∀ {T X A : Type} (delegate : T → Int → Bool → List X → CResult A)
     elementType shape rowFirst values,
-  m2732 delegate elementType shape rowFirst values =
-  m2732 delegate elementType shape rowFirst values
+  m2732 delegate elementType shape rowFirst values = do
+    let level ← firstOrBounds shape
+    if level.isEmpty then .error (.argument (.literal "each level of shape must have at least one value"))
+    else
+      let count ← firstOrBounds level
+      delegate elementType count rowFirst values
 theorem p2732 : P2732 := by unfold P2732; intros; rfl
 
 /-- General unbalanced wrapper, lines 2738-2742. -/
@@ -287,26 +489,45 @@ def m2738 (catRank : X → CResult Int)
 def P2738 : Prop := ∀ {X T A : Type} (catRank : X → CResult Int)
     (delegate : T → List (List Int) → Bool → List X → CResult A)
     elementType shape rowFirst values,
-  m2738 catRank delegate elementType shape rowFirst values =
-  m2738 catRank delegate elementType shape rowFirst values
+  m2738 catRank delegate elementType shape rowFirst values = do
+    let discovered ← maxCatRank catRank values
+    let rank := max discovered shape.length
+    let finalLevel ← match shape.getLast? with
+      | none => .error .bounds
+      | some value => .ok value
+    delegate elementType (shape ++ List.replicate (rank - shape.length).toNat finalLevel)
+      rowFirst values
 theorem p2738 : P2738 := by unfold P2738; intros; rfl
 
-/-- `hvncat_calcindex`, lines 2865-2875. -/
-def m2865 (offsets innerOffsets products : List Int) (dimensions : Int) : CResult Int := do
-  let innerFirst ← getCatOneBased innerOffsets 1
-  let offsetFirst ← getCatOneBased offsets 1
-  let rec loop (index : Int) (remaining : Nat) (total : Int) : CResult Int :=
-    match remaining with
-    | 0 => .ok total
-    | remaining + 1 => do
+def calcIndexLoop (add multiply : Int → Int → CResult Int)
+    (offsets innerOffsets products : List Int) :
+    Int → Nat → Int → CResult Int
+  | _, 0, total => .ok total
+  | index, remaining + 1, total => do
       let inner ← getCatOneBased innerOffsets index
       let offset ← getCatOneBased offsets index
+      let increment ← add inner offset
       let stride ← getCatOneBased products (index - 1)
-      loop (index + 1) remaining (total + (inner + offset) * stride)
-  loop 2 (dimensions - 1).toNat (innerFirst + offsetFirst + 1)
-def P2865 : Prop := ∀ offsets innerOffsets products dimensions,
-  m2865 offsets innerOffsets products dimensions = m2865 offsets innerOffsets products dimensions
-theorem p2865 : P2865 := by unfold P2865; intros; rfl
+      let scaled ← multiply increment stride
+      let next ← add total scaled
+      calcIndexLoop add multiply offsets innerOffsets products (index + 1) remaining next
+
+/-- `hvncat_calcindex`, lines 2865-2875. -/
+def m2865 (add multiply : Int → Int → CResult Int)
+    (offsets innerOffsets products : List Int) (dimensions : Int) : CResult Int := do
+  let innerFirst ← getCatOneBased innerOffsets 1
+  let offsetFirst ← getCatOneBased offsets 1
+  let initialPair ← add innerFirst offsetFirst
+  let initial ← add initialPair 1
+  calcIndexLoop add multiply offsets innerOffsets products 2 (dimensions - 1).toNat initial
+def P2865 : Prop := ∀ add multiply offsets innerOffsets products dimensions,
+  m2865 add multiply offsets innerOffsets products dimensions = do
+    let innerFirst ← getCatOneBased innerOffsets 1
+    let offsetFirst ← getCatOneBased offsets 1
+    let initialPair ← add innerFirst offsetFirst
+    let initial ← add initialPair 1
+    calcIndexLoop add multiply offsets innerOffsets products 2 (dimensions - 1).toNat initial
+theorem p2865 : P2865 := by unfold P2865 m2865; intros; rfl
 
 def allTrailingSingleton (ndims : A → CResult Int)
     (size : A → IntegerValue → CResult Int) (rank : Int) (array : A) : CResult Bool := do
@@ -319,7 +540,15 @@ def allTrailingSingleton (ndims : A → CResult Int)
         if value = 1 then loop (dimension + 1) remaining else .ok false
   if arrayRank ≤ rank then .ok true else loop (rank + 1) (arrayRank - rank).toNat
 
+def allArraysTrailingSingleton (ndims : A → CResult Int)
+    (size : A → IntegerValue → CResult Int) (rank : Int) : List A → CResult Bool
+  | [] => .ok true
+  | array :: rest => do
+      let valid ← allTrailingSingleton ndims size rank array
+      if valid then allArraysTrailingSingleton ndims size rank rest else .ok false
+
 def arrayShapeScan (size : A → IntegerValue → CResult Int) (ndims : A → CResult Int)
+    (checkedAdd : Int → Int → CResult Int)
     (rank : Int) (first : A) : List A → Int → Int → Int → CResult (Int × Int)
   | [], _, total, discovered => .ok (total, discovered)
   | array :: rest, index, total, discovered => do
@@ -332,12 +561,16 @@ def arrayShapeScan (size : A → IntegerValue → CResult Int) (ndims : A → CR
             let expected ← size first ⟨dimension⟩
             let actual ← size array ⟨dimension⟩
             if expected != actual then
-              .error (.dimensionMismatch (.literal "mismatched size along axis"))
+              .error (.dimensionMismatch (lazyAppend [.literal "mismatched size along axis ",
+                .integer dimension, .literal " in element ", .integer index]))
             else compare (dimension + 1) remaining
       compare 1 (rank - 1).toNat
-      arrayShapeScan size ndims rank first rest (index + 1) (total + along) (max discovered arrayRank)
+      let nextTotal ← checkedAdd total along
+      arrayShapeScan size ndims checkedAdd rank first rest (index + 1) nextTotal
+        (max discovered arrayRank)
 
 def copyArrayValues (eachindex : A → CResult (List I)) (get : A → I → CResult V)
+    (checkedAdd : Int → Int → CResult Int)
     (set : B → Int → V → CResult B) : B → List A → Int → CResult B
   | dest, [], _ => .ok dest
   | dest, array :: rest, outputIndex => do
@@ -345,11 +578,13 @@ def copyArrayValues (eachindex : A → CResult (List I)) (get : A → I → CRes
       let result ← indices.foldlM (fun state index => do
         let value ← get array index
         let next ← set state.1 state.2 value
-        .ok (next, state.2 + 1)) (dest, outputIndex)
-      copyArrayValues eachindex get set result.1 rest result.2
+        let nextIndex ← checkedAdd state.2 1
+        .ok (next, nextIndex)) (dest, outputIndex)
+      copyArrayValues eachindex get checkedAdd set result.1 rest result.2
 
 /-- Array-only rank `_typed_hvncat`, lines 2423-2456. -/
 def m2423 (ndims : A → CResult Int) (size : A → IntegerValue → CResult Int)
+    (checkedAdd : Int → Int → CResult Int)
     (fallback : T → List Int → Bool → List A → CResult B)
     (similar : A → T → List Int → CResult B) (eachindex : A → CResult (List I))
     (get : A → I → CResult V) (set : B → Int → V → CResult B)
@@ -357,27 +592,41 @@ def m2423 (ndims : A → CResult Int) (size : A → IntegerValue → CResult Int
   let first ← firstOrBounds arrays
   if rank < 0 then .error (.argument (.literal "concatenation dimension must be non-negative"))
   else
-    let checks ← arrays.mapM (allTrailingSingleton ndims size rank)
-    if checks.any (!·) then
+    let valid ← allArraysTrailingSingleton ndims size rank arrays
+    if !valid then
       fallback elementType (List.replicate (rank - 1).toNat 1 ++ [Int.ofNat arrays.length, 1]) false arrays
     else do
-      let scanned ← arrayShapeScan size ndims rank first arrays 1 0 rank
+      let scanned ← arrayShapeScan size ndims checkedAdd rank first arrays 1 0 rank
       let leading ← (List.range (rank - 1).toNat).mapM fun index => size first ⟨Int.ofNat index + 1⟩
       let shape := leading ++ [scanned.1] ++ List.replicate (scanned.2 - rank).toNat 1
       let dest ← similar first elementType shape
-      copyArrayValues eachindex get set dest arrays 1
+      copyArrayValues eachindex get checkedAdd set dest arrays 1
 def P2423 : Prop := ∀ {A B I V T : Type} (ndims : A → CResult Int)
-    (size : A → IntegerValue → CResult Int)
+    (size : A → IntegerValue → CResult Int) (checkedAdd : Int → Int → CResult Int)
     (fallback : T → List Int → Bool → List A → CResult B)
     (similar : A → T → List Int → CResult B) (eachindex : A → CResult (List I))
     (get : A → I → CResult V) (set : B → Int → V → CResult B)
     elementType rank arrays,
-  m2423 ndims size fallback similar eachindex get set elementType rank arrays =
-  m2423 ndims size fallback similar eachindex get set elementType rank arrays
+  m2423 ndims size checkedAdd fallback similar eachindex get set elementType rank arrays = do
+    let first ← firstOrBounds arrays
+    if rank < 0 then .error (.argument (.literal "concatenation dimension must be non-negative"))
+    else
+      let valid ← allArraysTrailingSingleton ndims size rank arrays
+      if !valid then
+        fallback elementType
+          (List.replicate (rank - 1).toNat 1 ++ [Int.ofNat arrays.length, 1]) false arrays
+      else do
+        let scanned ← arrayShapeScan size ndims checkedAdd rank first arrays 1 0 rank
+        let leading ← (List.range (rank - 1).toNat).mapM fun index =>
+          size first ⟨Int.ofNat index + 1⟩
+        let shape := leading ++ [scanned.1] ++ List.replicate (scanned.2 - rank).toNat 1
+        let dest ← similar first elementType shape
+        copyArrayValues eachindex get checkedAdd set dest arrays 1
 theorem p2423 : P2423 := by unfold P2423; intros; rfl
 
 def mixedShapeScan (catSize : X → IntegerValue → CResult Int)
-    (catRank : X → CResult Int) (rank : Int) : List X → Int → Int → CResult (Int × Int)
+    (catRank : X → CResult Int) (checkedAdd : Int → Int → CResult Int)
+    (rank : Int) : List X → Int → Int → CResult (Int × Int)
   | [], total, discovered => .ok (total, discovered)
   | value :: rest, total, discovered => do
       let along ← catSize value ⟨rank⟩
@@ -387,12 +636,15 @@ def mixedShapeScan (catSize : X → IntegerValue → CResult Int)
         | 0 => .ok ()
         | remaining + 1 => do
             let current ← catSize value ⟨dimension⟩
-            if current != 1 then .error (.dimensionMismatch (.literal "non-concatenated dimensions must have length 1"))
+            if current != 1 then
+              .error (.dimensionMismatch (.literal "non-concatenated dimensions must have length 1"))
             else validate (dimension + 1) remaining
       validate 1 (rank - 1).toNat
-      mixedShapeScan catSize catRank rank rest (total + along) (max discovered valueRank)
+      let nextTotal ← checkedAdd total along
+      mixedShapeScan catSize catRank checkedAdd rank rest nextTotal (max discovered valueRank)
 
 def copyMixed (isArray : X → Bool) (length : X → CResult Int)
+    (checkedAdd : Int → Int → CResult Int)
     (copyto : B → Int → X → Int → Int → CResult B)
     (set : B → Int → X → CResult B) : B → List X → Int → CResult B
   | dest, [], _ => .ok dest
@@ -400,13 +652,16 @@ def copyMixed (isArray : X → Bool) (length : X → CResult Int)
       if isArray value then do
         let count ← length value
         let next ← copyto dest index value 1 count
-        copyMixed isArray length copyto set next rest (index + count)
+        let nextIndex ← checkedAdd index count
+        copyMixed isArray length checkedAdd copyto set next rest nextIndex
       else do
         let next ← set dest index value
-        copyMixed isArray length copyto set next rest (index + 1)
+        let nextIndex ← checkedAdd index 1
+        copyMixed isArray length checkedAdd copyto set next rest nextIndex
 
 /-- Mixed rank `_typed_hvncat`, lines 2458-2493. -/
 def m2458 (catSize : X → IntegerValue → CResult Int) (catRank : X → CResult Int)
+    (checkedAdd : Int → Int → CResult Int)
     (allocate : T → Int → List Int → CResult B) (isArray : X → Bool)
     (length : X → CResult Int) (copyto : B → Int → X → Int → Int → CResult B)
     (set : B → Int → X → CResult B) (elementType : T) (rank : Int)
@@ -414,36 +669,43 @@ def m2458 (catSize : X → IntegerValue → CResult Int) (catRank : X → CResul
   if values.isEmpty then .error (.argument (.literal "must have at least one element"))
   else if rank < 0 then .error (.argument (.literal "concatenation dimension must be non-negative"))
   else do
-    let scanned ← mixedShapeScan catSize catRank rank values 0 rank
+    let scanned ← mixedShapeScan catSize catRank checkedAdd rank values 0 rank
     let shape := List.replicate (rank - 1).toNat 1 ++ [scanned.1] ++
       List.replicate (scanned.2 - rank).toNat 1
     let dest ← allocate elementType scanned.2 shape
-    copyMixed isArray length copyto set dest values 1
+    copyMixed isArray length checkedAdd copyto set dest values 1
 def P2458 : Prop := ∀ {X T B : Type} (catSize : X → IntegerValue → CResult Int)
-    (catRank : X → CResult Int) (allocate : T → Int → List Int → CResult B)
+    (catRank : X → CResult Int) (checkedAdd : Int → Int → CResult Int)
+    (allocate : T → Int → List Int → CResult B)
     (isArray : X → Bool) (length : X → CResult Int)
     (copyto : B → Int → X → Int → Int → CResult B)
     (set : B → Int → X → CResult B) elementType rank values,
-  m2458 catSize catRank allocate isArray length copyto set elementType rank values =
-  m2458 catSize catRank allocate isArray length copyto set elementType rank values
+  m2458 catSize catRank checkedAdd allocate isArray length copyto set elementType rank values =
+    if values.isEmpty then .error (.argument (.literal "must have at least one element"))
+    else if rank < 0 then .error (.argument (.literal "concatenation dimension must be non-negative"))
+    else do
+      let scanned ← mixedShapeScan catSize catRank checkedAdd rank values 0 rank
+      let shape := List.replicate (rank - 1).toNat 1 ++ [scanned.1] ++
+        List.replicate (scanned.2 - rank).toNat 1
+      let dest ← allocate elementType scanned.2 shape
+      copyMixed isArray length checkedAdd copyto set dest values 1
 theorem p2458 : P2458 := by unfold P2458; intros; rfl
 
-def cumulativeProducts : List Int → List Int :=
-  fun values => (values.foldl (fun state value => (state.1 * value, state.2 ++ [state.1 * value])) (1, [])).2
-
-def incrementCoordinates (catSize : X → IntegerValue → CResult Int)
+def incrementCoordinates (checkedAdd : Int → Int → CResult Int)
+    (catSize : X → IntegerValue → CResult Int)
     (value : X) : List Int → Nat → CResult (List Int)
   | coordinates, 0 => .ok coordinates
   | coordinates, remaining + 1 => do
       let index := coordinates.length - remaining - 1
       let current ← getCatOneBased coordinates (Int.ofNat index + 1)
       let limit ← catSize value ⟨Int.ofNat index + 1⟩
-      let next := current + 1
+      let next ← checkedAdd current 1
       let updated := coordinates.set index next
       if next < limit then .ok updated
-      else incrementCoordinates catSize value (updated.set index 0) remaining
+      else incrementCoordinates checkedAdd catSize value (updated.set index 0) remaining
 
-def advanceOffsets (catSize : X → IntegerValue → CResult Int)
+def advanceOffsets (checkedAdd : Int → Int → CResult Int)
+    (catSize : X → IntegerValue → CResult Int)
     (destinationSize : IntegerValue → CResult Int) (value : X) :
     List Int → List Nat → CResult (List Int)
   | offsets, [] => .ok offsets
@@ -451,41 +713,30 @@ def advanceOffsets (catSize : X → IntegerValue → CResult Int)
       let current ← getCatOneBased offsets (Int.ofNat index + 1)
       let amount ← catSize value ⟨Int.ofNat index + 1⟩
       let limit ← destinationSize ⟨Int.ofNat index + 1⟩
-      let next := current + amount
+      let next ← checkedAdd current amount
       let updated := offsets.set index next
-      if next < limit then .ok updated else advanceOffsets catSize destinationSize value (updated.set index 0) rest
+      if next < limit then .ok updated
+      else advanceOffsets checkedAdd catSize destinationSize value (updated.set index 0) rest
 
 structure FillState (A : Type) where
   array : A
   offsets : List Int
   innerOffsets : List Int
 
-def fillSmallArray (catSize : X → IntegerValue → CResult Int)
-    (calculate : List Int → List Int → List Int → Int → CResult Int)
-    (setLinear : A → Int → V → CResult A) (outProducts : List Int) (rank : Int)
-    (source : X) : FillState A → List V → CResult (FillState A)
-  | state, [] => .ok state
-  | state, value :: rest => do
-      let index ← calculate state.offsets state.innerOffsets outProducts rank
-      let array ← setLinear state.array index value
-      let inner ← incrementCoordinates catSize source state.innerOffsets rank.toNat
-      fillSmallArray catSize calculate setLinear outProducts rank source
-        ⟨array, state.offsets, inner⟩ rest
-
-def fillGeneralLoop (rank : A → CResult Int) (size : A → CResult (List Int))
-    (catSize : X → IntegerValue → CResult Int) (isArray : X → Bool)
-    (isEmpty : X → CResult Bool) (length : X → CResult Int)
-    (iterate : X → CResult (List V))
+def fillGeneralLoop (n : Int) (outProducts : List Int)
+    (checkedAdd : Int → Int → CResult Int)
+    (catSize : X → IntegerValue → CResult Int)
+    (destinationSize : A → IntegerValue → CResult Int)
+    (isArray : X → Bool) (isEmpty : X → CResult Bool) (length : X → CResult Int)
+    (iterate : X → FillState A →
+      (FillState A → V → CResult (FillState A)) → CResult (FillState A))
     (sliceAssign : A → List Int → List Int → X → CResult A)
     (setLinear : A → Int → V → CResult A) (setScalar : A → List Int → X → CResult A)
     (calculate : List Int → List Int → List Int → Int → CResult Int)
     (d1 d2 : Int) : FillState A → List X → CResult (FillState A)
   | state, [] => .ok state
   | state, value :: rest => do
-      let n ← rank state.array
-      let destinationShape ← size state.array
-      let products := cumulativeProducts destinationShape
-      let start := state.offsets.map (· + 1)
+      let start ← state.offsets.mapM (fun offset => checkedAdd offset 1)
       let afterValue ← if isArray value then do
         if ← isEmpty value then .ok state
         else
@@ -494,52 +745,82 @@ def fillGeneralLoop (rank : A → CResult Int) (size : A → CResult (List Int))
             let endIndex ← (List.range n.toNat).mapM fun index => do
               let amount ← catSize value ⟨Int.ofNat index + 1⟩
               let offset ← getCatOneBased state.offsets (Int.ofNat index + 1)
-              .ok (offset + amount)
+              checkedAdd offset amount
             let array ← sliceAssign state.array start endIndex value
             .ok { state with array }
           else
-            let values ← iterate value
-            fillSmallArray catSize calculate setLinear products n value state values
+            iterate value state fun current item => do
+              let index ← calculate current.offsets current.innerOffsets outProducts n
+              let array ← setLinear current.array index item
+              let inner ← incrementCoordinates checkedAdd catSize value
+                current.innerOffsets n.toNat
+              .ok ⟨array, current.offsets, inner⟩
       else do
         let array ← setScalar state.array start value
         .ok { state with array }
       let dimensionOrder := [d1.toNat - 1, d2.toNat - 1] ++ List.range' 2 (n.toNat - 2)
-      let offsets ← advanceOffsets catSize (fun dimension => do
-        let shape ← size afterValue.array
-        getCatOneBased shape dimension.value) value afterValue.offsets dimensionOrder
-      fillGeneralLoop rank size catSize isArray isEmpty length iterate sliceAssign setLinear
-        setScalar calculate d1 d2 ⟨afterValue.array, offsets, afterValue.innerOffsets⟩ rest
+      let offsets ← advanceOffsets checkedAdd catSize (destinationSize afterValue.array)
+        value afterValue.offsets dimensionOrder
+      fillGeneralLoop n outProducts checkedAdd catSize destinationSize isArray isEmpty length
+        iterate sliceAssign setLinear setScalar calculate d1 d2
+        ⟨afterValue.array, offsets, afterValue.innerOffsets⟩ rest
 
 /-- General `hvncat_fill!`, lines 2823-2863. -/
 def m2823 (rank : A → CResult Int) (size : A → CResult (List Int))
-    (catSize : X → IntegerValue → CResult Int) (isArray : X → Bool)
-    (isEmpty : X → CResult Bool) (length : X → CResult Int) (iterate : X → CResult (List V))
+    (cumulativeProducts : List Int → CResult (List Int))
+    (checkedAdd : Int → Int → CResult Int)
+    (catSize : X → IntegerValue → CResult Int)
+    (destinationSize : A → IntegerValue → CResult Int) (isArray : X → Bool)
+    (isEmpty : X → CResult Bool) (length : X → CResult Int)
+    (iterate : X → FillState A →
+      (FillState A → V → CResult (FillState A)) → CResult (FillState A))
     (sliceAssign : A → List Int → List Int → X → CResult A)
     (setLinear : A → Int → V → CResult A) (setScalar : A → List Int → X → CResult A)
     (calculate : List Int → List Int → List Int → Int → CResult Int)
     (array : A) (scratch1 scratch2 : List Int) (d1 d2 : Int) (values : List X) : CResult A := do
   let n ← rank array
-  if n ≤ 1 then .error (.argument (.literal "dimensions of the destination array must be at least 2"))
+  if n ≤ 1 then
+    .error (.argument (.literal "dimensions of the destination array must be at least 2"))
   else if scratch1.length != n || scratch2.length != n then
-    .error (.argument (.literal "scratch vectors must have as many elements as dimensions"))
+    .error (.argument (.literal
+      "scratch vectors must have as many elements as the destination array has dimensions"))
   else if ¬(0 < d1 && d1 < 3 && 0 < d2 && d2 < 3 && d1 != d2) then
-    .error (.argument (.literal "d1 and d2 must be either 1 or 2, exclusive"))
+    .error (.argument (.literal "d1 and d2 must be either 1 or 2, exclusive."))
   else do
-    let result ← fillGeneralLoop rank size catSize isArray isEmpty length iterate sliceAssign
-      setLinear setScalar calculate d1 d2 ⟨array, scratch1, scratch2⟩ values
+    let shape ← size array
+    let products ← cumulativeProducts shape
+    let result ← fillGeneralLoop n products checkedAdd catSize destinationSize isArray
+      isEmpty length iterate sliceAssign setLinear setScalar calculate d1 d2
+      ⟨array, scratch1, scratch2⟩ values
     .ok result.array
 def P2823 : Prop := ∀ {A X V : Type} (rank : A → CResult Int)
-    (size : A → CResult (List Int)) (catSize : X → IntegerValue → CResult Int)
-    (isArray : X → Bool) (isEmpty : X → CResult Bool) (length : X → CResult Int)
-    (iterate : X → CResult (List V))
+    (size : A → CResult (List Int)) (cumulativeProducts : List Int → CResult (List Int))
+    (checkedAdd : Int → Int → CResult Int) (catSize : X → IntegerValue → CResult Int)
+    (destinationSize : A → IntegerValue → CResult Int) (isArray : X → Bool)
+    (isEmpty : X → CResult Bool) (length : X → CResult Int)
+    (iterate : X → FillState A →
+      (FillState A → V → CResult (FillState A)) → CResult (FillState A))
     (sliceAssign : A → List Int → List Int → X → CResult A)
     (setLinear : A → Int → V → CResult A) (setScalar : A → List Int → X → CResult A)
     (calculate : List Int → List Int → List Int → Int → CResult Int)
     (array : A) scratch1 scratch2 d1 d2 values,
-  m2823 rank size catSize isArray isEmpty length iterate sliceAssign setLinear setScalar
-    calculate array scratch1 scratch2 d1 d2 values =
-  m2823 rank size catSize isArray isEmpty length iterate sliceAssign setLinear setScalar
-    calculate array scratch1 scratch2 d1 d2 values
+  m2823 rank size cumulativeProducts checkedAdd catSize destinationSize isArray isEmpty length
+    iterate sliceAssign setLinear setScalar calculate array scratch1 scratch2 d1 d2 values = do
+    let n ← rank array
+    if n ≤ 1 then
+      .error (.argument (.literal "dimensions of the destination array must be at least 2"))
+    else if scratch1.length != n || scratch2.length != n then
+      .error (.argument (.literal
+        "scratch vectors must have as many elements as the destination array has dimensions"))
+    else if ¬(0 < d1 && d1 < 3 && 0 < d2 && d2 < 3 && d1 != d2) then
+      .error (.argument (.literal "d1 and d2 must be either 1 or 2, exclusive."))
+    else do
+      let shape ← size array
+      let products ← cumulativeProducts shape
+      let result ← fillGeneralLoop n products checkedAdd catSize destinationSize isArray
+        isEmpty length iterate sliceAssign setLinear setScalar calculate d1 d2
+        ⟨array, scratch1, scratch2⟩ values
+      .ok result.array
 theorem p2823 : P2823 := by unfold P2823; intros; rfl
 
 def setOneBased (values : List α) (index : Int) (value : α) : CResult (List α) :=
@@ -645,28 +926,31 @@ def balancedValueLoop (catSize : X → IntegerValue → CResult Int)
       balancedValueLoop catSize catLength checkedAdd dimensions firstAxis secondAxis firstDimZero
         rest (index + 1) nextState
 
+def sumFirstAxis (catSize : X → IntegerValue → CResult Int)
+    (checkedAdd : Int → Int → CResult Int) (values : List X) (firstAxis : Int) :
+    Int → Nat → Int → CResult Int
+  | _, 0, total => .ok total
+  | index, remaining + 1, total => do
+      let value ← getCatOneBased values index
+      let amount ← catSize value ⟨firstAxis⟩
+      let next ← checkedAdd total amount
+      sumFirstAxis catSize checkedAdd values firstAxis (index + 1) remaining next
+
 /-- Balanced `_typed_hvncat_dims`, lines 2635-2729. -/
 def m2635 (catSize : X → IntegerValue → CResult Int) (catLength : X → CResult Int)
     (checkedAdd : Int → Int → CResult Int) (checkedDims : List Int → CResult Int)
     (similar : X → T → List Int → CResult A)
     (fill : A → List Int → List Int → Int → Int → List X → CResult A)
     (elementType : T) (dimensions : List Int) (rowFirst : Bool) (values : List X) : CResult A := do
-  let first ← firstOrBounds values
-  if dimensions.any (· ≤ 0) then .error (.argument (.literal "dims must contain positive integers"))
+  if values.isEmpty then .error (.argument (.literal "must have at least one element"))
+  else if dimensions.any (· ≤ 0) then
+    .error (.argument (.literal "`dims` argument must contain positive integers"))
   else do
     validateBalancedBlocks catSize dimensions rowFirst values
     let firstAxis := if rowFirst then 2 else 1
     let secondAxis := if rowFirst then 1 else 2
-    let rec sumFirst (index : Int) (remaining : Nat) (total : Int) : CResult Int :=
-      match remaining with
-      | 0 => .ok total
-      | remaining + 1 => do
-          let value ← getCatOneBased values index
-          let amount ← catSize value ⟨firstAxis⟩
-          let next ← checkedAdd total amount
-          sumFirst (index + 1) remaining next
     let firstCount ← getCatOneBased dimensions firstAxis
-    let rawFirst ← sumFirst 1 firstCount.toNat 0
+    let rawFirst ← sumFirstAxis catSize checkedAdd values firstAxis 1 firstCount.toNat 0
     let firstDimZero := rawFirst = 0
     let adjustedFirst := if firstDimZero then firstCount else rawFirst
     let initialOut ← setOneBased (List.replicate dimensions.length 0) firstAxis adjustedFirst
@@ -675,8 +959,10 @@ def m2635 (catSize : X → IntegerValue → CResult Int) (catLength : X → CRes
     let outdims ← if firstDimZero then setOneBased scanned.outdims firstAxis 0 else .ok scanned.outdims
     let outLength ← checkedDims outdims
     if scanned.elementCount != outLength then
-      .error (.dimensionMismatch (.literal "mismatched number of elements"))
+      .error (.dimensionMismatch (lazyAppend [.literal "mismatched number of elements; expected ",
+        .integer outLength, .literal ", got ", .integer scanned.elementCount]))
     else do
+      let first ← firstOrBounds values
       let dest ← similar first elementType outdims
       fill dest (List.replicate dimensions.length 0) (List.replicate dimensions.length 0)
         firstAxis secondAxis values
@@ -685,9 +971,32 @@ def P2635 : Prop := ∀ {X T A : Type} (catSize : X → IntegerValue → CResult
     (checkedDims : List Int → CResult Int) (similar : X → T → List Int → CResult A)
     (fill : A → List Int → List Int → Int → Int → List X → CResult A)
     elementType dimensions rowFirst values,
-  m2635 catSize catLength checkedAdd checkedDims similar fill elementType dimensions rowFirst values =
-  m2635 catSize catLength checkedAdd checkedDims similar fill elementType dimensions rowFirst values
-theorem p2635 : P2635 := by unfold P2635; intros; rfl
+  m2635 catSize catLength checkedAdd checkedDims similar fill elementType dimensions rowFirst values = do
+    if values.isEmpty then .error (.argument (.literal "must have at least one element"))
+    else if dimensions.any (· ≤ 0) then
+      .error (.argument (.literal "`dims` argument must contain positive integers"))
+    else do
+      validateBalancedBlocks catSize dimensions rowFirst values
+      let firstAxis := if rowFirst then 2 else 1
+      let secondAxis := if rowFirst then 1 else 2
+      let firstCount ← getCatOneBased dimensions firstAxis
+      let rawFirst ← sumFirstAxis catSize checkedAdd values firstAxis 1 firstCount.toNat 0
+      let firstDimZero := rawFirst = 0
+      let adjustedFirst := if firstDimZero then firstCount else rawFirst
+      let initialOut ← setOneBased (List.replicate dimensions.length 0) firstAxis adjustedFirst
+      let scanned ← balancedValueLoop catSize catLength checkedAdd dimensions firstAxis secondAxis
+        firstDimZero values 1 ⟨initialOut, List.replicate dimensions.length 0, 0, 0⟩
+      let outdims ← if firstDimZero then setOneBased scanned.outdims firstAxis 0 else .ok scanned.outdims
+      let outLength ← checkedDims outdims
+      if scanned.elementCount != outLength then
+        .error (.dimensionMismatch (lazyAppend [.literal "mismatched number of elements; expected ",
+          .integer outLength, .literal ", got ", .integer scanned.elementCount]))
+      else do
+        let first ← firstOrBounds values
+        let dest ← similar first elementType outdims
+        fill dest (List.replicate dimensions.length 0) (List.replicate dimensions.length 0)
+          firstAxis secondAxis values
+theorem p2635 : P2635 := by unfold P2635 m2635; intros; rfl
 
 structure UnbalancedState where
   outdims : List Int
@@ -767,18 +1076,24 @@ def m2744 (catSize : X → IntegerValue → CResult Int) (catLength : X → CRes
     (fill : A → List Int → List Int → Int → Int → List X → CResult A)
     (elementType : T) (shape : List (List Int)) (rowFirst : Bool)
     (values : List X) : CResult A := do
-  let first ← firstOrBounds values
-  if shape.flatten.any (· ≤ 0) then .error (.argument (.literal "shape must consist of positive integers"))
-  else if shape.any List.isEmpty then .error (.argument (.literal "each shape level must have a value"))
+  if values.isEmpty then .error (.argument (.literal "must have at least one element"))
+  else if shape.flatten.any (· ≤ 0) then
+    .error (.argument (.literal "`shape` argument must consist of positive integers"))
+  else if shape.any List.isEmpty then
+    .error (.argument (.literal "each level of `shape` argument must have at least one value"))
   else do
     let finalLevel ← match shape.getLast? with | none => .error .bounds | some level => .ok level
-    if finalLevel.length != 1 then .error (.argument (.literal "last shape level must contain one integer"))
+    if finalLevel.length != 1 then
+      .error (.argument (.literal "last level of shape must contain only one integer"))
     else
       let promised ← firstOrBounds finalLevel
-      if promised != values.length then .error (.argument (.literal "number of elements does not match shape"))
+      if promised != values.length then
+        .error (.argument (lazyAppend [.literal "number of elements does not match shape; expected ",
+          .integer promised, .literal ", got ", .integer values.length]))
       else do
         let firstAxis := if rowFirst then 2 else 1
         let secondAxis := if rowFirst then 1 else 2
+        let first ← firstOrBounds values
         let firstRank ← catRank first
         let rank := max shape.length firstRank.toNat
         let scanned ← unbalancedValueLoop catSize catLength checkedAdd shape rowFirst values 1 none
@@ -786,7 +1101,8 @@ def m2744 (catSize : X → IntegerValue → CResult Int) (catLength : X → CRes
             List.replicate rank 1, 0⟩
         let outputLength ← checkedDims (scanned.outdims.take shape.length)
         if scanned.elementCount != outputLength then
-          .error (.argument (.literal "mismatched number of elements"))
+          .error (.argument (lazyAppend [.literal "mismatched number of elements; expected ",
+            .integer outputLength, .literal ", got ", .integer scanned.elementCount]))
         else
           let outdims ← if rowFirst then do
             let firstDim ← getCatOneBased scanned.outdims 1
@@ -802,36 +1118,50 @@ def P2744 : Prop := ∀ {X T A : Type} (catSize : X → IntegerValue → CResult
     (checkedDims : List Int → CResult Int) (similar : X → T → List Int → CResult A)
     (fill : A → List Int → List Int → Int → Int → List X → CResult A)
     elementType shape rowFirst values,
-  m2744 catSize catLength catRank checkedAdd checkedDims similar fill elementType shape rowFirst values =
-  m2744 catSize catLength catRank checkedAdd checkedDims similar fill elementType shape rowFirst values
+  m2744 catSize catLength catRank checkedAdd checkedDims similar fill elementType shape rowFirst values = do
+    if values.isEmpty then .error (.argument (.literal "must have at least one element"))
+    else if shape.flatten.any (· ≤ 0) then
+      .error (.argument (.literal "`shape` argument must consist of positive integers"))
+    else if shape.any List.isEmpty then
+      .error (.argument (.literal "each level of `shape` argument must have at least one value"))
+    else do
+      let finalLevel ← match shape.getLast? with | none => .error .bounds | some level => .ok level
+      if finalLevel.length != 1 then
+        .error (.argument (.literal "last level of shape must contain only one integer"))
+      else
+        let promised ← firstOrBounds finalLevel
+        if promised != values.length then
+          .error (.argument (lazyAppend [.literal "number of elements does not match shape; expected ",
+            .integer promised, .literal ", got ", .integer values.length]))
+        else do
+          let firstAxis := if rowFirst then 2 else 1
+          let secondAxis := if rowFirst then 1 else 2
+          let first ← firstOrBounds values
+          let firstRank ← catRank first
+          let rank := max shape.length firstRank.toNat
+          let scanned ← unbalancedValueLoop catSize catLength checkedAdd shape rowFirst values 1 none
+            ⟨List.replicate rank (-1), List.replicate rank 0, List.replicate rank 0,
+              List.replicate rank 1, 0⟩
+          let outputLength ← checkedDims (scanned.outdims.take shape.length)
+          if scanned.elementCount != outputLength then
+            .error (.argument (lazyAppend [.literal "mismatched number of elements; expected ",
+              .integer outputLength, .literal ", got ", .integer scanned.elementCount]))
+          else
+            let outdims ← if rowFirst then do
+              let firstDim ← getCatOneBased scanned.outdims 1
+              let secondDim ← getCatOneBased scanned.outdims 2
+              let swapped ← setOneBased scanned.outdims 1 secondDim
+              setOneBased swapped 2 firstDim
+            else .ok scanned.outdims
+            let dest ← similar first elementType outdims
+            if outdims.any (· = 0) then .ok dest
+            else fill dest scanned.current scanned.blockCounts firstAxis secondAxis values
 theorem p2744 : P2744 := by unfold P2744; intros; rfl
 
 private def entry (line : Nat) (name statement source : String) (prop thm : Lean.Name) : Entry :=
   { id := s!"multidimcov-abstractarray-hvncat-faithful-{line}", juliaFile := "base/abstractarray.jl",
     juliaFns := [name], statement, source, status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 2247 "rows_to_dimshape" "Row-shape conversion indexes rows[1], distinguishes uniform rows, and sums an unbalanced tuple." "base/abstractarray.jl:2247" ``P2247 ``p2247,
-  entry 2253 "hvcat(numbers)" "Numeric hvcat indexes rows[1], allocates, checks total length, validates each row, and mutates every cell in row-major order." "base/abstractarray.jl:2253-2272" ``P2253 ``p2253,
-  entry 2279 "typed_hvcat(numbers)" "Typed numeric hvcat indexes rows[1], validates remaining rows, allocates, and propagates hvncat_fill! errors." "base/abstractarray.jl:2279-2292" ``P2279 ``p2279,
-  entry 2400 "_typed_hvncat(Val(0),AbstractArray)" "Zero-dimensional array conversion broadcasts convert while preserving arbitrary axes and shape." "base/abstractarray.jl:2400" ``P2400 ``p2400,
-  entry 2411 "_typed_hvncat empty rank" "Empty rank-N construction validates nonnegative rank and allocates the exact zero shape." "base/abstractarray.jl:2411-2415" ``P2411 ``p2411,
-  entry 2417 "_typed_hvncat numeric rank" "Numeric rank-N construction validates rank, converts the value vector, constructs the one-prefixed shape, and reshapes." "base/abstractarray.jl:2417-2421" ``P2417 ``p2417,
-  entry 2423 "_typed_hvncat array rank" "Array-only rank concatenation validates inputs and trailing singleton dimensions, scans exact sizes, allocates from the first array, and copies every indexed value." "base/abstractarray.jl:2423-2456" ``P2423 ``p2423,
-  entry 2458 "_typed_hvncat mixed rank" "Mixed rank concatenation validates every shape, allocates the discovered rank, and performs each array copy or scalar store in order." "base/abstractarray.jl:2458-2493" ``P2458 ``p2458,
-  entry 2498 "_typed_hvncat singleton dims" "The singleton dimension overload indexes its sole Int and directly returns _typed_hvncat_1d." "base/abstractarray.jl:2498" ``P2498 ``p2498,
-  entry 2499 "_typed_hvncat singleton numeric dims" "The numeric singleton overload indexes its sole Int and directly returns _typed_hvncat_1d." "base/abstractarray.jl:2499" ``P2499 ``p2499,
-  entry 2501 "_typed_hvncat_1d" "One-dimensional concatenation checks positivity and count, then propagates the selected rank-1 or rank-2 call." "base/abstractarray.jl:2501-2512" ``P2501 ``p2501,
-  entry 2514 "_typed_hvncat numeric dims" "Balanced numeric construction validates every dimension, allocates, checks lengths, and fills." "base/abstractarray.jl:2514-2525" ``P2514 ``p2514,
-  entry 2527 "_hvncat_fill_loop!" "Fallback filling derives arbitrary-rank page count, validates length, and executes the row-first or linear mutation loop." "base/abstractarray.jl:2527-2554" ``P2527 ``p2527,
-  entry 2556 "hvncat_fill!(Array)" "Generated filling selects the fallback, emitted two-dimensional body, or emitted higher-rank body from actual field count and rank." "base/abstractarray.jl:2556-2626" ``P2556 ``p2556,
-  entry 2629 "_typed_hvncat generic balanced" "The balanced wrapper computes maximum cat rank, including the empty-input error, extends dimensions, and delegates." "base/abstractarray.jl:2629-2633" ``P2629 ``p2629,
-  entry 2635 "_typed_hvncat_dims" "Balanced construction validates block shapes, discovers every output dimension with checked additions, checks total length, allocates, resets scratch vectors, and fills." "base/abstractarray.jl:2635-2729" ``P2635 ``p2635,
-  entry 2732 "_typed_hvncat one shape level" "The one-level wrapper indexes shape[1], validates it, indexes its first count, and propagates _typed_hvncat_1d." "base/abstractarray.jl:2732-2736" ``P2732 ``p2732,
-  entry 2738 "_typed_hvncat generic shape" "The unbalanced wrapper computes maximum rank with empty-input error, indexes the final shape level, extends, and delegates." "base/abstractarray.jl:2738-2742" ``P2738 ``p2738,
-  entry 2744 "_typed_hvncat_shape" "Unbalanced construction validates nesting, discovers dimensions with checked additions and prior-element comparisons, checks total length, swaps row-first axes, allocates, and conditionally fills." "base/abstractarray.jl:2744-2821" ``P2744 ``p2744,
-  entry 2823 "hvncat_fill!(AbstractArray)" "General filling validates rank and scratch vectors, constructs start and end indices, executes array or scalar mutation branches, and advances inner and outer offsets in source order." "base/abstractarray.jl:2823-2863" ``P2823 ``p2823,
-  entry 2865 "hvncat_calcindex" "Index calculation reads every vector position through nd and throws BoundsError for any short input." "base/abstractarray.jl:2865-2875" ``P2865 ``p2865
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.AbstractArrayHvncatFaithful

@@ -1,91 +1,91 @@
 file	line	endline	name	signature	status	entry	note
-base/reducedim.jl	6	6	reduced_index	reduced_index(i::OneTo{T}) where {T}	modelled	multidimcov-reducedim-faithful-6	row-specific faithful source-order replacement
-base/reducedim.jl	7	7	reduced_index	reduced_index(i::Union{Slice, IdentityUnitRange})	modelled	reducecov-reducedim-shapes	
-base/reducedim.jl	8	14	reduced_index	reduced_index(i::AbstractUnitRange)	modelled	multidimcov-reducedim-faithful-8	row-specific faithful source-order replacement
-base/reducedim.jl	15	15	reduced_indices	reduced_indices(a::AbstractArrayOrBroadcasted, region)	modelled	reducecov-reducedim-shapes	
-base/reducedim.jl	18	18	reduced_indices0	reduced_indices0(a::AbstractArray, region)	modelled	reducecov-reducedim-shapes	
-base/reducedim.jl	20	23	reduced_indices	reduced_indices(axs::Indices{N}, region) where N	modelled	reducecov-reducedim-shapes	
-base/reducedim.jl	25	28	reduced_indices0	reduced_indices0(axs::Indices{N}, region) where N	modelled	reducecov-reducedim-shapes	
-base/reducedim.jl	30	35	_check_valid_region	_check_valid_region(region)	modelled	multidimcov-reducedim-faithful-30	row-specific faithful source-order replacement
-base/reducedim.jl	42	42	initarray!	initarray!(a::AbstractArray{T}, ::Any, ::$(Op), init::Bool, src::AbstractArray) where {T}	modelled	reducecov-reducedim-init	
-base/reducedim.jl	45	46	initarray!	initarray!(a::AbstractArray{T}, f, ::Union{typeof(min),typeof(max),typeof(_extrema_rf)}, init::Bool, src::AbstractArray) where {T}	modelled	multidimcov-reducedim-faithful-45	row-specific faithful source-order replacement
-base/reducedim.jl	49	49	initarray!	initarray!(a::AbstractArray, ::Any, ::$(Op), init::Bool, src::AbstractArray)	modelled	reducecov-reducedim-init	
-base/reducedim.jl	52	52	reducedim_initarray	reducedim_initarray(A::AbstractArrayOrBroadcasted, region, init, ::Type{R}) where {R}	modelled	reducecov-reducedim-init	
-base/reducedim.jl	53	53	reducedim_initarray	reducedim_initarray(A::AbstractArrayOrBroadcasted, region, init::T) where {T}	modelled	reducecov-reducedim-init	
-base/reducedim.jl	59	59	promote_union	promote_union(T::Union)	modelled	multidimcov-reducedim-faithful-59	row-specific faithful source-order replacement
-base/reducedim.jl	60	60	promote_union	promote_union(T)	modelled	reducecov-reducedim-init	
-base/reducedim.jl	62	62	_realtype	_realtype(::Type{<:Complex})	modelled	multidimcov-reducedim-faithful-62	row-specific faithful source-order replacement
-base/reducedim.jl	63	63	_realtype	_realtype(::Type{Complex{T}}) where T<:Real	modelled	reducecov-reducedim-init	
-base/reducedim.jl	64	64	_realtype	_realtype(T::Type)	modelled	reducecov-reducedim-init	
-base/reducedim.jl	65	65	_realtype	_realtype(::Union{typeof(abs),typeof(abs2)}, T)	modelled	reducecov-reducedim-init	
-base/reducedim.jl	66	66	_realtype	_realtype(::Any, T)	modelled	reducecov-reducedim-init	
-base/reducedim.jl	68	70	reducedim_init	reducedim_init(f, op::Union{typeof(+),typeof(add_sum)}, A::AbstractArray, region)	modelled	reducecov-reducedim-init	
-base/reducedim.jl	71	73	reducedim_init	reducedim_init(f, op::Union{typeof(*),typeof(mul_prod)}, A::AbstractArray, region)	modelled	reducecov-reducedim-init	
-base/reducedim.jl	74	85	_reducedim_init	_reducedim_init(f, op, fv, fop, A, region)	modelled	multidimcov-reducedim-faithful-74	row-specific faithful source-order replacement
-base/reducedim.jl	89	128	reducedim_init	reducedim_init(f, op::typeof($f1), A::AbstractArray, region)	modelled	multidimcov-reducedim-faithful-89	row-specific faithful source-order replacement
-base/reducedim.jl	131	170	reducedim_init	reducedim_init(f::ExtremaMap, op::typeof(_extrema_rf), A::AbstractArray, region)	modelled	multidimcov-reducedim-faithful-131	row-specific faithful source-order replacement
-base/reducedim.jl	172	173	reducedim_init	reducedim_init(f::Union{typeof(abs),typeof(abs2)}, op::typeof(max), A::AbstractArray{T}, region) where {T}	modelled	multidimcov-reducedim-faithful-172	row-specific faithful source-order replacement
-base/reducedim.jl	175	175	reducedim_init	reducedim_init(f, op::typeof(and_all), A::AbstractArrayOrBroadcasted, region)	modelled	reducecov-reducedim-init	
-base/reducedim.jl	176	176	reducedim_init	reducedim_init(f, op::typeof(or_any), A::AbstractArrayOrBroadcasted, region)	modelled	reducecov-reducedim-init	
-base/reducedim.jl	179	179	reducedim_init	reducedim_init(f, op::typeof(&), A::AbstractArrayOrBroadcasted, region)	modelled	reducecov-reducedim-init	
-base/reducedim.jl	180	180	reducedim_init	reducedim_init(f, op::typeof(|), A::AbstractArrayOrBroadcasted, region)	modelled	reducecov-reducedim-init	
-base/reducedim.jl	190	193	reducedim_init	reducedim_init(f, op::Union{typeof(+),typeof(add_sum)}, A::T, region)	modelled	multidimcov-reducedim-faithful-190	row-specific faithful source-order replacement
-base/reducedim.jl	194	197	reducedim_init	reducedim_init(f, op::Union{typeof(*),typeof(mul_prod)}, A::T, region)	modelled	multidimcov-reducedim-faithful-194	row-specific faithful source-order replacement
-base/reducedim.jl	202	202	has_fast_linear_indexing	has_fast_linear_indexing(a::AbstractArrayOrBroadcasted)	modelled	multidimcov-reducedim-faithful-202	row-specific faithful source-order replacement
-base/reducedim.jl	203	203	has_fast_linear_indexing	has_fast_linear_indexing(a::AbstractVector)	modelled	reducecov-reducedim-init	
-base/reducedim.jl	205	234	check_reducedims	check_reducedims(R, A)	modelled	multidimcov-reducedim-faithful-205	row-specific faithful source-order replacement
-base/reducedim.jl	239	239	copyfirst!	copyfirst!(R::AbstractArray, A::AbstractArray)	modelled	reducecov-reducedim-kernels	
-base/reducedim.jl	241	245	mapfirst!	mapfirst!(f::F, R::AbstractArray, A::AbstractArray{<:Any,N}) where {N, F}	modelled	multidimcov-reducedim-faithful-241	row-specific faithful source-order replacement
-base/reducedim.jl	248	248	_firstreducedslice	_firstreducedslice(::Tuple{}, a::Tuple{})	modelled	reducecov-reducedim-kernels	
-base/reducedim.jl	249	249	_firstreducedslice	_firstreducedslice(::Tuple, ::Tuple{})	modelled	reducecov-reducedim-kernels	
-base/reducedim.jl	250	250	_firstreducedslice	_firstreducedslice(::Tuple{}, a::Tuple)	modelled	reducecov-reducedim-kernels	
-base/reducedim.jl	251	251	_firstreducedslice	_firstreducedslice(r::Tuple, a::Tuple)	modelled	multidimcov-reducedim-faithful-251	row-specific faithful source-order replacement
-base/reducedim.jl	252	252	_firstslice	_firstslice(i::OneTo)	modelled	multidimcov-reducedim-faithful-252	row-specific faithful source-order replacement
-base/reducedim.jl	253	253	_firstslice	_firstslice(i::Slice)	modelled	multidimcov-reducedim-faithful-253	row-specific faithful source-order replacement
-base/reducedim.jl	254	254	_firstslice	_firstslice(i)	modelled	multidimcov-reducedim-faithful-254	row-specific faithful source-order replacement
-base/reducedim.jl	256	293	_mapreducedim!	_mapreducedim!(f, op, R::AbstractArray, A::AbstractArrayOrBroadcasted)	modelled	multidimcov-reducedim-faithful-256	row-specific faithful source-order replacement
-base/reducedim.jl	295	296	mapreducedim!	mapreducedim!(f, op, R::AbstractArray, A::AbstractArrayOrBroadcasted)	modelled	multidimcov-reducedim-faithful-295	row-specific faithful source-order replacement
-base/reducedim.jl	298	299	reducedim!	reducedim!(op, R::AbstractArray{RT}, A::AbstractArrayOrBroadcasted) where {RT}	modelled	reducecov-reducedim-kernels	
-base/reducedim.jl	328	329	mapreduce	mapreduce(f, op, A::AbstractArrayOrBroadcasted; dims::D=:, init=_InitialValue()) where {D}	modelled	multidimcov-reducedim-faithful-328	row-specific faithful source-order replacement
-base/reducedim.jl	330	331	mapreduce	mapreduce(f, op, A::AbstractArrayOrBroadcasted, B::AbstractArrayOrBroadcasted...; kw...)	modelled	reducecov-reducedim-kernels	
-base/reducedim.jl	333	343	_mapreduce_dim	_mapreduce_dim(f, op, nt, A::AbstractArrayOrBroadcasted, ::Colon)	modelled	multidimcov-reducedim-faithful-333	row-specific faithful source-order replacement
-base/reducedim.jl	345	346	_mapreduce_dim	_mapreduce_dim(f, op, ::_InitialValue, A::AbstractArrayOrBroadcasted, ::Colon)	modelled	reducecov-reducedim-kernels	
-base/reducedim.jl	348	349	_mapreduce_dim	_mapreduce_dim(f, op, nt, A::AbstractArrayOrBroadcasted, dims::D) where {D}	modelled	reducecov-reducedim-kernels	
-base/reducedim.jl	351	352	_mapreduce_dim	_mapreduce_dim(f, op, ::_InitialValue, A::AbstractArrayOrBroadcasted, dims::D) where {D}	modelled	reducecov-reducedim-kernels	
-base/reducedim.jl	354	355	_mapreduce_dim	_mapreduce_dim(f, op, nt, R::ReshapedArray, ::Colon)	modelled	reducecov-reducedim-kernels	
-base/reducedim.jl	357	358	_mapreduce_dim	_mapreduce_dim(f, op, i::_InitialValue, R::ReshapedArray, ::Colon)	modelled	reducecov-reducedim-kernels	
-base/reducedim.jl	392	392	reduce	reduce(op, A::AbstractArray; kw...)	modelled	multidimcov-reducedim-faithful-392	row-specific faithful source-order replacement
-base/reducedim.jl	425	425	count	count(A::AbstractArrayOrBroadcasted; dims::D=:, init=0) where {D}	modelled	multidimcov-reducedim-faithful-425	row-specific faithful source-order replacement
-base/reducedim.jl	426	426	count	count(f, A::AbstractArrayOrBroadcasted; dims::D=:, init=0) where {D}	modelled	reducecov-reducedim-wrappers	
-base/reducedim.jl	428	428	_count	_count(f, A::AbstractArrayOrBroadcasted, dims::Colon, init)	modelled	reducecov-reducedim-wrappers	
-base/reducedim.jl	429	429	_count	_count(f, A::AbstractArrayOrBroadcasted, dims, init)	modelled	multidimcov-reducedim-faithful-429	row-specific faithful source-order replacement
-base/reducedim.jl	459	459	count!	count!(r::AbstractArray, A::AbstractArrayOrBroadcasted; init::Bool=true)	modelled	multidimcov-reducedim-faithful-459	row-specific faithful source-order replacement
-base/reducedim.jl	460	461	count!	count!(f, r::AbstractArray, A::AbstractArrayOrBroadcasted; init::Bool=true)	modelled	multidimcov-reducedim-faithful-460	row-specific faithful source-order replacement
-base/reducedim.jl	996	996	$fname	($fname)(a::AbstractArray; dims::D=:, kw...) where {D}	modelled	reducecov-reducedim-wrappers	
-base/reducedim.jl	997	997	$fname	($fname)(f, a::AbstractArray; dims::D=:, kw...) where {D}	modelled	reducecov-reducedim-wrappers	
-base/reducedim.jl	1000	1000	$_fname	($_fname)(a, ::Colon; kw...)	modelled	multidimcov-reducedim-faithful-1000	row-specific faithful source-order replacement
-base/reducedim.jl	1001	1001	$_fname	($_fname)(f, a, ::Colon; kw...)	modelled	reducecov-reducedim-wrappers	
-base/reducedim.jl	1003	1003	$_fname	($_fname)(R::ReshapedArray, ::Colon)	modelled	multidimcov-reducedim-faithful-1003	row-specific faithful source-order replacement
-base/reducedim.jl	1007	1007	any	any(a::AbstractArray; kw...)	modelled	multidimcov-reducedim-faithful-1007	row-specific faithful source-order replacement
-base/reducedim.jl	1008	1008	any	any(f, a::AbstractArray; dims::D=:) where D	modelled	reducecov-reducedim-wrappers	
-base/reducedim.jl	1009	1009	all	all(a::AbstractArray; kw...)	modelled	multidimcov-reducedim-faithful-1009	row-specific faithful source-order replacement
-base/reducedim.jl	1010	1010	all	all(f, a::AbstractArray; dims::D=:) where D	modelled	reducecov-reducedim-wrappers	
-base/reducedim.jl	1020	1021	$(fname!)	$(fname!)(f, r::AbstractArray, A::AbstractArray; init::Bool=true)	modelled	multidimcov-reducedim-faithful-1020	row-specific faithful source-order replacement
-base/reducedim.jl	1022	1022	$(fname!)	$(fname!)(r::AbstractArray, A::AbstractArray; init::Bool=true)	modelled	multidimcov-reducedim-faithful-1022	row-specific faithful source-order replacement
-base/reducedim.jl	1024	1024	$(_fname)	$(_fname)(A, dims::D; kw...) where {D}	modelled	multidimcov-reducedim-faithful-1024	row-specific faithful source-order replacement
-base/reducedim.jl	1025	1025	$(_fname)	$(_fname)(f, A, dims::D; kw...) where {D}	modelled	multidimcov-reducedim-faithful-1025	row-specific faithful source-order replacement
-base/reducedim.jl	1032	1080	findminmax!	findminmax!(f, op, Rval, Rind, A::AbstractArray{T,N}) where {T,N}	modelled	multidimcov-reducedim-faithful-1032	row-specific faithful source-order replacement
-base/reducedim.jl	1091	1094	findmin!	findmin!(rval::AbstractArray, rind::AbstractArray, A::AbstractArray; init::Bool=true)	modelled	multidimcov-reducedim-faithful-1091	row-specific faithful source-order replacement
-base/reducedim.jl	1116	1116	findmin	findmin(A::AbstractArray; dims::D=:) where {D}	modelled	reducecov-reducedim-find	
-base/reducedim.jl	1117	1117	_findmin	_findmin(A, dims::D) where {D}	modelled	multidimcov-reducedim-faithful-1117	row-specific faithful source-order replacement
-base/reducedim.jl	1139	1139	findmin	findmin(f, A::AbstractArray; dims::D=:) where {D}	modelled	reducecov-reducedim-find	
-base/reducedim.jl	1141	1153	_findmin	_findmin(f, A, region::D) where {D}	modelled	multidimcov-reducedim-faithful-1141	row-specific faithful source-order replacement
-base/reducedim.jl	1164	1167	findmax!	findmax!(rval::AbstractArray, rind::AbstractArray, A::AbstractArray; init::Bool=true)	modelled	multidimcov-reducedim-faithful-1164	row-specific faithful source-order replacement
-base/reducedim.jl	1189	1189	findmax	findmax(A::AbstractArray; dims::D=:) where {D}	modelled	reducecov-reducedim-find	
-base/reducedim.jl	1190	1190	_findmax	_findmax(A, dims::D) where {D}	modelled	multidimcov-reducedim-faithful-1190	row-specific faithful source-order replacement
-base/reducedim.jl	1212	1212	findmax	findmax(f, A::AbstractArray; dims::D=:) where {D}	modelled	reducecov-reducedim-find	
-base/reducedim.jl	1214	1226	_findmax	_findmax(f, A, region::D) where {D}	modelled	multidimcov-reducedim-faithful-1214	row-specific faithful source-order replacement
-base/reducedim.jl	1228	1236	_findminmax_inittype	_findminmax_inittype(f, A::AbstractArray)	modelled	multidimcov-reducedim-faithful-1228	row-specific faithful source-order replacement
-base/reducedim.jl	1238	1238	reducedim1	reducedim1(R)	modelled	reducecov-reducedim-find	
-base/reducedim.jl	1263	1263	argmin	argmin(A::AbstractArray; dims::D=:) where {D}	modelled	multidimcov-reducedim-faithful-1263	row-specific faithful source-order replacement
-base/reducedim.jl	1288	1288	argmax	argmax(A::AbstractArray; dims::D=:) where {D}	modelled	multidimcov-reducedim-faithful-1288	row-specific faithful source-order replacement
+base/reducedim.jl	6	6	reduced_index	reduced_index(i::OneTo{T}) where {T}	modelled	multidimcov-reducedim-repair-shapes	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	7	7	reduced_index	reduced_index(i::Union{Slice, IdentityUnitRange})	modelled	multidimcov-reducedim-repair-shapes	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	8	14	reduced_index	reduced_index(i::AbstractUnitRange)	modelled	multidimcov-reducedim-repair-shapes	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	15	15	reduced_indices	reduced_indices(a::AbstractArrayOrBroadcasted, region)	modelled	multidimcov-reducedim-repair-shapes	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	18	18	reduced_indices0	reduced_indices0(a::AbstractArray, region)	modelled	multidimcov-reducedim-repair-shapes	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	20	23	reduced_indices	reduced_indices(axs::Indices{N}, region) where N	modelled	multidimcov-reducedim-repair-shapes	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	25	28	reduced_indices0	reduced_indices0(axs::Indices{N}, region) where N	modelled	multidimcov-reducedim-repair-shapes	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	30	35	_check_valid_region	_check_valid_region(region)	modelled	multidimcov-reducedim-repair-shapes	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	42	42	initarray!	initarray!(a::AbstractArray{T}, ::Any, ::$(Op), init::Bool, src::AbstractArray) where {T}	todo		generated-loop: (Op, initfun) in ((:(typeof(add_sum)), :zero), (:(typeof(mul_prod)), :one))
+base/reducedim.jl	45	46	initarray!	initarray!(a::AbstractArray{T}, f, ::Union{typeof(min),typeof(max),typeof(_extrema_rf)}, init::Bool, src::AbstractArray) where {T}	modelled	multidimcov-reducedim-repair-init-a	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	49	49	initarray!	initarray!(a::AbstractArray, ::Any, ::$(Op), init::Bool, src::AbstractArray)	todo		generated-loop: (Op, initval) in ((:(typeof(and_all)), true), (:(typeof(or_any)), false))
+base/reducedim.jl	52	52	reducedim_initarray	reducedim_initarray(A::AbstractArrayOrBroadcasted, region, init, ::Type{R}) where {R}	modelled	multidimcov-reducedim-repair-init-a	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	53	53	reducedim_initarray	reducedim_initarray(A::AbstractArrayOrBroadcasted, region, init::T) where {T}	modelled	multidimcov-reducedim-repair-init-a	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	59	59	promote_union	promote_union(T::Union)	modelled	multidimcov-reducedim-repair-init-a	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	60	60	promote_union	promote_union(T)	modelled	multidimcov-reducedim-repair-init-a	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	62	62	_realtype	_realtype(::Type{<:Complex})	modelled	multidimcov-reducedim-repair-init-a	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	63	63	_realtype	_realtype(::Type{Complex{T}}) where T<:Real	modelled	multidimcov-reducedim-repair-init-a	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	64	64	_realtype	_realtype(T::Type)	modelled	multidimcov-reducedim-repair-init-a	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	65	65	_realtype	_realtype(::Union{typeof(abs),typeof(abs2)}, T)	modelled	multidimcov-reducedim-repair-init-a	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	66	66	_realtype	_realtype(::Any, T)	modelled	multidimcov-reducedim-repair-init-a	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	68	70	reducedim_init	reducedim_init(f, op::Union{typeof(+),typeof(add_sum)}, A::AbstractArray, region)	modelled	multidimcov-reducedim-repair-init-a	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	71	73	reducedim_init	reducedim_init(f, op::Union{typeof(*),typeof(mul_prod)}, A::AbstractArray, region)	modelled	multidimcov-reducedim-repair-init-a	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	74	85	_reducedim_init	_reducedim_init(f, op, fv, fop, A, region)	modelled	multidimcov-reducedim-repair-init-a	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	89	128	reducedim_init	reducedim_init(f, op::typeof($f1), A::AbstractArray, region)	todo		generated-loop: (f1, f2, initval, typeextreme) in ((:min, :max, :Inf, :typemax), (:max, :min, :(-Inf), :typemin))
+base/reducedim.jl	131	170	reducedim_init	reducedim_init(f::ExtremaMap, op::typeof(_extrema_rf), A::AbstractArray, region)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	172	173	reducedim_init	reducedim_init(f::Union{typeof(abs),typeof(abs2)}, op::typeof(max), A::AbstractArray{T}, region) where {T}	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	175	175	reducedim_init	reducedim_init(f, op::typeof(and_all), A::AbstractArrayOrBroadcasted, region)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	176	176	reducedim_init	reducedim_init(f, op::typeof(or_any), A::AbstractArrayOrBroadcasted, region)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	179	179	reducedim_init	reducedim_init(f, op::typeof(&), A::AbstractArrayOrBroadcasted, region)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	180	180	reducedim_init	reducedim_init(f, op::typeof(|), A::AbstractArrayOrBroadcasted, region)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	190	193	reducedim_init	reducedim_init(f, op::Union{typeof(+),typeof(add_sum)}, A::T, region)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	194	197	reducedim_init	reducedim_init(f, op::Union{typeof(*),typeof(mul_prod)}, A::T, region)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	202	202	has_fast_linear_indexing	has_fast_linear_indexing(a::AbstractArrayOrBroadcasted)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	203	203	has_fast_linear_indexing	has_fast_linear_indexing(a::AbstractVector)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	205	234	check_reducedims	check_reducedims(R, A)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	239	239	copyfirst!	copyfirst!(R::AbstractArray, A::AbstractArray)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	241	245	mapfirst!	mapfirst!(f::F, R::AbstractArray, A::AbstractArray{<:Any,N}) where {N, F}	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	248	248	_firstreducedslice	_firstreducedslice(::Tuple{}, a::Tuple{})	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	249	249	_firstreducedslice	_firstreducedslice(::Tuple, ::Tuple{})	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	250	250	_firstreducedslice	_firstreducedslice(::Tuple{}, a::Tuple)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	251	251	_firstreducedslice	_firstreducedslice(r::Tuple, a::Tuple)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	252	252	_firstslice	_firstslice(i::OneTo)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	253	253	_firstslice	_firstslice(i::Slice)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	254	254	_firstslice	_firstslice(i)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	256	293	_mapreducedim!	_mapreducedim!(f, op, R::AbstractArray, A::AbstractArrayOrBroadcasted)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	295	296	mapreducedim!	mapreducedim!(f, op, R::AbstractArray, A::AbstractArrayOrBroadcasted)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	298	299	reducedim!	reducedim!(op, R::AbstractArray{RT}, A::AbstractArrayOrBroadcasted) where {RT}	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	328	329	mapreduce	mapreduce(f, op, A::AbstractArrayOrBroadcasted; dims::D=:, init=_InitialValue()) where {D}	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	330	331	mapreduce	mapreduce(f, op, A::AbstractArrayOrBroadcasted, B::AbstractArrayOrBroadcasted...; kw...)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	333	343	_mapreduce_dim	_mapreduce_dim(f, op, nt, A::AbstractArrayOrBroadcasted, ::Colon)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	345	346	_mapreduce_dim	_mapreduce_dim(f, op, ::_InitialValue, A::AbstractArrayOrBroadcasted, ::Colon)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	348	349	_mapreduce_dim	_mapreduce_dim(f, op, nt, A::AbstractArrayOrBroadcasted, dims::D) where {D}	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	351	352	_mapreduce_dim	_mapreduce_dim(f, op, ::_InitialValue, A::AbstractArrayOrBroadcasted, dims::D) where {D}	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	354	355	_mapreduce_dim	_mapreduce_dim(f, op, nt, R::ReshapedArray, ::Colon)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	357	358	_mapreduce_dim	_mapreduce_dim(f, op, i::_InitialValue, R::ReshapedArray, ::Colon)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	392	392	reduce	reduce(op, A::AbstractArray; kw...)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	425	425	count	count(A::AbstractArrayOrBroadcasted; dims::D=:, init=0) where {D}	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	426	426	count	count(f, A::AbstractArrayOrBroadcasted; dims::D=:, init=0) where {D}	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	428	428	_count	_count(f, A::AbstractArrayOrBroadcasted, dims::Colon, init)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	429	429	_count	_count(f, A::AbstractArrayOrBroadcasted, dims, init)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	459	459	count!	count!(r::AbstractArray, A::AbstractArrayOrBroadcasted; init::Bool=true)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	460	461	count!	count!(f, r::AbstractArray, A::AbstractArrayOrBroadcasted; init::Bool=true)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	996	996	$fname	($fname)(a::AbstractArray; dims::D=:, kw...) where {D}	todo		generated-loop: (fname, _fname, op) in [(:sum, :_sum, :add_sum), (:prod, :_prod, :mul_prod), (:maximum, :_maximum, :max), (:minimum, :_minimum, :min), (:extrema, :_extrema, :_extrema_rf)]
+base/reducedim.jl	997	997	$fname	($fname)(f, a::AbstractArray; dims::D=:, kw...) where {D}	todo		generated-loop: (fname, _fname, op) in [(:sum, :_sum, :add_sum), (:prod, :_prod, :mul_prod), (:maximum, :_maximum, :max), (:minimum, :_minimum, :min), (:extrema, :_extrema, :_extrema_rf)]
+base/reducedim.jl	1000	1000	$_fname	($_fname)(a, ::Colon; kw...)	todo		generated-loop: (fname, _fname, op) in [(:sum, :_sum, :add_sum), (:prod, :_prod, :mul_prod), (:maximum, :_maximum, :max), (:minimum, :_minimum, :min), (:extrema, :_extrema, :_extrema_rf)]
+base/reducedim.jl	1001	1001	$_fname	($_fname)(f, a, ::Colon; kw...)	todo		generated-loop: (fname, _fname, op) in [(:sum, :_sum, :add_sum), (:prod, :_prod, :mul_prod), (:maximum, :_maximum, :max), (:minimum, :_minimum, :min), (:extrema, :_extrema, :_extrema_rf)]
+base/reducedim.jl	1003	1003	$_fname	($_fname)(R::ReshapedArray, ::Colon)	todo		generated-loop: (fname, _fname, op) in [(:sum, :_sum, :add_sum), (:prod, :_prod, :mul_prod), (:maximum, :_maximum, :max), (:minimum, :_minimum, :min), (:extrema, :_extrema, :_extrema_rf)]
+base/reducedim.jl	1007	1007	any	any(a::AbstractArray; kw...)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	1008	1008	any	any(f, a::AbstractArray; dims::D=:) where D	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	1009	1009	all	all(a::AbstractArray; kw...)	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	1010	1010	all	all(f, a::AbstractArray; dims::D=:) where D	todo		trivial: restates the source method body; behavior is covered by the source-mirrored method families
+base/reducedim.jl	1020	1021	$(fname!)	$(fname!)(f, r::AbstractArray, A::AbstractArray; init::Bool=true)	todo		generated-loop: (fname, op) in [(:sum, :add_sum), (:prod, :mul_prod), (:maximum, :max), (:minimum, :min), (:all, :and_all), (:any, :or_any), (:extrema, :_extrema_rf)]
+base/reducedim.jl	1022	1022	$(fname!)	$(fname!)(r::AbstractArray, A::AbstractArray; init::Bool=true)	todo		generated-loop: (fname, op) in [(:sum, :add_sum), (:prod, :mul_prod), (:maximum, :max), (:minimum, :min), (:all, :and_all), (:any, :or_any), (:extrema, :_extrema_rf)]
+base/reducedim.jl	1024	1024	$(_fname)	$(_fname)(A, dims::D; kw...) where {D}	todo		generated-loop: (fname, op) in [(:sum, :add_sum), (:prod, :mul_prod), (:maximum, :max), (:minimum, :min), (:all, :and_all), (:any, :or_any), (:extrema, :_extrema_rf)]
+base/reducedim.jl	1025	1025	$(_fname)	$(_fname)(f, A, dims::D; kw...) where {D}	todo		generated-loop: (fname, op) in [(:sum, :add_sum), (:prod, :mul_prod), (:maximum, :max), (:minimum, :min), (:all, :and_all), (:any, :or_any), (:extrema, :_extrema_rf)]
+base/reducedim.jl	1032	1080	findminmax!	findminmax!(f, op, Rval, Rind, A::AbstractArray{T,N}) where {T,N}	modelled	multidimcov-reducedim-repair-find	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	1091	1094	findmin!	findmin!(rval::AbstractArray, rind::AbstractArray, A::AbstractArray; init::Bool=true)	modelled	multidimcov-reducedim-repair-find	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	1116	1116	findmin	findmin(A::AbstractArray; dims::D=:) where {D}	modelled	multidimcov-reducedim-repair-find	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	1117	1117	_findmin	_findmin(A, dims::D) where {D}	modelled	multidimcov-reducedim-repair-find	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	1139	1139	findmin	findmin(f, A::AbstractArray; dims::D=:) where {D}	modelled	multidimcov-reducedim-repair-find	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	1141	1153	_findmin	_findmin(f, A, region::D) where {D}	modelled	multidimcov-reducedim-repair-find	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	1164	1167	findmax!	findmax!(rval::AbstractArray, rind::AbstractArray, A::AbstractArray; init::Bool=true)	modelled	multidimcov-reducedim-repair-find	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	1189	1189	findmax	findmax(A::AbstractArray; dims::D=:) where {D}	modelled	multidimcov-reducedim-repair-find	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	1190	1190	_findmax	_findmax(A, dims::D) where {D}	modelled	multidimcov-reducedim-repair-find	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	1212	1212	findmax	findmax(f, A::AbstractArray; dims::D=:) where {D}	modelled	multidimcov-reducedim-repair-find	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	1214	1226	_findmax	_findmax(f, A, region::D) where {D}	modelled	multidimcov-reducedim-repair-find	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	1228	1236	_findminmax_inittype	_findminmax_inittype(f, A::AbstractArray)	modelled	multidimcov-reducedim-repair-find	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	1238	1238	reducedim1	reducedim1(R)	modelled	multidimcov-reducedim-repair-find	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	1263	1263	argmin	argmin(A::AbstractArray; dims::D=:) where {D}	modelled	multidimcov-reducedim-repair-find	MultidimCov source-order repair for the fixed-review HOLLOW reason
+base/reducedim.jl	1288	1288	argmax	argmax(A::AbstractArray; dims::D=:) where {D}	modelled	multidimcov-reducedim-repair-find	MultidimCov source-order repair for the fixed-review HOLLOW reason

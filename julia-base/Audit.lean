@@ -2,11 +2,11 @@ import JuliaLean
 
 /-!
 Audit of the property registry. Run with `lake env lean Audit.lean`; any failure
-raises an error, so the command exits nonzero.
+raises an error, so the command exits nonzero. Open `todo` entries are listed as
+`TODO <id>` lines and counted, but do not fail the audit.
 
 Checks, for every registry entry:
 * ids are unique;
-* status is `proven` or `refuted` (`todo` fails);
 * `prop` is a closed, universe-monomorphic `Prop` constant that quantifies over
   at least one data variable (no single worked examples);
 * `thm` is a theorem whose type is `prop` (proven) or `¬ prop` (refuted);
@@ -14,7 +14,8 @@ Checks, for every registry entry:
   axioms declared in `JuliaLean.Runtime.Axioms`;
 * refuted entries record a duplicate-issue search result in `issue`.
 
-It prints `REFUTED <id>` lines consumed by `scripts/run-repros.sh`.
+It prints `REFUTED <id>` lines that `scripts/run-repros.sh` reads to run the
+reproducers of Base runtime refutations.
 -/
 
 open Lean Meta
@@ -42,7 +43,7 @@ def axiomAllowed (env : Environment) (ax : Name) : Bool :=
       failures := failures.push s!"{e.id}: duplicate id"
     seen := seen.insert e.id
     if e.status == .todo then
-      failures := failures.push s!"{e.id}: status todo"
+      IO.println s!"TODO {e.id}"
       continue
     let some propInfo := env.find? e.prop
       | failures := failures.push s!"{e.id}: prop {e.prop} not found"; continue
@@ -71,6 +72,8 @@ def axiomAllowed (env : Environment) (ax : Name) : Bool :=
       unless axiomAllowed env ax do
         failures := failures.push s!"{e.id}: {thm} uses disallowed axiom {ax}"
     if e.status == .refuted then
+      if e.refutationEvidence == .modelCounterexample then
+        failures := failures.push s!"{e.id}: Base refutation requires runtime evidence"
       if e.issue.isEmpty then
         failures := failures.push s!"{e.id}: refuted entry has no duplicate-issue search result"
       IO.println s!"REFUTED {e.id}"

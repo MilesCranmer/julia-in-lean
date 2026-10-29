@@ -1,48 +1,48 @@
 file	line	endline	name	signature	status	entry	note
-base/div.jl	77	77	div	div(a, b)	modelled	floatintcov-div-l77	
-base/div.jl	127	127	rem	rem(x, y, ::RoundingMode{:ToZero})	modelled	floatintcov-div-l127	
-base/div.jl	128	128	rem	rem(x, y, ::RoundingMode{:Down})	modelled	floatintcov-div-l128	
-base/div.jl	129	129	rem	rem(x, y, ::RoundingMode{:Up})	modelled	floatintcov-div-l129	
-base/div.jl	130	130	rem	rem(x, y, r::RoundingMode{:Nearest})	modelled	floatintcov-div-l130	
-base/div.jl	131	131	rem	rem(x::Integer, y::Integer, r::RoundingMode{:Nearest})	modelled	floatintcov-div-l131	
-base/div.jl	132	135	rem	rem(x::Integer, y::Integer, rnd::Union{typeof(RoundNearestTiesAway), typeof(RoundNearestTiesUp)})	modelled	floatintcov-div-l132	
-base/div.jl	136	138	rem	rem(x, y, ::typeof(RoundFromZero))	modelled	floatintcov-div-l136	
-base/div.jl	139	149	rem	rem(x::AbstractFloat, y::AbstractFloat, rnd::Union{typeof(RoundNearestTiesAway), typeof(RoundNearestTiesUp)})	modelled	floatintcov-div-l139	
-base/div.jl	196	196	fld	fld(a, b)	modelled	floatintcov-div-l196	
-base/div.jl	243	243	cld	cld(a, b)	modelled	floatintcov-div-l243	
-base/div.jl	252	252	fld1	fld1(a, b)	modelled	floatintcov-div-l252	
-base/div.jl	273	273	divrem	divrem(x, y)	modelled	floatintcov-div-l273	
-base/div.jl	276	286	divrem	divrem(a, b, r::RoundingMode)	modelled	floatintcov-div-l276	
-base/div.jl	290	306	divrem	divrem(a::Integer, b::Integer, r::Union{typeof(RoundUp), typeof(RoundDown), typeof(RoundToZero)})	modelled	floatintcov-div-l290	
-base/div.jl	312	325	divrem	divrem(a::T, b::T, r::Union{typeof(RoundUp), typeof(RoundDown), typeof(RoundToZero)}) where T<:BitSigned	modelled	floatintcov-div-l312	
-base/div.jl	326	341	divrem	divrem(x::Integer, y::Integer, rnd::typeof(RoundNearest))	modelled	floatintcov-div-l326	
-base/div.jl	342	357	divrem	divrem(x::Integer, y::Integer, rnd:: typeof(RoundNearestTiesAway))	modelled	floatintcov-div-l342	
-base/div.jl	358	373	divrem	divrem(x::Integer, y::Integer, rnd::typeof(RoundNearestTiesUp))	modelled	floatintcov-div-l358	
-base/div.jl	375	377	divrem	divrem(x, y, ::typeof(RoundFromZero))	modelled	floatintcov-div-l375	
-base/div.jl	387	387	fldmod	fldmod(x, y)	modelled	floatintcov-div-l387	
-base/div.jl	391	394	div	div(x::Signed, y::Unsigned, ::typeof(RoundDown))	modelled	floatintcov-div-l391	
-base/div.jl	395	398	div	div(x::Unsigned, y::Signed, ::typeof(RoundDown))	modelled	floatintcov-div-l395	
-base/div.jl	400	403	div	div(x::Signed, y::Unsigned, ::typeof(RoundUp))	modelled	floatintcov-div-l400	
-base/div.jl	404	407	div	div(x::Unsigned, y::Signed, ::typeof(RoundUp))	modelled	floatintcov-div-l404	
-base/div.jl	409	413	div	div(x::Integer, y::Integer, rnd::Union{typeof(RoundNearest), typeof(RoundNearestTiesAway), typeof(RoundNearestTiesUp)})	modelled	floatintcov-div-l409	
-base/div.jl	415	417	div	div(x::Integer, y::Integer, ::typeof(RoundFromZero))	modelled	floatintcov-div-l415	
-base/div.jl	421	421	div	div(a::T, b::T, ::typeof(RoundToZero)) where {T<:Union{BitSigned, BitUnsigned}}	modelled	floatintcov-div-l421	
-base/div.jl	422	422	div	div(a::Bool, b::Bool, r::RoundingMode)	modelled	floatintcov-div-l422	
-base/div.jl	425	425	div	div(a::Bool, b::Bool, r::$(typeof(rm)))	modelled	floatintcov-div-l425	
-base/div.jl	427	431	div	div(x::Bool, y::Bool, rnd::Union{typeof(RoundNearest), typeof(RoundNearestTiesAway), typeof(RoundNearestTiesUp)})	modelled	floatintcov-div-l427	
-base/div.jl	432	432	fld	fld(a::T, b::T) where {T<:Union{Integer,AbstractFloat}}	modelled	floatintcov-div-l432	
-base/div.jl	433	433	cld	cld(a::T, b::T) where {T<:Union{Integer,AbstractFloat}}	modelled	floatintcov-div-l433	
-base/div.jl	438	438	fld	fld(x::Real, y::Real)	modelled	floatintcov-div-l438	
-base/div.jl	439	439	cld	cld(x::Real, y::Real)	modelled	floatintcov-div-l439	
-base/div.jl	440	440	fld	fld(x::Signed, y::Unsigned)	modelled	floatintcov-div-l440	
-base/div.jl	441	441	fld	fld(x::Unsigned, y::Signed)	modelled	floatintcov-div-l441	
-base/div.jl	442	442	cld	cld(x::Signed, y::Unsigned)	modelled	floatintcov-div-l442	
-base/div.jl	443	443	cld	cld(x::Unsigned, y::Signed)	modelled	floatintcov-div-l443	
-base/div.jl	444	444	fld	fld(x::T, y::T) where {T<:Real}	modelled	floatintcov-div-l444	
-base/div.jl	445	445	cld	cld(x::T, y::T) where {T<:Real}	modelled	floatintcov-div-l445	
-base/div.jl	448	456	div	div(x::Real, y::Real, r::RoundingMode)	modelled	floatintcov-div-l448	
-base/div.jl	460	460	div	div(x::T, y::T, ::typeof(RoundDown)) where {T<:Unsigned}	modelled	floatintcov-div-l460	
-base/div.jl	461	464	div	div(x::T, y::T, ::typeof(RoundDown)) where T<:Integer	modelled	floatintcov-div-l461	
-base/div.jl	467	470	div	div(x::T, y::T, ::typeof(RoundUp)) where T<:Unsigned	modelled	floatintcov-div-l467	
-base/div.jl	471	474	div	div(x::T, y::T, ::typeof(RoundUp)) where T<:Integer	modelled	floatintcov-div-l471	
-base/div.jl	480	480	div	div(x::T, y::T, r::RoundingMode) where {T<:AbstractFloat}	modelled	floatintcov-div-l480	
+base/div.jl	77	77	div	div(a, b)	modelled	div-bitinteger-rounded-quotient	
+base/div.jl	127	127	rem	rem(x, y, ::RoundingMode{:ToZero})	modelled	div-bitinteger-remainder-equation	
+base/div.jl	128	128	rem	rem(x, y, ::RoundingMode{:Down})	modelled	div-bitinteger-remainder-equation	
+base/div.jl	129	129	rem	rem(x, y, ::RoundingMode{:Up})	modelled	div-bitinteger-remainder-equation	
+base/div.jl	130	130	rem	rem(x, y, r::RoundingMode{:Nearest})	modelled	div-bitinteger-remainder-equation	
+base/div.jl	131	131	rem	rem(x::Integer, y::Integer, r::RoundingMode{:Nearest})	modelled	div-bitinteger-remainder-equation	
+base/div.jl	132	135	rem	rem(x::Integer, y::Integer, rnd::Union{typeof(RoundNearestTiesAway), typeof(RoundNearestTiesUp)})	modelled	div-bitinteger-remainder-equation	
+base/div.jl	136	138	rem	rem(x, y, ::typeof(RoundFromZero))	modelled	div-bitinteger-remainder-equation	
+base/div.jl	139	149	rem	rem(x::AbstractFloat, y::AbstractFloat, rnd::Union{typeof(RoundNearestTiesAway), typeof(RoundNearestTiesUp)})	todo		trivial: forwarding, error-dispatch, or Float-only body equation has no separate BitInteger contract.
+base/div.jl	196	196	fld	fld(a, b)	modelled	div-bitinteger-directed-wrapper-correct	
+base/div.jl	243	243	cld	cld(a, b)	modelled	div-bitinteger-directed-wrapper-correct	
+base/div.jl	252	252	fld1	fld1(a, b)	modelled	div-bitinteger-directed-wrapper-correct	
+base/div.jl	273	273	divrem	divrem(x, y)	modelled	div-bitinteger-divrem-reconstruction	
+base/div.jl	276	286	divrem	divrem(a, b, r::RoundingMode)	modelled	div-bitinteger-divrem-reconstruction	
+base/div.jl	290	306	divrem	divrem(a::Integer, b::Integer, r::Union{typeof(RoundUp), typeof(RoundDown), typeof(RoundToZero)})	modelled	div-bitinteger-divrem-reconstruction	
+base/div.jl	312	325	divrem	divrem(a::T, b::T, r::Union{typeof(RoundUp), typeof(RoundDown), typeof(RoundToZero)}) where T<:BitSigned	modelled	div-bitinteger-divrem-reconstruction	
+base/div.jl	326	341	divrem	divrem(x::Integer, y::Integer, rnd::typeof(RoundNearest))	modelled	div-bitinteger-divrem-reconstruction	
+base/div.jl	342	357	divrem	divrem(x::Integer, y::Integer, rnd:: typeof(RoundNearestTiesAway))	modelled	div-bitinteger-divrem-reconstruction	
+base/div.jl	358	373	divrem	divrem(x::Integer, y::Integer, rnd::typeof(RoundNearestTiesUp))	modelled	div-bitinteger-divrem-reconstruction	
+base/div.jl	375	377	divrem	divrem(x, y, ::typeof(RoundFromZero))	modelled	div-bitinteger-divrem-reconstruction	
+base/div.jl	387	387	fldmod	fldmod(x, y)	modelled	div-bitinteger-fldmod-contract	
+base/div.jl	391	394	div	div(x::Signed, y::Unsigned, ::typeof(RoundDown))	modelled	div-bitinteger-rounded-quotient	
+base/div.jl	395	398	div	div(x::Unsigned, y::Signed, ::typeof(RoundDown))	modelled	div-bitinteger-rounded-quotient	
+base/div.jl	400	403	div	div(x::Signed, y::Unsigned, ::typeof(RoundUp))	modelled	div-bitinteger-rounded-quotient	
+base/div.jl	404	407	div	div(x::Unsigned, y::Signed, ::typeof(RoundUp))	modelled	div-bitinteger-rounded-quotient	
+base/div.jl	409	413	div	div(x::Integer, y::Integer, rnd::Union{typeof(RoundNearest), typeof(RoundNearestTiesAway), typeof(RoundNearestTiesUp)})	modelled	div-bitinteger-rounded-quotient	
+base/div.jl	415	417	div	div(x::Integer, y::Integer, ::typeof(RoundFromZero))	modelled	div-bitinteger-rounded-quotient	
+base/div.jl	421	421	div	div(a::T, b::T, ::typeof(RoundToZero)) where {T<:Union{BitSigned, BitUnsigned}}	modelled	div-bitinteger-rounded-quotient	
+base/div.jl	422	422	div	div(a::Bool, b::Bool, r::RoundingMode)	todo		trivial: forwarding, error-dispatch, or Float-only body equation has no separate BitInteger contract.
+base/div.jl	425	425	div	div(a::Bool, b::Bool, r::$(typeof(rm)))	todo		generated-loop: rm in (RoundUp, RoundDown, RoundToZero, RoundFromZero)
+base/div.jl	427	431	div	div(x::Bool, y::Bool, rnd::Union{typeof(RoundNearest), typeof(RoundNearestTiesAway), typeof(RoundNearestTiesUp)})	todo		trivial: forwarding, error-dispatch, or Float-only body equation has no separate BitInteger contract.
+base/div.jl	432	432	fld	fld(a::T, b::T) where {T<:Union{Integer,AbstractFloat}}	modelled	div-bitinteger-directed-wrapper-correct	
+base/div.jl	433	433	cld	cld(a::T, b::T) where {T<:Union{Integer,AbstractFloat}}	modelled	div-bitinteger-directed-wrapper-correct	
+base/div.jl	438	438	fld	fld(x::Real, y::Real)	modelled	div-bitinteger-directed-wrapper-correct	
+base/div.jl	439	439	cld	cld(x::Real, y::Real)	modelled	div-bitinteger-directed-wrapper-correct	
+base/div.jl	440	440	fld	fld(x::Signed, y::Unsigned)	modelled	div-bitinteger-directed-wrapper-correct	
+base/div.jl	441	441	fld	fld(x::Unsigned, y::Signed)	modelled	div-bitinteger-directed-wrapper-correct	
+base/div.jl	442	442	cld	cld(x::Signed, y::Unsigned)	modelled	div-bitinteger-directed-wrapper-correct	
+base/div.jl	443	443	cld	cld(x::Unsigned, y::Signed)	modelled	div-bitinteger-directed-wrapper-correct	
+base/div.jl	444	444	fld	fld(x::T, y::T) where {T<:Real}	todo		trivial: forwarding, error-dispatch, or Float-only body equation has no separate BitInteger contract.
+base/div.jl	445	445	cld	cld(x::T, y::T) where {T<:Real}	todo		trivial: forwarding, error-dispatch, or Float-only body equation has no separate BitInteger contract.
+base/div.jl	448	456	div	div(x::Real, y::Real, r::RoundingMode)	modelled	div-bitinteger-rounded-quotient	
+base/div.jl	460	460	div	div(x::T, y::T, ::typeof(RoundDown)) where {T<:Unsigned}	modelled	div-bitinteger-rounded-quotient	
+base/div.jl	461	464	div	div(x::T, y::T, ::typeof(RoundDown)) where T<:Integer	modelled	div-bitinteger-rounded-quotient	
+base/div.jl	467	470	div	div(x::T, y::T, ::typeof(RoundUp)) where T<:Unsigned	modelled	div-bitinteger-rounded-quotient	
+base/div.jl	471	474	div	div(x::T, y::T, ::typeof(RoundUp)) where T<:Integer	modelled	div-bitinteger-rounded-quotient	
+base/div.jl	480	480	div	div(x::T, y::T, r::RoundingMode) where {T<:AbstractFloat}	todo		trivial: forwarding, error-dispatch, or Float-only body equation has no separate BitInteger contract.

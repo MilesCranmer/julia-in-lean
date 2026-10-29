@@ -137,14 +137,4 @@ def fourthroot (x : F64) : Jl F64 := do
 def exponentRat (num den : JInt .i64) : Jl Int :=
   F64.exponent (F64.div (F64.ofJInt num) (F64.ofJInt den))
 
-/-- Generic `copysign(x::Real, y::Real) = ifelse(signbit(x)!=signbit(y), -x, +x)`
-(`base/number.jl:271`), as reached by `copysign(x::Signed, y::Signed) = flipsign(x, x ⊻ y)`
-(`base/int.jl:196`) for same-type signed integers. -/
-def copysignInt {t : IntTy} (x y : JInt t) : JInt t :=
-  if decide (x.val < 0) != decide (y.val < 0) then -x else x
-
-/-- `flipsign(x::T, y::T) where {T<:BitSigned} = flipsign_int(x, y)`; `base/int.jl:188`. -/
-def flipsignInt {t : IntTy} (x y : JInt t) : JInt t :=
-  if y.val < 0 then -x else x
-
 end JuliaLean.MathFuncs

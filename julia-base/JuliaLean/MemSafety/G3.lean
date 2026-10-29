@@ -26,19 +26,9 @@ def entries : List Entry := [
     status := .proven, prop := ``AbstractArrayIterationSafe, thm := some ``abstractArrayIterationSafe_proven },
   { id := "memsafety-deepcopy-memory", juliaFile := "base/deepcopy.jl"
     juliaFns := ["_deepcopy_memory_t"]
-    statement := "Every unchecked memory reference dereferenced by deepcopy is created at a computed 1:length(x) index, and the destination is allocated with length(x)."
-    source := "base/deepcopy.jl:108-127"
+    statement := "The non-bits loop stays within the source and destination; for bits elements copy allocates the same extent and its memmove byte count fits both memories without overflow."
+    source := "base/deepcopy.jl:108-127; base/genericmemory.jl:197-207,223-225,257-263; src/genericmemory.c:55-71"
     status := .proven, prop := ``DeepcopyMemorySafe, thm := some ``deepcopyMemorySafe_proven },
-  { id := "memsafety-dict-persistent-path", juliaFile := "base/dict.jl"
-    juliaFns := ["KeyValue.get", "HAMT.path", "HAMT.entry_index"]
-    statement := "When a HAMT bitmap contains a branch, entry_index is within the data vector whose length equals the bitmap population count."
-    source := "base/dict.jl:1033-1045; base/hamt.jl:127-168 and its bitmap/data-length invariant"
-    status := .proven, prop := ``PersistentDictPathSafe, thm := some ``persistentDictPathSafe_proven },
-  { id := "memsafety-dict-probes", juliaFile := "base/dict.jl"
-    juliaFns := ["rehash!", "ht_keyindex", "ht_keyindex2_shorthash!", "_setindex!", "getindex", "get", "getkey", "pop!", "_delete!", "iterate", "filter!", "map!", "mergewith!"]
-    statement := "Every slot computed by Dict probe cycles, full-table scans, and idxfloor suffix scans lies in 1:length(slots), the shared keys and values extent."
-    source := "base/dict.jl:65-90,128-770; JuliaLean.Dicts.Inv table invariant"
-    status := .proven, prop := ``DictProbeSafe, thm := some ``dictProbeSafe_proven },
   { id := "memsafety-environment-buffers", juliaFile := "base/env.jl"
     juliaFns := ["_environ", "iterate(::EnvDict)"]
     statement := "Every environment pointer read and Windows block copy uses an offset computed within the platform-defined null-terminated storage."
@@ -49,11 +39,6 @@ def entries : List Entry := [
     statement := "The endianness probe reads the first of four allocated bytes, and countlines scans the computed 1:nb indices where readbytes! guarantees nb is at most 8192."
     source := "base/io.jl:817-834,1295-1300,1700-1714"
     status := .proven, prop := ``IOSafe, thm := some ``ioSafe_proven },
-  { id := "memsafety-intfuncs-formatting", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["bin", "oct", "append_c_digits", "append_nine_digits", "dec", "hex", "_base", "bitstring", "clamp!"]
-    statement := "Every integer-writer branch stores in its input-computed allocation, decimal-pair and base-alphabet indices stay in their tables, and clamp! uses the array's computed LinearIndices."
-    source := "base/intfuncs.jl:878-1165,1518-1523; JuliaLean.ParsePrint.IntPrint source model"
-    status := .proven, prop := ``IntegerFormattingSafe, thm := some ``integerFormattingSafe_proven },
   { id := "memsafety-module-symbol-prefix", juliaFile := "base/module.jl"
     juliaFns := ["check_macro_rename"]
     statement := "Reading the first byte of a Symbol is in bounds because Symbol storage always contains at least its terminating byte."
@@ -79,26 +64,6 @@ def entries : List Entry := [
     statement := "The context-vector growth computed from maxthreadid covers the current thread, and capture_names computes both header-byte indices within every fixed-size PCRE2 name-table entry."
     source := "base/pcre.jl:37-63,265-280; PCRE2 API name table contract"
     status := .proven, prop := ``PcreNameTableSafe, thm := some ``pcreNameTableSafe_proven },
-  { id := "memsafety-reduce-linear", juliaFile := "base/reduce.jl"
-    juliaFns := ["_mapreduce(::IndexLinear, ...)", "_simple_count(::Array{Bool})"]
-    statement := "The short-array branches compute reads from LinearIndices, and each UInt word index computed from length(x) addresses only complete Bool bytes."
-    source := "base/reduce.jl:436-455,1097-1112; IndexLinear axis invariant"
-    status := .proven, prop := ``ReduceSafe, thm := some ``reduceSafe_proven },
-  { id := "memsafety-string-hex", juliaFile := "base/strings/util.jl"
-    juliaFns := ["hex2bytes!", "bytes2hex", "ascii"]
-    statement := "hex2bytes! uses eachindex(dest), bytes2hex computes output positions 2i-1 and 2i plus two 1:16 digit-table indices, and ascii scans 1:sizeof(s)."
-    source := "base/strings/util.jl:1260-1341; iterator length and eachindex interface invariants"
-    status := .proven, prop := ``StringHexSafe, thm := some ``stringHexSafe_proven },
-  { id := "memsafety-string-positions", juliaFile := "base/strings/util.jl"
-    juliaFns := ["chopprefix", "chopsuffix", "chomp", "lstrip", "rstrip", "string_truncate_boundaries", "iterate(::SplitIterator)"]
-    statement := "Unchecked string reads use character-start states or guarded final code units, and unchecked SubString endpoints are computed character or sentinel boundaries from 0 through ncodeunits(s)+1."
-    source := "base/strings/util.jl:268-453,697-806; JuliaLean.StringUtil String iteration model"
-    status := .proven, prop := ``StringPositionSafe, thm := some ``stringPositionSafe_proven },
-  { id := "memsafety-unicode-category", juliaFile := "base/strings/unicode.jl"
-    juliaFns := ["category_string(::Char)", "category_code(::Char)"]
-    statement := "category_string computes category_code(c)+1, which is within the 32-entry table for every Char, including malformed values."
-    source := "base/strings/unicode.jl:371-403 (category_code range and category_strings assertion)"
-    status := .proven, prop := ``UnicodeCategorySafe, thm := some ``unicodeCategorySafe_proven },
   { id := "memsafety-timing-globals", juliaFile := "base/timing.jl"
     juliaFns := ["gc_page_utilization_data", "full_sweep_reasons"]
     statement := "Both GC timing unsafe_wrap extents equal the matching C global-array extents, and enumerate reads only those wrapped reason elements."

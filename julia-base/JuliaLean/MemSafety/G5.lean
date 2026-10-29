@@ -27,18 +27,6 @@ def entries : List Entry := [
     source := "array-axis invariant; base/accumulate.jl:374-390,404-425"
     status := .proven, prop := ``AccumulateDimsInitialAccessesInBounds
     thm := some ``accumulateDimsInitialAccessesInBounds },
-  { id := "memsafety-bitset-indexing", juliaFile := "base/bitset.jl"
-    juliaFns := ["_bits_getindex", "_growend0!", "_growbeg0!", "union!", "_matched_map!", "iterate", "_check0", "==(::BitSet, ::BitSet)", "issubset"]
-    statement := "Every chunk index and unsafe copy span computed by BitSet lookup, growth, range union, matched mapping, reachable iteration, equality, emptiness, and subset operations is within the vector length in force at that statement."
-    source := "BitSet representation and iteration invariants; base/bitset.jl:5-10,63-68,87-165,169-253,291-337,368-418"
-    status := .proven, prop := ``BitSetAccessesInBounds
-    thm := some ``bitSetAccessesInBounds },
-  { id := "memsafety-essentials-defaultctors", juliaFile := "base/essentials.jl"
-    juliaFns := ["_fieldtypes_constrain_typevars", "_defaultctor_typeinfo", "_defaultctors"]
-    statement := "Every unchecked access computed by default-constructor generation is within its source vector or the exact generated-array allocation, across every break and constructor branch."
-    source := "DataType field/name representation invariant; base/essentials.jl:1290-1503"
-    status := .proven, prop := ``DefaultCtorAccessesInBounds
-    thm := some ``defaultCtorAccessesInBounds },
   { id := "memsafety-options-commands", juliaFile := "base/options.jl"
     juliaFns := ["JLOptions", "unsafe_load_commands", "show(::IO, ::JLOptions)", "exec_options"]
     statement := "JLOptions loads one runtime object, and every command-table and first-byte load follows the runtime table's terminating null pointer."
@@ -95,14 +83,7 @@ def entries : List Entry := [
     status := .refuted, prop := ``ComprehensionWidenAccessesInBounds
     thm := some ``comprehensionWidenAccessesInBounds_refuted
     issue := "none found (queries: threaded comprehension firstindex overflow; _comprehension_widened_eltype; typemax firstindex @threads; PRs same)"
-    notes := "On master, a one-element result whose sole index is typemax(Int) wraps firstindex(result)+1 to typemin(Int), then line 370 reads that index under @inbounds. Julia 1.13.2 does not support threaded comprehensions." },
-  { id := "memsafety-slices-constructor-axes", juliaFile := "base/slicearray.jl"
-    juliaFns := ["Slices(A, slicemap, ax)", "getindex(::Slices, I...)", "setindex!(::Slices, val, I...)"]
-    statement := "Every index accepted by a Slices outer axis maps to an in-bounds index of its parent axis."
-    source := "Slices docstring and array bounds invariant; base/slicearray.jl:12-49,236-246"
-    status := .refuted, prop := ``SlicesAccessesInBounds, thm := some ``slicesAccessesInBounds_refuted
-    issue := "none found (queries: Slices slicearray axes bounds; Base.Slices constructor axes; eachslice out of bounds slicemap; PRs same)"
-    notes := "Base.Slices(Int[11,22], (1,), (OneTo(3),))[3] reaches parent index 3 under @inbounds; forced bounds checks report slicearray.jl:242. setindex! likewise reaches line 246." }
+    notes := "On master, a one-element result whose sole index is typemax(Int) wraps firstindex(result)+1 to typemin(Int), then line 370 reads that index under @inbounds. Julia 1.13.2 does not support threaded comprehensions." }
 ]
 
 end JuliaLean.MemSafety.G5

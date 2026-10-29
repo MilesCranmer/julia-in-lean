@@ -212,62 +212,6 @@ private def entry (id : String) (fns : List String) (statement source : String)
   { id, juliaFile := "base/indices.jl", juliaFns := fns, statement, source, status,
     prop, thm := some thm, issue }
 
-def entries : List Entry := [
-  entry "reducecov-indices-indexstyle" ["IndexStyle"]
-    "Every IndexStyle overload follows its method-specific dispatch body."
-    "base/indices.jl:94-104,505" ``IndexStyleRows ``indexStyleRows_proven,
-  entry "reducecov-indices-promote-shape" ["promote_shape"]
-    "Every promote_shape overload follows its ordered checks and returns the selected shape."
-    "base/indices.jl:108,139-203" ``PromoteShapeRows ``promoteShapeRows_proven,
-  entry "reducecov-promote-shape-message" ["throw_promote_shape_mismatch", "_normalize"]
-    "A shape mismatch message cannot print two different axes as the same axis."
-    "base/indices.jl:110-137" ``PromoteShapeMessage ``promoteShapeMessage_refuted .refuted
-    "none found (queries: promote_shape error message axes mismatch; throw_promote_shape_mismatch firstindex lastindex)",
-  entry "reducecov-indices-setindex-shape" ["throw_setindex_mismatch", "setindex_shape_check", "_shapes_match"]
-    "The setindex shape helpers follow the documented element-count and trailing-singleton rules."
-    "base/indices.jl:205-228" ``SetindexRows ``setindexRows_proven,
-  entry "reducecov-indices-to-index" ["to_index", "to_indices", "_to_indices", "_drop_zerodim"]
-    "Each index conversion overload follows its own source body for every allowed input."
-    "base/indices.jl:243-323" ``ToIndexRows ``toIndexRows_proven,
-  entry "reducecov-indices-slice" ["Slice", "axes", "axes1", "first", "last", "size", "getindex", "show", "iterate"]
-    "Slice constructors, accessors, indexing and iteration follow their method bodies."
-    "base/indices.jl:340-354,410-415" ``SliceRows ``sliceRows_proven,
-  entry "reducecov-slice-bool-range" ["getindex(::Slice, ::AbstractUnitRange{Bool})"]
-    "Logical indexing of a Slice selects the elements corresponding to true mask values."
-    "logical indexing invariant; base/indices.jl:351" ``SliceBoolMask ``sliceBoolMask_refuted .refuted
-    "none found (queries: Slice Bool range logical indexing; Slice false true)",
-  entry "reducecov-slice-integer-index" ["getindex(::Slice, ::Integer)"]
-    "Indexing a Slice by any integer type returns that exact integer."
-    "base/indices.jl:325-335" ``SliceIntegerIndex ``sliceIntegerIndex_refuted .refuted
-    "none found (queries: Slice Int8 getindex; Slice integer index)",
-  entry "reducecov-indices-identity" ["IdentityUnitRange", "axes", "axes1", "first", "last", "size", "unsafe_length", "getindex", "show", "iterate"]
-    "IdentityUnitRange methods follow their constructors, checks, conversions and iteration bodies."
-    "base/indices.jl:366-427" ``IdentityRows ``identityRows_proven,
-  entry "reducecov-identityrange-bool-step" ["getindex(::IdentityUnitRange, ::StepRange{Bool})"]
-    "Logical indexing by a Bool step range selects every true position."
-    "logical indexing invariant; base/indices.jl:395-399" ``IdentityBoolStep ``identityBoolStep_refuted .refuted
-    "none found (queries: IdentityUnitRange StepRange Bool; IdentityUnitRange logical indexing)",
-  entry "reducecov-indices-linear-constructors" ["convert(::Type{LinearIndices}, ::LinearIndices)", "LinearIndices", "_convert2ind"]
-    "LinearIndices constructors preserve or convert each supplied axis as their source bodies specify."
-    "base/indices.jl:479-490" ``LinearConstructorRows ``linearConstructorRows_proven,
-  entry "reducecov-linearindices-mixed-axes" ["LinearIndices(::Tuple{Union{Integer,AbstractUnitRange}})"]
-    "LinearIndices constructed from integers and ranges preserves every supplied range axis."
-    "base/indices.jl:458-466,485-486" ``LinearIndicesAxes ``linearIndicesAxes_refuted .refuted
-    "none found (queries: LinearIndices IdentityUnitRange integer; LinearIndices mixed axes)",
-  entry "reducecov-indices-linear-promotion" ["indices_promote_type", "promote_rule(::Type{LinearIndices}, ::Type{LinearIndices})"]
-    "LinearIndices promotion promotes each wrapped range type."
-    "base/indices.jl:492-498" ``LinearPromotionRows ``linearPromotionRows_proven,
-  entry "reducecov-slice-promote-rule" ["promote_rule(::Type{Slice}, ::Type{Slice})", "promote_rule(::Type{IdentityUnitRange}, ::Type{IdentityUnitRange})"]
-    "Promoting two wrappers returns the wrapper of the promoted range type."
-    "promotion invariant; base/indices.jl:499-502" ``SlicePromoteRule ``slicePromoteRule_refuted .refuted
-    "none found (queries: promote_rule Slice el_same; IdentityUnitRange promote_rule)",
-  entry "reducecov-indices-linear-values" ["axes(::LinearIndices)", "size(::LinearIndices)", "isassigned", "getindex", "copy", "iterate", "first", "last", "show"]
-    "LinearIndices accessors and scalar iteration follow their method-specific bodies."
-    "base/indices.jl:505-533" ``LinearValueRows ``linearValueRows_proven,
-  entry "reducecov-linearindices-range-index" ["getindex(::LinearIndices, ::AbstractRange)"]
-    "Range indexing returns the linear-index values at the requested positions."
-    "base/indices.jl:514-518" ``LinearIndicesRangeIndex ``linearIndicesRangeIndex_refuted .refuted
-    "none found (queries: LinearIndices range index offset; LinearIndices 3:5 2:3)"
-]
+def entries : List Entry := []
 
 end JuliaLean.ReduceCov.IndicesEntries

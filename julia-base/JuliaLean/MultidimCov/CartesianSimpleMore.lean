@@ -83,23 +83,6 @@ theorem cartesianConvertNumberRow : CartesianConvertNumberRow := by
   intro convertNumber coordinates
   cases cartesianGetindexExact coordinates 1 <;> rfl
 
-def cartesianSimpleMoreEntries : List Entry := [
-  { id := "multidimcov-cartesian-simple-more-exact"
-    juliaFile := "base/multidimensional.jl"
-    juliaFns := ["CartesianIndex identity, tuple access, length, arithmetic, comparison, and fallback methods"]
-    statement := "The direct CartesianIndex methods return stored coordinates or apply the exact componentwise operation documented by their bodies."
-    source := "base/multidimensional.jl:88-192"
-    status := .proven
-    prop := ``CartesianSimpleMoreRows
-    thm := some ``cartesianSimpleMoreRows },
-  { id := "multidimcov-cartesian-convert-number-exact"
-    juliaFile := "base/multidimensional.jl"
-    juliaFns := ["convert(::Type{T},::CartesianIndex{1})"]
-    statement := "Numeric conversion reads the sole coordinate before applying the requested conversion."
-    source := "base/multidimensional.jl:145"
-    status := .proven
-    prop := ``CartesianConvertNumberRow
-    thm := some ``cartesianConvertNumberRow }
-]
+def cartesianSimpleMoreEntries : List Entry := []
 
 end JuliaLean.MultidimCov

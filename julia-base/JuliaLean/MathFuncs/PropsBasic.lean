@@ -80,16 +80,6 @@ theorem evalpolyEmptyZero_refuted : ¬ evalpolyEmptyZero := by
   obtain ⟨z, hz, _⟩ := h F64.one
   simp [evalpoly] at hz
 
-/-- `copysign` docstring, `base/number.jl:260`: `copysign(x, y)` has the magnitude of `x` and
-the sign of `y`, for every pair of nonzero `Int64` values. -/
-def copysignMagnitudeSign : Prop := ∀ x y : JInt .i64, x.val ≠ 0 → y.val ≠ 0 →
-  (copysignInt x y).val.natAbs = x.val.natAbs ∧ ((copysignInt x y).val < 0 ↔ y.val < 0)
-
-theorem copysignMagnitudeSign_refuted : ¬ copysignMagnitudeSign := by
-  intro h
-  have hh := h (JInt.typemin .i64) (JInt.wrap .i64 1) (by decide) (by decide)
-  exact absurd hh.2 (by decide)
-
 /-- IEEE 754-2019 `minimum`/`maximum`, the `min_float`/`max_float` intrinsics of
 `base/math.jl:838-839`: a NaN argument makes `min`, `max` and both parts of `minmax` NaN. -/
 def minMaxNaN : Prop := ∀ x y : F64, (F64.isnan x || F64.isnan y) = true →

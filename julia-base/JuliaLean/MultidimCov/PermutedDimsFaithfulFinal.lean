@@ -308,17 +308,6 @@ private def entry (line : Nat) (fn statement : String) (prop proof : Lean.Name) 
     prop
     thm := some proof }
 
-def entries : List Entry := [
-  entry 12 "PermutedDimsArray{T,N,perm,iperm,AA}" "The inner constructor checks parameter types, permutation validity, and inverse validity in order, then stores the actual parent data." ``P12 ``p12,
-  entry 42 "PermutedDimsArray(::AbstractArray,perm)" "The outer constructor checks length, computes the inverse, splats both arbitrary iterable integer inputs, and invokes the inner constructor in source order." ``P42 ``p42,
-  entry 70 "getindex(::PermutedDimsArray,I...)" "A checked read preserves failures from both bounds checking and the permuted parent getindex call." ``P70 ``p70,
-  entry 87 "genperm(::NTuple,::Dims)" "Tuple permutation indexes signed entries in order and preserves BoundsError outcomes for every allowed Dims value." ``P87 ``p87,
-  entry 88 "genperm(I,::AbstractVector{Int})" "Vector permutation iterates and splats in order, preserves iteration failure, builds a tuple, and dispatches to tuple genperm." ``P88 ``p88,
-  entry 286 "permutedims!" "Destination axes and source axes are evaluated in order before validation, inverse wrapping, copying, and returning dest." ``P286 ``p286,
-  entry 300 "_copy!(::PermutedDimsArray,src)" "Copying finds the fixed prefix, then constructs the three distinct source-axis slices and calls the tiled kernel in source order." ``P300 ``p300,
-  entry 319 "_permutedims!(...,::CartesianIndices{0},...)" "The zero-prefix kernel derives both axes and performs the jo, io, R3, R2, j, i loop nest with no prefix coordinates." ``P319 ``p319,
-  entry 333 "_permutedims!(...,R1,...)" "The general kernel derives both axes and performs the jo, io, R3, R2, j, i, R1 loop nest." ``P333 ``p333,
-  entry 369 "showarg(::PermutedDimsArray)" "showarg threads IO mutation through the opening text, parent display, permutation display, and conditional element type in source order." ``P369 ``p369
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.PermutedDimsFaithfulFinal

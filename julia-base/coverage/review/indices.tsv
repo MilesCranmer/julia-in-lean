@@ -1,108 +1,108 @@
 line	name	verdict	mirror	property	settled	reason
-94	IndexStyle	FAITHFUL	yes	yes	yes	
-95	IndexStyle	FAITHFUL	yes	yes	yes	
-96	IndexStyle	HOLLOW	no	no	yes	The Lean constant omits the slurp arguments and the MethodError argument tuple, so it neither mirrors this overload nor states its behavior for every allowed argument list.
-97	IndexStyle	FAITHFUL	yes	yes	yes	
-98	IndexStyle	FAITHFUL	yes	yes	yes	
-99	IndexStyle	FAITHFUL	yes	yes	yes	
-101	IndexStyle	FAITHFUL	yes	yes	yes	
-102	IndexStyle	FAITHFUL	yes	yes	yes	
-103	IndexStyle	FAITHFUL	yes	yes	yes	
-104	IndexStyle	FAITHFUL	yes	yes	yes	
-108	promote_shape	FAITHFUL	yes	yes	yes	
-112	throw_promote_shape_mismatch	FAITHFUL	yes	yes	yes	
-119	_normalize	HOLLOW	no	no	yes	The proposition reaches normalization only inside the larger mismatch model and has no Lean function or all-input claim for this local map of firstindex and lastindex.
-139	promote_shape	FAITHFUL	yes	yes	yes	
-144	promote_shape	FAITHFUL	yes	yes	yes	
-149	promote_shape	FAITHFUL	yes	yes	yes	
-151	promote_shape	FAITHFUL	yes	yes	yes	
-175	promote_shape	FAITHFUL	yes	yes	yes	
-188	promote_shape	HOLLOW	no	no	yes	The Lean function accepts precomputed axis lists and omits both axes calls and the array arguments, so its equation does not cover this array overload.
-192	promote_shape	FAITHFUL	yes	yes	yes	
-205	throw_setindex_mismatch	HOLLOW	no	yes	yes	The Lean function accepts a precomputed size list and omits the method's length, size, dims2string, exception-construction, and throw calls.
-214	setindex_shape_check	HOLLOW	no	yes	yes	The Lean function accepts dimensions in place of X and computes their product instead of calling length(X) before the mismatch helper.
-217	_shapes_match	FAITHFUL	yes	yes	yes	
-218	_shapes_match	FAITHFUL	yes	yes	yes	
-219	_shapes_match	FAITHFUL	yes	yes	yes	
-220	_shapes_match	FAITHFUL	yes	yes	yes	
-222	setindex_shape_check	HOLLOW	no	yes	yes	The Lean function accepts size(X) as input and omits the ordered ndims, length, prod, size, and mismatch-helper calls made by this method.
-227	setindex_shape_check	HOLLOW	no	no	yes	The Lean constant drops both arguments, omits exception construction and throwing, and truncates the required ArgumentError message.
-243	to_index	FAITHFUL	yes	yes	yes	
-247	to_index	FAITHFUL	yes	yes	yes	
-258	to_index	FAITHFUL	yes	yes	yes	
-259	to_index	FAITHFUL	yes	yes	yes	
-260	to_index	FAITHFUL	yes	yes	yes	
-261	to_index	HOLLOW	no	no	yes	The model restricts I to a list of Int64 values and returns a new arr value, so it does not preserve every AbstractArray's type, shape, axes, or identity.
-262	to_index	HOLLOW	no	no	yes	The model replaces every AbstractArray{Union{}} with one empty list and therefore loses the input array's shape, axes, storage identity, and returned object.
-263	to_index	HOLLOW	no	no	yes	The constant error model omits I, LazyString, limitrepr, typeof, and their ordered calls, and it cannot state the input-dependent ArgumentError message.
-265	to_index	FAITHFUL	yes	yes	yes	
-266	to_index	HOLLOW	no	no	yes	The constant error model omits i, LazyString, limitrepr, typeof, and their ordered calls, and it cannot state the input-dependent fallback behavior.
-310	to_indices	HOLLOW	no	no	yes	m310 omits A and replaces _drop_zerodim and _to_indices with unconstrained callbacks that cannot state the documented contextual conversion for every array.
-311	to_indices	HOLLOW	no	no	yes	m311 accepts the linear indices as a bare value and omits A, IndexLinear construction, eachindex, and the three-argument to_indices call.
-312	_to_indices	HOLLOW	no	no	yes	m312 accepts precomputed axes and an unconstrained route while omitting A, axes(A), and the actual to_indices dispatch.
-313	_to_indices	HOLLOW	no	no	yes	m313 omits A and replaces to_indices(A, J) with a callback of J alone, so it cannot cover array-specific dispatch.
-314	_drop_zerodim	FAITHFUL	yes	yes	yes	
-315	_drop_zerodim	FAITHFUL	yes	yes	yes	
-318	to_indices	FAITHFUL	yes	yes	yes	
-319	to_indices	FAITHFUL	yes	yes	yes	
-320	to_indices	HOLLOW	no	no	yes	m320 replaces to_indices(A, (), I) with a fixed built-in conversion model and reduces every array-specific to_index dispatch to one Boolean.
-321	to_indices	FAITHFUL	yes	yes	yes	
-322	to_indices	HOLLOW	no	no	yes	m322 omits inds and safe_tail(inds), reduces A to one Boolean, and sends every index through to_index instead of modelling contextual index dispatch.
-340	Slice	FAITHFUL	yes	yes	yes	
-341	Slice{T}	HOLLOW	no	no	yes	The model hard-codes T as UnitRange{Int} and omits the general T(S.indices) conversion accepted by this constructor.
-343	axes	FAITHFUL	yes	yes	yes	
-344	axes1	FAITHFUL	yes	yes	yes	
-345	axes1	FAITHFUL	yes	yes	yes	
-347	first	FAITHFUL	yes	yes	yes	
-348	last	FAITHFUL	yes	yes	yes	
-349	size	HOLLOW	yes	no	yes	The proposition uses an unbounded Nat length and omits the wrapping or exceptional length behavior of allowed full-width integer ranges.
-350	getindex	FAITHFUL	yes	yes	yes	
-351	getindex	FAITHFUL	yes	yes	yes	
-352	getindex	FAITHFUL	yes	yes	yes	
-353	show	HOLLOW	no	no	yes	The Lean function constructs a String and omits the supplied IO, ordered print calls, IO mutation, and print return value.
-354	iterate	HOLLOW	no	no	yes	The Lean function collects all values and omits the supplied iteration state, delegated iterate call, and next-value and next-state result.
-366	IdentityUnitRange	FAITHFUL	yes	yes	yes	
-367	IdentityUnitRange{T}	HOLLOW	no	no	yes	The model hard-codes T as UnitRange{Int} and omits the general T(S.indices) conversion accepted by this constructor.
-370	axes	FAITHFUL	yes	yes	yes	
-371	axes1	FAITHFUL	yes	yes	yes	
-372	axes1	FAITHFUL	yes	yes	yes	
-374	first	FAITHFUL	yes	yes	yes	
-375	last	FAITHFUL	yes	yes	yes	
-376	size	HOLLOW	yes	no	yes	The proposition uses an unbounded Nat length and omits the wrapping or exceptional length behavior of allowed full-width integer ranges.
-377	unsafe_length	HOLLOW	no	no	yes	The Lean function computes its own unbounded Nat length instead of delegating to unsafe_length(S.indices), so it misses wrapped integer behavior and custom range dispatch.
-378	getindex	HOLLOW	no	no	yes	The model takes the converted result k as an unconstrained input and therefore omits convert(eltype(S), i) and its errors.
-379	getindex	FAITHFUL	yes	yes	yes	
-380	getindex	HOLLOW	no	no	yes	The model returns only i's element list and omits convert(AbstractUnitRange{eltype(S)}, i), including the returned range type and conversion failures.
-385	getindex	FAITHFUL	yes	yes	yes	
-390	getindex	HOLLOW	no	no	yes	The model returns only i's element list and omits convert(AbstractRange{eltype(S)}, i), including the returned range type and conversion failures.
-395	getindex	FAITHFUL	yes	yes	yes	
-404	getindex	HOLLOW	no	no	yes	The model returns I's values rather than I itself, so it neither mirrors the identity return nor states the source comment's axis-preservation behavior.
-410	getindex	HOLLOW	no	no	yes	The model returns I's values rather than I itself, so it neither mirrors the identity return nor states the source comment's axis-preservation behavior.
-416	show	HOLLOW	no	no	yes	The Lean function constructs a String and omits the supplied IO, ordered print calls, IO mutation, and print return value.
-417	iterate	HOLLOW	no	no	yes	The Lean function collects all values and omits the supplied iteration state, delegated iterate call, and next-value and next-state result.
-423	getindex	HOLLOW	no	no	yes	The model returns I's values rather than the IdentityUnitRange object, so it omits the method's identity and axis-preserving result.
-479	convert	HOLLOW	no	no	yes	The model fixes R to UnitRange values and omits the general tuple conversion, target type parameter, constructor call, and result type assertion.
-482	LinearIndices	FAITHFUL	yes	yes	yes	
-483	LinearIndices	HOLLOW	no	no	yes	The model maps identity over already converted UR values and omits convert(AbstractUnitRange{Int}, r) and its type and error behavior.
-485	LinearIndices	FAITHFUL	yes	yes	yes	
-487	LinearIndices	HOLLOW	no	no	yes	The model accepts axes as a bare list and omits the array argument, axes(A), and the resulting constructor dispatch.
-489	_convert2ind	HOLLOW	no	no	yes	The model handles only Int64 and Bool cases and inlines a clamp, omitting the call to oneto for every Integer type and its dispatch behavior.
-490	_convert2ind	FAITHFUL	yes	yes	yes	
-492	indices_promote_type	HOLLOW	no	no	yes	The model promotes arbitrary heterogeneous lists elementwise instead of promoting the two homogeneous range types and constructing Tuple{R,Vararg{R,N}}.
-497	promote_rule	HOLLOW	no	no	yes	The model directly zips range-type lists and omits the call to indices_promote_type and construction of the exact LinearIndices type.
-499	promote_rule	FAITHFUL	yes	yes	yes	
-501	promote_rule	FAITHFUL	yes	yes	yes	
-505	IndexStyle	FAITHFUL	yes	yes	yes	
-506	axes	FAITHFUL	yes	yes	yes	
-507	size	HOLLOW	yes	no	yes	The proposition maps an unbounded Nat length over its axes and does not cover Julia's fixed-width length behavior for every allowed range tuple.
-508	isassigned	FAITHFUL	yes	yes	yes	
-509	getindex	FAITHFUL	yes	yes	yes	
-514	getindex	FAITHFUL	yes	yes	yes	
-519	copy	FAITHFUL	yes	yes	yes	
-522	iterate	HOLLOW	no	no	yes	The Lean function collects the complete axis and omits s, the delegated iterate call, and the method's one-step iterator result.
-523	iterate	HOLLOW	no	no	yes	The model returns zero or one collected value and omits the next state i+1 from the required nothing-or-pair result.
-526	first	FAITHFUL	yes	yes	yes	
-527	first	FAITHFUL	yes	yes	yes	
-528	last	HOLLOW	yes	no	yes	The proposition uses an unbounded Nat product for length(iter) and does not cover Julia's fixed-width length behavior for every allowed axes tuple.
-529	last	FAITHFUL	yes	yes	yes	
-531	show	HOLLOW	no	no	yes	The Lean function constructs a String and omits the supplied IO, ordered print calls, IO mutation, and print return value.
+94	IndexStyle	HOLLOW	yes	no	yes	The model mirrors the body, but the proposition only restates the model definition and gives no independent documented or invariant behaviour.
+95	IndexStyle	HOLLOW	yes	no	yes	The model mirrors the body, but the proposition only restates the model definition and gives no independent documented or invariant behaviour.
+96	IndexStyle	HOLLOW	yes	no	yes	P96 is definitionally identical to m96, so it supplies no independent documented or invariant property of the Julia method.
+97	IndexStyle	HOLLOW	yes	no	yes	The model mirrors the body, but the proposition only restates the model definition and gives no independent documented or invariant behaviour.
+98	IndexStyle	HOLLOW	yes	no	yes	The model mirrors the body, but the proposition only restates the model definition and gives no independent documented or invariant behaviour.
+99	IndexStyle	HOLLOW	yes	no	yes	The model mirrors the body, but the proposition only restates the model definition and gives no independent documented or invariant behaviour.
+101	IndexStyle	HOLLOW	yes	no	yes	The model mirrors the body, but the proposition only restates the model definition and gives no independent documented or invariant behaviour.
+102	IndexStyle	HOLLOW	yes	no	yes	The model mirrors the body, but the proposition only restates the model definition and gives no independent documented or invariant behaviour.
+103	IndexStyle	HOLLOW	yes	no	yes	The model mirrors the body, but the proposition only restates the model definition and gives no independent documented or invariant behaviour.
+104	IndexStyle	HOLLOW	yes	no	yes	The model mirrors the body, but the proposition only restates the model definition and gives no independent documented or invariant behaviour.
+108	promote_shape	HOLLOW	yes	no	yes	The model mirrors the empty-tuple body, but the proposition only restates its definition instead of an independent shape-compatibility property.
+112	throw_promote_shape_mismatch	HOLLOW	no	no	yes	The proposition observes only promoteShapeAxes failures, so it neither mirrors the helper's normalization and IO-building call order nor covers all helper inputs.
+119	_normalize	HOLLOW	yes	no	yes	P119 is definitionally identical to m119, so it supplies no independent documented or invariant property of normalization.
+139	promote_shape	HOLLOW	yes	no	yes	The model mirrors the checks and return, but the proposition only unfolds that model instead of asserting the documented compatibility result independently.
+144	promote_shape	HOLLOW	yes	no	yes	The model mirrors the checks and return, but the proposition only unfolds that model instead of asserting the documented compatibility result independently.
+149	promote_shape	HOLLOW	yes	no	yes	The model mirrors the delegated call, but the proposition only unfolds that model instead of asserting the documented compatibility result independently.
+151	promote_shape	HOLLOW	yes	no	yes	The model mirrors the checks and return, but the proposition only unfolds that model instead of asserting the documented compatibility result independently.
+175	promote_shape	HOLLOW	no	no	yes	The model replaces the ordered early-exit loops with all and findIdx traversals, and the proposition only unfolds that altered model instead of stating the documented result.
+188	promote_shape	HOLLOW	yes	no	yes	P188 is definitionally identical to m188, so it supplies no independent documented compatibility property for array shapes.
+192	promote_shape	HOLLOW	no	no	yes	The model compares a small UR universe by element lists instead of executing the method's range equality calls and does not cover every allowed Indices tuple.
+205	throw_setindex_mismatch	HOLLOW	yes	no	yes	P205 is definitionally identical to m205, so it supplies no independent documented or invariant property of the mismatch error.
+214	setindex_shape_check	HOLLOW	yes	no	yes	P214 is definitionally identical to m214, so it supplies no independent documented element-count property.
+217	_shapes_match	HOLLOW	yes	no	yes	The model mirrors the constant result, but the proposition only restates its definition instead of an independent trailing-singleton invariant.
+218	_shapes_match	HOLLOW	no	no	yes	The model replaces all(isone, a) on an arbitrary Tuple with equality over List Int, and its proposition does not cover every allowed tuple element.
+219	_shapes_match	HOLLOW	no	no	yes	The model replaces all(isone, b) on an arbitrary Tuple with equality over List Int, and its proposition does not cover every allowed tuple element.
+220	_shapes_match	HOLLOW	no	no	yes	The model restricts arbitrary nonempty tuples to List Int and replaces Julia equality calls with Boolean integer equality, so neither exact calls nor all inputs are covered.
+222	setindex_shape_check	HOLLOW	yes	no	yes	P222 is definitionally identical to m222, so it supplies no independent documented shape-matching property.
+227	setindex_shape_check	HOLLOW	yes	no	yes	P227 is definitionally identical to m227, so it supplies no independent documented or invariant property of the fallback error.
+243	to_index	HOLLOW	no	no	yes	The model drops A and closes i over IV instead of preserving arbitrary to_index(i) dispatch, and the proposition therefore omits allowed custom index types.
+247	to_index	HOLLOW	yes	no	yes	The UInt conversion is modeled, but both propositions assume vector length below 2^62, which is neither a type invariant nor a documented precondition.
+258	to_index	HOLLOW	no	no	yes	The model and proposition cover only fixed-width BitInteger cases and omit allowed Integer inputs such as BigInt.
+259	to_index	HOLLOW	yes	no	yes	The model mirrors the Bool error, but the proposition only restates its definition instead of an independent documented invalid-index property.
+260	to_index	HOLLOW	no	no	yes	The model replaces an arbitrary-dimensional AbstractArray Bool and its axes with List Bool, so it neither mirrors LogicalIndex construction nor covers all allowed arrays.
+261	to_index	HOLLOW	yes	no	yes	P261 is definitionally identical to m261, so it supplies no independent identity-preservation property.
+262	to_index	HOLLOW	yes	no	yes	P262 is definitionally identical to m262, so it supplies no independent identity-preservation property for bottom-element arrays.
+263	to_index	HOLLOW	yes	no	yes	P263 is definitionally identical to invalidIndex, so it supplies no independent documented invalid-index property.
+265	to_index	HOLLOW	yes	no	yes	The model mirrors the Colon error, but the proposition only restates its definition instead of an independent documented invalid-index property.
+266	to_index	HOLLOW	yes	no	yes	P266 aliases the definitionally reflexive P263, so it supplies no independent documented invalid-index property.
+310	to_indices	HOLLOW	yes	no	yes	P310 is definitionally identical to m310, so it supplies no independent documented index-conversion property.
+311	to_indices	HOLLOW	yes	no	yes	P311 is definitionally identical to m311, so it supplies no independent documented single-index conversion property.
+312	_to_indices	HOLLOW	yes	no	yes	P312 is definitionally identical to m312, so it supplies no independent documented contextual-conversion property.
+313	_to_indices	HOLLOW	yes	no	yes	P313 is definitionally identical to m313, so it supplies no independent documented exhausted-index property.
+314	_drop_zerodim	HOLLOW	yes	no	yes	The model mirrors the empty case, but the proposition only restates its definition instead of an independent tuple-preservation invariant.
+315	_drop_zerodim	HOLLOW	yes	no	yes	The recursive model mirrors the body, but the proposition only gives its defining equation instead of independently stating that every tuple is preserved.
+318	to_indices	HOLLOW	yes	no	yes	The model mirrors the empty result, but the proposition only restates its definition instead of an independent documented conversion property.
+319	to_indices	HOLLOW	yes	no	yes	The model mirrors Int-tuple preservation, but the proposition only restates its definition instead of an independent documented conversion property.
+320	to_indices	HOLLOW	yes	no	yes	P320 is definitionally identical to m320, so it supplies no independent documented integer-tuple conversion property.
+321	to_indices	HOLLOW	yes	no	yes	The model mirrors the empty-index result, but the proposition only restates its definition instead of an independent documented conversion property.
+322	to_indices	HOLLOW	yes	no	yes	P322 is definitionally identical to m322, so it supplies no independent documented recursive-conversion property.
+340	Slice	HOLLOW	yes	no	yes	The identity model mirrors the body, but the proposition only restates that definition instead of independently asserting constructor idempotence.
+341	Slice{T}	HOLLOW	yes	no	yes	P341 is definitionally identical to m341, so it supplies no independent constructor-conversion property.
+343	axes	HOLLOW	no	no	yes	The closed UR model can nest IdentityUnitRange when the wrapped indices are already one, unlike Julia dispatch, and its proposition omits arbitrary wrapped range types.
+344	axes1	HOLLOW	no	no	yes	The model always constructs UR.ident r and misses the idempotent IdentityUnitRange constructor dispatch when r is already an IdentityUnitRange.
+345	axes1	HOLLOW	yes	no	yes	The model mirrors returning S.indices, but the proposition only restates its definition instead of independently asserting the documented axis behavior.
+347	first	HOLLOW	no	no	yes	The model computes first in a closed UR datatype instead of calling first on an arbitrary wrapped range, and the proposition omits those allowed ranges.
+348	last	HOLLOW	no	no	yes	The model computes last in a closed UR datatype instead of calling last on an arbitrary wrapped range, and the proposition omits those allowed ranges.
+349	size	HOLLOW	yes	no	yes	P349 is definitionally identical to m349, so it supplies no independent documented size property.
+350	getindex	HOLLOW	no	no	yes	The model returns a List Int and uses a closed UR bounds model instead of returning the scalar i after Julia's actual checkbounds call.
+351	getindex	HOLLOW	no	no	yes	The model replaces the returned range object with its element list and restricts the Slice to UR, so the logical-indexing proposition does not cover all allowed inputs.
+352	getindex	HOLLOW	no	no	yes	The model replaces the returned StepRange object with its element list and uses a closed UR bounds model, so identity and all allowed ranges are missing.
+353	show	HOLLOW	yes	no	yes	P353 is definitionally identical to showWrapped, so it supplies no independent documented display property.
+354	iterate	HOLLOW	yes	no	yes	P354 is definitionally identical to m354, so it supplies no independent documented iteration property.
+366	IdentityUnitRange	HOLLOW	yes	no	yes	The identity model mirrors the body, but the proposition only restates that definition instead of independently asserting constructor idempotence.
+367	IdentityUnitRange{T}	HOLLOW	yes	no	yes	P367 is definitionally identical to m367, so it supplies no independent constructor-conversion property.
+370	axes	HOLLOW	yes	no	yes	The model mirrors the singleton axes result, but the proposition only restates its definition instead of independently asserting the documented axis behavior.
+371	axes1	HOLLOW	yes	no	yes	The model mirrors returning S, but the proposition only restates its definition instead of independently asserting the documented identity-axis property.
+372	axes1	HOLLOW	yes	no	yes	The model mirrors returning S.indices, but the proposition only restates its definition instead of independently asserting the documented OneTo axis behavior.
+374	first	HOLLOW	no	no	yes	The model computes first in a closed UR datatype instead of calling first on an arbitrary wrapped range, and the proposition omits those allowed ranges.
+375	last	HOLLOW	no	no	yes	The model computes last in a closed UR datatype instead of calling last on an arbitrary wrapped range, and the proposition omits those allowed ranges.
+376	size	HOLLOW	yes	no	yes	P376 is definitionally identical to m376, so it supplies no independent documented size property.
+377	unsafe_length	HOLLOW	yes	no	yes	P377 is definitionally identical to m377, so it supplies no independent length property.
+378	getindex	HOLLOW	yes	no	yes	P378 is definitionally identical to m378, so it supplies no independent documented identity-indexing property.
+379	getindex	HOLLOW	yes	no	yes	The model mirrors the Bool error, but the proposition only restates its definition instead of an independent documented invalid-index property.
+380	getindex	HOLLOW	yes	no	yes	P380 is definitionally identical to convertRangeIndex, so it supplies no independent documented range-indexing property.
+385	getindex	HOLLOW	no	no	yes	The model replaces the returned range object with a List Int and restricts S to UR, so neither exact return behavior nor all allowed inputs are covered.
+390	getindex	HOLLOW	yes	no	yes	P390 aliases the definitionally reflexive P380, so it supplies no independent documented range-indexing property.
+395	getindex	HOLLOW	no	no	yes	The model replaces the returned range object with a List Int and restricts S to UR, so the logical-indexing proposition does not cover all allowed inputs.
+404	getindex	HOLLOW	yes	no	yes	P404 is definitionally identical to checkedIdentity, so it supplies no independent documented identity-preservation property.
+410	getindex	HOLLOW	yes	no	yes	P410 aliases the definitionally reflexive P404, so it supplies no independent documented identity-preservation property.
+416	show	HOLLOW	yes	no	yes	P416 is definitionally identical to showWrapped, so it supplies no independent documented display property.
+417	iterate	HOLLOW	yes	no	yes	P417 is definitionally identical to m417, so it supplies no independent documented iteration property.
+423	getindex	HOLLOW	yes	no	yes	P423 aliases the definitionally reflexive P404, so it supplies no independent documented identity-preservation property.
+479	convert	HOLLOW	yes	no	yes	P479 is definitionally identical to m479, so it supplies no independent documented conversion property.
+482	LinearIndices	HOLLOW	yes	no	yes	The model mirrors the empty constructor, but the proposition only restates its definition instead of an independent documented zero-dimensional property.
+483	LinearIndices	HOLLOW	yes	no	yes	P483 is definitionally identical to m483, so it supplies no independent documented axes-conversion property.
+485	LinearIndices	HOLLOW	no	no	yes	The proposition uses a dispatcher over Int64 and a small UR universe instead of this overload on every Integer and AbstractUnitRange input.
+487	LinearIndices	HOLLOW	yes	no	yes	P487 is definitionally identical to m487, so it supplies no independent documented same-axes property.
+489	_convert2ind	HOLLOW	yes	no	yes	P489 is definitionally identical to m489, so it supplies no independent documented integer-axis property.
+490	_convert2ind	HOLLOW	no	no	yes	The closed UR model computes first and last internally instead of preserving Julia's calls on every AbstractUnitRange, and its proposition omits those inputs.
+492	indices_promote_type	HOLLOW	yes	no	yes	P492 is definitionally identical to m492, so it supplies no independent promotion property.
+497	promote_rule	HOLLOW	yes	no	yes	P497 is definitionally identical to m497, so it supplies no independent promotion property.
+499	promote_rule	HOLLOW	yes	no	yes	The body formula is modeled, but SlicePromoteRule quantifies only OneTo and UnitRange rather than every allowed AbstractUnitRange type.
+501	promote_rule	HOLLOW	yes	no	yes	The body formula is modeled, but SlicePromoteRule quantifies only OneTo and UnitRange rather than every allowed AbstractUnitRange type.
+505	IndexStyle	HOLLOW	yes	no	yes	The model mirrors the constant trait result, but the proposition only restates its definition instead of an independent documented IndexStyle property.
+506	axes	HOLLOW	no	no	yes	The model maps a closed UR axes1 function instead of Julia dispatch on every allowed range tuple, and the proposition omits custom AbstractUnitRange types.
+507	size	HOLLOW	yes	no	yes	P507 is definitionally identical to m507, so it supplies no independent documented size property.
+508	isassigned	HOLLOW	no	no	yes	The model substitutes its own inBounds predicate for the method's checkbounds call and covers only the closed LinIdx and UR universe.
+509	getindex	HOLLOW	no	no	yes	The model substitutes its own inBounds branch for Julia's checkbounds call and covers only the closed LinIdx and UR universe.
+514	getindex	HOLLOW	no	no	yes	The model accepts only unit ranges in UR and returns element lists, while the Julia method accepts every AbstractRange of Integer and preserves range behavior.
+519	copy	HOLLOW	yes	no	yes	The identity model mirrors the body, but the proposition only restates its definition instead of independently asserting the documented copy behavior.
+522	iterate	HOLLOW	yes	no	yes	P522 is definitionally identical to m522, so it supplies no independent documented one-dimensional iteration property.
+523	iterate	HOLLOW	yes	no	yes	P523 is definitionally identical to m523, so it supplies no independent documented iteration property.
+526	first	HOLLOW	yes	no	yes	The model mirrors the constant result, but the proposition only restates its definition instead of independently asserting the documented first value.
+527	first	HOLLOW	no	no	yes	The model starts from an already extracted UR and omits iter.indices[1] plus arbitrary axes1 and first dispatch, so it does not mirror the full method or all inputs.
+528	last	HOLLOW	yes	no	yes	P528 is definitionally identical to m528, so it supplies no independent documented last-value property.
+529	last	HOLLOW	no	no	yes	The model starts from an already extracted UR and omits iter.indices[1] plus arbitrary axes1 and last dispatch, so it does not mirror the full method or all inputs.
+531	show	HOLLOW	yes	no	yes	P531 is definitionally identical to showWrapped, so it supplies no independent documented display property.

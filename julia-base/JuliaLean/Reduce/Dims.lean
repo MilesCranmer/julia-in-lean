@@ -321,13 +321,13 @@ section
 variable {α β : Type}
 
 /-- `_accumulate!(op, B, A, dims::Integer, init)` for a matrix, `base/accumulate.jl:374-434`:
-`dims ≤ 0` throws, `dims > 2` is `copyto!(B, A)` (`copy` converts to `B`'s element type),
+`dims ≤ 0` throws, `dims > 2` treats each element as a singleton scan,
 `dims = 1` scans each column, `dims = 2` scans each row (`_accumulaten!`). Entries are
 returned in column-major order. -/
 def accumulateDims [Inhabited α] [Inhabited β] (op : β → α → β) (first : α → β)
-    (copy : α → β) (init : Option β) (A : Mat α) (d : Int) : R (Mat β) :=
+    (_copy : α → β) (init : Option β) (A : Mat α) (d : Int) : R (Mat β) :=
   if d ≤ 0 then .error .argumentError
-  else if d > 2 then .ok ⟨A.m, A.n, A.data.map copy⟩
+  else if d > 2 then .ok ⟨A.m, A.n, A.data.map (fun x => match init with | none => first x | some i => op i x)⟩
   else if (d = 1 ∧ A.m = 0) ∨ (d = 2 ∧ A.n = 0) then .ok ⟨A.m, A.n, []⟩
   else if d = 1 then
     .ok ⟨A.m, A.n, ((List.range A.n).map fun j => accumulateVec op first init (A.col j)).flatten⟩
@@ -337,10 +337,10 @@ def accumulateDims [Inhabited α] [Inhabited β] (op : β → α → β) (first 
 
 /-- `accumulate(op, v; dims = d, init)` for a vector: `_accumulate!` with an integer `dims`
 (`base/accumulate.jl:374-402`); the `dims == 1` branch is the column scan. -/
-def accumulateVecDims (op : β → α → β) (first : α → β) (copy : α → β) (init : Option β)
+def accumulateVecDims (op : β → α → β) (first : α → β) (_copy : α → β) (init : Option β)
     (v : List α) (d : Int) : R (List β) :=
   if d ≤ 0 then .error .argumentError
-  else if d > 1 then .ok (v.map copy)
+  else if d > 1 then .ok (v.map (fun x => match init with | none => first x | some i => op i x))
   else .ok (accumulateVec op first init v)
 
 /-- `cumsum(v::AbstractVector; dims)` for an integer vector: `cumsum!(out, v; dims)` →

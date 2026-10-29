@@ -68,7 +68,7 @@ base/process.jl	732	737	process_status	process_status(s::Process)	modelled	strea
 base/process.jl	739	765	wait	wait(x::Process, syncd::Bool=true; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-process-l739	method-specific source model and quantified all-input behavior property
 base/process.jl	767	768	wait	wait(x::ProcessChain, syncd::Bool=true; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	streams-method-process-l767	method-specific source model and quantified all-input behavior property
 base/process.jl	770	770	show	show(io::IO, p::Process)	modelled	streams-method-process-l770	method-specific source model and quantified all-input behavior property
-base/process.jl	774	774	$f	$f(cmd::Cmd)	modelled	streams-method-process-l774	method-specific source model and quantified all-input behavior property
+base/process.jl	774	774	$f	$f(cmd::Cmd)	todo		generated-loop: f in (:length, :firstindex, :lastindex, :keys, :first, :last, :iterate)
 base/process.jl	776	776	Iterators.reverse	Iterators.reverse(cmd::Cmd)	modelled	streams-method-process-l776	method-specific source model and quantified all-input behavior property
 base/process.jl	777	777	eltype	eltype(::Type{Cmd})	modelled	streams-method-process-l777	method-specific source model and quantified all-input behavior property
-base/process.jl	779	779	$f	$f(cmd::Cmd, i)	modelled	streams-method-process-l779	method-specific source model and quantified all-input behavior property
+base/process.jl	779	779	$f	$f(cmd::Cmd, i)	todo		generated-loop: f in (:iterate, :getindex)

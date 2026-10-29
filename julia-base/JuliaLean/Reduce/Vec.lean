@@ -130,30 +130,36 @@ def countBoolArray (init : Val) (xs : List Bool) : R Val :=
 def countIter (init : Val) (xs : List Bool) : Val :=
   mapfoldlInit Val.bool Val.addSum init xs
 
+/-- An element type of the outer iterator, here a vector type. -/
+inductive OuterEltype where
+  | vector (element : Ty)
+
+/-- `eltype(Vector{T})`, used by `reduce_empty` on `FlatteningRF`. -/
+def OuterEltype.eltype : OuterEltype → Ty
+  | .vector element => element
+
 /-- `foldl(op, itr)` over `Iterators.flatten(vs)` without `init`: `FlatteningRF(BottomRF(op))`,
-`base/reduce.jl:83-84, 118-125, 161-164`, nesting one left fold per inner collection; the
-accumulator `none` is `_InitialValue()`. An empty result reaches
-`reduce_empty_iter(FlatteningRF(...), vs)`, whose only applicable method is the error
-fallback `reduce_empty(f, T)` (`base/reduce.jl:319`). -/
-def foldlFlatten (op : Val → Val → Val) (first : Val → Val) (vs : List (List Val)) : R Val :=
+`base/reduce.jl:83-84, 118-125, 161-164, 361`. The empty reduction delegates to the
+wrapped reducer with `eltype(T)`, where `T` is the outer iterator's element type. -/
+def foldlFlatten (op : Val → Val → Val) (first : Val → Val) (empty : Ty → R Val)
+    (outerEltype : OuterEltype) (vs : List (List Val)) : R Val :=
   let step : Option Val → Val → Option Val := fun acc x =>
     match acc with
     | none => some (first x)
     | some a => some (op a x)
   match vs.foldl (fun acc v => v.foldl step acc) none with
-  | none => .error .argumentError
+  | none => empty outerEltype.eltype
   | some r => .ok r
 
 /-- `foldl(op, Iterators.flatten(vs); init)`: the same nested fold started from `init`. -/
 def foldlFlattenInit (op : Val → Val → Val) (init : Val) (vs : List (List Val)) : Val :=
   vs.foldl (fun acc v => v.foldl op acc) init
 
-/-- `foldr(op, v)`: `mapfoldr` with `reduce_first(FlipArgs(op), x) = x` (the generic
-`reduce_first(op, x) = x`, `base/reduce.jl:409`, since no method takes `FlipArgs`); an
-empty `v` gives `reduce_empty(FlipArgs(op), T) = reduce_empty(op, T)` (`empty`,
-`base/reduce.jl:361`). -/
-def foldr (op : Val → Val → Val) (empty : R Val) (v : List Val) : R Val :=
-  mapfoldrNoInit id op id empty v
+/-- `foldr(op, v)`: `reduce_first(FlipArgs(op), x)` delegates to
+`reduce_first(op, x)`; an empty `v` uses `reduce_empty(op, T)`
+(`base/reduce.jl:361, 420`). -/
+def foldr (op : Val → Val → Val) (first : Val → Val) (empty : R Val) (v : List Val) : R Val :=
+  mapfoldrNoInit id op first empty v
 
 /-- `foldl(op, v)` with `reduce_first(op, x)` given as `first`. -/
 def foldl (op : Val → Val → Val) (first : Val → Val) (v : List Val) : R Val :=

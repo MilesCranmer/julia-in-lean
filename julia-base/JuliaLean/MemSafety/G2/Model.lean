@@ -111,7 +111,12 @@ def ConstGetindexInBounds : Prop :=
 /-! ## `base/expr.jl:45-79`: expression copies -/
 
 def exprCopyAccesses (values : List Bool) : List Access :=
-  (oneBased values.length).map fun i => ⟨values.length, i⟩
+  let nvalues := values.length
+  let newValuesLength := nvalues
+  (oneBased nvalues).flatMap fun i =>
+    ⟨nvalues, i⟩ :: if values.getD (i.toNat - 1) false then
+      [⟨nvalues, i⟩, ⟨newValuesLength, i⟩]
+    else []
 
 def exprArgsAccesses (values : List Bool) : List Access :=
   (oneBased values.length).map fun i => ⟨values.length, i⟩

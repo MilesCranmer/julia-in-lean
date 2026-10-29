@@ -1,4 +1,5 @@
 import JuliaLean.MathFuncs.Basic
+import JuliaLean.base.int
 
 open JuliaLean JuliaLean.Float JuliaLean.MathFuncs
 
@@ -73,8 +74,8 @@ def main (_ : List String) : IO Unit := do
       let y : JInt .i64 := JInt.wrap .i64 b
       let x8 : JInt .i8 := JInt.wrap .i8 a
       let y8 : JInt .i8 := JInt.wrap .i8 b
-      IO.println s!"{i} copysign64 {(copysignInt x y).val}"
-      IO.println s!"{i} flipsign64 {(flipsignInt x y).val}"
-      IO.println s!"{i} copysign8 {(copysignInt x8 y8).val}"
-      IO.println s!"{i} flipsign8 {(flipsignInt x8 y8).val}"
+      IO.println s!"{i} copysign64 {(JuliaLean.base.int.copysign x y).val}"
+      IO.println s!"{i} flipsign64 {(JuliaLean.base.int.flipsign x y).val}"
+      IO.println s!"{i} copysign8 {(JuliaLean.base.int.copysign x8 y8).val}"
+      IO.println s!"{i} flipsign8 {(JuliaLean.base.int.flipsign x8 y8).val}"
   IO.println s!"COUNT {i}"

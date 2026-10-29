@@ -77,6 +77,37 @@ def checkRangeIndex (r s : Rng) : Jl Bool := do
   else pure (isEmpty s || decide (1 ≤ (first s).val ∧ (first s).val ≤ n.val ∧
     1 ≤ (last s).val ∧ (last s).val ≤ n.val))
 
+/-- `base/range.jl:1002-1012`: find a representable endpoint on the empty side. -/
+def emptyStop (start st : Num) : Jl Num := do
+  let stop := if st.val > 0 then Num.sub start (Num.one st.ty)
+    else Num.add start (Num.one st.ty)
+  if (if st.val > 0 then stop.val < start.val else stop.val > start.val) then
+    pure stop
+  else
+    throw (.overflowError s!"cannot represent an empty range starting at {start.val}")
+
+/-- A successfully represented empty endpoint lies opposite to the step direction. -/
+def emptyStopDirection : Prop :=
+  ∀ start st stop, emptyStop start st = .ok stop →
+    (0 < st.val → stop.val < start.val) ∧
+    (st.val ≤ 0 → start.val < stop.val)
+
+theorem emptyStopDirection_proven : emptyStopDirection := by
+  intro start st stop h
+  by_cases hs : 0 < st.val
+  · simp only [emptyStop, hs, ↓reduceIte] at h
+    split at h
+    · rename_i hlt
+      cases h
+      exact ⟨fun _ => hlt, fun hn => False.elim (by omega)⟩
+    · contradiction
+  · simp only [emptyStop, hs, ↓reduceIte] at h
+    split at h
+    · rename_i hlt
+      cases h
+      exact ⟨fun hp => False.elim (hs hp), fun _ => hlt⟩
+    · contradiction
+
 /-- `base/range.jl:1002-1067`: all ordinal range-indexing dispatches, including logical ranges. -/
 def getindexRange (r s : Rng) : Jl ResultRng := do
   if !(← checkRangeIndex r s) then throw .boundsError
@@ -97,7 +128,8 @@ def getindexRange (r s : Rng) : Jl ResultRng := do
     let f := first r
     let start ← Num.cast f.ty (Num.sub (Num.add f (first s)) (Num.lit (.bit .i64) 1))
     let len ← length s
-    let stop ← Num.cast f.ty (Num.add start (Num.sub len (Num.one len.ty)))
+    let stop ← Num.cast f.ty (← if isEmpty s then emptyStop start (step r)
+      else pure (Num.add start (Num.sub len (Num.one len.ty))))
     return .ordinal (← colon2 start stop)
   else
     let f := first r
@@ -106,8 +138,8 @@ def getindexRange (r s : Rng) : Jl ResultRng := do
       else Num.cast f.ty (Num.sub (Num.add f (first s)) (Num.lit (.bit .i64) 1))
     let st := if r.kind = .step then Num.mul (step r) (step s) else step s
     let len ← length s
-    let effective := if len.val = 0 then Num.copysign (Num.one st.ty) st else st
-    let stop ← Num.cast f.ty (Num.add start (Num.mul (Num.sub len (Num.one len.ty)) effective))
+    let stop ← Num.cast f.ty (← if isEmpty s then emptyStop start st
+      else pure (Num.add start (Num.mul (Num.sub len (Num.one len.ty)) st)))
     return .ordinal (← colon3 start st stop)
 
 /-- `base/range.jl:1219-1225`: negative step is negated with wrapping unary minus. -/
@@ -541,6 +573,70 @@ theorem sliceAgreementRefuted : ¬ sliceAgreementProp := by
     simp
   exact hn hp
 
+/-- Empty integer selectors can fail when the source starts at unsigned zero. -/
+theorem emptyUnsignedUnitSliceError :
+    (do
+      let r ← unit (Num.lit (.bit .u8) 0) (Num.lit (.bit .u8) 3)
+      let s ← unit (Num.lit (.bit .i64) 1) (Num.lit (.bit .i64) 0)
+      getindexRange r s) = .error (.overflowError "cannot represent an empty range starting at 0") := by
+  decide
+
+theorem emptyUnsignedStepSliceError :
+    (do
+      let r ← unit (Num.lit (.bit .u8) 0) (Num.lit (.bit .u8) 3)
+      let s ← stepRange (Num.lit (.bit .i64) 1) (Num.lit (.bit .i64) 2)
+        (Num.lit (.bit .i64) 0)
+      getindexRange r s) = .error (.inexactError "UInt8") := by
+  decide
+
+/-- A valid empty selector produces an empty slice, including at unsigned zero. -/
+def emptyUnitSlicePromise : Prop :=
+  ∀ r s, (∃ a b, unit a b = .ok r) → (∃ c d, unit c d = .ok s) →
+    isEmpty s = true → checkRangeIndex r s = .ok true →
+    ∃ out, getindexRange r s = .ok out ∧ (resultLength out).map Num.val = .ok 0
+
+theorem emptyUnitSlicePromiseRefuted : ¬ emptyUnitSlicePromise := by
+  intro h
+  let a := Num.lit (.bit .u8) 0
+  let b := Num.lit (.bit .u8) 3
+  let c := Num.lit (.bit .i64) 1
+  let d := Num.lit (.bit .i64) 0
+  let r : Rng := ⟨.unit, a, Num.one (.bit .u8), b⟩
+  let s : Rng := ⟨.unit, c, Num.one (.bit .i64), d⟩
+  have hr : unit a b = .ok r := by decide
+  have hs : unit c d = .ok s := by decide
+  have he : isEmpty s = true := by decide
+  have hb : checkRangeIndex r s = .ok true := by decide
+  obtain ⟨out, hout, _⟩ := h r s ⟨a, b, hr⟩ ⟨c, d, hs⟩ he hb
+  have herr : getindexRange r s = .error (.overflowError "cannot represent an empty range starting at 0") := by decide
+  rw [herr] at hout
+  contradiction
+
+/-- A valid empty stepped selector produces an empty slice. -/
+def emptyUnitStepSlicePromise : Prop :=
+  ∀ r s, (∃ a b, unit a b = .ok r) →
+    (∃ c st d, stepRange c st d = .ok s) →
+    isEmpty s = true → checkRangeIndex r s = .ok true →
+    ∃ out, getindexRange r s = .ok out ∧ (resultLength out).map Num.val = .ok 0
+
+theorem emptyUnitStepSlicePromiseRefuted : ¬ emptyUnitStepSlicePromise := by
+  intro h
+  let a := Num.lit (.bit .u8) 0
+  let b := Num.lit (.bit .u8) 3
+  let c := Num.lit (.bit .i64) 1
+  let st := Num.lit (.bit .i64) 2
+  let d := Num.lit (.bit .i64) 0
+  let r : Rng := ⟨.unit, a, Num.one (.bit .u8), b⟩
+  let s : Rng := ⟨.step, c, st, Num.lit (.bit .i64) 0⟩
+  have hr : unit a b = .ok r := by decide
+  have hs : stepRange c st d = .ok s := by decide
+  have he : isEmpty s = true := by decide
+  have hb : checkRangeIndex r s = .ok true := by decide
+  obtain ⟨out, hout, _⟩ := h r s ⟨a, b, hr⟩ ⟨c, st, d, hs⟩ he hb
+  have herr : getindexRange r s = .error (.inexactError "UInt8") := by decide
+  rw [herr] at hout
+  contradiction
+
 /-- Property observation of `base/range.jl:1458-1463` against repeated iteration. -/
 def pairSumCheck (r : Rng) : Bool :=
   match iterateAt r 0, iterateAt r 1, sum r with
@@ -713,105 +809,6 @@ theorem intersectDescendingWrongFirst :
       pure (first out).val) = .ok (104 : Int) := by decide +kernel
 
 open JuliaLean.Registry in
-def operationsEntries : List Entry := [
-  { id := "ranges-operations-unit-membership", juliaFile := "base/range.jl",
-    juliaFns := ["in(::Integer, ::AbstractUnitRange)"],
-    statement := "Unit range membership is the mathematical endpoint interval for all integer types.",
-    source := "base/range.jl:1479", status := .proven,
-    prop := ``unitMembershipProp, thm := some ``unitMembershipThm },
-  { id := "ranges-operations-empty-extrema", juliaFile := "base/range.jl",
-    juliaFns := ["minimum(::AbstractRange)", "maximum(::AbstractRange)", "extrema(::AbstractRange)"],
-    statement := "Empty ordinal ranges reject minimum and maximum with ArgumentError.",
-    source := "base/range.jl:881-884", status := .proven,
-    prop := ``emptyExtremaProp, thm := some ``emptyExtremaThm },
-  { id := "ranges-operations-empty-sum", juliaFile := "base/range.jl",
-    juliaFns := ["sum(::AbstractRange)"],
-    statement := "The canonical empty unit range sums to zero for Bool and all ten integer types.",
-    source := "sum empty identity; base/range.jl:1458-1463", status := .proven,
-    prop := ``emptySumProp, thm := some ``emptySumThm },
-  { id := "ranges-operations-unit-subset", juliaFile := "base/range.jl",
-    juliaFns := ["issubset(::AbstractUnitRange, ::AbstractUnitRange)"],
-    statement := "Unit endpoint containment implies subset membership.",
-    source := "base/range.jl:1305-1308", status := .proven,
-    prop := ``unitSubsetProp, thm := some ``unitSubsetThm },
-  { id := "ranges-operations-findfirst-overflow", juliaFile := "base/array.jl",
-    juliaFns := ["findfirst(==(::Integer), ::StepRange)", "findfirst(==(::Integer), ::AbstractUnitRange)"],
-    statement := "Searching for a matching range element returns a positive index.",
-    source := "findfirst documentation, base/array.jl:2489-2499", status := .refuted,
-    prop := ``findfirstPositiveProp, thm := some ``findfirstPositiveRefuted,
-    issue := "none found; related closed #54578 concerns UInt8/Int8 string search (issues: findfirst StepRange overflow; findfirst Int8; PRs: findfirst overflow range)",
-    notes := "Both versions: step search for Int8(100) in Int8(-100):Int8(2):Int8(120) returns -27 instead of101. Unit search for Int8(0) in Int8(-128):Int8(127) returns -127 instead of129, and Int8(127) returns0 instead of256 (additional theorem findfirstUnitOverflow)." },
-  { id := "ranges-operations-unit-intersect-overflow", juliaFile := "base/range.jl",
-    juliaFns := ["intersect(::AbstractUnitRange, ::StepRange)"],
-    statement := "Unit/step intersection contains every shared input element.",
-    source := "intersection invariant, base/abstractset.jl intersect documentation", status := .refuted,
-    prop := ``unitIntersectCompleteProp, thm := some ``unitIntersectCompleteRefuted,
-    issue := "none found (issues: intersect range Int8 overflow; PRs: intersect overflow range)",
-    notes := "Both versions: intersect(Int8(-100):Int8(100), Int8(-120):Int8(7):Int8(125)) ends at 90 and loses shared element 97." },
-  { id := "ranges-operations-step-intersect-overflow", juliaFile := "base/range.jl",
-    juliaFns := ["intersect(::StepRange, ::StepRange)"],
-    statement := "Step/step intersection contains every shared input element.",
-    source := "intersection invariant, base/abstractset.jl intersect documentation", status := .refuted,
-    prop := ``stepIntersectCompleteProp, thm := some ``stepIntersectCompleteRefuted,
-    issue := "none found (issues: intersect range Int8 overflow; PRs: intersect overflow range)",
-    notes := "Both versions: Int8 step2/step3 intersection loses116. Self-intersection of Int8(-128):Int8(127):Int8(126) loses126 (intersectSelfDropsLast); descending step-3 versus step7 produces first104 absent from input (intersectDescendingWrongFirst)." },
-  { id := "ranges-operations-reverse-typemin", juliaFile := "base/range.jl",
-    juliaFns := ["reverse(::OrdinalRange)", "sort(::AbstractRange)"],
-    statement := "Reversing a constructed range preserves its cardinality.",
-    source := "reverse documentation, base/array.jl:2193-2197", status := .refuted,
-    prop := ``reverseCardinalityProp, thm := some ``reverseCardinalityRefuted,
-    issue := "none found (issues: reverse range typemin; PRs: reverse range typemin)",
-    notes := "Both versions: reverse of Int8(0):typemin(Int8):typemin(Int8) loses both elements. sort(Int8(127):typemin(Int8):Int8(-1)) also returns empty via reverse (reverseSortEmpty)." },
-  { id := "ranges-operations-slice-overflow", juliaFile := "base/range.jl",
-    juliaFns := ["getindex(::AbstractUnitRange, ::AbstractUnitRange)"],
-    statement := "Valid integer range slicing preserves length and agrees with each scalar selection.",
-    source := "array indexing invariant; base/range.jl:1002-1015", status := .refuted,
-    prop := ``sliceAgreementProp, thm := some ``sliceAgreementRefuted,
-    issue := "none found (issues: range indexing Int8 overflow; PRs: UnitRange getindex overflow)",
-    notes := "Both versions: (Int8(120):Int8(127))[Int8(8):Int8(8)] throws InexactError although scalar selection returns Int8(127)." },
-  { id := "ranges-operations-edge-sum", juliaFile := "base/range.jl",
-    juliaFns := ["sum(::AbstractRange)"],
-    statement := "Two-element ranges next to typemin/typemax sum to their iterated values modulo the actual result type, for all ten machine integer types.",
-    source := "sum invariant; base/range.jl:1458-1463", status := .proven,
-    prop := ``edgeSumProp, thm := some ``edgeSumThm },
-  { id := "ranges-operations-edge-extrema", juliaFile := "base/range.jl",
-    juliaFns := ["extrema(::AbstractRange)"],
-    statement := "Nonempty edge pairs have the mathematical min/max of their iterated values for all ten machine integer types.",
-    source := "extrema invariant; base/range.jl:881-884,920", status := .proven,
-    prop := ``edgeExtremaProp, thm := some ``edgeExtremaThm },
-  { id := "ranges-operations-edge-membership", juliaFile := "base/range.jl",
-    juliaFns := ["in(::Real, ::AbstractRange{<:Integer})"],
-    statement := "StepRange membership agrees with iteration for endpoint and outside-type probes, using mixed UInt8/Int64 query types.",
-    source := "membership invariant; base/range.jl:1481-1484", status := .proven,
-    prop := ``edgeMembershipProp, thm := some ``edgeMembershipThm },
-  { id := "ranges-operations-intersect-empty", juliaFile := "base/range.jl",
-    juliaFns := ["intersect(::StepRange, ::AbstractUnitRange)"],
-    statement := "Intersection with an empty unit range is empty.",
-    source := "intersection invariant; base/range.jl:1205-1233", status := .refuted,
-    prop := ``intersectEmptyProp, thm := some ``intersectEmptyRefuted,
-    issue := "none found (issues: intersect empty StepRange; PRs: intersect empty range overflow)",
-    notes := "Both versions: intersect(Int8(-128):Int8(127):Int8(126),Int8(5):Int8(4)) returns Int8[-128,-1]." },
-  { id := "ranges-operations-intersect-mixed-regression", juliaFile := "base/range.jl",
-    juliaFns := ["intersect(::AbstractUnitRange{UInt8}, ::StepRange{Int8})"],
-    statement := "Mixed-sign unit/step intersection contains only values shared by its inputs.",
-    source := "intersection invariant; base/range.jl:1205-1217", status := .refuted,
-    prop := ``intersectMixedSoundProp, thm := some ``intersectMixedSoundRefuted,
-    issue := "none found (issues: intersect UInt8 Int8; PRs: intersect mixed signed unsigned)",
-    notes := "Master: intersect(UInt8(0):UInt8(255),Int8(-100):Int8(7):Int8(117)) gives2:7:114, expected5:7:117. Release throws InexactError before modular arithmetic; master wrapping change turns that into silent wrong elements." },
-  { id := "ranges-operations-slice-unsigned-step", juliaFile := "base/range.jl",
-    juliaFns := ["getindex(::StepRange, ::AbstractRange)"],
-    statement := "Stepped slicing preserves selected length and agrees with scalar indexing.",
-    source := "array indexing invariant; base/range.jl:1042-1067", status := .refuted,
-    prop := ``stepSliceAgreementProp, thm := some ``stepSliceAgreementRefuted,
-    issue := "none found (issues: range indexing unsigned negative step; PRs: StepRange getindex unsigned)",
-    notes := "Both versions: (UInt(1):UInt(1):UInt(4))[4:-1:1] is empty. Multiplying unsigned range step by negative index step wraps to a positive UInt64 step." },
-  { id := "ranges-operations-negate-typemin", juliaFile := "base/range.jl",
-    juliaFns := ["-(::OrdinalRange)"],
-    statement := "Range unary minus agrees pointwise with scalar unary minus.",
-    source := "linear range-operation invariant, base/range.jl:1310-1312", status := .refuted,
-    prop := ``negatePointwiseProp, thm := some ``negatePointwiseRefuted,
-    issue := "none found (issues: range negation typemin overflow; PRs: range unary minus overflow)",
-    notes := "Both versions: negating the three-element Int8 range beginning at typemin gives second element -129 instead of127. -(typemin(Int):3:typemin(Int)+20) is empty instead of seven elements (negateInt64Empty)." }
-]
+def operationsEntries : List Entry := []
 
 end JuliaLean.Ranges

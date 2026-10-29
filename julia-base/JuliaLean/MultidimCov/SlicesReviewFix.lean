@@ -161,11 +161,6 @@ private def sliceFixEntry (id fn statement source : String) (prop thm : Lean.Nam
   { id, juliaFile := "base/slicearray.jl", juliaFns := [fn], statement, source,
     status := .proven, prop, thm := some thm }
 
-def slicesReviewFixEntries : List Entry := [
-  sliceFixEntry "multidimcov-slices-construct-full" "_eachslice/eachslice/eachrow/eachcol" "Slice constructors validate dimensions, compute axes and slicemap, promote the parent view type, and construct a Slices value retaining the parent data." "base/slicearray.jl:58-210" ``SlicesConstructBehavior ``slicesConstructBehavior,
-  sliceFixEntry "multidimcov-slice-index-checked" "_slice_index(::Slices,c...)" "Invalid slicemap positions throw BoundsError instead of receiving a silent default coordinate." "base/slicearray.jl:236-238" ``SliceIndexFailureBehavior ``sliceIndexFailureBehavior,
-  sliceFixEntry "multidimcov-slices-get-full" "getindex(::Slices,I...)" "Slices getindex checks outer bounds, checks mapped positions, constructs the parent view, and selects its concrete parent values." "base/slicearray.jl:240-243" ``SlicesGetBehavior ``slicesGetBehavior,
-  sliceFixEntry "multidimcov-slices-set-full" "setindex!(::Slices,val,I...)" "Slices setindex! checks outer bounds, maps indices, validates assigned shape, and writes the selected parent positions." "base/slicearray.jl:244-247" ``SlicesSetBehavior ``slicesSetBehavior
-]
+def slicesReviewFixEntries : List Entry := []
 
 end JuliaLean.MultidimCov

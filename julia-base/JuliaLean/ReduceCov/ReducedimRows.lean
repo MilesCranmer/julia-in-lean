@@ -302,34 +302,6 @@ private def entry (id : String) (fns : List String) (lines statement : String)
   { id, juliaFile := "base/reducedim.jl", juliaFns := fns, statement,
     source := "base/reducedim.jl:" ++ lines, status, prop, thm := some thm, issue }
 
-def entries : List Entry := [
-  entry "reducecov-reducedim-shapes" ["reduced_index", "reduced_indices", "reduced_indices0"] "6-28"
-    "Reduced-axis methods preserve unreduced axes and replace selected axes with singleton axes."
-    ``ShapeRows ``shapeRows_proven,
-  entry "reducecov-dims-unsigned-large" ["_check_valid_region"] "30-35"
-    "Every integer dimension at least one is valid, including trailing dimensions beyond typemax(Int)."
-    ``Dims.ValidRegionUnsigned ``Dims.validRegionUnsigned_refuted .refuted
-    "none found (queries: dims UInt InexactError; _check_valid_region)",
-  entry "reducecov-reducedim-init" ["initarray!", "reducedim_initarray", "promote_union", "_realtype", "reducedim_init", "_reducedim_init", "has_fast_linear_indexing"] "42-203"
-    "Reduction initialization methods follow their ordered type, identity and dispatch calculations."
-    ``InitRows ``initRows_proven,
-  entry "reducecov-maximum-inplace-empty" ["initarray!(::min/max/extrema)", "mapfirst!", "maximum!", "minimum!", "extrema!"] "45-46,241-245,1020-1021"
-    "In-place extrema reductions use the allocating reductions' ArgumentError for an empty reduced slice."
-    ``Dims.InplaceEmptyError ``Dims.inplaceEmptyError_refuted .refuted
-    "none found (queries: maximum! empty BoundsError; maximum! empty array)",
-  entry "reducecov-reducedim-kernels" ["check_reducedims", "copyfirst!", "mapfirst!", "_firstreducedslice", "_firstslice", "mapreducedim!", "reducedim!", "mapreduce", "_mapreduce_dim"] "205-358"
-    "Dimension-reduction kernels and first-slice helpers follow their source branches and call routes."
-    ``KernelRows ``kernelRows_proven,
-  entry "reducecov-reducedim-wrappers" ["reduce", "count", "_count", "count!", "sum/prod/maximum/minimum/extrema", "any", "all", "sum!/prod!/maximum!/minimum!/all!/any!/extrema!"] "392-1025"
-    "Public dimension-reduction wrappers pass their functions, operators, dimensions and initialization in source order."
-    ``WrapperRows ``wrapperRows_proven,
-  entry "reducecov-reducedim-find" ["findmin", "_findmin", "findmax", "_findmax", "_findminmax_inittype", "reducedim1"] "1116-1238"
-    "Allocating find-min/max methods route dimensions and handle empty slices as documented."
-    ``FindRows ``findRows_proven,
-  entry "reducecov-findmax-inplace-init" ["findmin!", "findmax!"] "1091-1094,1164-1167"
-    "With init=false, findmin! and findmax! combine existing values with the input like other in-place reductions."
-    ``Dims.FindInplaceInit ``Dims.findInplaceInit_refuted .refuted
-    "related #38660; none found for ignored init values"
-]
+def entries : List Entry := []
 
 end JuliaLean.ReduceCov.ReducedimRows

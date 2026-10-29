@@ -1,15 +1,15 @@
 file	line	endline	name	signature	status	entry	note
-base/anyall.jl	41	41	any	any(itr)	modelled	iteratorscov-anyall-semantics	
-base/anyall.jl	80	80	all	all(itr)	modelled	iteratorscov-anyall-semantics	
-base/anyall.jl	115	115	any	any(f, itr)	modelled	iteratorscov-anyall-semantics	
-base/anyall.jl	120	132	_any	_any(f, itr::$ItrT, ::Colon)	modelled	iteratorscov-anyall-semantics	generated-loop: ItrT = (Tuple,Any)
-base/anyall.jl	137	147	_any	_any(::typeof(identity), itr::Tuple{Vararg{Bool}}, ::Colon)	modelled	iteratorscov-anyall-semantics	
-base/anyall.jl	152	157	any	any(f, itr::Tuple)	modelled	iteratorscov-anyall-semantics	
-base/anyall.jl	159	167	_any_tuple	_any_tuple(f, anymissing::Bool, x, rest...)	modelled	iteratorscov-anyall-semantics	
-base/anyall.jl	168	168	_any_tuple	_any_tuple(_, anymissing::Bool)	modelled	iteratorscov-anyall-semantics	
-base/anyall.jl	202	202	all	all(f, itr)	modelled	iteratorscov-anyall-semantics	
-base/anyall.jl	207	219	_all	_all(f, itr::$ItrT, ::Colon)	modelled	iteratorscov-anyall-semantics	generated-loop: ItrT = (Tuple,Any)
-base/anyall.jl	224	234	_all	_all(::typeof(identity), itr::Tuple{Vararg{Bool}}, ::Colon)	modelled	iteratorscov-anyall-semantics	
-base/anyall.jl	238	243	all	all(f, itr::Tuple)	modelled	iteratorscov-anyall-semantics	
-base/anyall.jl	245	256	_all_tuple	_all_tuple(f, anymissing::Bool, x, rest...)	modelled	iteratorscov-anyall-semantics	
-base/anyall.jl	257	257	_all_tuple	_all_tuple(_, anymissing::Bool)	modelled	iteratorscov-anyall-semantics	
+base/anyall.jl	41	41	any	any(itr)	modelled	reduce-anyall-3vl	
+base/anyall.jl	80	80	all	all(itr)	modelled	reduce-anyall-3vl	
+base/anyall.jl	115	115	any	any(f, itr)	modelled	reduce-anyall-3vl	
+base/anyall.jl	120	132	_any	_any(f, itr::$ItrT, ::Colon)	modelled	reduce-anyall-3vl	generated-loop: ItrT = (Tuple,Any)
+base/anyall.jl	137	147	_any	_any(::typeof(identity), itr::Tuple{Vararg{Bool}}, ::Colon)	modelled	reduce-anyall-3vl	
+base/anyall.jl	152	157	any	any(f, itr::Tuple)	modelled	reduce-anyall-3vl	
+base/anyall.jl	159	167	_any_tuple	_any_tuple(f, anymissing::Bool, x, rest...)	modelled	reduce-anyall-3vl	
+base/anyall.jl	168	168	_any_tuple	_any_tuple(_, anymissing::Bool)	modelled	reduce-anyall-3vl	
+base/anyall.jl	202	202	all	all(f, itr)	modelled	reduce-anyall-3vl	
+base/anyall.jl	207	219	_all	_all(f, itr::$ItrT, ::Colon)	modelled	reduce-anyall-3vl	generated-loop: ItrT = (Tuple,Any)
+base/anyall.jl	224	234	_all	_all(::typeof(identity), itr::Tuple{Vararg{Bool}}, ::Colon)	modelled	reduce-anyall-3vl	
+base/anyall.jl	238	243	all	all(f, itr::Tuple)	modelled	reduce-anyall-3vl	
+base/anyall.jl	245	256	_all_tuple	_all_tuple(f, anymissing::Bool, x, rest...)	modelled	reduce-anyall-3vl	
+base/anyall.jl	257	257	_all_tuple	_all_tuple(_, anymissing::Bool)	modelled	reduce-anyall-3vl	

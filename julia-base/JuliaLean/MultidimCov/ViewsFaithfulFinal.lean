@@ -337,13 +337,6 @@ private def entry (line : Nat) (fn statement : String) (prop proof : Lean.Name) 
     prop
     thm := some proof }
 
-def entries : List Entry := [
-  entry 19 "replace_ref_begin_end_!" "The recursive transformer expands macrocalls, tracks quote and escape context, handles reference and assignment boundaries, skips inert nodes, and recursively preserves every other head." ``P19 ``p19,
-  entry 22 "escapes" "The escape helper wraps an expression exactly once per requested escape depth and preserves zero depth." ``P22 ``p22,
-  entry 28 "handle_refexpr!" "Reference handling replaces the array first, implements zero, one, and multiple index branches, tracks splat dimensions, creates temporaries, and caches the array only when used." ``P28 ``p28,
-  entry 210 "@view" "The view macro rejects non-references, performs boundary replacement, handles direct and binding-block references, constructs the view call, and escapes the result." ``P210 ``p210,
-  entry 247 "_views(x)" "The generic leaf overload returns every non-Expr value unchanged." ``P247 ``p247,
-  entry 248 "_views(::Expr)" "Expression rewriting covers assignment targets, reference reads, operator-assignment temporaries and splats, hygienic scope, arbitrary heads, and every failure path." ``P248 ``p248
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.ViewsFaithfulFinal

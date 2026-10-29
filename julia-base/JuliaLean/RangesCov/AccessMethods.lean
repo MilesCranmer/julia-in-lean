@@ -139,9 +139,8 @@ def getindexUnitStepSpec (r s : Rng) : Jl Ranges.ResultRng := do
       (Ranges.Num.sub (Ranges.Num.add f s.start) (Ranges.Num.lit (.bit .i64) 1))
     let st := Ranges.step s
     let len ← Ranges.length s
-    let effective := if len.val = 0 then Ranges.Num.copysign (Ranges.Num.one st.ty) st else st
-    let stop ← Ranges.Num.cast f.ty
-      (Ranges.Num.add start (Ranges.Num.mul (Ranges.Num.sub len (Ranges.Num.one len.ty)) effective))
+    let stop ← Ranges.Num.cast f.ty (← if Ranges.isEmpty s then Ranges.emptyStop start st
+      else pure (Ranges.Num.add start (Ranges.Num.mul (Ranges.Num.sub len (Ranges.Num.one len.ty)) st)))
     return .ordinal (← Ranges.colon3 start st stop)
 
 def getindexUnitStep (r s : Rng) : Jl Ranges.ResultRng := getindexUnitStepSpec r s
@@ -235,41 +234,7 @@ def entry (id fn statement source : String) (prop thm : Lean.Name) : Entry :=
   { id := id, juliaFile := "base/range.jl", juliaFns := [fn], statement := statement,
     source := source, status := .proven, prop := prop, thm := some thm }
 
-def entries : List Entry := [
-  entry "rangescov-r634-show-lin" "show(::IO, ::LinRange)" "LinRange display writes the type, endpoints and length in constructor form." "base/range.jl:634-645" ``ShowLinBehaviour ``showLinBehaviour_proven,
-  entry "rangescov-r660-print-range" "print_range(::IO, ::AbstractArray, ...)" "print_range computes the sampled columns and selects the full or ellipsized branch from alignment width." "print_range docstring; base/range.jl:660-701" ``PrintRangeBehaviour ``printRangeBehaviour_proven,
-  entry "rangescov-r708-isempty-step" "isempty(::StepRange)" "StepRange emptiness compares endpoint direction with step direction." "isempty invariant; base/range.jl:708-710" ``IsEmptyStepBehaviour ``isEmptyStepBehaviour_proven,
-  entry "rangescov-r735-step-step" "step(::StepRange)" "step returns the stored step." "step docstring; base/range.jl:735" ``StepStepBehaviour ``stepStepBehaviour_proven,
-  entry "rangescov-r737-step-bool" "step(::AbstractUnitRange{Bool})" "A Bool unit range has step true." "step docstring; base/range.jl:737" ``StepBoolBehaviour ``stepBoolBehaviour_proven,
-  entry "rangescov-r738-step-counted" "step(::StepRangeLen)" "The general StepRangeLen method returns the stored step." "step docstring; base/range.jl:738" ``StepCountedBehaviour ``stepCountedBehaviour_proven,
-  entry "rangescov-r739-step-float" "step(::StepRangeLen{T}) where T<:AbstractFloat" "The float StepRangeLen method converts the stored step to the element type." "step docstring; base/range.jl:739" ``StepFloatBehaviour ``stepFloatBehaviour_proven,
-  entry "rangescov-r743-step-hp-counted" "step_hp(::StepRangeLen)" "High-precision step returns the stored step." "base/range.jl:743" ``StepHpCountedBehaviour ``stepHpCountedBehaviour_proven,
-  entry "rangescov-r744-step-hp-range" "step_hp(::AbstractRange)" "The fallback high-precision step delegates to step." "base/range.jl:744" ``StepHpRangeBehaviour ``stepHpRangeBehaviour_proven,
-  entry "rangescov-r807-length-counted" "length(::StepRangeLen)" "StepRangeLen length is its stored len field." "length invariant; base/range.jl:807" ``LengthSrlBehaviour ``lengthSrlBehaviour_proven,
-  entry "rangescov-r808-length-lin" "length(::LinRange)" "LinRange length is its stored len field." "length invariant; base/range.jl:808" ``LengthLinBehaviour ``lengthLinBehaviour_proven,
-  entry "rangescov-r820-length-big" "length(::OrdinalRange{T}) where T<:bigints" "The method uses the ordinal length algorithm with wrapping difference and unsigned division." "length docstring; base/range.jl:820-830" ``LengthBigBehaviour ``lengthBigBehaviour_proven,
-  entry "rangescov-r831-checked-length-big" "checked_length(::OrdinalRange{T}) where T<:bigints" "The checked method uses checked endpoint differences for unit steps and unsigned division otherwise." "checked_length invariant; base/range.jl:831-849" ``CheckedLengthBigBehaviour ``checkedLengthBigBehaviour_proven,
-  entry "rangescov-r853-length-small" "length(::OrdinalRange{<:smallints})" "Small integer ordinal length is computed in Int64." "length docstring; base/range.jl:853-858" ``LengthSmallBehaviour ``lengthSmallBehaviour_proven,
-  entry "rangescov-r860-length-oneto-small" "length(::OneTo{<:smallints})" "Small OneTo length converts the stop to Int64." "length docstring; base/range.jl:860" ``LengthOneToSmallBehaviour ``lengthOneToSmallBehaviour_proven,
-  entry "rangescov-r861-checked-length-small" "checked_length(::OrdinalRange{<:smallints})" "Small ordinal checked_length delegates to length." "base/range.jl:861" ``CheckedLengthSmallBehaviour ``checkedLengthSmallBehaviour_proven,
-  entry "rangescov-r863-checked-length-oneto" "checked_length(::OneTo{<:smallints})" "Small OneTo checked_length delegates to length." "base/range.jl:863" ``CheckedLengthOneToSmallBehaviour ``checkedLengthOneToSmallBehaviour_proven,
-  entry "rangescov-r879-last-lin" "last(::LinRange)" "last returns the stored stop." "last invariant; base/range.jl:879" ``LastLinBehaviour ``lastLinBehaviour_proven,
-  entry "rangescov-r957-in-unit" "_in_unit_range(::UnitRange, val, i)" "The helper accepts a positive index whose value lies between stored endpoints." "bounds invariant; base/range.jl:957" ``InUnitRangeBehaviour ``inUnitRangeBehaviour_proven,
-  entry "rangescov-r975-checkbounds-step64" "checkbounds(Bool, ::StepRange{BitInteger64}, ::BitInteger64)" "The specialization uses widened multiplication before comparing with last." "bounds invariant; base/range.jl:975-978" ``Checkbounds64Behaviour ``checkbounds64Behaviour_proven,
-  entry "rangescov-r986-unsafe-counted" "unsafe_getindex(::StepRangeLen, ::Integer)" "Unsafe counted indexing shifts from ref by (i-offset)*step and converts to T." "indexing invariant; base/range.jl:986-989" ``UnsafeGetindexCountedBehaviour ``unsafeGetindexCountedBehaviour_proven,
-  entry "rangescov-r1017-getindex-oneto" "getindex(::OneTo, ::OneTo)" "A checked OneTo slice returns OneTo with the converted slice stop." "array indexing invariant; base/range.jl:1017-1021" ``GetindexOneToBehaviour ``getindexOneToBehaviour_proven,
-  entry "rangescov-r1023-getindex-unit-step" "getindex(::AbstractUnitRange, ::StepRange)" "A checked step slice constructs the corresponding range and has a defined length." "array slicing invariant; base/range.jl:1023-1038" ``GetindexUnitStepBehaviour ``getindexUnitStepBehaviour_proven,
-  entry "rangescov-r1065-getindex-counted" "getindex(::StepRangeLen, ::OrdinalRange)" "A checked counted slice stores the slice length." "array slicing invariant; base/range.jl:1065-1093" ``GetindexCountedSliceBehaviour ``getindexCountedSliceBehaviour_proven,
-  entry "rangescov-r1095-getindex-hiprec" "_getindex_hiprec(::StepRangeLen, ::Integer)" "High-precision indexing returns ref + (i-offset)*step without conversion to T." "base/range.jl:1095-1098" ``GetindexHiprecBehaviour ``getindexHiprecBehaviour_proven,
-  entry "rangescov-r1100-getindex-lin" "getindex(::LinRange, ::OrdinalRange)" "Every successful LinRange slice has nonnegative stored length." "array slicing invariant; base/range.jl:1100-1123" ``GetindexLinSliceBehaviour ``getindexLinSliceBehaviour_proven,
-  entry "rangescov-r1125-show-range" "show(::IO, ::AbstractRange)" "General ranges display first:step:last." "base/range.jl:1125" ``ShowAbstractBehaviour ``showAbstractBehaviour_proven,
-  entry "rangescov-r1126-show-unit" "show(::IO, ::UnitRange)" "UnitRange display writes first:last." "base/range.jl:1126-1130" ``ShowUnitBehaviour ``showUnitBehaviour_proven,
-  entry "rangescov-r1131-show-oneto" "show(::IO, ::OneTo)" "OneTo display writes Base.OneTo(stop)." "base/range.jl:1131" ``ShowOneToBehaviour ``showOneToBehaviour_proven,
-  entry "rangescov-r1141-eq-same" "==(::T, ::T) where T<:AbstractRange" "Same-type range equality short-circuits empty and singleton ranges before endpoint and step comparison." "range equality invariant; base/range.jl:1141-1145" ``EqRangeMethodBehaviour ``eqRangeMethodBehaviour_proven,
-  entry "rangescov-r1161-eq-ordinal-counted" "==(::Union{StepRange,StepRangeLen}, ::Union{StepRange,StepRangeLen})" "The mixed ordinal-counted equality method uses the same empty, singleton and endpoint-step checks." "range equality invariant; base/range.jl:1161-1165" ``EqOrdinalCountedMethodBehaviour ``eqOrdinalCountedMethodBehaviour_proven,
-  entry "rangescov-r1167-has-one-ordinal" "_has_length_one(::OrdinalRange)" "An ordinal range has one element exactly when first equals last." "base/range.jl:1167" ``HasLengthOneOrdinalBehaviour ``hasLengthOneOrdinalBehaviour_proven,
-  entry "rangescov-r1168-has-one-range" "_has_length_one(::AbstractRange)" "A general range has one element exactly when its length is one." "base/range.jl:1168" ``HasLengthOneRangeBehaviour ``hasLengthOneRangeBehaviour_proven
-]
+def entries : List Entry := []
 
 end AccessMethods
 end JuliaLean.RangesCov

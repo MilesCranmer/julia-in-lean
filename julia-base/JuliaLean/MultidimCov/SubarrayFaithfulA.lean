@@ -513,43 +513,6 @@ private def entry (line : Nat) (name statement source : String) (prop thm : Lean
   { id := s!"multidimcov-subarray-faithful-{line}", juliaFile := "base/subarray.jl",
     juliaFns := [name], statement, source, status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 26 "SubArray(parent,indices)" "Construction evaluates both index styles, ensures the indices, computes the result dimensions, and dispatches in source order." "base/subarray.jl:26-28" ``P26 ``p26,
-  entry 30 "SubArray(IndexCartesian,...)" "The Cartesian constructor selects the parent element type and supplied result rank before constructing a non-linear view." "base/subarray.jl:30-32" ``P30 ``p30,
-  entry 34 "SubArray(IndexLinear,...)" "The linear constructor computes layout, selects element type and supplied rank, and constructs the view." "base/subarray.jl:34-37" ``P34 ``p34,
-  entry 40 "_compute_linear_layout" "Linear layout converts compute_stride1 before calling and converting compute_offset1." "base/subarray.jl:40-43" ``P40 ``p40,
-  entry 54 "viewindexing(scalar,...)" "Every Real scalar is removed before recursively classifying the arbitrary suffix." "base/subarray.jl:54" ``P54 ``p54,
-  entry 56 "viewindexing(Slice,Slice,...)" "The first Slice is removed before recursively classifying the remaining arbitrary tuple." "base/subarray.jl:56" ``P56 ``p56,
-  entry 58 "viewindexing(Slice,AbstractUnitRange,scalars...)" "Every AbstractUnitRange followed by Real scalars is classified as linear." "base/subarray.jl:58" ``P58 ``p58,
-  entry 59 "viewindexing(Slice,Slice,scalars...)" "Two Slices followed by arbitrary Real scalars are classified as linear." "base/subarray.jl:59" ``P59 ``p59,
-  entry 63 "viewindexing(AbstractRange,scalars...)" "Every scalar AbstractRange followed by Real scalars is classified as linear." "base/subarray.jl:63" ``P63 ``p63,
-  entry 65 "viewindexing(any...)" "Every otherwise unsupported arbitrary tuple is classified as Cartesian." "base/subarray.jl:65" ``P65 ``p65,
-  entry 67 "viewindexing(AbstractArray,any...)" "Every AbstractArray-leading arbitrary tuple is classified as Cartesian." "base/subarray.jl:67" ``P67 ``p67,
-  entry 75 "sizeof(SubArray)" "Sizeof calls length, eltype and sizeof before multiplying their results." "base/subarray.jl:75" ``P75 ``p75,
-  entry 76 "sizeof(SubArray{parent Array})" "Array-parent sizeof calls length, parent and elsize before multiplying." "base/subarray.jl:76" ``P76 ``p76,
-  entry 78 "copy(SubArray)" "Copy performs parent indexing and the rank branch, including every failure and zero-rank allocation and assignment." "base/subarray.jl:78-83" ``P78 ``p78,
-  entry 86 "parent(SubArray)" "Parent returns the actual stored parent object." "base/subarray.jl:86" ``P86 ``p86,
-  entry 109 "parentindices(AbstractArray)" "Generic parentindices calls size on the array and oneto on every dimension." "base/subarray.jl:109" ``P109 ``p109,
-  entry 112 "dataids(SubArray)" "Data identifiers call dataids on the actual parent and every actual stored index before concatenation." "base/subarray.jl:112" ``P112 ``p112,
-  entry 115 "unaliascopy(SubArray)" "Generic unaliascopy copies the actual parent and indices and reconstructs the original concrete type and layout fields." "base/subarray.jl:115" ``P115 ``p115,
-  entry 119 "unaliascopy(Array-parent SubArray)" "Array-parent unaliascopy performs trimming, optional destination view creation, copy, dense-index conversion, layout, and construction in order." "base/subarray.jl:119-130" ``P119 ``p119,
-  entry 133 "_trimmedshape(scalar)" "Every Real scalar contributes one while preserving the recursive shape values." "base/subarray.jl:133" ``P133 ``p133,
-  entry 134 "_trimmedshape(AbstractRange)" "AbstractRange shape preserves zero or maximum in the range element domain, including negative maxima." "base/subarray.jl:134" ``P134 ``p134,
-  entry 138 "_trimmedshape(CartesianIndex array)" "A positive-rank Cartesian-index array contributes its length and exactly rank minus one singleton dimensions." "base/subarray.jl:138" ``P138 ``p138,
-  entry 141 "_trimmedpind(generic)" "Generic trimmed parent indices call axes on the actual index and prepend one Colon per axis." "base/subarray.jl:141" ``P141 ``p141,
-  entry 142 "_trimmedpind(AbstractRange)" "AbstractRange trimmed parent indices preserve the original range object." "base/subarray.jl:142" ``P142 ``p142,
-  entry 146 "_trimmedvind(generic)" "Generic trimmed view indices call axes on the actual index and prepend one Colon per axis." "base/subarray.jl:146" ``P146 ``p146,
-  entry 147 "_trimmedvind(rank-zero Cartesian array)" "Rank-zero Cartesian-index arrays call axes and first on every axis before recursion." "base/subarray.jl:147" ``P147 ``p147,
-  entry 150 "_trimmedindex(scalar)" "Scalar trimming calls oftype on the actual Real scalar and one." "base/subarray.jl:150" ``P150 ``p150,
-  entry 151 "_trimmedindex(AbstractRange)" "General AbstractRange trimming preserves the actual range object, type and values." "base/subarray.jl:151" ``P151 ``p151,
-  entry 152 "_trimmedindex(dense range)" "Dense-range trimming computes length, oneto and same-type conversion in order." "base/subarray.jl:152" ``P152 ``p152,
-  entry 153 "_trimmedindex(scalar-index array)" "Scalar-index-array trimming computes linear eachindex, axes, reshape and same-type conversion in order." "base/subarray.jl:153" ``P153 ``p153,
-  entry 154 "_trimmedindex(rank-zero Cartesian array)" "Rank-zero Cartesian-index-array trimming copies the actual array and converts back to its concrete type." "base/subarray.jl:154" ``P154 ``p154,
-  entry 155 "_trimmedindex(Cartesian-index array)" "Positive-rank Cartesian-index-array trimming builds padding, linear indices, CartesianIndices, reshape and same-type conversion." "base/subarray.jl:155-158" ``P155 ``p155,
-  entry 165 "_maybe_reshape_parent(AbstractArray,rank1)" "The one-dimensional overload reshapes the actual parent with Val(1)." "base/subarray.jl:165" ``P165 ``p165,
-  entry 166 "_maybe_reshape_parent(Vector,rank1)" "The vector overload reshapes the actual parent with Val(1)." "base/subarray.jl:166" ``P166 ``p166,
-  entry 168 "_maybe_reshape_parent(AbstractArray,rankN)" "The general overload reshapes the actual parent with the supplied rank." "base/subarray.jl:168" ``P168 ``p168,
-  entry 221 "view(AbstractArray,indices...)" "View converts and unaliases all indices, checks bounds, removes singleton indices, reshapes the parent and constructs the view with complete failure propagation." "base/subarray.jl:221-226" ``P221 ``p221
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.SubarrayFaithfulA

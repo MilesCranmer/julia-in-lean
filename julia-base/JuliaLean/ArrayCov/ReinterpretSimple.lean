@@ -15,8 +15,12 @@ def reinterpret190Nested (reinterpretCall : Int → List Int → Jl ReinterpretV
 
 def reinterpret191NestedReshape
     (reinterpretCall : Bool → Int → List Int → Jl ReinterpretValue)
+    (construct : Int → ReinterpretValue → Jl ReinterpretValue)
+    (targetSize sourceSize parentSize : Nat)
     (type : Int) (array : ReinterpretValue) : Jl ReinterpretValue :=
-  reinterpretCall true type array.parent
+  if targetSize = sourceSize ∨ targetSize = parentSize ∨ sourceSize = parentSize then
+    reinterpretCall true type array.parent
+  else construct type array
 
 def reinterpret204Strides (size : ReinterpretValue → List JInt64)
     (sizeToStrides : JInt64 → List JInt64 → List JInt64)
@@ -37,8 +41,10 @@ def ReinterpretSimpleConstructionCorrect : Prop :=
   (∀ array, reinterpret104Identity array = array) ∧
   (∀ array, reinterpret145ReshapeIdentity array = array) ∧
   (∀ call type array, reinterpret190Nested call type array = call type array.parent) ∧
-  (∀ call type array, reinterpret191NestedReshape call type array =
-      call true type array.parent) ∧
+  (∀ call construct target source parent type array,
+      reinterpret191NestedReshape call construct target source parent type array =
+      if target = source ∨ target = parent ∨ source = parent then
+        call true type array.parent else construct type array) ∧
   (∀ size strides array, reinterpret204Strides size strides array =
       strides (JInt.lit .i64 1) (size array)) ∧
   (∀ contiguous array, reinterpret229Contiguous contiguous array = contiguous array.parent) ∧

@@ -1,0 +1,46 @@
+id: c-runtime-mark-actual-capacity-slot-data-race
+title: "GC work-stealing queue can race on a reused circular-buffer slot"
+priority: P2
+kind: model-counterexample
+area: GC
+files: [src/work-stealing-queue.h, src/gc-stock.c]
+functions: ["ws_queue_push", "ws_queue_steal_from", "gc_mark_obj32"]
+summary: |
+  A thief can load top, bottom and the queue array, then stall before copying
+  the selected plain-memory slot. Another thief advances top and the owner
+  publishes one full 2^18 pointer-queue period, reusing that slot. The stalled
+  plain read conflicts with the owner's plain store before its CAS fails.
+likelihood: |
+  Requires a very large marking workload, two thieves, and a stalled thief
+  spanning one full pointer-queue period. No native manifestation is reproduced.
+maybe_intended: ""
+reproducer: |
+  println("NOT REPRODUCED c-runtime-mark-actual-capacity-slot-data-race")
+  println("Formal C11 data-race counterexample only; no deterministic Julia trigger is known.")
+output:
+  release: |
+    NOT RUN: formal C11 counterexample only.
+  nightly: |
+    NOT RUN: formal C11 counterexample only.
+reproduced: {release: false, nightly: false}
+expected: |
+  Queue slot storage must remain data-race-free while any thief can retain the
+  corresponding top index and array pointer.
+promised_by: |
+  Invariant: the parallel GC mark queue must not execute conflicting unordered
+  accesses to its circular-buffer storage.
+cause: |
+  ws_queue_steal_from reads the slot with memcpy at
+  src/work-stealing-queue.h:100-103 before attempting the top CAS. The owner
+  writes reused slots with memcpy at lines 67-69. A failed thief CAS does not
+  order or erase the earlier conflicting read.
+possible_fix: |
+  Use atomic slot storage, or prevent an owner from reusing a circular slot
+  while a thief can retain the corresponding stale top observation.
+duplicates:
+  issues:
+    - {number: 64206, state: open, relation: duplicate}
+  queries: ["GC work stealing"]
+lean:
+  property: JuliaLean.CRuntime.ParallelMark.ActualCapacity.actualCapacityDataRaceFreedom
+  theorem: JuliaLean.CRuntime.ParallelMark.ActualCapacity.actualCapacityDataRaceFreedom_refuted

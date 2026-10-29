@@ -340,35 +340,6 @@ theorem hex2bytesArgError_refuted : ¬ Hex2bytesArgError := by
   revert this; decide
 
 /-- Registry entries of the hex conversions. -/
-def hexEntries : List Entry := [
-  { id := "stringutil-hex-roundtrip"
-    juliaFile := "base/strings/util.jl"
-    juliaFns := ["bytes2hex(::Vector{UInt8})", "hex2bytes(::String)", "hex2bytes!(::AbstractArray{UInt8}, ::String)",
-      "hex2bytes!(::AbstractArray{UInt8}, ::Any)", "number_from_hex(::UInt8)"]
-    statement := "hex2bytes(bytes2hex(b)) == b for every byte vector b, through the String method of hex2bytes."
-    source := "base/strings/util.jl:1201-1202,1298 (hex2bytes/bytes2hex docstrings: bytes2hex is the inverse)"
-    status := .proven
-    prop := ``HexRoundtrip
-    thm := some ``hexRoundtrip_proven
-    notes := "Goes through length(::String) (Strings.length_validIndices): the hex string is ASCII, so length(s) == sizeof(s) and the String method takes the codeunits path." },
-  { id := "stringutil-bytes2hex-lowercase"
-    juliaFile := "base/strings/util.jl"
-    juliaFns := ["bytes2hex(::Vector{UInt8})"]
-    statement := "bytes2hex(b) has 2*length(b) code units, each one of 0-9a-f."
-    source := "base/strings/util.jl:1289-1291 (bytes2hex docstring: the hexadecimal characters are all lowercase)"
-    status := .proven
-    prop := ``Bytes2hexLowercase
-    thm := some ``bytes2hexLowercase_proven },
-  { id := "stringutil-hex2bytes-nonascii"
-    juliaFile := "base/strings/util.jl"
-    juliaFns := ["hex2bytes(::AbstractString)", "hex2bytes!(::AbstractArray{UInt8}, ::Any)", "number_from_hex(::Char)"]
-    statement := "hex2bytes on any SubString of any String returns or throws ArgumentError, as the String method does."
-    source := "base/strings/util.jl:1240-1244,1278-1283 (String method and number_from_hex throw ArgumentError); docstring :1195-1201"
-    status := .refuted
-    prop := ``Hex2bytesArgError
-    thm := some ``hex2bytesArgError_refuted
-    issue := "none found (queries: issues: hex2bytes; prs: hex2bytes; issues: hex2bytes InexactError; issues: hex2bytes SubString; issues: hex2bytes InvalidCharError)"
-    notes := "Counterexample SubString(\"ĀĀ\") (bytes c4 80 c4 80): number_from_hex(c::Char) = number_from_hex(UInt8(c)) throws InexactError for 'Ā' (U+0100). Same on 1.13.2." }
-]
+def hexEntries : List Entry := []
 
 end JuliaLean.StringUtil

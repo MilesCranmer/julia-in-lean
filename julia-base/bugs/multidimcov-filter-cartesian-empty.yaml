@@ -1,0 +1,58 @@
+id: multidimcov-filter-cartesian-empty
+title: "filter(f, a) throws TypeError for an empty IndexCartesian array when f is not inferred to return Bool"
+priority: P2
+kind: wrong-exception
+area: MultidimCov
+files: [base/array.jl]
+functions: ["filter(f, a::AbstractArray)"]
+summary: |
+  For an AbstractArray that is not IndexLinear (for example a non-contiguous view),
+  filter(f, a) returns a[map(f, a)::AbstractArray{Bool}]. For an empty a, map(f, a) has
+  the element type that inference gives for f, so the type assertion fails whenever that
+  type is not exactly Bool (for example x -> x == 1 on elements of type Any) and filter
+  throws TypeError instead of returning an empty vector. The IndexLinear path and
+  nonempty arrays work.
+likelihood: |
+  Needs an empty non-contiguous view (or another IndexCartesian array) and a predicate
+  whose return type inference cannot pin to Bool, typically elements of type Any or a
+  Union. Generic code that filters slices which may be empty can reach it.
+maybe_intended: ""
+reproducer: |
+  A = Any[1 2 3; 4 5 6; 7 8 9]
+  filter(x -> x == 1, view(A, 1:0, 1:2))      # TypeError
+  filter(x -> x == 1, view(Any[1, 2], 1:0))   # Any[]
+  filter(x -> x == 1, view(A, 1:2, 1:2))      # Any[1]
+output:
+  release: |
+    IndexStyle = IndexCartesian(), isempty = true
+    filter on empty cartesian view: TypeError
+    filter on empty linear view: Any[]
+    filter on nonempty cartesian view: Any[1]
+    REPRODUCED multidimcov-filter-cartesian-empty
+  nightly: |
+    IndexStyle = IndexCartesian(), isempty = true
+    filter on empty cartesian view: TypeError
+    filter on empty linear view: Any[]
+    filter on nonempty cartesian view: Any[1]
+    REPRODUCED multidimcov-filter-cartesian-empty
+reproduced: {release: true, nightly: true}
+expected: |
+  An empty vector (Any[]), as for the IndexLinear method and for Iterators.filter.
+promised_by: |
+  base/array.jl:2998: "Return a copy of collection a, removing elements for which f is
+  false." An empty collection has nothing to remove, and the predicate is never called.
+cause: |
+  base/array.jl:3033: (IndexStyle(a) != IndexLinear()) && return
+  a[map(f, a)::AbstractArray{Bool}]. map of an empty array allocates its result with the
+  inferred element type (@default_eltype, base/array.jl:821), which is Any here, so the
+  ::AbstractArray{Bool} assertion throws. For nonempty arrays the element type comes from
+  the values.
+possible_fix: |
+  Return similar(a, 0) (or a[Bool[]]-style empty result) when a is empty, or build the mask
+  with map!(f, similar(a, Bool), a) so its element type is always Bool.
+duplicates:
+  issues: []
+  queries: ["filter TypeError empty", "filter IndexCartesian", "filter map AbstractArray{Bool}", "filter empty view TypeError", "filter non-linear empty", "filter typeassert map", "filter TypeError", "filter view TypeError", "filter SubArray", "filter AbstractArray{Bool}", "filter cartesian", "filter empty array", "filter IndexStyle", "filter map typeassert"]
+lean:
+  property: JuliaLean.MultidimCov.ArrayV2.P3032
+  theorem: JuliaLean.MultidimCov.ArrayV2.p3032_refuted

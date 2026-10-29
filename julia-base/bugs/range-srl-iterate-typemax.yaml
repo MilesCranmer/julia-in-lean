@@ -1,0 +1,58 @@
+id: range-srl-iterate-typemax
+title: "iterate(::StepRangeLen) does not stop after length typemax(Int): the state wraps to typemin(Int)"
+priority: P2
+kind: wrong-result
+area: Ranges
+files: [base/range.jl]
+functions: ["iterate(r::Union{StepRangeLen,LinRange}, i::Integer=zero(length(r)))"]
+summary: |
+  For a StepRangeLen of length typemax(Int), iterate(r, typemax(Int)) (the state after
+  the last element) returns (typemax(Int), typemin(Int)) instead of nothing. The state
+  increment i += 1 wraps to typemin(Int), the end test length(r) < i is false, and the
+  element read at the wrapped index, 9223372036854775807, is not even an element of
+  r = StepRangeLen(0, 1, typemax(Int)), whose last element is typemax(Int) - 1.
+  Iteration then continues through negative states.
+likelihood: |
+  Very low: needs a StepRangeLen or LinRange with exactly typemax(Int) elements and an
+  iteration that reaches its end, or an explicit iterate(r, typemax(Int)). For every
+  shorter range the state never overflows.
+maybe_intended: ""
+reproducer: |
+  r = StepRangeLen(0, 1, typemax(Int))
+  iterate(r, typemax(Int))   # (9223372036854775807, -9223372036854775808); expected nothing
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    length(r) = 9223372036854775807, iterate(r, typemax(Int)) = (9223372036854775807, -9223372036854775808)
+    REPRODUCED range-srl-iterate-typemax
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    length(r) = 9223372036854775807, iterate(r, typemax(Int)) = (9223372036854775807, -9223372036854775808)
+    REPRODUCED range-srl-iterate-typemax
+reproduced: {release: true, nightly: true}
+expected: |
+  iterate(r, typemax(Int)) === nothing, so iteration over r ends after its
+  typemax(Int)-th element, last(r) == typemax(Int) - 1.
+promised_by: |
+  iterate docstring, base/essentials.jl:1606-1608: "Advance the iterator to obtain the
+  next element. If no elements remain, `nothing` should be returned." The state after
+  the k-th element of a StepRangeLen is k (base/range.jl:930-932), so after the last
+  element (k = length(r), base/range.jl:807) no elements remain.
+cause: |
+  base/range.jl:930 increments the state with `i += oneunit(i)` in Int arithmetic
+  before the end test on line 931, `length(r) < i && return nothing`. For
+  i == typemax(Int) == length(r) the increment wraps to typemin(Int), the test fails,
+  and line 932 returns unsafe_getindex(r, typemin(Int)), whose offset arithmetic also
+  wraps. The increment-before-check order dates from 4f77aba13e5 (2021); the
+  OrdinalRange iterator (base/range.jl:937-942) instead stops on `i == last(r)` and
+  does not wrap.
+possible_fix: |
+  Test the end before incrementing, e.g. `i >= length(r) && return nothing; i += 1`,
+  which cannot overflow because length(r) <= typemax(Int).
+duplicates:
+  issues:
+    - {number: 37876, state: closed, relation: related}
+  queries: ["StepRangeLen iterate overflow", "StepRangeLen typemax", "iterate StepRangeLen", "LinRange iterate overflow", "range iterate typemax", "iterate overflow"]
+lean:
+  property: JuliaLean.Proofs.base.range.SRLIterateEnds
+  theorem: JuliaLean.Proofs.base.range.sRLIterateEnds_refuted

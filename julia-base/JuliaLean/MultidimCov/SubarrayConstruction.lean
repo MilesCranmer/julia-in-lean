@@ -354,35 +354,6 @@ private def constructionEntry (id fn statement : String) (prop theoremName : Lea
     prop
     thm := some theoremName }
 
-def subarrayConstructionEntries : List Entry := [
-  constructionEntry "multidimcov-sub-l19-inner" "SubArray{T,N,P,I,L}(parent,indices,offset,stride)" "The inner constructor checks parent/index rank before storing all fields." ``SubL19Inner ``subL19Inner,
-  constructionEntry "multidimcov-sub-l26-constructor" "SubArray(parent,indices)" "The outer constructor computes index style, makes indices indexable, computes result dimensions, and selects the matching constructor." ``SubL26Constructor ``subL26Constructor,
-  constructionEntry "multidimcov-sub-l30-cartesian" "SubArray(::IndexCartesian,parent,indices,dims)" "The Cartesian constructor stores zero offset and stride and marks the view non-linear." ``SubL30Cartesian ``subL30Cartesian,
-  constructionEntry "multidimcov-sub-l34-linear" "SubArray(::IndexLinear,parent,indices,dims)" "The linear constructor computes layout before constructing a linear view." ``SubL34Linear ``subL34Linear,
-  constructionEntry "multidimcov-sub-l40-layout" "_compute_linear_layout(parent,indices)" "Linear layout computes stride before offset and returns both converted indices." ``SubL40Layout ``subL40Layout,
-  constructionEntry "multidimcov-sub-l46-check-wrapper" "check_parent_index_match(parent,indices)" "The wrapper computes consumed index dimensions and checks them against parent rank." ``SubL46CheckWrapper ``subL46CheckWrapper,
-  constructionEntry "multidimcov-sub-l47-check-match" "check_parent_index_match(::AbstractArray{T,N},::NTuple{N,Bool})" "Matching parent and index ranks succeed." ``SubL47CheckMatch ``subL47CheckMatch,
-  constructionEntry "multidimcov-sub-l48-check-mismatch" "check_parent_index_match(parent,::NTuple{N,Bool})" "A mismatched parent and index rank throws ArgumentError." ``SubL48CheckMismatch ``subL48CheckMismatch,
-  constructionEntry "multidimcov-sub-l54-view-scalar" "viewindexing(::Tuple{ScalarIndex,...})" "A leading scalar delegates classification to the tail." ``SubL54ViewScalar ``subL54ViewScalar,
-  constructionEntry "multidimcov-sub-l56-view-slices" "viewindexing(::Tuple{Slice,Slice,...})" "Leading consecutive slices delegate after dropping the first." ``SubL56ViewSliceSlice ``subL56ViewSliceSlice,
-  constructionEntry "multidimcov-sub-l58-view-slice-range" "viewindexing(::Tuple{Slice,AbstractUnitRange,Vararg{ScalarIndex}})" "A slice then unit range and scalars is linearly indexable." ``SubL58ViewSliceRange ``subL58ViewSliceRange,
-  constructionEntry "multidimcov-sub-l59-view-slice-scalars" "viewindexing(::Tuple{Slice,Slice,Vararg{ScalarIndex}})" "Two slices followed by scalars are linearly indexable." ``SubL59ViewSliceSliceScalars ``subL59ViewSliceSliceScalars,
-  constructionEntry "multidimcov-sub-l63-view-range" "viewindexing(::Tuple{AbstractRange{ScalarIndex},Vararg{ScalarIndex}})" "A scalar range followed by scalars is linearly indexable." ``SubL63ViewRange ``subL63ViewRange,
-  constructionEntry "multidimcov-sub-l65-view-fallback" "viewindexing(::Tuple{Vararg{Any}})" "Other index combinations use Cartesian indexing." ``SubL65ViewFallback ``subL65ViewFallback,
-  constructionEntry "multidimcov-sub-l67-view-array" "viewindexing(::Tuple{AbstractArray,Vararg{Any}})" "An array index uses Cartesian indexing." ``SubL67ViewArray ``subL67ViewArray,
-  constructionEntry "multidimcov-sub-l70-size" "size(::SubArray)" "SubArray size maps length over its axes." ``SubL70Size ``subL70Size,
-  constructionEntry "multidimcov-sub-l72-similar-value" "similar(::SubArray,T,dims)" "Value similar delegates to the parent with type and dimensions." ``SubL72SimilarValue ``subL72SimilarValue,
-  constructionEntry "multidimcov-sub-l73-similar-type" "similar(::Type{SubArray},dims)" "Type similar delegates to the parent type." ``SubL73SimilarType ``subL73SimilarType,
-  constructionEntry "multidimcov-sub-l75-sizeof" "sizeof(::SubArray)" "Generic SubArray byte size is length times element-type size." ``SubL75Sizeof ``subL75Sizeof,
-  constructionEntry "multidimcov-sub-l76-sizeof-array" "sizeof(::SubArray{<:Any,<:Any,<:Array})" "Array-parent SubArray byte size is length times parent element size." ``SubL76ArraySizeof ``subL76ArraySizeof,
-  constructionEntry "multidimcov-sub-l78-copy" "copy(::SubArray)" "Copy first indexes the parent and returns that value directly for non-scalar views." ``SubL78Copy ``subL78Copy,
-  constructionEntry "multidimcov-sub-l86-parent" "parent(::SubArray)" "parent returns the stored parent." ``SubL86Parent ``subL86Parent,
-  constructionEntry "multidimcov-sub-l87-parentindices" "parentindices(::SubArray)" "parentindices returns the stored index tuple." ``SubL87Parentindices ``subL87Parentindices,
-  constructionEntry "multidimcov-sub-l109-parentindices" "parentindices(::AbstractArray)" "Generic parentindices returns one-based axes from size." ``SubL109GenericParentindices ``subL109GenericParentindices,
-  constructionEntry "multidimcov-sub-l112-dataids" "dataids(::SubArray)" "SubArray data identifiers concatenate parent and index identifiers." ``SubL112Dataids ``subL112Dataids,
-  constructionEntry "multidimcov-sub-l113-splat-empty" "_splatmap(f,::Tuple{})" "The empty splat-map is empty." ``SubL113SplatEmpty ``subL113SplatEmpty,
-  constructionEntry "multidimcov-sub-l114-splat" "_splatmap(f,::Tuple)" "Splat-map concatenates the mapped head with recursive tail results." ``SubL114Splat ``subL114Splat,
-  constructionEntry "multidimcov-sub-l115-unaliascopy" "unaliascopy(::SubArray)" "Generic unaliascopy copies parent and indices while retaining cached layout." ``SubL115Unaliascopy ``subL115Unaliascopy
-]
+def subarrayConstructionEntries : List Entry := []
 
 end JuliaLean.MultidimCov

@@ -40,16 +40,24 @@ output:
     REPRODUCED strings-raw-substring-iterate
 reproduced: {release: true, nightly: true}
 expected: |
-  Iteration yields '\xc3' (the truncated byte as a malformed Char) and stops,
-  giving length(ss) characters.
+  Either iteration stays inside the view (yielding the truncated byte '\xc3' as
+  a malformed Char and stopping, giving length(ss) characters), or, since é is
+  whole in the parent but truncated by the view, accessing it throws
+  StringIndexError, which the docstring permits. It should not yield a character
+  extending past the view and then throw BoundsError.
 promised_by: |
-  The raw_substring docstring: "The presence of truncated characters is safe and
-  well-defined for `String`, `StringView`, and substrings of these"
-  (base/strings/substring.jl:11-14).
+  The raw_substring docstring (base/strings/substring.jl:11-16): "The presence of
+  truncated characters is safe and well-defined for `String`, `StringView`, and
+  substrings of these", and "accessing characters that are whole in the parent
+  string but truncated by the `SubString` may throw a `StringIndexError`." The only
+  permitted failure for this view is StringIndexError; the observed BoundsError at
+  iterator state 3 is outside that contract, as is returning index 3 past
+  ncodeunits(ss) + 1 = 2.
 cause: |
   iterate(::SubString, i) (base/strings/substring.jl:151-158) calls iterate on
   the parent String, which decodes a character extending past s.offset +
-  s.ncodeunits.
+  s.ncodeunits and returns its end index unchecked. The next call's checkbounds(s, 3)
+  then throws BoundsError instead of the documented StringIndexError.
 possible_fix: |
   Bound decoding by the SubString's end (as _thisind/_nextind do with
   ncodeunits(s)), or clamp the returned index.

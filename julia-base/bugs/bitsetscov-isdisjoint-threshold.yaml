@@ -52,3 +52,4 @@ duplicates:
 lean:
   property: JuliaLean.BitSetsCov.IsdisjointSizeIndependent
   theorem: JuliaLean.BitSetsCov.isdisjointSizeIndependent_refuted
+covers: [bitsetscov-abstractset-disjoint-filter]

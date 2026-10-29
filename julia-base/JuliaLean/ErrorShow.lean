@@ -77,16 +77,6 @@ def entries : List Entry := [
     statement := "StackTraces.lookup preserves raw frame order and reverses outermost-first DebugInfo traversal to innermost-first order; remove_frames! retains exactly the frames after the last matching frame."
     source := "base/stacktraces.jl:148-230,262-287", status := .proven
     prop := ``StackLookupAndRemoval, thm := some ``stackLookupAndRemoval_proven },
-  { id := "errorshow-current-exceptions-order", juliaFile := "base/error.jl"
-    juliaFns := ["current_exceptions", "rethrow", "throw"]
-    statement := "current_exceptions reverses the runtime's newest-first exception stack so the root cause is first and the most recent exception is last; rethrow keeps the stack and throwing a new exception appends it."
-    source := "base/error.jl:59-74,157-188", status := .proven
-    prop := ``CurrentExceptionStackExact, thm := some ``currentExceptionStackExact_proven },
-  { id := "errorshow-assert-message", juliaFile := "base/error.jl"
-    juliaFns := ["@assert", "_assert_tostring", "__assert_tostring"]
-    statement := "A failed assertion uses the condition text by default or the string-converted supplied message, while a true assertion returns without an error."
-    source := "base/error.jl:223-268 (@assert docstring and expansion)", status := .proven
-    prop := ``AssertMessageConstruction, thm := some ``assertMessageConstruction_proven },
   { id := "errorshow-mime-construction", juliaFile := "base/multimedia.jl"
     juliaFns := ["MIME", "@MIME_str", "print(::IO, ::MIME)", "show(::IO, ::MIME)"]
     statement := "MIME construction preserves the supplied media-type text, print emits that text, and show prefixes it with `MIME type `."
@@ -164,19 +154,6 @@ def entries : List Entry := [
     statement := "Stack-frame signature, source location, inline annotation, parent module, and module-origin selection use the source fallbacks."
     source := "base/stacktraces.jl:330-455", status := .proven
     prop := ``StackFrameDisplayExact, thm := some ``stackFrameDisplayExact },
-  { id := "errorshow-error-runtime-coverage", juliaFile := "base/error.jl"
-    juliaFns := ["error(::Vararg)", "_reformat_bt", "backtrace", "catch_backtrace", "kwerr",
-      "systemerror"]
-    statement := "Error construction concatenates arguments, raw backtraces preserve native and interpreter entry order and reject unknown tags, and system errors obey their Boolean guard."
-    source := "base/error.jl:47-57,82-220", status := .proven
-    prop := ``ErrorRuntimeExact, thm := some ``errorRuntimeExact },
-  { id := "errorshow-retry-coverage", juliaFile := "base/error.jl"
-    juliaFns := ["ExponentialBackOff", "iterate(::ExponentialBackOff)", "length(::ExponentialBackOff)",
-      "eltype(::Type{ExponentialBackOff})", "retry"]
-    statement := "ExponentialBackOff validates nonnegative fields, clamps the sampled next delay, decrements its count, and retry sleeps only after an accepted failed attempt before its final unguarded call."
-    source := "base/error.jl:270-342", status := .proven
-    prop := ``JuliaLean.ErrorShow.Coverage.RetryExact,
-    thm := some ``JuliaLean.ErrorShow.Coverage.retryExact },
   { id := "errorshow-multimedia-representation-coverage", juliaFile := "base/multimedia.jl"
     juliaFns := ["show(::IO,::MIME\"text/plain\",x)", "show(::IO,::AbstractString,x)",
       "repr", "_textrepr", "__binrepr", "_binrepr", "istextmime"]
@@ -193,103 +170,7 @@ def entries : List Entry := [
     juliaFns := ["flush(::TextDisplay)", "close(::TextDisplay)", "pushdisplay", "popdisplay", "reinit_displays"]
     statement := "Display stack mutation appends, pops the top, removes the last matching backend, raises KeyError when absent, and reinitializes to stdout."
     source := "base/multimedia.jl:295-336", status := .proven
-    prop := ``MultimediaStackExact, thm := some ``multimediaStackExact },
-  { id := "errorshow-error-l47", juliaFile := "base/error.jl"
-    juliaFns := ["error(s::Vararg{Any,N}) where N"]
-    statement := "For every argument list, error constructs the same empty, single-string, invalid-singleton, or concatenated ErrorException selected by the source arity branches."
-    source := "base/error.jl:47-57", status := .proven
-    prop := ``ErrorVarargExact, thm := some ``errorVarargExact },
-  { id := "errorshow-error-l73", juliaFile := "base/error.jl"
-    juliaFns := ["rethrow()"]
-    statement := "The zero-argument rethrow method invokes the current-exception rethrow operation for every call."
-    source := "base/error.jl:73", status := .proven
-    prop := ``RethrowCurrentExact, thm := some ``rethrowCurrentExact },
-  { id := "errorshow-error-l74", juliaFile := "base/error.jl"
-    juliaFns := ["rethrow(e)"]
-    statement := "The one-argument rethrow method invokes the replacement-exception rethrow operation with that same exception."
-    source := "base/error.jl:74", status := .proven
-    prop := ``RethrowReplacementExact, thm := some ``rethrowReplacementExact },
-  { id := "errorshow-error-l84", juliaFile := "base/error.jl"
-    juliaFns := ["_reformat_bt"]
-    statement := "Backtrace reformatting preserves native entries, decodes interpreter entries with the runtime metadata counts in order, and rejects every unknown tag."
-    source := "base/error.jl:84-114", status := .proven
-    prop := ``ReformatBacktraceExact, thm := some ``reformatBacktraceExact },
-  { id := "errorshow-error-l121", juliaFile := "base/error.jl"
-    juliaFns := ["backtrace()"]
-    statement := "backtrace reformats exactly the runtime entries returned after skipping its own frame."
-    source := "base/error.jl:121-128", status := .proven
-    prop := ``BacktraceExact, thm := some ``backtraceExact },
-  { id := "errorshow-error-l152", juliaFile := "base/error.jl"
-    juliaFns := ["catch_backtrace()"]
-    statement := "catch_backtrace reformats exactly the current exception's runtime backtrace entries."
-    source := "base/error.jl:152-155", status := .proven
-    prop := ``CatchBacktraceExact, thm := some ``catchBacktraceExact },
-  { id := "errorshow-error-l179", juliaFile := "base/error.jl"
-    juliaFns := ["current_exceptions"]
-    statement := "For every runtime exception stack and backtrace option, current_exceptions reverses newest-first records and reformats or omits each backtrace in source order."
-    source := "base/error.jl:179-189", status := .proven
-    prop := ``CurrentExceptionsExact, thm := some ``currentExceptionsExact },
-  { id := "errorshow-error-l192", juliaFile := "base/error.jl"
-    juliaFns := ["kwerr"]
-    statement := "kwerr constructs the Core.kwcall MethodError from the keyword tuple, positional arguments, and current world for every input."
-    source := "base/error.jl:192-195", status := .proven
-    prop := ``KeywordErrorExact, thm := some ``keywordErrorExact },
-  { id := "errorshow-error-l204", juliaFile := "base/error.jl"
-    juliaFns := ["systemerror(p, b::Bool)"]
-    statement := "The Boolean systemerror overload throws with the current errno exactly when its condition is true."
-    source := "base/error.jl:204", status := .proven
-    prop := ``SystemErrorIfExact, thm := some ``systemErrorIfExact },
-  { id := "errorshow-error-l205", juliaFile := "base/error.jl"
-    juliaFns := ["systemerror(p, errno::Cint)"]
-    statement := "The errno systemerror overload always constructs and throws the corresponding SystemError."
-    source := "base/error.jl:205", status := .proven
-    prop := ``SystemErrorNowExact, thm := some ``systemErrorNowExact },
-  { id := "errorshow-error-l249", juliaFile := "base/error.jl"
-    juliaFns := ["@assert"]
-    statement := "For every condition and allowed message form, @assert returns nothing on true and throws AssertionError with the selected source message on false."
-    source := "base/error.jl:249-263", status := .proven
-    prop := ``AssertExpansionExact, thm := some ``assertExpansionExact },
-  { id := "errorshow-error-l266", juliaFile := "base/error.jl"
-    juliaFns := ["_assert_tostring"]
-    statement := "_assert_tostring returns exactly the compiler-barrier call's string result for every message."
-    source := "base/error.jl:266", status := .proven
-    prop := ``AssertToStringExact, thm := some ``assertToStringExact },
-  { id := "errorshow-error-l267", juliaFile := "base/error.jl"
-    juliaFns := ["__assert_tostring"]
-    statement := "__assert_tostring calls Base.string when available and otherwise prints the bootstrap value and returns the fixed bootstrap message."
-    source := "base/error.jl:267-268", status := .proven
-    prop := ``BootstrapAssertToStringExact, thm := some ``bootstrapAssertToStringExact },
-  { id := "errorshow-error-l277", juliaFile := "base/error.jl"
-    juliaFns := ["ExponentialBackOff(n, first_delay, max_delay, factor, jitter)"]
-    statement := "The inner ExponentialBackOff constructor accepts exactly nonnegative fields and rejects every negative field."
-    source := "base/error.jl:277-280", status := .proven
-    prop := ``BackoffConstructorExact, thm := some ``backoffConstructorExact },
-  { id := "errorshow-error-l290", juliaFile := "base/error.jl"
-    juliaFns := ["ExponentialBackOff(; kwargs...)"]
-    statement := "The keyword ExponentialBackOff constructor forwards every selected field to the validating inner constructor in source order."
-    source := "base/error.jl:290-291", status := .proven
-    prop := ``DefaultBackoffExact, thm := some ``defaultBackoffExact },
-  { id := "errorshow-error-l292", juliaFile := "base/error.jl"
-    juliaFns := ["iterate(::ExponentialBackOff)"]
-    statement := "For every Backoff state and sampled jitter factor, iterate stops below one or returns the current delay, decremented count, and clamped next delay."
-    source := "base/error.jl:292-298", status := .proven
-    prop := ``IterateBackoffExact, thm := some ``iterateBackoffExact },
-  { id := "errorshow-error-l299", juliaFile := "base/error.jl"
-    juliaFns := ["length(::ExponentialBackOff)"]
-    statement := "ExponentialBackOff length returns its n field for every instance."
-    source := "base/error.jl:299", status := .proven
-    prop := ``BackoffLengthExact, thm := some ``backoffLengthExact },
-  { id := "errorshow-error-l300", juliaFile := "base/error.jl"
-    juliaFns := ["eltype(::Type{ExponentialBackOff})"]
-    statement := "ExponentialBackOff's element type is Float64 for every instance type."
-    source := "base/error.jl:300", status := .proven
-    prop := ``BackoffElementTypeExact, thm := some ``backoffElementTypeExact },
-  { id := "errorshow-error-l322", juliaFile := "base/error.jl"
-    juliaFns := ["retry"]
-    statement := "For every delay and attempt sequence, retry returns on success, rethrows when check rejects, sleeps once per accepted failure, and makes the final call outside the catch."
-    source := "base/error.jl:322-342", status := .proven
-    prop := ``JuliaLean.ErrorShow.ErrorFaithful.RetryExact,
-    thm := some ``JuliaLean.ErrorShow.ErrorFaithful.retryExact }
+    prop := ``MultimediaStackExact, thm := some ``multimediaStackExact }
 ] ++ JuliaLean.ErrorShow.MultimediaEntries.entries
   ++ JuliaLean.ErrorShow.StacktracesEntries.entries
   ++ JuliaLean.ErrorShow.MethodshowEntries.entries

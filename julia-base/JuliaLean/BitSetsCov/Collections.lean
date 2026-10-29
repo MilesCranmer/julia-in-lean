@@ -66,8 +66,38 @@ def abstractUnion (s : SetState) (sets : List (List Nat)) : SetState :=
   unionMany [] (s :: sets)
 def abstractUnionUnary (s : SetState) : SetState := s
 def abstractUnionBangMany (s : SetState) (sets : List (List Nat)) : SetState := unionMany s sets
-def abstractUnionBangOne (s itr : SetState) (maxValues : Nat) : SetState :=
-  itr.foldl (fun out x => if out.length = maxValues then out else insert out x) s
+def abstractUnionBangOne (s : SetState) (itr : SetState) (maxValues : Nat)
+    (eltypeSubtype : Bool) : SetState :=
+  match itr with
+  | [] => s
+  | x :: xs =>
+    let next := insert s x
+    if eltypeSubtype && next.length == maxValues then next
+    else abstractUnionBangOne next xs maxValues eltypeSubtype
+
+/-- `union!` with fallible element conversion; a failed insertion leaves the
+previously inserted elements in the destination. -/
+def abstractUnionConvert (convert : Nat → Except JlError Nat) (maxValues : Nat)
+    (eltypeSubtype : Bool) (s : SetState) : List Nat → SetState × Option JlError
+  | [] => (s, none)
+  | x :: xs =>
+    match convert x with
+    | .error e => (s, some e)
+    | .ok y =>
+      let next := insert s y
+      if eltypeSubtype && next.length == maxValues then (next, none)
+      else abstractUnionConvert convert maxValues eltypeSubtype next xs
+
+/-- An input with a wider element type is checked even when the destination
+already contains its maximum number of values. -/
+def AbstractUnionConversionError : Prop :=
+  ∀ convert m s x y value e,
+    convert x = .ok value → convert y = .error e →
+    abstractUnionConvert convert m false s [x, y] = (insert s value, some e)
+
+theorem abstractUnionConversionError : AbstractUnionConversionError := by
+  intro convert m s x y value e hx hy
+  simp [abstractUnionConvert, hx, hy]
 
 /-- Lines 92-103. -/
 def maxValuesGeneric : Nat := 9223372036854775807
@@ -333,8 +363,7 @@ def AbstractUnionSpec : Prop :=
   (∀ s sets, abstractUnion s sets = unionMany [] (s :: sets)) ∧
   (∀ s, abstractUnionUnary s = s) ∧
   (∀ s sets, abstractUnionBangMany s sets = unionMany s sets) ∧
-  (∀ s itr m, abstractUnionBangOne s itr m =
-    itr.foldl (fun out x => if out.length = m then out else insert out x) s) ∧
+  (∀ s itr m, abstractUnionBangOne s itr m false = unionOne s itr) ∧
   maxValuesGeneric = 9223372036854775807 ∧
   (∀ b, maxValuesSmall b = 2 ^ (8 * b)) ∧
   (∀ a b, maxValuesUnion a b = if maxValuesGeneric - a < b then maxValuesGeneric else a + b) ∧
@@ -486,7 +515,14 @@ def IdSetMemorySpec : Prop :=
   (∀ f s, idFilter f s = s.filter f)
 
 theorem abstractBasicSpec : AbstractBasicSpec := by simp [AbstractBasicSpec, abstractEltype, abstractSizehint, abstractCopyBang]
-theorem abstractUnionSpec : AbstractUnionSpec := by simp [AbstractUnionSpec, abstractUnion, abstractUnionUnary, abstractUnionBangMany, abstractUnionBangOne, maxValuesGeneric, maxValuesSmall, maxValuesUnion, maxValuesBool, maxValuesNothing]
+theorem abstractUnionSpec : AbstractUnionSpec := by
+  have h : ∀ s itr m, abstractUnionBangOne s itr m false = unionOne s itr := by
+    intro s itr
+    induction itr generalizing s with
+    | nil => simp [abstractUnionBangOne, unionOne]
+    | cons x xs ih => simp [abstractUnionBangOne, unionOne, ih]
+  simp [AbstractUnionSpec, abstractUnion, abstractUnionUnary, abstractUnionBangMany,
+    h, maxValuesGeneric, maxValuesSmall, maxValuesUnion, maxValuesBool, maxValuesNothing]
 theorem abstractIntersectSpec : AbstractIntersectSpec := by simp [AbstractIntersectSpec, abstractIntersect, abstractIntersectUnary, abstractIntersectTwo, abstractIntersectBangMany, abstractIntersectBangSet, abstractIntersectBangItr]
 theorem abstractSetdiffSpec : AbstractSetdiffSpec := by simp [AbstractSetdiffSpec, abstractSetdiff, abstractSetdiffUnary, abstractSetdiffBangMany, abstractSetdiffBangItr]
 theorem abstractSymdiffSpec : AbstractSymdiffSpec := by simp [AbstractSymdiffSpec, abstractSymdiff, abstractSymdiffUnary, abstractSymdiffBangMany, abstractSymdiffBangItr, abstractSymdiffBangSet]

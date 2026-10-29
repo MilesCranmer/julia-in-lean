@@ -1,0 +1,52 @@
+id: range-linrange-range-index-nan
+title: "Slicing a one-element LinRange containing NaN throws because NaN is not equal to itself"
+priority: P2
+kind: wrong-exception
+area: Ranges
+files: [base/range.jl]
+functions: ["getindex(r::LinRange{T}, s::OrdinalRange{S})", "LinRange{T,L}(start::T, stop::T, len::L)"]
+summary: |
+  Indexing a LinRange with a one-element range can throw when the selected element
+  is NaN. The slice method reconstructs a LinRange with identical NaN endpoints,
+  but the one-element constructor requires start == stop, which is false for NaN.
+likelihood: |
+  Very low: the LinRange must contain NaN, as occurs for an interior point between
+  infinite endpoints, and the slice must select exactly that point.
+maybe_intended: ""
+reproducer: |
+  r = LinRange(-Inf, Inf, 3)
+  r[2:2]  # expected a one-element range containing NaN
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    r[2] = NaN
+    r[2:2] = ArgumentError("range(NaN, stop=NaN, length=1): endpoints differ")
+    REPRODUCED range-linrange-range-index-nan
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    r[2] = NaN
+    r[2:2] = ArgumentError("range(NaN, stop=NaN, length=1): endpoints differ")
+    REPRODUCED range-linrange-range-index-nan
+reproduced: {release: true, nightly: true}
+expected: |
+  r[2:2] should return a one-element range whose only value is NaN, matching r[2].
+promised_by: |
+  The AbstractArray getindex docstring, base/abstractarray.jl:1306-1310, says indexing
+  returns the subset selected by the indices. The LinRange docstring,
+  base/range.jl:556-560, defines the range by its number of linearly spaced elements;
+  the one-element slice should contain the selected value.
+cause: |
+  base/range.jl:1110-1121 obtains vfirst and vlast from the selected endpoints and
+  constructs LinRange{T}(vfirst, vlast, len). For 2:2 both endpoints are NaN.
+  The one-element LinRange constructor at base/range.jl:600-602 requires start ==
+  stop, and NaN == NaN is false, so it throws ArgumentError.
+possible_fix: |
+  Build one-element LinRange slices from the selected value without testing that
+  value for equality with itself, or use a one-element range representation that
+  accepts NaN.
+duplicates:
+  issues: []
+  queries: ["issues: LinRange NaN single element range index", "issues: LinRange endpoints differ NaN slice", "prs: LinRange NaN single element range index", "prs: LinRange endpoints differ NaN slice"]
+lean:
+  property: JuliaLean.Proofs.base.range.LinRangeRangeIndex
+  theorem: JuliaLean.Proofs.base.range.linRangeRangeIndex_refuted

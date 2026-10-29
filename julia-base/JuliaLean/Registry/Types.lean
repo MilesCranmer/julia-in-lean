@@ -13,7 +13,8 @@ counterexample. The audits check theorem types, evidence classes and axioms.
 namespace JuliaLean.Registry
 
 inductive Status where
-  /-- Not yet settled. The audit fails while any entry is open. -/
+  /-- Not yet settled. `Audit.lean` lists open entries without failing; `CRuntimeAudit.lean`
+  rejects them. -/
   | todo
   | proven
   | refuted

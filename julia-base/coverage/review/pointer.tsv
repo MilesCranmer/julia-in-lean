@@ -1,0 +1,49 @@
+line	name	verdict	mirror	property	settled	reason
+23	convert	HOLLOW	no	no	yes	The fixed UInt64 modulo model omits the target integer type, the intermediate UInt conversion, and target-dependent exact conversion behavior.
+26	convert	HOLLOW	no	no	yes	The Nat modulo model omits the Int input case and does not represent construction of Ptr{T} from either allowed integer type.
+29	convert	HOLLOW	no	no	yes	No proposition clause models the same-type pointer method returning p unchanged.
+30	convert	HOLLOW	no	no	yes	No proposition clause represents the target pointer element type or the bitcast call performed by this method.
+55	unsafe_convert	FAITHFUL	-	-	-	The exclusion applies because this line only declares the generic function and contains no method body.
+58	cconvert	HOLLOW	no	no	yes	The cconvertString event constructor is never used by the proposition, so String(s) is not modelled or stated.
+59	cconvert	HOLLOW	no	no	yes	The cconvertString event constructor is never used by the proposition, so String(s) is not modelled or stated.
+60	unsafe_convert	HOLLOW	no	no	yes	The proposition has no function or property for the jl_symbol_name ccall and its Ptr{UInt8} result.
+61	unsafe_convert	HOLLOW	no	no	yes	The proposition has no function or property for the jl_symbol_name ccall and its Ptr{Int8} result.
+63	cconvert	HOLLOW	no	no	yes	The arrayRoot event is unused and no clause models getfield(a, :ref).
+64	unsafe_convert	HOLLOW	no	no	yes	No clause models the nested unsafe_convert call followed by conversion to Ptr{S}.
+65	unsafe_convert	HOLLOW	no	no	yes	No clause models reading a.ref and forwarding it to unsafe_convert with Ptr{T}.
+66	unsafe_convert	HOLLOW	no	no	yes	No clause models the AbstractArray fallback or its type-specific error.
+71	cconvert	HOLLOW	no	no	yes	The memoryRoot event is unused and no clause states that GenericMemory is returned unchanged.
+72	unsafe_convert	HOLLOW	no	no	yes	No clause models the :ptr field read or its Ptr{Cvoid} result.
+73	unsafe_convert	HOLLOW	no	no	yes	No clause models the :ptr field read followed by conversion to Ptr{T}.
+75	unsafe_convert	HOLLOW	no	no	yes	pointerMemoryOffset does not mirror the source because its false branch adds base instead of returning offset and its Boolean equality does not represent arrayelem == 2.
+88	unsafe_convert	HOLLOW	no	no	yes	No clause models the Ptr{Cvoid} unsafe_convert call followed by conversion to Ptr{T}.
+106	unsafe_wrap	HOLLOW	no	no	yes	unsafeWrapRoute only selects an event label and omits the jl_ptr_to_array ccall, dimensions, pointer, element type, ownership flag, and result.
+111	unsafe_wrap	HOLLOW	no	no	yes	unsafeWrapRoute only selects an event label and omits the jl_ptr_to_array_1d ccall, integer dimension conversion, ownership flag, and result.
+116	unsafe_wrap	HOLLOW	no	no	yes	unsafeWrapRoute only selects an event label and omits dims[1], the jl_ptr_to_genericmemory ccall, ownership flag, and result.
+121	unsafe_wrap	HOLLOW	no	no	yes	unsafeWrapRoute only selects an event label and omits the integer dimension, jl_ptr_to_genericmemory ccall, ownership flag, and result.
+126	unsafe_wrap	HOLLOW	no	no	yes	No clause models conversion of every dimension to Int followed by forwarding to the more specific unsafe_wrap method.
+151	unsafe_load	HOLLOW	no	no	yes	pointerAccessEvent merely returns supplied data and no clause binds this method to pointerref with Int(i) and alignment 1.
+152	unsafe_load	HOLLOW	no	no	yes	pointerAccessEvent merely returns supplied data and no clause binds this method to atomic_pointerref with the supplied order.
+153	unsafe_load	HOLLOW	no	no	yes	No clause models element-size lookup, Int conversion, one-based offset arithmetic, pointer addition, and forwarding in source order.
+177	unsafe_store!	HOLLOW	no	no	yes	No clause models pointerset on Ptr{Any} with Int(i), alignment 1, and the stored value.
+178	unsafe_store!	HOLLOW	no	no	yes	No clause models conversion of x to T before pointerset with Int(i) and alignment 1.
+179	unsafe_store!	HOLLOW	no	no	yes	No clause models the isa branch, conditional conversion, and atomic_pointerset call.
+180	unsafe_store!	HOLLOW	no	no	yes	No clause models element-size lookup, indexed pointer arithmetic, and forwarding to the ordered unsafe_store! method.
+207	unsafe_modify!	HOLLOW	no	no	yes	pointerModifyEvents invents a load-modify-replace event list and no clause models the single atomic_pointermodify call or its result.
+236	unsafe_replace!	HOLLOW	no	no	yes	No clause models the desired isa branch and conversion followed by atomic_pointerreplace with both memory orders.
+241	unsafe_replace!	HOLLOW	no	no	yes	No clause models direct forwarding of expected, desired, and both memory orders to atomic_pointerreplace.
+266	unsafe_swap!	HOLLOW	no	no	yes	The swap event constructor is unused and no clause models atomic_pointerswap or its return value.
+269	unsafe_swap!	HOLLOW	no	no	yes	No clause models the isa branch and conversion followed by atomic_pointerswap with the supplied order.
+285	unsafe_pointer_to_objref	HOLLOW	no	no	yes	The objectRef event constructor is unused and no clause models the jl_value_ptr ccall returning Any.
+299	pointer_from_objref	HOLLOW	no	yes	yes	pointerFromObject states the mutability behavior but supplies the jl_value_ptr result as a bare address instead of modelling the ccall.
+307	isequal	HOLLOW	no	yes	yes	pointerEqual states address equality but replaces this method's === call with a direct comparison.
+308	isless	HOLLOW	no	yes	yes	pointerLess states address ordering but inlines the result instead of mirroring the call to the pointer < method.
+310	==	FAITHFUL	yes	yes	yes	pointerEqual projects both UInt64 pointer addresses and compares them for every pair, matching the one-line method.
+311	<	FAITHFUL	yes	yes	yes	pointerLess projects both UInt64 pointer addresses and compares them for every pair, matching the one-line method.
+312	-	FAITHFUL	yes	yes	yes	pointerDifference projects both UInt64 addresses and performs wrapping UInt64 subtraction for every pair.
+313	-%	FAITHFUL	yes	yes	yes	pointerDifference projects both UInt64 addresses and performs wrapping UInt64 subtraction for every pair.
+315	+	HOLLOW	no	yes	yes	ptrAdd states the wrapped result but omits both UInt conversions and the add_ptr call in the method body.
+316	-	HOLLOW	no	yes	yes	ptrSub states the wrapped result but omits both UInt conversions and the sub_ptr call in the method body.
+317	+	HOLLOW	no	no	yes	No clause models the integer-first method or its forwarding call y + x.
+319	unsigned	FAITHFUL	yes	yes	yes	pointerUnsigned returns the underlying UInt64 pointer bits for every pointer, matching UInt(x).
+320	signed	FAITHFUL	yes	yes	yes	pointerSigned reinterprets every UInt64 pointer address through the signed 64-bit wrapping conversion, matching Int(x).

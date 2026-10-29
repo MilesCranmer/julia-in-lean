@@ -264,4 +264,57 @@ theorem checkedArithmetic_proven : CheckedArithmetic := by
   · have := JuliaLean.IntArith.Checked.addSubExact t x y
     exact ⟨this.2, this.1⟩
 
+/-- External results of `prune_objcache`: the cutoff conversion may throw, the
+prune call returns an Int64, and a non-null compact error carries its message.
+The foreign calls themselves are outside the Julia-level model. -/
+structure ObjCacheInputs where
+  enabled : Bool
+  cutoff : M Int
+  removed : Int
+  compactError : Option String
+
+/-- `base/experimental.jl:853-861`. The action list records which foreign
+operations were reached, including the argument passed to each operation. -/
+def pruneObjcache (dir : String) (i : ObjCacheInputs) : List String × M (Option Int) :=
+  if !i.enabled then (["enabled"], .ok none)
+  else match i.cutoff with
+    | .error e => (["enabled"], .error e)
+    | .ok cutoff =>
+      let calls := ["enabled", "prune:" ++ toString cutoff]
+      if i.removed < 0 then (calls, .error (.errorException "could not prune the native code cache"))
+      else match i.compactError with
+        | some err => (calls ++ ["compact:" ++ dir],
+            .error (.errorException ("could not copy the native code cache to " ++ dir ++ ": " ++ err)))
+        | none => (calls ++ ["compact:" ++ dir], .ok (some i.removed))
+
+/-- Disabled caches perform no pruning or copying; an unsuccessful prune
+never reaches compaction; a successful compaction returns the number removed. -/
+def PruneObjcacheContract : Prop :=
+  (∀ dir i, i.enabled = false → pruneObjcache dir i = (["enabled"], .ok none)) ∧
+  (∀ dir i err, i.enabled = true → i.cutoff = .error err →
+    pruneObjcache dir i = (["enabled"], .error err)) ∧
+  (∀ dir i cutoff, i.enabled = true → i.cutoff = .ok cutoff → i.removed < 0 →
+    pruneObjcache dir i = (["enabled", "prune:" ++ toString cutoff],
+      .error (.errorException "could not prune the native code cache"))) ∧
+  (∀ dir i cutoff err, i.enabled = true → i.cutoff = .ok cutoff → 0 ≤ i.removed →
+    i.compactError = some err → pruneObjcache dir i =
+      (["enabled", "prune:" ++ toString cutoff, "compact:" ++ dir],
+        .error (.errorException ("could not copy the native code cache to " ++ dir ++ ": " ++ err)))) ∧
+  (∀ dir i cutoff, i.enabled = true → i.cutoff = .ok cutoff → 0 ≤ i.removed →
+    i.compactError = none → pruneObjcache dir i =
+      (["enabled", "prune:" ++ toString cutoff, "compact:" ++ dir], .ok (some i.removed)))
+
+theorem pruneObjcacheContract_proven : PruneObjcacheContract := by
+  refine ⟨?_, ?_, ?_, ?_, ?_⟩
+  · intro dir i h
+    simp [pruneObjcache, h]
+  · intro dir i err he hc
+    simp [pruneObjcache, he, hc]
+  · intro dir i cutoff he hc hr
+    simp [pruneObjcache, he, hc, hr]
+  · intro dir i cutoff err he hc hr hcompact
+    simp [pruneObjcache, he, hc, show ¬ i.removed < 0 by omega, hcompact]
+  · intro dir i cutoff he hc hr hcompact
+    simp [pruneObjcache, he, hc, show ¬ i.removed < 0 by omega, hcompact]
+
 end JuliaLean.MiscCov.Experimental

@@ -1,7 +1,7 @@
 file	line	endline	name	signature	status	entry	note
-base/atomics.jl	68	68	Atomic{T}	Atomic{T}() where {T}	modelled	tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
-base/atomics.jl	69	69	Atomic{T}	Atomic{T}(value) where {T}	modelled	tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
-base/atomics.jl	72	72	Atomic	Atomic()	modelled	tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
+base/atomics.jl	68	68	Atomic{T}	Atomic{T}() where {T}	modelled	concurrencycov-atomic-constructors	Zero and field conversion modeled; awaiting independent review.
+base/atomics.jl	69	69	Atomic{T}	Atomic{T}(value) where {T}	modelled	concurrencycov-atomic-constructors	Field conversion modeled; awaiting independent review.
+base/atomics.jl	72	72	Atomic	Atomic()	modelled	concurrencycov-atomic-default	Default Int construction modeled; awaiting independent review.
 base/atomics.jl	75	75	lock_profiling	lock_profiling(state::Bool)	modelled	tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
 base/atomics.jl	76	76	lock_profiling	lock_profiling()	modelled	tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.
 base/atomics.jl	79	79	inc_lock_conflict_count	inc_lock_conflict_count()	modelled	tasks-coverage-atomics-storage	source-body: Lean model mirrors this method's branch and mutation order.

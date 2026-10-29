@@ -446,51 +446,6 @@ private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) 
     source := s!"base/broadcast.jl:{line}; source equation and dispatch invariant"
     status := .proven, prop := prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 175 "Broadcasted(tuple function)" "Tuple values are rejected as non-callable Broadcasted functions." ``P175 ``p175,
-  entry 176 "Broadcasted(style,f,args,axes)" "The inner constructor computes all four concrete field types before new." ``P176 ``p176,
-  entry 181 "Broadcasted(f,args,axes)" "The outer constructor combines argument styles, asserts BroadcastStyle, then constructs Broadcasted." ``P181 ``p181,
-  entry 185 "Broadcasted{Style}(f,args,axes)" "The style-parameter constructor computes field types, constructs and asserts Style, then calls new." ``P185 ``p185,
-  entry 189 "Broadcasted{Style,Axes,F,Args}(f,args,axes)" "The fully typed constructor creates and checks Style before new." ``P189 ``p189,
-  entry 196 "broadcasted(::AndAnd,a,b)" "The short-circuit and method constructs the a&&b closure and broadcasts it." ``P196 ``p196,
-  entry 199 "broadcasted(::AndAnd,a,bc)" "The fused and method flattens bc, captures its function, and prepends a to its arguments." ``P199 ``p199,
-  entry 207 "broadcasted(::OrOr,a,b)" "The short-circuit or method constructs the a||b closure and broadcasts it." ``P207 ``p207,
-  entry 208 "broadcasted(::OrOr,a,bc)" "The fused or method flattens bc, captures its function, and prepends a to its arguments." ``P208 ``p208,
-  entry 215 "convert(::Type{Broadcasted{NewStyle}},bc)" "Conversion reads f, args and axes, constructs the fully typed wrapper, and asserts its type." ``P215 ``p215,
-  entry 218 "show(::IO,::Broadcasted)" "Showing prints the type, optional style, function and arguments in source order." ``P218 ``p218,
-  entry 229 "similar(::Broadcasted,::Type)" "The two-argument similar method forwards with axes(bc)." ``P229 ``p229,
-  entry 230 "similar(::Broadcasted{DefaultArrayStyle},::Type,dims)" "Default array allocation computes the dimension count and delegates to Array similar." ``P230 ``p230,
-  entry 232 "similar(::Broadcasted{DefaultArrayStyle},::Type{Bool},dims)" "Boolean default broadcast allocates a BitArray with the requested dims." ``P232 ``p232,
-  entry 235 "similar(::Broadcasted{ArrayConflict},::Type,dims)" "ArrayConflict uses the ordinary Array allocation path." ``P235 ``p235,
-  entry 237 "similar(::Broadcasted{ArrayConflict},::Type{Bool},dims)" "Boolean ArrayConflict uses the BitArray allocation path." ``P237 ``p237,
-  entry 248 "BroadcastStyle(::Type{<:Broadcasted{Style}})" "A typed Broadcasted exposes a constructed Style." ``P248 ``p248,
-  entry 249 "BroadcastStyle(::Type{<:Broadcasted{NothingOrUnknown}})" "Unassigned Broadcasted styles raise ArgumentError." ``P249 ``p249,
-  entry 252 "argtype(::Type{BC})" "argtype obtains the :args field type." ``P252 ``p252,
-  entry 253 "argtype(::Broadcasted)" "The value overload delegates through typeof." ``P253 ``p253,
-  entry 299 "instantiate(x)" "Non-Broadcasted values are returned unchanged." ``P299 ``p299,
-  entry 310 "instantiate(::Broadcasted)" "Instantiation computes or checks axes, then reconstructs the wrapper in source order." ``P310 ``p310,
-  entry 319 "instantiate(::Broadcasted{<:AbstractArrayStyle{0}})" "Zero-dimensional array styles are already instantiated." ``P319 ``p319,
-  entry 321 "instantiate(::Broadcasted{Style{Tuple},Nothing})" "A tuple-style wrapper with Nothing axes is returned unchanged." ``P321 ``p321,
-  entry 322 "instantiate(::Broadcasted{Style{Tuple}})" "Tuple-style instantiation checks axes and returns the same wrapper." ``P322 ``p322,
-  entry 346 "flatten(::Broadcasted)" "Flatten returns flat inputs or concatenates arguments, rebuilds closures, and preserves style and axes." ``P346 ``p346,
-  entry 364 "isflat(::Broadcasted)" "isflat delegates to the argument tuple." ``P364 ``p364,
-  entry 365 "_isflat(::NestedTuple)" "A tuple whose head is Broadcasted is not flat." ``P365 ``p365,
-  entry 366 "_isflat(::Tuple)" "The recursive tuple case checks the tail." ``P366 ``p366,
-  entry 367 "_isflat(::Tuple{})" "The empty tuple is flat." ``P367 ``p367,
-  entry 369 "cat_nested(::Broadcasted)" "Nested concatenation delegates to the wrapper's arguments." ``P369 ``p369,
-  entry 370 "cat_nested_args(::Tuple{})" "The empty nested argument tuple remains empty." ``P370 ``p370,
-  entry 371 "cat_nested_args(::Tuple{Any})" "The singleton case expands its one nested argument." ``P371 ``p371,
-  entry 372 "cat_nested_args(::Tuple)" "The recursive case expands the head before the tail." ``P372 ``p372,
-  entry 373 "cat_nested(a)" "A leaf argument becomes a singleton tuple." ``P373 ``p373,
-  entry 382 "make_makeargs(args)" "make_makeargs calls the indexed helper at one and returns its first result." ``P382 ``p382,
-  entry 386 "_make_makeargs(args,n)" "The recursive helper processes the head before the tail and returns the final counter." ``P386 ``p386,
-  entry 391 "_make_makeargs((),n)" "The empty helper returns an empty tuple and unchanged counter." ``P391 ``p391,
-  entry 395 "Pick{N}(args)" "Pick returns tuple element N." ``P395 ``p395,
-  entry 398 "_make_makeargs1(leaf,n)" "A leaf creates Pick{n} and increments n." ``P398 ``p398,
-  entry 400 "_make_makeargs1(::Broadcasted,n)" "A nested wrapper builds child selectors and a closure before returning the final counter." ``P400 ``p400,
-  entry 407 "prepare_args(tuple,x)" "The recursive case evaluates the head selector before the tail." ``P407 ``p407,
-  entry 408 "prepare_args(singleton,x)" "The singleton case evaluates its sole selector." ``P408 ``p408,
-  entry 409 "prepare_args((),())" "The empty selector tuple returns empty." ``P409 ``p409
-]
+def entries : List Entry := []
 
 end JuliaLean.BroadcastCov.LazyExact

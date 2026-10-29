@@ -121,13 +121,40 @@ theorem axisLoopInBounds_proven : AxisLoopInBounds := by
   simp [Access.safe, at0]
   omega
 
-/-- The non-tuple branch of `getindex(::Type{T}, vals...)`,
-`base/array.jl:445-460`: `afoldl` starts at one and increments once per value. -/
-def literalAccesses (valueCount : Nat) : List Access := axisAccesses valueCount
+/-- The `afoldl` callback writes at its current one-based accumulator and
+returns the successor, once for each remaining argument. -/
+def literalFoldAccesses (capacity : Nat) : Nat → List Unit → List Access
+  | _, [] => []
+  | i, _ :: rest => at0 capacity (i - 1) :: literalFoldAccesses capacity (i + 1) rest
+
+/-- `getindex(::Type{T}, vals...)`, non-`NTuple` branch:
+allocate `length(vals)` elements and invoke `afoldl(1, vals...)`. -/
+def literalAccesses (valueCount : Nat) : List Access :=
+  literalFoldAccesses valueCount 1 (List.replicate valueCount ())
+
+private theorem literalFold_safe (capacity i : Nat) (values : List Unit)
+    (hi : 1 ≤ i) (h : i - 1 + values.length ≤ capacity) :
+    accessesSafe (literalFoldAccesses capacity i values) := by
+  induction values generalizing i with
+  | nil => simp [literalFoldAccesses, accessesSafe]
+  | cons v vs ih =>
+      simp only [literalFoldAccesses, accessesSafe, List.mem_cons, forall_eq_or_imp]
+      constructor
+      · simp only [Access.safe, at0, List.length_cons] at *
+        omega
+      · apply ih
+        · omega
+        · simp only [List.length_cons] at h
+          omega
 
 def LiteralInBounds : Prop := ∀ n, accessesSafe (literalAccesses n)
 
-theorem literalInBounds_proven : LiteralInBounds := axisLoopInBounds_proven
+theorem literalInBounds_proven : LiteralInBounds := by
+  intro n
+  unfold literalAccesses
+  apply literalFold_safe
+  · omega
+  · simp
 
 /-! ## Multidimensional Array indexing -/
 
@@ -2139,9 +2166,9 @@ theorem setReplaceInBounds_proven : SetReplaceInBounds :=
 
 /-! ## Runtime and operating-system cells -/
 
-/-- The `cglobal` object stored at `base/libdl.jl:517` is a declared C
-global of exactly the requested scalar type, so `cglobal` computes offset
-zero in a one-cell object. -/
+/-- The `cglobal` objects loaded or stored at `base/gcutils.jl:163` and
+`base/libdl.jl:517` are declared C globals of exactly the requested scalar
+type, so `cglobal` computes offset zero in a one-cell object. -/
 def runtimeCellAccesses (perform : Bool) : List Access :=
   if perform then [at0 1 0] else []
 

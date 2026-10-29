@@ -400,25 +400,6 @@ private def entry (line : Nat) (name statement source : String) (prop thm : Lean
   { id := s!"multidimcov-reducedim-faithful-{line}", juliaFile := "base/reducedim.jl",
     juliaFns := [name], statement, source, status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 1000 "generated _fname(a,Colon)" "The generated wrapper fixes identity and Colon while preserving the actual array and complete keyword bundle." "base/reducedim.jl:1000" ``P1000 ``p1000,
-  entry 1003 "generated _fname(ReshapedArray,Colon)" "The generated fast path obtains parent(R) before calling the public reduction." "base/reducedim.jl:1003" ``P1003 ``p1003,
-  entry 1007 "any(AbstractArray)" "The wrapper fixes identity and forwards the actual array and complete keyword bundle." "base/reducedim.jl:1007" ``P1007 ``p1007,
-  entry 1009 "all(AbstractArray)" "The wrapper fixes identity and forwards the actual array and complete keyword bundle." "base/reducedim.jl:1009" ``P1009 ``p1009,
-  entry 1020 "generated fname!(f,r,A)" "The generated method constructs its mapped function, initializes the actual result with the fixed operator, then reduces into it." "base/reducedim.jl:1020-1021" ``P1020 ``p1020,
-  entry 1022 "generated fname!(r,A)" "The no-function wrapper fixes identity and preserves the init keyword." "base/reducedim.jl:1022" ``P1022 ``p1022,
-  entry 1024 "generated _fname(A,dims)" "The no-function wrapper fixes identity and forwards array, dims, and the complete keyword bundle independently." "base/reducedim.jl:1024" ``P1024 ``p1024,
-  entry 1025 "generated _fname(f,A,dims)" "The mapped wrapper constructs mapf and preserves the fixed operator, actual array, dims, and complete keyword bundle." "base/reducedim.jl:1025" ``P1025 ``p1025,
-  entry 1032 "findminmax!" "The kernel checks emptiness and output axes, constructs tail Cartesian traversal state, consumes every key in array order, executes both reduction branches, and returns both mutated outputs." "base/reducedim.jl:1032-1080" ``P1032 ``p1032,
-  entry 1091 "findmin!" "The method conditionally initializes result values, always zero-fills result indices using the key element type, then calls findminmax! with identity and isgreater." "base/reducedim.jl:1091-1094" ``P1091 ``p1091,
-  entry 1117 "_findmin(A,dims)" "The wrapper fixes identity while preserving the actual array and dims." "base/reducedim.jl:1117" ``P1117 ``p1117,
-  entry 1141 "_findmin(f,A,region)" "The method constructs reduced axes, follows the full empty-array validation and allocation branch, or maps the first element and initializes both outputs before findminmax!." "base/reducedim.jl:1141-1153" ``P1141 ``p1141,
-  entry 1164 "findmax!" "The method conditionally initializes result values, always zero-fills result indices using the key element type, then calls findminmax! with identity and isless." "base/reducedim.jl:1164-1167" ``P1164 ``p1164,
-  entry 1190 "_findmax(A,dims)" "The wrapper fixes identity while preserving the actual array and dims." "base/reducedim.jl:1190" ``P1190 ``p1190,
-  entry 1214 "_findmax(f,A,region)" "The method constructs reduced axes, follows the full empty-array validation and allocation branch, or maps the first element and initializes both outputs before findminmax!." "base/reducedim.jl:1214-1226" ``P1214 ``p1214,
-  entry 1228 "_findminmax_inittype" "The method recursively promotes the element type, computes the real target, maps the first element, and selects target, Missing union, or transformed type through both source conditions." "base/reducedim.jl:1228-1236" ``P1228 ``p1228,
-  entry 1263 "argmin(AbstractArray)" "The method calls findmin with the actual dims and returns the index array, the second result component." "base/reducedim.jl:1263" ``P1263 ``p1263,
-  entry 1288 "argmax(AbstractArray)" "The method calls findmax with the actual dims and returns the index array, the second result component." "base/reducedim.jl:1288" ``P1288 ``p1288
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.ReducedimFaithfulB

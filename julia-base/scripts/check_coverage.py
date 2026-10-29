@@ -7,19 +7,22 @@ as candidates in their notes.
 
 import argparse
 import csv
+import json
 import functools
 import re
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
+import coverage_evidence as evidence
 
 ROOT = Path(__file__).resolve().parent.parent
+SOURCE_COMMIT = "f755f49a9e41380d7da126b3c1db9fe7f83dd027"
 FIELDS = ["file", "line", "endline", "name", "signature", "status", "entry", "note"]
 EXCLUSION_REASONS = ("no-behaviour:", "deprecated:", "internal-bootstrap:", "platform:")
 
 
 def read_registry(path):
-    """Entries from registry.tsv."""
+    """Read the full registry; per-area reports are not authenticated exports."""
     registry = {}
     for number, line in enumerate(path.read_text().splitlines(), 1):
         fields = line.split("\t")
@@ -146,13 +149,57 @@ def manifest_name(file):
     return file[5:-3].replace("/", "__") + ".tsv"
 
 
+def match_unchanged(previous, fresh, old_root, new_root):
+    """Match unique spans only when their entire source file is unchanged."""
+    @functools.cache
+    def same_file(file):
+        return (old_root / file).read_bytes() == (new_root / file).read_bytes()
+
+    def index(rows, root):
+        source = {}
+        result = defaultdict(list)
+        for i, row in enumerate(rows):
+            path = root / row["file"]
+            if path not in source:
+                source[path] = path.read_bytes().splitlines(keepends=True)
+            lines = source[path]
+            start, end = int(row["line"]) - 1, int(row["endline"])
+            if start < 0 or end <= start or end > len(lines):
+                raise ValueError(f"{path}: invalid source span")
+            body = b"".join(lines[start:end])
+            context = "; ".join(part for part in row["note"].split("; ")
+                                if part.startswith(("generated-loop:", "generated-macro:", "generated-quote:")))
+            result[(row["file"], row["name"], row["signature"], context, body)].append(i)
+        return result
+    old, new = index(previous, old_root), index(fresh, new_root)
+    return {new_indices[0]: old[key][0] for key, new_indices in new.items()
+            if len(new_indices) == 1 and key in old and len(old[key]) == 1
+            and same_file(key[0])}
+
+
 def load_review(path):
     """Verdicts from coverage/review/<file>.tsv, written by the fixed REVIEW_PROMPT.md reviewer."""
     review = path.parent.parent / "review" / path.name
     if not review.exists():
         return {}
     with review.open(newline="") as fh:
-        return {(r["line"], r["name"]): (r["verdict"], r["reason"]) for r in csv.DictReader(fh, delimiter="\t")}
+        reader = csv.DictReader(fh, delimiter="\t")
+        fields = ["line", "name", "verdict", "mirror", "property", "settled", "reason"]
+        if reader.fieldnames != fields:
+            raise ValueError(f"{review}: expected columns {fields}")
+        result = {}
+        for number, row in enumerate(reader, 2):
+            if None in row or any(value is None for value in row.values()):
+                raise ValueError(f"{review}:{number}: malformed review row")
+            key = (row["line"], row["name"])
+            if key in result:
+                raise ValueError(f"{review}:{number}: duplicate review")
+            if row["verdict"] not in {"FAITHFUL", "HOLLOW"}:
+                raise ValueError(f"{review}:{number}: unknown verdict {row['verdict']!r}")
+            if any(row[field] not in {"yes", "no", "-"} for field in ("mirror", "property", "settled")):
+                raise ValueError(f"{review}:{number}: invalid review answer")
+            result[key] = row
+        return result
 
 
 def main():
@@ -163,7 +210,23 @@ def main():
     parser.add_argument("--prefill", type=Path)
     args = parser.parse_args()
     try:
+        if args.manifest_dir == ROOT / "coverage/methods":
+            pin = (ROOT / "coverage/SOURCE_COMMIT").read_text().strip()
+            if pin != SOURCE_COMMIT:
+                raise ValueError(f"coverage source commit {pin!r} does not match {SOURCE_COMMIT}")
+            print(f"SOURCE COMMIT {pin}")
+        else:
+            print("SOURCE COMMIT unverified (custom manifest directory)")
         registry = read_registry(args.registry)
+        try:
+            expected_registry_binding = evidence.registry_binding(args.registry)
+        except (OSError, ValueError):
+            expected_registry_binding = None
+        try:
+            registry_binding = json.loads(evidence.binding_path(args.registry).read_text())
+            registry_valid = expected_registry_binding is not None and registry_binding == expected_registry_binding
+        except (OSError, ValueError):
+            registry_valid = False
         paths = ([args.manifest_dir / manifest_name(file) for file in sorted(set(args.files))]
                  if args.files else sorted(args.manifest_dir.glob("*.tsv")))
         if not paths:
@@ -204,8 +267,22 @@ def main():
         weighted = Counter()
         review_counts = Counter()
         reviews = functools.cache(load_review)
+        @functools.cache
+        def valid_review(path):
+            try:
+                review_path = path.parent.parent / "review" / path.name
+                binding = json.loads(evidence.binding_path(review_path).read_text())
+                return binding == {
+                    **evidence.review_snapshot(path, args.registry),
+                    "review": evidence.digest(review_path),
+                }
+            except (OSError, ValueError):
+                return False
+
         for path, number, row in located_rows:
             row_errors = row_problems(row, registry)
+            if row["status"] == "modelled" and not registry_valid:
+                row_errors.append("full registry evidence missing or stale")
             if manifest_name(row["file"]) != path.name:
                 row_errors.append("definition belongs in a different manifest")
             key = tuple(row[field] for field in FIELDS[:5])
@@ -218,13 +295,24 @@ def main():
             weighted["all"] += span
             if row_errors or row["status"] == "todo":
                 continue
-            verdict, reason = reviews(path).get((row["line"], row["name"]), ("unreviewed", ""))
+            if not valid_review(path):
+                review_counts["unreviewed"] += 1
+                continue
+            review = reviews(path).get((row["line"], row["name"]))
+            if review is None:
+                review_counts["unreviewed"] += 1
+                continue
+            verdict, reason = review["verdict"], review["reason"]
+            answers = [review[field] for field in ("mirror", "property", "settled")]
             if verdict == "HOLLOW":
                 problems.append(f"{path}:{number}: review HOLLOW: {reason}")
                 continue
+            if (row["status"] == "modelled" and answers != ["yes", "yes", "yes"]) or (
+                    row["status"] == "excluded" and ("no" in answers or "yes" not in answers)):
+                problems.append(f"{path}:{number}: review FAITHFUL has inconsistent answers")
+                continue
             review_counts[verdict] += 1
-            if verdict == "FAITHFUL":
-                weighted[row["status"]] += span
+            weighted[row["status"]] += span
         for problem in problems:
             print(problem)
         for file, counts in sorted(per_file.items()):

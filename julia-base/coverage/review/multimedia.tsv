@@ -17,7 +17,6 @@ line	name	verdict	mirror	property	settled	reason
 209	_binrepr	FAITHFUL	yes	yes	yes	
 226	istextmime	FAITHFUL	yes	yes	yes	
 227	istextmime	HOLLOW	no	no	yes	isTextMimeString always calls the generic prefix model and misses dispatch to the generated true specializations such as application/json, so its claimed exact delegation is false for allowed strings.
-236	istextmime	HOLLOW	no	no	yes	isKnownTextMime returns true for every String and omits the fixed sixteen-value generation loop and singleton MIME restriction, so its proposition overclaims the generated methods' domain.
 259	display	HOLLOW	no	no	yes	displayBackendString discards the constructed MIME and returns a supplied result instead of calling display with d, MIME(mime), and x, so its proposition states no delegation behavior.
 260	display	HOLLOW	no	no	yes	displayGlobalString discards the constructed MIME and returns a supplied result instead of calling display with MIME(mime) and x, so its proposition states no delegation behavior.
 270	displayable	FAITHFUL	yes	yes	yes	

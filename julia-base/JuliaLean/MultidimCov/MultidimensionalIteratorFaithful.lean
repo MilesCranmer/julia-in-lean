@@ -205,32 +205,6 @@ private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) 
     juliaFns := [name], statement, source := s!"base/multidimensional.jl:{line}; iterator source equation",
     status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 497 "to_indices(CartesianIndices)" "The method splits parent axes, converts every stored range with the array context, then recurses on both tails." ``P497 ``p497,
-  entry 502 "to_indices(CartesianIndices{0})" "Zero-dimensional CartesianIndices contributes first(I) before recursive conversion." ``P502 ``p502,
-  entry 518 "simd_index(CartesianIndices{0})" "The zero-dimensional SIMD index returns first(iter)." ``P518 ``p518,
-  entry 519 "simd_index(CartesianIndices)" "SIMD indexing adds firstindex before indexing the first range and prepending the outer coordinate." ``P519 ``p519,
-  entry 523 "split(t,Val)" "Split builds an N-long reference then computes prefix and suffix." ``P523 ``p523,
-  entry 527 "_split1" "The prefix recursion takes the head and advances both tails." ``P527 ``p527,
-  entry 528 "_splitrest" "The suffix recursion drops one input for every reference element." ``P528 ``p528,
-  entry 537 "split(::CartesianIndex,Val)" "Cartesian split divides the stored coordinates and constructs both results." ``P537 ``p537,
-  entry 541 "split(::CartesianIndices,Val)" "CartesianIndices split divides the stored ranges and constructs both results." ``P541 ``p541,
-  entry 558 "reverse(::CartesianIndices,dims)" "Tuple reverse converts dimensions, counts each requested dimension exactly once, validates all dimensions, and reverses selected axes." ``P558 ``p558,
-  entry 631 "collect(unit-step CartesianIndices)" "Collection enumerates every Cartesian point using the original axes." ``P631 ``p631,
-  entry 634 "collect(::CartesianIndices)" "General collection allocates the full shape and writes every Cartesian point in iteration order." ``P634 ``p634,
-  entry 644 "intersect(::CartesianIndices,::CartesianIndices)" "Intersection computes every pairwise range intersection before construction." ``P644 ``p644,
-  entry 651 "eltype(PartitionIterator{ReshapedArrayLF})" "Fast reshaped partitions construct the exact SubArray type with linear flag true." ``P651 ``p651,
-  entry 652 "eltype(PartitionIterator{ReshapedArray})" "General reshaped partitions construct the exact SubArray type with linear flag false." ``P652 ``p652,
-  entry 653 "IteratorEltype(PartitionIterator{ReshapedArray})" "IteratorEltype delegates to the represented parent trait." ``P653 ``p653,
-  entry 655 "eltype(PartitionIterator{OneTo})" "OneTo partitions construct UnitRange with the parent's element type." ``P655 ``p655,
-  entry 656 "eltype(PartitionIterator{Range})" "Range partitions preserve the exact input range type." ``P656 ``p656,
-  entry 657 "IteratorEltype(PartitionIterator{Range})" "Range partition IteratorEltype delegates to the represented range trait." ``P657 ``p657,
-  entry 670 "simd_outer_range(::CartesianPartition)" "General partition outer iteration computes split endpoints, reshaped outer coordinates, and per-coordinate skip lengths." ``P670 ``p670,
-  entry 677 "splitdim1" "The helper computes quotient and remainder from the one-based linear index." ``P677 ``p677,
-  entry 688 "skip_len_I" "The general helper selects boundary or full-axis endpoints and returns skip, length, and coordinate." ``P688 ``p688,
-  entry 695 "simd_outer_range(::CartesianPartition{CartesianIndex{2}})" "Two-dimensional partition outer iteration computes endpoint coordinates and one-dimensional skip lengths." ``P695 ``p695,
-  entry 706 "skip_len_I(::CartesianIndex{1})" "The two-dimensional helper selects boundary or full-axis endpoints by coordinate equality." ``P706 ``p706,
-  entry 714 "simd_index(::CartesianPartition)" "Partition SIMD indexing delegates to the parent with n plus skip." ``P714 ``p714
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.MultidimensionalIteratorFaithful

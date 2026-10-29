@@ -1,46 +1,46 @@
 line	name	verdict	mirror	property	settled	reason
-31	Cstring	FAITHFUL	yes	yes	yes	
-32	Cwstring	FAITHFUL	yes	yes	yes	
-33	Ptr{T}	FAITHFUL	yes	yes	yes	
-34	Ptr{T}	FAITHFUL	yes	yes	yes	
-36	convert	FAITHFUL	yes	yes	yes	
-37	convert	FAITHFUL	yes	yes	yes	
-38	convert	FAITHFUL	yes	yes	yes	
-39	convert	FAITHFUL	yes	yes	yes	
-53	pointer	FAITHFUL	-	-	-	The no-behaviour exclusion applies because this empty generic-function declaration installs no method body.
-55	pointer	FAITHFUL	yes	yes	yes	
-56	pointer	FAITHFUL	yes	yes	yes	
-59	==	FAITHFUL	yes	yes	yes	
-60	==	FAITHFUL	yes	yes	yes	
-62	unsafe_string	HOLLOW	no	yes	yes	The Lean function replaces the convert-to-Ptr call and delegated unsafe_string scan with a hand-written takeWhile specification over a List.
-65	cconvert	FAITHFUL	yes	yes	yes	
-66	cconvert	FAITHFUL	yes	yes	yes	
-69	cconvert	HOLLOW	no	no	yes	Utf8ToUtf32Total specifies only the inner transcode call, while cconvertCwstringWin and cconvertCwstringUnix start from a JStr and omit String(s), so neither entry covers this method for every AbstractString.
-75	eltype	FAITHFUL	yes	yes	yes	
-76	eltype	FAITHFUL	yes	yes	yes	
-78	containsnul	FAITHFUL	yes	yes	yes	
-80	containsnul	HOLLOW	no	yes	yes	containsnulStr is a direct byte-list specification and omits this method's unsafe_convert, sizeof, and delegated pointer-method calls.
-81	containsnul	HOLLOW	no	no	yes	containsnulAbs models character membership only for JStr and does not model iteration or membership for every allowed AbstractString implementation.
-83	unsafe_convert	HOLLOW	no	yes	yes	unsafeConvertCstring collapses the pointer conversion, length calculation, containsnul pointer call, and final Cstring construction into a byte-list check.
-90	unsafe_convert	HOLLOW	no	no	yes	The Lean function accepts only a bare address and therefore models neither unsafe_convert(Ptr{Cvoid}, s) nor behaviour over every Memory input.
-92	cconvert	HOLLOW	yes	no	yes	CwstringNulTerminated constrains only vectors produced from AbstractString conversion, while CwstringVectorCheck covers only non-terminated vectors, so no entry states this method's promised checks for every vector input.
-101	unsafe_convert	HOLLOW	no	no	yes	The Lean function accepts the already-produced address instead of an arbitrary s and omits the unsafe_convert(Ptr{Cwchar_t}, s) call, so its proposition does not cover every allowed input.
-102	unsafe_convert	FAITHFUL	yes	yes	yes	
-105	cconvert	FAITHFUL	yes	yes	yes	
-106	unsafe_convert	HOLLOW	no	no	yes	The Lean function accepts a bare address instead of a Symbol and omits unsafe_convert(Ptr{Cchar}, s), so its proposition does not cover every Symbol input.
-119	cwstring	HOLLOW	no	no	yes	The model starts from a JStr and omits String(s), so it neither mirrors this AbstractString method nor quantifies its property over every allowed AbstractString.
-161	transcode	FAITHFUL	-	-	-	The no-behaviour exclusion applies because this empty generic-function declaration installs no method body.
-163	transcode	FAITHFUL	yes	yes	yes	
-164	transcode	HOLLOW	no	no	yes	Both entries model only the UInt32 result through transcode32 and omit the Int32 target admitted by this method's type parameter.
-165	transcode	HOLLOW	no	no	yes	transcodeBytes32 starts from an already-constructed JStr and treats the callee as a parameter, omitting Vector(src), String construction, and coverage of arbitrary AbstractVector inputs.
-167	transcode	HOLLOW	no	no	yes	transcodeCodeunits32 starts from a JStr and directly invokes a parameter, omitting String(src) and the CodeUnits input whose conversion this method performs.
-170	transcode	HOLLOW	no	no	yes	transcode8of32 models only UInt32 and converts every Char before encoding any bytes, omitting the Int32 path and the Julia loop's interleaved Char conversion and print calls.
-177	transcode	FAITHFUL	yes	yes	yes	
-178	transcode	FAITHFUL	yes	yes	yes	
-182	transcode	HOLLOW	no	no	yes	The Lean identity function models neither view(src, :) nor String construction and cannot state the method's promised non-consumption of the source vector.
-183	transcode	HOLLOW	no	no	yes	transcodeToString returns a parameterized byte result directly and omits the outer String constructor, so its proposition is not the behaviour of this method.
-185	transcode	FAITHFUL	yes	yes	yes	
-236	transcode	FAITHFUL	yes	yes	yes	
-321	unsafe_string	HOLLOW	no	no	yes	The model replaces the pointer, unsafe_wrap ownership flag, and Integer length with a List and Nat take, so it omits negative lengths and does not cover every allowed input.
-324	unsafe_string	HOLLOW	no	no	yes	The model replaces the unsafe_load loop and index arithmetic with takeWhile and states a result even without the documented valid NUL-terminated-memory precondition.
-331	unsafe_string	HOLLOW	no	no	yes	The model accepts memory and an arbitrary transcode function instead of a Cwstring and omits both pointer conversion and dispatch to unsafe_string.
+31	Cstring	FAITHFUL	yes	yes	yes	The constructor model performs the supported pointer bitcast by preserving the address and applying the Cstring tag, and its universal property is proven.
+32	Cwstring	FAITHFUL	yes	yes	yes	The constructor model performs the supported pointer bitcast by preserving the address and applying the Cwstring tag, and its universal property is proven.
+33	Ptr{T}	FAITHFUL	yes	yes	yes	The model preserves the Cstring address and applies every requested pointer tag, exactly matching the constructor, and the property is proven.
+34	Ptr{T}	HOLLOW	yes	no	yes	The property fixes the requested target to Cvoid instead of quantifying over both allowed target types T, although its refutation and reproducer are present.
+36	convert	FAITHFUL	yes	yes	yes	The model calls the Cstring constructor on every supported pointer and the delegation property is proven.
+37	convert	FAITHFUL	yes	yes	yes	The model calls the Cwstring constructor on every supported pointer and the delegation property is proven.
+38	convert	FAITHFUL	yes	yes	yes	The model calls the corresponding Ptr constructor with the requested target and its universal delegation property is proven.
+39	convert	FAITHFUL	yes	yes	yes	The model delegates to the Cwstring pointer constructor with the requested target and its universal property is proven.
+53	pointer	FAITHFUL	-	-	-	The exclusion applies because this line only declares the generic function and contains no callable method body.
+55	pointer	FAITHFUL	yes	yes	yes	The model converts Cstring to Ptr{Cchar} while preserving the address, and the universal property is proven.
+56	pointer	FAITHFUL	yes	yes	yes	The model converts Cwstring to Ptr{Cwchar_t} while preserving the address, and the universal property is proven.
+59	==	FAITHFUL	yes	yes	yes	The model dispatches to the matching pointer conversion before comparing addresses, and the universal equality property is proven.
+60	==	FAITHFUL	yes	yes	yes	The model converts the right C string before comparing addresses in operand order, and the universal equality property is proven.
+62	unsafe_string	FAITHFUL	yes	yes	yes	The model converts to Ptr{UInt8} and reads through the first NUL for every modeled readable memory, and the property is proven.
+65	cconvert	FAITHFUL	yes	yes	yes	The identity model matches this String overload for every input and the property is proven.
+66	cconvert	FAITHFUL	yes	yes	yes	The model performs String conversion before the concrete cconvert call and propagates conversion failure, and both outcomes are proven.
+69	cconvert	HOLLOW	no	no	yes	The transcode-utf32-invalid proposition models and states totality of transcode(UInt32,String) rather than this cconvert method, although every attached entry is settled and the refutation has a reproducer.
+75	eltype	FAITHFUL	yes	yes	yes	The model returns Cchar for the Cstring type and the property is proven.
+76	eltype	FAITHFUL	yes	yes	yes	The model returns Cwchar_t for the Cwstring type and the property is proven.
+78	containsnul	HOLLOW	no	yes	yes	The Lean function replaces the memchr call and C_NULL comparison with a direct list-membership specification, so the method's call structure is missing.
+80	containsnul	FAITHFUL	yes	yes	yes	The model obtains the String storage pointer and scans exactly sizeof(s) bytes while excluding the trailing terminator, and the property is proven.
+81	containsnul	FAITHFUL	yes	yes	yes	The model searches the AbstractString character iteration for NUL and propagates iteration failures, and the exhaustive property is proven.
+83	unsafe_convert	FAITHFUL	yes	yes	yes	The model obtains the pointer, scans the exact String byte length, throws on an embedded NUL, and otherwise preserves the address, with both cases proven.
+90	unsafe_convert	FAITHFUL	yes	yes	yes	The model converts Memory storage to Ptr{Cvoid} before constructing Cstring with the same address, and the property is proven.
+92	cconvert	HOLLOW	no	no	yes	The transcode-cwstring-nul-terminated proposition reaches the vector check only through AbstractString conversions and does not model or state this vector method for arbitrary vectors, although all entries are settled and the refutation has a reproducer.
+101	unsafe_convert	FAITHFUL	yes	yes	yes	The model performs the Ptr{Cwchar_t} conversion before constructing Cwstring and propagates conversion errors, and the property is proven.
+102	unsafe_convert	FAITHFUL	yes	yes	yes	The identity model matches the Cwstring overload for every input and the property is proven.
+105	cconvert	FAITHFUL	yes	yes	yes	The identity model matches Symbol cconvert for every input and the property is proven.
+106	unsafe_convert	FAITHFUL	yes	yes	yes	The model converts the Symbol to Ptr{Cchar} before constructing Cstring with the same address, and the property is proven.
+119	cwstring	FAITHFUL	yes	yes	yes	The model converts to String, checks UTF-8 bytes for NUL, transcodes to UInt16, and appends the terminator in source order, with the universal property and refutation settled and a reproducer present.
+161	transcode	FAITHFUL	-	-	-	The exclusion applies because this line only declares the generic function and contains no callable method body.
+163	transcode	FAITHFUL	yes	yes	yes	The identity model returns every vector unchanged and the property is proven.
+164	transcode	FAITHFUL	yes	yes	yes	The model iterates String characters and converts each to the selected 32-bit type in order, and its behavior, length invariant, and totality refutation are settled with a reproducer.
+165	transcode	FAITHFUL	yes	yes	yes	The model performs the vector copy and String construction before invoking the String-to-32-bit model, propagates each call failure, and the property is proven.
+167	transcode	FAITHFUL	yes	yes	yes	The model constructs the parent String from its CodeUnits before invoking the String-to-32-bit model, and the universal property is proven.
+170	transcode	FAITHFUL	yes	yes	yes	The model converts and prints each Int32 or UInt32 element in source order and preserves the first failure, and both the behavior property and totality refutation are settled with a reproducer.
+177	transcode	FAITHFUL	yes	yes	yes	The identity model returns every String unchanged and the property is proven.
+178	transcode	FAITHFUL	yes	yes	yes	The model passes the String code units to the requested transcode call for every target and source, and the property is proven.
+182	transcode	HOLLOW	no	yes	yes	The Lean function directly constructs an unchanged result and source pair instead of modeling the view call followed by the String constructor.
+183	transcode	FAITHFUL	yes	yes	yes	The model invokes transcode(UInt8,src), propagates its error, and constructs the resulting String bytes, with both outcomes proven.
+185	transcode	FAITHFUL	yes	yes	yes	The Lean loop follows every guard, byte read, branch, append, and advance of the UTF-8 to UTF-16 method, and totality for all byte vectors is proven.
+236	transcode	FAITHFUL	yes	yes	yes	The two Lean loops follow the source sizing and writing branches in order, and completeness for all permitted vectors is proven.
+321	unsafe_string	HOLLOW	no	no	yes	The transcode-utf32-out-of-range proposition models and states totality of transcode(UInt8,Vector{UInt32}) rather than this pointer wrapping method, although every attached entry is settled and the refutation has a reproducer.
+324	unsafe_string	FAITHFUL	yes	yes	yes	The model scans consecutive units from index one through the first NUL and calls the length overload on the preceding units, and the documented valid-pointer property is proven.
+331	unsafe_string	FAITHFUL	yes	yes	yes	The model converts Cwstring to Ptr{Cwchar_t} before invoking the NUL-terminated wide-pointer method, and the universal property is proven.

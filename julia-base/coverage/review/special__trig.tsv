@@ -133,11 +133,6 @@ line	name	verdict	mirror	property	settled	reason
 1398	_cosc	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
 1401	_cosc	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
 1402	_cosc	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
-1417	$finv	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
-1424	$finvh	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
-1431	$finvd	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
-1445	$tfa	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
-1450	$hfa	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
 1456	deg2rad_ext	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
 1470	deg2rad_ext	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
 1471	deg2rad_ext	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
@@ -146,10 +141,6 @@ line	name	verdict	mirror	property	settled	reason
 1530	tand	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
 1543	sincosd	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
 1547	sincosd	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
-1563	$fd	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
-1582	$fd	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
 1600	atand	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
 1601	atand	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
-1605	$f	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
-1608	$f	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
 1610	atand	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.

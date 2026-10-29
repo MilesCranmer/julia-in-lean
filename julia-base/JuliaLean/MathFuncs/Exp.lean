@@ -204,6 +204,17 @@ def exp10 (x : F64) : F64 := expImpl x .ten
 `s ≥ 64`. -/
 def exp2Int {t : IntTy} (x : JInt t) : F64 :=
   if x.val > 1023 then F64.inf
+  else if x.val < -1074 then F64.zero
+  else if x.val ≤ -1023 then
+    let s := (JInt.wrap .u64 (JInt.wrap (IntTy.promote t .i64) (x.val + 1074)).val).val.toNat
+    ofBitsU (if s < 64 then 2^s else 0)
+  else
+    let e := JInt.wrap .i64 (1023 + (JInt.wrap .i64 x.val).val)
+    ofInt64 (JInt.wrap .i64 (e.val * 2^52)).val
+
+/-- The previous pinned implementation, retained for the release-era counterexample. -/
+def exp2IntLegacy {t : IntTy} (x : JInt t) : F64 :=
+  if x.val > 1023 then F64.inf
   else if x.val ≤ -1023 then
     let s := (JInt.wrap .u64 (JInt.wrap (IntTy.promote t .i64) (x.val + 1074)).val).val.toNat
     ofBitsU (if s < 64 then 2^s else 0)

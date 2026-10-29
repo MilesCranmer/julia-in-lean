@@ -1,0 +1,5 @@
+backoff = Base.ExponentialBackOff(2, 1.0, 10.0, 5.0, Inf)
+first = iterate(backoff)
+second = iterate(backoff, first[2])
+@assert isnan(second[1])
+println("REPRODUCED error-backoff-iteration")

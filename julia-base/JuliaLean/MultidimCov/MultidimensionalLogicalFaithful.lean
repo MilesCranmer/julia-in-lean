@@ -263,44 +263,6 @@ private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) 
     juliaFns := [name], statement, source := s!"base/multidimensional.jl:{line}; LogicalIndex and conversion source equation",
     status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 837 "LogicalIndex{T,A}(mask)" "The inner constructor retains the complete mask object and caches count(mask)." ``P837 ``p837,
-  entry 839 "LogicalIndex(::AbstractVector{Bool})" "The vector constructor selects linear indices and retains the original mask object." ``P839 ``p839,
-  entry 840 "LogicalIndex(::AbstractArray{Bool,N})" "The array constructor selects CartesianIndex{N} and retains mask axes and identity." ``P840 ``p840,
-  entry 841 "LogicalIndex{Int}(mask)" "The explicit linear constructor retains the original arbitrary mask object." ``P841 ``p841,
-  entry 844 "show(::IO,::LogicalIndex)" "Show collects the current LogicalIndex output before printing it." ``P844 ``p844,
-  entry 845 "print_array(::IO,::LogicalIndex)" "print_array collects before delegating the complete output." ``P845 ``p845,
-  entry 851 "iterate(::LogicalIndex{Int})" "Initial linear iteration constructs its index space and delegates from count one." ``P851 ``p851,
-  entry 855 "iterate(::LogicalIndex{CartesianIndex})" "Initial Cartesian iteration constructs axes-based indices and delegates from count one." ``P855 ``p855,
-  entry 874 "iterate(::LogicalIndex{Int,BitArray})" "BitArray linear iteration checks cached emptiness, reads chunks, and initializes the specialized state." ``P874 ``p874,
-  entry 879 "iterate(::LogicalIndex{CartesianIndex,BitArray})" "BitArray Cartesian iteration checks cached emptiness, constructs trailing state, and reads the first chunk." ``P879 ``p879,
-  entry 885 "iterate(::LogicalIndex{BitArray},state)" "Specialized iteration scans zero chunks, finds the next bit, updates overflow coordinates, and returns typed output and state." ``P885 ``p885,
-  entry 900 "checkbounds(::AbstractArray,::LogicalIndex)" "LogicalIndex bounds delegate the retained mask object." ``P900 ``p900,
-  entry 902 "checkindex(::AbstractUnitRange,::LogicalIndex)" "Range checking delegates the retained mask object." ``P902 ``p902,
-  entry 903 "checkindex(::Tuple,::LogicalIndex)" "Tuple checking delegates the retained mask object." ``P903 ``p903,
-  entry 907 "checkbounds(::AbstractArray,::BoolArray)" "Boolean-array bounds read axes(A) before checking the complete mask." ``P907 ``p907,
-  entry 910 "checkbounds(::AbstractArray,::BoolVector)" "Boolean-vector bounds construct linear indices before checking the mask." ``P910 ``p910,
-  entry 912 "checkbounds_indices(::BoolArray,tail)" "The method splits by mask rank, checks the head, and short-circuits before recursive tail checking." ``P912 ``p912,
-  entry 916 "checkindex(::AbstractUnitRange,::BoolVector)" "Boolean-vector checking compares axes1(mask) with the target range." ``P916 ``p916,
-  entry 917 "checkindex(::AbstractUnitRange,::BoolRange)" "Boolean-range checking compares axes1(mask) with the target range." ``P917 ``p917,
-  entry 918 "checkindex(::Tuple,::BoolArray)" "Boolean-array checking compares every mask axis in order and validates trailing singleton axes." ``P918 ``p918,
-  entry 924 "ensure_indexable(LogicalIndex,tail)" "The method collects the LogicalIndex before recursively processing the original tail." ``P924 ``p924,
-  entry 928 "to_indices(simple mixed tuple)" "The optimized overload delegates with an empty parent-axis tuple and every original index." ``P928 ``p928,
-  entry 932 "to_indices(CartesianIndex,tail)" "The method splits parent axes, converts every coordinate with array context, then recursively converts both tails." ``P932 ``p932,
-  entry 937 "to_indices(Array{CartesianIndex},tail)" "The method splits by rank, converts the original head array, then recursively converts both tails." ``P937 ``p937,
-  entry 942 "to_indices(BoolArray,tail)" "The method splits by mask rank, converts the original mask, then recursively converts both tails." ``P942 ``p942,
-  entry 947 "to_indices(sole BoolArray)" "The sole mask selects linear LogicalIndex only for IndexLinear and otherwise uses contextual to_index." ``P947 ``p947,
-  entry 948 "_maybe_linear_logical_index(fallback)" "The fallback delegates to contextual to_index." ``P948 ``p948,
-  entry 949 "_maybe_linear_logical_index(IndexLinear)" "The linear specialization constructs LogicalIndex{Int} retaining the mask." ``P949 ``p949,
-  entry 952 "to_indices(Colon,tail)" "Colon constructs a Slice from the first axis or OneTo(1), then recursively converts safe_tail(axes) and the original tail." ``P952 ``p952,
-  entry 955 "uncolon(())" "Empty axes construct Slice(OneTo(1))." ``P955 ``p955,
-  entry 956 "uncolon(axes)" "Nonempty axes construct Slice from the first axis." ``P956 ``p956,
-  entry 964 "_prechecked_iterate(iter)" "The fallback delegates to iterate(iter)." ``P964 ``p964,
-  entry 965 "_prechecked_iterate(iter,state)" "The stateful fallback delegates to iterate(iter,state)." ``P965 ``p965,
-  entry 967 "_prechecked_iterate(AbstractUnitRange)" "Initial range iteration returns first twice." ``P967 ``p967,
-  entry 968 "_prechecked_iterate(AbstractUnitRange,state)" "Range iteration adds step, converts to eltype, and returns the new value twice." ``P968 ``p968,
-  entry 978 "_prechecked_iterate(CartesianIndices,state)" "Cartesian iteration performs carry increment and returns the new coordinate twice." ``P978 ``p978,
-  entry 982 "_prechecked_iterate(SCartesianIndices2)" "Static Cartesian initial iteration returns first twice." ``P982 ``p982
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.MultidimensionalLogicalFaithful

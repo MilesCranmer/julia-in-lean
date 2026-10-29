@@ -28,9 +28,11 @@ structure Conv (Q K : Type) where
   hash : Q → JInt .u64
   /-- `x === k || isequal(x, k)` -/
   iseq : Q → K → Bool
+  /-- Whether the iterator element type is a subtype of the set key type. -/
+  eltypeSubtype : Bool := false
 
 /-- Elements that already have the key type. -/
-def Conv.self (o : KeyOps K) : Conv K K := ⟨some, pure, o.hash, o.eq⟩
+def Conv.self (o : KeyOps K) : Conv K K := ⟨some, pure, o.hash, o.eq, true⟩
 
 /-- `setindex!(h, v0, key0)`, `base/dict.jl:347-357`: convert a foreign key and
 throw `KeyTypeError` unless `isequal(key, key0)`. -/
@@ -70,13 +72,19 @@ def inBang (o : KeyOps K) (c : Conv Q K) (s : SetT K) (x : Q) : DR (Bool × SetT
     let s ← setindexAt o s () xT (-idx).toNat sh
     pure (false, s)
 
-/-- The loop of `union!(s::AbstractSet{T}, itr)`, `base/abstractset.jl:107-110`:
-push each element and stop once `length(s) == max_values(T)`. -/
+/-- The loop of `union!(s::AbstractSet{T}, itr)`, `base/abstractset.jl:107-110`. -/
 def unionLoop (o : KeyOps K) (c : Conv Q K) : SetT K → List Q → DR (SetT K)
   | s, [] => pure s
   | s, x :: xs => do
     let s ← pushConv o c s x
-    if (s.count : Int) == o.maxValues.val then pure s else unionLoop o c s xs
+    if c.eltypeSubtype && (s.count : Int) == o.maxValues.val then pure s else unionLoop o c s xs
+
+/-- Historical loop before the iterator element-type check. -/
+def unionLoopHistorical (o : KeyOps K) (c : Conv Q K) : SetT K → List Q → DR (SetT K)
+  | s, [] => pure s
+  | s, x :: xs => do
+    let s ← pushConv o c s x
+    if (s.count : Int) == o.maxValues.val then pure s else unionLoopHistorical o c s xs
 
 /-- `union!(s::AbstractSet{T}, itr)`, `base/abstractset.jl:105-112`, for an
 iterator with a length (a vector or a set, listed in iteration order). -/

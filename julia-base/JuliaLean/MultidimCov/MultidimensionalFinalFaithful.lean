@@ -206,26 +206,6 @@ private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) 
     juliaFns := [name], statement, source := s!"base/multidimensional.jl:{line}; source equation and array invariant",
     status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 1678 "checkdims_perm(array,array,perm)" "The wrapper reads destination axes before source axes and delegates the complete permutation." ``P1678 ``p1678,
-  entry 1679 "checkdims_perm(axes,axes,perm)" "Permutation checking validates length, permutation membership, then every source-to-destination axis in order." ``P1679 ``p1679,
-  entry 1689 "permutedims!" "Generated permutation checks axes, computes strides and offset, then copies every element to its permuted coordinate." ``P1689 ``p1689,
-  entry 1723 "hash(::Prehashed)" "Prehashed values return their stored UInt hash." ``P1723 ``p1723,
-  entry 1764 "unique(array;dims)" "The public wrapper delegates array and dims unchanged." ``P1764 ``p1764,
-  entry 1766 "_unique_dims(array,Colon)" "Colon dispatch invokes ordinary unique on the complete array." ``P1766 ``p1766,
-  entry 1768 "_unique_dims(array,dim)" "Dimensional unique returns a copy for invalid dims and otherwise preserves the first representative of every equal slice after collision checks." ``P1768 ``p1768,
-  entry 1839 "showarg(pairs linear)" "Linear pairs display their represented parent type." ``P1839 ``p1839,
-  entry 1842 "showarg(pairs Cartesian array)" "Cartesian array pairs display their represented parent type." ``P1842 ``p1842,
-  entry 1846 "showarg(pairs Cartesian vector)" "Cartesian vector pairs display the IndexCartesian qualifier and parent type." ``P1846 ``p1846,
-  entry 1969 "sortslices" "Matrix dimension-one sorting uses the fast permutation path; all other inputs allocate then invoke the generic slice sorter." ``P1969 ``p1969,
-  entry 1981 "_sortslices!" "The generic sorter builds slices, computes their permutation, and assigns each destination slice from the selected source slice." ``P1981 ``p1981,
-  entry 1992 "getindex(::Ref,::CartesianIndex{0})" "Reference Cartesian get delegates to the zero-index get method." ``P1992 ``p1992,
-  entry 1993 "setindex!(::Ref,x,::CartesianIndex{0})" "Reference Cartesian set delegates to the zero-index setter and returns its result." ``P1993 ``p1993,
-  entry 1997 "_hash_fib" "Fibonacci hashing starts at the last key, updates four streams, advances skips at 4096 iterations, seeks distinct predecessors, and folds all streams." ``P1997 ``p1997,
-  entry 2077 "union_split(nonempty types)" "Union splitting tests the head type before either calling f or recursively testing the tail." ``P2077 ``p2077,
-  entry 2084 "union_split(empty types)" "The empty type tuple calls f with the original value and arguments." ``P2084 ``p2084,
-  entry 2086 "hash_shaped" "Shaped hashing hashes axis endpoints, then selects direct, eight-stream, or Fibonacci hashing by length." ``P2086 ``p2086,
-  entry 2123 "hash(::AbstractArray,::UInt)" "Array hashing xors the fixed seed before delegating to hash_shaped." ``P2123 ``p2123
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.MultidimensionalFinalFaithful

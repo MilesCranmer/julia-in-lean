@@ -159,26 +159,6 @@ private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) 
     juliaFns := [name], statement, source := s!"base/multidimensional.jl:{line}; multidimensional indexing source equation",
     status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 989 "getindex(scalar,CartesianIndex{0})" "Every Number or AbstractChar passes through unchanged for an empty Cartesian index." ``P989 ``p989,
-  entry 990 "getindex(tuple,CartesianIndex{1})" "Tuple indexing reads the sole stored coordinate before calling tuple getindex." ``P990 ``p990,
-  entry 995 "_getindex" "The wrapper completes bounds checking before reshaping and invoking unsafe indexing." ``P995 ``p995,
-  entry 1000 "_maybe_reshape(IndexLinear)" "Linear arrays pass through unchanged." ``P1000 ``p1000,
-  entry 1001 "_maybe_reshape(IndexCartesian,AbstractVector)" "Cartesian vectors pass through unchanged." ``P1001 ``p1001,
-  entry 1002 "_maybe_reshape(IndexCartesian,AbstractArray)" "Cartesian arrays derive index_ndims from original indices before reshaping." ``P1002 ``p1002,
-  entry 1003 "__maybe_reshape(equal rank)" "Equal-rank arrays pass through with type, axes, and identity unchanged." ``P1003 ``p1003,
-  entry 1004 "__maybe_reshape(other rank)" "Other ranks delegate to reshape(A,Val(N))." ``P1004 ``p1004,
-  entry 1006 "_unsafe_getindex" "Unsafe indexing derives output axes, allocates the exact shape, validates it, and gathers every source element." ``P1006 ``p1006,
-  entry 1015 "_generate_unsafe_getindex!_body" "The generated body iterates the Cartesian product, reads each source coordinate, and writes each destination index in order." ``P1015 ``p1015,
-  entry 1030 "_unsafe_getindex!(N)" "The generated N-index overload executes the generated gather body." ``P1030 ``p1030,
-  entry 1035 "_unsafe_getindex!(1)" "The one-index specialization executes the same generated gather body." ``P1035 ``p1035,
-  entry 1039 "_unsafe_getindex!(2)" "The two-index specialization executes the same generated gather body." ``P1039 ``p1039,
-  entry 1046 "_setindex!" "Assignment checks bounds before reshaping, scattering values, and returning the mutated array." ``P1046 ``p1046,
-  entry 1053 "_generate_unsafe_setindex!_body" "The generated setter validates shape, then converts and writes each source value in iteration order." ``P1053 ``p1053,
-  entry 1069 "_unsafe_setindex!(N)" "The generated N-index overload executes ordered scatter semantics." ``P1069 ``p1069,
-  entry 1073 "_unsafe_setindex!(1)" "The one-index specialization executes ordered scatter semantics." ``P1073 ``p1073,
-  entry 1077 "_unsafe_setindex!(2)" "The two-index specialization executes ordered scatter semantics." ``P1077 ``p1077,
-  entry 1081 "diff(::AbstractVector)" "Vector diff delegates with dims equal to one." ``P1081 ``p1081
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.MultidimensionalUnsafeFaithful

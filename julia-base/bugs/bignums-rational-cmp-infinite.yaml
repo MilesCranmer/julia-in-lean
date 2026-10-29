@@ -60,5 +60,15 @@ duplicates:
   issues: []
   queries: ["mpq_cmp", "cmp Rational BigInt", "Rational{BigInt} cmp", "Rational BigInt infinity", "MPQ", "PR MPQ cmp"]
 lean:
-  property: JuliaLean.BigNums.RationalCmpIsless
+  property: JuliaLean.BigNums.LegacyRationalCmpIsless
   theorem: JuliaLean.BigNums.rationalCmpIsless_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: false
+  proof: JuliaLean.BigNums.rationalCmpIsless_proven
+  output: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    cmp(big(1)//0, big(1)//2)  = 1   (Rational{Int}: 1)
+    cmp(big(1)//2, big(1)//0)  = -1   (Rational{Int}: -1)
+    cmp(big(-1)//0, big(-3)//1) = -1   (Rational{Int}: -1)
+    big(1)//0 > big(1)//2: true, isless(big(1)//2, big(1)//0): true

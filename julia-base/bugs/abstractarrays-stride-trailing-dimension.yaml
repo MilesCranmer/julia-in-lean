@@ -1,0 +1,69 @@
+id: abstractarrays-stride-trailing-dimension
+title: "Generic stride(A, k) for k > ndims(A) returns sum(strides(A) .* size(A)), disagreeing with Array and SubArray"
+priority: P2
+kind: wrong-result
+area: AbstractArrays
+files: [base/abstractarray.jl]
+functions: ["stride(A::AbstractArray, k::Integer)"]
+summary: |
+  For k > ndims(A), the generic stride(A, k) returns the sum of strides(A)[i] * size(A, i)
+  over all dimensions. For a contiguous 2x3 column-major layout (strides (1, 2)) that is
+  8, while the memory distance to the next slice of a trailing dimension is 6, which is
+  what Array (length(A)) and a contiguous view (strides(V)[end] * size(V)[end]) return
+  for the same layout. So a custom strided wrapper, or a Base type that falls back to
+  the generic method such as PermutedDimsArray, reports a different trailing stride than
+  an Array with identical strides and size.
+likelihood: |
+  Needs stride(A, k) with k > ndims(A) on an array type without its own stride method
+  (custom strided wrappers, PermutedDimsArray). Code that passes stride(A, ndims(A)+1)
+  as a leading dimension to BLAS/LAPACK-style routines could see the inflated value.
+  Uncommon.
+maybe_intended: |
+  The sum formula was introduced deliberately in 6b2c7f147a0 (#35929, 2020) and kept
+  in 2d1ea3c59b1 (#44090); for non-contiguous or permuted layouts it is an
+  over-estimate that never aliases an existing element. The docstring defines stride
+  only as "the distance in memory between adjacent elements in dimension k", which is
+  not obviously defined for k > ndims(A). Open issue #58403 reports exactly this
+  inconsistency and says the definitions disagree.
+reproducer: |
+  struct StridedWrapper{T,N} <: AbstractArray{T,N}; data::Array{T,N}; end
+  Base.size(A::StridedWrapper) = size(A.data)
+  Base.strides(A::StridedWrapper) = strides(A.data)
+  Base.getindex(A::StridedWrapper, I...) = getindex(A.data, I...)
+  A = StridedWrapper(reshape(collect(1:6), 2, 3))
+  strides(A), stride(A, 3)          # (1, 2), 8; stride(A.data, 3) == 6
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    size = (2, 3); strides = (1, 2); stride(A, 3) = 8; length = 6
+    REPRODUCED abstractarrays-stride-trailing-dimension
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    size = (2, 3); strides = (1, 2); stride(A, 3) = 8; length = 6
+    REPRODUCED abstractarrays-stride-trailing-dimension
+reproduced: {release: true, nightly: true}
+expected: |
+  stride(A, 3) == 6, the value Array and SubArray give for the same strides (1, 2) and
+  size (2, 3). A diagnostic run on target master: for A = reshape(collect(1:12), 2, 6),
+  stride(view(A, :, 1:3), 3) == 6 and stride(A, 3) == 12.
+promised_by: |
+  stride docstring, base/abstractarray.jl:580-582: "Return the distance in memory (in
+  number of elements) between adjacent elements in dimension `k`." Base's own strided
+  types agree on the trailing value for contiguous layouts: DenseArray returns
+  length(A) (base/reinterpretarray.jl:208-209) and SubArray returns
+  strides(V)[end] * size(V)[end] (base/subarray.jl:446).
+cause: |
+  base/abstractarray.jl:597-607: for k > ndims(A) the generic method returns
+  st[1]*sz[1] + ... + st[N]*sz[N] instead of a value consistent with the specialised
+  methods, so any array type relying on the fallback reports a larger trailing stride.
+possible_fix: |
+  Decide one definition for the trailing stride (e.g. the span
+  maximum(st .* sz) or the one used by DenseArray/SubArray) and use it in all three
+  methods, as discussed in #58403.
+duplicates:
+  issues:
+    - {number: 58403, state: open, relation: duplicate}
+  queries: ["stride trailing dimension", "stride k > ndims", "stride(A, k) ndims", "stride sum strides size", "stride AbstractArray", "stride ndims", "strided array interface stride"]
+lean:
+  property: JuliaLean.Proofs.base.abstractarray.TrailingStrideContiguous
+  theorem: JuliaLean.Proofs.base.abstractarray.trailingStrideContiguous_refuted

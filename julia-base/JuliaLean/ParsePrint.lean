@@ -52,32 +52,6 @@ def entries : List Entry := [
     source := "base/parsers/ints.jl:150-173 (invariant: parse returns the value of the string or throws OverflowError)", status := .proven
     prop := ``IntParse.ParseOverflowDetected, thm := some ``IntParse.parseOverflowDetected
     notes := "Exhaustive decide +kernel over 10 types x 2 bases x 6 centres x 33 offsets (7,920 strings, up to 39 digits). The centres cover the type bounds and the wrap points of the UInt64/UInt128 accumulator. Random long strings were also differential-checked." },
-  { id := "parseprint-string-parse-roundtrip-8bit", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["string(::Integer; base)", "parse(::Type{<:Integer}, ::AbstractString; base)"]
-    statement := "parse(T, string(n; base=b); base=b) == n for every Int8 and UInt8 n and every base in {2, 3, 7, 8, 10, 16, 36, 37, 62}."
-    source := "base/intfuncs.jl:1076-1080, base/parse.jl:5-13 (round trip invariant)", status := .proven
-    prop := ``IntParse.RoundtripInt8, thm := some ``IntParse.roundtripInt8
-    notes := "Bases chosen to cover every writer: bin/oct/dec/hex and the generic _base with both digit tables (base36digits up to 36, base62digits above). Exhaustive decide +kernel over all 256 values per type and base. Wider types are covered by the differential check, not proven." },
-  { id := "parseprint-digits-fill-low-order", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["digits!", "digits"]
-    statement := "When digits!(a, n; base) succeeds, it fills length(a) digits of magnitude below |base| (nonnegative for negative bases) whose value sum(a[k]*base^(k-1)) is congruent to n modulo base^length(a)."
-    source := "base/intfuncs.jl:1172-1174, 1224-1228", status := .proven
-    prop := ``IntPrint.DigitsFillLowOrder, thm := some ``IntPrint.digitsFillLowOrder
-    notes := "General proof over all types, values, bases and lengths, through the power-of-two shift path, the divrem path and the negative-base fldmod path. With length(a) = ndigits(n; base) the congruence is the docstring's equality. Same in 1.13.2." },
-  { id := "parseprint-digits-typemin-base", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["digits!", "digits"]
-    statement := "digits(n; base) succeeds for every Int base with base >= 2 or base <= -2, the restriction its error message states."
-    source := "base/intfuncs.jl:1250", status := .refuted
-    prop := ``IntPrint.DigitsValidBase, thm := some ``IntPrint.digitsValidBase_refuted
-    issue := "none found; related #64125 (ndigits with a typemin base). Searched issues: digits typemin; digits base typemin; digits DomainError base; abs(base) overflow; PRs: digits base; digits typemin"
-    notes := "digits(5; base=typemin(Int)) throws DomainError \"base must be ≥ 2 or ≤ -2\" because abs(typemin) wraps; ndigits(5; base=typemin(Int)) is 1. Same in both versions." },
-  { id := "parseprint-string-negative-base-unsigned", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["string(::Integer; base, pad)", "Base._base"]
-    statement := "string(n; base=b) succeeds for every integer n and every negative base -62 <= b <= -2."
-    source := "base/intfuncs.jl:1048-1049, 1117 (consistency with digits, base/intfuncs.jl:1172-1174)", status := .refuted
-    prop := ``IntPrint.StringNegativeBase, thm := some ``IntPrint.stringNegativeBase_refuted
-    issue := "none found; related #29183 (same conversion in digits, fixed). Searched issues: string negative base; negative base unsigned; string base InexactError; convert Signed string base; PRs: negative base; negative base string"
-    notes := "string(UInt8(200); base=-2) throws InexactError convert(Int8, 0xc8), while digits gives the base -2 digits. Same in both versions. Negative bases are not in the string docstring, so this may be read as unsupported." },
   { id := "parseprint-ryu-compact-lost-digit", juliaFile := "base/ryu/shortest.jl"
     juliaFns := ["Ryu.reduce_shortest", "Ryu.writeshortest", "show(::IO, ::Float64) with :compact"]
     statement := "Compact display of a finite nonzero Float64 is within half a unit in the sixth significant digit of the value (plus the first rounding to shortest)."

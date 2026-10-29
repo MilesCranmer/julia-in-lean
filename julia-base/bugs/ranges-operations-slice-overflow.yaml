@@ -29,6 +29,12 @@ output:
   nightly: |
     REPRODUCED ranges-operations-slice-overflow
 reproduced: {release: true, nightly: true}
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    REPRODUCED ranges-operations-slice-overflow
 expected: "Return the one-element Int8 range 127:127, consistent with scalar indexing."
 promised_by: |
   Array indexing invariant: selecting valid integer indices by a range agrees

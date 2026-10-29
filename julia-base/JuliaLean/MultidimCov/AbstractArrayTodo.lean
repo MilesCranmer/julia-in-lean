@@ -379,9 +379,6 @@ private def abstractTodoEntry (id fn statement : String) (prop theoremName : Lea
     thm := some theoremName }
 
 def abstractArrayTodoEntries : List Entry := [
-  abstractTodoEntry "multidimcov-abstract-l941-copy-iterable" "copyto!(::AbstractArray,src)" "When the source fits, iterable copy overwrites the destination prefix in iteration order and returns the destination." ``AbstractL941CopyIterable ``abstractL941CopyIterable,
-  abstractTodoEntry "multidimcov-abstract-l1003-copy-count" "copyto!(dest,dstart,src,sstart,n)" "A negative requested count is rejected before any indexing or iteration." ``AbstractL1003CopyCount ``abstractL1003CopyCount,
-  abstractTodoEntry "multidimcov-abstract-l1088-copy-unalias" "copyto_unaliased!(deststyle,dest,srcstyle,src)" "An empty source returns the destination before constructing indices." ``AbstractL1088CopyUnaliased ``abstractL1088CopyUnaliased,
   abstractTodoEntry "multidimcov-abstract-l2423-hvncat-arrays" "_typed_hvncat(T,Val(N),::AbstractArray...)" "Array-only hvncat rejects an empty argument list before rank and shape processing." ``AbstractL2423HvncatArrays ``abstractL2423HvncatArrays,
   abstractTodoEntry "multidimcov-abstract-l2458-hvncat-mixed" "_typed_hvncat(T,Val(N),as...)" "Mixed hvncat rejects an empty argument list before rank and shape processing." ``AbstractL2458HvncatMixed ``abstractL2458HvncatMixed,
   abstractTodoEntry "multidimcov-abstract-l2556-hvncat-fill" "hvncat_fill!(::Array,row_first,xs)" "Generated hvncat fill validates the element count and uses row-first or linear fill order." ``AbstractL2556HvncatFill ``abstractL2556HvncatFill,

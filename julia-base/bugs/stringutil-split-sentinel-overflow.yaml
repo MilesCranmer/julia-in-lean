@@ -1,0 +1,62 @@
+id: stringutil-split-sentinel-overflow
+title: "eachsplit never ends on a string with ncodeunits == typemax(Int): the end state ncodeunits + 2 wraps"
+priority: P2
+kind: wrong-result
+area: StringUtil
+files: [base/strings/util.jl]
+functions: ["iterate(::SplitIterator, (i, k, n))", "eachsplit(str::AbstractString, dlm; limit, keepempty)"]
+summary: |
+  After the last piece, iterate(::SplitIterator) returns the end state
+  (ncodeunits(str) + 2, k, n + 1). For a string with ncodeunits(str) == typemax(Int)
+  this wraps to typemin(Int) + 1, so the stop guard `i - 1 > ncodeunits(str)` never
+  fires: eachsplit(s, dlm; limit=1) on a valid ASCII string of that size with no
+  matches yields the whole string and then an endless run of SubStrings with
+  ncodeunits == -1, built under @inbounds, instead of ending after one piece.
+likelihood: |
+  Very low: needs a custom AbstractString (a virtual or memory-mapped string) whose
+  ncodeunits is exactly typemax(Int), iterated to its end. No ordinary String can be
+  that long.
+maybe_intended: ""
+reproducer: |
+  # VirtualAscii <: AbstractString: ncodeunits = typemax(Int), every code unit 'a'
+  # (full definition in repro/stringutil-split-sentinel-overflow.jl); NoDelimiter never matches
+  it = eachsplit(VirtualAscii(), NoDelimiter(); limit=1, keepempty=true)
+  a = iterate(it)           # (whole string, (typemin(Int) + 1, 1, 1))
+  b = iterate(it, a[2])     # SubString with ncodeunits == -1; expected nothing
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    limit=1 emitted byte counts: (9223372036854775807, -1, -1)
+    states: ((-9223372036854775807, 1, 1), (-9223372036854775807, 1, 2), (-9223372036854775807, 1, 3))
+    REPRODUCED stringutil-split-sentinel-overflow
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    limit=1 emitted byte counts: (9223372036854775807, -1, -1)
+    states: ((-9223372036854775807, 1, 1), (-9223372036854775807, 1, 2), (-9223372036854775807, 1, 3))
+    REPRODUCED stringutil-split-sentinel-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  collect(eachsplit(VirtualAscii(), NoDelimiter(); limit=1)) has exactly one element,
+  the whole string; the second iterate call returns nothing.
+promised_by: |
+  eachsplit docstring, base/strings/util.jl:738-750: "Split `str` on occurrences of the
+  delimiter(s) `dlm` and return an iterator over the substrings ... `limit`: the
+  maximum size of the result." With limit=1 (or no match at all) the iterator yields
+  exactly one substring, the whole string.
+cause: |
+  base/strings/util.jl:806 returns the end sentinel `ncodeunits(iter.str) + 2` in
+  wrapping Int arithmetic; line 792 recognises the end by `i - 1 > ncodeunits(iter.str)`.
+  For ncodeunits == typemax(Int) the sentinel is typemin(Int) + 1, i - 1 is typemin(Int),
+  and the guard is false. With no match the loop at line 794 is skipped and line 806
+  builds `@inbounds SubString(iter.str, typemin(Int) + 1)` with ncodeunits -1, again
+  returning the same wrapped sentinel. The sentinel dates from dba8a082130 (2021,
+  eachsplit).
+possible_fix: |
+  Mark the end with a value that cannot wrap, such as a separate done flag in the
+  state, instead of ncodeunits(iter.str) + 2.
+duplicates:
+  issues: []
+  queries: ["eachsplit overflow", "SplitIterator iterate", "eachsplit typemax", "split ncodeunits overflow"]
+lean:
+  property: JuliaLean.Proofs.base.strings.util.SplitIteratorLimitOne
+  theorem: JuliaLean.Proofs.base.strings.util.splitIteratorLimitOne_refuted

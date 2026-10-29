@@ -1,0 +1,65 @@
+id: indices-linearindices-iterate-end
+title: "iterate(::LinearIndices) does not stop after length typemax(Int): the state wraps to typemin(Int)"
+priority: P2
+kind: wrong-result
+area: Indices
+files: [base/indices.jl]
+functions: ["iterate(::LinearIndices, i=1)", "last(::LinearIndices)"]
+summary: |
+  Iterating a multidimensional LinearIndices of length typemax(Int) does not end after
+  the last index. iterate(L, length(L)) returns the state typemax(Int) + 1, which wraps
+  to typemin(Int); the end test `i > length(iter)` is false for it, so the next call
+  yields the invalid linear index typemin(Int) and iteration continues through negative
+  numbers. Example: LinearIndices((typemax(Int), 1)).
+likelihood: |
+  Very low: needs a LinearIndices (or an array whose eachindex is a LinearIndices with
+  more than one dimension) whose length is exactly typemax(Int), which only lazy or
+  virtual arrays can have. Nothing realistic iterates that far, but a loop that starts
+  near the end (iterate(L, n)) sees the wrap at once.
+maybe_intended: ""
+reproducer: |
+  L = LinearIndices((typemax(Int), 1))
+  n = length(L)                  # 9223372036854775807
+  iterate(L, n)                  # (9223372036854775807, -9223372036854775808)
+  iterate(L, typemin(Int))       # (-9223372036854775808, -9223372036854775807); expected nothing earlier
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    length(LinearIndices((typemax(Int), 1))) = 9223372036854775807
+    iterate(L, length(L)) = (9223372036854775807, -9223372036854775808)
+    iterate(L, -9223372036854775808) = (-9223372036854775808, -9223372036854775807)
+    REPRODUCED indices-linearindices-iterate-end
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    length(LinearIndices((typemax(Int), 1))) = 9223372036854775807
+    iterate(L, length(L)) = (9223372036854775807, -9223372036854775808)
+    iterate(L, -9223372036854775808) = (-9223372036854775808, -9223372036854775807)
+    REPRODUCED indices-linearindices-iterate-end
+reproduced: {release: true, nightly: true}
+expected: |
+  After the element typemax(Int), iteration ends: collecting L yields exactly
+  1:typemax(Int), and no state passed back from iterate produces an index outside
+  1:length(L).
+promised_by: |
+  iterate docstring, base/essentials.jl:1606-1608: "Advance the iterator to obtain the
+  next element. If no elements remain, `nothing` should be returned." The elements of
+  L are 1:length(L) (first(iter) = 1 and last(iter) = length(iter),
+  base/indices.jl:526, 528), so no element outside that range may be produced.
+cause: |
+  base/indices.jl:523, iterate(iter::LinearIndices, i=1) = i > length(iter) ? nothing :
+  (i, i+1), returns the state i + 1 in wrapping Int arithmetic. When i == length(iter)
+  == typemax(Int) the state wraps to typemin(Int), which passes the `i > length(iter)`
+  test on the next call. The one-dimensional method (line 522) delegates to the range
+  iterator, whose OrdinalRange method (base/range.jl:937-942) stops on
+  `i == last(r)` and so does not wrap.
+possible_fix: |
+  Test the end with the previous index instead, e.g. iterate(iter, i) returning
+  nothing when i - 1 == length(iter), or return the state i and check `i == length(iter)`
+  as the range iterator does.
+duplicates:
+  issues:
+    - {number: 37876, state: closed, relation: related}
+  queries: ["LinearIndices iterate overflow", "LinearIndices typemax", "iterate typemax overflow", "LinearIndices iterate", "iterate wraps typemin", "LinearIndices iteration", "iterate overflow", "length typemax iteration", "indices.jl iterate"]
+lean:
+  property: JuliaLean.Proofs.base.indices.LinearIndicesIterateEnds
+  theorem: JuliaLean.Proofs.base.indices.linearIndicesIterateEnds_refuted

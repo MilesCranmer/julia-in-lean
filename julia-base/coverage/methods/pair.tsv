@@ -1,19 +1,19 @@
 file	line	endline	name	signature	status	entry	note
 base/pair.jl	40	40	eltype	eltype(p::Type{Pair{A, B}}) where {A, B}	modelled	sorttuplescov-pair-types	
-base/pair.jl	41	41	iterate	iterate(p::Pair, i=1)	modelled	sorttuplescov-pair-generic-iteration	
-base/pair.jl	42	42	indexed_iterate	indexed_iterate(p::Pair, i::Int, state=1)	modelled	sorttuplescov-pair-generic-iteration	
-base/pair.jl	46	46	hash	hash(p::Pair, h::UInt)	modelled	sorttuplescov-pair-fixed-hash	
+base/pair.jl	41	41	iterate	iterate(p::Pair, i=1)	todo		trivial: restates the generic iteration model body
+base/pair.jl	42	42	indexed_iterate	indexed_iterate(p::Pair, i::Int, state=1)	todo		trivial: restates the generic iteration model body
+base/pair.jl	46	46	hash	hash(p::Pair, h::UInt)	todo		trivial: restates the fixed-seed hash formula
 base/pair.jl	49	49	==	==(p::Pair, q::Pair)	modelled	sorttuplescov-pair-compare	
-base/pair.jl	50	50	isequal	isequal(p::Pair, q::Pair)	modelled	sorttuplescov-pair-eager-compare	
-base/pair.jl	52	53	isless	isless(p::Pair, q::Pair)	modelled	sorttuplescov-pair-eager-compare	
+base/pair.jl	50	50	isequal	isequal(p::Pair, q::Pair)	todo		trivial: restates eager comparison call order without an independent invariant
+base/pair.jl	52	53	isless	isless(p::Pair, q::Pair)	todo		trivial: restates eager comparison call order without an independent invariant
 base/pair.jl	54	54	getindex	getindex(p::Pair,i::Int)	modelled	sorttuplescov-pair-generic-index	
 base/pair.jl	55	55	getindex	getindex(p::Pair,i::Real)	modelled	sorttuplescov-pair-generic-index	
-base/pair.jl	56	56	reverse	reverse(p::Pair{A,B}) where {A,B}	modelled	sorttuplescov-pair-typed-reverse	
+base/pair.jl	56	56	reverse	reverse(p::Pair{A,B}) where {A,B}	todo		trivial: restates the typed reverse body without an independent invariant
 base/pair.jl	58	58	firstindex	firstindex(p::Pair)	modelled	sorttuplescov-pair-iter-index	
 base/pair.jl	59	59	lastindex	lastindex(p::Pair)	modelled	sorttuplescov-pair-iter-index	
 base/pair.jl	60	60	length	length(p::Pair)	modelled	sorttuplescov-pair-iter-index	
 base/pair.jl	61	61	first	first(p::Pair)	modelled	sorttuplescov-pair-iter-index	
 base/pair.jl	62	62	last	last(p::Pair)	modelled	sorttuplescov-pair-iter-index	
 base/pair.jl	64	64	convert	convert(::Type{Pair{A,B}}, x::Pair{A,B}) where {A,B}	modelled	sorttuplescov-pair-types	
-base/pair.jl	65	71	convert	convert(::Type{Pair{A,B}}, x::Pair) where {A,B}	modelled	sorttuplescov-pair-typed-convert	
+base/pair.jl	65	71	convert	convert(::Type{Pair{A,B}}, x::Pair) where {A,B}	todo		trivial: restates the generic conversion body
 base/pair.jl	73	74	promote_rule	promote_rule(::Type{Pair{A1,B1}}, ::Type{Pair{A2,B2}}) where {A1,B1,A2,B2}	modelled	sorttuplescov-pair-types	

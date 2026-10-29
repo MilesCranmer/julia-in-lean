@@ -11,86 +11,8 @@ open JuliaLean.Registry
 
 /-- Registry entries of this area. -/
 def entries : List Entry := [
-  { id := "intfuncscov-gcd-mixed-typemin", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["_promote_mixed_signs", "gcd(::Signed,::Unsigned)",
-      "gcd(::Unsigned,::Signed)", "lcm(::Signed,::Unsigned)",
-      "gcdx(::Signed,::Unsigned)", "gcdx(::Unsigned,::Signed)"]
-    statement := "A signed typemin and same-width unsigned value have a representable gcd, lcm, and Bezout result in their promoted type."
-    source := "base/intfuncs.jl:8,100,146-160,192-198,276-284", status := .refuted
-    prop := ``Gcd.MixedTypeminRepresentable, thm := some ``Gcd.mixedTypeminRepresentable_refuted
-    issue := "duplicate #59660; queries: gcd typemin, gcd InexactError, gcd unsigned signed, _promote_mixed_signs"
-    notes := "Same-width signed typemin reaches abs(a % signed(R)) and throws InexactError before promotion." },
-  { id := "intfuncscov-gcd-array-typemin", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["gcd(::AbstractArray{<:Integer})"]
-    statement := "The gcd of an integer array returns its representable mathematical gcd."
-    source := "base/intfuncs.jl:8,178-187", status := .refuted
-    prop := ``Gcd.GcdArrayRepresentable, thm := some ``Gcd.gcdArrayRepresentable_refuted
-    issue := "related #59660; queries: gcd typemin, gcd array OverflowError"
-    notes := "Starting the fold at zero makes a leading typemin throw before a later element reduces the gcd." },
-  { id := "intfuncscov-number-theory-source", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["gcd", "lcm", "absdiff", "_gcd", "_promote_mixed_signs", "gcdx",
-      "_gcdx_update", "_bezout_coef", "invmod"]
-    statement := "Number-theory loops, mixed dispatch, array folds, n-ary recursion, and modular-inverse wrappers follow the source branches for every model input."
-    source := "base/intfuncs.jl:44-382", status := .proven
-    prop := ``Simple.NumberTheorySourceBehavior, thm := some ``Simple.numberTheorySourceBehavior },
-  { id := "intfuncscov-power-source", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["throw_domerr_powbysq", "power_by_squaring", "^", "literal_pow",
-      "powermod", "_powermod_mi_legal", "_nextpow2", "_prevpow2", "ispow2"]
-    statement := "Integer powers, literal-power dispatch, modular powers, power-of-two helpers, and error dispatch preserve the source branch order for every model input."
-    source := "base/intfuncs.jl:384-624", status := .proven
-    prop := ``Simple.PowerSourceBehavior, thm := some ``Simple.powerSourceBehavior },
-  { id := "intfuncscov-digits-source", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["nextpow", "prevpow", "top_set_bit", "ndigits0z", "ndigits0znb",
-      "ndigits0zpb", "ndigits", "bin", "oct", "dec", "hex", "_base", "split_sign",
-      "string", "bitstring", "digits", "digits!", "hastypemax"]
-    statement := "Power rounding, digit counting, integer formatting, bit strings, digit extraction, and type-extrema dispatch follow their source formulas for every model input."
-    source := "base/intfuncs.jl:626-1281", status := .proven
-    prop := ``Simple.DigitsSourceBehavior, thm := some ``Simple.digitsSourceBehavior },
-  { id := "intfuncscov-combinatorial-source", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["isqrt", "factorial", "binomial"]
-    statement := "Integer square root, factorial, and integer or generalized binomial dispatch use the source result types, checks, and arithmetic loops."
-    source := "base/intfuncs.jl:1293-1433", status := .proven
-    prop := ``Simple.CombinatoricsSourceBehavior, thm := some ``Simple.combinatoricsSourceBehavior },
-  { id := "intfuncscov-clamp-source", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["clamp", "clamp!", "clamp(::Integer,::AbstractUnitRange)"]
-    statement := "Clamp promotes or converts the selected bound or value, clamp! applies that operation in index order, and range clamp forwards its endpoints."
-    source := "base/intfuncs.jl:1461-1533", status := .proven
-    prop := ``Simple.ClampSourceBehavior, thm := some ``Simple.clampSourceBehavior },
 
-  { id := "intfuncscov-hash-primitives", juliaFile := "base/hashing.jl"
-    juliaFns := ["hash", "_jl_type_hash", "mul_parts", "hash_mix", "hash_mix_linear",
-      "hash_finalizer", "hash_64_64", "hash_64_32", "hash_32_32"]
-    statement := "Hash primitive multiplication, mixing, finalization, and forwarding use wrapping UInt arithmetic and the source argument order."
-    source := "base/hashing.jl:40-77", status := .proven
-    prop := ``Hashing.HashPrimitiveBehavior, thm := some ``Hashing.hashPrimitiveBehavior },
-  { id := "intfuncscov-hash-numeric", juliaFile := "base/hashing.jl"
-    juliaFns := ["IntegerCodeUnits", "size", "length", "getindex", "load_le_array",
-      "codeunits", "utf8units", "iterate", "hash_integer", "_hash_integer",
-      "hash(::Float64)", "hash(::Float32)", "hash(::Float16)", "hash(::Real)"]
-    statement := "Integer code units are the minimal little-endian magnitude bytes, while integer, float, real, and string hash dispatch follows the source normalization paths."
-    source := "base/hashing.jl:79-245", status := .proven
-    prop := ``Hashing.HashIntegerUnitsBehavior, thm := some ``Hashing.hashIntegerUnitsBehavior },
-  { id := "intfuncscov-hash-structural", juliaFile := "base/hashing.jl"
-    juliaFns := ["hash(::QuoteNode)", "hash(::PhiNode)", "hash(::PhiCNode)",
-      "hash(::Expr)", "hash(::CodeInfo)", "hash(::DebugInfo)", "hash(::Symbol)",
-      "hash(::GlobalRef)", "hash(::PartialStruct)"]
-    statement := "Compiler-IR hashes mix their tag seed and fields in the source order for every field hash callback."
-    source := "base/hashing.jl:248-293", status := .proven
-    prop := ``Hashing.HashStructuralBehavior, thm := some ``Hashing.hashStructuralBehavior },
-  { id := "intfuncscov-hash-bytes", juliaFile := "base/hashing.jl"
-    juliaFns := ["load_le", "hash_bytes", "load_le_array", "concat_shift",
-      "read_uint64_from_uint8_iter"]
-    statement := "Pointer, array, and iterator byte hashing produce the same rapid-hash value for the same byte sequence, including every length branch and 48-byte chunk."
-    source := "base/hashing.jl:296-647", status := .proven
-    prop := ``Hashing.HashBytesBehavior, thm := some ``Hashing.hashBytesBehavior },
 
-  { id := "intfuncscov-multiplicative-inverse-source", juliaFile := "base/multinverses.jl"
-    juliaFns := ["unsigned", "SignedMultiplicativeInverse", "UnsignedMultiplicativeInverse",
-      "div", "rem", "divrem", "mod", "multiplicativeinverse"]
-    statement := "Magic-number constructors and division, remainder, modulus, divrem, and dispatch agree with the source algorithms for every fixed-width input."
-    source := "base/multinverses.jl:8-164", status := .proven
-    prop := ``Simple.MultiplicativeInverseSourceBehavior,
-    thm := some ``Simple.multiplicativeInverseSourceBehavior },
 
   { id := "intfuncscov-combinatorics-source", juliaFile := "base/combinatorics.jl"
     juliaFns := ["factorial_lookup", "factorial", "_foldoneto", "isperm", "_isperm",
@@ -114,24 +36,6 @@ def entries : List Entry := [
     issue := "none found (queries: invperm empty Any, invperm zero eltype, invperm empty vector)"
     notes := "invperm(Any[]) throws MethodError from zero(Any), while isperm(Any[]) is true and invperm(()) returns ()." },
 
-  { id := "intfuncscov-char-encoding", juliaFile := "base/char.jl"
-    juliaFns := ["AbstractChar", "Char", "codepoint", "ismalformed", "isoverlong",
-      "unsafe_codepoint", "decode_overlong", "UInt32", "UInt32_cold", "Char_cold", "convert", "rem"]
-    statement := "Character construction, decoding, malformed and overlong checks, unsafe decoding, and numeric conversion follow the source bit operations for every Char bit pattern."
-    source := "base/char.jl:54-239", status := .proven
-    prop := ``Char.CharEncodingBehavior, thm := some ``Char.charEncodingBehavior },
-  { id := "intfuncscov-char-scalar", juliaFile := "base/char.jl"
-    juliaFns := ["typemin", "typemax", "size", "ndims", "length", "IteratorSize",
-      "firstindex", "lastindex", "getindex", "first", "last", "eltype", "iterate",
-      "isempty", "in", "==", "isless", "hash", "widen", "-%", "-", "+%", "+"]
-    statement := "AbstractChar scalar indexing, iteration, comparison, traits, and arithmetic preserve the source values, checks, and codepoint arithmetic."
-    source := "base/char.jl:241-300", status := .proven
-    prop := ``Char.CharScalarBehavior, thm := some ``Char.charScalarBehavior },
-  { id := "intfuncscov-char-display", juliaFile := "base/char.jl"
-    juliaFns := ["print", "show_invalid", "show", "show(::MIME\"text/plain\")"]
-    statement := "Character printing emits the encoded bytes; invalid display emits byte escapes; plain display preserves the literal and reports malformed, overlong, and codepoint state."
-    source := "base/char.jl:305-392", status := .proven
-    prop := ``Char.CharDisplayBehavior, thm := some ``Char.charDisplayBehavior },
 
   { id := "intfuncscov-version-number-source", juliaFile := "base/version.jl"
     juliaFns := ["VersionNumber", "print", "show", "tryparse", "parse", "v_str",

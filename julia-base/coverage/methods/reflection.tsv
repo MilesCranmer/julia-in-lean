@@ -1,61 +1,61 @@
 file	line	endline	name	signature	status	entry	note
-base/reflection.jl	19	47	code_lowered	code_lowered(@nospecialize(argtypes::Union{Tuple,Type{<:Tuple}}); generated::Bool=true, debuginfo::Symbol=:default)	modelled	exprreflect-reflection-row-19	method-specific mirror and property: exprreflect-reflection-row-19
-base/reflection.jl	49	52	code_lowered	code_lowered(@nospecialize(f), @nospecialize(t=Tuple); generated::Bool=true, debuginfo::Symbol=:default)	modelled	exprreflect-reflection-row-49	method-specific mirror and property: exprreflect-reflection-row-49
-base/reflection.jl	58	68	method_instances	method_instances(@nospecialize(argtypes::Union{Tuple,Type{<:Tuple}}), world::UInt)	modelled	exprreflect-reflection-row-58	method-specific mirror and property: exprreflect-reflection-row-58
-base/reflection.jl	70	73	method_instances	method_instances(@nospecialize(f), @nospecialize(t), world::UInt)	modelled	exprreflect-reflection-row-70	method-specific mirror and property: exprreflect-reflection-row-70
-base/reflection.jl	75	82	method_instance	method_instance(@nospecialize(argtypes::Union{Tuple,Type{<:Tuple}}); world=Base.get_world_counter(), method_table=nothing)	modelled	exprreflect-reflection-row-75	method-specific mirror and property: exprreflect-reflection-row-75
-base/reflection.jl	84	88	method_instance	method_instance(@nospecialize(f), @nospecialize(t); world=Base.get_world_counter(), method_table=nothing)	modelled	exprreflect-reflection-row-84	method-specific mirror and property: exprreflect-reflection-row-84
-base/reflection.jl	90	90	default_debug_info_kind	default_debug_info_kind()	modelled	exprreflect-reflection-row-90	method-specific mirror and property: exprreflect-reflection-row-90
-base/reflection.jl	201	217	CodegenParams	CodegenParams(; track_allocations::Bool=true, code_coverage::Bool=true, prefer_specsig::Bool=false, gnu_pubnames::Bool=true, debug_info_kind::Cint = default_debug_info_kind(), debug_info_level::Cint = Cint(JLOptions().debug_level), safepoint_on_entry::Bool=true, gcstack_arg::Bool=true, use_jlplt::Bool=true, force_emit_all::Bool=false, sanitize_memory::Bool=false, sanitize_thread::Bool=false, sanitize_address::Bool=false, unique_names::Bool=false, debug_info_inline_scopes::Bool=true)	modelled	exprreflect-reflection-row-201	method-specific mirror and property: exprreflect-reflection-row-201
-base/reflection.jl	224	226	EmissionParams	EmissionParams(; emit_metadata::Bool=true)	modelled	exprreflect-reflection-row-224	method-specific mirror and property: exprreflect-reflection-row-224
-base/reflection.jl	286	286	code_typed	code_typed	excluded		no-behaviour: declares the code_typed generic function without defining a method.
-base/reflection.jl	288	294	code_typed	code_typed(@nospecialize(f), @nospecialize(types=default_tt(f)); kwargs...)	modelled	exprreflect-reflection-row-288	method-specific mirror and property: exprreflect-reflection-row-288
-base/reflection.jl	299	302	code_typed	code_typed(@nospecialize(argtypes::Union{Tuple,Type{<:Tuple}}); kwargs...)	modelled	exprreflect-reflection-row-299	method-specific mirror and property: exprreflect-reflection-row-299
-base/reflection.jl	307	314	default_tt	default_tt(@nospecialize(f))	modelled	exprreflect-reflection-row-307	method-specific mirror and property: exprreflect-reflection-row-307
-base/reflection.jl	316	320	raise_match_failure	raise_match_failure(name::Symbol, @nospecialize(tt))	modelled	exprreflect-reflection-row-316	method-specific mirror and property: exprreflect-reflection-row-316
-base/reflection.jl	324	327	invoke_in_typeinf_world	invoke_in_typeinf_world(args...)	modelled	exprreflect-reflection-row-324	method-specific mirror and property: exprreflect-reflection-row-324
-base/reflection.jl	329	335	invoke_default_compiler	invoke_default_compiler(fname::Symbol, args...)	modelled	exprreflect-reflection-row-329	method-specific mirror and property: exprreflect-reflection-row-329
-base/reflection.jl	337	350	invoke_interp_compiler	invoke_interp_compiler(interp, fname::Symbol, args...)	modelled	exprreflect-reflection-row-337	method-specific mirror and property: exprreflect-reflection-row-337
-base/reflection.jl	352	365	invoke_mt_compiler	invoke_mt_compiler(mt, fname::Symbol, args...)	modelled	exprreflect-reflection-row-352	method-specific mirror and property: exprreflect-reflection-row-352
-base/reflection.jl	373	405	code_typed_by_type	code_typed_by_type(@nospecialize(tt::Type); optimize::Bool=true, debuginfo::Symbol=:default, world::UInt=get_world_counter(), interp=nothing)	modelled	exprreflect-reflection-row-373	method-specific mirror and property: exprreflect-reflection-row-373
-base/reflection.jl	407	436	get_oc_code_rt	get_oc_code_rt(passed_interp, oc::Core.OpaqueClosure, types, optimize::Bool)	modelled	exprreflect-reflection-row-407	method-specific mirror and property: exprreflect-reflection-row-407
-base/reflection.jl	438	447	code_typed_opaque_closure	code_typed_opaque_closure(oc::Core.OpaqueClosure, types; debuginfo::Symbol=:default, optimize::Bool=true, interp=nothing, _...)	modelled	exprreflect-reflection-row-438	method-specific mirror and property: exprreflect-reflection-row-438
-base/reflection.jl	492	498	code_ircode	code_ircode(@nospecialize(f), @nospecialize(types = default_tt(f)); kwargs...)	modelled	exprreflect-reflection-row-492	method-specific mirror and property: exprreflect-reflection-row-492
-base/reflection.jl	500	503	code_ircode	code_ircode(@nospecialize(argtypes::Union{Tuple,Type{<:Tuple}}); kwargs...)	modelled	exprreflect-reflection-row-500	method-specific mirror and property: exprreflect-reflection-row-500
-base/reflection.jl	511	535	code_ircode_by_type	code_ircode_by_type( @nospecialize(tt::Type); world::UInt=get_world_counter(), interp=nothing, optimize_until::Union{Int,String,Nothing}=nothing, )	modelled	exprreflect-reflection-row-511	method-specific mirror and property: exprreflect-reflection-row-511
-base/reflection.jl	537	542	_builtin_return_type	_builtin_return_type(passed_interp, interp, @nospecialize(f::Core.Builtin), @nospecialize(types))	modelled	exprreflect-reflection-row-537	method-specific mirror and property: exprreflect-reflection-row-537
-base/reflection.jl	544	551	_builtin_effects	_builtin_effects(passed_interp, interp, @nospecialize(f::Core.Builtin), @nospecialize(types))	modelled	exprreflect-reflection-row-544	method-specific mirror and property: exprreflect-reflection-row-544
-base/reflection.jl	553	557	_builtin_exception_type	_builtin_exception_type(passed_interp, interp, @nospecialize(f::Core.Builtin), @nospecialize(types))	modelled	exprreflect-reflection-row-553	method-specific mirror and property: exprreflect-reflection-row-553
-base/reflection.jl	559	561	check_generated_context	check_generated_context(world::UInt)	modelled	exprreflect-reflection-row-559	method-specific mirror and property: exprreflect-reflection-row-559
-base/reflection.jl	610	631	return_types	return_types(@nospecialize(f), @nospecialize(types=default_tt(f)); world::UInt=get_world_counter(), interp=nothing)	modelled	exprreflect-reflection-row-610	method-specific mirror and property: exprreflect-reflection-row-610
-base/reflection.jl	680	700	infer_return_type	infer_return_type(@nospecialize(f), @nospecialize(types=default_tt(f)); world::UInt=get_world_counter(), interp=nothing)	modelled	exprreflect-reflection-row-680	method-specific mirror and property: exprreflect-reflection-row-680
-base/reflection.jl	752	777	infer_exception_types	infer_exception_types(@nospecialize(f), @nospecialize(types=default_tt(f)); world::UInt=get_world_counter(), interp=nothing)	modelled	exprreflect-reflection-row-752	method-specific mirror and property: exprreflect-reflection-row-752
-base/reflection.jl	830	845	infer_exception_type	infer_exception_type(@nospecialize(f), @nospecialize(types=default_tt(f)); world::UInt=get_world_counter(), interp=nothing)	modelled	exprreflect-reflection-row-830	method-specific mirror and property: exprreflect-reflection-row-830
-base/reflection.jl	908	922	infer_effects	infer_effects(@nospecialize(f), @nospecialize(types=default_tt(f)); optimize::Bool=true, world::UInt=get_world_counter(), interp=nothing)	modelled	exprreflect-reflection-row-908	method-specific mirror and property: exprreflect-reflection-row-908
-base/reflection.jl	930	933	print_statement_costs	print_statement_costs(io::IO, @nospecialize(f), @nospecialize(t); kwargs...)	modelled	exprreflect-reflection-row-930	method-specific mirror and property: exprreflect-reflection-row-930
-base/reflection.jl	935	964	print_statement_costs	print_statement_costs(io::IO, @nospecialize(tt::Type); world::UInt=get_world_counter(), interp=nothing)	modelled	exprreflect-reflection-row-935	method-specific mirror and property: exprreflect-reflection-row-935
-base/reflection.jl	966	966	print_statement_costs	print_statement_costs(args...; kwargs...)	modelled	exprreflect-reflection-row-966	method-specific mirror and property: exprreflect-reflection-row-966
-base/reflection.jl	968	979	_which	_which(@nospecialize(tt::Type); method_table #=::Union{Nothing,Core.MethodTable,Compiler.MethodTableView}=# =nothing, world::UInt=get_world_counter(), raise::Bool=true)	modelled	exprreflect-reflection-row-968	method-specific mirror and property: exprreflect-reflection-row-968
-base/reflection.jl	990	1003	which	which(@nospecialize(f), @nospecialize(t))	modelled	exprreflect-reflection-row-990	method-specific mirror and property: exprreflect-reflection-row-990
-base/reflection.jl	1010	1012	which	which(@nospecialize(tt#=::Type=#))	modelled	exprreflect-reflection-row-1010	method-specific mirror and property: exprreflect-reflection-row-1010
-base/reflection.jl	1013	1013	which	which(@nospecialize(argtypes::Tuple))	modelled	exprreflect-reflection-row-1013	method-specific mirror and property: exprreflect-reflection-row-1013
-base/reflection.jl	1020	1025	which	which(m::Module, s::Symbol)	modelled	exprreflect-reflection-row-1020	method-specific mirror and property: exprreflect-reflection-row-1020
-base/reflection.jl	1036	1038	nameof	nameof(f::Function)	modelled	exprreflect-reflection-row-1036	method-specific mirror and property: exprreflect-reflection-row-1036
-base/reflection.jl	1040	1043	nameof	nameof(f::Core.IntrinsicFunction)	modelled	exprreflect-reflection-row-1040	method-specific mirror and property: exprreflect-reflection-row-1040
-base/reflection.jl	1051	1051	parentmodule	parentmodule(f::Function)	modelled	exprreflect-reflection-row-1051	method-specific mirror and property: exprreflect-reflection-row-1051
-base/reflection.jl	1059	1065	parentmodule	parentmodule(@nospecialize(f), @nospecialize(types))	modelled	exprreflect-reflection-row-1059	method-specific mirror and property: exprreflect-reflection-row-1059
-base/reflection.jl	1075	1075	parentmodule	parentmodule(m::Method)	modelled	exprreflect-reflection-row-1075	method-specific mirror and property: exprreflect-reflection-row-1075
-base/reflection.jl	1113	1115	hasmethod	hasmethod(@nospecialize(f), @nospecialize(t))	modelled	exprreflect-reflection-row-1113	method-specific mirror and property: exprreflect-reflection-row-1113
-base/reflection.jl	1117	1120	Core.kwcall	Core.kwcall(kwargs::NamedTuple, ::typeof(hasmethod), @nospecialize(f), @nospecialize(t))	modelled	exprreflect-reflection-row-1117	method-specific mirror and property: exprreflect-reflection-row-1117
-base/reflection.jl	1122	1139	hasmethod	hasmethod(f, t, kwnames::Tuple{Vararg{Symbol}}; world::UInt=get_world_counter())	modelled	exprreflect-reflection-row-1122	method-specific mirror and property: exprreflect-reflection-row-1122
-base/reflection.jl	1155	1193	bodyfunction	bodyfunction(basemethod::Method; world::UInt=get_world_counter())	modelled	exprreflect-reflection-row-1155	method-specific mirror and property: exprreflect-reflection-row-1155
-base/reflection.jl	1229	1297	isambiguous	isambiguous(m1::Method, m2::Method; ambiguous_bottom::Bool=false)	modelled	exprreflect-reflection-row-1229	method-specific mirror and property: exprreflect-reflection-row-1229
-base/reflection.jl	1233	1277	inner	inner(ti)	modelled	exprreflect-reflection-row-1233	method-specific mirror and property: exprreflect-reflection-row-1233
-base/reflection.jl	1249	1257	involves_both	involves_both(ms)	modelled	exprreflect-reflection-row-1249	method-specific mirror and property: exprreflect-reflection-row-1249
-base/reflection.jl	1345	1363	invoke	invoke(ex)	modelled	exprreflect-reflection-row-1345	method-specific mirror and property: exprreflect-reflection-row-1345
-base/reflection.jl	1365	1365	getglobalref	getglobalref(gr::GlobalRef, world::UInt)	modelled	exprreflect-reflection-row-1365	method-specific mirror and property: exprreflect-reflection-row-1365
-base/reflection.jl	1367	1376	invokelatest_gr	invokelatest_gr(gr::GlobalRef, args...; kwargs...)	modelled	exprreflect-reflection-row-1367	method-specific mirror and property: exprreflect-reflection-row-1367
-base/reflection.jl	1406	1448	invokelatest	invokelatest(ex)	modelled	exprreflect-reflection-row-1406	method-specific mirror and property: exprreflect-reflection-row-1406
-base/reflection.jl	1450	1497	destructure_callex	destructure_callex(topmod::Module, @nospecialize(ex))	modelled	exprreflect-reflection-row-1450	method-specific mirror and property: exprreflect-reflection-row-1450
-base/reflection.jl	1451	1461	flatten	flatten(xs)	modelled	exprreflect-reflection-row-1451	method-specific mirror and property: exprreflect-reflection-row-1451
-base/reflection.jl	1506	1514	drop_all_caches	drop_all_caches()	modelled	exprreflect-reflection-row-1506	method-specific mirror and property: exprreflect-reflection-row-1506
+base/reflection.jl	19	47	code_lowered	code_lowered(@nospecialize(argtypes::Union{Tuple,Type{<:Tuple}}); generated::Bool=true, debuginfo::Symbol=:default)	todo		
+base/reflection.jl	49	52	code_lowered	code_lowered(@nospecialize(f), @nospecialize(t=Tuple); generated::Bool=true, debuginfo::Symbol=:default)	todo		
+base/reflection.jl	58	68	method_instances	method_instances(@nospecialize(argtypes::Union{Tuple,Type{<:Tuple}}), world::UInt)	todo		
+base/reflection.jl	70	73	method_instances	method_instances(@nospecialize(f), @nospecialize(t), world::UInt)	todo		
+base/reflection.jl	75	82	method_instance	method_instance(@nospecialize(argtypes::Union{Tuple,Type{<:Tuple}}); world=Base.get_world_counter(), method_table=nothing)	todo		
+base/reflection.jl	84	88	method_instance	method_instance(@nospecialize(f), @nospecialize(t); world=Base.get_world_counter(), method_table=nothing)	todo		
+base/reflection.jl	90	90	default_debug_info_kind	default_debug_info_kind()	todo		
+base/reflection.jl	201	217	CodegenParams	CodegenParams(; track_allocations::Bool=true, code_coverage::Bool=true, prefer_specsig::Bool=false, gnu_pubnames::Bool=true, debug_info_kind::Cint = default_debug_info_kind(), debug_info_level::Cint = Cint(JLOptions().debug_level), safepoint_on_entry::Bool=true, gcstack_arg::Bool=true, use_jlplt::Bool=true, force_emit_all::Bool=false, sanitize_memory::Bool=false, sanitize_thread::Bool=false, sanitize_address::Bool=false, unique_names::Bool=false, debug_info_inline_scopes::Bool=true)	todo		
+base/reflection.jl	224	226	EmissionParams	EmissionParams(; emit_metadata::Bool=true)	todo		
+base/reflection.jl	286	286	code_typed	code_typed	todo		
+base/reflection.jl	288	294	code_typed	code_typed(@nospecialize(f), @nospecialize(types=default_tt(f)); kwargs...)	todo		
+base/reflection.jl	299	302	code_typed	code_typed(@nospecialize(argtypes::Union{Tuple,Type{<:Tuple}}); kwargs...)	todo		
+base/reflection.jl	307	314	default_tt	default_tt(@nospecialize(f))	todo		
+base/reflection.jl	316	320	raise_match_failure	raise_match_failure(name::Symbol, @nospecialize(tt))	todo		
+base/reflection.jl	324	327	invoke_in_typeinf_world	invoke_in_typeinf_world(args...)	todo		
+base/reflection.jl	329	335	invoke_default_compiler	invoke_default_compiler(fname::Symbol, args...)	todo		
+base/reflection.jl	337	350	invoke_interp_compiler	invoke_interp_compiler(interp, fname::Symbol, args...)	todo		
+base/reflection.jl	352	365	invoke_mt_compiler	invoke_mt_compiler(mt, fname::Symbol, args...)	todo		
+base/reflection.jl	373	405	code_typed_by_type	code_typed_by_type(@nospecialize(tt::Type); optimize::Bool=true, debuginfo::Symbol=:default, world::UInt=get_world_counter(), interp=nothing)	todo		
+base/reflection.jl	407	436	get_oc_code_rt	get_oc_code_rt(passed_interp, oc::Core.OpaqueClosure, types, optimize::Bool)	todo		
+base/reflection.jl	438	447	code_typed_opaque_closure	code_typed_opaque_closure(oc::Core.OpaqueClosure, types; debuginfo::Symbol=:default, optimize::Bool=true, interp=nothing, _...)	todo		
+base/reflection.jl	492	498	code_ircode	code_ircode(@nospecialize(f), @nospecialize(types = default_tt(f)); kwargs...)	todo		
+base/reflection.jl	500	503	code_ircode	code_ircode(@nospecialize(argtypes::Union{Tuple,Type{<:Tuple}}); kwargs...)	todo		
+base/reflection.jl	511	535	code_ircode_by_type	code_ircode_by_type( @nospecialize(tt::Type); world::UInt=get_world_counter(), interp=nothing, optimize_until::Union{Int,String,Nothing}=nothing, )	todo		
+base/reflection.jl	537	542	_builtin_return_type	_builtin_return_type(passed_interp, interp, @nospecialize(f::Core.Builtin), @nospecialize(types))	todo		
+base/reflection.jl	544	551	_builtin_effects	_builtin_effects(passed_interp, interp, @nospecialize(f::Core.Builtin), @nospecialize(types))	todo		
+base/reflection.jl	553	557	_builtin_exception_type	_builtin_exception_type(passed_interp, interp, @nospecialize(f::Core.Builtin), @nospecialize(types))	todo		
+base/reflection.jl	559	561	check_generated_context	check_generated_context(world::UInt)	todo		
+base/reflection.jl	610	631	return_types	return_types(@nospecialize(f), @nospecialize(types=default_tt(f)); world::UInt=get_world_counter(), interp=nothing)	todo		
+base/reflection.jl	680	700	infer_return_type	infer_return_type(@nospecialize(f), @nospecialize(types=default_tt(f)); world::UInt=get_world_counter(), interp=nothing)	todo		
+base/reflection.jl	752	777	infer_exception_types	infer_exception_types(@nospecialize(f), @nospecialize(types=default_tt(f)); world::UInt=get_world_counter(), interp=nothing)	todo		
+base/reflection.jl	830	845	infer_exception_type	infer_exception_type(@nospecialize(f), @nospecialize(types=default_tt(f)); world::UInt=get_world_counter(), interp=nothing)	todo		
+base/reflection.jl	908	922	infer_effects	infer_effects(@nospecialize(f), @nospecialize(types=default_tt(f)); optimize::Bool=true, world::UInt=get_world_counter(), interp=nothing)	todo		
+base/reflection.jl	930	933	print_statement_costs	print_statement_costs(io::IO, @nospecialize(f), @nospecialize(t); kwargs...)	todo		
+base/reflection.jl	935	964	print_statement_costs	print_statement_costs(io::IO, @nospecialize(tt::Type); world::UInt=get_world_counter(), interp=nothing)	todo		
+base/reflection.jl	966	966	print_statement_costs	print_statement_costs(args...; kwargs...)	todo		
+base/reflection.jl	968	979	_which	_which(@nospecialize(tt::Type); method_table #=::Union{Nothing,Core.MethodTable,Compiler.MethodTableView}=# =nothing, world::UInt=get_world_counter(), raise::Bool=true)	todo		
+base/reflection.jl	990	1003	which	which(@nospecialize(f), @nospecialize(t))	todo		
+base/reflection.jl	1010	1012	which	which(@nospecialize(tt#=::Type=#))	todo		
+base/reflection.jl	1013	1013	which	which(@nospecialize(argtypes::Tuple))	todo		
+base/reflection.jl	1020	1025	which	which(mdl::Module, symbol::Symbol)	todo		
+base/reflection.jl	1036	1038	nameof	nameof(f::Function)	todo		
+base/reflection.jl	1040	1043	nameof	nameof(f::Core.IntrinsicFunction)	todo		
+base/reflection.jl	1051	1051	parentmodule	parentmodule(f::Function)	todo		
+base/reflection.jl	1059	1065	parentmodule	parentmodule(@nospecialize(f), @nospecialize(types))	todo		
+base/reflection.jl	1075	1075	parentmodule	parentmodule(m::Method)	todo		
+base/reflection.jl	1113	1115	hasmethod	hasmethod(@nospecialize(f), @nospecialize(t))	todo		
+base/reflection.jl	1117	1120	Core.kwcall	Core.kwcall(kwargs::NamedTuple, ::typeof(hasmethod), @nospecialize(f), @nospecialize(t))	todo		
+base/reflection.jl	1122	1139	hasmethod	hasmethod(f, t, kwnames::Tuple{Vararg{Symbol}}; world::UInt=get_world_counter())	todo		
+base/reflection.jl	1155	1193	bodyfunction	bodyfunction(basemethod::Method; world::UInt=get_world_counter())	todo		
+base/reflection.jl	1229	1297	isambiguous	isambiguous(m1::Method, m2::Method; ambiguous_bottom::Bool=false)	todo		
+base/reflection.jl	1233	1277	inner	inner(ti)	todo		
+base/reflection.jl	1249	1257	involves_both	involves_both(ms)	todo		
+base/reflection.jl	1345	1363	invoke	invoke(ex)	todo		
+base/reflection.jl	1365	1365	getglobalref	getglobalref(gr::GlobalRef, world::UInt)	todo		
+base/reflection.jl	1367	1376	invokelatest_gr	invokelatest_gr(gr::GlobalRef, args...; kwargs...)	todo		
+base/reflection.jl	1406	1448	invokelatest	invokelatest(ex)	todo		
+base/reflection.jl	1450	1497	destructure_callex	destructure_callex(topmod::Module, @nospecialize(ex))	todo		
+base/reflection.jl	1451	1461	flatten	flatten(xs)	todo		
+base/reflection.jl	1506	1514	drop_all_caches	drop_all_caches()	todo		

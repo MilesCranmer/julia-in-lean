@@ -59,3 +59,13 @@ duplicates:
 lean:
   property: JuliaLean.Streams.ClosedIOStreamWriteErrors
   theorem: JuliaLean.Streams.closedIOStreamWriteErrors_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: false
+  proof: JuliaLean.Streams.closedIOStreamWriteErrors_proven
+  output: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    isopen(io) = false
+    iswritable(io) = false
+    write(io, "x") = ArgumentError
+    write(io, UInt8('x')) = ArgumentError

@@ -92,13 +92,6 @@ def mapfoldrNoInit (f : α → β) (op : β → β → β) (firstFlip : β → �
 def mapfoldrInit (f : α → β) (op : β → γ → γ) (init : γ) (A : List α) : γ :=
   A.reverse.foldl (fun acc x => op (f x) acc) init
 
-/-- `FlatteningRF`, `base/reduce.jl:118-125`: `mapfoldl(identity, op, Iterators.flatten(vs))`
-without `init` runs `BottomRF(op)` across the concatenation; the empty case calls
-`reduce_empty_iter(FlatteningRF(BottomRF(op)), vs)`, which has no method other than the
-`reduce_empty(f, T)` error fallback (`base/reduce.jl:319`). -/
-def foldlFlatten (op : β → β → β) (first : β → β) (vs : List (List β)) : R β :=
-  mapfoldlNoInit id op first (.error .argumentError) vs.flatten
-
 /-- `_accumulate1!` loop, `base/accumulate.jl:436-452`: `cur_val = op(cur_val, A[i])`. -/
 def accumulateLoop (op : β → α → β) (cur : β) : List α → List β
   | [] => []

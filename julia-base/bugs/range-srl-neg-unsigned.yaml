@@ -1,0 +1,51 @@
+id: range-srl-neg-unsigned
+title: "-(::StepRangeLen) throws when negating an unsigned step"
+priority: P2
+kind: wrong-exception
+area: Ranges
+files: [base/range.jl, base/abstractarraymath.jl]
+functions: ["-(r::StepRangeLen{T,R,S,L})"]
+summary: |
+  Negating a StepRangeLen with an unsigned step wraps the step to a large unsigned
+  value. Later elements are computed from that positive step and can exceed the
+  element type, so materializing the negated range throws instead of matching
+  elementwise negation.
+likelihood: |
+  Low: this requires a StepRangeLen with an unsigned element and step type, followed
+  by range negation and access to a later element.
+maybe_intended: ""
+reproducer: |
+  r = StepRangeLen(UInt8(0), UInt8(1), 3)
+  collect(-r)  # expected UInt8[0x00, 0xff, 0xfe]
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    collect(r) = UInt8[0x00, 0x01, 0x02], .-collect(r) = UInt8[0x00, 0xff, 0xfe], collect(-r) = InexactError(:trunc, (UInt8, 510))
+    REPRODUCED range-srl-neg-unsigned
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    collect(r) = UInt8[0x00, 0x01, 0x02], .-collect(r) = UInt8[0x00, 0xff, 0xfe], collect(-r) = InexactError(:trunc, (UInt8, 510))
+    REPRODUCED range-srl-neg-unsigned
+reproduced: {release: true, nightly: true}
+expected: |
+  collect(-r) should equal the elementwise negation UInt8[0x00, 0xff, 0xfe].
+promised_by: |
+  Base array negation, base/abstractarraymath.jl:293, uses broadcast_preserving_zero_d
+  to negate each array element. StepRangeLen is an AbstractRange of indexed values
+  (base/range.jl:516-522), so its negated range should represent the same values as
+  elementwise negation.
+cause: |
+  base/range.jl:1323-1324 negates r.ref and r.step using their original types. For
+  UInt8(1), the negated step wraps to UInt8(255); the third element is then computed
+  as 0 + 2*255 = 510 and cannot be converted to UInt8, while elementwise negation
+  wraps -UInt8(2) to UInt8(254).
+possible_fix: |
+  Preserve the wrapped negation of the first element, but widen an unsigned step
+  before negating it so the result uses a signed step capable of representing the
+  descending sequence.
+duplicates:
+  issues: []
+  queries: ["issues: StepRangeLen unary negation unsigned", "issues: StepRangeLen negation UInt8", "prs: StepRangeLen unary negation unsigned", "prs: StepRangeLen negation UInt8"]
+lean:
+  property: JuliaLean.Proofs.base.range.SRLNegElements
+  theorem: JuliaLean.Proofs.base.range.sRLNegElements_refuted

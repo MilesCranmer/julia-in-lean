@@ -445,17 +445,35 @@ structure ReflectedMethod where
   forwardsKeywords : Bool
   deriving Repr, DecidableEq, Inhabited
 
-/-- `_which`; `base/reflection.jl:968-979`. -/
-def reflectionRow968 (worldMax raiseError : Bool) (candidate : Option ReflectedMethod) : Jl (Option ReflectedMethod) :=
-  if worldMax then .error (.argumentError "reflection from generated function")
-  else match candidate with | some method => .ok (some method) | none => if raiseError then .error (.argumentError "no unique match") else .ok none
-def ReflectionRow968Property : Prop := ∀ worldMax raise candidate,
-  reflectionRow968 worldMax raise candidate =
-    if worldMax then .error (.argumentError "reflection from generated function")
-    else match candidate with
-      | some method => .ok (some method)
-      | none => if raise then .error (.argumentError "no unique match") else .ok none
-theorem reflectionRow968_proven : ReflectionRow968Property := by unfold ReflectionRow968Property; intros; rfl
+inductive LookupCandidate where
+  | missing
+  | methodMatch (method : ReflectedMethod)
+  | other
+
+inductive LookupResult where
+  | generatedFunctionError
+  | noMatchError
+  | typeError
+  | none
+  | matchFound (method : ReflectedMethod)
+  deriving DecidableEq
+
+/-- `_which`; the compiler result may be `nothing`, a MethodMatch, or an
+incorrectly typed value rejected by the assertion at `base/reflection.jl:978`. -/
+def reflectionRow968 (worldMax raiseError : Bool) (candidate : LookupCandidate) : LookupResult :=
+  if worldMax then .generatedFunctionError
+  else match candidate with
+    | .missing => if raiseError then .noMatchError else .none
+    | .methodMatch method => .matchFound method
+    | .other => .typeError
+
+def ReflectionRow968Property : Prop :=
+  (∀ raise candidate, reflectionRow968 true raise candidate = .generatedFunctionError) ∧
+  (∀ raise, reflectionRow968 false raise .missing = if raise then .noMatchError else .none) ∧
+  (∀ raise method, reflectionRow968 false raise (.methodMatch method) = .matchFound method) ∧
+  (∀ raise, reflectionRow968 false raise .other = .typeError)
+theorem reflectionRow968_proven : ReflectionRow968Property := by
+  simp [ReflectionRow968Property, reflectionRow968]
 
 /-- `which(f,t)`; `base/reflection.jl:990-1003`. -/
 def reflectionRow990 (candidate : Option ReflectedMethod) : Jl ReflectedMethod :=
@@ -487,12 +505,19 @@ def ReflectionRow1013Property : Prop := ∀ convert query arguments,
   reflectionRow1013 convert query arguments = query (convert arguments)
 theorem reflectionRow1013_proven : ReflectionRow1013Property := by unfold ReflectionRow1013Property; intros; rfl
 
-/-- `which(module,symbol)`; `base/reflection.jl:1020-1025`. -/
-def reflectionRow1020 (defined : Bool) (bindingModule : String) : Jl String :=
-  if defined then .ok bindingModule else .error (.argumentError "binding not defined")
-def ReflectionRow1020Property : Prop := ∀ defined moduleName,
-  reflectionRow1020 defined moduleName = if defined then .ok moduleName else .error (.argumentError "binding not defined")
-theorem reflectionRow1020_proven : ReflectionRow1020Property := by unfold ReflectionRow1020Property; intros; rfl
+/-- `which(module,symbol)` checks `isdefinedglobal`, then looks up the
+binding owner, or throws an `ErrorException`; `base/reflection.jl:1020-1025`.
+The module and symbol strings are their Julia interpolation results. -/
+def reflectionRow1020 (globalDefined : Bool) (moduleText symbolText bindingModule : String) :
+    Except String String :=
+  if globalDefined then .ok bindingModule
+  else .error ("\"" ++ symbolText ++ "\" is not defined in module " ++ moduleText)
+def ReflectionRow1020Property : Prop :=
+  (∀ moduleText symbolText owner, reflectionRow1020 true moduleText symbolText owner = .ok owner) ∧
+  (∀ moduleText symbolText owner, reflectionRow1020 false moduleText symbolText owner =
+    .error ("\"" ++ symbolText ++ "\" is not defined in module " ++ moduleText))
+theorem reflectionRow1020_proven : ReflectionRow1020Property := by
+  simp [ReflectionRow1020Property, reflectionRow1020]
 
 /-- `nameof(::Function)`; `base/reflection.jl:1036-1038`. -/
 def reflectionRow1036 (singletonName : String) : String := singletonName

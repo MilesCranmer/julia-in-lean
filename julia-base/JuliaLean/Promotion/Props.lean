@@ -1,4 +1,4 @@
-import JuliaLean.Promotion.Ints
+import JuliaLean.Promotion.Compare
 import JuliaLean.Promotion.Hash
 import JuliaLean.Promotion.Rationalize
 
@@ -20,72 +20,6 @@ private instance {α : Type} [DecidableEq α] : DecidableEq (Jl α)
     | .isFalse h => .isFalse (fun e => h (Except.error.inj e))
   | .ok _, .error _ => .isFalse (fun e => nomatch e)
   | .error _, .ok _ => .isFalse (fun e => nomatch e)
-
-/-! ## Mixed integer comparison -/
-
-/-- `==`, `<`, `<=` between any two `BitInteger` types compare the mathematical values. -/
-def IntCompareExact : Prop := ∀ (t s : IntTy) (x : JInt t) (y : JInt s),
-  intCmp .eq x y = decide (x.val = y.val) ∧ intCmp .lt x y = decide (x.val < y.val) ∧
-  intCmp .le x y = decide (x.val ≤ y.val)
-
-theorem promote_range (t s : IntTy) (h : t.signed = s.signed) :
-    (t.promote s).min ≤ t.min ∧ t.max ≤ (t.promote s).max ∧
-    (t.promote s).min ≤ s.min ∧ s.max ≤ (t.promote s).max := by
-  cases t <;> cases s <;> revert h <;> decide
-
-theorem unsignedSigned_exact (op : Op) (u v : IntTy) (hu : u.signed = false) (hv : v.signed = true)
-    (x : JInt u) (y : JInt v) : intCmp.unsignedSigned op x y = op.int x.val y.val := by
-  have hx := x.property
-  have hy := y.property
-  unfold intCmp.unsignedSigned
-  by_cases hlt : u.bits < v.bits
-  · have hb : v.min ≤ u.min ∧ u.max ≤ v.max := by
-      revert hlt hu hv; cases u <;> cases v <;> decide
-    rw [if_pos hlt]
-    have e : (JInt.wrap v x.val).val = x.val := wrapInt_of_inRange v x.val ⟨by omega, by omega⟩
-    rw [e]
-  · have hb : u.min = 0 ∧ v.toUnsigned.min = 0 ∧ v.max ≤ v.toUnsigned.max ∧ v.max ≤ u.max := by
-      revert hlt hu hv; cases u <;> cases v <;> decide
-    rw [if_neg hlt]
-    by_cases hy0 : 0 ≤ y.val
-    · have e1 : (JInt.wrap v.toUnsigned y.val).val = y.val :=
-        wrapInt_of_inRange _ _ ⟨by omega, by omega⟩
-      have e2 : (JInt.wrap u (JInt.wrap v.toUnsigned y.val).val).val = y.val := by
-        rw [e1]; exact wrapInt_of_inRange _ _ ⟨by omega, by omega⟩
-      rw [e2]
-      simp [hy0]
-    · have hx0 : 0 ≤ x.val := by omega
-      cases op <;> simp [Op.int, hy0] <;> omega
-
-theorem intCompareExact_proven : IntCompareExact := by
-  intro t s x y
-  unfold intCmp
-  by_cases hs : t.signed = s.signed
-  · have hr := promote_range t s hs
-    have hx := x.property
-    have hy := y.property
-    have ex : (JInt.wrap (t.promote s) x.val).val = x.val :=
-      wrapInt_of_inRange _ _ ⟨by omega, by omega⟩
-    have ey : (JInt.wrap (t.promote s) y.val).val = y.val :=
-      wrapInt_of_inRange _ _ ⟨by omega, by omega⟩
-    simp only [if_pos hs, ex, ey, Op.int]
-    exact ⟨trivial, trivial, trivial⟩
-  · simp only [if_neg hs]
-    cases ht : t.signed
-    · have hs' : s.signed = true := by cases h : s.signed <;> simp_all
-      simp only [Bool.false_eq_true, if_false]
-      refine ⟨?_, ?_, ?_⟩ <;> rw [unsignedSigned_exact _ t s ht hs' x y] <;> rfl
-    · have hs' : s.signed = false := by cases h : s.signed <;> simp_all
-      simp only [if_true]
-      refine ⟨?_, ?_, ?_⟩
-      · rw [unsignedSigned_exact _ s t hs' ht y x]
-        exact decide_eq_decide.mpr eq_comm
-      · rw [unsignedSigned_exact _ s t hs' ht y x]
-        simp only [Op.int]
-        by_cases h : y.val ≤ x.val <;> simp [h] <;> omega
-      · rw [unsignedSigned_exact _ s t hs' ht y x]
-        simp only [Op.int]
-        by_cases h : y.val < x.val <;> simp [h] <;> omega
 
 /-! ## Rational/float comparison -/
 

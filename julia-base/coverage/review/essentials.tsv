@@ -1,147 +1,55 @@
 line	name	verdict	mirror	property	settled	reason
 9	blackbox	HOLLOW	no	yes	yes	The Lean function returns its argument directly and omits the `compilerbarrier(:blackbox, x)` call.
-12	size	FAITHFUL	yes	yes	yes	The model reads the stored array dimensions and the proposition states that result for every array model.
-13	length	FAITHFUL	yes	yes	yes	The model multiplies dimensions left to right with Int wrapping and the proposition covers every valid dimension list.
-14	size	FAITHFUL	yes	yes	yes	The model returns the stored memory length as the sole dimension and the proposition states that result.
-15	throw_boundserror	FAITHFUL	yes	yes	yes	The model constructs and throws `BoundsError(A, ())` and the proposition states that behavior.
-16	throw_boundserror	FAITHFUL	yes	yes	yes	The model constructs and throws `BoundsError(A, I)` and the proposition states that behavior.
-17	throw_boundserror	FAITHFUL	yes	yes	yes	The model collects all indices in order before constructing the thrown `BoundsError`.
-18	_throw_boundserror_indices	FAITHFUL	yes	yes	yes	The model passes an empty index tuple to the `BoundsError` path and the proposition covers it.
-19	_throw_boundserror_indices	FAITHFUL	yes	yes	yes	The model collects the leading and remaining indices in order and the proposition covers it.
-23	==	FAITHFUL	yes	yes	yes	The model compares module identity before name identity and characterizes equality of both fields.
-46	_gc_preserve_begin	FAITHFUL	yes	yes	yes	The model emits `gc_preserve_begin` with the escaped argument exactly as the macro does.
-50	_gc_preserve_end	FAITHFUL	yes	yes	yes	The model emits `gc_preserve_end` with the escaped token exactly as the macro does.
 125	nospecialize	HOLLOW	no	yes	yes	The Lean model rebuilds a keyword expression and omits the source method's in-place mutation of the sole assignment argument.
 142	specialize	HOLLOW	no	yes	yes	The Lean model rebuilds a keyword expression and omits the source method's in-place mutation of the sole assignment argument.
-184	isdefined	FAITHFUL	yes	yes	yes	The model emits the escaped `isdefined` expression for every Symbol argument.
 188	_nameof	HOLLOW	no	no	yes	The model returns its String representation directly instead of calling `jl_module_name`, and the proposition states no promised behavior of `_nameof` itself.
-190	_is_internal	FAITHFUL	yes	yes	yes	The model checks Base first and then the base-relative Compiler module, and the proposition uses that classification for all modules.
-196	_total_meta	FAITHFUL	yes	yes	yes	The model preserves the internal-module check and all purity flags, and the refuted grouped entry is settled by its reproducer.
-211	_foldable_meta	FAITHFUL	yes	yes	yes	The proposition states the source comment's exact `:foldable` promise, and the refutation with a reproducer captures the two extra flags.
-226	_terminates_locally_meta	FAITHFUL	yes	yes	yes	The model preserves the internal-module branch and the documented `terminates_locally` flags.
-241	_terminates_globally_meta	FAITHFUL	yes	yes	yes	The model preserves the internal-module branch and the documented global and implied local termination flags.
-256	_terminates_globally_notaskstate_meta	FAITHFUL	yes	yes	yes	The model preserves the documented global termination and task-state flags in source order.
-271	_terminates_globally_noub_meta	FAITHFUL	yes	yes	yes	The model preserves the documented global termination and no-undefined-behavior flags in source order.
-286	_effect_free_terminates_locally_meta	FAITHFUL	yes	yes	yes	The model preserves the documented effect-free and local-termination flags in source order.
-301	_nothrow_noub_meta	FAITHFUL	yes	yes	yes	The model preserves the documented no-throw and no-undefined-behavior flags in source order.
-316	_nothrow_meta	FAITHFUL	yes	yes	yes	The model preserves the internal-module branch and the documented no-throw flag.
-331	_noub_meta	FAITHFUL	yes	yes	yes	The model preserves the internal-module branch and the documented no-undefined-behavior flag.
-346	_notaskstate_meta	FAITHFUL	yes	yes	yes	The model preserves the internal-module branch and the documented no-task-state flag.
-361	_noub_if_noinbounds_meta	FAITHFUL	yes	yes	yes	The model preserves the internal-module branch and the documented conditional no-undefined-behavior flag.
-377	_propagate_inbounds_meta	FAITHFUL	yes	yes	yes	The model emits the inline and propagate-inbounds meta symbols in source order.
-380	_nospecializeinfer_meta	FAITHFUL	yes	yes	yes	The model emits the `nospecializeinfer` meta expression exactly.
-385	checkbounds	FAITHFUL	yes	yes	yes	The model performs subtraction, unsigned reinterpretation, and unsigned comparison in source order for every Int index.
 389	checkbounds	HOLLOW	no	no	yes	The model replaces `_throw_boundserror_indices(A, I...)` with a generic error, and `AccessSemantics` has no clause for this method.
-395	default_access_order	FAITHFUL	yes	yes	yes	The model maps non-atomic memory to `:not_atomic` and the proposition states that result.
-396	default_access_order	FAITHFUL	yes	yes	yes	The model maps atomic memory to `:monotonic` and the proposition states that result.
-397	default_access_order	FAITHFUL	yes	yes	yes	The model maps a non-atomic memory reference to `:not_atomic` and the proposition states that result.
-398	default_access_order	FAITHFUL	yes	yes	yes	The model maps an atomic memory reference to `:monotonic` and the proposition states that result.
 400	getindex	HOLLOW	no	yes	yes	The model omits the boundscheck marker, `memoryrefnew`, access-order call, and boundscheck argument even though the proposition covers the resulting read behavior.
 406	getindex	HOLLOW	no	yes	yes	The model omits `default_access_order(A)` and the boundscheck marker even though the proposition covers the resulting read behavior.
 419	nameof	HOLLOW	no	no	yes	The model omits both `@_total_meta` and `jl_module_name`, and the proposition states no promised behavior of `nameof` itself.
 421	iterate	HOLLOW	-	-	no	This line assigns `constprop_heuristic` on the generic function's type, so the no-behavior exclusion does not apply.
-471	convert	FAITHFUL	-	-	yes	This line only declares the generic function and has no method body or observable mutation.
 474	convert	HOLLOW	no	yes	yes	The model returns a fixed error directly and does not mirror the method's `throw(ArgumentError(...))` call.
-476	convert	FAITHFUL	yes	yes	yes	The model and method both return the Type value unchanged for every allowed input.
-480	convert	FAITHFUL	yes	yes	yes	The model and method both return the String unchanged for every allowed input.
-488	eval	FAITHFUL	yes	yes	yes	The model builds the escaped Core.eval call and latest-world block in source order with the current module.
-495	eval	FAITHFUL	yes	yes	yes	The model builds the escaped Core.eval call and latest-world block in source order with the supplied module.
 508	Pairs{K, V, I, A}	HOLLOW	yes	no	yes	The model mirrors both conditional conversions, but the proposition omits the allowed case in which the iterator needs conversion.
 509	Pairs{K, V}	HOLLOW	no	yes	yes	The model records only chosen type parameters and omits the `new` object that stores `data` and `itr`.
 510	Pairs{K}	HOLLOW	no	yes	yes	The model records only chosen type parameters and omits the `new` object that stores `data` and `itr`.
 511	Pairs	HOLLOW	no	yes	yes	The model records only chosen type parameters and omits the `new` object that stores `data` and `itr`.
 513	pairs	HOLLOW	no	yes	yes	The model records only the Symbol key and Nothing iterator parameters and omits the returned `Pairs` type with its value and NamedTuple parameters.
-523	argtail	FAITHFUL	yes	yes	yes	The model drops the first argument and returns every remaining argument in order.
-541	tail	FAITHFUL	yes	yes	yes	The model delegates a nonempty tuple to `argtail` and the proposition states the dropped-first-element behavior.
-542	tail	FAITHFUL	yes	yes	yes	The model raises the documented ArgumentError for the empty tuple and the proposition covers it.
-544	unwrap_unionall	FAITHFUL	yes	yes	yes	The recursive model removes every outer UnionAll in order and the proposition covers every modeled type.
-552	rewrap_unionall	FAITHFUL	yes	yes	yes	The recursive model rebuilds UnionAll wrappers in order and the NormalSpine hypothesis is a type invariant of constructible values.
 560	rewrap_unionall	HOLLOW	yes	no	yes	The model contains the defined-element recursive branch, but the proposition covers it only when the wrapper input is not a UnionAll.
-574	rename_unionall	FAITHFUL	yes	yes	yes	The model recurses before creating and substituting the fresh TypeVar, and the proposition covers the stated invariant.
 585	widen_diagonal	HOLLOW	no	yes	yes	The Lean function accepts the runtime result as a callback and does not model the `jl_widen_diagonal` call.
-589	isvarargtype	FAITHFUL	yes	yes	yes	The model recognizes exactly the Vararg representation and the proposition quantifies over every modeled type.
-593	isvatuple	FAITHFUL	yes	yes	yes	The model unwraps, checks DataType and nonemptiness, then checks the final parameter in source order.
-603	unwrapva	FAITHFUL	yes	yes	yes	The model handles non-Vararg, missing element type, and defined element type branches for every modeled type.
-608	unconstrain_vararg_length	FAITHFUL	yes	yes	yes	The model calls the Vararg unwrapping helper and constructs an unbounded-length Vararg exactly.
-617	datatype_min_ninitialized	FAITHFUL	yes	yes	yes	The model follows the DataType, abstract, NamedTuple, Tuple, Vararg, and ordinary struct branches in source order.
-650	_tuple_error	FAITHFUL	yes	yes	yes	The model raises a MethodError naming `convert` and the proposition covers that error path.
-652	convert	FAITHFUL	yes	yes	yes	The model and method both return the already correctly typed tuple unchanged.
 653	convert	HOLLOW	no	no	yes	The model replaces the type intersection with a Boolean input, omits the result type assertion, and the proposition does not cover general element conversions.
 659	cvt1	HOLLOW	no	yes	yes	The model replaces `fieldtype` and unchecked `getfield` with indexed callbacks and list access instead of preserving the source calls.
-718	oftype	FAITHFUL	yes	yes	yes	The model checks the type, converts only when needed, and applies the result type assertion in source order.
-720	unsigned	FAITHFUL	yes	yes	yes	The model reinterprets the complete Int bit pattern as UInt and the proposition states the round trip for every Int.
-721	signed	FAITHFUL	yes	yes	yes	The model reinterprets the complete UInt bit pattern as Int and the proposition states the round trip for every UInt.
-737	cconvert	FAITHFUL	-	-	yes	This line only declares the generic function and has no method body or observable mutation.
-739	cconvert	FAITHFUL	yes	yes	yes	The model performs the type test before returning the input or calling conversion, and the proposition covers both branches.
 740	cconvert	HOLLOW	no	yes	yes	The model returns the helper's result directly instead of mirroring the call to `convert(Union{}, x...)`.
-741	cconvert	FAITHFUL	yes	yes	yes	The model returns every pointer-conversion input unchanged as the method promises.
-742	unsafe_convert	FAITHFUL	yes	yes	yes	The model returns every already typed value unchanged as the method does.
-743	unsafe_convert	FAITHFUL	yes	yes	yes	The model returns every already typed pointer unchanged as the method does.
 744	unsafe_convert	HOLLOW	no	yes	yes	The model preserves an address directly and omits the method's `convert(P, x)` call.
 745	unsafe_convert	HOLLOW	no	yes	yes	The model takes the string-data address as an input and therefore does not mirror the `jl_string_ptr` call.
 746	unsafe_convert	HOLLOW	no	yes	yes	The model takes the string-data address as an input and therefore does not mirror the `jl_string_ptr` call.
-751	_reinterpret	FAITHFUL	-	-	yes	This line only declares the generic function and has no method body or observable mutation.
 787	reinterpret	HOLLOW	no	yes	yes	The model takes one precomputed primitive flag and branch callbacks instead of performing both source type checks and calls.
-841	sizeof	FAITHFUL	yes	yes	yes	The model calls the supplied Core-size function on the input and the proposition states the delegation for every input.
-884	ifelse	HOLLOW	no	yes	yes	The model selects a branch itself instead of mirroring the method's call to `Core.ifelse`.
-893	esc	FAITHFUL	yes	yes	yes	The model constructs the escape expression around every input exactly.
-939	boundscheck	FAITHFUL	yes	yes	yes	The model constructs the boundscheck condition before the escaped block in source order.
-971	inbounds	FAITHFUL	yes	yes	yes	The model enables inbounds, evaluates the escaped block once, pops the setting, and returns the value in source order.
-1020	label	FAITHFUL	yes	yes	yes	The model rejects underscore and otherwise emits the escaped symbolic label for every Symbol name.
-1025	label	FAITHFUL	yes	yes	yes	The model rejects underscore and preserves the distinct for, while, and ordinary-body branches in source order.
-1044	label	FAITHFUL	yes	yes	yes	The model emits the anonymous loop-exit symbolic block around every body.
-1058	goto	FAITHFUL	yes	yes	yes	The model emits the escaped symbolic goto expression for every Symbol name.
-1063	getindex	HOLLOW	no	yes	yes	The model omits the boundscheck marker, `memoryrefnew`, and the access-order and boundscheck arguments even though the proposition covers the read result.
-1069	setindex!	HOLLOW	no	yes	yes	The model omits the boundscheck marker, `memoryrefnew`, and access arguments even though the proposition covers an observable error behavior.
-1075	setindex!	HOLLOW	no	yes	yes	The model omits the boundscheck marker, `memoryrefnew`, and access arguments even though the proposition covers the write-read behavior.
-1081	setindex!	HOLLOW	no	yes	yes	The model omits the access-order and boundscheck arguments even though the proposition states that conversion precedes the write.
-1082	setindex!	HOLLOW	no	yes	yes	The model omits the access-order and boundscheck arguments even though the proposition relates it to the converting form.
-1086	getindex	HOLLOW	no	yes	yes	The model hand-codes slot lookup instead of mirroring this method's call to `Core._svec_ref`.
-1087	length	HOLLOW	no	yes	yes	The model reads list length directly instead of mirroring this method's call to `Core._svec_len`.
-1090	firstindex	FAITHFUL	yes	yes	yes	The model and method return one for every SimpleVector.
-1091	lastindex	FAITHFUL	yes	yes	yes	The model calls the modeled length operation and the proposition states the resulting final index.
-1092	iterate	HOLLOW	yes	no	yes	The model mirrors the length check and indexed return, but the proposition omits the allowed nonpositive-index error cases.
-1093	eltype	FAITHFUL	yes	yes	yes	The model and method return Any for the SimpleVector type.
-1094	keys	FAITHFUL	yes	yes	yes	The model represents `OneTo(length(v))` by its endpoint and the proposition states it for every vector.
-1095	isempty	FAITHFUL	yes	yes	yes	The model tests whether length is zero and the proposition characterizes that result for every vector.
-1096	axes	FAITHFUL	yes	yes	yes	The model returns the sole `OneTo(length(v))` axis and the proposition states it for every vector.
-1097	axes	FAITHFUL	yes	yes	yes	The model preserves the `d <= 1` indexed-axis branch and the `OneTo(1)` branch, including bounds errors.
-1099	==	FAITHFUL	yes	yes	yes	The model rejects unequal lengths before comparing corresponding elements in order, and the proposition states the advertised invariants.
-1107	map	HOLLOW	no	no	yes	The model maps raw optional slots directly and omits the indexed reads whose undefined-slot behavior is observable.
-1109	getindex	FAITHFUL	yes	yes	yes	The model reads requested indices in order, propagates bounds errors, and the in-bounds hypothesis is the documented indexing precondition.
-1111	unsafe_convert	HOLLOW	no	no	yes	The model hard-codes an eight-byte offset and omits `convert`, `pointer_from_objref`, and `sizeof(Ptr)`, so it is not architecture-general.
-1139	isassigned	FAITHFUL	-	-	yes	This line only declares the generic function and has no method body or observable mutation.
-1141	isassigned	FAITHFUL	yes	yes	yes	The model matches the bounds-only body, while the proposition states the documented undefined-slot promise and is refuted with a reproducer.
-1160	Colon	FAITHFUL	yes	yes	yes	The empty Colon object represents the fieldless instance built by `new()` and the proposition fixes that result.
-1164	show	HOLLOW	no	yes	yes	The model concatenates a supplied type-name string and omits the ordered `show_type_name` and `print` calls.
-1190	Val{x}	FAITHFUL	yes	yes	yes	The empty Val object paired with its type parameter represents the fieldless instance built by `new()` for every parameter.
-1193	Val	FAITHFUL	yes	yes	yes	The model forwards the value to the matching parameterized Val constructor and the proposition states that relationship.
-1201	inferencebarrier	HOLLOW	no	yes	yes	The Lean function returns its argument directly and omits the `compilerbarrier(:type, x)` call.
-1225	isempty	FAITHFUL	yes	yes	yes	The model returns a definite `isdone` result or calls `iterate` and tests for nothing in source order.
-1253	values	FAITHFUL	yes	yes	yes	The model and method return every iterator argument unchanged.
-1257	+	HOLLOW	no	yes	yes	The model performs wrapped arithmetic directly instead of mirroring the method's `add_int` call.
-1258	-	HOLLOW	no	yes	yes	The model performs wrapped arithmetic directly instead of mirroring the method's `sub_int` call.
-1284	!	HOLLOW	no	yes	yes	The model negates the Boolean directly instead of mirroring the method's `not_int` call.
-1286	length	FAITHFUL	yes	yes	yes	The model reads the first stored dimension and the proposition states that result for every valid vector shape.
-1288	has_typevar	HOLLOW	no	no	yes	The model replaces the `jl_has_typevar` call with a hand-written traversal, and the proposition covers only selected type forms.
-1292	_fieldtypes_constrain_typevars	FAITHFUL	yes	yes	yes	The model preserves the reverse outer loop, field scan, upper-bound scan, shadowing check, and early returns.
-1332	_defaultctor_typeinfo	FAITHFUL	yes	yes	yes	The model preserves both UnionAll loops, the DataType assertion, allocation order, and field-type lookup.
-1355	_defaultctors	HOLLOW	no	yes	yes	The model records method definitions as return values and omits the observable `jl_lower` and `jl_method_def` calls.
-1532	ismissing	FAITHFUL	yes	yes	yes	The Option representation covers missing and every other modeled value, and the proposition characterizes the identity test.
-1534	popfirst!	FAITHFUL	-	-	yes	This line only declares the generic function and has no method body or observable mutation.
-1560	peek	FAITHFUL	-	-	yes	This line only declares the generic function and has no method body or observable mutation.
-1568	__LINE__	FAITHFUL	yes	yes	yes	The model reads the line field from the source LineNumberNode and the proposition covers every valid macro source.
-1591	isdone	FAITHFUL	yes	yes	yes	The model returns missing for every input and the proposition quantifies over every modeled iterator value.
-1600	iterate	FAITHFUL	-	-	yes	This line only declares the generic function and has no method body or observable mutation.
-1608	isiterable	HOLLOW	no	no	yes	The model accepts an arbitrary Boolean callback and omits both the `iterate` function and `Tuple{T}` construction from `hasmethod`.
-1646	world	HOLLOW	yes	no	yes	The model covers the Symbol, GlobalRef, dotted-expression, infinity, and error branches, but the proposition proves only Symbol success and integer rejection.
-1662	_resolve_in_world	HOLLOW	no	no	yes	The model omits general Integer inputs and the `invoke_in_world` call, while the proposition covers only Int64 worlds.
-1666	+	HOLLOW	-	-	no	This line assigns `constprop_heuristic`, so the no-behavior exclusion does not apply.
-1667	-	HOLLOW	-	-	no	This line assigns `constprop_heuristic`, so the no-behavior exclusion does not apply.
-1668	*	HOLLOW	-	-	no	This line assigns `constprop_heuristic`, so the no-behavior exclusion does not apply.
-1669	==	HOLLOW	-	-	no	This line assigns `constprop_heuristic`, so the no-behavior exclusion does not apply.
-1670	!=	HOLLOW	-	-	no	This line assigns `constprop_heuristic`, so the no-behavior exclusion does not apply.
-1671	<=	HOLLOW	-	-	no	This line assigns `constprop_heuristic`, so the no-behavior exclusion does not apply.
-1672	>=	HOLLOW	-	-	no	This line assigns `constprop_heuristic`, so the no-behavior exclusion does not apply.
-1673	<	HOLLOW	-	-	no	This line assigns `constprop_heuristic`, so the no-behavior exclusion does not apply.
-1674	>	HOLLOW	-	-	no	This line assigns `constprop_heuristic`, so the no-behavior exclusion does not apply.
+894	ifelse	HOLLOW	no	yes	yes	The model selects a branch itself instead of mirroring the method's call to `Core.ifelse`.
+1073	getindex	HOLLOW	no	yes	yes	The model omits the boundscheck marker, `memoryrefnew`, and the access-order and boundscheck arguments even though the proposition covers the read result.
+1079	setindex!	HOLLOW	no	yes	yes	The model omits the boundscheck marker, `memoryrefnew`, and access arguments even though the proposition covers an observable error behavior.
+1085	setindex!	HOLLOW	no	yes	yes	The model omits the boundscheck marker, `memoryrefnew`, and access arguments even though the proposition covers the write-read behavior.
+1091	setindex!	HOLLOW	no	yes	yes	The model omits the access-order and boundscheck arguments even though the proposition states that conversion precedes the write.
+1092	setindex!	HOLLOW	no	yes	yes	The model omits the access-order and boundscheck arguments even though the proposition relates it to the converting form.
+1096	getindex	HOLLOW	no	yes	yes	The model hand-codes slot lookup instead of mirroring this method's call to `Core._svec_ref`.
+1097	length	HOLLOW	no	yes	yes	The model reads list length directly instead of mirroring this method's call to `Core._svec_len`.
+1102	iterate	HOLLOW	yes	no	yes	The model mirrors the length check and indexed return, but the proposition omits the allowed nonpositive-index error cases.
+1117	map	HOLLOW	no	no	yes	The model maps raw optional slots directly and omits the indexed reads whose undefined-slot behavior is observable.
+1121	unsafe_convert	HOLLOW	no	no	yes	The model hard-codes an eight-byte offset and omits `convert`, `pointer_from_objref`, and `sizeof(Ptr)`, so it is not architecture-general.
+1174	show	HOLLOW	no	yes	yes	The model concatenates a supplied type-name string and omits the ordered `show_type_name` and `print` calls.
+1211	inferencebarrier	HOLLOW	no	yes	yes	The Lean function returns its argument directly and omits the `compilerbarrier(:type, x)` call.
+1267	+	HOLLOW	no	yes	yes	The model performs wrapped arithmetic directly instead of mirroring the method's `add_int` call.
+1268	-	HOLLOW	no	yes	yes	The model performs wrapped arithmetic directly instead of mirroring the method's `sub_int` call.
+1294	!	HOLLOW	no	yes	yes	The model negates the Boolean directly instead of mirroring the method's `not_int` call.
+1298	has_typevar	HOLLOW	no	no	yes	The model replaces the `jl_has_typevar` call with a hand-written traversal, and the proposition covers only selected type forms.
+1365	_defaultctors	HOLLOW	no	yes	yes	The model records method definitions as return values and omits the observable `jl_lower` and `jl_method_def` calls.
+1618	isiterable	HOLLOW	no	no	yes	The model accepts an arbitrary Boolean callback and omits both the `iterate` function and `Tuple{T}` construction from `hasmethod`.
+1656	world	HOLLOW	yes	no	yes	The model covers the Symbol, GlobalRef, dotted-expression, infinity, and error branches, but the proposition proves only Symbol success and integer rejection.
+1672	_resolve_in_world	HOLLOW	no	no	yes	The model omits general Integer inputs and the `invoke_in_world` call, while the proposition covers only Int64 worlds.
+1676	+	HOLLOW	-	-	no	This line assigns `constprop_heuristic`, so the no-behavior exclusion does not apply.
+1677	-	HOLLOW	-	-	no	This line assigns `constprop_heuristic`, so the no-behavior exclusion does not apply.
+1678	*	HOLLOW	-	-	no	This line assigns `constprop_heuristic`, so the no-behavior exclusion does not apply.
+1679	==	HOLLOW	-	-	no	This line assigns `constprop_heuristic`, so the no-behavior exclusion does not apply.
+1680	!=	HOLLOW	-	-	no	This line assigns `constprop_heuristic`, so the no-behavior exclusion does not apply.
+1681	<=	HOLLOW	-	-	no	This line assigns `constprop_heuristic`, so the no-behavior exclusion does not apply.
+1682	>=	HOLLOW	-	-	no	This line assigns `constprop_heuristic`, so the no-behavior exclusion does not apply.
+1683	<	HOLLOW	-	-	no	This line assigns `constprop_heuristic`, so the no-behavior exclusion does not apply.
+1684	>	HOLLOW	-	-	no	This line assigns `constprop_heuristic`, so the no-behavior exclusion does not apply.

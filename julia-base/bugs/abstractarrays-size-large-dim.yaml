@@ -5,6 +5,7 @@ kind: wrong-exception
 area: AbstractArrays
 files: [base/abstractarray.jl]
 functions: ["size(::AbstractArray, dim)", "axes(::AbstractArray, d)"]
+covers: [abstractarrayspecs-cat-row1839]
 summary: |
   size(A, d) throws InexactError when d is a positive UInt64, Int128 or BigInt
   above typemax(Int), even though every such d is beyond ndims(A) and the
@@ -30,10 +31,14 @@ output:
   release: |
     UInt64 size=InexactError axes=Base.OneTo(1)
     Int128 size=InexactError axes=Base.OneTo(1)
+    UInt64 cat_size=InexactError
+    Int128 cat_size=InexactError
     REPRODUCED abstractarrays-size-large-dim
   nightly: |
     UInt64 size=InexactError axes=Base.OneTo(1)
     Int128 size=InexactError axes=Base.OneTo(1)
+    UInt64 cat_size=InexactError
+    Int128 cat_size=InexactError
     REPRODUCED abstractarrays-size-large-dim
 reproduced: {release: true, nightly: true}
 expected: |

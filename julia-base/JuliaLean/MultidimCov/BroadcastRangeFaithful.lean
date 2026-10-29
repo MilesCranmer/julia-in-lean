@@ -135,11 +135,19 @@ def mulGeneric (op : α → α → Result α) (left : Bool) (_ops : Ops α)
 def m1215 (ops : Ops α) x (r : RangeView α) := mulGeneric ops.mul true ops r x
 def m1216 (ops : Ops α) x (r : RangeView α) := stepBinary ops.mul true r x (ops.mul x) ops
 def m1218 (ops : Ops α) x (r : RangeView α) := linBinary ops.mul true r x
-def m1219 (ops : Ops α) x (r : RangeView α) := mulGeneric ops.mul true ops r x
+def m1219 (rangeStartStepLength : α → α → Nat → Result (RangeOut α))
+    (ops : Ops α) (x : α) (r : RangeView α) : Result (RangeOut α) := do
+  let start ← ops.mul x r.first
+  let step ← ops.mul x r.step
+  rangeStartStepLength start step r.len
 def m1222 (ops : Ops α) (r : RangeView α) x := mulGeneric ops.mul false ops r x
 def m1223 (ops : Ops α) (r : RangeView α) x := stepBinary ops.mul false r x (fun s => ops.mul s x) ops
 def m1225 (ops : Ops α) (r : RangeView α) x := linBinary ops.mul false r x
-def m1226 (ops : Ops α) (r : RangeView α) x := mulGeneric ops.mul false ops r x
+def m1226 (rangeStartStepLength : α → α → Nat → Result (RangeOut α))
+    (ops : Ops α) (r : RangeView α) (x : α) : Result (RangeOut α) := do
+  let start ← ops.mul r.first x
+  let step ← ops.mul r.step x
+  rangeStartStepLength start step r.len
 def m1230 (ops : Ops α) (r : RangeView α) x := genericBinary ops.div false r x false ops
 def m1231 (ops : Ops α) (r : RangeView α) x := stepBinary ops.div false r x (fun s => ops.div s x) ops
 def m1233 (ops : Ops α) (r : RangeView α) x := linBinary ops.div false r x
@@ -151,7 +159,10 @@ def m1237 (ops : Ops α) x (r : RangeView α) := linBinary ops.ldiv true r x
 def m1239 (ops : Ops α) (r : RangeView α) : Result (RangeOut α) := do
   pure (.unit (← ops.big r.start) (← ops.big r.last))
 def m1240 (ops : Ops α) (r : RangeView α) : Result (RangeOut α) := do
-  pure (.ordinal (← ops.big r.start) (← ops.big r.last) (← ops.big r.step))
+  let start ← ops.big r.start
+  let step ← ops.big r.step
+  let last ← ops.big r.last
+  pure (.ordinal start last step)
 def m1241 (ops : Ops α) (r : RangeView α) : Result (RangeOut α) := do
   pure (.stepLen "big" (← ops.big r.ref) (← ops.big r.step) r.len r.offset)
 def m1242 (ops : Ops α) (r : RangeView α) : Result (RangeOut α) := do
@@ -226,7 +237,11 @@ def P1216 : Prop := ∀ {α} (ops : Ops α) x r, m1216 ops x r = stepBinary ops.
 theorem p1216 : P1216 := by simp [P1216, m1216]
 def P1218 : Prop := ∀ {α} (ops : Ops α) x r, m1218 ops x r = linBinary ops.mul true r x
 theorem p1218 : P1218 := by simp [P1218, m1218]
-def P1219 : Prop := ∀ {α} (ops : Ops α) x r, m1219 ops x r = mulGeneric ops.mul true ops r x
+def P1219 : Prop := ∀ {α} rangeStartStepLength (ops : Ops α) x r,
+  m1219 rangeStartStepLength ops x r = do
+    let start ← ops.mul x r.first
+    let step ← ops.mul x r.step
+    rangeStartStepLength start step r.len
 theorem p1219 : P1219 := by simp [P1219, m1219]
 def P1222 : Prop := ∀ {α} (ops : Ops α) r x, m1222 ops r x = mulGeneric ops.mul false ops r x
 theorem p1222 : P1222 := by simp [P1222, m1222]
@@ -234,7 +249,11 @@ def P1223 : Prop := ∀ {α} (ops : Ops α) r x, m1223 ops r x = stepBinary ops.
 theorem p1223 : P1223 := by simp [P1223, m1223]
 def P1225 : Prop := ∀ {α} (ops : Ops α) r x, m1225 ops r x = linBinary ops.mul false r x
 theorem p1225 : P1225 := by simp [P1225, m1225]
-def P1226 : Prop := ∀ {α} (ops : Ops α) r x, m1226 ops r x = mulGeneric ops.mul false ops r x
+def P1226 : Prop := ∀ {α} rangeStartStepLength (ops : Ops α) r x,
+  m1226 rangeStartStepLength ops r x = do
+    let start ← ops.mul r.first x
+    let step ← ops.mul r.step x
+    rangeStartStepLength start step r.len
 theorem p1226 : P1226 := by simp [P1226, m1226]
 def P1230 : Prop := ∀ {α} (ops : Ops α) r x, m1230 ops r x = genericBinary ops.div false r x false ops
 theorem p1230 : P1230 := by simp [P1230, m1230]
@@ -252,7 +271,11 @@ theorem p1237 : P1237 := by simp [P1237, m1237]
 
 def P1239 : Prop := ∀ {α} (ops : Ops α) r, m1239 ops r = do pure (.unit (← ops.big r.start) (← ops.big r.last))
 theorem p1239 : P1239 := by simp [P1239, m1239]
-def P1240 : Prop := ∀ {α} (ops : Ops α) r, m1240 ops r = do pure (.ordinal (← ops.big r.start) (← ops.big r.last) (← ops.big r.step))
+def P1240 : Prop := ∀ {α} (ops : Ops α) r, m1240 ops r = do
+  let start ← ops.big r.start
+  let step ← ops.big r.step
+  let last ← ops.big r.last
+  pure (.ordinal start last step)
 theorem p1240 : P1240 := by simp [P1240, m1240]
 def P1241 : Prop := ∀ {α} (ops : Ops α) r, m1241 ops r = do pure (.stepLen "big" (← ops.big r.ref) (← ops.big r.step) r.len r.offset)
 theorem p1241 : P1241 := by simp [P1241, m1241]
@@ -279,59 +302,6 @@ private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) 
     juliaFns := [name], statement, source := s!"base/broadcast.jl:{line}; optimized range source equation",
     status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 1176 "+ range" "Unary plus returns every range unchanged." ``P1176 ``p1176,
-  entry 1178 "- AbstractRange" "Generic negation reads and negates first, then step, and preserves length." ``P1178 ``p1178,
-  entry 1179 "- OrdinalRange" "Ordinal negation transforms first, last, and step in order." ``P1179 ``p1179,
-  entry 1180 "- StepRangeLen" "StepRangeLen negation transforms ref and step and preserves length and offset." ``P1180 ``p1180,
-  entry 1181 "- LinRange" "LinRange negation transforms both endpoints and preserves length." ``P1181 ``p1181,
-  entry 1184 "+ range scalar" "Right addition shifts first and preserves step and length." ``P1184 ``p1184,
-  entry 1185 "+ scalar range" "Left addition preserves operand order while shifting first." ``P1185 ``p1185,
-  entry 1186 "+ ordinal integer" "Ordinal right addition shifts both endpoints and preserves step." ``P1186 ``p1186,
-  entry 1187 "+ integer ordinal" "Ordinal left addition shifts both endpoints in operand order." ``P1187 ``p1187,
-  entry 1188 "+ unit integer" "Unit-range right addition shifts both endpoints." ``P1188 ``p1188,
-  entry 1189 "+ integer unit" "Unit-range left addition shifts both endpoints in operand order." ``P1189 ``p1189,
-  entry 1190 "+ unit real" "Mixed right addition uses shifted first and original length." ``P1190 ``p1190,
-  entry 1191 "+ real unit" "Mixed left addition uses shifted first and original length." ``P1191 ``p1191,
-  entry 1192 "+ step scalar" "Typed StepRangeLen right addition probes the converted ref type before constructing from the original ref." ``P1192 ``p1192,
-  entry 1194 "+ scalar step" "Typed StepRangeLen left addition preserves operand order in type probing and construction." ``P1194 ``p1194,
-  entry 1196 "+ lin scalar" "LinRange right addition shifts both endpoints." ``P1196 ``p1196,
-  entry 1197 "+ scalar lin" "LinRange left addition shifts both endpoints in operand order." ``P1197 ``p1197,
-  entry 1198 "+ range range" "Range-pair addition delegates to range addition." ``P1198 ``p1198,
-  entry 1200 "- range scalar" "Right subtraction shifts first and preserves step and length." ``P1200 ``p1200,
-  entry 1201 "- scalar range" "Left subtraction transforms first, negates step, and preserves length." ``P1201 ``p1201,
-  entry 1202 "- ordinal integer" "Ordinal right subtraction shifts endpoints and preserves step." ``P1202 ``p1202,
-  entry 1203 "- integer ordinal" "Ordinal left subtraction transforms both endpoints and negates step." ``P1203 ``p1203,
-  entry 1204 "- unit integer" "Unit-range right subtraction shifts both endpoints." ``P1204 ``p1204,
-  entry 1205 "- unit real" "Mixed right subtraction shifts first and preserves length." ``P1205 ``p1205,
-  entry 1206 "- step scalar" "Typed StepRangeLen right subtraction probes type before constructing and preserves step, length, and offset." ``P1206 ``p1206,
-  entry 1208 "- scalar step" "Typed left subtraction probes type, constructs ref, negates step, and preserves length and offset." ``P1208 ``p1208,
-  entry 1210 "- lin scalar" "LinRange right subtraction transforms both endpoints." ``P1210 ``p1210,
-  entry 1211 "- scalar lin" "LinRange left subtraction transforms both endpoints in operand order." ``P1211 ``p1211,
-  entry 1212 "- range range" "Range-pair subtraction delegates to range subtraction." ``P1212 ``p1212,
-  entry 1215 "* scalar range" "Generic left multiplication constructs StepRangeLen from scaled first and step." ``P1215 ``p1215,
-  entry 1216 "* scalar step" "Typed left multiplication probes converted ref, then scales ref and step." ``P1216 ``p1216,
-  entry 1218 "* scalar lin" "LinRange left multiplication scales both endpoints." ``P1218 ``p1218,
-  entry 1219 "* float ordinal" "Float ordinal multiplication constructs from scaled first and step with original length." ``P1219 ``p1219,
-  entry 1222 "* range scalar" "Generic right multiplication constructs StepRangeLen in operand order." ``P1222 ``p1222,
-  entry 1223 "* step scalar" "Typed right multiplication probes converted ref, then scales ref and step in operand order." ``P1223 ``p1223,
-  entry 1225 "* lin scalar" "LinRange right multiplication scales both endpoints." ``P1225 ``p1225,
-  entry 1226 "* ordinal float" "Right float ordinal multiplication constructs from scaled first and step." ``P1226 ``p1226,
-  entry 1230 "/ range scalar" "Generic division divides first and step and preserves length." ``P1230 ``p1230,
-  entry 1231 "/ step scalar" "Typed division probes converted ref, divides ref and step, and preserves length and offset." ``P1231 ``p1231,
-  entry 1233 "/ lin scalar" "LinRange division divides both endpoints." ``P1233 ``p1233,
-  entry 1235 "left-div scalar range" "Generic left division transforms first and step and preserves length." ``P1235 ``p1235,
-  entry 1236 "left-div scalar step" "StepRangeLen left division transforms ref and step and preserves length and offset." ``P1236 ``p1236,
-  entry 1237 "left-div scalar lin" "LinRange left division transforms both endpoints." ``P1237 ``p1237,
-  entry 1239 "big UnitRange" "UnitRange big conversion transforms start then last." ``P1239 ``p1239,
-  entry 1240 "big StepRange" "StepRange big conversion transforms start, step, and last." ``P1240 ``p1240,
-  entry 1241 "big StepRangeLen" "StepRangeLen big conversion transforms ref and step and preserves length and offset." ``P1241 ``p1241,
-  entry 1242 "big LinRange" "LinRange big conversion transforms both endpoints and preserves length." ``P1242 ``p1242,
-  entry 1245 "+ CartesianIndices CartesianIndex" "Cartesian addition maps range-plus-offset across every dimension." ``P1245 ``p1245,
-  entry 1247 "+ CartesianIndex CartesianIndices" "Reversed Cartesian addition delegates with swapped operands." ``P1247 ``p1247,
-  entry 1249 "- CartesianIndices CartesianIndex" "Cartesian subtraction maps range-minus-offset across every dimension." ``P1249 ``p1249,
-  entry 1251 "- CartesianIndex CartesianIndices" "Reverse subtraction maps diffrange before constructing and reversing Cartesian iteration." ``P1251 ``p1251,
-  entry 1252 "diffrange" "Diffrange subtracts last from offset and preserves length and step." ``P1252 ``p1252
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.BroadcastRangeFaithful

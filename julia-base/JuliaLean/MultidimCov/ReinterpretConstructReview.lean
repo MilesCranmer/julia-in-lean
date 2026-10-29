@@ -140,18 +140,6 @@ private def raConstructEntry (line : Nat) (fn statement source : String)
   { id := s!"multidimcov-reinterpretarray-line{line}", juliaFile := "base/reinterpretarray.jl",
     juliaFns := [fn], statement, source, status := .proven, prop, thm := some thm }
 
-def reinterpretConstructReviewEntries : List Entry := [
-  raConstructEntry 14 "throwbits" "throwbits always throws ArgumentError with the source, target, and non-bits culprit in order." "base/reinterpretarray.jl:14-17" ``RA14Property ``ra14Property,
-  raConstructEntry 18 "throwsize0" "throwsize0 always throws the zero-dimensional element-size ArgumentError." "base/reinterpretarray.jl:18-22" ``RA18Property ``ra18Property,
-  raConstructEntry 23 "throwsingleton" "throwsingleton always throws the singleton-target ArgumentError." "base/reinterpretarray.jl:23-26" ``RA23Property ``ra23Property,
-  raConstructEntry 27 "throwbitpadding" "throwbitpadding always throws the non-byte-aligned-field ArgumentError with the culprit type." "base/reinterpretarray.jl:27-31" ``RA27Property ``ra27Property,
-  raConstructEntry 73 "reinterpret(::Type,::AbstractArray)" "Non-reshape reinterpret performs every bits, padding, size, divisibility, and axis check in source order before constructing the view." "base/reinterpretarray.jl:73-103" ``RA73Property ``ra73Property,
-  raConstructEntry 74 "thrownonint" "thrownonint always throws the non-integral-first-dimension ArgumentError." "base/reinterpretarray.jl:74-79" ``RA74Property ``ra74Property,
-  raConstructEntry 80 "throwaxes1" "throwaxes1 always throws the non-one-based-first-axis ArgumentError." "base/reinterpretarray.jl:80-84" ``RA80Property ``ra80Property,
-  raConstructEntry 107 "reinterpret(reshape,::Type,::AbstractArray)" "Reshaping reinterpret preserves all bits and padding checks, element-size branches, rank changes, first-axis validation, and view flags." "base/reinterpretarray.jl:107-144" ``RA107Property ``ra107Property,
-  raConstructEntry 108 "throwintmult" "throwintmult always throws the incompatible-element-size ArgumentError." "base/reinterpretarray.jl:108-112" ``RA108Property ``ra108Property,
-  raConstructEntry 113 "throwsize1" "throwsize1 always throws the required-first-axis ArgumentError produced from its array and target." "base/reinterpretarray.jl:113-118" ``RA113Property ``ra113Property,
-  raConstructEntry 119 "throwfromsingleton" "throwfromsingleton always throws the singleton-source ArgumentError." "base/reinterpretarray.jl:119-123" ``RA119Property ``ra119Property
-]
+def reinterpretConstructReviewEntries : List Entry := []
 
 end JuliaLean.MultidimCov

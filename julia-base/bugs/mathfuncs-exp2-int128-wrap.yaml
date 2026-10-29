@@ -27,6 +27,14 @@ output:
     exp2(-1180591620717411304446) = 2.2250738585072014e-308
     REPRODUCED mathfuncs-exp2-int128-wrap
 reproduced: {release: true, nightly: true}
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: false
+  output: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    exp2(-18446744073709552685) = 0.0   exp2(Float64(x)) = 0.0
+    exp2(-1180591620717411304446) = 0.0
+  proof: JuliaLean.MathFuncs.exp2Int128Underflow_proven
 expected: |
   0.0 for every x < -1074 (2^x rounds to zero).
 promised_by: |
@@ -43,5 +51,5 @@ duplicates:
   issues: []
   queries: ["exp2 Int128", "exp2 integer overflow", "exp2"]
 lean:
-  property: JuliaLean.MathFuncs.exp2Int128Underflow
+  property: JuliaLean.MathFuncs.exp2Int128UnderflowLegacy
   theorem: JuliaLean.MathFuncs.exp2Int128Underflow_refuted

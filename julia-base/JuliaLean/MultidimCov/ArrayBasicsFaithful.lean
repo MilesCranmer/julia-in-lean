@@ -323,65 +323,11 @@ def P716 : Prop := ∀ {α : Type} elementType size,
   (m716 elementType size : Result (ArrayState α)) = allocateFor elementType size
 theorem p716 : P716 := by simp [P716, m716]
 
-private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) : Entry :=
-  { id := s!"multidimcov-array-faithful-{line}", juliaFile := "base/array.jl", juliaFns := [name],
+private def entry (id : String) (line : Nat) (name statement : String) (prop thm : Lean.Name) : Entry :=
+  { id, juliaFile := "base/array.jl", juliaFns := [name],
     statement, source := s!"base/array.jl:{line}; typed construction source equation", status := .proven,
     prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 14 "DimensionMismatch()" "The zero-argument constructor creates DimensionMismatch." ``P14 ``p14,
-  entry 135 "_safeindex" "Safe-index rewriting preserves atoms and recursively rewrites escape and call children." ``P135 ``p135,
-  entry 158 "vect()" "The empty vector literal is a zero-length Vector{Any}." ``P158 ``p158,
-  entry 188 "asize_from" "Array size lookup delegates with the original dimension." ``P188 ``p188,
-  entry 190 "allocatedinline" "Inline allocation tests whether jl_stored_inline returns nonzero." ``P190 ``p190,
-  entry 219 "elsize(::Ptr)" "Pointer element size delegates to aligned_sizeof(T)." ``P219 ``p219,
-  entry 227 "elsize(::Union{},slurp...)" "Bottom element size is zero for every slurped argument list." ``P227 ``p227,
-  entry 229 "sizeof(::Array)" "Array byte size multiplies element size by fixed-width length." ``P229 ``p229,
-  entry 259 "unsafe_copyto!(Ptr,Ptr,n)" "Pointer copy calls memmove with n times sizeof(T) bytes and returns dest." ``P259 ``p259,
-  entry 276 "unsafe_copyto!(Array,...)" "Array unsafe copy forms both offset pointers, copies n times element size, and returns dest." ``P276 ``p276,
-  entry 299 "_copyto_impl!" "Copy validates offsets and count before overlap-safe ordered segment replacement." ``P299 ``p299,
-  entry 321 "_throw_argerror" "The helper constructs ArgumentError with the supplied message." ``P321 ``p321,
-  entry 323 "_copyto2arg!" "Two-argument copy delegates with one-based offsets and the complete source length." ``P323 ``p323,
-  entry 368 "fill!" "Fill converts once to the array element type and writes every element." ``P368 ``p368,
-  entry 373 "_fill!" "Typed fill writes the supplied value to every storage slot." ``P373 ``p373,
-  entry 391 "copy(::Array)" "Copy allocates a distinct array with identical axes and every assigned value." ``P391 ``p391,
-  entry 421 "similar(::Type{Array},dims)" "Typed similar creates Array{T,N} with requested dimensions." ``P421 ``p421,
-  entry 445 "typed array literal" "Typed literal stores every input value in order with the requested element type." ``P445 ``p445,
-  entry 463 "Any array literal" "Any literal stores every polymorphic input in order in Vector{Any}." ``P463 ``p463,
-  entry 471 "empty Any literal" "The empty literal is a zero-length Vector{Any}." ``P471 ``p471,
-  entry 473 "fill! byte array" "Byte fill converts the integer once, performs the byte fill, and preserves the converted value." ``P473 ``p473,
-  entry 482 "to_dim(::Integer)" "Integer dimensions reject negatives and otherwise use the exact converted length." ``P482 ``p482,
-  entry 483 "to_dim(::OneTo)" "OneTo dimensions call last and return the resulting endpoint length." ``P483 ``p483,
-  entry 583 "fill(v,dims...)" "Fill computes typeof(v), converts every dimension, allocates, and stores v everywhere." ``P583 ``p583,
-  entry 584 "fill(v,tuple dims)" "Tuple fill computes typeof(v), converts every dimension, and fills the exact shape." ``P584 ``p584,
-  entry 585 "fill(v,integer dims)" "Integer tuple fill computes typeof(v), validates dimensions, and fills every element." ``P585 ``p585,
-  entry 586 "fill(v,mixed dims)" "Mixed tuple fill computes typeof(v), converts axes and integers, and fills the exact shape." ``P586 ``p586,
-  entry 587 "fill(v,())" "Zero-dimensional fill contains exactly the supplied value." ``P587 ``p587,
-  entry 633 "zeros/ones(dims...)" "Default typed fill converts dimensions and fills every element with the constructed zero or one." ``P633 ``p633,
-  entry 634 "zeros/ones(Type,dims...)" "Typed fill uses the requested element type and exact converted dimensions." ``P634 ``p634,
-  entry 635 "zeros/ones(tuple)" "Tuple forwarding preserves requested dimensions and fill value." ``P635 ``p635,
-  entry 636 "zeros/ones(Type,tuple)" "Typed tuple forwarding preserves requested type, dimensions, and fill value." ``P636 ``p636,
-  entry 637 "zeros/ones(Type,integer tuple)" "Integer tuple fill validates every dimension before allocation and filling." ``P637 ``p637,
-  entry 642 "zeros/ones(Type,())" "Zero-dimensional typed construction contains exactly the requested zero or one." ``P642 ``p642,
-  entry 647 "zeros/ones(Type,mixed tuple)" "Mixed tuple fill converts every dimension and fills every resulting element." ``P647 ``p647,
-  entry 657 "convert(::Type{<:Array},AbstractArray)" "Conversion constructs the result then enforces the requested target array type." ``P657 ``p657,
-  entry 659 "promote_rule(Array,Array)" "Array promotion combines element types while preserving rank." ``P659 ``p659,
-  entry 664 "Array{T,N}(AbstractArray)" "Typed construction preserves source axes and order while converting every assigned value." ``P664 ``p664,
-  entry 665 "AbstractArray{T,N}(AbstractArray)" "AbstractArray construction delegates to typed similar and preserves axes and values." ``P665 ``p665,
-  entry 684 "collect(Type,itr)" "Typed collection preserves requested element type and iterator order." ``P684 ``p684,
-  entry 686 "_collect(Type,sized itr)" "Sized collection allocates the requested type and exact shape before writing all values." ``P686 ``p686,
-  entry 688 "_collect(Type,unknown itr)" "Unknown-size collection grows a typed vector and preserves every iterated value." ``P688 ``p688,
-  entry 697 "_similar_for" "Allocation forwards container, requested type, iterator size, and shape unchanged." ``P697 ``p697,
-  entry 699 "_similar_shape(SizeUnknown)" "Unknown-size shape returns nothing." ``P699 ``p699,
-  entry 700 "_similar_shape(HasLength)" "Length shape calls length(iterator) and preserves conversion behavior." ``P700 ``p700,
-  entry 701 "_similar_shape(HasShape)" "Shaped iteration returns axes(iterator)." ``P701 ``p701,
-  entry 703 "_similar_for(AbstractArray,unknown)" "Unknown-size array allocation delegates to similar(c,T)." ``P703 ``p703,
-  entry 705 "_similar_for(AbstractArray,length)" "Length allocation delegates to similar(c,T,len)." ``P705 ``p705,
-  entry 707 "_similar_for(AbstractArray,shape)" "Shaped allocation delegates to similar(c,T,axes)." ``P707 ``p707,
-  entry 711 "_array_for_inner(SizeUnknown)" "Unknown-size allocation creates a typed empty vector." ``P711 ``p711,
-  entry 712 "_array_for_inner(HasLength)" "Length allocation performs checked Int conversion before creating Vector{T}." ``P712 ``p712,
-  entry 713 "_array_for_inner(HasShape)" "Shape allocation creates Array{T,N} with the requested axes." ``P713 ``p713,
-  entry 716 "_array_for" "Array allocation forwards requested type and original iterator size." ``P716 ``p716
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.ArrayBasicsFaithful

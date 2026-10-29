@@ -296,46 +296,7 @@ theorem modMethods_proven : ModMethods := by
     cases h2 : Ranges.Num.mod (Ranges.Num.sub i (Ranges.first r)) n <;>
       simp [modUnit, h, h2, bind, Except.bind, pure, Except.pure, Except.map]
 
-def entries : List Entry := [
-  { id := "rangescov-negation-methods", juliaFile := "base/range.jl"
-    juliaFns := ["-(::StepRangeLen{T,R,S,L})"]
-    statement := "Negating an integer StepRangeLen negates ref and step and keeps len, offset and element type; negating a valid Float64 StepRangeLen twice gives back its fields."
-    source := "base/range.jl:1313-1314; linear range-operation invariant"
-    status := .proven, prop := ``NegationMethods, thm := some ``negationMethods_proven },
-  { id := "rangescov-range-arithmetic", juliaFile := "base/range.jl"
-    juliaFns := ["_define_range_op", "+(::OrdinalRange, ::OrdinalRange)", "-(::OrdinalRange, ::OrdinalRange)",
-      "+(::LinRange{T}, ::LinRange{T})", "-(::LinRange{T}, ::LinRange{T})",
-      "+(::Union{StepRangeLen,OrdinalRange,LinRange}, ::Union{...})", "+(::StepRangeLen{T,S}, ::StepRangeLen{T,S})",
-      "-(::StepRangeLen, ::StepRangeLen)"]
-    statement := "Range +/- throw DimensionMismatch for different lengths; _define_range_op defines the ordinal and LinRange methods; the promoting method applies the operator to the promoted operands; LinRange sums add endpoints; StepRangeLen subtraction adds the negation."
-    source := "base/range.jl:1490-1524 (argument dimensions must match)"
-    status := .proven, prop := ``RangeArithmetic, thm := some ``rangeArithmetic_proven },
-  { id := "rangescov-ordinal-add-small-int", juliaFile := "base/range.jl"
-    juliaFns := ["+(::OrdinalRange, ::OrdinalRange)"]
-    statement := "(r1 + r2)[i] == r1[i] + r2[i] for integer unit ranges of equal length."
-    source := "+ on arrays is elementwise (base/arraymath.jl)"
-    status := .refuted, prop := ``OrdinalAddElementwise, thm := some ``ordinalAddElementwise_refuted
-    issue := "none found; related #64133 (queries: issues range addition Int8 InexactError; prs range addition Int8 InexactError)"
-    notes := "(Int8(126):Int8(127)) + (Int8(1):Int8(2)) is StepRangeLen{Int8}(127, 2, 2); its second element 129 is computed in Int and convert(Int8, 129) throws." },
-  { id := "rangescov-sorting-methods", juliaFile := "base/range.jl"
-    juliaFns := ["issorted(::AbstractUnitRange)", "sort(::AbstractUnitRange)", "sort!(::AbstractUnitRange)",
-      "sortperm(::AbstractUnitRange)", "sortperm(::AbstractRange)"]
-    statement := "Unit ranges are sorted and sort/sort! return them; sortperm of a unit range is OneTo(length(r)); sortperm of a range is firstindex:1:lastindex when issorted and the reverse otherwise."
-    source := "issorted/sort/sortperm docstrings (base/sort.jl); base/range.jl:1445-1456"
-    status := .proven, prop := ``SortingMethods, thm := some ``sortingMethods_proven },
-  { id := "rangescov-issorted-full-width", juliaFile := "base/range.jl"
-    juliaFns := ["issorted(::AbstractRange)"]
-    statement := "issorted(r) of a constructed integer StepRange implies a nonnegative step or at most one element."
-    source := "issorted docstring (base/sort.jl)"
-    status := .refuted, prop := ``IssortedSound, thm := some ``issortedSound_refuted
-    issue := "none found; related #45389 (queries: issues issorted range overflow; issues sort range typemin typemax; prs issorted range overflow; prs sort range typemin typemax)"
-    notes := "typemax(Int):-1:typemin(Int) has 2^64 elements; length wraps to 0 (same cause as ranges-length-overflow-silent), so issorted is true and sort returns the descending range." },
-  { id := "rangescov-mod-methods", juliaFile := "base/range.jl"
-    juliaFns := ["mod(::Integer, ::OneTo)", "mod(::Integer, ::AbstractUnitRange{<:Integer})"]
-    statement := "mod(i, OneTo(n)) is mod1(i, n) and mod(i, r) on unit ranges is mod(i - first(r), length(r)) + first(r); the docstring examples mod(0, OneTo(3)) == 3 and mod(3, 0:2) == 0 hold."
-    source := "mod(x::Integer, r::AbstractUnitRange) docstring base/range.jl:1528-1543"
-    status := .proven, prop := ``ModMethods, thm := some ``modMethods_proven }
-]
+def entries : List Entry := []
 
 end Ops
 

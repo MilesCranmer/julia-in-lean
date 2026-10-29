@@ -473,33 +473,6 @@ private def entry (line : Nat) (name statement source : String) (prop thm : Lean
   { id := s!"multidimcov-reshapedarray-faithful-{line}", juliaFile := "base/reshapedarray.jl",
     juliaFns := [name], statement, source, status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 255 "similar(ReshapedArray,type,dims)" "Similar delegates with the actual stored parent, requested element type and dimensions." "base/reshapedarray.jl:255" ``P255 ``p255,
-  entry 256 "similar(ReshapedArray type,dims)" "Type-level similar delegates with the represented parent type and requested dimensions." "base/reshapedarray.jl:256" ``P256 ``p256,
-  entry 262 "unaliascopy(ReshapedArray)" "Unaliascopy calls the source concrete type constructor with a copied actual parent and stored dimensions and multipliers." "base/reshapedarray.jl:262" ``P262 ``p262,
-  entry 272 "_ind2sub_rs(empty sizes)" "The base case reads ax[end] with its bounds failure, reads its first index, adds the linear remainder and returns one coordinate." "base/reshapedarray.jl:272" ``P272 ``p272,
-  entry 273 "_ind2sub_rs(recursive)" "Recursive conversion reads the first size, divides, reads the first axis origin and recurses on both actual tails without silent fallback branches." "base/reshapedarray.jl:273-275" ``P273 ``p273,
-  entry 294 "getindex(linear ReshapedArray)" "Linear indexing checks bounds, translates origins and reads an arbitrary element from the actual parent." "base/reshapedarray.jl:294-298" ``P294 ``p294,
-  entry 300 "getindex(ReshapedArray,Int...)" "Cartesian indexing checks bounds then delegates every actual index to unsafe lookup." "base/reshapedarray.jl:300-302" ``P300 ``p300,
-  entry 304 "getindex(ReshapedIndex)" "ReshapedIndex lookup checks and reads its actual parent index from the actual parent." "base/reshapedarray.jl:304-307" ``P304 ``p304,
-  entry 310 "_unsafe_getindex" "Unsafe lookup obtains actual parent axes and view size, converts indices, accounts for offsets and reads the arbitrary parent element." "base/reshapedarray.jl:310-314" ``P310 ``p310,
-  entry 316 "_unsafe_getindex_rs(scalar)" "The scalar helper reads the arbitrary element from the actual array and index." "base/reshapedarray.jl:316" ``P316 ``p316,
-  entry 317 "_unsafe_getindex_rs(tuple)" "The tuple helper reads the arbitrary element from the actual array and complete index tuple." "base/reshapedarray.jl:317" ``P317 ``p317,
-  entry 319 "setindex!(linear ReshapedArray)" "Linear assignment checks bounds, translates origins, converts and writes the arbitrary value, and returns the original value after success." "base/reshapedarray.jl:319-323" ``P319 ``p319,
-  entry 325 "setindex!(ReshapedArray,Int...)" "Cartesian assignment checks every actual index and delegates the arbitrary value to unsafe mutation." "base/reshapedarray.jl:325-327" ``P325 ``p325,
-  entry 329 "setindex!(ReshapedIndex)" "ReshapedIndex assignment checks the actual parent index, converts and writes the arbitrary value, then returns it." "base/reshapedarray.jl:329-332" ``P329 ``p329,
-  entry 335 "_unsafe_setindex!" "Unsafe assignment calls axes on the actual parent twice in source order, translates indices, converts and writes the arbitrary value." "base/reshapedarray.jl:335-339" ``P335 ``p335,
-  entry 348 "_rs_setindex!_err" "The helper throws the literal ErrorException for assignment to a reshaped range." "base/reshapedarray.jl:348" ``P348 ``p348,
-  entry 350 "cconvert(Ptr,ReshapedArray)" "Pointer conversion passes the requested pointer type and actual parent to cconvert." "base/reshapedarray.jl:350" ``P350 ``p350,
-  entry 351 "unsafe_convert(Ptr,ReshapedArray)" "Unsafe pointer conversion passes the requested pointer type and actual parent to unsafe_convert." "base/reshapedarray.jl:351" ``P351 ``p351,
-  entry 357 "compute_stride1(ReshapedRange)" "Stride computation reads I[1], its parent and step, performs checked Int conversion and multiplies the arbitrary accumulator." "base/reshapedarray.jl:357" ``P357 ``p357,
-  entry 360 "substrides(ReshapedRange)" "Reshaped-range strides convert the actual parent step, build all size-derived strides and recurse on both actual tails." "base/reshapedarray.jl:360-361" ``P360 ``p360,
-  entry 368 "unsafe_convert(Ptr,SubArray)" "Unsafe conversion computes the exact byte-offset branch and performs typed parent pointer conversion, pointer addition and requested pointer construction." "base/reshapedarray.jl:368-375" ``P368 ``p368,
-  entry 398 "unsafe_convert(Ptr,OffsetCConvert)" "Offset conversion performs the typed parent conversion, pointer addition and requested pointer construction." "base/reshapedarray.jl:398-399" ``P398 ``p398,
-  entry 402 "cconvert(Ptr,SubArray)" "Conversion retains the actual parent and pointer type, maps first over actual indices in the fallback, converts the offset and calls _offset_cconvert." "base/reshapedarray.jl:402-414" ``P402 ``p402,
-  entry 424 "strides(ReshapedArray)" "Strides executes the contiguity, parent shape and stride, merge, rank and reshaped-stride branches on the actual view and parent." "base/reshapedarray.jl:424-430" ``P424 ``p424,
-  entry 450 "merge_adjacent_dim" "Adjacent-dimension merging carries accumulated size and stride across every loop iteration and returns the final index." "base/reshapedarray.jl:450-463" ``P450 ``p450,
-  entry 466 "map(ReshapedArray)" "Map transforms the actual parent, reads the actual view shape and reshapes the mapped values to that shape." "base/reshapedarray.jl:466" ``P466 ``p466
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.ReshapedFaithfulB

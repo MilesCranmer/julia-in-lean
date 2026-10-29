@@ -63,7 +63,7 @@ def FoldInit : Prop :=
 promises for `reduce`, `foldl` and `foldr` over a single element (`base/reduce.jl:397-403`);
 here `op = +`, where `reduce_first(+, x::Bool) = Int(x)`. -/
 def FoldrReduceFirst : Prop :=
-  ∀ (x : Val) (ty : Ty), Vec.foldr Val.plus (Vec.emptyPlus ty) [x] = .ok (Val.firstPlus x)
+  ∀ (x : Val) (ty : Ty), Vec.foldr Val.plus Val.firstPlus (Vec.emptyPlus ty) [x] = .ok (Val.firstPlus x)
 
 /-- `any(f, itr)` and `all(f, itr)` follow three-valued logic when `f` returns `Bool` or
 `missing`, and short-circuit: once a prefix decides the result, the rest of the
@@ -106,14 +106,20 @@ concatenation is nonempty (`base/reduce.jl:112-125`). -/
 def FlattenFoldl : Prop :=
   ∀ (op : Val → Val → Val) (first : Val → Val) (init : Val) (vs : List (List Val)),
     Vec.foldlFlattenInit op init vs = vs.flatten.foldl op init ∧
-    ∀ x rest, vs.flatten = x :: rest → Vec.foldlFlatten op first vs = .ok (rest.foldl op (first x))
+    ∀ x rest, vs.flatten = x :: rest → Vec.foldlFlatten op first (fun _ => .error .argumentError) (.vector .bottom) vs = .ok (rest.foldl op (first x))
 
 /-- `sum(Iterators.flatten(vs))` equals `sum(collect(Iterators.flatten(vs)))` for vectors
 `vs` of `Vector{Int}`: the element type `Int` is known, so the empty sum is `0`
 (`base/reduce.jl:470-472`). -/
 def FlattenSumAgrees : Prop :=
   ∀ vs : List (List Val), (∀ v ∈ vs, ∀ x ∈ v, ∃ y, x = .int .i64 y) →
-    Vec.foldlFlatten Val.addSum Val.firstAddSum vs = Vec.sum (.int .i64) vs.flatten
+    Vec.foldlFlatten Val.addSum Val.firstAddSum Vec.emptyAddSum (.vector (.int .i64)) vs = Vec.sum (.int .i64) vs.flatten
+
+/-- An empty flattened integer iterator has the additive identity. -/
+def FlattenEmptySum : Prop :=
+  ∀ vs : List (List Val), vs.flatten = [] →
+    Vec.foldlFlatten Val.addSum Val.firstAddSum Vec.emptyAddSum (.vector (.int .i64)) vs =
+      .ok (Val.i64 0)
 
 /-- `reduce(vcat, vs)` concatenates a nonempty vector of vectors; `reduce(hcat, vs)` puts
 them side by side as columns when they have equal lengths and throws

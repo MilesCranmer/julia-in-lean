@@ -37,7 +37,7 @@ theorem pairIterationGenericCorrect : PairIterationGenericCorrect := by
   exact ⟨fun _ _ _ _ _ _ _ _ => rfl, fun _ _ _ _ _ _ _ _ _ => rfl⟩
 
 def uintModulus (bits : Nat) : Nat := 2 ^ bits
-def pairHashSeed (bits : Nat) : Nat := if bits = 64 then 0x94cb2bb20a28ce96 else 0x0a28ce96
+def pairHashSeed (bits : Nat) : Nat := if bits = 64 then 0x94cb2bb20a28ce96 else 0x1f60a087
 
 /-- `hash(p::Pair,h::UInt)`, `base/pair.jl:44-46`, with fixed-width UInt
 wrapping and both architecture-specific seeds. -/
@@ -52,7 +52,7 @@ def PairHashFixedCorrect : Prop :=
       hashB p.second (hashA p.first ((0x94cb2bb20a28ce96 ^^^ h) % 2 ^ 64) % 2 ^ 64) % 2 ^ 64) ∧
   (∀ (A B : Type) hashA hashB (p : HPair A B) h,
     pairHashFixed 32 hashA hashB p h =
-      hashB p.second (hashA p.first ((0x0a28ce96 ^^^ h) % 2 ^ 32) % 2 ^ 32) % 2 ^ 32)
+      hashB p.second (hashA p.first ((0x1f60a087 ^^^ h) % 2 ^ 32) % 2 ^ 32) % 2 ^ 32)
 
 theorem pairHashFixedCorrect : PairHashFixedCorrect := by
   constructor <;> intros <;> rfl
@@ -102,6 +102,21 @@ def PairGetindexCorrect : Prop :=
 
 theorem pairGetindexCorrect : PairGetindexCorrect := by
   exact ⟨by simp [pairGetindexInt], fun _ _ _ _ _ => rfl⟩
+
+/-- Pair iteration yields the first and second fields, then terminates;
+an invalid state below one produces a bounds error. -/
+def PairIterationFields : Prop :=
+  ∀ (V : Type) (p : HPair V V),
+    let step := pairIterateGeneric (fun i : Int => .ok (decide (i > 2)))
+      pairGetindexInt (fun i : Int => .ok (i + 1)) p
+    step 1 = .ok (some (p.first, 2)) ∧
+    step 2 = .ok (some (p.second, 3)) ∧
+    step 3 = .ok none ∧
+    step 0 = .error (.jl .boundsError)
+
+theorem pairIterationFields : PairIterationFields := by
+  intro V p
+  simp [pairIterateGeneric, pairGetindexInt]
 
 /-- Typed reverse, `base/pair.jl:56`. -/
 def reverseHPair {A B : Type} (p : HPair A B) : HPair B A := ⟨p.second, p.first⟩

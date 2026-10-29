@@ -2,8 +2,8 @@ reproduced = mktemp() do _, io
     close(io)
     open_state = isopen(io)
     writable_state = iswritable(io)
-    string_result = write(io, "x")
-    byte_result = write(io, UInt8('x'))
+    string_result = try write(io, "x") catch e; typeof(e) end
+    byte_result = try write(io, UInt8('x')) catch e; typeof(e) end
     println("isopen(io) = ", open_state)
     println("iswritable(io) = ", writable_state)
     println("write(io, \"x\") = ", string_result)

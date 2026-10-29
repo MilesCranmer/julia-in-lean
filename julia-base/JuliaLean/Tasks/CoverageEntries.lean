@@ -154,21 +154,6 @@ def coverageEntries : List Entry := [
     source := "base/asyncmap.jl:293-356", status := .proven
     prop := ``AsyncGeneratorBodies, thm := some ``asyncGeneratorBodies_proven },
 
-  { id := "tasks-coverage-linked-generic", juliaFile := "base/linked_list.jl"
-    juliaFns := ["IntrusiveLinkedList", "eltype", "iterate", "isempty", "length", "list_append!!", "push!", "pushfirst!", "pop!", "popfirst!", "list_deletefirst!", "_list_deletefirst!"]
-    statement := "Generic intrusive-list bodies preserve identity order, reject duplicate insertion/self-append, update both endpoints, and clear removed node linkage."
-    source := "base/linked_list.jl:3-143", status := .proven
-    prop := ``LinkedGenericBodies, thm := some ``linkedGenericBodies_proven },
-  { id := "tasks-coverage-linked-boxed", juliaFile := "base/linked_list.jl"
-    juliaFns := ["LinkedListItem", "LinkedList eltype", "LinkedList iterate", "LinkedList push!", "LinkedList pushfirst!", "LinkedList pop!", "LinkedList popfirst!", "LinkedList list_deletefirst!"]
-    statement := "Boxed LinkedList wrappers allocate one node per pushed value, expose values in node order, and delete the first isequal value."
-    source := "base/linked_list.jl:152-179", status := .proven
-    prop := ``LinkedBoxedBodies, thm := some ``linkedBoxedBodies_proven },
-  { id := "tasks-coverage-linked-waitentry", juliaFile := "base/linked_list.jl"
-    juliaFns := ["WaitEntry push!", "WaitEntry pushfirst!", "WaitEntry pop!", "WaitEntry popfirst!", "WaitEntry list_deletefirst!", "WaitEntry length", "_waitq_isempty"]
-    statement := "WaitEntry list bodies acquire and release the owner-specific slot, preserve owner-local linkage, update endpoints, and distinguish armed entries from claimed corpses."
-    source := "base/linked_list.jl:181-293", status := .proven
-    prop := ``LinkedWaitEntryBodies, thm := some ``linkedWaitEntryBodies_proven },
 
   { id := "tasks-coverage-scoped-access", juliaFile := "base/scopedvalues.jl"
     juliaFns := ["ScopedValue", "eltype", "hasdefault", "getdefault", "isassigned", "show(::Scope)", "get", "getindex", "show(::AbstractScopedValue)"]

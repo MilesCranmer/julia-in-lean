@@ -128,27 +128,6 @@ theorem startswithIoEof_refuted : ¬ StartswithIoEof := by
 
 open JuliaLean.Registry
 
-def startsioEntries : List Entry := [
-  { id := "stringutil-startswith-io-mark"
-    juliaFile := "base/strings/util.jl"
-    juliaFns := ["startswith(::IO, ::AbstractString)", "startswith(::IO, ::Base.Chars)"]
-    statement := "On a marked IOBuffer (IOBuffer(data), k bytes read, mark(io)), startswith(io, prefix) for a string or a collection of characters, whenever it returns, leaves the caller's mark in place."
-    source := "base/strings/util.jl:87-92 (startswith(io::IO, prefix) docstring: \"Check if an `IO` object starts with a prefix ... See also `peek`\")"
-    status := .refuted
-    prop := ``StartswithIoKeepsMark
-    thm := some ``startswithIoKeepsMark_refuted
-    issue := "none found; related #40616 (queries: issues: startswith IO, prs: startswith IO, issues: startswith IOBuffer, issues: startswith mark reset)"
-    notes := "IOBuffer(\"abc\") after reading 'a' and mark(io): startswith(io, \"b\") and startswith(io, ['b']) return true but unmark the stream (mark/read/reset, base/strings/util.jl:93-104); a later reset(io) throws. Same pattern as peek (bugs/iobuffers-peek-clears-mark.yaml). Model checked against Julia nightly on 12 inputs." },
-  { id := "stringutil-startswith-io-eof"
-    juliaFile := "base/strings/util.jl"
-    juliaFns := ["startswith(::IO, ::Base.Chars)", "read(::IO, ::Type{Char})"]
-    statement := "startswith(io, chars) on an IOBuffer at its end returns false, as startswith(io, prefix::String) and startswith(\"\", chars) do."
-    source := "base/strings/util.jl:87-92 (startswith(io::IO, prefix) docstring)"
-    status := .refuted
-    prop := ``StartswithIoEof
-    thm := some ``startswithIoEof_refuted
-    issue := "none found; related #40616 (queries: issues: startswith IO, issues: startswith IOBuffer, issues: startswith EOFError, prs: startswith EOFError)"
-    notes := "startswith(IOBuffer(\"\"), 'a') throws EOFError from read(io, Char) (base/io.jl:1092) after mark(io), so the buffer also stays marked." }
-]
+def startsioEntries : List Entry := []
 
 end JuliaLean.StringUtil

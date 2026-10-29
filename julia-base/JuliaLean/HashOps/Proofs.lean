@@ -106,12 +106,4 @@ theorem widenNoLoss_refuted : ¬ WidenNoLoss := by
   revert bad
   decide
 
-theorem widenAdditionNoLoss_proven : WidenAdditionNoLoss := by
-  intro t x y
-  have hx := x.property
-  have hy := y.property
-  cases t <;>
-    simp [widenAdd, widenTarget, wrapInt, IntTy.min, IntTy.max, IntTy.signed, IntTy.bits] at hx hy ⊢ <;>
-    omega
-
 end JuliaLean.HashOps

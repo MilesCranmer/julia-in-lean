@@ -2,13 +2,24 @@ import JuliaLean.Streams.Props
 
 namespace JuliaLean.Streams
 
-/-- A closed writable-mode IOStream has `iswritable == true`, and both byte and
-bulk writes return zero instead of throwing. -/
-theorem closedIOStreamWriteErrors_refuted : ¬ ClosedIOStreamWriteErrors := by
+/-- Closed IOStreams reject writes. -/
+theorem closedIOStreamWriteErrors_proven : ClosedIOStreamWriteErrors := by
+  intro s bytes hk ho _
+  have hw : isWritable s = false := by simp [isWritable, hk, ho]
+  refine ⟨hw, .argumentError, ?_⟩
+  simp [writeBytes, unsafeWrite, hk, hw]
+
+/-- Prior master checked only the ios writable access bit after close. -/
+def legacyIsWritable (s : StreamM) : Bool :=
+  if s.kind = .ioStream then s.writable else isWritable s
+
+def LegacyClosedIOStreamWriteErrors : Prop := ∀ s,
+  s.kind = .ioStream → isOpen s = false → legacyIsWritable s = false
+
+theorem closedIOStreamWriteErrors_refuted : ¬ LegacyClosedIOStreamWriteErrors := by
   intro h
-  have bad := h (closeStream (freshStream .ioStream)) [1] rfl (by decide) (by decide)
-  have hw := bad.1
-  simp [closeStream, freshStream, isWritable] at hw
+  have bad := h (closeStream (freshStream .ioStream)) rfl (by decide)
+  simp [legacyIsWritable, closeStream, freshStream] at bad
 
 /-- `pipeline(cmd; stderr=othercmd)` constructs `ErrOrCmds`, for which master
 defines no `ignorestatus` method. -/

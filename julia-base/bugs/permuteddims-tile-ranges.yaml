@@ -1,0 +1,56 @@
+id: permuteddims-tile-ranges
+title: "permutedims! leaves destination entries untouched when a tile endpoint overflows"
+priority: P2
+kind: wrong-result
+area: PermutedDimsArray
+files: [base/permuteddimsarray.jl]
+functions: ["permutedims!(dest, src, perm)", "_permutedims!(P, src, R1, R2, R3, ds, dp)"]
+summary: |
+  `permutedims!` does not overwrite a destination cell when a source axis ends at
+  `typemax(Int)`. A valid 1×1 matrix with both axes equal to
+  `typemax(Int):typemax(Int)` leaves its destination value at -1 instead of copying
+  the source value 42. The tile upper-bound expression `jo + 7` or `io + 7` wraps,
+  making the corresponding inner range empty.
+likelihood: |
+  Very low: requires a custom `AbstractMatrix` with a singleton axis at
+  `typemax(Int)`. Ordinary arrays do not use such axes.
+maybe_intended: ""
+reproducer: |
+  src = HighAxisMatrix(Ref(42))
+  dest = HighAxisMatrix(Ref(-1))
+  permutedims!(dest, src, (2, 1))
+  @assert dest.value[] == -1
+  @assert src.value[] == 42
+  println("destination = ", dest.value[], "; source = ", src.value[])
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    destination = -1; source = 42
+    REPRODUCED permuteddims-tile-ranges
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    destination = -1; source = 42
+    REPRODUCED permuteddims-tile-ranges
+reproduced: {release: true, nightly: true}
+expected: |
+  `permutedims!(dest, src, (2, 1))` overwrites the 1×1 destination with 42,
+  while leaving the source unchanged.
+promised_by: |
+  `permutedims!` docstring, base/permuteddimsarray.jl:278-280: the result is stored
+  in `dest`, which is completely overwritten when it has the permuted source size.
+cause: |
+  base/permuteddimsarray.jl:321-325 and 335-340 compute each tile's inclusive upper
+  coordinate with `min(start + 7, last(axis))`. For an axis containing only
+  `typemax(Int)`, `start + 7` wraps to `typemin(Int)`, so the inner coordinate range
+  is empty and the assignment is skipped. The general and zero-prefix tile kernels
+  share this overflow-prone bound calculation.
+possible_fix: |
+  Compute tile endpoints and advance tile starts without overflowing, for example by
+  iterating over axis offsets or using an overflow-safe bounded-add helper.
+duplicates:
+  issues: []
+  queries: ["permuteddims overflow", "permutedims offset axes", "permutedims tile", "permutedims typemax"]
+lean:
+  property: JuliaLean.Proofs.base.permuteddimsarray.TiledAxisPartition
+  theorem: JuliaLean.Proofs.base.permuteddimsarray.tiledAxisPartition_refuted
+covers: [permuteddims-copy-contract]

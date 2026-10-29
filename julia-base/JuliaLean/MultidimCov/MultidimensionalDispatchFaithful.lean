@@ -217,31 +217,6 @@ private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) 
     juliaFns := [name], statement, source := s!"base/multidimensional.jl:{line}; indexing dispatch source equation",
     status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 735 "generated mixed-index method" "The generated wrapper calls to_indices, constructs CartesianIndex, then invokes the generated body." ``P735 ``p735,
-  entry 739 "generated CartesianIndex method" "The generated wrapper expands the complete Cartesian coordinate tuple into the generated body." ``P739 ``p739,
-  entry 743 "generated Integer method" "The generated wrapper converts indices, obtains IndexStyle, then takes the linear or Cartesian route." ``P743 ``p743,
-  entry 757 "checkbounds(::AbstractArray,::CartesianIndex)" "Bounds checking reads axes(A) before checking the Cartesian coordinate tuple." ``P757 ``p757,
-  entry 760 "checkbounds_indices(CartesianIndex,tail)" "The method splits exactly the Cartesian rank, checks the head, and short-circuits before recursive tail checking." ``P760 ``p760,
-  entry 764 "checkindex(::Tuple,::CartesianIndex)" "The method checks the complete stored coordinate tuple." ``P764 ``p764,
-  entry 766 "checkindex(::Tuple,::Range{CartesianIndex})" "The method evaluates emptiness and both endpoint checks with Julia's eager bitwise-or behavior." ``P766 ``p766,
-  entry 772 "getindex(::Array,mixed indices)" "Array indexing converts every mixed index before invoking the actual array read." ``P772 ``p772,
-  entry 774 "setindex!(::Array,mixed indices)" "Array assignment converts indices, mutates, and returns the array result." ``P774 ``p774,
-  entry 779 "checkbounds(::AbstractArray,::Array{CartesianIndex})" "Array-of-Cartesian bounds reads axes(A) before checking the index array." ``P779 ``p779,
-  entry 782 "checkbounds_indices(Array{CartesianIndex},tail)" "The method splits by Cartesian rank, checks the head array, and short-circuits before the recursive tail." ``P782 ``p782,
-  entry 786 "checkindex(::Tuple,::CartesianIndices)" "CartesianIndices checking delegates its complete stored range tuple." ``P786 ``p786,
-  entry 793 "index_ndims(::CartesianIndex,tail)" "The method derives one true flag per original coordinate before recursively processing the tail." ``P793 ``p793,
-  entry 796 "index_ndims(::Array{CartesianIndex{N}},tail)" "The method derives N true flags before recursively processing original tail inputs." ``P796 ``p796,
-  entry 803 "index_dimsum(index,tail)" "Dimensionality derives flags from the original head kind and recursively processes the original tail." ``P803 ``p803,
-  entry 804 "index_dimsum(::Colon,tail)" "Colon prepends one dimension to the recursively derived tail." ``P804 ``p804,
-  entry 805 "index_dimsum(::BoolArray,tail)" "A Boolean array prepends one dimension to the recursively derived tail." ``P805 ``p805,
-  entry 806 "index_dimsum(::Array{N},tail)" "An N-dimensional array prepends N flags to the recursively derived tail." ``P806 ``p806,
-  entry 813 "index_lengths(::Real,tail)" "A scalar contributes length one before recursive tail lengths." ``P813 ``p813,
-  entry 814 "index_lengths(::AbstractArray,tail)" "An array contributes its fixed-width length before recursive tail lengths." ``P814 ``p814,
-  entry 819 "index_shape(::Real,tail)" "A scalar drops from shape while the original tail is recursively processed." ``P819 ``p819,
-  entry 820 "index_shape(::AbstractArray,tail)" "An array contributes every axis before recursively processing the tail." ``P820 ``p820,
-  entry 823 "index_sizes(::Real,tail)" "A scalar drops from size while the original tail is recursively processed." ``P823 ``p823,
-  entry 824 "index_sizes(::AbstractArray,tail)" "An array contributes every size before recursively processing the tail." ``P824 ``p824
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.MultidimensionalDispatchFaithful

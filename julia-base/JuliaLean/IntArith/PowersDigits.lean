@@ -384,40 +384,6 @@ theorem nextpowSeedCorrection : NextpowSeedCorrection := by
 
 /-- Settled documentation claims and the exact three-candidate correction
 contract. The numerical log seed remains an explicit external dependency. -/
-def entries : List JuliaLean.Registry.Entry := [
-  { id := "intarith-powers-nextpow-overflow", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["nextpow", "_nextpow2"]
-    statement := "For positive integer x, a successful nextpow(2,x) is not less than x."
-    source := "base/intfuncs.jl:627-631", status := .refuted
-    prop := ``NextpowLowerBound, thm := some ``nextpowLowerBound_refuted
-    issue := "#45880 (also #59681; searched issues nextpow overflow, nextpow typemax; PRs nextpow overflow, nextpow typemax)"
-    notes := "Int8(65) returns Int8(-128); UInt8(255) returns zero. Same in 1.13.2 and master." },
-  { id := "intarith-powers-negative-base-typemin", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["ndigits", "ndigits0znb"]
-    statement := "An unsigned positive value smaller than the magnitude of a valid negative base needs one digit."
-    source := "base/intfuncs.jl:802-807,846-850", status := .refuted
-    prop := ``NegativeBaseSingleDigit, thm := some ``negativeBaseSingleDigit_refuted
-    issue := "none found (issues: ndigits typemin; ndigits negative unsigned; PRs: ndigits typemin; ndigits base). #29183 concerns a different signed conversion bug."
-    notes := "ndigits(UInt8(1),base=typemin(Int8)) is 2, expected 1. Unary -b wraps before the unsigned peel. Same in both versions." },
-  { id := "intarith-powers-large-base", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["ndigits", "ndigits0zpb"]
-    statement := "For a valid positive integer base, a positive value below the base has one digit."
-    source := "base/intfuncs.jl:802-807,846-850", status := .refuted
-    prop := ``LargeBaseSingleDigit, thm := some ``largeBaseSingleDigit_refuted
-    issue := "none found (issues: ndigits InexactError; ndigits Int128 base; PRs: ndigits InexactError; ndigits base)"
-    notes := "ndigits(1,base=Int128(2)^63) throws InexactError although the documented base restriction permits it. Same in both versions." },
-  { id := "intarith-powers-log-seed-correction", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["nextpow"]
-    statement := "An integer nextpow log seed at most one exponent away yields the mathematically smallest power not below x, when the three computed candidate powers are exact and increasing."
-    source := "base/intfuncs.jl:629-630,657-669", status := .proven
-    prop := ``NextpowSeedCorrection, thm := some ``nextpowSeedCorrection
-    notes := "Quantifies positive seeds n in {k-1,k,k+1}, where a^k is the true smallest power at least x. Exact-candidate hypotheses explicitly exclude wrapping intermediates. The actual floating logarithm's accuracy is outside this module. Generic prevpow is modelled but not separately registered. Source unchanged in 1.13.2." },
-  { id := "intarith-powers-isqrt-uint8", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["isqrt"]
-    statement := "For every UInt8 input, isqrt returns the largest integer whose exact square does not exceed the input."
-    source := "base/intfuncs.jl:1284-1293", status := .proven
-    prop := ``IsqrtUInt8, thm := some ``isqrtUInt8
-    notes := "Exhaustive UInt8 proof evaluates exact binary64 conversion and rounded sqrt, followed by the actual truncation branch; no square-root oracle replaces the source. Exact products specify maximality without wrapping. Source unchanged in 1.13.2." }
-]
+def entries : List JuliaLean.Registry.Entry := []
 
 end JuliaLean.IntArith.PowersDigits

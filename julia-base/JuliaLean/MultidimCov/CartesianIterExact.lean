@@ -231,23 +231,6 @@ theorem cartesianIterRows : CartesianIterRows := by
     cartesianPartitionNextExact, partitionSplitDimExact, partitionInnerLengthExact,
     partitionSimdIndexExact]
 
-def cartesianIterEntries : List Entry := [
-  { id := "multidimcov-cartesian-iter-exact"
-    juliaFile := "base/multidimensional.jl"
-    juliaFns := ["CartesianIndices iteration, split, reverse, collection, set operations, and CartesianPartition helpers"]
-    statement := "Each iterator and partition helper follows its own source-order state transition, validation, delegation, or return body for every input."
-    source := "base/multidimensional.jl:445-715"
-    status := .proven
-    prop := ``CartesianIterRows
-    thm := some ``cartesianIterRows },
-  { id := "multidimcov-cartesian-size-exact"
-    juliaFile := "base/multidimensional.jl"
-    juliaFns := ["size(::CartesianIndices)"]
-    statement := "CartesianIndices size maps length over its component ranges."
-    source := "base/multidimensional.jl:488"
-    status := .proven
-    prop := ``CartesianSizeRow
-    thm := some ``cartesianSizeRow }
-]
+def cartesianIterEntries : List Entry := []
 
 end JuliaLean.MultidimCov

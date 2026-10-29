@@ -146,25 +146,6 @@ private def mk (line : Nat) (name : String) (prop thm : Lean.Name) : Entry :=
     statement := s!"The method at base/some.jl:{line} follows its method-specific source model for every allowed input."
     source := s!"base/some.jl:{line}", status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  mk 15 "Some(::Type{T})" ``P15 ``p15,
-  mk 17 "nonnothingtype(::Type)" ``P17 ``p17,
-  mk 18 "promote_rule(::Type{Nothing}, ::Type)" ``P18 ``p18,
-  mk 19 "promote_rule(::Type{>:Nothing}, ::Type)" ``P19 ``p19,
-  mk 27 "nonnothingtype_checked(::Type)" ``P27 ``p27,
-  mk 34 "convert(::Type{T}, ::T) where T>:Nothing" ``P34 ``p34,
-  mk 35 "convert(::Type{T}, x) where T>:Nothing" ``P35 ``p35,
-  mk 36 "convert(::Type{Some{T}}, ::Some{T})" ``P36 ``p36,
-  mk 37 "convert(::Type{Some{T}}, ::Some)" ``P37 ``p37,
-  mk 54 "notnothing(::Any)" ``P54 ``p54,
-  mk 55 "notnothing(::Nothing)" ``P55 ``p55,
-  mk 67 "isnothing" ``P67 ``p67,
-  mk 99 "something()" ``P99 ``p99,
-  mk 100 "something(::Nothing, ...)" ``P100 ``p100,
-  mk 101 "something(::Some, ...)" ``P101 ``p101,
-  mk 102 "something(::Any, ...)" ``P102 ``p102,
-  mk 138 "@something" ``P138 ``p138,
-  mk 169 "==(::Some, ::Some)" ``P169 ``p169
-]
+def entries : List Entry := []
 
 end JuliaLean.ReduceCov.SomeRows

@@ -1,0 +1,56 @@
+id: multidimcov-wrap-negative-length
+title: "Base.wrap(Array, m, -1) returns a Vector with size (-1,) instead of throwing"
+priority: P1
+kind: missing-error
+area: MultidimCov
+files: [base/array.jl, base/boot.jl]
+functions: ["_wrap(ref::MemoryRef{T}, dims::NTuple{N, Int})", "wrap(::Type{Array}, m::Memory{T}, l::Integer)", "wrap(::Type{Array}, m::MemoryRef{T}, dims::NTuple{N, Integer})"]
+summary: |
+  wrap(Array, m, dims) validates dims with Core.checked_dims, but the one-argument
+  method checked_dims(m::Int) = m defers its check to the Memory constructor, which
+  wrap never calls. A negative length passes the "fits in memory" test, so
+  Base.wrap(Array, m, -1) returns a Vector whose size is (-1,) and whose length is
+  -1. With two dimensions the same negative values throw ArgumentError.
+likelihood: |
+  Needs a negative length, typically from an off-by-one or a subtraction in code
+  that wraps a buffer. The result is an Array violating length(a) >= 0, which later
+  operations (resize!, push!, copyto!) do not expect.
+maybe_intended: ""
+reproducer: |
+  m = Memory{Int}(undef, 3)
+  a = Base.wrap(Array, m, -1)
+  size(a), length(a)      # ((-1,), -1)
+  Base.wrap(Array, m, (-1, -1))   # ArgumentError("invalid Array dimensions")
+output:
+  release: |
+    wrap(Array, m, -1): size (-1,), length -1
+    wrap(Array, memoryref(m), (-5,)): size (-5,), length -5
+    wrap(Array, m, (-1, -1)) throws ArgumentError; Vector{Int}(undef, -1) throws ArgumentError
+    REPRODUCED multidimcov-wrap-negative-length
+  nightly: |
+    wrap(Array, m, -1): size (-1,), length -1
+    wrap(Array, memoryref(m), (-5,)): size (-5,), length -5
+    wrap(Array, m, (-1, -1)) throws ArgumentError; Vector{Int}(undef, -1) throws ArgumentError
+    REPRODUCED multidimcov-wrap-negative-length
+reproduced: {release: true, nightly: true}
+expected: |
+  ArgumentError("invalid Array dimensions"), as for several negative dimensions and
+  for Vector{Int}(undef, -1).
+promised_by: |
+  wrap docstring (base/array.jl:3232-3236): "Create an array of size dims using m as
+  the underlying memory"; an array size has nonnegative dimensions (the Array
+  constructors reject negative ones).
+cause: |
+  base/array.jl:3244 calls Core.checked_dims(dims...); base/boot.jl:813 defines
+  checked_dims(m::Int) = m without checking (the comment defers the check to the
+  Memory constructor). base/array.jl:3245 then only tests mem_len >= len, which a
+  negative len always passes.
+possible_fix: |
+  In _wrap, reject len < 0 (or call a checked variant of checked_dims for one
+  dimension) before constructing the Array.
+duplicates:
+  issues: []
+  queries: ["wrap Array negative", "Base.wrap negative dims", "wrap Memory negative length", "wrap checked_dims", "issues: wrap (title scan)"]
+lean:
+  property: JuliaLean.MultidimCov.ArrayV2.P3241
+  theorem: JuliaLean.MultidimCov.ArrayV2.p3241_refuted

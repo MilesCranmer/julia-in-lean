@@ -1,42 +1,42 @@
 file	line	endline	name	signature	status	entry	note
-base/bool.jl	6	6	promote_rule	promote_rule(::Type{Bool}, ::Type{T}) where {T<:Number}	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	8	8	typemin	typemin(::Type{Bool})	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	9	9	typemax	typemax(::Type{Bool})	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	13	13	~	(~)(x::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	14	14	&	(&)(x::Bool, y::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	15	15	|	(|)(x::Bool, y::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	49	49	xor	xor(x::Bool, y::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	83	83	nand	nand(x...)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	121	121	nor	nor(x...)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	123	123	>>	>>(x::Bool, c::UInt)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	124	124	<<	<<(x::Bool, c::UInt)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	125	125	>>>	>>>(x::Bool, c::UInt)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	127	127	signbit	signbit(x::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	128	128	sign	sign(x::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	129	129	abs	abs(x::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	130	130	abs2	abs2(x::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	131	131	iszero	iszero(x::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	132	132	isone	isone(x::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	133	133	ispositive	ispositive(x::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	135	135	<	<(x::Bool, y::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	136	136	<=	<=(x::Bool, y::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	140	140	+	+(x::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	141	141	+%	+%(x::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	142	142	-	-(x::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	143	143	-%	-%(x::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	145	145	+	+(x::Bool, y::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	146	146	-	-(x::Bool, y::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	147	147	+%	+%(x::Bool, y::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	148	148	-%	-%(x::Bool, y::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	149	149	*	*(x::Bool, y::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	150	150	*%	*%(x::Bool, y::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	151	151	^	^(x::Bool, y::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	152	152	^	^(x::Integer, y::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	155	157	+	+(x::Bool, y::T)::promote_type(Bool,T) where T<:AbstractFloat	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	158	158	+	+(y::AbstractFloat, x::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	161	163	*	*(x::Bool, y::T)::promote_type(Bool,T) where T<:AbstractFloat	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	164	164	*	*(y::AbstractFloat, x::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	166	166	div	div(x::Bool, y::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	167	167	rem	rem(x::Bool, y::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	168	168	mod	mod(x::Bool, y::Bool)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
-base/bool.jl	170	170	Bool	Bool(x::Real)	modelled	nummisc-coverage-bool-methods	source-family: nummisc-coverage-bool-methods mirrors this method body and branch order.
+base/bool.jl	6	6	promote_rule	promote_rule(::Type{Bool}, ::Type{T}) where {T<:Number}	todo		trivial: restates model bodies
+base/bool.jl	8	8	typemin	typemin(::Type{Bool})	todo		trivial: restates model bodies
+base/bool.jl	9	9	typemax	typemax(::Type{Bool})	todo		trivial: restates model bodies
+base/bool.jl	13	13	~	(~)(x::Bool)	todo		trivial: restates model bodies
+base/bool.jl	14	14	&	(&)(x::Bool, y::Bool)	todo		trivial: restates model bodies
+base/bool.jl	15	15	|	(|)(x::Bool, y::Bool)	todo		trivial: restates model bodies
+base/bool.jl	49	49	xor	xor(x::Bool, y::Bool)	todo		trivial: restates model bodies
+base/bool.jl	83	83	nand	nand(x...)	todo		trivial: restates model bodies
+base/bool.jl	121	121	nor	nor(x...)	todo		trivial: restates model bodies
+base/bool.jl	123	123	>>	>>(x::Bool, c::UInt)	todo		trivial: restates model bodies
+base/bool.jl	124	124	<<	<<(x::Bool, c::UInt)	todo		trivial: restates model bodies
+base/bool.jl	125	125	>>>	>>>(x::Bool, c::UInt)	todo		trivial: restates model bodies
+base/bool.jl	127	127	signbit	signbit(x::Bool)	todo		trivial: restates model bodies
+base/bool.jl	128	128	sign	sign(x::Bool)	todo		trivial: restates model bodies
+base/bool.jl	129	129	abs	abs(x::Bool)	todo		trivial: restates model bodies
+base/bool.jl	130	130	abs2	abs2(x::Bool)	todo		trivial: restates model bodies
+base/bool.jl	131	131	iszero	iszero(x::Bool)	todo		trivial: restates model bodies
+base/bool.jl	132	132	isone	isone(x::Bool)	todo		trivial: restates model bodies
+base/bool.jl	133	133	ispositive	ispositive(x::Bool)	todo		trivial: restates model bodies
+base/bool.jl	135	135	<	<(x::Bool, y::Bool)	todo		trivial: restates model bodies
+base/bool.jl	136	136	<=	<=(x::Bool, y::Bool)	todo		trivial: restates model bodies
+base/bool.jl	140	140	+	+(x::Bool)	todo		trivial: restates model bodies
+base/bool.jl	141	141	+%	+%(x::Bool)	todo		trivial: restates model bodies
+base/bool.jl	142	142	-	-(x::Bool)	todo		trivial: restates model bodies
+base/bool.jl	143	143	-%	-%(x::Bool)	todo		trivial: restates model bodies
+base/bool.jl	145	145	+	+(x::Bool, y::Bool)	todo		trivial: restates model bodies
+base/bool.jl	146	146	-	-(x::Bool, y::Bool)	todo		trivial: restates model bodies
+base/bool.jl	147	147	+%	+%(x::Bool, y::Bool)	todo		trivial: restates model bodies
+base/bool.jl	148	148	-%	-%(x::Bool, y::Bool)	todo		trivial: restates model bodies
+base/bool.jl	149	149	*	*(x::Bool, y::Bool)	todo		trivial: restates model bodies
+base/bool.jl	150	150	*%	*%(x::Bool, y::Bool)	todo		trivial: restates model bodies
+base/bool.jl	151	151	^	^(x::Bool, y::Bool)	todo		trivial: restates model bodies
+base/bool.jl	152	152	^	^(x::Integer, y::Bool)	todo		trivial: restates model bodies
+base/bool.jl	155	157	+	+(x::Bool, y::T)::promote_type(Bool,T) where T<:AbstractFloat	todo		trivial: restates model bodies
+base/bool.jl	158	158	+	+(y::AbstractFloat, x::Bool)	todo		trivial: restates model bodies
+base/bool.jl	161	163	*	*(x::Bool, y::T)::promote_type(Bool,T) where T<:AbstractFloat	todo		trivial: restates model bodies
+base/bool.jl	164	164	*	*(y::AbstractFloat, x::Bool)	todo		trivial: restates model bodies
+base/bool.jl	166	166	div	div(x::Bool, y::Bool)	todo		trivial: restates model bodies
+base/bool.jl	167	167	rem	rem(x::Bool, y::Bool)	todo		trivial: restates model bodies
+base/bool.jl	168	168	mod	mod(x::Bool, y::Bool)	todo		trivial: restates model bodies
+base/bool.jl	170	170	Bool	Bool(x::Real)	todo		trivial: restates model bodies

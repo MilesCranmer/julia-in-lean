@@ -57,4 +57,8 @@ def RrNestedSize : Prop :=
   ∀ (sU sS sT : Nat) (dims d1 : List Nat), 0 < sU → 0 < sS → 0 < sT → sU ≠ sS → sS ≠ sT → sU ≠ sT →
     rrSize sU sS dims = .ok d1 → rrNestedSize sU sS sT dims = rrSize sS sT d1
 
+def RrNestedSizeRelease : Prop :=
+  ∀ (sU sS sT : Nat) (dims d1 : List Nat), 0 < sU → 0 < sS → 0 < sT → sU ≠ sS → sS ≠ sT → sU ≠ sT →
+    rrSize sU sS dims = .ok d1 → rrNestedSizeRelease sU sS sT dims = rrSize sS sT d1
+
 end JuliaLean.ReinterpretArrays

@@ -198,48 +198,8 @@ def entries : List Entry := [
     "base/pcre.jl:135-203,232-263" ``Rx.PcreHelpersContract ``Rx.pcreHelpersContract,
   proven "stringscovb-pcre-exec" "base/pcre.jl" ["_exec", "exec", "exec_r", "exec_r_data"]
     "Successful exec_r calls free their allocated match data and preserve the Boolean match result."
-    "base/pcre.jl:210-230" ``Rx.ExecRFrees ``Rx.execRFrees,
+    "base/pcre.jl:210-230" ``Rx.ExecRFrees ``Rx.execRFrees
 
-  proven "stringscovb-unicode-isvalid" "base/strings/unicode.jl" ["isvalid"]
-    "Unicode validity accepts exactly scalar values and rejects malformed or overlong characters."
-    "base/strings/unicode.jl:33-63" ``Uni.IsvalidContract ``Uni.isvalidContract,
-  refuted "stringscovb-normalize-impure-chartransform" "base/strings/unicode.jl"
-    ["utf8proc_map", "utf8proc_decompose", "utf8proc_custom_func", "utf8proc_error", "normalize"]
-    "The second utf8proc decomposition never exceeds the buffer sized by the first pass."
-    "base/strings/unicode.jl:153-241; unchecked-buffer invariant"
-    "none found (queries: normalize chartransform utf8proc_map buffer)" "A stateful transform makes the second pass longer and writes past the buffer."
-    ``Uni.Utf8procMapInBounds ``Uni.utf8procMapInBounds_refuted,
-  proven "stringscovb-unicode-normalize" "base/strings/unicode.jl" ["normalize"]
-    "Named normalization forms select the same flags as their keyword forms and invalid names throw."
-    "base/strings/unicode.jl:202-251" ``Uni.NormalizeNfContract ``Uni.normalizeNfContract,
-  proven "stringscovb-unicode-textwidth" "base/strings/unicode.jl" ["textwidth"]
-    "Text width handles ASCII, malformed characters, strings, SubStrings, and annotated wrappers consistently."
-    "base/strings/unicode.jl:270-300" ``Uni.TextwidthContract ``Uni.textwidthContract,
-  proven "stringscovb-unicode-case-annotated" "base/strings/unicode.jl" ["lowercase", "uppercase", "titlecase"]
-    "Annotated case mappings preserve character annotations and delegate through annotated_chartransform."
-    "base/strings/unicode.jl:677-762" ``Uni.CaseAnnotatedContract ``Uni.caseAnnotatedContract,
-  proven "stringscovb-unicode-category" "base/strings/unicode.jl" ["category_code", "category_abbrev", "category_string"]
-    "Unicode category wrappers handle valid, malformed, and out-of-range code points within the category table."
-    "base/strings/unicode.jl:372-405" ``Uni.CategoryContract ``Uni.categoryContract,
-  refuted "stringscovb-isassigned-negative" "base/strings/unicode.jl" ["isassigned"]
-    "isassigned returns a Boolean for every integer input."
-    "base/strings/unicode.jl:405; predicate totality"
-    "none found (queries: Unicode.isassigned negative InexactError)" "A negative integer raises InexactError."
-    ``Uni.IsassignedTotal ``Uni.isassignedTotal_refuted,
-  proven "stringscovb-unicode-predicates" "base/strings/unicode.jl"
-    ["islowercase", "isuppercase", "iscased", "isdigit", "isxdigit", "isspace", "isletter", "isnumeric", "ispunct", "isprint", "iscntrl"]
-    "Unicode predicates follow their documented category and ASCII relationships."
-    "base/strings/unicode.jl:429-659" ``Uni.PredicatesContract ``Uni.predicatesContract,
-  proven "stringscovb-unicode-titlecase" "base/strings/unicode.jl" ["titlecase"]
-    "Annotated titlecase uses the documented grapheme and word-state transform and SubStrings delegate through conversion."
-    "base/strings/unicode.jl:745-762" ``Uni.TitlecaseAnnotated ``Uni.titlecaseAnnotated,
-  proven "stringscovb-unicode-firstcase" "base/strings/unicode.jl" ["uppercasefirst", "lowercasefirst"]
-    "First-character case mapping preserves empty strings and the public wrappers delegate to the mapped bodies."
-    "base/strings/unicode.jl:780-832" ``Uni.FirstCaseContract ``Uni.firstCaseContract,
-  proven "stringscovb-unicode-graphemes" "base/strings/unicode.jl"
-    ["isgraphemebreak", "isgraphemebreak!", "graphemes", "length", "iterate", "eltype", "==", "hash", "isless", "show"]
-    "Grapheme breaking, iteration, equality, hashing, ordering, and display agree with the represented string."
-    "base/strings/unicode.jl:837-896" ``Uni.GraphemesContract ``Uni.graphemesContract
 ]
 
 end JuliaLean.StringsCovB

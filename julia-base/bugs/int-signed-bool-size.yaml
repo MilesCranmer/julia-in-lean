@@ -1,0 +1,55 @@
+id: int-signed-bool-size
+title: "signed(Bool) is Int (8 bytes), but the signed(T) docstring promises the signed type of the same size"
+priority: P3
+kind: documentation
+area: IntArith
+files: [base/int.jl]
+functions: ["signed(::Type{Bool})", "unsigned(::Type{Bool})"]
+summary: |
+  The signed(T::Integer) docstring says it converts "an integer bitstype to the
+  signed type of the same size". For Bool (1 byte), signed(Bool) returns Int
+  (Int64, 8 bytes) rather than Int8. unsigned(Bool) likewise returns UInt (8 bytes),
+  while its docstring promises the unsigned type of the same size.
+likelihood: |
+  Generic code that uses signed(T) to get a same-width type, e.g. to reinterpret
+  values, gets a wider type for Bool. Code that passes Bool there is rare.
+maybe_intended: |
+  The behaviour is deliberate: PR #35854 ("add (un)signed(::Type{Bool}) method",
+  2020, commit 78f55de185) added signed(::Type{Bool}) = Int so that it matches
+  signed(true), which already returned an Int. The mismatch is in the docstring,
+  which was not updated for Bool.
+reproducer: |
+  signed(Bool)                   # Int64
+  sizeof(signed(Bool)), sizeof(Bool)   # (8, 1)
+  unsigned(Bool)                 # UInt64
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    signed(Bool) = Int64, sizeof(signed(Bool)) = 8, sizeof(Bool) = 1
+    unsigned(Bool) = UInt64, sizeof(unsigned(Bool)) = 8
+    signed(UInt8) = Int8, sizeof = 1
+    REPRODUCED int-signed-bool-size
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    signed(Bool) = Int64, sizeof(signed(Bool)) = 8, sizeof(Bool) = 1
+    unsigned(Bool) = UInt64, sizeof(unsigned(Bool)) = 8
+    signed(UInt8) = Int8, sizeof = 1
+    REPRODUCED int-signed-bool-size
+reproduced: {release: true, nightly: true}
+expected: |
+  Either signed(Bool) == Int8 as the docstring says, or (matching the intent of
+  #35854) docstrings for signed(T) and unsigned(T) that state Bool maps to Int and UInt.
+promised_by: |
+  signed(T::Integer) docstring, base/int.jl:61-71: "Convert an integer bitstype to
+  the signed type of the same size."
+cause: |
+  base/int.jl:73 defines signed(::Type{Bool}) = Int, which is not the same size as Bool.
+possible_fix: |
+  Update the signed(T) and unsigned(T) docstrings to say that Bool maps to Int and
+  UInt, consistent with signed(true) and unsigned(true).
+duplicates:
+  issues: []
+  queries: ["signed Bool", "signed Bool Int sizeof", "unsigned Bool"]
+lean:
+  property: JuliaLean.Proofs.base.int.SignedTypeSameSize
+  theorem: JuliaLean.Proofs.base.int.signedTypeSameSize_refuted

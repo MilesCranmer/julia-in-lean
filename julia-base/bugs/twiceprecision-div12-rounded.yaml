@@ -1,0 +1,65 @@
+id: twiceprecision-div12-rounded
+title: "Base.div12 double-rounds subnormal quotients and returns (Inf, -Inf) on overflow"
+priority: P2
+kind: wrong-result
+area: TwicePrecision
+files: [base/twiceprecision.jl]
+functions: ["div12(x::T, y::T) where {T<:AbstractFloat}"]
+summary: |
+  div12(x, y) should return (hi, lo) with hi + lo approximating x / y to about twice
+  working precision. It divides the frexp-normalized significands, splits that
+  quotient, and only then rescales hi and lo with ldexp. When x / y is subnormal the
+  rescaling rounds hi a second time and flushes lo: div12(2.0^-1020, 6.0) returns
+  (1.483382572338134e-308, 0.0), one ulp away from x / y = 1.4833825723381344e-308, so
+  it is less accurate than plain division. When x / y overflows, the finiteness check
+  sees only the unscaled quotient, and div12(2.0^600, 5.0 * 2.0^-600) returns
+  (Inf, -Inf), whose sum is NaN.
+likelihood: |
+  Low. div12 is internal (Base.div12) and nothing else in Base calls it on target
+  master; it needs a quotient below floatmin or above floatmax. Code outside Base that
+  uses it for compensated arithmetic would get a silently wrong or NaN result.
+maybe_intended: |
+  The docstring promises only `zhi + zlo ≈ x / y`. The comment in the function says the
+  normalization exists to avoid losing precision to subnormal intermediates, which the
+  final ldexp reintroduces.
+reproducer: |
+  Base.div12(2.0^-1020, 6.0)               # (1.483382572338134e-308, 0.0); 2.0^-1020 / 6.0 == 1.4833825723381344e-308
+  Base.div12(ldexp(1.0, 600), ldexp(5.0, -600))   # (Inf, -Inf); hi + lo is NaN
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    div12(2.0^-1020, 6.0) = (1.483382572338134e-308, 0.0), hi + lo = 1.483382572338134e-308, x / y = 1.4833825723381344e-308
+    div12(2.0^600, 5.0 * 2.0^-600) = (Inf, -Inf), hi + lo = NaN
+    REPRODUCED twiceprecision-div12-rounded
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    div12(2.0^-1020, 6.0) = (1.483382572338134e-308, 0.0), hi + lo = 1.483382572338134e-308, x / y = 1.4833825723381344e-308
+    div12(2.0^600, 5.0 * 2.0^-600) = (Inf, -Inf), hi + lo = NaN
+    REPRODUCED twiceprecision-div12-rounded
+reproduced: {release: true, nightly: true}
+expected: |
+  div12(2.0^-1020, 6.0) has hi == 2.0^-1020 / 6.0 (the correctly rounded quotient), at
+  least as accurate as plain division. For an overflowing quotient, (Inf, Inf) as
+  mul12 returns for an infinite product, so that hi + lo is Inf, not NaN.
+promised_by: |
+  div12 docstring, base/twiceprecision.jl:120-125: "A high-precision representation of
+  `x / y` for floating-point numbers. Mathematically, `zhi + zlo ≈ x / y`, where `zhi`
+  contains the most significant bits and `zlo` the least significant." The sibling
+  mul12 (base/twiceprecision.jl:113-116) returns (h, h) for a non-finite product.
+cause: |
+  base/twiceprecision.jl:149-153: r = xs / ys and rl are computed on the normalized
+  significands, and line 153 returns (ldexp(rh, xe-ye), ldexp(rl, xe-ye)). For a
+  subnormal result ldexp rounds rh again and rl underflows to 0. The overflow test
+  `!isfinite(r)` on line 153 checks the unscaled r, which is always finite, so for an
+  overflowing quotient ldexp turns rh into Inf and a negative rl into -Inf. The code
+  dates from 67a860503a2 (2017).
+possible_fix: |
+  Fall back to (x / y, zero) or (q, q) when xe - ye puts the result outside the normal
+  range, i.e. test the scaled hi for finiteness and subnormality before returning.
+duplicates:
+  issues:
+    - {number: 49569, state: closed, relation: related}
+  queries: ["div12", "div12 subnormal", "TwicePrecision multiply integer"]
+lean:
+  property: JuliaLean.Proofs.base.twiceprecision.Div12Rounded
+  theorem: JuliaLean.Proofs.base.twiceprecision.div12Rounded_refuted

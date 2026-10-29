@@ -2,7 +2,8 @@
 
 This procedure checks whether Lean registry entries model the Julia Base
 methods they claim to cover. Work from the package root and read the pinned
-master source with `git -C <julia-source-root> show bbfa0ce4150:<path>`.
+master source with
+`git -C <julia-source-root> show f755f49a9e41380d7da126b3c1db9fe7f83dd027:<path>`.
 Review the source and proofs without executing Lean or Julia.
 
 Your input is the coverage file `coverage/methods/{FILE}.tsv`. For every row

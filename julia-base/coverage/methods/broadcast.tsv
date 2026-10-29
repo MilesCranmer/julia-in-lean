@@ -1,342 +1,342 @@
 file	line	endline	name	signature	status	entry	note
-base/broadcast.jl	37	37	BroadcastStyle	BroadcastStyle(::Type{Union{}})	modelled	multidimcov-broadcast-faithful-37	typed bottom-type style constructor model
-base/broadcast.jl	38	38	BroadcastStyle	BroadcastStyle(::Type{Union{}}, slurp...)	modelled	multidimcov-broadcast-faithful-38	typed MethodError model retains every slurped argument; release behavior differs
-base/broadcast.jl	49	49	BroadcastStyle	BroadcastStyle(::Type{<:Tuple})	modelled	multidimcov-broadcast-faithful-49	typed tuple-style constructor model
-base/broadcast.jl	87	87	ArrayStyle{A}	ArrayStyle{A}(::Val) where A	modelled	multidimcov-broadcast-faithful-87	polymorphic Val input and exact ArrayStyle family
-base/broadcast.jl	98	98	DefaultArrayStyle	DefaultArrayStyle(::Val{N}) where N	modelled	multidimcov-broadcast-faithful-98	typed rank replacement model
-base/broadcast.jl	99	99	DefaultArrayStyle{M}	DefaultArrayStyle{M}(::Val{N}) where {N,M}	modelled	multidimcov-broadcast-faithful-99	typed old-rank replacement model
-base/broadcast.jl	102	102	BroadcastStyle	BroadcastStyle(::Type{<:AbstractArray{T,N}}) where {T,N}	modelled	multidimcov-broadcast-faithful-102	typed abstract-array rank model
-base/broadcast.jl	103	103	BroadcastStyle	BroadcastStyle(::Type{T}) where {T}	modelled	multidimcov-broadcast-faithful-103	polymorphic type and ndims delegation model
-base/broadcast.jl	111	111	ArrayConflict	ArrayConflict(::Val)	modelled	multidimcov-broadcast-faithful-111	polymorphic ignored Val input and exact conflict constructor
-base/broadcast.jl	128	128	BroadcastStyle	BroadcastStyle(::S, ::S) where S<:BroadcastStyle	modelled	multidimcov-broadcast-faithful-128	typed homogeneous-style constructor model
-base/broadcast.jl	130	130	BroadcastStyle	BroadcastStyle(::BroadcastStyle, ::BroadcastStyle)	modelled	multidimcov-broadcast-faithful-130	typed fallback style-pair model
-base/broadcast.jl	132	132	BroadcastStyle	BroadcastStyle(::Unknown, ::Unknown)	modelled	multidimcov-broadcast-faithful-132	typed Unknown pair model
-base/broadcast.jl	133	133	BroadcastStyle	BroadcastStyle(::S, ::Unknown) where S<:BroadcastStyle	modelled	multidimcov-broadcast-faithful-133	typed right-Unknown identity model
-base/broadcast.jl	135	135	BroadcastStyle	BroadcastStyle(a::AbstractArrayStyle{0}, b::Style{Tuple})	modelled	multidimcov-broadcast-faithful-135	typed zero-rank and tuple-style precedence model
-base/broadcast.jl	136	136	BroadcastStyle	BroadcastStyle(a::AbstractArrayStyle, ::Style{Tuple})	modelled	multidimcov-broadcast-faithful-136	typed array-style precedence model
-base/broadcast.jl	137	137	BroadcastStyle	BroadcastStyle(::A, ::A) where A<:ArrayStyle	modelled	multidimcov-broadcast-faithful-137	typed homogeneous ArrayStyle model
-base/broadcast.jl	138	138	BroadcastStyle	BroadcastStyle(::ArrayStyle, ::ArrayStyle)	modelled	multidimcov-broadcast-faithful-138	typed conflicting ArrayStyle fallback model
-base/broadcast.jl	139	139	BroadcastStyle	BroadcastStyle(::A, ::A) where A<:AbstractArrayStyle	modelled	multidimcov-broadcast-faithful-139	typed homogeneous AbstractArrayStyle model
-base/broadcast.jl	140	145	BroadcastStyle	BroadcastStyle(a::A, b::B) where {A<:AbstractArrayStyle{M},B<:AbstractArrayStyle{N}} where {M,N}	modelled	multidimcov-broadcast-faithful-140	typed family comparison, branch, maximum-rank, and reconstruction model
-base/broadcast.jl	147	147	BroadcastStyle	BroadcastStyle(a::AbstractArrayStyle{Any}, ::DefaultArrayStyle)	modelled	multidimcov-broadcast-faithful-147	typed custom Any-rank precedence model
-base/broadcast.jl	148	148	BroadcastStyle	BroadcastStyle(a::AbstractArrayStyle{N}, ::DefaultArrayStyle{N}) where N	modelled	multidimcov-broadcast-faithful-148	typed equal-rank precedence model
-base/broadcast.jl	149	150	BroadcastStyle	BroadcastStyle(a::AbstractArrayStyle{M}, ::DefaultArrayStyle{N}) where {M,N}	modelled	multidimcov-broadcast-faithful-149	typed maximum-rank reconstruction model
-base/broadcast.jl	175	175	Broadcasted	Broadcasted(style::Union{Nothing,BroadcastStyle}, f::Tuple, args::Tuple)	modelled	multidimcov-broadcast-faithful-175	typed all-input lazy-broadcast model
-base/broadcast.jl	176	179	Broadcasted	Broadcasted(style::Union{Nothing,BroadcastStyle}, f::F, args::Tuple, axes=nothing) where {F}	modelled	multidimcov-broadcast-faithful-176	typed all-input lazy-broadcast model
-base/broadcast.jl	181	183	Broadcasted	Broadcasted(f::F, args::Tuple, axes=nothing) where {F}	modelled	multidimcov-broadcast-faithful-181	typed all-input lazy-broadcast model
-base/broadcast.jl	185	187	Broadcasted{Style}	Broadcasted{Style}(f::F, args, axes=nothing) where {Style, F}	modelled	multidimcov-broadcast-faithful-185	typed all-input lazy-broadcast model
-base/broadcast.jl	189	191	Broadcasted{Style,Axes,F,Args}	Broadcasted{Style,Axes,F,Args}(f, args, axes) where {Style,Axes,F,Args}	modelled	multidimcov-broadcast-faithful-189	typed all-input lazy-broadcast model
-base/broadcast.jl	196	196	broadcasted	broadcasted(::AndAnd, a, b)	modelled	multidimcov-broadcast-faithful-196	typed all-input lazy-broadcast model
-base/broadcast.jl	199	204	broadcasted	broadcasted(::AndAnd, a, bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-199	typed all-input lazy-broadcast model
-base/broadcast.jl	207	207	broadcasted	broadcasted(::OrOr, a, b)	modelled	multidimcov-broadcast-faithful-207	typed all-input lazy-broadcast model
-base/broadcast.jl	208	213	broadcasted	broadcasted(::OrOr, a, bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-208	typed all-input lazy-broadcast model
-base/broadcast.jl	215	216	Base.convert	Base.convert(::Type{Broadcasted{NewStyle}}, bc::Broadcasted{<:Any,Axes,F,Args}) where {NewStyle,Axes,F,Args}	modelled	multidimcov-broadcast-faithful-215	typed all-input lazy-broadcast model
-base/broadcast.jl	218	226	Base.show	Base.show(io::IO, bc::Broadcasted{Style}) where {Style}	modelled	multidimcov-broadcast-faithful-218	typed all-input lazy-broadcast model
-base/broadcast.jl	229	229	Base.similar	Base.similar(bc::Broadcasted, ::Type{T}) where {T}	modelled	multidimcov-broadcast-faithful-229	typed all-input lazy-broadcast model
-base/broadcast.jl	230	231	Base.similar	Base.similar(::Broadcasted{DefaultArrayStyle{N}}, ::Type{ElType}, dims) where {N,ElType}	modelled	multidimcov-broadcast-faithful-230	typed all-input lazy-broadcast model
-base/broadcast.jl	232	233	Base.similar	Base.similar(::Broadcasted{DefaultArrayStyle{N}}, ::Type{Bool}, dims) where N	modelled	multidimcov-broadcast-faithful-232	typed all-input lazy-broadcast model
-base/broadcast.jl	235	236	Base.similar	Base.similar(::Broadcasted{ArrayConflict}, ::Type{ElType}, dims) where ElType	modelled	multidimcov-broadcast-faithful-235	typed all-input lazy-broadcast model
-base/broadcast.jl	237	238	Base.similar	Base.similar(::Broadcasted{ArrayConflict}, ::Type{Bool}, dims)	modelled	multidimcov-broadcast-faithful-237	typed all-input lazy-broadcast model
-base/broadcast.jl	240	240	Base.axes	Base.axes(bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-240	typed all-input lazy-broadcast model
-base/broadcast.jl	241	241	_axes	_axes(::Broadcasted, axes::Tuple)	modelled	multidimcov-broadcast-faithful-241	typed all-input lazy-broadcast model
-base/broadcast.jl	242	242	_axes	_axes(bc::Broadcasted, ::Nothing)	modelled	multidimcov-broadcast-faithful-242	typed all-input lazy-broadcast model
-base/broadcast.jl	243	243	_axes	_axes(bc::Broadcasted{<:AbstractArrayStyle{0}}, ::Nothing)	modelled	multidimcov-broadcast-faithful-243	typed all-input lazy-broadcast model
-base/broadcast.jl	245	246	Base.axes	Base.axes(bc::Broadcasted{<:Any, <:NTuple{N}}, d::Integer) where N	modelled	multidimcov-broadcast-faithful-245	typed all-input lazy-broadcast model
-base/broadcast.jl	248	248	BroadcastStyle	BroadcastStyle(::Type{<:Broadcasted{Style}}) where {Style}	modelled	multidimcov-broadcast-faithful-248	typed all-input lazy-broadcast model
-base/broadcast.jl	249	250	BroadcastStyle	BroadcastStyle(::Type{<:Broadcasted{S}}) where {S<:Union{Nothing,Unknown}}	modelled	multidimcov-broadcast-faithful-249	typed all-input lazy-broadcast model
-base/broadcast.jl	252	252	argtype	argtype(::Type{BC}) where {BC<:Broadcasted}	modelled	multidimcov-broadcast-faithful-252	typed all-input lazy-broadcast model
-base/broadcast.jl	253	253	argtype	argtype(bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-253	typed all-input lazy-broadcast model
-base/broadcast.jl	255	255	Base.eachindex	Base.eachindex(bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-255	typed all-input lazy-broadcast model
-base/broadcast.jl	256	256	Base.eachindex	Base.eachindex(s::IndexStyle, bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-256	typed all-input lazy-broadcast model
-base/broadcast.jl	257	257	_eachindex	_eachindex(::IndexCartesian, t::Tuple)	modelled	multidimcov-broadcast-faithful-257	typed all-input lazy-broadcast model
-base/broadcast.jl	258	258	_eachindex	_eachindex(s::IndexLinear, t::Tuple)	modelled	multidimcov-broadcast-faithful-258	typed all-input lazy-broadcast model
-base/broadcast.jl	259	259	_eachindex	_eachindex(::IndexLinear, t::Tuple{Any})	modelled	multidimcov-broadcast-faithful-259	typed all-input lazy-broadcast model
-base/broadcast.jl	261	261	Base.IndexStyle	Base.IndexStyle(bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-261	typed all-input lazy-broadcast model
-base/broadcast.jl	262	262	Base.IndexStyle	Base.IndexStyle(::Type{<:Broadcasted{<:Any,<:Tuple{Any}}})	modelled	multidimcov-broadcast-faithful-262	typed all-input lazy-broadcast model
-base/broadcast.jl	263	263	Base.IndexStyle	Base.IndexStyle(::Type{<:Broadcasted{<:Any}})	modelled	multidimcov-broadcast-faithful-263	typed all-input lazy-broadcast model
-base/broadcast.jl	265	265	Base.LinearIndices	Base.LinearIndices(bc::Broadcasted{<:Any,<:Tuple{Any}})	modelled	multidimcov-broadcast-faithful-265	typed all-input lazy-broadcast model
-base/broadcast.jl	267	267	Base.ndims	Base.ndims(bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-267	typed all-input lazy-broadcast model
-base/broadcast.jl	268	268	Base.ndims	Base.ndims(::Type{<:Broadcasted{<:Any,<:NTuple{N,Any}}}) where {N}	modelled	multidimcov-broadcast-faithful-268	typed all-input lazy-broadcast model
-base/broadcast.jl	269	269	Base.ndims	Base.ndims(BC::Type{<:Broadcasted{<:Any,Nothing}})	modelled	multidimcov-broadcast-faithful-269	typed all-input lazy-broadcast model
-base/broadcast.jl	270	272	Base.ndims	Base.ndims(BC::Type{<:Broadcasted{<:AbstractArrayStyle{N},Nothing}}) where {N}	modelled	multidimcov-broadcast-faithful-270	typed all-input lazy-broadcast model
-base/broadcast.jl	273	273	_maxndims	_maxndims(::Type{Tuple{}})	modelled	multidimcov-broadcast-faithful-273	typed all-input lazy-broadcast model
-base/broadcast.jl	274	274	_maxndims	_maxndims(::Type{Tuple{T}}) where {T}	modelled	multidimcov-broadcast-faithful-274	typed all-input lazy-broadcast model
-base/broadcast.jl	275	279	_maxndims	_maxndims(Args::Type{<:Tuple{T,Vararg}}) where {T}	modelled	multidimcov-broadcast-faithful-275	typed all-input lazy-broadcast model
-base/broadcast.jl	281	281	Base.size	Base.size(bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-281	typed all-input lazy-broadcast model
-base/broadcast.jl	282	282	Base.length	Base.length(bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-282	typed all-input lazy-broadcast model
-base/broadcast.jl	284	287	Base.iterate	Base.iterate(bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-284	typed all-input lazy-broadcast model
-base/broadcast.jl	288	293	Base.iterate	Base.iterate(bc::Broadcasted, s)	modelled	multidimcov-broadcast-faithful-288	typed all-input lazy-broadcast model
-base/broadcast.jl	295	295	Base.IteratorSize	Base.IteratorSize(::Type{T}) where {T<:Broadcasted}	modelled	multidimcov-broadcast-faithful-295	typed all-input lazy-broadcast model
-base/broadcast.jl	296	296	Base.IteratorEltype	Base.IteratorEltype(::Type{<:Broadcasted})	modelled	multidimcov-broadcast-faithful-296	typed all-input lazy-broadcast model
-base/broadcast.jl	299	299	instantiate	instantiate(x)	modelled	multidimcov-broadcast-faithful-299	typed all-input lazy-broadcast model
-base/broadcast.jl	310	318	instantiate	instantiate(bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-310	typed all-input lazy-broadcast model
-base/broadcast.jl	319	319	instantiate	instantiate(bc::Broadcasted{<:AbstractArrayStyle{0}})	modelled	multidimcov-broadcast-faithful-319	typed all-input lazy-broadcast model
-base/broadcast.jl	321	321	instantiate	instantiate(bc::Broadcasted{Style{Tuple}, Nothing})	modelled	multidimcov-broadcast-faithful-321	typed all-input lazy-broadcast model
-base/broadcast.jl	322	325	instantiate	instantiate(bc::Broadcasted{Style{Tuple}})	modelled	multidimcov-broadcast-faithful-322	typed all-input lazy-broadcast model
-base/broadcast.jl	346	361	flatten	flatten(bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-346	typed recursive flattening and selector model
-base/broadcast.jl	364	364	isflat	isflat(bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-364	typed recursive flattening and selector model
-base/broadcast.jl	365	365	_isflat	_isflat(args::NestedTuple)	modelled	multidimcov-broadcast-faithful-365	typed recursive flattening and selector model
-base/broadcast.jl	366	366	_isflat	_isflat(args::Tuple)	modelled	multidimcov-broadcast-faithful-366	typed recursive flattening and selector model
-base/broadcast.jl	367	367	_isflat	_isflat(args::Tuple{})	modelled	multidimcov-broadcast-faithful-367	typed recursive flattening and selector model
-base/broadcast.jl	369	369	cat_nested	cat_nested(bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-369	typed recursive flattening and selector model
-base/broadcast.jl	370	370	cat_nested_args	cat_nested_args(::Tuple{})	modelled	multidimcov-broadcast-faithful-370	typed recursive flattening and selector model
-base/broadcast.jl	371	371	cat_nested_args	cat_nested_args(t::Tuple{Any})	modelled	multidimcov-broadcast-faithful-371	typed recursive flattening and selector model
-base/broadcast.jl	372	372	cat_nested_args	cat_nested_args(t::Tuple)	modelled	multidimcov-broadcast-faithful-372	typed recursive flattening and selector model
-base/broadcast.jl	373	373	cat_nested	cat_nested(a)	modelled	multidimcov-broadcast-faithful-373	typed recursive flattening and selector model
-base/broadcast.jl	382	382	make_makeargs	make_makeargs(args::Tuple)	modelled	multidimcov-broadcast-faithful-382	typed recursive flattening and selector model
-base/broadcast.jl	386	390	_make_makeargs	_make_makeargs(args::Tuple, n::Int)	modelled	multidimcov-broadcast-faithful-386	typed recursive flattening and selector model
-base/broadcast.jl	391	391	_make_makeargs	_make_makeargs(::Tuple{}, n::Int)	modelled	multidimcov-broadcast-faithful-391	typed recursive flattening and selector model
-base/broadcast.jl	395	395	(::Pick{N})	(::Pick{N})(@nospecialize(args::Tuple)) where {N}	modelled	multidimcov-broadcast-faithful-395	typed recursive flattening and selector model
-base/broadcast.jl	398	398	_make_makeargs1	_make_makeargs1(_, n::Int)	modelled	multidimcov-broadcast-faithful-398	typed recursive flattening and selector model
-base/broadcast.jl	400	405	_make_makeargs1	_make_makeargs1(bc::Broadcasted, n::Int)	modelled	multidimcov-broadcast-faithful-400	typed recursive flattening and selector model
-base/broadcast.jl	407	407	prepare_args	prepare_args(makeargs::Tuple, @nospecialize(x::Tuple))	modelled	multidimcov-broadcast-faithful-407	typed recursive flattening and selector model
-base/broadcast.jl	408	408	prepare_args	prepare_args(makeargs::Tuple{Any}, @nospecialize(x::Tuple))	modelled	multidimcov-broadcast-faithful-408	typed recursive flattening and selector model
-base/broadcast.jl	409	409	prepare_args	prepare_args(::Tuple{}, ::Tuple)	modelled	multidimcov-broadcast-faithful-409	typed recursive flattening and selector model
+base/broadcast.jl	37	37	BroadcastStyle	BroadcastStyle(::Type{Union{}})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	38	38	BroadcastStyle	BroadcastStyle(::Type{Union{}}, slurp...)	modelled	broadcast-bottom-type-diagnostic	typed MethodError model retains every slurped argument; release behavior differs
+base/broadcast.jl	49	49	BroadcastStyle	BroadcastStyle(::Type{<:Tuple})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	87	87	ArrayStyle{A}	ArrayStyle{A}(::Val) where A	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	98	98	DefaultArrayStyle	DefaultArrayStyle(::Val{N}) where N	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	99	99	DefaultArrayStyle{M}	DefaultArrayStyle{M}(::Val{N}) where {N,M}	modelled	broadcast-style-dimension-join	typed old-rank replacement model
+base/broadcast.jl	102	102	BroadcastStyle	BroadcastStyle(::Type{<:AbstractArray{T,N}}) where {T,N}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	103	103	BroadcastStyle	BroadcastStyle(::Type{T}) where {T}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	111	111	ArrayConflict	ArrayConflict(::Val)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	128	128	BroadcastStyle	BroadcastStyle(::S, ::S) where S<:BroadcastStyle	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	130	130	BroadcastStyle	BroadcastStyle(::BroadcastStyle, ::BroadcastStyle)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	132	132	BroadcastStyle	BroadcastStyle(::Unknown, ::Unknown)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	133	133	BroadcastStyle	BroadcastStyle(::S, ::Unknown) where S<:BroadcastStyle	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	135	135	BroadcastStyle	BroadcastStyle(a::AbstractArrayStyle{0}, b::Style{Tuple})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	136	136	BroadcastStyle	BroadcastStyle(a::AbstractArrayStyle, ::Style{Tuple})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	137	137	BroadcastStyle	BroadcastStyle(::A, ::A) where A<:ArrayStyle	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	138	138	BroadcastStyle	BroadcastStyle(::ArrayStyle, ::ArrayStyle)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	139	139	BroadcastStyle	BroadcastStyle(::A, ::A) where A<:AbstractArrayStyle	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	140	145	BroadcastStyle	BroadcastStyle(a::A, b::B) where {A<:AbstractArrayStyle{M},B<:AbstractArrayStyle{N}} where {M,N}	modelled	broadcast-style-dimension-join	typed family comparison, branch, maximum-rank, and reconstruction model
+base/broadcast.jl	147	147	BroadcastStyle	BroadcastStyle(a::AbstractArrayStyle{Any}, ::DefaultArrayStyle)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	148	148	BroadcastStyle	BroadcastStyle(a::AbstractArrayStyle{N}, ::DefaultArrayStyle{N}) where N	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	149	150	BroadcastStyle	BroadcastStyle(a::AbstractArrayStyle{M}, ::DefaultArrayStyle{N}) where {M,N}	modelled	broadcast-style-dimension-associative	typed maximum-rank reconstruction model
+base/broadcast.jl	175	175	Broadcasted	Broadcasted(style::Union{Nothing,BroadcastStyle}, f::Tuple, args::Tuple)	todo		Nothing to promise: tuple-function ambiguity plumbing; see the Proofs block.
+base/broadcast.jl	176	179	Broadcasted	Broadcasted(style::Union{Nothing,BroadcastStyle}, f::F, args::Tuple, axes=nothing) where {F}	todo		Nothing to promise: lazy-wrapper field storage; see the Proofs block.
+base/broadcast.jl	181	183	Broadcasted	Broadcasted(f::F, args::Tuple, axes=nothing) where {F}	todo		Nothing to promise: forwards style discovery to the real explicit-style constructor.
+base/broadcast.jl	185	187	Broadcasted{Style}	Broadcasted{Style}(f::F, args, axes=nothing) where {Style, F}	todo		Nothing to promise: generic style constructor and lazy-wrapper storage.
+base/broadcast.jl	189	191	Broadcasted{Style,Axes,F,Args}	Broadcasted{Style,Axes,F,Args}(f, args, axes) where {Style,Axes,F,Args}	todo		Nothing to promise: runtime field-conversion forwarding and wrapper storage.
+base/broadcast.jl	196	196	broadcasted	broadcasted(::AndAnd, a, b)	todo		Nothing to promise: forwards scalar Boolean conjunction to broadcasted.
+base/broadcast.jl	199	204	broadcasted	broadcasted(::AndAnd, a, bc::Broadcasted)	modelled	broadcast-nested-boolean-short-circuit	typed all-input lazy-broadcast model
+base/broadcast.jl	207	207	broadcasted	broadcasted(::OrOr, a, b)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	208	213	broadcasted	broadcasted(::OrOr, a, bc::Broadcasted)	modelled	broadcast-nested-boolean-short-circuit	typed all-input lazy-broadcast model
+base/broadcast.jl	215	216	Base.convert	Base.convert(::Type{Broadcasted{NewStyle}}, bc::Broadcasted{<:Any,Axes,F,Args}) where {NewStyle,Axes,F,Args}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	218	226	Base.show	Base.show(io::IO, bc::Broadcasted{Style}) where {Style}	modelled	broadcast-wrapper-display	typed all-input lazy-broadcast model
+base/broadcast.jl	229	229	Base.similar	Base.similar(bc::Broadcasted, ::Type{T}) where {T}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	230	231	Base.similar	Base.similar(::Broadcasted{DefaultArrayStyle{N}}, ::Type{ElType}, dims) where {N,ElType}	modelled	broadcast-allocated-rank-axes	typed all-input lazy-broadcast model
+base/broadcast.jl	232	233	Base.similar	Base.similar(::Broadcasted{DefaultArrayStyle{N}}, ::Type{Bool}, dims) where N	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	235	236	Base.similar	Base.similar(::Broadcasted{ArrayConflict}, ::Type{ElType}, dims) where ElType	modelled	broadcast-allocated-rank-axes	typed all-input lazy-broadcast model
+base/broadcast.jl	237	238	Base.similar	Base.similar(::Broadcasted{ArrayConflict}, ::Type{Bool}, dims)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	240	240	Base.axes	Base.axes(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	241	241	_axes	_axes(::Broadcasted, axes::Tuple)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	242	242	_axes	_axes(bc::Broadcasted, ::Nothing)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	243	243	_axes	_axes(bc::Broadcasted{<:AbstractArrayStyle{0}}, ::Nothing)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	245	246	Base.axes	Base.axes(bc::Broadcasted{<:Any, <:NTuple{N}}, d::Integer) where N	modelled	broadcast-axes-beyond-rank	typed all-input lazy-broadcast model
+base/broadcast.jl	248	248	BroadcastStyle	BroadcastStyle(::Type{<:Broadcasted{Style}}) where {Style}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	249	250	BroadcastStyle	BroadcastStyle(::Type{<:Broadcasted{S}}) where {S<:Union{Nothing,Unknown}}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	252	252	argtype	argtype(::Type{BC}) where {BC<:Broadcasted}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	253	253	argtype	argtype(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	255	255	Base.eachindex	Base.eachindex(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	256	256	Base.eachindex	Base.eachindex(s::IndexStyle, bc::Broadcasted)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	257	257	_eachindex	_eachindex(::IndexCartesian, t::Tuple)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	258	258	_eachindex	_eachindex(s::IndexLinear, t::Tuple)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	259	259	_eachindex	_eachindex(::IndexLinear, t::Tuple{Any})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	261	261	Base.IndexStyle	Base.IndexStyle(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	262	262	Base.IndexStyle	Base.IndexStyle(::Type{<:Broadcasted{<:Any,<:Tuple{Any}}})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	263	263	Base.IndexStyle	Base.IndexStyle(::Type{<:Broadcasted{<:Any}})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	265	265	Base.LinearIndices	Base.LinearIndices(bc::Broadcasted{<:Any,<:Tuple{Any}})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	267	267	Base.ndims	Base.ndims(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	268	268	Base.ndims	Base.ndims(::Type{<:Broadcasted{<:Any,<:NTuple{N,Any}}}) where {N}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	269	269	Base.ndims	Base.ndims(BC::Type{<:Broadcasted{<:Any,Nothing}})	modelled	broadcast-inferred-rank-least	typed all-input lazy-broadcast model
+base/broadcast.jl	270	272	Base.ndims	Base.ndims(BC::Type{<:Broadcasted{<:AbstractArrayStyle{N},Nothing}}) where {N}	modelled	broadcast-unfixed-style-rank-least	typed all-input lazy-broadcast model
+base/broadcast.jl	273	273	_maxndims	_maxndims(::Type{Tuple{}})	modelled	broadcast-inferred-rank-least	typed all-input lazy-broadcast model
+base/broadcast.jl	274	274	_maxndims	_maxndims(::Type{Tuple{T}}) where {T}	modelled	broadcast-inferred-rank-least	typed all-input lazy-broadcast model
+base/broadcast.jl	275	279	_maxndims	_maxndims(Args::Type{<:Tuple{T,Vararg}}) where {T}	modelled	broadcast-inferred-rank-least	typed all-input lazy-broadcast model
+base/broadcast.jl	281	281	Base.size	Base.size(bc::Broadcasted)	modelled	broadcast-size-stored-rank	typed all-input lazy-broadcast model
+base/broadcast.jl	282	282	Base.length	Base.length(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	284	287	Base.iterate	Base.iterate(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	288	293	Base.iterate	Base.iterate(bc::Broadcasted, s)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	295	295	Base.IteratorSize	Base.IteratorSize(::Type{T}) where {T<:Broadcasted}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	296	296	Base.IteratorEltype	Base.IteratorEltype(::Type{<:Broadcasted})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	299	299	instantiate	instantiate(x)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	310	318	instantiate	instantiate(bc::Broadcasted)	modelled	broadcast-instantiate-varying-axes	typed all-input lazy-broadcast model
+base/broadcast.jl	319	319	instantiate	instantiate(bc::Broadcasted{<:AbstractArrayStyle{0}})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	321	321	instantiate	instantiate(bc::Broadcasted{Style{Tuple}, Nothing})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	322	325	instantiate	instantiate(bc::Broadcasted{Style{Tuple}})	modelled	broadcast-tuple-instantiate-varying-axes	typed all-input lazy-broadcast model
+base/broadcast.jl	346	361	flatten	flatten(bc::Broadcasted)	modelled	broadcast-flatten-preserves-leaves	typed recursive flattening and selector model
+base/broadcast.jl	364	364	isflat	isflat(bc::Broadcasted)	modelled	broadcast-flatness-exact	typed recursive flattening and selector model
+base/broadcast.jl	365	365	_isflat	_isflat(args::NestedTuple)	modelled	broadcast-flatness-exact	typed recursive flattening and selector model
+base/broadcast.jl	366	366	_isflat	_isflat(args::Tuple)	modelled	broadcast-flatness-exact	typed recursive flattening and selector model
+base/broadcast.jl	367	367	_isflat	_isflat(args::Tuple{})	modelled	broadcast-flatness-exact	typed recursive flattening and selector model
+base/broadcast.jl	369	369	cat_nested	cat_nested(bc::Broadcasted)	modelled	broadcast-concatenated-leaf-order	typed recursive flattening and selector model
+base/broadcast.jl	370	370	cat_nested_args	cat_nested_args(::Tuple{})	modelled	broadcast-concatenated-leaf-order	typed recursive flattening and selector model
+base/broadcast.jl	371	371	cat_nested_args	cat_nested_args(t::Tuple{Any})	modelled	broadcast-concatenated-leaf-order	typed recursive flattening and selector model
+base/broadcast.jl	372	372	cat_nested_args	cat_nested_args(t::Tuple)	modelled	broadcast-concatenated-leaf-order	typed recursive flattening and selector model
+base/broadcast.jl	373	373	cat_nested	cat_nested(a)	modelled	broadcast-concatenated-leaf-order	typed recursive flattening and selector model
+base/broadcast.jl	382	382	make_makeargs	make_makeargs(args::Tuple)	modelled	broadcast-selector-arity	typed recursive flattening and selector model
+base/broadcast.jl	386	390	_make_makeargs	_make_makeargs(args::Tuple, n::Int)	modelled	broadcast-selector-arity	typed recursive flattening and selector model
+base/broadcast.jl	391	391	_make_makeargs	_make_makeargs(::Tuple{}, n::Int)	modelled	broadcast-selector-arity	typed recursive flattening and selector model
+base/broadcast.jl	395	395	(::Pick{N})	(::Pick{N})(@nospecialize(args::Tuple)) where {N}	modelled	broadcast-leaf-picker-correct	typed recursive flattening and selector model
+base/broadcast.jl	398	398	_make_makeargs1	_make_makeargs1(_, n::Int)	modelled	broadcast-leaf-picker-correct	typed recursive flattening and selector model
+base/broadcast.jl	400	405	_make_makeargs1	_make_makeargs1(bc::Broadcasted, n::Int)	modelled	broadcast-nested-single-leaf-evaluation	typed recursive flattening and selector model
+base/broadcast.jl	407	407	prepare_args	prepare_args(makeargs::Tuple, @nospecialize(x::Tuple))	modelled	broadcast-prepared-argument-arity	typed recursive flattening and selector model
+base/broadcast.jl	408	408	prepare_args	prepare_args(makeargs::Tuple{Any}, @nospecialize(x::Tuple))	modelled	broadcast-prepared-argument-arity	typed recursive flattening and selector model
+base/broadcast.jl	409	409	prepare_args	prepare_args(::Tuple{}, ::Tuple)	modelled	broadcast-prepared-argument-arity	typed recursive flattening and selector model
 base/broadcast.jl	429	429	combine_styles	combine_styles	excluded		no-behaviour: generic function declaration with no method body
-base/broadcast.jl	431	431	combine_styles	combine_styles()	modelled	multidimcov-broadcast-faithful-431	typed empty style combination model
-base/broadcast.jl	432	432	combine_styles	combine_styles(c)	modelled	multidimcov-broadcast-faithful-432	polymorphic style lookup and unary result-style model
-base/broadcast.jl	433	436	combine_styles	combine_styles(bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-433	typed assigned, Nothing, and Unknown branches with ArgumentError
-base/broadcast.jl	437	437	combine_styles	combine_styles(c1, c2)	modelled	multidimcov-broadcast-faithful-437	polymorphic two-value style combination model
-base/broadcast.jl	438	438	combine_styles	combine_styles(c1, c2, cs...)	modelled	multidimcov-broadcast-faithful-438	polymorphic recursive vararg style combination model
+base/broadcast.jl	431	431	combine_styles	combine_styles()	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	432	432	combine_styles	combine_styles(c)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	433	436	combine_styles	combine_styles(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	437	437	combine_styles	combine_styles(c1, c2)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	438	438	combine_styles	combine_styles(c1, c2, cs...)	todo		trivial: restates a body or a constructor result
 base/broadcast.jl	456	456	result_style	result_style	excluded		no-behaviour: generic function declaration with no method body
-base/broadcast.jl	458	458	result_style	result_style(s::BroadcastStyle)	modelled	multidimcov-broadcast-faithful-458	typed unary identity model
-base/broadcast.jl	459	461	result_style	result_style(s1::S, s2::S) where S<:BroadcastStyle	modelled	multidimcov-broadcast-faithful-459	typed equivalence branch and ErrorException model
-base/broadcast.jl	463	463	result_style	result_style(s1, s2)	modelled	multidimcov-broadcast-faithful-463	stateful forward-then-reverse dispatch and result-join model
-base/broadcast.jl	467	467	result_join	result_join(::Any, ::Any, ::Unknown, ::Unknown)	modelled	multidimcov-broadcast-faithful-467	polymorphic four-argument Unknown result model
-base/broadcast.jl	468	468	result_join	result_join(::Any, ::Any, ::Unknown, s::BroadcastStyle)	modelled	multidimcov-broadcast-faithful-468	polymorphic four-argument reverse-style result model
-base/broadcast.jl	469	469	result_join	result_join(::Any, ::Any, s::BroadcastStyle, ::Unknown)	modelled	multidimcov-broadcast-faithful-469	polymorphic four-argument forward-style result model
-base/broadcast.jl	474	475	result_join	result_join(::AbstractArrayStyle, ::AbstractArrayStyle, ::Unknown, ::Unknown)	modelled	multidimcov-broadcast-faithful-474	typed four-argument ArrayConflict model
-base/broadcast.jl	477	477	result_join	result_join(::Any, ::Any, s1::S, s2::S) where S<:BroadcastStyle	modelled	multidimcov-broadcast-faithful-477	polymorphic four-argument homogeneous result-style delegation
-base/broadcast.jl	479	485	result_join	result_join(::S, ::T, ::U, ::V) where {S,T,U,V}	modelled	multidimcov-broadcast-faithful-479	polymorphic four-argument conflicting-rule ErrorException model
-base/broadcast.jl	502	502	combine_axes	combine_axes(A, B...)	modelled	multidimcov-broadcast-faithful-502	typed heterogeneous shape and axis model
-base/broadcast.jl	503	503	combine_axes	combine_axes(A, B)	modelled	multidimcov-broadcast-faithful-503	typed heterogeneous shape and axis model
-base/broadcast.jl	504	504	combine_axes	combine_axes(A)	modelled	multidimcov-broadcast-faithful-504	typed heterogeneous shape and axis model
+base/broadcast.jl	458	458	result_style	result_style(s::BroadcastStyle)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	459	461	result_style	result_style(s1::S, s2::S) where S<:BroadcastStyle	modelled	broadcast-style-identity-agreement	typed equivalence branch and ErrorException model
+base/broadcast.jl	463	463	result_style	result_style(s1, s2)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	467	467	result_join	result_join(::Any, ::Any, ::Unknown, ::Unknown)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	468	468	result_join	result_join(::Any, ::Any, ::Unknown, s::BroadcastStyle)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	469	469	result_join	result_join(::Any, ::Any, s::BroadcastStyle, ::Unknown)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	474	475	result_join	result_join(::AbstractArrayStyle, ::AbstractArrayStyle, ::Unknown, ::Unknown)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	477	477	result_join	result_join(::Any, ::Any, s1::S, s2::S) where S<:BroadcastStyle	modelled	broadcast-style-identity-agreement	polymorphic four-argument homogeneous result-style delegation
+base/broadcast.jl	479	485	result_join	result_join(::S, ::T, ::U, ::V) where {S,T,U,V}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	502	502	combine_axes	combine_axes(A, B...)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	503	503	combine_axes	combine_axes(A, B)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	504	504	combine_axes	combine_axes(A)	todo		trivial: restates a body or a constructor result
 base/broadcast.jl	519	519	broadcast_shape	broadcast_shape	excluded		no-behaviour: generic function declaration with no method body
-base/broadcast.jl	521	521	broadcast_shape	broadcast_shape(shape::Tuple)	modelled	multidimcov-broadcast-faithful-521	typed heterogeneous shape and axis model
-base/broadcast.jl	522	522	broadcast_shape	broadcast_shape(shape::Tuple, shape1::Tuple, shapes::Tuple...)	modelled	multidimcov-broadcast-faithful-522	typed heterogeneous shape and axis model
-base/broadcast.jl	524	524	_bcs	_bcs(::Tuple{}, ::Tuple{})	modelled	multidimcov-broadcast-faithful-524	typed heterogeneous shape and axis model
-base/broadcast.jl	525	525	_bcs	_bcs(::Tuple{}, newshape::Tuple)	modelled	multidimcov-broadcast-faithful-525	typed heterogeneous shape and axis model
-base/broadcast.jl	526	526	_bcs	_bcs(shape::Tuple, ::Tuple{})	modelled	multidimcov-broadcast-faithful-526	typed heterogeneous shape and axis model
-base/broadcast.jl	527	529	_bcs	_bcs(shape::Tuple, newshape::Tuple)	modelled	multidimcov-broadcast-faithful-527	typed heterogeneous shape and axis model
-base/broadcast.jl	531	531	_bcs1	_bcs1(a::Integer, b::Integer)	modelled	multidimcov-broadcast-faithful-531	typed heterogeneous shape and axis model
-base/broadcast.jl	532	532	_bcs1	_bcs1(a::Integer, b)	modelled	multidimcov-broadcast-faithful-532	typed heterogeneous shape and axis model
-base/broadcast.jl	533	533	_bcs1	_bcs1(a, b::Integer)	modelled	multidimcov-broadcast-faithful-533	typed heterogeneous shape and axis model
-base/broadcast.jl	534	534	_bcs1	_bcs1(a, b)	modelled	multidimcov-broadcast-faithful-534	typed heterogeneous shape and axis model
-base/broadcast.jl	536	536	_bcsm	_bcsm(a, b)	modelled	multidimcov-broadcast-faithful-536	typed heterogeneous shape and axis model
-base/broadcast.jl	537	537	_bcsm	_bcsm(a, b::Number)	modelled	multidimcov-broadcast-faithful-537	typed heterogeneous shape and axis model
-base/broadcast.jl	538	538	_bcsm	_bcsm(a::Number, b::Number)	modelled	multidimcov-broadcast-faithful-538	typed heterogeneous shape and axis model
-base/broadcast.jl	542	542	axistype	axistype(a::T, b::T) where T	modelled	multidimcov-broadcast-faithful-542	typed heterogeneous shape and axis model
-base/broadcast.jl	543	543	axistype	axistype(a::OneTo, b::OneTo)	modelled	multidimcov-broadcast-faithful-543	typed heterogeneous shape and axis model
-base/broadcast.jl	544	544	axistype	axistype(a, b)	modelled	multidimcov-broadcast-faithful-544	typed heterogeneous shape and axis model
-base/broadcast.jl	548	548	check_broadcast_shape	check_broadcast_shape(shp)	modelled	multidimcov-broadcast-faithful-548	typed heterogeneous shape and axis model
-base/broadcast.jl	549	549	check_broadcast_shape	check_broadcast_shape(shp, ::Tuple{})	modelled	multidimcov-broadcast-faithful-549	typed heterogeneous shape and axis model
-base/broadcast.jl	550	550	check_broadcast_shape	check_broadcast_shape(::Tuple{}, ::Tuple{})	modelled	multidimcov-broadcast-faithful-550	typed heterogeneous shape and axis model
-base/broadcast.jl	551	556	check_broadcast_shape	check_broadcast_shape(::Tuple{}, Ashp::Tuple)	modelled	multidimcov-broadcast-faithful-551	typed heterogeneous shape and axis model
-base/broadcast.jl	557	560	check_broadcast_shape	check_broadcast_shape(shp, Ashp::Tuple)	modelled	multidimcov-broadcast-faithful-557	typed heterogeneous shape and axis model
-base/broadcast.jl	561	561	check_broadcast_axes	check_broadcast_axes(shp, A)	modelled	multidimcov-broadcast-faithful-561	typed heterogeneous shape and axis model
-base/broadcast.jl	563	566	check_broadcast_axes	check_broadcast_axes(shp, A, As...)	modelled	multidimcov-broadcast-faithful-563	typed heterogeneous shape and axis model
-base/broadcast.jl	585	585	newindex	newindex(arg, I::CartesianIndex)	modelled	multidimcov-broadcast-faithful-585	typed polymorphic broadcast indexing model
-base/broadcast.jl	586	586	newindex	newindex(arg, I::Integer)	modelled	multidimcov-broadcast-faithful-586	typed polymorphic broadcast indexing model
-base/broadcast.jl	587	587	_newindex	_newindex(ax::Tuple, I::Tuple)	modelled	multidimcov-broadcast-faithful-587	typed polymorphic broadcast indexing model
-base/broadcast.jl	588	588	_newindex	_newindex(ax::Tuple{}, I::Tuple)	modelled	multidimcov-broadcast-faithful-588	typed polymorphic broadcast indexing model
-base/broadcast.jl	589	589	_newindex	_newindex(ax::Tuple, I::Tuple{})	modelled	multidimcov-broadcast-faithful-589	typed polymorphic broadcast indexing model
-base/broadcast.jl	590	590	_newindex	_newindex(ax::Tuple{}, I::Tuple{})	modelled	multidimcov-broadcast-faithful-590	typed polymorphic broadcast indexing model
-base/broadcast.jl	593	593	newindex	newindex(I::CartesianIndex, keep, Idefault)	modelled	multidimcov-broadcast-faithful-593	typed polymorphic broadcast indexing model
-base/broadcast.jl	594	594	newindex	newindex(I::CartesianIndex{1}, keep, Idefault)	modelled	multidimcov-broadcast-faithful-594	typed polymorphic broadcast indexing model
-base/broadcast.jl	595	595	newindex	newindex(i::Integer, keep::Tuple, idefault)	modelled	multidimcov-broadcast-faithful-595	typed polymorphic broadcast indexing model
-base/broadcast.jl	596	596	newindex	newindex(i::Integer, keep::Tuple{Bool}, idefault)	modelled	multidimcov-broadcast-faithful-596	typed polymorphic broadcast indexing model
-base/broadcast.jl	597	597	newindex	newindex(i::Integer, keep::Tuple{}, idefault)	modelled	multidimcov-broadcast-faithful-597	typed polymorphic broadcast indexing model
-base/broadcast.jl	598	599	_newindex	_newindex(I, keep, Idefault)	modelled	multidimcov-broadcast-faithful-598	typed polymorphic broadcast indexing model
-base/broadcast.jl	600	600	_newindex	_newindex(I, keep::Tuple{}, Idefault)	modelled	multidimcov-broadcast-faithful-600	typed polymorphic broadcast indexing model
-base/broadcast.jl	601	601	_newindex	_newindex(I::Tuple{}, keep, Idefault)	modelled	multidimcov-broadcast-faithful-601	typed polymorphic broadcast indexing model
-base/broadcast.jl	602	602	_newindex	_newindex(I::Tuple{}, keep::Tuple{}, Idefault)	modelled	multidimcov-broadcast-faithful-602	typed polymorphic broadcast indexing model
-base/broadcast.jl	606	606	newindexer	newindexer(A)	modelled	multidimcov-broadcast-faithful-606	typed polymorphic broadcast indexing model
-base/broadcast.jl	607	607	shapeindexer	shapeindexer(ax)	modelled	multidimcov-broadcast-faithful-607	typed polymorphic broadcast indexing model
-base/broadcast.jl	608	608	_newindexer	_newindexer(indsA::Tuple{})	modelled	multidimcov-broadcast-faithful-608	typed polymorphic broadcast indexing model
-base/broadcast.jl	609	613	_newindexer	_newindexer(indsA::Tuple)	modelled	multidimcov-broadcast-faithful-609	typed polymorphic broadcast indexing model
-base/broadcast.jl	615	618	Base.getindex	Base.getindex(bc::Broadcasted, Is::Vararg{Union{Integer,CartesianIndex},N}) where {N}	modelled	multidimcov-broadcast-faithful-615	typed polymorphic broadcast indexing model
-base/broadcast.jl	619	622	_getindex	_getindex(::IndexStyle, bc, I)	modelled	multidimcov-broadcast-faithful-619	typed polymorphic broadcast indexing model
-base/broadcast.jl	623	626	_getindex	_getindex(s::IndexCartesian, bc, I::Integer)	modelled	multidimcov-broadcast-faithful-623	typed polymorphic broadcast indexing model
-base/broadcast.jl	627	630	_getindex	_getindex(s::IndexLinear, bc, I::CartesianIndex)	modelled	multidimcov-broadcast-faithful-627	typed polymorphic broadcast indexing model
-base/broadcast.jl	631	631	to_index	to_index(::Tuple{})	modelled	multidimcov-broadcast-faithful-631	typed polymorphic broadcast indexing model
-base/broadcast.jl	632	632	to_index	to_index(Is::Tuple{Any})	modelled	multidimcov-broadcast-faithful-632	typed polymorphic broadcast indexing model
-base/broadcast.jl	633	633	to_index	to_index(Is::Tuple)	modelled	multidimcov-broadcast-faithful-633	typed polymorphic broadcast indexing model
-base/broadcast.jl	635	638	Base.checkbounds	Base.checkbounds(bc::Broadcasted, I::CartesianIndex)	modelled	multidimcov-broadcast-faithful-635	typed polymorphic broadcast indexing model
-base/broadcast.jl	640	643	Base.checkbounds	Base.checkbounds(bc::Broadcasted, I::Integer)	modelled	multidimcov-broadcast-faithful-640	typed polymorphic broadcast indexing model
-base/broadcast.jl	651	651	_broadcast_getindex	_broadcast_getindex(A::Union{Ref,AbstractArray{<:Any,0},Number}, I)	modelled	multidimcov-broadcast-faithful-651	typed polymorphic broadcast indexing model
-base/broadcast.jl	652	652	_broadcast_getindex	_broadcast_getindex(::Ref{Type{T}}, I) where {T}	modelled	multidimcov-broadcast-faithful-652	typed polymorphic broadcast indexing model
-base/broadcast.jl	654	654	_broadcast_getindex	_broadcast_getindex(A::Tuple{Any}, I)	modelled	multidimcov-broadcast-faithful-654	typed polymorphic broadcast indexing model
-base/broadcast.jl	655	655	_broadcast_getindex	_broadcast_getindex(A::Tuple, I)	modelled	multidimcov-broadcast-faithful-655	typed polymorphic broadcast indexing model
-base/broadcast.jl	657	657	_broadcast_getindex	_broadcast_getindex(A, I)	modelled	multidimcov-broadcast-faithful-657	typed polymorphic broadcast indexing model
-base/broadcast.jl	669	669	axes	axes(b::Extruded)	modelled	multidimcov-broadcast-faithful-669	typed polymorphic broadcast indexing model
-base/broadcast.jl	670	670	_broadcast_getindex	_broadcast_getindex(b::Extruded, i)	modelled	multidimcov-broadcast-faithful-670	typed polymorphic broadcast indexing model
-base/broadcast.jl	671	671	extrude	extrude(x::AbstractArray)	modelled	multidimcov-broadcast-faithful-671	typed polymorphic broadcast indexing model
-base/broadcast.jl	672	672	extrude	extrude(x)	modelled	multidimcov-broadcast-faithful-672	typed polymorphic broadcast indexing model
-base/broadcast.jl	675	678	_broadcast_getindex	_broadcast_getindex(bc::Broadcasted{<:Any,<:Any,<:Any,<:Any}, I)	modelled	multidimcov-broadcast-faithful-675	typed polymorphic broadcast indexing model
-base/broadcast.jl	685	688	_broadcast_getindex	_broadcast_getindex(bc::Broadcasted{<:Any,<:Any,<:Any,<:Tuple{Ref{Type{T}},Vararg{Any}}}, I) where {T}	modelled	multidimcov-broadcast-faithful-685	typed polymorphic broadcast indexing model
-base/broadcast.jl	689	693	_broadcast_getindex	_broadcast_getindex(bc::Broadcasted{<:Any,<:Any,<:Any,<:Tuple{Any,Ref{Type{T}},Vararg{Any}}}, I) where {T}	modelled	multidimcov-broadcast-faithful-689	typed polymorphic broadcast indexing model
-base/broadcast.jl	694	697	_broadcast_getindex	_broadcast_getindex(bc::Broadcasted{<:Any,<:Any,<:Any,<:Tuple{Ref{Type{T}},Ref{Type{S}},Vararg{Any}}}, I) where {T,S}	modelled	multidimcov-broadcast-faithful-694	typed polymorphic broadcast indexing model
-base/broadcast.jl	700	700	_getindex	_getindex(args::Tuple, I)	modelled	multidimcov-broadcast-faithful-700	typed polymorphic broadcast indexing model
-base/broadcast.jl	701	701	_getindex	_getindex(args::Tuple{Any}, I)	modelled	multidimcov-broadcast-faithful-701	typed polymorphic broadcast indexing model
-base/broadcast.jl	702	702	_getindex	_getindex(args::Tuple{}, I)	modelled	multidimcov-broadcast-faithful-702	typed polymorphic broadcast indexing model
-base/broadcast.jl	704	704	_broadcast_getindex_evalf	_broadcast_getindex_evalf(f::Tf, args::Vararg{Any,N}) where {Tf,N}	modelled	multidimcov-broadcast-faithful-704	typed polymorphic broadcast indexing model
-base/broadcast.jl	736	736	broadcastable	broadcastable(x::BroadcastScalars)	modelled	multidimcov-broadcast-faithful-736	typed polymorphic materialization and mutation model
-base/broadcast.jl	737	737	broadcastable	broadcastable(::Type{T}) where {T}	modelled	multidimcov-broadcast-faithful-737	typed polymorphic materialization and mutation model
-base/broadcast.jl	738	738	broadcastable	broadcastable(x::Union{AbstractArray,Number,AbstractChar,Ref,Tuple,Broadcasted})	modelled	multidimcov-broadcast-faithful-738	typed polymorphic materialization and mutation model
-base/broadcast.jl	740	740	broadcastable	broadcastable(x)	modelled	multidimcov-broadcast-faithful-740	typed polymorphic materialization and mutation model
-base/broadcast.jl	741	741	broadcastable	broadcastable(::Union{AbstractDict, NamedTuple})	modelled	multidimcov-broadcast-faithful-741	typed polymorphic materialization and mutation model
-base/broadcast.jl	744	744	_bc_eltype	_bc_eltype(bc::Broadcasted, i)	modelled	multidimcov-broadcast-faithful-744	typed polymorphic materialization and mutation model
-base/broadcast.jl	747	747	_bc_eltype	_bc_eltype(x::Number, i)	modelled	multidimcov-broadcast-faithful-747	typed polymorphic materialization and mutation model
-base/broadcast.jl	748	748	_bc_eltype	_bc_eltype(x::Tuple, i)	modelled	multidimcov-broadcast-faithful-748	typed polymorphic materialization and mutation model
-base/broadcast.jl	751	751	_bc_eltype	_bc_eltype(x, i)	modelled	multidimcov-broadcast-faithful-751	typed polymorphic materialization and mutation model
-base/broadcast.jl	753	753	_bc_eltypes	_bc_eltypes(args::Tuple, i)	modelled	multidimcov-broadcast-faithful-753	typed polymorphic materialization and mutation model
-base/broadcast.jl	754	754	_bc_eltypes	_bc_eltypes(::Tuple{}, i)	modelled	multidimcov-broadcast-faithful-754	typed polymorphic materialization and mutation model
-base/broadcast.jl	756	761	result_eltype	result_eltype(bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-756	typed polymorphic materialization and mutation model
-base/broadcast.jl	765	765	_broadcast_getindex_eltype	_broadcast_getindex_eltype(bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-765	typed polymorphic materialization and mutation model
-base/broadcast.jl	766	766	_broadcast_getindex_eltype	_broadcast_getindex_eltype(A)	modelled	multidimcov-broadcast-faithful-766	typed polymorphic materialization and mutation model
-base/broadcast.jl	768	768	eltypes	eltypes(::Tuple{})	modelled	multidimcov-broadcast-faithful-768	typed polymorphic materialization and mutation model
-base/broadcast.jl	769	769	eltypes	eltypes(t::Tuple{Any})	modelled	multidimcov-broadcast-faithful-769	typed polymorphic materialization and mutation model
-base/broadcast.jl	770	770	eltypes	eltypes(t::Tuple{Any,Any})	modelled	multidimcov-broadcast-faithful-770	typed polymorphic materialization and mutation model
-base/broadcast.jl	771	771	eltypes	eltypes(t::Tuple)	modelled	multidimcov-broadcast-faithful-771	typed polymorphic materialization and mutation model
-base/broadcast.jl	774	778	combine_eltypes	combine_eltypes(f, args::Tuple)	modelled	multidimcov-broadcast-faithful-774	typed polymorphic materialization and mutation model
-base/broadcast.jl	859	859	broadcast	broadcast(f::Tf, As::Vararg{Any,N}) where {Tf,N}	modelled	multidimcov-broadcast-faithful-859	typed polymorphic materialization and mutation model
-base/broadcast.jl	862	862	broadcast	broadcast(f, x::Number...)	modelled	multidimcov-broadcast-faithful-862	typed polymorphic materialization and mutation model
-base/broadcast.jl	863	863	broadcast	broadcast(f, t::NTuple{N,Any}, ts::Vararg{NTuple{N,Any}}) where {N}	modelled	multidimcov-broadcast-faithful-863	typed polymorphic materialization and mutation model
-base/broadcast.jl	898	898	broadcast!	broadcast!(f::Tf, dest, As::Vararg{Any,N}) where {Tf,N}	modelled	multidimcov-broadcast-faithful-898	typed polymorphic materialization and mutation model
-base/broadcast.jl	908	912	broadcast_preserving_zero_d	broadcast_preserving_zero_d(f, As...)	modelled	multidimcov-broadcast-faithful-908	typed polymorphic materialization and mutation model
-base/broadcast.jl	913	913	broadcast_preserving_zero_d	broadcast_preserving_zero_d(f)	modelled	multidimcov-broadcast-faithful-913	typed polymorphic materialization and mutation model
-base/broadcast.jl	914	914	broadcast_preserving_zero_d	broadcast_preserving_zero_d(f, as::Number...)	modelled	multidimcov-broadcast-faithful-914	typed polymorphic materialization and mutation model
-base/broadcast.jl	921	921	materialize	materialize(bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-921	typed polymorphic materialization and mutation model
-base/broadcast.jl	922	922	materialize	materialize(x)	modelled	multidimcov-broadcast-faithful-922	typed polymorphic materialization and mutation model
-base/broadcast.jl	924	926	materialize!	materialize!(dest, x)	modelled	multidimcov-broadcast-faithful-924	typed polymorphic materialization and mutation model
-base/broadcast.jl	928	930	materialize!	materialize!(dest, bc::Broadcasted{<:Any})	modelled	multidimcov-broadcast-faithful-928	typed polymorphic materialization and mutation model
-base/broadcast.jl	932	934	materialize!	materialize!(::BroadcastStyle, dest, bc::Broadcasted{<:Any})	modelled	multidimcov-broadcast-faithful-932	typed polymorphic materialization and mutation model
-base/broadcast.jl	936	936	materialize!	materialize!(dest::Union{BroadcastScalars,Number,AbstractChar}, bc::Broadcasted{<:Any})	modelled	multidimcov-broadcast-faithful-936	typed polymorphic materialization and mutation model
-base/broadcast.jl	937	939	_throw_unwritable_dest	_throw_unwritable_dest(@nospecialize dest)	modelled	multidimcov-broadcast-faithful-937	typed polymorphic materialization and mutation model
-base/broadcast.jl	942	942	copy	copy(bc::Broadcasted{<:AbstractArrayStyle{0}})	modelled	multidimcov-broadcast-faithful-942	typed polymorphic materialization and mutation model
-base/broadcast.jl	943	944	copy	copy(bc::Broadcasted{<:Union{Nothing,Unknown}})	modelled	multidimcov-broadcast-faithful-943	typed polymorphic materialization and mutation model
-base/broadcast.jl	948	975	copy	copy(bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-948	typed polymorphic materialization and mutation model
-base/broadcast.jl	980	980	copyto!	copyto!(dest::AbstractArray, bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-980	typed polymorphic materialization and mutation model
-base/broadcast.jl	983	993	copyto!	copyto!(dest::AbstractArray, bc::Broadcasted{<:AbstractArrayStyle{0}})	modelled	multidimcov-broadcast-faithful-983	typed polymorphic materialization and mutation model
-base/broadcast.jl	1001	1001	broadcast_unalias	broadcast_unalias(dest, src)	modelled	multidimcov-broadcast-faithful-1001	typed polymorphic materialization and mutation model
-base/broadcast.jl	1002	1002	broadcast_unalias	broadcast_unalias(::Nothing, src)	modelled	multidimcov-broadcast-faithful-1002	typed polymorphic materialization and mutation model
-base/broadcast.jl	1007	1007	preprocess	preprocess(dest, bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-1007	typed polymorphic materialization and mutation model
-base/broadcast.jl	1008	1008	preprocess	preprocess(dest, x)	modelled	multidimcov-broadcast-faithful-1008	typed polymorphic materialization and mutation model
-base/broadcast.jl	1010	1010	preprocess_args	preprocess_args(dest, args::Tuple)	modelled	multidimcov-broadcast-faithful-1010	typed polymorphic materialization and mutation model
-base/broadcast.jl	1011	1011	preprocess_args	preprocess_args(dest, args::Tuple{Any})	modelled	multidimcov-broadcast-faithful-1011	typed polymorphic materialization and mutation model
-base/broadcast.jl	1012	1012	preprocess_args	preprocess_args(dest, args::Tuple{})	modelled	multidimcov-broadcast-faithful-1012	typed polymorphic materialization and mutation model
-base/broadcast.jl	1015	1031	copyto!	copyto!(dest::AbstractArray, bc::Broadcasted{Nothing})	modelled	multidimcov-broadcast-faithful-1015	typed polymorphic materialization and mutation model
-base/broadcast.jl	1035	1073	copyto!	copyto!(dest::BitArray, bc::Broadcasted{Nothing})	modelled	multidimcov-broadcast-faithful-1035	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1083	1083	_chunkop	_chunkop(f, args)	modelled	multidimcov-broadcast-faithful-1083	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1084	1084	_chunkop	_chunkop(::Union{typeof(&), typeof(*), typeof(min)}, args)	modelled	multidimcov-broadcast-faithful-1084	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1085	1085	_chunkop	_chunkop(::Union{typeof(|), typeof(max)}, args)	modelled	multidimcov-broadcast-faithful-1085	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1086	1086	_chunkop	_chunkop(::typeof(xor), args)	modelled	multidimcov-broadcast-faithful-1086	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1087	1087	_chunkop	_chunkop(::typeof(nand), args)	modelled	multidimcov-broadcast-faithful-1087	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1088	1088	_chunkop	_chunkop(::typeof(nor), args)	modelled	multidimcov-broadcast-faithful-1088	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1089	1089	_chunkop	_chunkop(::Union{typeof(~), typeof(!)}, args)	modelled	multidimcov-broadcast-faithful-1089	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1090	1090	_chunkop	_chunkop(::typeof(identity), args)	modelled	multidimcov-broadcast-faithful-1090	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1091	1091	_chunkop	_chunkop(::typeof(==), ::Tuple{Any,Any})	modelled	multidimcov-broadcast-faithful-1091	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1092	1092	_chunkop	_chunkop(::typeof(!=), ::Tuple{Any,Any})	modelled	multidimcov-broadcast-faithful-1092	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1093	1093	_chunkop	_chunkop(::typeof(<), ::Tuple{Any,Any})	modelled	multidimcov-broadcast-faithful-1093	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1094	1094	_chunkop	_chunkop(::typeof(<=), ::Tuple{Any,Any})	modelled	multidimcov-broadcast-faithful-1094	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1095	1095	_chunkop	_chunkop(::typeof(>), ::Tuple{Any,Any})	modelled	multidimcov-broadcast-faithful-1095	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1096	1096	_chunkop	_chunkop(::typeof(>=), ::Tuple{Any,Any})	modelled	multidimcov-broadcast-faithful-1096	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1098	1098	ischunkedbroadcast	ischunkedbroadcast(R, bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-1098	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1099	1099	ischunkedbroadcast	ischunkedbroadcast(R, bc::Broadcasted, ::Nothing)	modelled	multidimcov-broadcast-faithful-1099	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1100	1100	ischunkedbroadcast	ischunkedbroadcast(R, bc::Broadcasted, f)	modelled	multidimcov-broadcast-faithful-1100	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1101	1101	ischunkedbroadcast	ischunkedbroadcast(R, args)	modelled	multidimcov-broadcast-faithful-1101	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1102	1102	ischunkedbroadcast	ischunkedbroadcast(R, args::Tuple{<:BitArray,Vararg{Any}})	modelled	multidimcov-broadcast-faithful-1102	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1103	1103	ischunkedbroadcast	ischunkedbroadcast(R, args::Tuple{<:Bool,Vararg{Any}})	modelled	multidimcov-broadcast-faithful-1103	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1104	1104	ischunkedbroadcast	ischunkedbroadcast(R, args::Tuple{<:Broadcasted,Vararg{Any}})	modelled	multidimcov-broadcast-faithful-1104	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1105	1105	ischunkedbroadcast	ischunkedbroadcast(R, args::Tuple{})	modelled	multidimcov-broadcast-faithful-1105	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1108	1108	liftfuncs	liftfuncs(bc::Broadcasted{<:Any,<:Any,<:Any})	modelled	multidimcov-broadcast-faithful-1108	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1109	1109	liftfuncs	liftfuncs(bc::Broadcasted, ::Nothing)	modelled	multidimcov-broadcast-faithful-1109	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1110	1110	liftfuncs	liftfuncs(bc::Broadcasted, f)	modelled	multidimcov-broadcast-faithful-1110	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1111	1111	liftfuncs	liftfuncs(x)	modelled	multidimcov-broadcast-faithful-1111	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1113	1113	liftchunks	liftchunks(::Tuple{})	modelled	multidimcov-broadcast-faithful-1113	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1114	1114	liftchunks	liftchunks(args::Tuple{<:BitArray,Vararg{Any}})	modelled	multidimcov-broadcast-faithful-1114	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1116	1116	liftchunks	liftchunks(args::Tuple{<:Bool,Vararg{Any}})	modelled	multidimcov-broadcast-faithful-1116	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1117	1117	ithchunk	ithchunk(i)	modelled	multidimcov-broadcast-faithful-1117	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1118	1118	ithchunk	ithchunk(i, c::Vector{UInt64}, args...)	modelled	multidimcov-broadcast-faithful-1118	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1119	1119	ithchunk	ithchunk(i, b::UInt64, args...)	modelled	multidimcov-broadcast-faithful-1119	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1120	1130	chunkedcopyto!	chunkedcopyto!(dest::BitArray, bc::Broadcasted)	modelled	multidimcov-broadcast-faithful-1120	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1133	1134	throwdm	throwdm(axdest, axsrc)	modelled	multidimcov-broadcast-faithful-1133	typed polymorphic materialization and mutation model
-base/broadcast.jl	1136	1143	restart_copyto_nonleaf!	restart_copyto_nonleaf!(newdest, dest, bc, val, I, iter, state, count)	modelled	multidimcov-broadcast-faithful-1136	typed polymorphic materialization and mutation model
-base/broadcast.jl	1145	1163	copyto_nonleaf!	copyto_nonleaf!(dest, bc::Broadcasted, iter, state, count)	modelled	multidimcov-broadcast-faithful-1145	typed polymorphic materialization and mutation model
-base/broadcast.jl	1167	1172	copy	copy(bc::Broadcasted{Style{Tuple}})	modelled	multidimcov-broadcast-faithful-1167	typed polymorphic materialization and mutation model
-base/broadcast.jl	1176	1176	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::AbstractRange)	modelled	multidimcov-broadcast-faithful-1176	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1178	1178	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::AbstractRange)	modelled	multidimcov-broadcast-faithful-1178	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1179	1179	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::OrdinalRange)	modelled	multidimcov-broadcast-faithful-1179	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1180	1180	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::StepRangeLen)	modelled	multidimcov-broadcast-faithful-1180	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1181	1181	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::LinRange)	modelled	multidimcov-broadcast-faithful-1181	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1184	1184	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::AbstractRange, x::Number)	modelled	multidimcov-broadcast-faithful-1184	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1185	1185	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Number, r::AbstractRange)	modelled	multidimcov-broadcast-faithful-1185	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1186	1186	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::OrdinalRange, x::Integer)	modelled	multidimcov-broadcast-faithful-1186	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1187	1187	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Integer, r::OrdinalRange)	modelled	multidimcov-broadcast-faithful-1187	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1188	1188	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::AbstractUnitRange, x::Integer)	modelled	multidimcov-broadcast-faithful-1188	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1189	1189	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Integer, r::AbstractUnitRange)	modelled	multidimcov-broadcast-faithful-1189	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1190	1190	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::AbstractUnitRange, x::Real)	modelled	multidimcov-broadcast-faithful-1190	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1191	1191	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Real, r::AbstractUnitRange)	modelled	multidimcov-broadcast-faithful-1191	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1192	1193	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::StepRangeLen{T}, x::Number) where T	modelled	multidimcov-broadcast-faithful-1192	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1194	1195	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Number, r::StepRangeLen{T}) where T	modelled	multidimcov-broadcast-faithful-1194	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1196	1196	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::LinRange, x::Number)	modelled	multidimcov-broadcast-faithful-1196	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1197	1197	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Number, r::LinRange)	modelled	multidimcov-broadcast-faithful-1197	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1198	1198	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r1::AbstractRange, r2::AbstractRange)	modelled	multidimcov-broadcast-faithful-1198	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1200	1200	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::AbstractRange, x::Number)	modelled	multidimcov-broadcast-faithful-1200	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1201	1201	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), x::Number, r::AbstractRange)	modelled	multidimcov-broadcast-faithful-1201	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1202	1202	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::OrdinalRange, x::Integer)	modelled	multidimcov-broadcast-faithful-1202	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1203	1203	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), x::Integer, r::OrdinalRange)	modelled	multidimcov-broadcast-faithful-1203	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1204	1204	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::AbstractUnitRange, x::Integer)	modelled	multidimcov-broadcast-faithful-1204	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1205	1205	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::AbstractUnitRange, x::Real)	modelled	multidimcov-broadcast-faithful-1205	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1206	1207	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::StepRangeLen{T}, x::Number) where T	modelled	multidimcov-broadcast-faithful-1206	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1208	1209	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), x::Number, r::StepRangeLen{T}) where T	modelled	multidimcov-broadcast-faithful-1208	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1210	1210	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::LinRange, x::Number)	modelled	multidimcov-broadcast-faithful-1210	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1211	1211	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), x::Number, r::LinRange)	modelled	multidimcov-broadcast-faithful-1211	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1212	1212	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r1::AbstractRange, r2::AbstractRange)	modelled	multidimcov-broadcast-faithful-1212	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1215	1215	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::Number, r::AbstractRange)	modelled	multidimcov-broadcast-faithful-1215	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1216	1217	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::Number, r::StepRangeLen{T}) where {T}	modelled	multidimcov-broadcast-faithful-1216	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1218	1218	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::Number, r::LinRange)	modelled	multidimcov-broadcast-faithful-1218	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1219	1220	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::AbstractFloat, r::OrdinalRange)	modelled	multidimcov-broadcast-faithful-1219	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1222	1222	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::AbstractRange, x::Number)	modelled	multidimcov-broadcast-faithful-1222	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1223	1224	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::StepRangeLen{T}, x::Number) where {T}	modelled	multidimcov-broadcast-faithful-1223	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1225	1225	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::LinRange, x::Number)	modelled	multidimcov-broadcast-faithful-1225	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1226	1227	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::OrdinalRange, x::AbstractFloat)	modelled	multidimcov-broadcast-faithful-1226	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1230	1230	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(/), r::AbstractRange, x::Number)	modelled	multidimcov-broadcast-faithful-1230	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1231	1232	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(/), r::StepRangeLen{T}, x::Number) where {T}	modelled	multidimcov-broadcast-faithful-1231	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1233	1233	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(/), r::LinRange, x::Number)	modelled	multidimcov-broadcast-faithful-1233	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1235	1235	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(\), x::Number, r::AbstractRange)	modelled	multidimcov-broadcast-faithful-1235	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1236	1236	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(\), x::Number, r::StepRangeLen)	modelled	multidimcov-broadcast-faithful-1236	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1237	1237	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(\), x::Number, r::LinRange)	modelled	multidimcov-broadcast-faithful-1237	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1239	1239	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(big), r::UnitRange)	modelled	multidimcov-broadcast-faithful-1239	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1240	1240	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(big), r::StepRange)	modelled	multidimcov-broadcast-faithful-1240	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1241	1241	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(big), r::StepRangeLen)	modelled	multidimcov-broadcast-faithful-1241	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1242	1242	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(big), r::LinRange)	modelled	multidimcov-broadcast-faithful-1242	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1245	1246	broadcasted	broadcasted(::typeof(+), I::CartesianIndices{N}, j::CartesianIndex{N}) where N	modelled	multidimcov-broadcast-faithful-1245	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1247	1248	broadcasted	broadcasted(::typeof(+), j::CartesianIndex{N}, I::CartesianIndices{N}) where N	modelled	multidimcov-broadcast-faithful-1247	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1249	1250	broadcasted	broadcasted(::typeof(-), I::CartesianIndices{N}, j::CartesianIndex{N}) where N	modelled	multidimcov-broadcast-faithful-1249	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1251	1254	broadcasted	broadcasted(::typeof(-), j::CartesianIndex{N}, I::CartesianIndices{N}) where N	modelled	multidimcov-broadcast-faithful-1251	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1252	1252	diffrange	diffrange(offset, rng)	modelled	multidimcov-broadcast-faithful-1252	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1261	1261	BitMaskedBitArray{N,M}	BitMaskedBitArray{N,M}(parent, mask) where {N,M}	modelled	multidimcov-broadcast-faithful-1261	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1263	1266	BitMaskedBitArray	BitMaskedBitArray(parent::BitArray{N}, mask::BitArray{M}) where {N,M}	modelled	multidimcov-broadcast-faithful-1263	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1267	1267	dotview	dotview(B::BitArray, i::BitArray)	modelled	multidimcov-broadcast-faithful-1267	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1268	1268	Base.show	Base.show(io::IO, B::BitMaskedBitArray)	modelled	multidimcov-broadcast-faithful-1268	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1270	1270	materialize!	materialize!(B::BitMaskedBitArray, bc::Broadcasted{<:Any,<:Any,typeof(identity),Tuple{Bool}})	modelled	multidimcov-broadcast-faithful-1270	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1271	1271	materialize!	materialize!(B::BitMaskedBitArray, bc::Broadcasted{<:Any})	modelled	multidimcov-broadcast-faithful-1271	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1272	1285	Base.fill!	Base.fill!(B::BitMaskedBitArray, b::Bool)	modelled	multidimcov-broadcast-faithful-1272	typed UInt64 chunk and masked-bitarray model
-base/broadcast.jl	1297	1297	dotview	dotview(args...)	modelled	multidimcov-broadcast-faithful-1297	typed recursive Julia syntax and broadcast wrapper model
-base/broadcast.jl	1304	1304	dottable	dottable(x)	modelled	multidimcov-broadcast-faithful-1304	typed recursive Julia syntax and broadcast wrapper model
-base/broadcast.jl	1306	1306	dottable	dottable(x::Symbol)	modelled	multidimcov-broadcast-faithful-1306	typed recursive Julia syntax and broadcast wrapper model
-base/broadcast.jl	1307	1307	dottable	dottable(x::Expr)	modelled	multidimcov-broadcast-faithful-1307	typed recursive Julia syntax and broadcast wrapper model
-base/broadcast.jl	1308	1308	undot	undot(x)	modelled	multidimcov-broadcast-faithful-1308	typed recursive Julia syntax and broadcast wrapper model
-base/broadcast.jl	1309	1317	undot	undot(x::Expr)	modelled	multidimcov-broadcast-faithful-1309	typed recursive Julia syntax and broadcast wrapper model
-base/broadcast.jl	1318	1318	__dot__	__dot__(x)	modelled	multidimcov-broadcast-faithful-1318	typed recursive Julia syntax and broadcast wrapper model
-base/broadcast.jl	1319	1348	__dot__	__dot__(x::Expr)	modelled	multidimcov-broadcast-faithful-1319	typed recursive Julia syntax and broadcast wrapper model
-base/broadcast.jl	1390	1392	__dot__	__dot__(x)	modelled	multidimcov-broadcast-faithful-1390	typed recursive Julia syntax and broadcast wrapper model
-base/broadcast.jl	1394	1400	broadcasted_kwsyntax	broadcasted_kwsyntax(f, args...; kwargs...)	modelled	multidimcov-broadcast-faithful-1394	typed recursive Julia syntax and broadcast wrapper model
-base/broadcast.jl	1401	1404	broadcasted	broadcasted(f::F, args...) where {F}	modelled	multidimcov-broadcast-faithful-1401	typed recursive Julia syntax and broadcast wrapper model
-base/broadcast.jl	1409	1413	broadcasted	broadcasted(f::F, arg1, args...) where {F}	modelled	multidimcov-broadcast-faithful-1409	typed recursive Julia syntax and broadcast wrapper model
-base/broadcast.jl	1414	1419	broadcasted	broadcasted(f::F, arg1, arg2, args...) where {F}	modelled	multidimcov-broadcast-faithful-1414	typed recursive Julia syntax and broadcast wrapper model
-base/broadcast.jl	1420	1420	broadcasted	broadcasted(style::BroadcastStyle, f::F, args...) where {F}	modelled	multidimcov-broadcast-faithful-1420	typed recursive Julia syntax and broadcast wrapper model
-base/broadcast.jl	1452	1452	(op::BroadcastFunction)	(op::BroadcastFunction)(x...; kwargs...)	modelled	multidimcov-broadcast-faithful-1452	typed recursive Julia syntax and broadcast wrapper model
-base/broadcast.jl	1454	1459	Base.show	Base.show(io::IO, op::BroadcastFunction)	modelled	multidimcov-broadcast-faithful-1454	typed recursive Julia syntax and broadcast wrapper model
-base/broadcast.jl	1460	1460	Base.show	"Base.show(io::IO, ::MIME""text/plain"", op::BroadcastFunction)"	modelled	multidimcov-broadcast-faithful-1460	typed recursive Julia syntax and broadcast wrapper model
+base/broadcast.jl	521	521	broadcast_shape	broadcast_shape(shape::Tuple)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	522	522	broadcast_shape	broadcast_shape(shape::Tuple, shape1::Tuple, shapes::Tuple...)	modelled	broadcast-typed-integer-shape-rank	typed heterogeneous shape and axis model
+base/broadcast.jl	524	524	_bcs	_bcs(::Tuple{}, ::Tuple{})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	525	525	_bcs	_bcs(::Tuple{}, newshape::Tuple)	modelled	broadcast-scalar-shape-identity	typed heterogeneous shape and axis model
+base/broadcast.jl	526	526	_bcs	_bcs(shape::Tuple, ::Tuple{})	modelled	broadcast-scalar-shape-identity	typed heterogeneous shape and axis model
+base/broadcast.jl	527	529	_bcs	_bcs(shape::Tuple, newshape::Tuple)	modelled	broadcast-typed-integer-shape-rank	typed heterogeneous shape and axis model
+base/broadcast.jl	531	531	_bcs1	_bcs1(a::Integer, b::Integer)	modelled	broadcast-typed-integer-dimension-join	typed heterogeneous shape and axis model
+base/broadcast.jl	532	532	_bcs1	_bcs1(a::Integer, b)	modelled	broadcast-integer-axis-compatibility	typed heterogeneous shape and axis model
+base/broadcast.jl	533	533	_bcs1	_bcs1(a, b::Integer)	modelled	broadcast-integer-axis-compatibility	typed heterogeneous shape and axis model
+base/broadcast.jl	534	534	_bcs1	_bcs1(a, b)	modelled	broadcast-axis-combination	typed heterogeneous shape and axis model
+base/broadcast.jl	536	536	_bcsm	_bcsm(a, b)	modelled	broadcast-validation-aligned-axes	typed heterogeneous shape and axis model
+base/broadcast.jl	537	537	_bcsm	_bcsm(a, b::Number)	modelled	broadcast-numeric-compatibility	typed heterogeneous shape and axis model
+base/broadcast.jl	538	538	_bcsm	_bcsm(a::Number, b::Number)	modelled	broadcast-numeric-compatibility	typed heterogeneous shape and axis model
+base/broadcast.jl	542	542	axistype	axistype(a::T, b::T) where T	modelled	broadcast-axis-combination	typed heterogeneous shape and axis model
+base/broadcast.jl	543	543	axistype	axistype(a::OneTo, b::OneTo)	todo		Nothing to promise: forwards the selected axis to the external OneTo{Int} constructor.
+base/broadcast.jl	544	544	axistype	axistype(a, b)	todo		Nothing to promise: forwards the selected axis to the external UnitRange{Int} constructor.
+base/broadcast.jl	548	548	check_broadcast_shape	check_broadcast_shape(shp)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	549	549	check_broadcast_shape	check_broadcast_shape(shp, ::Tuple{})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	550	550	check_broadcast_shape	check_broadcast_shape(::Tuple{}, ::Tuple{})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	551	556	check_broadcast_shape	check_broadcast_shape(::Tuple{}, Ashp::Tuple)	modelled	broadcast-validation-varying-axes	typed heterogeneous shape and axis model
+base/broadcast.jl	557	560	check_broadcast_shape	check_broadcast_shape(shp, Ashp::Tuple)	modelled	broadcast-validation-aligned-axes	typed heterogeneous shape and axis model
+base/broadcast.jl	561	561	check_broadcast_axes	check_broadcast_axes(shp, A)	modelled	broadcast-validation-varying-axes	typed heterogeneous shape and axis model
+base/broadcast.jl	563	566	check_broadcast_axes	check_broadcast_axes(shp, A, As...)	modelled	broadcast-every-argument-validated	typed heterogeneous shape and axis model
+base/broadcast.jl	585	585	newindex	newindex(arg, I::CartesianIndex)	modelled	broadcast-axis-coordinate-projection	typed polymorphic broadcast indexing model
+base/broadcast.jl	586	586	newindex	newindex(arg, I::Integer)	modelled	broadcast-axis-coordinate-projection	typed polymorphic broadcast indexing model
+base/broadcast.jl	587	587	_newindex	_newindex(ax::Tuple, I::Tuple)	modelled	broadcast-axis-coordinate-projection	typed polymorphic broadcast indexing model
+base/broadcast.jl	588	588	_newindex	_newindex(ax::Tuple{}, I::Tuple)	modelled	broadcast-axis-coordinate-projection	typed polymorphic broadcast indexing model
+base/broadcast.jl	589	589	_newindex	_newindex(ax::Tuple, I::Tuple{})	modelled	broadcast-axis-coordinate-projection	typed polymorphic broadcast indexing model
+base/broadcast.jl	590	590	_newindex	_newindex(ax::Tuple{}, I::Tuple{})	modelled	broadcast-axis-coordinate-projection	typed polymorphic broadcast indexing model
+base/broadcast.jl	593	593	newindex	newindex(I::CartesianIndex, keep, Idefault)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	594	594	newindex	newindex(I::CartesianIndex{1}, keep, Idefault)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	595	595	newindex	newindex(i::Integer, keep::Tuple, idefault)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	596	596	newindex	newindex(i::Integer, keep::Tuple{Bool}, idefault)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	597	597	newindex	newindex(i::Integer, keep::Tuple{}, idefault)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	598	599	_newindex	_newindex(I, keep, Idefault)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	600	600	_newindex	_newindex(I, keep::Tuple{}, Idefault)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	601	601	_newindex	_newindex(I::Tuple{}, keep, Idefault)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	602	602	_newindex	_newindex(I::Tuple{}, keep::Tuple{}, Idefault)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	606	606	newindexer	newindexer(A)	todo		Nothing to promise: forwards the external axes query to the real shapeindexer.
+base/broadcast.jl	607	607	shapeindexer	shapeindexer(ax)	modelled	broadcast-indexer-coordinates	typed polymorphic broadcast indexing model
+base/broadcast.jl	608	608	_newindexer	_newindexer(indsA::Tuple{})	modelled	broadcast-indexer-coordinates	typed polymorphic broadcast indexing model
+base/broadcast.jl	609	613	_newindexer	_newindexer(indsA::Tuple)	modelled	broadcast-indexer-coordinates	typed polymorphic broadcast indexing model
+base/broadcast.jl	615	618	Base.getindex	Base.getindex(bc::Broadcasted, Is::Vararg{Union{Integer,CartesianIndex},N}) where {N}	todo		Nothing to promise: forwards externally flattened coordinates and the index-style query to the selected indexing method.
+base/broadcast.jl	619	622	_getindex	_getindex(::IndexStyle, bc, I)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	623	626	_getindex	_getindex(s::IndexCartesian, bc, I::Integer)	todo		Nothing to promise: forwards external CartesianIndices conversion into the selected indexing method.
+base/broadcast.jl	627	630	_getindex	_getindex(s::IndexLinear, bc, I::CartesianIndex)	todo		Nothing to promise: forwards external LinearIndices conversion into the selected indexing method.
+base/broadcast.jl	631	631	to_index	to_index(::Tuple{})	todo		Nothing to promise: zero-coordinate CartesianIndex constructor.
+base/broadcast.jl	632	632	to_index	to_index(Is::Tuple{Any})	todo		Nothing to promise: forwards the sole tuple field unchanged.
+base/broadcast.jl	633	633	to_index	to_index(Is::Tuple)	todo		Nothing to promise: forwards tuple coordinates to the CartesianIndex constructor.
+base/broadcast.jl	635	638	Base.checkbounds	Base.checkbounds(bc::Broadcasted, I::CartesianIndex)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	640	643	Base.checkbounds	Base.checkbounds(bc::Broadcasted, I::Integer)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	651	651	_broadcast_getindex	_broadcast_getindex(A::Union{Ref,AbstractArray{<:Any,0},Number}, I)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	652	652	_broadcast_getindex	_broadcast_getindex(::Ref{Type{T}}, I) where {T}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	654	654	_broadcast_getindex	_broadcast_getindex(A::Tuple{Any}, I)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	655	655	_broadcast_getindex	_broadcast_getindex(A::Tuple, I)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	657	657	_broadcast_getindex	_broadcast_getindex(A, I)	todo		Nothing to promise: forwards broadcast index remapping into external array indexing.
+base/broadcast.jl	669	669	axes	axes(b::Extruded)	todo		Nothing to promise: forwards the external axes query to the stored underlying array.
+base/broadcast.jl	670	670	_broadcast_getindex	_broadcast_getindex(b::Extruded, i)	todo		Nothing to promise: forwards stored index-remapping metadata into external array indexing.
+base/broadcast.jl	671	671	extrude	extrude(x::AbstractArray)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	672	672	extrude	extrude(x)	todo		Nothing to promise: identity forwarding for non-array inputs.
+base/broadcast.jl	675	678	_broadcast_getindex	_broadcast_getindex(bc::Broadcasted{<:Any,<:Any,<:Any,<:Any}, I)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	685	688	_broadcast_getindex	_broadcast_getindex(bc::Broadcasted{<:Any,<:Any,<:Any,<:Tuple{Ref{Type{T}},Vararg{Any}}}, I) where {T}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	689	693	_broadcast_getindex	_broadcast_getindex(bc::Broadcasted{<:Any,<:Any,<:Any,<:Tuple{Any,Ref{Type{T}},Vararg{Any}}}, I) where {T}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	694	697	_broadcast_getindex	_broadcast_getindex(bc::Broadcasted{<:Any,<:Any,<:Any,<:Tuple{Ref{Type{T}},Ref{Type{S}},Vararg{Any}}}, I) where {T,S}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	700	700	_getindex	_getindex(args::Tuple, I)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	701	701	_getindex	_getindex(args::Tuple{Any}, I)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	702	702	_getindex	_getindex(args::Tuple{}, I)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	704	704	_broadcast_getindex_evalf	_broadcast_getindex_evalf(f::Tf, args::Vararg{Any,N}) where {Tf,N}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	736	736	broadcastable	broadcastable(x::BroadcastScalars)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	737	737	broadcastable	broadcastable(::Type{T}) where {T}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	738	738	broadcastable	broadcastable(x::Union{AbstractArray,Number,AbstractChar,Ref,Tuple,Broadcasted})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	740	740	broadcastable	broadcastable(x)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	741	741	broadcastable	broadcastable(::Union{AbstractDict, NamedTuple})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	744	744	_bc_eltype	_bc_eltype(bc::Broadcasted, i)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	747	747	_bc_eltype	_bc_eltype(x::Number, i)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	748	748	_bc_eltype	_bc_eltype(x::Tuple, i)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	751	751	_bc_eltype	_bc_eltype(x, i)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	753	753	_bc_eltypes	_bc_eltypes(args::Tuple, i)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	754	754	_bc_eltypes	_bc_eltypes(::Tuple{}, i)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	756	761	result_eltype	result_eltype(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	765	765	_broadcast_getindex_eltype	_broadcast_getindex_eltype(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	766	766	_broadcast_getindex_eltype	_broadcast_getindex_eltype(A)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	768	768	eltypes	eltypes(::Tuple{})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	769	769	eltypes	eltypes(t::Tuple{Any})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	770	770	eltypes	eltypes(t::Tuple{Any,Any})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	771	771	eltypes	eltypes(t::Tuple)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	774	778	combine_eltypes	combine_eltypes(f, args::Tuple)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	859	859	broadcast	broadcast(f::Tf, As::Vararg{Any,N}) where {Tf,N}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	862	862	broadcast	broadcast(f, x::Number...)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	863	863	broadcast	broadcast(f, t::NTuple{N,Any}, ts::Vararg{NTuple{N,Any}}) where {N}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	898	898	broadcast!	broadcast!(f::Tf, dest, As::Vararg{Any,N}) where {Tf,N}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	908	912	broadcast_preserving_zero_d	broadcast_preserving_zero_d(f, As...)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	913	913	broadcast_preserving_zero_d	broadcast_preserving_zero_d(f)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	914	914	broadcast_preserving_zero_d	broadcast_preserving_zero_d(f, as::Number...)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	921	921	materialize	materialize(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	922	922	materialize	materialize(x)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	924	926	materialize!	materialize!(dest, x)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	928	930	materialize!	materialize!(dest, bc::Broadcasted{<:Any})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	932	934	materialize!	materialize!(::BroadcastStyle, dest, bc::Broadcasted{<:Any})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	936	936	materialize!	materialize!(dest::Union{BroadcastScalars,Number,AbstractChar}, bc::Broadcasted{<:Any})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	937	939	_throw_unwritable_dest	_throw_unwritable_dest(@nospecialize dest)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	942	942	copy	copy(bc::Broadcasted{<:AbstractArrayStyle{0}})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	943	944	copy	copy(bc::Broadcasted{<:Union{Nothing,Unknown}})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	948	975	copy	copy(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	980	980	copyto!	copyto!(dest::AbstractArray, bc::Broadcasted)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	983	993	copyto!	copyto!(dest::AbstractArray, bc::Broadcasted{<:AbstractArrayStyle{0}})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1001	1001	broadcast_unalias	broadcast_unalias(dest, src)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1002	1002	broadcast_unalias	broadcast_unalias(::Nothing, src)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1007	1007	preprocess	preprocess(dest, bc::Broadcasted)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1008	1008	preprocess	preprocess(dest, x)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1010	1010	preprocess_args	preprocess_args(dest, args::Tuple)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1011	1011	preprocess_args	preprocess_args(dest, args::Tuple{Any})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1012	1012	preprocess_args	preprocess_args(dest, args::Tuple{})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1015	1031	copyto!	copyto!(dest::AbstractArray, bc::Broadcasted{Nothing})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1035	1073	copyto!	copyto!(dest::BitArray, bc::Broadcasted{Nothing})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1083	1083	_chunkop	_chunkop(f, args)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1084	1084	_chunkop	_chunkop(::Union{typeof(&), typeof(*), typeof(min)}, args)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1085	1085	_chunkop	_chunkop(::Union{typeof(|), typeof(max)}, args)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1086	1086	_chunkop	_chunkop(::typeof(xor), args)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1087	1087	_chunkop	_chunkop(::typeof(nand), args)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1088	1088	_chunkop	_chunkop(::typeof(nor), args)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1089	1089	_chunkop	_chunkop(::Union{typeof(~), typeof(!)}, args)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1090	1090	_chunkop	_chunkop(::typeof(identity), args)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1091	1091	_chunkop	_chunkop(::typeof(==), ::Tuple{Any,Any})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1092	1092	_chunkop	_chunkop(::typeof(!=), ::Tuple{Any,Any})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1093	1093	_chunkop	_chunkop(::typeof(<), ::Tuple{Any,Any})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1094	1094	_chunkop	_chunkop(::typeof(<=), ::Tuple{Any,Any})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1095	1095	_chunkop	_chunkop(::typeof(>), ::Tuple{Any,Any})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1096	1096	_chunkop	_chunkop(::typeof(>=), ::Tuple{Any,Any})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1098	1098	ischunkedbroadcast	ischunkedbroadcast(R, bc::Broadcasted)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1099	1099	ischunkedbroadcast	ischunkedbroadcast(R, bc::Broadcasted, ::Nothing)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1100	1100	ischunkedbroadcast	ischunkedbroadcast(R, bc::Broadcasted, f)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1101	1101	ischunkedbroadcast	ischunkedbroadcast(R, args)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1102	1102	ischunkedbroadcast	ischunkedbroadcast(R, args::Tuple{<:BitArray,Vararg{Any}})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1103	1103	ischunkedbroadcast	ischunkedbroadcast(R, args::Tuple{<:Bool,Vararg{Any}})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1104	1104	ischunkedbroadcast	ischunkedbroadcast(R, args::Tuple{<:Broadcasted,Vararg{Any}})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1105	1105	ischunkedbroadcast	ischunkedbroadcast(R, args::Tuple{})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1108	1108	liftfuncs	liftfuncs(bc::Broadcasted{<:Any,<:Any,<:Any})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1109	1109	liftfuncs	liftfuncs(bc::Broadcasted, ::Nothing)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1110	1110	liftfuncs	liftfuncs(bc::Broadcasted, f)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1111	1111	liftfuncs	liftfuncs(x)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1113	1113	liftchunks	liftchunks(::Tuple{})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1114	1114	liftchunks	liftchunks(args::Tuple{<:BitArray,Vararg{Any}})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1116	1116	liftchunks	liftchunks(args::Tuple{<:Bool,Vararg{Any}})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1117	1117	ithchunk	ithchunk(i)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1118	1118	ithchunk	ithchunk(i, c::Vector{UInt64}, args...)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1119	1119	ithchunk	ithchunk(i, b::UInt64, args...)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1120	1130	chunkedcopyto!	chunkedcopyto!(dest::BitArray, bc::Broadcasted)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1133	1134	throwdm	throwdm(axdest, axsrc)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1136	1143	restart_copyto_nonleaf!	restart_copyto_nonleaf!(newdest, dest, bc, val, I, iter, state, count)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1145	1163	copyto_nonleaf!	copyto_nonleaf!(dest, bc::Broadcasted, iter, state, count)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1167	1172	copy	copy(bc::Broadcasted{Style{Tuple}})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1176	1176	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::AbstractRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1178	1178	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::AbstractRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1179	1179	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::OrdinalRange)	modelled	broadcastviews-range-negate-unsigned	typed effectful range model preserving fields and operation order
+base/broadcast.jl	1180	1180	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::StepRangeLen)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1181	1181	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::LinRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1184	1184	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::AbstractRange, x::Number)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1185	1185	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Number, r::AbstractRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1186	1186	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::OrdinalRange, x::Integer)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1187	1187	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Integer, r::OrdinalRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1188	1188	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::AbstractUnitRange, x::Integer)	modelled	ranges-broadcast-add-length	typed effectful range model preserving fields and operation order
+base/broadcast.jl	1189	1189	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Integer, r::AbstractUnitRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1190	1190	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::AbstractUnitRange, x::Real)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1191	1191	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Real, r::AbstractUnitRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1192	1193	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::StepRangeLen{T}, x::Number) where T	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1194	1195	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Number, r::StepRangeLen{T}) where T	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1196	1196	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::LinRange, x::Number)	modelled	broadcastcov-linrange-shift-elementwise	typed effectful range model preserving fields and operation order
+base/broadcast.jl	1197	1197	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Number, r::LinRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1198	1198	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r1::AbstractRange, r2::AbstractRange)	modelled	broadcastviews-range-singleton	typed effectful range model preserving fields and operation order
+base/broadcast.jl	1200	1200	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::AbstractRange, x::Number)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1201	1201	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), x::Number, r::AbstractRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1202	1202	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::OrdinalRange, x::Integer)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1203	1203	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), x::Integer, r::OrdinalRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1204	1204	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::AbstractUnitRange, x::Integer)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1205	1205	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::AbstractUnitRange, x::Real)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1206	1207	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::StepRangeLen{T}, x::Number) where T	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1208	1209	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), x::Number, r::StepRangeLen{T}) where T	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1210	1210	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::LinRange, x::Number)	modelled	broadcastcov-linrange-shift-elementwise	typed effectful range model preserving fields and operation order
+base/broadcast.jl	1211	1211	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), x::Number, r::LinRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1212	1212	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r1::AbstractRange, r2::AbstractRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1215	1215	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::Number, r::AbstractRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1216	1217	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::Number, r::StepRangeLen{T}) where {T}	modelled	floatranges-scalar-mul-broadcast	typed effectful range model preserving fields and operation order
+base/broadcast.jl	1218	1218	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::Number, r::LinRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1219	1220	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::AbstractFloat, r::OrdinalRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1222	1222	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::AbstractRange, x::Number)	modelled	ranges-broadcast-mul-elementwise	typed effectful range model preserving fields and operation order
+base/broadcast.jl	1223	1224	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::StepRangeLen{T}, x::Number) where {T}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1225	1225	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::LinRange, x::Number)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1226	1227	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::OrdinalRange, x::AbstractFloat)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1230	1230	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(/), r::AbstractRange, x::Number)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1231	1232	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(/), r::StepRangeLen{T}, x::Number) where {T}	modelled	broadcastcov-steprangelen-div-elementwise	typed effectful range model preserving fields and operation order
+base/broadcast.jl	1233	1233	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(/), r::LinRange, x::Number)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1235	1235	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(\), x::Number, r::AbstractRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1236	1236	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(\), x::Number, r::StepRangeLen)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1237	1237	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(\), x::Number, r::LinRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1239	1239	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(big), r::UnitRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1240	1240	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(big), r::StepRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1241	1241	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(big), r::StepRangeLen)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1242	1242	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(big), r::LinRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1245	1246	broadcasted	broadcasted(::typeof(+), I::CartesianIndices{N}, j::CartesianIndex{N}) where N	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1247	1248	broadcasted	broadcasted(::typeof(+), j::CartesianIndex{N}, I::CartesianIndices{N}) where N	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1249	1250	broadcasted	broadcasted(::typeof(-), I::CartesianIndices{N}, j::CartesianIndex{N}) where N	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1251	1254	broadcasted	broadcasted(::typeof(-), j::CartesianIndex{N}, I::CartesianIndices{N}) where N	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1252	1252	diffrange	diffrange(offset, rng)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1261	1261	BitMaskedBitArray{N,M}	BitMaskedBitArray{N,M}(parent, mask) where {N,M}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1263	1266	BitMaskedBitArray	BitMaskedBitArray(parent::BitArray{N}, mask::BitArray{M}) where {N,M}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1267	1267	dotview	dotview(B::BitArray, i::BitArray)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1268	1268	Base.show	Base.show(io::IO, B::BitMaskedBitArray)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1270	1270	materialize!	materialize!(B::BitMaskedBitArray, bc::Broadcasted{<:Any,<:Any,typeof(identity),Tuple{Bool}})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1271	1271	materialize!	materialize!(B::BitMaskedBitArray, bc::Broadcasted{<:Any})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1272	1285	Base.fill!	Base.fill!(B::BitMaskedBitArray, b::Bool)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1297	1297	dotview	dotview(args...)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1304	1304	dottable	dottable(x)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1306	1306	dottable	dottable(x::Symbol)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1307	1307	dottable	dottable(x::Expr)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1308	1308	undot	undot(x)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1309	1317	undot	undot(x::Expr)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1318	1318	__dot__	__dot__(x)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1319	1348	__dot__	__dot__(x::Expr)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1390	1392	__dot__	__dot__(x)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1394	1400	broadcasted_kwsyntax	broadcasted_kwsyntax(f, args...; kwargs...)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1401	1404	broadcasted	broadcasted(f::F, args...) where {F}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1409	1413	broadcasted	broadcasted(f::F, arg1, args...) where {F}	modelled	broadcast-nested-boolean-short-circuit	typed recursive Julia syntax and broadcast wrapper model
+base/broadcast.jl	1414	1419	broadcasted	broadcasted(f::F, arg1, arg2, args...) where {F}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1420	1420	broadcasted	broadcasted(style::BroadcastStyle, f::F, args...) where {F}	modelled	broadcast-nested-boolean-short-circuit	typed recursive Julia syntax and broadcast wrapper model
+base/broadcast.jl	1452	1452	(op::BroadcastFunction)	(op::BroadcastFunction)(x...; kwargs...)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1454	1459	Base.show	Base.show(io::IO, op::BroadcastFunction)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1460	1460	Base.show	"Base.show(io::IO, ::MIME""text/plain"", op::BroadcastFunction)"	todo		trivial: restates a body or a constructor result

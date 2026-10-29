@@ -1,0 +1,68 @@
+line	name	verdict	mirror	property	settled	reason
+35	StringView{T}	FAITHFUL	yes	yes	yes	The model follows both constructor checks in order and proves the stored bytes for every input.
+60	string_index_err	HOLLOW	no	yes	yes	The model accepts an Int directly and omits the method's conversion from arbitrary Integer to Int.
+62	showerror	HOLLOW	no	no	yes	The model prints only the initial invalid-index text and omits every bounds, nearby-index, escaping, and conditional-print branch.
+78	between	FAITHFUL	yes	yes	yes	The model and theorem state the exact inclusive comparison for all integers.
+112	String	FAITHFUL	yes	yes	yes	The operational run records allocation, ordered copying, and transfer while preserving every input byte.
+114	String	FAITHFUL	yes	yes	yes	The heap model follows the empty, aligned, unaligned, ownership, and vector-emptying branches and the refutation has a reproducer.
+136	unsafe_takestring	FAITHFUL	yes	yes	yes	The model follows the empty/nonempty split and preserves the complete memory byte sequence.
+159	takestring!	FAITHFUL	yes	yes	yes	The vector-taking model returns the bytes and empties the source for every byte vector.
+172	unsafe_string	HOLLOW	yes	no	yes	The proposition assumes successful Int conversion and therefore does not cover arbitrary Integer lengths accepted by the method.
+176	unsafe_string	FAITHFUL	yes	yes	yes	Under the documented valid-pointer precondition, the model rejects null and copies exactly the prefix before NUL.
+184	_string_n	HOLLOW	no	no	yes	The model assumes successful conversion, treats allocated bytes as zero-initialized, and omits arbitrary-Integer conversion and allocation behavior.
+192	String	HOLLOW	no	no	yes	The proposition uses an arbitrary render function as the result and therefore neither models print_to_string nor proves its behavior.
+193	String	HOLLOW	no	yes	yes	The proposition constructs a hand-written call/result record instead of applying a model of Symbol conversion.
+195	unsafe_wrap	HOLLOW	no	yes	yes	The proposition constructs a generic copyRun record instead of applying a model of the ccall-backed method.
+196	unsafe_wrap	HOLLOW	no	yes	yes	The proposition constructs a generic copyRun record instead of modeling the Memory conversion followed by wrap.
+198	Vector{UInt8}	HOLLOW	no	yes	yes	The proposition constructs a call list and unchanged bytes instead of applying a model of allocation and copyto!.
+199	Vector{UInt8}	HOLLOW	no	yes	yes	The proposition constructs a call list and unchanged bytes instead of applying the method's codeunits conversion model.
+200	Array{UInt8}	HOLLOW	no	yes	yes	The proposition constructs a call list and unchanged bytes instead of applying the method's Vector conversion model.
+202	String	HOLLOW	no	yes	yes	The proposition constructs a readParent record instead of applying a model of selecting the CodeUnits parent field.
+206	pointer	FAITHFUL	yes	yes	yes	The model delegates once to unsafe conversion and preserves every input address.
+207	pointer	FAITHFUL	yes	yes	yes	The model adds the converted index minus one to the base address exactly as the method does.
+209	ncodeunits	FAITHFUL	yes	yes	yes	The model returns the byte-list length for every String representation.
+210	codeunit	FAITHFUL	yes	yes	yes	The proposition states the method's constant UInt8 code-unit type.
+212	codeunit	HOLLOW	no	no	yes	The proposition records two call labels but neither models Integer-to-Int conversion failure nor relates the returned byte to indexed codeunit.
+213	codeunit	HOLLOW	no	yes	yes	The proposition uses a hand-written copyRun trace rather than the bounds-checking codeunit model.
+221	_memcmp	FAITHFUL	yes	yes	yes	The proposition applies the byte comparison model at the minimum byte length for all strings.
+223	_memcmp	FAITHFUL	yes	yes	yes	The model delegates to the explicit-length comparison with the minimum input size.
+224	_memcmp	HOLLOW	no	no	yes	The model takes a Nat length and omits negative Int inputs and the source's modulo-Csize_t conversion.
+232	cmp	FAITHFUL	yes	yes	yes	Both bytewise String cmp and characterwise generic cmp are modeled, the universal agreement claim is refuted, and its reproducer exists.
+238	==	HOLLOW	yes	no	yes	The theorem proves only a redundant one-way implication under an arbitrary id predicate rather than equality iff equal byte sequences.
+240	typemin	FAITHFUL	yes	yes	yes	The constant model returns the empty byte string for every type-level call.
+241	typemin	FAITHFUL	yes	yes	yes	The value overload model delegates to the type-level empty String result.
+245	thisind	FAITHFUL	yes	yes	yes	The exact String thisind model proves idempotence whenever the call returns.
+249	lastindex	FAITHFUL	yes	yes	yes	The lastindex model calls thisind at ncodeunits and proves the resulting method equality for every string.
+252	_thisind_str	FAITHFUL	yes	yes	yes	The proposition uses the full branch-ordered thisind model and proves its documented rewind bounds for every successful call.
+259	_thisind_continued	FAITHFUL	yes	yes	yes	The exact continuation helper model proves that every result is the input or one of the three preceding byte positions.
+273	nextind	FAITHFUL	yes	yes	yes	The exact nextind and prevind models prove both documented inverse properties over all stated valid indices.
+276	_nextind_str	FAITHFUL	yes	yes	yes	The proposition uses the complete nextind model and proves strict bounded advance for every valid in-bounds call.
+282	_nextind_continued	HOLLOW	yes	no	yes	The proposition assumes lead is at least 0xc0 and omits the helper's l < 0xc0 repair branch, which its caller can reach.
+433	_utf_dfa_step	FAITHFUL	yes	yes	yes	The proposition states the exact table lookup, shift, and mask for every state and byte.
+435	_isvalid_utf8_dfa	HOLLOW	yes	no	yes	The theorem covers only empty intervals and says nothing about the method's loop over any nonempty interval.
+442	_find_nonascii_chunk	HOLLOW	yes	no	yes	The theorem covers only some results and does not prove firstness, loop progression, or the nothing result.
+459	byte_string_classify	FAITHFUL	yes	yes	yes	The proposition applies the exact codeunits classifier model and proves its classification range for every string.
+462	byte_string_classify	FAITHFUL	yes	yes	yes	The proposition applies the branch-complete classifier and proves its classification range for every byte vector.
+476	_byte_string_classify_nonascii	FAITHFUL	yes	yes	yes	The proposition applies the complete chunk/DFA loop and proves the method returns only invalid or UTF-8 classifications.
+499	isvalid	FAITHFUL	yes	yes	yes	The model tests the exact classifier result and proves validity iff the classification is ASCII or UTF-8.
+500	isvalid	FAITHFUL	yes	yes	yes	The model classifies the AbstractString bytes and proves the exact nonzero classification condition.
+502	isvalid	FAITHFUL	yes	yes	yes	The wrapper model delegates through code units and proves the exact nonzero classification condition.
+504	is_valid_continuation	FAITHFUL	yes	yes	yes	The proposition states the exact high-bit mask test for every byte.
+508	iterate	FAITHFUL	yes	yes	yes	The exact iterator model proves visits coincide with valid indices and that length equals the number of iteration steps for every byte string.
+517	iterate_continued	FAITHFUL	yes	yes	yes	For the helper's valid lead/index call domain, the exact branch model proves the returned next index.
+540	getindex	FAITHFUL	yes	yes	yes	The proposition applies the complete scalar indexing model and proves every successful access is within byte bounds.
+548	getindex_continued	HOLLOW	yes	no	yes	The theorem covers only bits below 0xc0000000 and omits every ordinary multibyte decoding branch.
+575	getindex	FAITHFUL	yes	yes	yes	The model converts both arbitrary integer endpoints in order and delegates on the resulting Int range.
+580	getindex	HOLLOW	yes	no	yes	The theorem covers only empty ranges and omits endpoint checks, final-character advance, allocation, and copying for nonempty ranges.
+598	length	FAITHFUL	yes	yes	yes	The complete length and iteration models prove equality for every byte sequence.
+602	length	FAITHFUL	yes	yes	yes	The StringView length model proves the number of valid iteration indices for every byte sequence.
+607	length	HOLLOW	yes	no	yes	The theorem assumes an inverted interval and proves only its zero branch rather than all valid interval inputs.
+611	length	HOLLOW	yes	no	yes	The theorem assumes an inverted interval and proves only its zero branch rather than all valid interval inputs.
+615	_length	HOLLOW	yes	no	yes	The theorem proves only the inverted-interval return and omits normalization and continuation counting for nonempty intervals.
+626	length_continued	HOLLOW	yes	no	yes	The theorem assumes count is at most index and proves only the helper's immediate-return branch.
+630	length_continued	HOLLOW	yes	no	yes	The theorem reuses a proposition covering only the immediate-return branch and omits the StringView loop.
+635	_length_continued	HOLLOW	yes	no	yes	The theorem reuses a proposition covering only the immediate-return branch and omits all nested-loop behavior.
+662	isvalid	FAITHFUL	yes	yes	yes	The exact bounds and thisind models prove validity exactly at character-start byte indices.
+665	isascii	HOLLOW	yes	no	yes	The theorem proves ASCII classification only for the empty String and says nothing about nonempty inputs.
+668	repeat	HOLLOW	no	no	yes	The model is restricted to JInt64 and therefore does not mirror or quantify over all BitInteger count types accepted by this method.
+682	repeat	HOLLOW	no	no	yes	The model is restricted to JInt64 and Char-like UInt32 values, omitting arbitrary Integer and AbstractChar conversions and failures.

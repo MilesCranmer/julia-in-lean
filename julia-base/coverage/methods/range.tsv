@@ -1,286 +1,287 @@
 file	line	endline	name	signature	status	entry	note
-base/range.jl	3	3	:	(:)(a::Real, b::Real)	modelled	rangescov-colon-promote-start	
-base/range.jl	5	5	:	(:)(start::T, stop::T) where {T<:Real}	modelled	rangescov-colon-same-unit	
-base/range.jl	7	7	:	(:)(start::T, stop::T) where {T}	modelled	rangescov-r7-colon-generic	
-base/range.jl	10	11	:	(:)(start::A, step, stop::C) where {A<:Real, C<:Real}	modelled	rangescov-colon-promote3-zero	
-base/range.jl	14	14	:	(:)(a::T, b::T) where {T<:AbstractFloat}	modelled	rangescov-bigfloat-colon-empty	
-base/range.jl	16	16	:	(:)(a::T, b::AbstractFloat, c::T) where {T<:Real}	modelled	rangescov-r16-colon-promote	
-base/range.jl	17	17	:	(:)(a::T, b::AbstractFloat, c::T) where {T<:AbstractFloat}	modelled	rangescov-r17-colon-promote	
-base/range.jl	18	18	:	(:)(a::T, b::Real, c::T) where {T<:AbstractFloat}	modelled	rangescov-r18-colon-promote	
-base/range.jl	20	21	:	(:)(start::T, step::T, stop::T) where {T<:AbstractFloat}	modelled	rangescov-bigfloat-colon-empty	
-base/range.jl	22	23	:	(:)(start::T, step::T, stop::T) where {T<:Real}	modelled	rangescov-colon-same3-zero	
-base/range.jl	24	24	_colon	_colon(::Ordered, ::Any, start::T, step, stop::T) where {T}	modelled	rangescov-colon-ordered-zero	
-base/range.jl	26	27	_colon	_colon(::Ordered, ::ArithmeticRounds, start::T, step, stop::T) where {T}	modelled	rangescov-bigfloat-colon-empty	
-base/range.jl	28	29	_colon	_colon(::Any, ::Any, start::T, step, stop::T) where {T}	modelled	rangescov-colon-any-invariant	
-base/range.jl	34	34	_range_wrapping_add	_range_wrapping_add(x::_RangeWrappingInteger, y::_RangeWrappingInteger)	modelled	rangescov-wrapping-arith	
-base/range.jl	35	35	_range_wrapping_add	_range_wrapping_add(x, y)	modelled	rangescov-wrapping-arith	
-base/range.jl	36	36	_range_wrapping_sub	_range_wrapping_sub(x::_RangeWrappingInteger, y::_RangeWrappingInteger)	modelled	rangescov-wrapping-arith	
-base/range.jl	37	37	_range_wrapping_sub	_range_wrapping_sub(x, y)	modelled	rangescov-wrapping-arith	
-base/range.jl	38	38	_range_wrapping_mul	_range_wrapping_mul(x::_RangeWrappingInteger, y::_RangeWrappingInteger)	modelled	rangescov-wrapping-arith	
-base/range.jl	39	39	_range_wrapping_mul	_range_wrapping_mul(x, y)	modelled	rangescov-wrapping-arith	
-base/range.jl	64	64	:	(:)(start::T, step, stop::T) where {T}	modelled	rangescov-colon-typed-zero	
-base/range.jl	65	65	:	(:)(start::T, step, stop::T) where {T<:Real}	modelled	rangescov-colon-typed-zero	
-base/range.jl	68	71	_colon	_colon(start::T, step, stop::T) where T	modelled	rangescov-colon-widen-zero	
-base/range.jl	165	165	range	range	excluded		no-behaviour: declares the generic range function without a method body.
-base/range.jl	167	168	range	range(start; stop=nothing, length::Union{Integer,Nothing}=nothing, step=nothing)	modelled	rangescov-r167-range	
-base/range.jl	169	169	range	range(start, stop; length::Union{Integer,Nothing}=nothing, step=nothing)	modelled	rangescov-r169-range	
-base/range.jl	170	170	range	range(start, stop, length::Integer)	modelled	rangescov-range3-length	
-base/range.jl	172	173	range	range(;start=nothing, stop=nothing, length::Union{Integer, Nothing}=nothing, step=nothing)	modelled	rangescov-r172-range	
-base/range.jl	175	175	_range	_range(start::Nothing, step::Nothing, stop::Nothing, len::Nothing)	modelled	rangescov-r175-range	
-base/range.jl	176	176	_range	_range(start::Nothing, step::Nothing, stop::Nothing, len::Any )	modelled	rangescov-r176-range	
-base/range.jl	177	177	_range	_range(start::Nothing, step::Nothing, stop::Any , len::Nothing)	modelled	rangescov-r177-range	
-base/range.jl	178	178	_range	_range(start::Nothing, step::Nothing, stop::Any , len::Any )	modelled	rangescov-r178-range	
-base/range.jl	179	179	_range	_range(start::Nothing, step::Any , stop::Nothing, len::Nothing)	modelled	rangescov-r179-range	
-base/range.jl	180	180	_range	_range(start::Nothing, step::Any , stop::Nothing, len::Any )	modelled	rangescov-r180-range	
-base/range.jl	181	181	_range	_range(start::Nothing, step::Any , stop::Any , len::Nothing)	modelled	rangescov-r181-range	
-base/range.jl	182	182	_range	_range(start::Nothing, step::Any , stop::Any , len::Any )	modelled	rangescov-r182-range	
-base/range.jl	183	183	_range	_range(start::Any , step::Nothing, stop::Nothing, len::Nothing)	modelled	rangescov-r183-range	
-base/range.jl	184	184	_range	_range(start::Any , step::Nothing, stop::Nothing, len::Any )	modelled	rangescov-r184-range	
-base/range.jl	185	185	_range	_range(start::Any , step::Nothing, stop::Any , len::Nothing)	modelled	rangescov-r185-range	
-base/range.jl	186	186	_range	_range(start::Any , step::Nothing, stop::Any , len::Any )	modelled	rangescov-r186-range	
-base/range.jl	187	187	_range	_range(start::Any , step::Any , stop::Nothing, len::Nothing)	modelled	rangescov-r187-range	
-base/range.jl	188	188	_range	_range(start::Any , step::Any , stop::Nothing, len::Any )	modelled	rangescov-r188-range	
-base/range.jl	189	189	_range	_range(start::Any , step::Any , stop::Any , len::Nothing)	modelled	rangescov-r189-range	
-base/range.jl	190	190	_range	_range(start::Any , step::Any , stop::Any , len::Any )	modelled	rangescov-r190-range	
-base/range.jl	193	193	range_length	range_length(len::Integer)	modelled	rangescov-range-length	
-base/range.jl	196	196	range_stop	range_stop(stop)	modelled	rangescov-r196-range-stop	
-base/range.jl	197	197	range_stop	range_stop(stop::Integer)	modelled	rangescov-range-stop-int	
-base/range.jl	199	206	range_step_stop_length	range_step_stop_length(step, a, len::Integer)	modelled	ranges-keyword-length	
-base/range.jl	209	217	range_stop_length	range_stop_length(a, len::Integer)	modelled	ranges-keyword-length,ranges-keyword-stop-length-unitrange	
-base/range.jl	220	228	range_start_length	range_start_length(a, len::Integer)	modelled	ranges-keyword-length,ranges-keyword-negative-length	
-base/range.jl	230	230	range_start_stop	range_start_stop(start, stop)	modelled	rangescov-range-start-stop	
-base/range.jl	232	239	range_start_step_length	range_start_step_length(a, step, len::Integer)	modelled	ranges-keyword-length	
-base/range.jl	241	241	range_start_step_stop	range_start_step_stop(start, step, stop)	modelled	rangescov-colon-promote3-zero	
-base/range.jl	243	270	range_error	range_error(start, step, stop, length)	modelled	ranges-range-error-hint	
-base/range.jl	285	285	RangeStepStyle	RangeStepStyle(::Type{<:AbstractRange})	modelled	rangescov-r285-step-style	
-base/range.jl	286	286	RangeStepStyle	RangeStepStyle(::Type{<:AbstractRange{<:Integer}})	modelled	rangescov-r286-step-style	
-base/range.jl	288	288	convert	convert(::Type{T}, r::AbstractRange) where {T<:AbstractRange}	modelled	rangescov-r288-convert-range	
-base/range.jl	344	349	StepRange{T,S}	StepRange{T,S}(start, step, stop) where {T,S}	modelled	rangescov-steprange-zero-single	
-base/range.jl	353	387	steprange_last	steprange_last(start, step, stop)::typeof(stop)	modelled	ranges-ordinal-typemin-checked-length	
-base/range.jl	377	377	overflow_case	overflow_case(absdiff, absstep)	modelled	rangescov-r377-overflow-case	
-base/range.jl	389	398	steprange_last_empty	steprange_last_empty(start::Integer, step, stop)::typeof(stop)	modelled	rangescov-steprange-unsigned-step-empty	
-base/range.jl	399	399	steprange_last_empty	steprange_last_empty(start::Bool, step, stop)	modelled	rangescov-r399-step-empty-bool	
-base/range.jl	401	401	steprange_last_empty	steprange_last_empty(start, step, stop)	modelled	rangescov-r401-step-empty-any	
-base/range.jl	403	403	StepRange{T}	StepRange{T}(start, step::S, stop) where {T,S}	modelled	rangescov-r403-steprange-t	
-base/range.jl	404	404	StepRange	StepRange(start::T, step::S, stop::T) where {T,S}	modelled	rangescov-steprange-unsigned-step-empty	candidates:ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-step-last
-base/range.jl	428	428	UnitRange{T}	UnitRange{T}(start::T, stop::T) where {T<:Real}	modelled	rangescov-integer-unitrange,rangescov-unitrange-float-last	
-base/range.jl	430	430	UnitRange{T}	UnitRange{T}(start, stop) where {T<:Real}	modelled	rangescov-unitrange-t	
-base/range.jl	431	431	UnitRange	UnitRange(start::T, stop::T) where {T<:Real}	modelled	rangescov-integer-unitrange,rangescov-unitrange-float-last	candidates:ranges-ordinal-bool-unit
-base/range.jl	432	436	UnitRange	UnitRange(start, stop)	modelled	rangescov-unitrange-promote-start	candidates:ranges-ordinal-bool-unit
-base/range.jl	439	441	unitrange_last	unitrange_last(start::Integer, stop::Integer)	modelled	rangescov-integer-unitrange	
-base/range.jl	443	445	unitrange_last	unitrange_last(start, stop)	modelled	rangescov-unitrange-float-empty,rangescov-unitrange-float-last	
-base/range.jl	447	447	unitrange	unitrange(x::AbstractUnitRange)	modelled	rangescov-unitrange-of-range	
-base/range.jl	451	465	getindex	getindex(@nospecialize(t::Tuple), r::AbstractUnitRange)	modelled	tuples-getindex-bool-range,tuples-unitrange-index	
-base/range.jl	487	491	OneTo{T}	OneTo{T}(stop) where {T<:Integer}	modelled	rangescov-r487-oneto-t	
-base/range.jl	488	488	throwbool	throwbool(r)	modelled	rangescov-r488-throwbool	
-base/range.jl	493	501	OneTo{T}	OneTo{T}(r::AbstractRange) where {T<:Integer}	modelled	rangescov-oneto-of-range	
-base/range.jl	494	494	throwstart	throwstart(r)	modelled	rangescov-r494-throwstart	
-base/range.jl	495	495	throwstep	throwstep(r)	modelled	rangescov-r495-throwstep	
-base/range.jl	496	496	throwbool	throwbool(r)	modelled	rangescov-r496-throwbool	
-base/range.jl	503	503	unchecked_oneto	unchecked_oneto(stop::Integer)	modelled	rangescov-unchecked-oneto	
-base/range.jl	505	505	OneTo	OneTo(stop::T) where {T<:Integer}	modelled	rangescov-r505-oneto	
-base/range.jl	506	506	OneTo	OneTo(r::AbstractRange{T}) where {T<:Integer}	modelled	rangescov-r506-oneto-range	
-base/range.jl	507	507	oneto	oneto(r)	modelled	rangescov-r507-oneto	
-base/range.jl	533	543	StepRangeLen{T,R,S,L}	StepRangeLen{T,R,S,L}(ref::R, step::S, len::Integer, offset::Integer = 1) where {T,R,S,L}	modelled	rangescov-srl-inner	
-base/range.jl	546	547	StepRangeLen{T,R,S}	StepRangeLen{T,R,S}(ref::R, step::S, len::Integer, offset::Integer = 1) where {T,R,S}	modelled	rangescov-srl-trs	
-base/range.jl	548	549	StepRangeLen	StepRangeLen(ref::R, step::S, len::Integer, offset::Integer = 1) where {R,S}	modelled	rangescov-srl-auto	
-base/range.jl	550	551	StepRangeLen{T}	StepRangeLen{T}(ref::R, step::S, len::Integer, offset::Integer = 1) where {T,R,S}	modelled	rangescov-srl-t	
-base/range.jl	597	609	LinRange{T,L}	LinRange{T,L}(start::T, stop::T, len::L) where {T,L<:Integer}	modelled	rangescov-linrange-constructor,rangescov-linrange-integer-elements	
-base/range.jl	612	614	LinRange{T,L}	LinRange{T,L}(start, stop, len::Integer) where {T,L}	modelled	rangescov-linrange-outer-constructors	
-base/range.jl	616	618	LinRange{T}	LinRange{T}(start, stop, len::Integer) where T	modelled	rangescov-linrange-outer-constructors	
-base/range.jl	620	623	LinRange	LinRange(start, stop, len::Integer)	modelled	rangescov-linrange-outer-constructors	
-base/range.jl	625	626	range_start_stop_length	range_start_stop_length(start, stop, len::Integer)	modelled	rangescov-start-stop-length-dispatch	
-base/range.jl	627	627	range_start_stop_length	range_start_stop_length(start::T, stop::T, len::Integer) where {T}	modelled	rangescov-start-stop-length-dispatch	
-base/range.jl	628	629	range_start_stop_length	range_start_stop_length(start::T, stop::T, len::Integer) where {T<:Integer}	modelled	rangescov-start-stop-length-dispatch	
-base/range.jl	632	632	_linspace	_linspace(::Type{T}, start::Integer, stop::Integer, len::Integer) where T	modelled	rangescov-start-stop-length-dispatch	
-base/range.jl	634	645	show	show(io::IO, r::LinRange{T}) where {T}	modelled	rangescov-r634-show-lin	
-base/range.jl	660	701	print_range	"print_range(io::IO, r::AbstractArray, pre::AbstractString = "" "", sep::AbstractString = "", "", post::AbstractString = """", hdots::AbstractString = "", \u2026, "")"	modelled	rangescov-r660-print-range	
-base/range.jl	705	705	length	length(r::AbstractRange)	modelled	rangescov-length-fallback	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-large-count
-base/range.jl	706	706	size	size(r::AbstractRange)	modelled	rangescov-size-length	
-base/range.jl	708	710	isempty	isempty(r::StepRange)	modelled	rangescov-r708-isempty-step	candidates:ranges-ordinal-bool-unit,ranges-ordinal-unsigned-large-count
-base/range.jl	711	711	isempty	isempty(r::AbstractUnitRange)	modelled	rangescov-isempty-unit	candidates:ranges-ordinal-bool-unit,ranges-ordinal-unsigned-large-count
-base/range.jl	712	712	isempty	isempty(r::StepRangeLen)	modelled	ranges-counted-cardinality-overflow	
-base/range.jl	713	713	isempty	isempty(r::LinRange)	modelled	rangescov-isempty-lin	candidates:ranges-ordinal-bool-unit,ranges-ordinal-unsigned-large-count
-base/range.jl	735	735	step	step(r::StepRange)	modelled	rangescov-r735-step-step	candidates:ranges-ordinal-bool-unit
-base/range.jl	736	736	step	step(r::AbstractUnitRange{T}) where {T}	modelled	rangescov-step-unit	candidates:ranges-ordinal-bool-unit
-base/range.jl	737	737	step	step(r::AbstractUnitRange{Bool})	modelled	rangescov-r737-step-bool	candidates:ranges-ordinal-bool-unit
-base/range.jl	738	738	step	step(r::StepRangeLen)	modelled	rangescov-r738-step-counted	candidates:ranges-ordinal-bool-unit
-base/range.jl	739	739	step	step(r::StepRangeLen{T}) where {T<:AbstractFloat}	modelled	rangescov-r739-step-float	candidates:ranges-ordinal-bool-unit
-base/range.jl	740	740	step	step(r::LinRange)	modelled	floatranges-linrange-step-overflow	
-base/range.jl	743	743	step_hp	step_hp(r::StepRangeLen)	modelled	rangescov-r743-step-hp-counted	
-base/range.jl	744	744	step_hp	step_hp(r::AbstractRange)	modelled	rangescov-r744-step-hp-range	
-base/range.jl	747	747	has_offset_axes	has_offset_axes(::StepRange)	modelled	rangescov-steprange-no-offset	
-base/range.jl	751	766	checked_length	checked_length(r::OrdinalRange{T}) where T	modelled	ranges-ordinal-typemin-checked-length	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-typemin-checked-length,ranges-ordinal-unsigned-large-count
-base/range.jl	768	775	checked_length	checked_length(r::AbstractUnitRange{T}) where T	modelled	ranges-ordinal-full-width-count	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-large-count
-base/range.jl	777	792	length	length(r::OrdinalRange{T}) where T	modelled	ranges-ordinal-typemin-checked-length	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-typemin-checked-length,ranges-ordinal-unsigned-large-count
-base/range.jl	794	804	length	length(r::AbstractUnitRange{T}) where T	modelled	ranges-length-overflow-silent,ranges-ordinal-full-width-count	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-large-count
-base/range.jl	806	806	length	length(r::OneTo)	modelled	rangescov-length-oneto	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-large-count
-base/range.jl	807	807	length	length(r::StepRangeLen)	modelled	rangescov-r807-length-counted	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-large-count
-base/range.jl	808	808	length	length(r::LinRange)	modelled	rangescov-r808-length-lin	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-large-count
-base/range.jl	817	817	length	length(r::OneTo{T}) where {T<:bigints}	modelled	rangescov-length-oneto	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-large-count
-base/range.jl	820	830	length	length(r::OrdinalRange{T}) where T<:bigints	modelled	rangescov-r820-length-big	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-typemin-checked-length,ranges-ordinal-unsigned-large-count
-base/range.jl	831	849	checked_length	checked_length(r::OrdinalRange{T}) where T<:bigints	modelled	rangescov-r831-checked-length-big	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-typemin-checked-length,ranges-ordinal-unsigned-large-count
-base/range.jl	850	850	firstindex	firstindex(r::StepRange{<:bigints,<:bitints})	modelled	rangescov-firstindex-one	
-base/range.jl	853	858	length	length(r::OrdinalRange{<:smallints})	modelled	rangescov-r853-length-small	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-large-count
-base/range.jl	859	859	length	length(r::AbstractUnitRange{<:smallints})	modelled	rangescov-length-small-unit	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-large-count
-base/range.jl	860	860	length	length(r::OneTo{<:smallints})	modelled	rangescov-r860-length-oneto-small	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-large-count
-base/range.jl	861	861	checked_length	checked_length(r::OrdinalRange{<:smallints})	modelled	rangescov-r861-checked-length-small	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-large-count
-base/range.jl	862	862	checked_length	checked_length(r::AbstractUnitRange{<:smallints})	modelled	rangescov-length-small-unit	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-large-count
-base/range.jl	863	863	checked_length	checked_length(r::OneTo{<:smallints})	modelled	rangescov-r863-checked-length-oneto	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-large-count
-base/range.jl	864	864	firstindex	firstindex(::StepRange{<:smallints,<:bitints})	modelled	rangescov-firstindex-one	
-base/range.jl	867	867	first	first(r::OrdinalRange{T}) where {T}	modelled	ranges-ordinal-iteration-first	
-base/range.jl	868	868	first	first(r::OneTo{T}) where {T}	modelled	rangescov-first-oneto	
-base/range.jl	869	869	first	first(r::StepRangeLen)	modelled	floatranges-index-endpoints	
-base/range.jl	870	870	first	first(r::LinRange)	modelled	floatranges-linrange-infinite-endpoint	
-base/range.jl	872	875	first	first(r::OneTo, n::Integer)	modelled	rangescov-first-oneto-n	
-base/range.jl	877	877	last	last(r::OrdinalRange{T}) where {T}	modelled	ranges-ordinal-iteration-last	
-base/range.jl	878	878	last	last(r::StepRangeLen)	modelled	floatranges-index-endpoints,ranges-counted-last-index	
-base/range.jl	879	879	last	last(r::LinRange)	modelled	rangescov-r879-last-lin	
-base/range.jl	881	881	minimum	minimum(r::AbstractUnitRange)	modelled	rangescov-minimum-unit	
-base/range.jl	882	882	maximum	maximum(r::AbstractUnitRange)	modelled	rangescov-maximum-unit	
-base/range.jl	883	883	minimum	minimum(r::AbstractRange)	modelled	ranges-counted-empty-extrema,ranges-operations-empty-extrema	
-base/range.jl	884	884	maximum	maximum(r::AbstractRange)	modelled	ranges-counted-empty-extrema,ranges-operations-empty-extrema	
-base/range.jl	893	901	argmin	argmin(r::AbstractRange)	modelled	rangescov-argmin-range	
-base/range.jl	910	918	argmax	argmax(r::AbstractRange)	modelled	rangescov-argmax-range	
-base/range.jl	920	920	extrema	extrema(r::AbstractRange)	modelled	ranges-operations-edge-extrema,ranges-operations-empty-extrema	
-base/range.jl	923	923	copy	copy(r::AbstractRange)	modelled	rangescov-copy-identity	
-base/range.jl	928	933	iterate	iterate(r::Union{StepRangeLen,LinRange}, i::Integer=zero(length(r)))	modelled	rangescov-iterate-float	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs
-base/range.jl	935	935	iterate	iterate(r::OrdinalRange)	modelled	ranges-ordinal-iteration-first,ranges-ordinal-iteration-last,ranges-ordinal-unsigned-index,ranges-ordinal-unsigned-step-last	
-base/range.jl	937	942	iterate	iterate(r::OrdinalRange{T}, i) where {T}	modelled	ranges-ordinal-iteration-last,ranges-ordinal-unsigned-step-last	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs
-base/range.jl	946	949	isassigned	isassigned(r::AbstractRange, i::Integer)	modelled	rangescov-isassigned	
-base/range.jl	952	955	_getindex	_getindex(v::AbstractRange, i::Integer)	modelled	rangescov-getindex-checked	
-base/range.jl	957	957	_in_unit_range	_in_unit_range(v::UnitRange, val, i::Integer)	modelled	rangescov-r957-in-unit	
-base/range.jl	959	963	_getindex	_getindex(v::UnitRange{T}, i::Integer) where T	modelled	ranges-ordinal-invalid-lower-index,ranges-ordinal-unsigned-index,rangescov-getindex-unit	candidates:ranges-ordinal-unsigned-index
-base/range.jl	968	972	_getindex	_getindex(v::UnitRange{T}, i::Integer) where {T<:OverflowSafe}	modelled	rangescov-getindex-unit-float	candidates:ranges-ordinal-unsigned-index
-base/range.jl	975	978	checkbounds	checkbounds(::Type{Bool}, v::StepRange{<:BitInteger64, <:BitInteger64}, i::BitInteger64)	modelled	rangescov-r975-checkbounds-step64	
-base/range.jl	984	984	unsafe_getindex	unsafe_getindex(v::OneTo{T}, i::Integer) where T	modelled	rangescov-unsafe-getindex-oneto	
-base/range.jl	985	985	unsafe_getindex	unsafe_getindex(v::AbstractRange{T}, i::Integer) where T	modelled	ranges-ordinal-unsigned-step-last	
-base/range.jl	986	989	unsafe_getindex	unsafe_getindex(r::StepRangeLen{T}, i::Integer) where T	modelled	rangescov-r986-unsafe-counted	
-base/range.jl	990	990	unsafe_getindex	unsafe_getindex(r::LinRange, i::Integer)	modelled	floatranges-linrange-nonmonotone,floatranges-linrange-outside-endpoints	
-base/range.jl	992	996	lerpi	lerpi(j::Integer, d::Integer, a::T, b::T) where T	modelled	floatranges-linrange-nonmonotone,floatranges-linrange-outside-endpoints	
-base/range.jl	1000	1000	getindex	getindex(r::AbstractRange, ::Colon)	modelled	rangescov-copy-identity	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-large-count
-base/range.jl	1002	1015	getindex	getindex(r::AbstractUnitRange, s::AbstractUnitRange{T}) where {T<:Integer}	modelled	ranges-operations-slice-overflow	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-large-count
-base/range.jl	1017	1021	getindex	getindex(r::OneTo{T}, s::OneTo) where T	modelled	rangescov-r1017-getindex-oneto	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-large-count
-base/range.jl	1023	1038	getindex	getindex(r::AbstractUnitRange, s::StepRange{T}) where {T<:Integer}	modelled	rangescov-r1023-getindex-unit-step	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-large-count
-base/range.jl	1040	1063	getindex	getindex(r::StepRange, s::AbstractRange{T}) where {T<:Integer}	modelled	ranges-operations-slice-unsigned-step	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-large-count
-base/range.jl	1065	1093	getindex	getindex(r::StepRangeLen{T}, s::OrdinalRange{S}) where {T, S<:Integer}	modelled	rangescov-r1065-getindex-counted	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-large-count
-base/range.jl	1095	1098	_getindex_hiprec	_getindex_hiprec(r::StepRangeLen, i::Integer)	modelled	rangescov-r1095-getindex-hiprec	
-base/range.jl	1100	1123	getindex	getindex(r::LinRange{T}, s::OrdinalRange{S}) where {T, S<:Integer}	modelled	rangescov-r1100-getindex-lin	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-large-count
-base/range.jl	1125	1125	show	show(io::IO, r::AbstractRange)	modelled	rangescov-r1125-show-range	
-base/range.jl	1126	1130	show	show(io::IO, r::UnitRange)	modelled	rangescov-r1126-show-unit	
-base/range.jl	1131	1131	show	show(io::IO, r::OneTo)	modelled	rangescov-r1131-show-oneto	
-base/range.jl	1132	1139	show	show(io::IO, r::StepRangeLen)	modelled	show-range-repr-elements	
-base/range.jl	1141	1145	==	==(r::T, s::T) where {T<:AbstractRange}	modelled	rangescov-r1141-eq-same	
-base/range.jl	1147	1151	==	==(r::OrdinalRange, s::OrdinalRange)	modelled	rangescov-eq-ordinal	
-base/range.jl	1153	1154	==	==(r::AbstractUnitRange, s::AbstractUnitRange)	modelled	rangescov-eq-unit	
-base/range.jl	1156	1156	==	==(r::OneTo, s::OneTo)	modelled	rangescov-eq-oneto	
-base/range.jl	1158	1159	==	==(r::T, s::T) where {T<:Union{StepRangeLen,LinRange}}	modelled	rangescov-eq-twiceprecision	
-base/range.jl	1161	1165	==	==(r::Union{StepRange{T},StepRangeLen{T,T}}, s::Union{StepRange{T},StepRangeLen{T,T}}) where {T}	modelled	rangescov-r1161-eq-ordinal-counted	
-base/range.jl	1167	1167	_has_length_one	_has_length_one(r::OrdinalRange)	modelled	rangescov-r1167-has-one-ordinal	
-base/range.jl	1168	1168	_has_length_one	_has_length_one(r::AbstractRange)	modelled	rangescov-r1168-has-one-range	
-base/range.jl	1170	1183	==	==(r::AbstractRange, s::AbstractRange)	modelled	ranges-eq-wrapped-length	
-base/range.jl	1185	1194	cmp	cmp(r1::T, r2::T) where {T <: AbstractRange}	modelled	rangescov-cmp-float-ranges	
-base/range.jl	1196	1196	intersect	intersect(r::OneTo, s::OneTo)	modelled	rangescov-r1196-intersect-oneto	
-base/range.jl	1197	1197	union	union(r::OneTo, s::OneTo)	modelled	rangescov-r1197-union-oneto	
-base/range.jl	1199	1199	intersect	intersect(r::AbstractUnitRange{<:Integer}, s::AbstractUnitRange{<:Integer})	modelled	rangescov-r1199-intersect-unit	
-base/range.jl	1201	1201	intersect	intersect(i::Integer, r::AbstractUnitRange{<:Integer})	modelled	rangescov-r1201-intersect-scalar	
-base/range.jl	1203	1203	intersect	intersect(r::AbstractUnitRange{<:Integer}, i::Integer)	modelled	rangescov-r1203-intersect-scalar-right	
-base/range.jl	1205	1217	intersect	intersect(r::AbstractUnitRange{<:Integer}, s::StepRange{<:Integer})	modelled	ranges-operations-unit-intersect-overflow	
-base/range.jl	1219	1225	first_step_last_ascending	first_step_last_ascending(r::StepRange)	modelled	rangescov-r1219-first-step-last	
-base/range.jl	1227	1233	intersect	intersect(r::StepRange{<:Integer}, s::AbstractUnitRange{<:Integer})	modelled	ranges-operations-intersect-empty,ranges-operations-intersect-mixed-regression	
-base/range.jl	1235	1265	intersect	intersect(r::StepRange, s::StepRange)	modelled	ranges-operations-step-intersect-overflow	
-base/range.jl	1267	1275	intersect	intersect(r1::AbstractRange, r2::AbstractRange)	modelled	rangescov-r1267-intersect-generic	
-base/range.jl	1277	1283	intersect	intersect(r1::AbstractRange, r2::AbstractRange, r3::AbstractRange, r::AbstractRange...)	modelled	rangescov-r1277-intersect-many	
-base/range.jl	1286	1303	_findin	_findin(r::AbstractRange{<:Integer}, span::AbstractUnitRange{<:Integer})	modelled	rangescov-findin-inside	
-base/range.jl	1305	1305	issubset	issubset(r::OneTo, s::OneTo)	modelled	rangescov-r1305-subset-oneto	
-base/range.jl	1307	1308	issubset	issubset(r::AbstractUnitRange{<:Integer}, s::AbstractUnitRange{<:Integer})	modelled	ranges-operations-unit-subset	
-base/range.jl	1312	1312	-	-(r::OrdinalRange)	modelled	ranges-operations-negate-typemin	
-base/range.jl	1313	1314	-	-(r::StepRangeLen{T,R,S,L}) where {T,R,S,L}	modelled	rangescov-negation-methods	
-base/range.jl	1315	1318	-	-(r::LinRange)	modelled	rangescov-linrange-negation	
-base/range.jl	1321	1321	el_same	el_same(::Type{T}, a::Type{<:AbstractArray{T,n}}, b::Type{<:AbstractArray{T,n}}) where {T,n}	modelled	rangescov-r1321-el-same	
-base/range.jl	1322	1322	el_same	el_same(::Type{T}, a::Type{<:AbstractArray{T,n}}, b::Type{<:AbstractArray{S,n}}) where {T,S,n}	modelled	rangescov-r1322-el-same	
-base/range.jl	1323	1323	el_same	el_same(::Type{T}, a::Type{<:AbstractArray{S,n}}, b::Type{<:AbstractArray{T,n}}) where {T,S,n}	modelled	rangescov-r1323-el-same	
-base/range.jl	1324	1324	el_same	el_same(::Type, a, b)	modelled	rangescov-r1324-el-same	
-base/range.jl	1326	1327	promote_rule	promote_rule(a::Type{UnitRange{T1}}, b::Type{UnitRange{T2}}) where {T1,T2}	modelled	rangescov-r1326-promote-unit	
-base/range.jl	1328	1328	UnitRange{T}	UnitRange{T}(r::UnitRange{T}) where {T<:Real}	modelled	rangescov-r1328-unit-same	
-base/range.jl	1329	1329	UnitRange{T}	UnitRange{T}(r::UnitRange) where {T<:Real}	modelled	rangescov-unitrange-convert-empty	
-base/range.jl	1331	1332	promote_rule	promote_rule(a::Type{OneTo{T1}}, b::Type{OneTo{T2}}) where {T1,T2}	modelled	rangescov-r1331-promote-oneto	
-base/range.jl	1333	1333	OneTo{T}	OneTo{T}(r::OneTo{T}) where {T<:Integer}	modelled	rangescov-r1333-oneto-same	
-base/range.jl	1334	1334	OneTo{T}	OneTo{T}(r::OneTo) where {T<:Integer}	modelled	rangescov-r1334-oneto-convert	
-base/range.jl	1336	1337	promote_rule	promote_rule(a::Type{OneTo{T1}}, ::Type{UR}) where {T1,UR<:AbstractUnitRange}	modelled	rangescov-r1336-promote-oneto-unit	
-base/range.jl	1339	1340	promote_rule	promote_rule(a::Type{UnitRange{T1}}, ::Type{UR}) where {T1,UR<:AbstractUnitRange}	modelled	rangescov-r1339-promote-unit-ur	
-base/range.jl	1341	1341	UnitRange{T}	UnitRange{T}(r::AbstractUnitRange) where {T<:Real}	modelled	rangescov-r1341-unit-abstract	
-base/range.jl	1342	1342	UnitRange	UnitRange(r::AbstractUnitRange)	modelled	rangescov-unitrange-of-range	candidates:ranges-ordinal-bool-unit
-base/range.jl	1344	1344	AbstractUnitRange{T}	AbstractUnitRange{T}(r::AbstractUnitRange{T}) where {T}	modelled	rangescov-r1344-abstract-unit-same	
-base/range.jl	1345	1345	AbstractUnitRange{T}	AbstractUnitRange{T}(r::UnitRange) where {T}	modelled	rangescov-r1345-abstract-unit-unit	
-base/range.jl	1346	1346	AbstractUnitRange{T}	AbstractUnitRange{T}(r::OneTo) where {T}	modelled	rangescov-r1346-abstract-unit-oneto	
-base/range.jl	1348	1348	OrdinalRange{T, S}	OrdinalRange{T, S}(r::OrdinalRange) where {T, S}	modelled	rangescov-r1348-ordinal-convert	
-base/range.jl	1349	1349	OrdinalRange{T, T}	OrdinalRange{T, T}(r::AbstractUnitRange) where {T}	modelled	rangescov-r1349-ordinal-unit	
-base/range.jl	1351	1355	promote_rule	promote_rule(::Type{StepRange{T1a,T1b}}, ::Type{StepRange{T2a,T2b}}) where {T1a,T1b,T2a,T2b}	modelled	rangescov-r1351-promote-step	
-base/range.jl	1356	1356	StepRange{T1,T2}	StepRange{T1,T2}(r::StepRange{T1,T2}) where {T1,T2}	modelled	rangescov-r1356-step-ts-same	
-base/range.jl	1357	1357	StepRange{T}	StepRange{T}(r::StepRange{T}) where {T}	modelled	rangescov-r1357-step-t-same	
-base/range.jl	1358	1358	StepRange	StepRange(r::StepRange)	modelled	rangescov-r1358-step-same	candidates:ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-step-last
-base/range.jl	1360	1361	promote_rule	promote_rule(a::Type{StepRange{T1a,T1b}}, ::Type{UR}) where {T1a,T1b,UR<:AbstractUnitRange}	modelled	rangescov-r1360-promote-step-ur	
-base/range.jl	1362	1363	StepRange{T1,T2}	StepRange{T1,T2}(r::AbstractRange) where {T1,T2}	modelled	rangescov-r1362-step-from-range	
-base/range.jl	1364	1364	StepRange	StepRange(r::OrdinalRange{T,S}) where {T,S}	modelled	rangescov-r1364-step-from-ordinal	candidates:ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-step-last
-base/range.jl	1365	1365	StepRange{T}	StepRange{T}(r::OrdinalRange{<:Any,S}) where {T,S}	modelled	rangescov-r1365-step-t-from-ordinal	
-base/range.jl	1366	1366	StepRange{T1,T2} where T1	(StepRange{T1,T2} where T1)(r::AbstractRange) where {T2}	modelled	rangescov-r1366-step-s-from-range	
-base/range.jl	1367	1367	StepRange	StepRange(r::StepRangeLen)	modelled	rangescov-r1367-step-from-srl	candidates:ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-step-last
-base/range.jl	1368	1368	StepRange{T}	StepRange{T}(r::StepRangeLen{<:Any,<:Any,S}) where {T,S}	modelled	rangescov-r1368-step-t-from-srl	
-base/range.jl	1370	1373	promote_rule	promote_rule(::Type{StepRangeLen{T1,R1,S1,L1}},::Type{StepRangeLen{T2,R2,S2,L2}}) where {T1,T2,R1,R2,S1,S2,L1,L2}	modelled	rangescov-r1370-promote-srl	
-base/range.jl	1374	1374	StepRangeLen{T,R,S,L}	StepRangeLen{T,R,S,L}(r::StepRangeLen{T,R,S,L}) where {T,R,S,L}	modelled	rangescov-r1374-srl-same	
-base/range.jl	1375	1376	StepRangeLen{T,R,S,L}	StepRangeLen{T,R,S,L}(r::StepRangeLen) where {T,R,S,L}	modelled	rangescov-r1375-srl-convert	
-base/range.jl	1377	1378	StepRangeLen{T}	StepRangeLen{T}(r::StepRangeLen) where {T}	modelled	rangescov-r1377-srl-t-convert	
-base/range.jl	1380	1381	promote_rule	promote_rule(a::Type{StepRangeLen{T,R,S,L}}, ::Type{OR}) where {T,R,S,L,OR<:AbstractRange}	modelled	rangescov-r1380-promote-srl-range	
-base/range.jl	1382	1383	StepRangeLen{T,R,S,L}	StepRangeLen{T,R,S,L}(r::AbstractRange) where {T,R,S,L}	modelled	rangescov-r1382-srl-from-range	
-base/range.jl	1384	1385	StepRangeLen{T}	StepRangeLen{T}(r::AbstractRange) where {T}	modelled	rangescov-r1384-srl-t-from-range	
-base/range.jl	1386	1386	StepRangeLen	StepRangeLen(r::AbstractRange)	modelled	rangescov-r1386-srl-auto	
-base/range.jl	1388	1391	promote_rule	promote_rule(a::Type{LinRange{T1,L1}}, b::Type{LinRange{T2,L2}}) where {T1,T2,L1,L2}	modelled	rangescov-r1388-promote-lin	
-base/range.jl	1392	1392	LinRange{T,L}	LinRange{T,L}(r::LinRange{T,L}) where {T,L}	modelled	rangescov-r1392-lin-same	
-base/range.jl	1393	1393	LinRange{T,L}	LinRange{T,L}(r::AbstractRange) where {T,L}	modelled	rangescov-r1393-lin-from-range	
-base/range.jl	1394	1394	LinRange{T}	LinRange{T}(r::AbstractRange) where {T}	modelled	rangescov-r1394-lin-t-from-range	
-base/range.jl	1395	1395	LinRange	LinRange(r::AbstractRange{T}) where {T}	modelled	rangescov-r1395-lin-auto	
-base/range.jl	1397	1398	promote_rule	promote_rule(a::Type{LinRange{T,L}}, ::Type{OR}) where {T,L,OR<:OrdinalRange}	modelled	rangescov-r1397-promote-lin-ordinal	
-base/range.jl	1400	1401	promote_rule	promote_rule(::Type{LinRange{A,L}}, b::Type{StepRangeLen{T2,R2,S2,L2}}) where {A,L,T2,R2,S2,L2}	modelled	rangescov-r1400-promote-lin-srl	
-base/range.jl	1405	1417	vcat	vcat(rs::AbstractRange{T}...) where T	modelled	arrayops-vcat-ranges	
-base/range.jl	1424	1432	Array{T,1}	Array{T,1}(r::AbstractRange{T}) where {T}	modelled	ranges-collect-full-width-crash	
-base/range.jl	1433	1433	collect	collect(r::AbstractRange)	modelled	ranges-collect-full-width-crash	
-base/range.jl	1435	1435	_reverse	_reverse(r::OrdinalRange, ::Colon)	modelled	ranges-operations-reverse-typemin	
-base/range.jl	1436	1442	_reverse	_reverse(r::StepRangeLen, ::Colon)	modelled	floatranges-reverse-involution	
-base/range.jl	1443	1443	_reverse	_reverse(r::LinRange{T}, ::Colon) where {T}	modelled	floatranges-linrange-reverse	
-base/range.jl	1447	1447	issorted	issorted(r::AbstractUnitRange)	modelled	rangescov-unit-sorted	
-base/range.jl	1448	1448	issorted	issorted(r::AbstractRange)	modelled	rangescov-issorted-full-width	
-base/range.jl	1450	1450	sort	sort(r::AbstractUnitRange)	modelled	rangescov-unit-sorted	
-base/range.jl	1451	1451	sort!	sort!(r::AbstractUnitRange)	modelled	rangescov-unit-sorted	
-base/range.jl	1453	1453	sort	sort(r::AbstractRange)	modelled	ranges-operations-reverse-typemin	
-base/range.jl	1455	1455	sortperm	sortperm(r::AbstractUnitRange)	modelled	rangescov-sortperm-unit	
-base/range.jl	1456	1456	sortperm	sortperm(r::AbstractRange)	modelled	rangescov-r1456-sortperm	
-base/range.jl	1458	1463	sum	sum(r::AbstractRange{<:Real})	modelled	ranges-operations-edge-sum,ranges-operations-empty-sum	
-base/range.jl	1465	1473	_in_range	_in_range(x, r::AbstractRange)	modelled	floatranges-in-overflow-throws	
-base/range.jl	1474	1474	in	in(x::Real, r::AbstractRange{<:Real})	modelled	floatranges-in-overflow-throws	
-base/range.jl	1477	1477	in	in(x::T, r::AbstractRange{T}) where {T}	modelled	rangescov-r1477-in-same	
-base/range.jl	1479	1479	in	in(x::Integer, r::AbstractUnitRange{<:Integer})	modelled	ranges-operations-unit-membership	
-base/range.jl	1481	1484	in	in(x::Real, r::AbstractRange{T}) where {T<:Integer}	modelled	ranges-operations-edge-membership	
-base/range.jl	1485	1488	in	in(x::AbstractChar, r::AbstractRange{<:AbstractChar})	modelled	rangescov-in-char	
-base/range.jl	1492	1513	_define_range_op	_define_range_op(@nospecialize f)	modelled	rangescov-r1492-define-op	
-base/range.jl	1494	1499	$f	$f(r1::OrdinalRange, r2::OrdinalRange)	modelled	rangescov-ordinal-add-small-int,rangescov-ordinal-op-mismatch	
-base/range.jl	1501	1507	$f	$f(r1::LinRange{T}, r2::LinRange{T}) where T	modelled	rangescov-lin-op	
-base/range.jl	1509	1511	$f	$f(r1::Union{StepRangeLen, OrdinalRange, LinRange}, r2::Union{StepRangeLen, OrdinalRange, LinRange})	modelled	rangescov-r1509-promoted-op	
-base/range.jl	1517	1522	+	+(r1::StepRangeLen{T,S}, r2::StepRangeLen{T,S}) where {T,S}	modelled	rangescov-add-counted-mismatch	
-base/range.jl	1524	1524	-	-(r1::StepRangeLen, r2::StepRangeLen)	modelled	rangescov-r1524-sub-counted	
-base/range.jl	1548	1548	mod	mod(i::Integer, r::OneTo)	modelled	rangescov-r1548-mod-oneto	
-base/range.jl	1549	1549	mod	mod(i::Integer, r::AbstractUnitRange{<:Integer})	modelled	ranges-mod-congruence	
-base/range.jl	1592	1592	logrange	logrange(start::Real, stop::Real, length::Integer)	modelled	rangescov-logrange-outer-constructors	
-base/range.jl	1593	1593	logrange	logrange(start::Real, stop::Real; length::Integer)	modelled	rangescov-logrange-outer-constructors	
-base/range.jl	1650	1674	LogRange{T}	LogRange{T}(start::T, stop::T, len::Int) where {T<:Real}	modelled	rangescov-logrange-domain,rangescov-logrange-endpoints	
-base/range.jl	1677	1679	LogRange{T}	LogRange{T}(start::Real, stop::Real, len::Integer) where {T}	modelled	rangescov-logrange-outer-constructors	
-base/range.jl	1680	1683	LogRange	LogRange(start::Real, stop::Real, len::Integer)	modelled	rangescov-logrange-outer-constructors	
-base/range.jl	1685	1685	size	size(r::LogRange)	modelled	rangescov-logrange-endpoints	
-base/range.jl	1686	1686	length	length(r::LogRange)	modelled	rangescov-logrange-endpoints	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-large-count
-base/range.jl	1688	1688	first	first(r::LogRange)	modelled	rangescov-logrange-endpoints	
-base/range.jl	1689	1689	last	last(r::LogRange)	modelled	rangescov-logrange-endpoints	
-base/range.jl	1691	1695	_logrange_extra	_logrange_extra(a::Real, b::Real, len::Int)	modelled	rangescov-r1691-log-extra	
-base/range.jl	1696	1702	_logrange_extra	_logrange_extra(a::Float64, b::Float64, len::Int)	modelled	rangescov-r1696-log-extra-f64	
-base/range.jl	1704	1714	getindex	getindex(r::LogRange{T}, i::Int) where {T}	modelled	rangescov-logrange-endpoints	candidates:ranges-ordinal-bool-unit,ranges-ordinal-extremal-pairs,ranges-ordinal-unsigned-large-count
-base/range.jl	1716	1725	show	show(io::IO, r::LogRange{T}) where {T}	modelled	rangescov-logrange-show-unparseable	
-base/range.jl	1729	1736	_resolve_in_world	_resolve_in_world(worlds::UnitRange, gr::GlobalRef)	modelled	rangescov-r1729-resolve-world	
+base/range.jl	3	3	:	(:)(a::Real, b::Real)	todo		
+base/range.jl	5	5	:	(:)(start::T, stop::T) where {T<:Real}	todo		
+base/range.jl	7	7	:	(:)(start::T, stop::T) where {T}	todo		
+base/range.jl	10	11	:	(:)(start::A, step, stop::C) where {A<:Real, C<:Real}	todo		
+base/range.jl	14	14	:	(:)(a::T, b::T) where {T<:AbstractFloat}	todo		
+base/range.jl	16	16	:	(:)(a::T, b::AbstractFloat, c::T) where {T<:Real}	todo		
+base/range.jl	17	17	:	(:)(a::T, b::AbstractFloat, c::T) where {T<:AbstractFloat}	todo		
+base/range.jl	18	18	:	(:)(a::T, b::Real, c::T) where {T<:AbstractFloat}	todo		
+base/range.jl	20	21	:	(:)(start::T, step::T, stop::T) where {T<:AbstractFloat}	todo		
+base/range.jl	22	23	:	(:)(start::T, step::T, stop::T) where {T<:Real}	todo		
+base/range.jl	24	24	_colon	_colon(::Ordered, ::Any, start::T, step, stop::T) where {T}	todo		
+base/range.jl	26	27	_colon	_colon(::Ordered, ::ArithmeticRounds, start::T, step, stop::T) where {T}	todo		
+base/range.jl	28	29	_colon	_colon(::Any, ::Any, start::T, step, stop::T) where {T}	todo		
+base/range.jl	34	34	_range_wrapping_add	_range_wrapping_add(x::_RangeWrappingInteger, y::_RangeWrappingInteger)	todo		
+base/range.jl	35	35	_range_wrapping_add	_range_wrapping_add(x, y)	todo		
+base/range.jl	36	36	_range_wrapping_sub	_range_wrapping_sub(x::_RangeWrappingInteger, y::_RangeWrappingInteger)	todo		
+base/range.jl	37	37	_range_wrapping_sub	_range_wrapping_sub(x, y)	todo		
+base/range.jl	38	38	_range_wrapping_mul	_range_wrapping_mul(x::_RangeWrappingInteger, y::_RangeWrappingInteger)	todo		
+base/range.jl	39	39	_range_wrapping_mul	_range_wrapping_mul(x, y)	todo		
+base/range.jl	64	64	:	(:)(start::T, step, stop::T) where {T}	todo		
+base/range.jl	65	65	:	(:)(start::T, step, stop::T) where {T<:Real}	todo		
+base/range.jl	68	71	_colon	_colon(start::T, step, stop::T) where T	todo		
+base/range.jl	165	165	range	range	todo		
+base/range.jl	167	168	range	range(start; stop=nothing, length::Union{Integer,Nothing}=nothing, step=nothing)	todo		
+base/range.jl	169	169	range	range(start, stop; length::Union{Integer,Nothing}=nothing, step=nothing)	todo		
+base/range.jl	170	170	range	range(start, stop, length::Integer)	todo		
+base/range.jl	172	173	range	range(;start=nothing, stop=nothing, length::Union{Integer, Nothing}=nothing, step=nothing)	todo		
+base/range.jl	175	175	_range	_range(start::Nothing, step::Nothing, stop::Nothing, len::Nothing)	todo		
+base/range.jl	176	176	_range	_range(start::Nothing, step::Nothing, stop::Nothing, len::Any )	todo		
+base/range.jl	177	177	_range	_range(start::Nothing, step::Nothing, stop::Any , len::Nothing)	todo		
+base/range.jl	178	178	_range	_range(start::Nothing, step::Nothing, stop::Any , len::Any )	todo		
+base/range.jl	179	179	_range	_range(start::Nothing, step::Any , stop::Nothing, len::Nothing)	todo		
+base/range.jl	180	180	_range	_range(start::Nothing, step::Any , stop::Nothing, len::Any )	todo		
+base/range.jl	181	181	_range	_range(start::Nothing, step::Any , stop::Any , len::Nothing)	todo		
+base/range.jl	182	182	_range	_range(start::Nothing, step::Any , stop::Any , len::Any )	todo		
+base/range.jl	183	183	_range	_range(start::Any , step::Nothing, stop::Nothing, len::Nothing)	todo		
+base/range.jl	184	184	_range	_range(start::Any , step::Nothing, stop::Nothing, len::Any )	todo		
+base/range.jl	185	185	_range	_range(start::Any , step::Nothing, stop::Any , len::Nothing)	todo		
+base/range.jl	186	186	_range	_range(start::Any , step::Nothing, stop::Any , len::Any )	todo		
+base/range.jl	187	187	_range	_range(start::Any , step::Any , stop::Nothing, len::Nothing)	todo		
+base/range.jl	188	188	_range	_range(start::Any , step::Any , stop::Nothing, len::Any )	todo		
+base/range.jl	189	189	_range	_range(start::Any , step::Any , stop::Any , len::Nothing)	todo		
+base/range.jl	190	190	_range	_range(start::Any , step::Any , stop::Any , len::Any )	todo		
+base/range.jl	193	193	range_length	range_length(len::Integer)	todo		
+base/range.jl	196	196	range_stop	range_stop(stop)	todo		
+base/range.jl	197	197	range_stop	range_stop(stop::Integer)	todo		
+base/range.jl	199	206	range_step_stop_length	range_step_stop_length(step, a, len::Integer)	todo		
+base/range.jl	209	217	range_stop_length	range_stop_length(a, len::Integer)	todo		
+base/range.jl	220	228	range_start_length	range_start_length(a, len::Integer)	todo		
+base/range.jl	230	230	range_start_stop	range_start_stop(start, stop)	todo		
+base/range.jl	232	239	range_start_step_length	range_start_step_length(a, step, len::Integer)	todo		
+base/range.jl	241	241	range_start_step_stop	range_start_step_stop(start, step, stop)	todo		
+base/range.jl	243	270	range_error	range_error(start, step, stop, length)	todo		
+base/range.jl	285	285	RangeStepStyle	RangeStepStyle(::Type{<:AbstractRange})	todo		
+base/range.jl	286	286	RangeStepStyle	RangeStepStyle(::Type{<:AbstractRange{<:Integer}})	todo		
+base/range.jl	288	288	convert	convert(::Type{T}, r::AbstractRange) where {T<:AbstractRange}	todo		
+base/range.jl	344	349	StepRange{T,S}	StepRange{T,S}(start, step, stop) where {T,S}	todo		
+base/range.jl	353	387	steprange_last	steprange_last(start, step, stop)::typeof(stop)	todo		
+base/range.jl	377	377	overflow_case	overflow_case(absdiff, absstep)	todo		
+base/range.jl	389	398	steprange_last_empty	steprange_last_empty(start::Integer, step, stop)::typeof(stop)	todo		
+base/range.jl	399	399	steprange_last_empty	steprange_last_empty(start::Bool, step, stop)	todo		
+base/range.jl	401	401	steprange_last_empty	steprange_last_empty(start, step, stop)	todo		
+base/range.jl	403	403	StepRange{T}	StepRange{T}(start, step::S, stop) where {T,S}	todo		
+base/range.jl	404	404	StepRange	StepRange(start::T, step::S, stop::T) where {T,S}	todo		
+base/range.jl	428	428	UnitRange{T}	UnitRange{T}(start::T, stop::T) where {T<:Real}	todo		
+base/range.jl	430	430	UnitRange{T}	UnitRange{T}(start, stop) where {T<:Real}	todo		
+base/range.jl	431	431	UnitRange	UnitRange(start::T, stop::T) where {T<:Real}	todo		
+base/range.jl	432	436	UnitRange	UnitRange(start, stop)	todo		
+base/range.jl	439	441	unitrange_last	unitrange_last(start::Integer, stop::Integer)	todo		
+base/range.jl	443	445	unitrange_last	unitrange_last(start, stop)	todo		
+base/range.jl	447	447	unitrange	unitrange(x::AbstractUnitRange)	todo		
+base/range.jl	451	465	getindex	getindex(@nospecialize(t::Tuple), r::AbstractUnitRange)	todo		
+base/range.jl	487	491	OneTo{T}	OneTo{T}(stop) where {T<:Integer}	todo		
+base/range.jl	488	488	throwbool	throwbool(r)	todo		trivial: restates a definition body or holds by unfolding (classification.tsv)
+base/range.jl	493	501	OneTo{T}	OneTo{T}(r::AbstractRange) where {T<:Integer}	todo		
+base/range.jl	494	494	throwstart	throwstart(r)	todo		
+base/range.jl	495	495	throwstep	throwstep(r)	todo		
+base/range.jl	496	496	throwbool	throwbool(r)	todo		
+base/range.jl	503	503	unchecked_oneto	unchecked_oneto(stop::Integer)	todo		
+base/range.jl	505	505	OneTo	OneTo(stop::T) where {T<:Integer}	todo		
+base/range.jl	506	506	OneTo	OneTo(r::AbstractRange{T}) where {T<:Integer}	todo		
+base/range.jl	507	507	oneto	oneto(r)	todo		
+base/range.jl	533	543	StepRangeLen{T,R,S,L}	StepRangeLen{T,R,S,L}(ref::R, step::S, len::Integer, offset::Integer = 1) where {T,R,S,L}	todo		
+base/range.jl	546	547	StepRangeLen{T,R,S}	StepRangeLen{T,R,S}(ref::R, step::S, len::Integer, offset::Integer = 1) where {T,R,S}	todo		
+base/range.jl	548	549	StepRangeLen	StepRangeLen(ref::R, step::S, len::Integer, offset::Integer = 1) where {R,S}	todo		
+base/range.jl	550	551	StepRangeLen{T}	StepRangeLen{T}(ref::R, step::S, len::Integer, offset::Integer = 1) where {T,R,S}	todo		
+base/range.jl	597	609	LinRange{T,L}	LinRange{T,L}(start::T, stop::T, len::L) where {T,L<:Integer}	todo		
+base/range.jl	612	614	LinRange{T,L}	LinRange{T,L}(start, stop, len::Integer) where {T,L}	todo		
+base/range.jl	616	618	LinRange{T}	LinRange{T}(start, stop, len::Integer) where T	todo		
+base/range.jl	620	623	LinRange	LinRange(start, stop, len::Integer)	todo		
+base/range.jl	625	626	range_start_stop_length	range_start_stop_length(start, stop, len::Integer)	todo		
+base/range.jl	627	627	range_start_stop_length	range_start_stop_length(start::T, stop::T, len::Integer) where {T}	todo		
+base/range.jl	628	629	range_start_stop_length	range_start_stop_length(start::T, stop::T, len::Integer) where {T<:Integer}	todo		
+base/range.jl	632	632	_linspace	_linspace(::Type{T}, start::Integer, stop::Integer, len::Integer) where T	todo		
+base/range.jl	634	645	show	show(io::IO, r::LinRange{T}) where {T}	todo		
+base/range.jl	660	701	print_range	"print_range(io::IO, r::AbstractArray, pre::AbstractString = "" "", sep::AbstractString = "", "", post::AbstractString = """", hdots::AbstractString = "", \u2026, "")"	todo		
+base/range.jl	705	705	length	length(r::AbstractRange)	todo		
+base/range.jl	706	706	size	size(r::AbstractRange)	todo		
+base/range.jl	708	710	isempty	isempty(r::StepRange)	todo		
+base/range.jl	711	711	isempty	isempty(r::AbstractUnitRange)	todo		
+base/range.jl	712	712	isempty	isempty(r::StepRangeLen)	todo		
+base/range.jl	713	713	isempty	isempty(r::LinRange)	todo		
+base/range.jl	735	735	step	step(r::StepRange)	todo		
+base/range.jl	736	736	step	step(r::AbstractUnitRange{T}) where {T}	todo		
+base/range.jl	737	737	step	step(r::AbstractUnitRange{Bool})	todo		
+base/range.jl	738	738	step	step(r::StepRangeLen)	todo		
+base/range.jl	739	739	step	step(r::StepRangeLen{T}) where {T<:AbstractFloat}	todo		
+base/range.jl	740	740	step	step(r::LinRange)	todo		
+base/range.jl	743	743	step_hp	step_hp(r::StepRangeLen)	todo		
+base/range.jl	744	744	step_hp	step_hp(r::AbstractRange)	todo		
+base/range.jl	747	747	has_offset_axes	has_offset_axes(::StepRange)	todo		
+base/range.jl	751	766	checked_length	checked_length(r::OrdinalRange{T}) where T	todo		
+base/range.jl	768	775	checked_length	checked_length(r::AbstractUnitRange{T}) where T	todo		
+base/range.jl	777	792	length	length(r::OrdinalRange{T}) where T	todo		
+base/range.jl	794	804	length	length(r::AbstractUnitRange{T}) where T	todo		
+base/range.jl	806	806	length	length(r::OneTo)	todo		
+base/range.jl	807	807	length	length(r::StepRangeLen)	todo		
+base/range.jl	808	808	length	length(r::LinRange)	todo		
+base/range.jl	817	817	length	length(r::OneTo{T}) where {T<:bigints}	todo		
+base/range.jl	820	830	length	length(r::OrdinalRange{T}) where T<:bigints	todo		
+base/range.jl	831	849	checked_length	checked_length(r::OrdinalRange{T}) where T<:bigints	todo		
+base/range.jl	850	850	firstindex	firstindex(r::StepRange{<:bigints,<:bitints})	todo		
+base/range.jl	853	858	length	length(r::OrdinalRange{<:smallints})	todo		
+base/range.jl	859	859	length	length(r::AbstractUnitRange{<:smallints})	todo		
+base/range.jl	860	860	length	length(r::OneTo{<:smallints})	todo		
+base/range.jl	861	861	checked_length	checked_length(r::OrdinalRange{<:smallints})	todo		
+base/range.jl	862	862	checked_length	checked_length(r::AbstractUnitRange{<:smallints})	todo		
+base/range.jl	863	863	checked_length	checked_length(r::OneTo{<:smallints})	todo		
+base/range.jl	864	864	firstindex	firstindex(::StepRange{<:smallints,<:bitints})	todo		
+base/range.jl	867	867	first	first(r::OrdinalRange{T}) where {T}	todo		
+base/range.jl	868	868	first	first(r::OneTo{T}) where {T}	todo		
+base/range.jl	869	869	first	first(r::StepRangeLen)	todo		
+base/range.jl	870	870	first	first(r::LinRange)	todo		
+base/range.jl	872	875	first	first(r::OneTo, n::Integer)	todo		
+base/range.jl	877	877	last	last(r::OrdinalRange{T}) where {T}	todo		
+base/range.jl	878	878	last	last(r::StepRangeLen)	todo		
+base/range.jl	879	879	last	last(r::LinRange)	todo		
+base/range.jl	881	881	minimum	minimum(r::AbstractUnitRange)	todo		
+base/range.jl	882	882	maximum	maximum(r::AbstractUnitRange)	todo		
+base/range.jl	883	883	minimum	minimum(r::AbstractRange)	todo		
+base/range.jl	884	884	maximum	maximum(r::AbstractRange)	todo		
+base/range.jl	893	901	argmin	argmin(r::AbstractRange)	todo		
+base/range.jl	910	918	argmax	argmax(r::AbstractRange)	todo		
+base/range.jl	920	920	extrema	extrema(r::AbstractRange)	todo		
+base/range.jl	923	923	copy	copy(r::AbstractRange)	todo		
+base/range.jl	928	933	iterate	iterate(r::Union{StepRangeLen,LinRange}, i::Integer=zero(length(r)))	todo		
+base/range.jl	935	935	iterate	iterate(r::OrdinalRange)	todo		
+base/range.jl	937	942	iterate	iterate(r::OrdinalRange{T}, i) where {T}	todo		
+base/range.jl	946	949	isassigned	isassigned(r::AbstractRange, i::Integer)	todo		
+base/range.jl	952	955	_getindex	_getindex(v::AbstractRange, i::Integer)	todo		
+base/range.jl	957	957	_in_unit_range	_in_unit_range(v::UnitRange, val, i::Integer)	todo		
+base/range.jl	959	963	_getindex	_getindex(v::UnitRange{T}, i::Integer) where T	todo		
+base/range.jl	968	972	_getindex	_getindex(v::UnitRange{T}, i::Integer) where {T<:OverflowSafe}	todo		
+base/range.jl	975	978	checkbounds	checkbounds(::Type{Bool}, v::StepRange{<:BitInteger64, <:BitInteger64}, i::BitInteger64)	todo		
+base/range.jl	984	984	unsafe_getindex	unsafe_getindex(v::OneTo{T}, i::Integer) where T	todo		
+base/range.jl	985	985	unsafe_getindex	unsafe_getindex(v::AbstractRange{T}, i::Integer) where T	todo		
+base/range.jl	986	989	unsafe_getindex	unsafe_getindex(r::StepRangeLen{T}, i::Integer) where T	todo		
+base/range.jl	990	990	unsafe_getindex	unsafe_getindex(r::LinRange, i::Integer)	todo		
+base/range.jl	992	996	lerpi	lerpi(j::Integer, d::Integer, a::T, b::T) where T	todo		
+base/range.jl	1000	1000	getindex	getindex(r::AbstractRange, ::Colon)	todo		
+base/range.jl	1002	1011	_empty_stop	_empty_stop(start, step)	todo		
+base/range.jl	1013	1026	getindex	getindex(r::AbstractUnitRange, s::AbstractUnitRange{T}) where {T<:Integer}	todo		
+base/range.jl	1028	1032	getindex	getindex(r::OneTo{T}, s::OneTo) where T	todo		
+base/range.jl	1034	1049	getindex	getindex(r::AbstractUnitRange, s::StepRange{T}) where {T<:Integer}	todo		
+base/range.jl	1051	1073	getindex	getindex(r::StepRange, s::AbstractRange{T}) where {T<:Integer}	todo		
+base/range.jl	1075	1103	getindex	getindex(r::StepRangeLen{T}, s::OrdinalRange{S}) where {T, S<:Integer}	todo		
+base/range.jl	1105	1108	_getindex_hiprec	_getindex_hiprec(r::StepRangeLen, i::Integer)	todo		
+base/range.jl	1110	1133	getindex	getindex(r::LinRange{T}, s::OrdinalRange{S}) where {T, S<:Integer}	todo		
+base/range.jl	1135	1135	show	show(io::IO, r::AbstractRange)	todo		
+base/range.jl	1136	1140	show	show(io::IO, r::UnitRange)	todo		
+base/range.jl	1141	1141	show	show(io::IO, r::OneTo)	todo		
+base/range.jl	1142	1149	show	show(io::IO, r::StepRangeLen)	todo		
+base/range.jl	1151	1155	==	==(r::T, s::T) where {T<:AbstractRange}	todo		
+base/range.jl	1157	1161	==	==(r::OrdinalRange, s::OrdinalRange)	todo		
+base/range.jl	1163	1164	==	==(r::AbstractUnitRange, s::AbstractUnitRange)	todo		
+base/range.jl	1166	1166	==	==(r::OneTo, s::OneTo)	todo		
+base/range.jl	1168	1169	==	==(r::T, s::T) where {T<:Union{StepRangeLen,LinRange}}	todo		
+base/range.jl	1171	1175	==	==(r::Union{StepRange{T},StepRangeLen{T,T}}, s::Union{StepRange{T},StepRangeLen{T,T}}) where {T}	todo		
+base/range.jl	1177	1177	_has_length_one	_has_length_one(r::OrdinalRange)	todo		
+base/range.jl	1178	1178	_has_length_one	_has_length_one(r::AbstractRange)	todo		
+base/range.jl	1180	1193	==	==(r::AbstractRange, s::AbstractRange)	todo		
+base/range.jl	1195	1204	cmp	cmp(r1::T, r2::T) where {T <: AbstractRange}	todo		
+base/range.jl	1206	1206	intersect	intersect(r::OneTo, s::OneTo)	todo		
+base/range.jl	1207	1207	union	union(r::OneTo, s::OneTo)	todo		
+base/range.jl	1209	1209	intersect	intersect(r::AbstractUnitRange{<:Integer}, s::AbstractUnitRange{<:Integer})	todo		
+base/range.jl	1211	1211	intersect	intersect(i::Integer, r::AbstractUnitRange{<:Integer})	todo		
+base/range.jl	1213	1213	intersect	intersect(r::AbstractUnitRange{<:Integer}, i::Integer)	todo		
+base/range.jl	1215	1227	intersect	intersect(r::AbstractUnitRange{<:Integer}, s::StepRange{<:Integer})	todo		
+base/range.jl	1229	1235	first_step_last_ascending	first_step_last_ascending(r::StepRange)	todo		
+base/range.jl	1237	1243	intersect	intersect(r::StepRange{<:Integer}, s::AbstractUnitRange{<:Integer})	todo		
+base/range.jl	1245	1275	intersect	intersect(r::StepRange, s::StepRange)	todo		
+base/range.jl	1277	1285	intersect	intersect(r1::AbstractRange, r2::AbstractRange)	todo		
+base/range.jl	1287	1293	intersect	intersect(r1::AbstractRange, r2::AbstractRange, r3::AbstractRange, r::AbstractRange...)	todo		
+base/range.jl	1296	1313	_findin	_findin(r::AbstractRange{<:Integer}, span::AbstractUnitRange{<:Integer})	todo		
+base/range.jl	1315	1315	issubset	issubset(r::OneTo, s::OneTo)	todo		
+base/range.jl	1317	1318	issubset	issubset(r::AbstractUnitRange{<:Integer}, s::AbstractUnitRange{<:Integer})	todo		
+base/range.jl	1322	1322	-	-(r::OrdinalRange)	todo		
+base/range.jl	1323	1324	-	-(r::StepRangeLen{T,R,S,L}) where {T,R,S,L}	todo		
+base/range.jl	1325	1328	-	-(r::LinRange)	todo		
+base/range.jl	1331	1331	el_same	el_same(::Type{T}, a::Type{<:AbstractArray{T,n}}, b::Type{<:AbstractArray{T,n}}) where {T,n}	todo		
+base/range.jl	1332	1332	el_same	el_same(::Type{T}, a::Type{<:AbstractArray{T,n}}, b::Type{<:AbstractArray{S,n}}) where {T,S,n}	todo		
+base/range.jl	1333	1333	el_same	el_same(::Type{T}, a::Type{<:AbstractArray{S,n}}, b::Type{<:AbstractArray{T,n}}) where {T,S,n}	todo		
+base/range.jl	1334	1334	el_same	el_same(::Type, a, b)	todo		
+base/range.jl	1336	1337	promote_rule	promote_rule(a::Type{UnitRange{T1}}, b::Type{UnitRange{T2}}) where {T1,T2}	todo		
+base/range.jl	1338	1338	UnitRange{T}	UnitRange{T}(r::UnitRange{T}) where {T<:Real}	todo		
+base/range.jl	1339	1339	UnitRange{T}	UnitRange{T}(r::UnitRange) where {T<:Real}	todo		
+base/range.jl	1341	1342	promote_rule	promote_rule(a::Type{OneTo{T1}}, b::Type{OneTo{T2}}) where {T1,T2}	todo		
+base/range.jl	1343	1343	OneTo{T}	OneTo{T}(r::OneTo{T}) where {T<:Integer}	todo		
+base/range.jl	1344	1344	OneTo{T}	OneTo{T}(r::OneTo) where {T<:Integer}	todo		
+base/range.jl	1346	1347	promote_rule	promote_rule(a::Type{OneTo{T1}}, ::Type{UR}) where {T1,UR<:AbstractUnitRange}	todo		
+base/range.jl	1349	1350	promote_rule	promote_rule(a::Type{UnitRange{T1}}, ::Type{UR}) where {T1,UR<:AbstractUnitRange}	todo		
+base/range.jl	1351	1351	UnitRange{T}	UnitRange{T}(r::AbstractUnitRange) where {T<:Real}	todo		
+base/range.jl	1352	1352	UnitRange	UnitRange(r::AbstractUnitRange)	todo		
+base/range.jl	1354	1354	AbstractUnitRange{T}	AbstractUnitRange{T}(r::AbstractUnitRange{T}) where {T}	todo		
+base/range.jl	1355	1355	AbstractUnitRange{T}	AbstractUnitRange{T}(r::UnitRange) where {T}	todo		
+base/range.jl	1356	1356	AbstractUnitRange{T}	AbstractUnitRange{T}(r::OneTo) where {T}	todo		
+base/range.jl	1358	1358	OrdinalRange{T, S}	OrdinalRange{T, S}(r::OrdinalRange) where {T, S}	todo		
+base/range.jl	1359	1359	OrdinalRange{T, T}	OrdinalRange{T, T}(r::AbstractUnitRange) where {T}	todo		
+base/range.jl	1361	1365	promote_rule	promote_rule(::Type{StepRange{T1a,T1b}}, ::Type{StepRange{T2a,T2b}}) where {T1a,T1b,T2a,T2b}	todo		
+base/range.jl	1366	1366	StepRange{T1,T2}	StepRange{T1,T2}(r::StepRange{T1,T2}) where {T1,T2}	todo		
+base/range.jl	1367	1367	StepRange{T}	StepRange{T}(r::StepRange{T}) where {T}	todo		
+base/range.jl	1368	1368	StepRange	StepRange(r::StepRange)	todo		
+base/range.jl	1370	1371	promote_rule	promote_rule(a::Type{StepRange{T1a,T1b}}, ::Type{UR}) where {T1a,T1b,UR<:AbstractUnitRange}	todo		
+base/range.jl	1372	1373	StepRange{T1,T2}	StepRange{T1,T2}(r::AbstractRange) where {T1,T2}	todo		
+base/range.jl	1374	1374	StepRange	StepRange(r::OrdinalRange{T,S}) where {T,S}	todo		
+base/range.jl	1375	1375	StepRange{T}	StepRange{T}(r::OrdinalRange{<:Any,S}) where {T,S}	todo		
+base/range.jl	1376	1376	StepRange{T1,T2} where T1	(StepRange{T1,T2} where T1)(r::AbstractRange) where {T2}	todo		
+base/range.jl	1377	1377	StepRange	StepRange(r::StepRangeLen)	todo		
+base/range.jl	1378	1378	StepRange{T}	StepRange{T}(r::StepRangeLen{<:Any,<:Any,S}) where {T,S}	todo		
+base/range.jl	1380	1383	promote_rule	promote_rule(::Type{StepRangeLen{T1,R1,S1,L1}},::Type{StepRangeLen{T2,R2,S2,L2}}) where {T1,T2,R1,R2,S1,S2,L1,L2}	todo		
+base/range.jl	1384	1384	StepRangeLen{T,R,S,L}	StepRangeLen{T,R,S,L}(r::StepRangeLen{T,R,S,L}) where {T,R,S,L}	todo		
+base/range.jl	1385	1386	StepRangeLen{T,R,S,L}	StepRangeLen{T,R,S,L}(r::StepRangeLen) where {T,R,S,L}	todo		
+base/range.jl	1387	1388	StepRangeLen{T}	StepRangeLen{T}(r::StepRangeLen) where {T}	todo		
+base/range.jl	1390	1391	promote_rule	promote_rule(a::Type{StepRangeLen{T,R,S,L}}, ::Type{OR}) where {T,R,S,L,OR<:AbstractRange}	todo		
+base/range.jl	1392	1393	StepRangeLen{T,R,S,L}	StepRangeLen{T,R,S,L}(r::AbstractRange) where {T,R,S,L}	todo		
+base/range.jl	1394	1395	StepRangeLen{T}	StepRangeLen{T}(r::AbstractRange) where {T}	todo		
+base/range.jl	1396	1396	StepRangeLen	StepRangeLen(r::AbstractRange)	todo		
+base/range.jl	1398	1401	promote_rule	promote_rule(a::Type{LinRange{T1,L1}}, b::Type{LinRange{T2,L2}}) where {T1,T2,L1,L2}	todo		
+base/range.jl	1402	1402	LinRange{T,L}	LinRange{T,L}(r::LinRange{T,L}) where {T,L}	todo		
+base/range.jl	1403	1403	LinRange{T,L}	LinRange{T,L}(r::AbstractRange) where {T,L}	todo		
+base/range.jl	1404	1404	LinRange{T}	LinRange{T}(r::AbstractRange) where {T}	todo		
+base/range.jl	1405	1405	LinRange	LinRange(r::AbstractRange{T}) where {T}	todo		
+base/range.jl	1407	1408	promote_rule	promote_rule(a::Type{LinRange{T,L}}, ::Type{OR}) where {T,L,OR<:OrdinalRange}	todo		
+base/range.jl	1410	1411	promote_rule	promote_rule(::Type{LinRange{A,L}}, b::Type{StepRangeLen{T2,R2,S2,L2}}) where {A,L,T2,R2,S2,L2}	todo		
+base/range.jl	1415	1427	vcat	vcat(rs::AbstractRange{T}...) where T	todo		
+base/range.jl	1434	1442	Array{T,1}	Array{T,1}(r::AbstractRange{T}) where {T}	todo		
+base/range.jl	1443	1443	collect	collect(r::AbstractRange)	todo		
+base/range.jl	1445	1445	_reverse	_reverse(r::OrdinalRange, ::Colon)	todo		
+base/range.jl	1446	1452	_reverse	_reverse(r::StepRangeLen, ::Colon)	todo		
+base/range.jl	1453	1453	_reverse	_reverse(r::LinRange{T}, ::Colon) where {T}	todo		
+base/range.jl	1457	1457	issorted	issorted(r::AbstractUnitRange)	todo		
+base/range.jl	1458	1458	issorted	issorted(r::AbstractRange)	todo		
+base/range.jl	1460	1460	sort	sort(r::AbstractUnitRange)	todo		
+base/range.jl	1461	1461	sort!	sort!(r::AbstractUnitRange)	todo		
+base/range.jl	1463	1463	sort	sort(r::AbstractRange)	todo		
+base/range.jl	1465	1465	sortperm	sortperm(r::AbstractUnitRange)	todo		
+base/range.jl	1466	1466	sortperm	sortperm(r::AbstractRange)	todo		
+base/range.jl	1468	1473	sum	sum(r::AbstractRange{<:Real})	todo		
+base/range.jl	1475	1483	_in_range	_in_range(x, r::AbstractRange)	todo		
+base/range.jl	1484	1484	in	in(x::Real, r::AbstractRange{<:Real})	todo		
+base/range.jl	1487	1487	in	in(x::T, r::AbstractRange{T}) where {T}	todo		
+base/range.jl	1489	1489	in	in(x::Integer, r::AbstractUnitRange{<:Integer})	todo		
+base/range.jl	1491	1494	in	in(x::Real, r::AbstractRange{T}) where {T<:Integer}	todo		
+base/range.jl	1495	1498	in	in(x::AbstractChar, r::AbstractRange{<:AbstractChar})	todo		
+base/range.jl	1502	1523	_define_range_op	_define_range_op(@nospecialize f)	todo		
+base/range.jl	1504	1509	$f	$f(r1::OrdinalRange, r2::OrdinalRange)	todo		
+base/range.jl	1511	1517	$f	$f(r1::LinRange{T}, r2::LinRange{T}) where T	todo		
+base/range.jl	1519	1521	$f	$f(r1::Union{StepRangeLen, OrdinalRange, LinRange}, r2::Union{StepRangeLen, OrdinalRange, LinRange})	todo		
+base/range.jl	1527	1532	+	+(r1::StepRangeLen{T,S}, r2::StepRangeLen{T,S}) where {T,S}	todo		
+base/range.jl	1534	1534	-	-(r1::StepRangeLen, r2::StepRangeLen)	todo		
+base/range.jl	1558	1558	mod	mod(i::Integer, r::OneTo)	todo		
+base/range.jl	1559	1559	mod	mod(i::Integer, r::AbstractUnitRange{<:Integer})	todo		
+base/range.jl	1602	1602	logrange	logrange(start::Real, stop::Real, length::Integer)	todo		
+base/range.jl	1603	1603	logrange	logrange(start::Real, stop::Real; length::Integer)	todo		
+base/range.jl	1660	1684	LogRange{T}	LogRange{T}(start::T, stop::T, len::Int) where {T<:Real}	todo		
+base/range.jl	1687	1689	LogRange{T}	LogRange{T}(start::Real, stop::Real, len::Integer) where {T}	todo		
+base/range.jl	1690	1693	LogRange	LogRange(start::Real, stop::Real, len::Integer)	todo		
+base/range.jl	1695	1695	size	size(r::LogRange)	todo		
+base/range.jl	1696	1696	length	length(r::LogRange)	todo		
+base/range.jl	1698	1698	first	first(r::LogRange)	todo		
+base/range.jl	1699	1699	last	last(r::LogRange)	todo		
+base/range.jl	1701	1705	_logrange_extra	_logrange_extra(a::Real, b::Real, len::Int)	todo		
+base/range.jl	1706	1712	_logrange_extra	_logrange_extra(a::Float64, b::Float64, len::Int)	todo		
+base/range.jl	1714	1724	getindex	getindex(r::LogRange{T}, i::Int) where {T}	todo		
+base/range.jl	1726	1735	show	show(io::IO, r::LogRange{T}) where {T}	todo		
+base/range.jl	1739	1746	_resolve_in_world	_resolve_in_world(worlds::UnitRange, gr::GlobalRef)	todo		

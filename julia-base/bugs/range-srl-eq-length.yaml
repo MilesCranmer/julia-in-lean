@@ -1,0 +1,54 @@
+id: range-srl-eq-length
+title: "StepRangeLen ranges of different lengths compare equal when their step is zero"
+priority: P2
+kind: wrong-result
+area: Ranges
+files: [base/range.jl]
+functions: ["==(r::Union{StepRange{T},StepRangeLen{T,T}}, s::Union{StepRange{T},StepRangeLen{T,T}})"]
+summary: |
+  The specialized range equality method compares first, step, and last but not length
+  for nonempty ranges with more than one element. When both StepRangeLen values have
+  a zero step, their endpoints match even when their lengths differ, so equality
+  returns true for different element sequences.
+likelihood: |
+  Low: StepRangeLen permits a zero step, and the bug occurs when equal constant-valued
+  ranges have different lengths.
+maybe_intended: ""
+reproducer: |
+  r = StepRangeLen(1, 0, 2)
+  s = StepRangeLen(1, 0, 3)
+  r == s  # true although collect(r) != collect(s)
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    ==(r::Union{StepRange{T}, StepRangeLen{T, T}}, s::Union{StepRange{T}, StepRangeLen{T, T}}) where T @ Base range.jl:1150
+    collect(r) = [1, 1], collect(s) = [1, 1, 1], r == s: true
+    REPRODUCED range-srl-eq-length
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    ==(r::Union{StepRange{T}, StepRangeLen{T, T}}, s::Union{StepRange{T}, StepRangeLen{T, T}}) where T @ Base range.jl:1171
+    collect(r) = [1, 1], collect(s) = [1, 1, 1], r == s: true
+    REPRODUCED range-srl-eq-length
+reproduced: {release: true, nightly: true}
+expected: |
+  r == s should be false because the two ranges have different lengths and contain
+  different sequences.
+promised_by: |
+  StepRangeLen docstring, base/range.jl:516-522, defines a range in terms of its
+  length. The AbstractRange equality fallback at base/range.jl:1180-1192 compares
+  lengths and then elements, so the specialized method should distinguish these
+  different sequences as well.
+cause: |
+  base/range.jl:1171-1175 handles these same-type StepRangeLen values by checking
+  emptiness and singleton status, then comparing only first, step, and last. With
+  step zero, the first and last values are both 1 for both ranges, so the omitted
+  length comparison makes them equal.
+possible_fix: |
+  Compare lengths before the endpoint shortcut so ranges with different lengths
+  cannot compare equal.
+duplicates:
+  issues: []
+  queries: ["issues: StepRangeLen equality length zero step", "prs: StepRangeLen equality length zero step"]
+lean:
+  property: JuliaLean.Proofs.base.range.SRLIntEq
+  theorem: JuliaLean.Proofs.base.range.sRLIntEq_refuted

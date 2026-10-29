@@ -89,11 +89,6 @@ private def arrayFixEntry (id fn statement source : String) (prop thm : Lean.Nam
   { id, juliaFile := "base/array.jl", juliaFns := [fn], statement, source,
     status := .proven, prop, thm := some thm }
 
-def arrayReviewFixEntries : List Entry := [
-  arrayFixEntry "multidimcov-array-iterator-upper-full" "_iterator_upper_bound(itr)" "The inference-only loop continues until its barrier becomes true or the iterator exhausts; it has no artificial fuel bound." "base/array.jl:805-815" ``IteratorUpperBehavior ``iteratorUpperBehavior,
-  arrayFixEntry "multidimcov-array-collect-to-full" "collect_to!(dest,itr,offs,st)" "Collection consumes every remaining iterator value, writing fitting values and widening exactly at type changes." "base/array.jl:895-912" ``CollectToBehavior ``collectToBehavior,
-  arrayFixEntry "multidimcov-array-grow-to-full" "grow_to!(dest,itr,st)" "Growth consumes every remaining value, pushing fitting values and widening exactly at type changes." "base/array.jl:935-949" ``GrowToBehavior ``growToBehavior,
-  arrayFixEntry "multidimcov-array-reverse-window-valid" "reverse(::AbstractVector,start,stop)" "For every documented in-bounds window, reverse preserves the prefix and suffix and reverses exactly that window." "base/array.jl:2253-2266" ``ReverseWindowBehavior ``reverseWindowBehavior
-]
+def arrayReviewFixEntries : List Entry := []
 
 end JuliaLean.MultidimCov

@@ -22,33 +22,6 @@ open JuliaLean.Registry
 
 /-- Registry entries of this area. -/
 def entries : List Entry := [
-  { id := "show-escape-above-unicode"
-    juliaFile := "base/strings/io.jl"
-    juliaFns := ["escape_string(::AbstractString)", "unescape_string(::AbstractString)"]
-    statement := "unescape_string(escape_string(s)) == s for every String s, including invalid UTF-8."
-    source := "base/strings/io.jl:400-457 (escape_string docstring: unescape_string is the reverse operation; invalid UTF-8 example)"
-    status := .refuted
-    prop := ``EscapeRoundTrip
-    thm := some ``escapeRoundTrip_refuted
-    issue := "related #54396"
-    notes := "s = \"\\xf4\\x90\\x80\\x80\" is one Char decoding to 0x110000; escape_string gives \"\\\\U110000\" and unescape_string throws ArgumentError. repr(s) contains the same escape and does not parse." },
-  { id := "show-escape-roundtrip-in-range"
-    juliaFile := "base/strings/io.jl"
-    juliaFns := ["escape_string(::AbstractString)", "unescape_string(::AbstractString)"]
-    statement := "unescape_string(escape_string(s)) == s for every String s shorter than 2^59 bytes, valid UTF-8 or not, that has no well-formed, non-overlong char above U+10FFFF."
-    source := "base/strings/io.jl:400-457 (escape_string docstring: unescape_string is the reverse operation)"
-    status := .proven
-    prop := ``EscapeRoundTripInRange
-    thm := some ``escapeRoundTripInRange_proven
-    notes := "Holds for every Unicode table d. Together with show-escape-above-unicode this pins the failure to chars above U+10FFFF. The size bound keeps the escaped copy (at most 4x longer) below the 2^62-byte String limit." },
-  { id := "show-escape-ascii-output"
-    juliaFile := "base/strings/io.jl"
-    juliaFns := ["escape_string(::AbstractString; ascii=true)"]
-    statement := "escape_string(s; ascii=true, fullhex) returns only ASCII bytes, for every String s (valid or not) and both fullhex values."
-    source := "base/strings/io.jl:418-419 (docstring: ascii=true escapes all non-ASCII characters)"
-    status := .proven
-    prop := ``EscapeAsciiOutput
-    thm := some ``escapeAsciiOutput_proven },
   { id := "show-symbol-invalid-utf8"
     juliaFile := "base/show.jl"
     juliaFns := ["show(::IO, ::Symbol)", "Base.isidentifier(::Symbol)"]
@@ -208,16 +181,6 @@ def entries : List Entry := [
     thm := some ``prefixSyntacticReparses_refuted
     issue := "none found (queries: show type annotation unary; print :: expression parse; show_unquoted ::)"
     notes := "::(-1) prints ::-1, a ParseError (also ::!a, $-1, &-1)." },
-  { id := "show-range-repr-elements"
-    juliaFile := "base/range.jl"
-    juliaFns := ["show(::IO, ::StepRangeLen)"]
-    statement := "For every Float64 StepRangeLen r printed in colon form a:s:b, evaluating that text gives a range with r's length and bitwise-identical elements."
-    source := "show/repr docstrings (2-argument show should produce parseable code that reproduces the value); base/range.jl:1132-1138"
-    status := .refuted
-    prop := ``RangeReprElements
-    thm := some ``rangeReprElements_refuted
-    issue := "related #50039, #47812"
-    notes := "r = (0:5) .* 0.1 .+ 0.3 prints 0.3:0.1:0.8; r[2] == 0.39999999999999997 but (0.3:0.1:0.8)[2] == 0.4. Evaluating a printed Float64 literal is modelled as its exact value (Ryu shortest round trip, base/ryu/Ryu.jl)." },
   { id := "show-expr-unary-ident"
     juliaFile := "base/show.jl"
     juliaFns := ["show_unquoted(::IO, ::Expr, ::Int, ::Int)"]

@@ -13,6 +13,16 @@ open JuliaLean.Registry
 open JuliaLean.ConcurrencyCov.FaithfulSmall
 
 def faithfulSmallEntries : List Entry := [
+  { id := "concurrencycov-atomic-constructors", juliaFile := "base/atomics.jl"
+    juliaFns := ["Atomic{T}()", "Atomic{T}(value)"]
+    statement := "Atomic construction initializes its field to the converted input or zero, and propagates zero and conversion failures."
+    source := "base/atomics.jl:68-69", status := .proven
+    prop := ``AtomicCtorContract, thm := some ``atomicCtorContract_proven },
+  { id := "concurrencycov-atomic-default", juliaFile := "base/atomics.jl"
+    juliaFns := ["Atomic()"]
+    statement := "The default Atomic constructor creates an Int cell initialized to zero."
+    source := "base/atomics.jl:72", status := .proven
+    prop := ``AtomicDefaultContract, thm := some ``atomicDefaultContract_proven },
   { id := "concurrencycov-locks-mt-SpinLock", juliaFile := "base/locks-mt.jl", juliaFns := ["SpinLock()"]
     statement := "SpinLock starts with owned equal to zero for every construction."
     source := "base/locks-mt.jl:46", status := .proven, prop := ``SpinLockCtorProp, thm := some ``spinLockCtor_proven },
@@ -56,7 +66,62 @@ def faithfulSmallEntries : List Entry := [
     source := "base/threads_overloads.jl:65", status := .proven, prop := ``ApplyStaticProp, thm := some ``applyStatic_proven },
   { id := "concurrencycov-threads-overloads-fair", juliaFile := "base/threads_overloads.jl", juliaFns := ["_apply_for_schedule(::FairSchedule)"]
     statement := "The fair schedule wrapper spawns f(x) and waits for that task."
-    source := "base/threads_overloads.jl:66", status := .proven, prop := ``ApplyFairProp, thm := some ``applyFair_proven }
+    source := "base/threads_overloads.jl:66", status := .proven, prop := ``ApplyFairProp, thm := some ``applyFair_proven },
+
+  { id := "concurrencycov-gcutils-weak-weak-eq", juliaFile := "base/gcutils.jl", juliaFns := ["==(::WeakRef,::WeakRef)"]
+    statement := "WeakRef equality delegates to isequal on both current values."
+    source := "base/gcutils.jl:37", status := .proven, prop := ``WeakWeakEqProp, thm := some ``weakWeakEq_proven },
+  { id := "concurrencycov-gcutils-weak-value-eq", juliaFile := "base/gcutils.jl", juliaFns := ["==(::WeakRef,v)"]
+    statement := "WeakRef-to-value equality delegates to isequal on the current weak value and the argument."
+    source := "base/gcutils.jl:38", status := .proven, prop := ``WeakValueEqProp, thm := some ``weakValueEq_proven },
+  { id := "concurrencycov-gcutils-value-weak-eq", juliaFile := "base/gcutils.jl", juliaFns := ["==(v,::WeakRef)"]
+    statement := "Value-to-WeakRef equality delegates to isequal on the argument and current weak value."
+    source := "base/gcutils.jl:39", status := .proven, prop := ``ValueWeakEqProp, thm := some ``valueWeakEq_proven },
+  { id := "concurrencycov-gcutils-check-mutable", juliaFile := "base/gcutils.jl", juliaFns := ["_check_mutable"]
+    statement := "_check_mutable returns for mutable objects and otherwise throws the type-specific finalizer error."
+    source := "base/gcutils.jl:42-46", status := .proven, prop := ``CheckMutableProp, thm := some ``checkMutable_proven },
+  { id := "concurrencycov-gcutils-finalizer", juliaFile := "base/gcutils.jl", juliaFns := ["finalizer(f,o)"]
+    statement := "finalizer checks mutability, registers the Julia callback, and returns the object."
+    source := "base/gcutils.jl:87-91", status := .proven, prop := ``FinalizerProp, thm := some ``finalizer_proven },
+  { id := "concurrencycov-gcutils-pointer-finalizer", juliaFile := "base/gcutils.jl", juliaFns := ["finalizer(::Ptr,o)"]
+    statement := "The pointer finalizer checks mutability, registers through jl_gc_add_ptr_finalizer, and returns the object."
+    source := "base/gcutils.jl:93-98", status := .proven, prop := ``PointerFinalizerProp, thm := some ``pointerFinalizer_proven },
+  { id := "concurrencycov-gcutils-finalize", juliaFile := "base/gcutils.jl", juliaFns := ["finalize"]
+    statement := "finalize invokes jl_finalize_th with the current task and object."
+    source := "base/gcutils.jl:105-106", status := .proven, prop := ``FinalizeProp, thm := some ``finalize_proven },
+  { id := "concurrencycov-gcutils-gc", juliaFile := "base/gcutils.jl", juliaFns := ["GC.gc"]
+    statement := "GC.gc calls jl_gc_collect with full or incremental mode according to its Boolean argument."
+    source := "base/gcutils.jl:136-137", status := .proven, prop := ``GcProp, thm := some ``gc_proven },
+  { id := "concurrencycov-gcutils-enable", juliaFile := "base/gcutils.jl", juliaFns := ["GC.enable"]
+    statement := "GC.enable passes its Boolean to jl_gc_enable and returns the previous state."
+    source := "base/gcutils.jl:149", status := .proven, prop := ``GcEnableProp, thm := some ``gcEnable_proven },
+  { id := "concurrencycov-gcutils-set-finalizers", juliaFile := "base/gcutils.jl", juliaFns := ["GC.enable_finalizers(::Bool)"]
+    statement := "The Boolean finalizer wrapper dispatches true to enable_finalizers() and false to disable_finalizers()."
+    source := "base/gcutils.jl:159", status := .proven, prop := ``SetFinalizersProp, thm := some ``setFinalizers_proven },
+  { id := "concurrencycov-gcutils-enable-finalizers", juliaFile := "base/gcutils.jl", juliaFns := ["GC.enable_finalizers()"]
+    statement := "enable_finalizers decrements the runtime counter and runs pending finalizers exactly when the atomic flag is nonzero."
+    source := "base/gcutils.jl:161-166", status := .proven, prop := ``EnableFinalizersProp, thm := some ``enableFinalizers_proven },
+  { id := "concurrencycov-gcutils-disable-finalizers", juliaFile := "base/gcutils.jl", juliaFns := ["GC.disable_finalizers()"]
+    statement := "disable_finalizers calls jl_gc_disable_finalizers_internal once."
+    source := "base/gcutils.jl:168-170", status := .proven, prop := ``DisableFinalizersProp, thm := some ``disableFinalizers_proven },
+  { id := "concurrencycov-gcutils-in-finalizer", juliaFile := "base/gcutils.jl", juliaFns := ["GC.in_finalizer"]
+    statement := "in_finalizer is true exactly when jl_gc_is_in_finalizer returns a positive Int8."
+    source := "base/gcutils.jl:185-187", status := .proven, prop := ``InFinalizerProp, thm := some ``inFinalizer_proven },
+  { id := "concurrencycov-gcutils-preserve", juliaFile := "base/gcutils.jl", juliaFns := ["GC.@preserve"]
+    statement := "@preserve rejects every nonsymbol protected argument, then emits gc_preserve with the final expression and symbols in order."
+    source := "base/gcutils.jl:237-243", status := .proven, prop := ``PreserveProp, thm := some ``preserve_proven },
+  { id := "concurrencycov-gcutils-safepoint", juliaFile := "base/gcutils.jl", juliaFns := ["GC.safepoint"]
+    statement := "safepoint calls jl_gc_safepoint once."
+    source := "base/gcutils.jl:267", status := .proven, prop := ``SafepointProp, thm := some ``safepoint_proven },
+  { id := "concurrencycov-gcutils-enable-logging", juliaFile := "base/gcutils.jl", juliaFns := ["GC.enable_logging"]
+    statement := "enable_logging passes its Boolean argument to jl_enable_gc_logging."
+    source := "base/gcutils.jl:274-276", status := .proven, prop := ``EnableLoggingProp, thm := some ``enableLogging_proven },
+  { id := "concurrencycov-gcutils-logging-enabled", juliaFile := "base/gcutils.jl", juliaFns := ["GC.logging_enabled"]
+    statement := "logging_enabled is true exactly when jl_is_gc_logging_enabled returns nonzero."
+    source := "base/gcutils.jl:283-285", status := .proven, prop := ``LoggingEnabledProp, thm := some ``loggingEnabled_proven },
+  { id := "concurrencycov-gcutils-active-impl", juliaFile := "base/gcutils.jl", juliaFns := ["GC.gc_active_impl"]
+    statement := "gc_active_impl converts the pointer returned by jl_gc_active_impl to a String."
+    source := "base/gcutils.jl:293-295", status := .proven, prop := ``GcActiveImplProp, thm := some ``gcActiveImpl_proven }
 ]
 
 private def timingEntry (id fn statement source : String) (prop thm : Lean.Name) : Entry :=

@@ -2,72 +2,27 @@ line	name	verdict	mirror	property	settled	reason
 39	_version	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 40	version	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 41	major_version	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-42	bits_per_limb	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
 73	BigInt	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 112	__init__	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 161	gmpz	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 163	init!	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-164	init2!	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-166	realloc2!	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-167	realloc2	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-169	sizeinbase	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-179	$op!	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-181	$op	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-182	$op!	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-186	invert!	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
 188	invert!	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 189	invert	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-195	$op!	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-197	$op	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-198	$op!	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-202	ui_sub!	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-203	ui_sub	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-208	$op	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-211	mul_si!	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-212	mul_si	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-213	mul_si!	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-219	$op!	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-221	$op	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-224	$op!	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-227	fac_ui!	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-228	fac_ui	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-233	$op!	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-234	$op	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-238	popcount	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-240	mpn_popcount	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
 241	mpn_popcount	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-243	tdiv_qr!	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
 248	tdiv_qr	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 250	powm!	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 252	powm	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 253	powm!	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-255	gcdext!	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
 260	gcdext	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-262	cmp	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-263	cmp_si	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-264	cmp_ui	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-265	cmp_d	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-267	mpn_cmp	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
 268	mpn_cmp	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-270	get_str!	FAITHFUL	yes	yes	yes	callThenReturn models the primitive call followed by returning the first argument for every input.
-271	set_str!	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-272	get_d	FAITHFUL	yes	yes	yes	primitiveInt models the direct primitive call and returned primitive value for every input.
 274	export!	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-286	limbs_write!	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
 287	limbs_finish!	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-289	setbit!	FAITHFUL	yes	yes	yes	callThenReturn models the primitive call followed by returning the mutated first argument for every input.
 290	tstbit	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 298	widen	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 299	widen	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 300	widen	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-302	signed	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-304	BigInt	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-305	Signed	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
 307	tryparse_internal	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-333	BigInt	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-334	BigInt	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
 335	BigInt	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-337	unsafe_trunc	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
 339	BigInt	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 344	BigInt	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 345	BigInt	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
@@ -82,42 +37,24 @@ line	name	verdict	mirror	property	settled	reason
 387	(::Type{T})	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 396	(::Type{T})	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 411	(::Type{T})	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-468	Float64	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-469	Float32	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-470	Float16	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
 472	promote_rule	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-487	big	FAITHFUL	-	-	-	The exclusion applies because no-behaviour: generic function declaration with no method body.
 489	big	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 490	big	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-492	big	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-501	$fJ	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-508	div	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
 512	div	HOLLOW	no	yes	yes	The proposition states an all-input behavior, but no Lean function mirrors this method's full body and call order.
 513	fld	HOLLOW	no	yes	yes	The proposition states an all-input behavior, but no Lean function mirrors this method's full body and call order.
 514	cld	HOLLOW	no	yes	yes	The proposition states an all-input behavior, but no Lean function mirrors this method's full body and call order.
 516	/	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-518	invmod	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-541	$fJ	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-542	$fJ	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-543	$fJ	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-549	+	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
 550	+	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-552	-	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-553	-	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
 555	+	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 556	+	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 557	-	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 558	-	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-560	*	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
 561	*	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-562	*	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
 563	*	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 565	/	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 566	/	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 569	-	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 570	~	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-572	<<	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-573	>>	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
 574	>>>	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 576	trailing_zeros	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 582	trailing_ones	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
@@ -128,9 +65,7 @@ line	name	verdict	mirror	property	settled	reason
 614	exponent	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 619	top_set_bit	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 625	divrem	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-625	typeof	FAITHFUL	-	-	-	The exclusion applies because no-behaviour: parser row for a default argument's type annotation; it defines no callable body.
 626	divrem	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-626	typeof	FAITHFUL	-	-	-	The exclusion applies because no-behaviour: parser row for a default argument's type annotation; it defines no callable body.
 628	cmp	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 629	cmp	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 630	cmp	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
@@ -138,12 +73,7 @@ line	name	verdict	mirror	property	settled	reason
 632	cmp	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 634	cmp	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 635	cmp	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-637	isqrt	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-639	^	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
 641	bigint_pow	HOLLOW	yes	no	yes	The Lean function mirrors the method body, but the proposition only covers negative machine-width exponents rather than all allowed inputs.
-645	throw1	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-663	^	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-664	^	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
 665	^	HOLLOW	yes	no	yes	The Lean function mirrors the delegated body, but the proposition only covers negative machine-width exponents rather than all allowed inputs.
 666	^	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 667	^	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
@@ -189,26 +119,10 @@ line	name	verdict	mirror	property	settled	reason
 839	_nextpow2	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 841	Base.checked_abs	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 842	Base.checked_neg	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-843	Base.checked_add	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-844	Base.checked_sub	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-845	Base.checked_mul	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-846	Base.checked_div	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-847	Base.checked_rem	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-848	Base.checked_fld	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-849	Base.checked_mod	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-850	Base.checked_cld	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-851	Base.add_with_overflow	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-852	Base.sub_with_overflow	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-853	Base.mul_with_overflow	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-856	Base.checked_pow	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-857	Base.checked_pow	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
-858	Base.checked_pow	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
 860	Base.deepcopy_internal	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-864	Base._hash_shl!	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
 880	Base.size	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 884	Base.getindex	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 894	Base.iterate	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-899	Base.length	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.
 903	hash_integer	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 917	hash	HOLLOW	yes	no	yes	The Lean function mirrors the hash body, but both propositions only cover machine-width BigInt values rather than every allowed BigInt.
 964	gmpq	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
@@ -220,13 +134,7 @@ line	name	verdict	mirror	property	settled	reason
 1004	Rational{BigInt}	HOLLOW	no	yes	yes	The proposition states an all-input behavior, but no Lean function mirrors this method's full body and call order.
 1015	set!	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 1021	set_z!	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-1029	$op	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-1037	$op!	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-1042	$op	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 1047	add!	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 1060	sub!	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 1074	mul!	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
 1087	div!	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-1111	$fC!	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-1112	Base.$fJ	HOLLOW	no	no	yes	The proposition omits a Lean function mirroring this method's full body and an all-input behavioral claim.
-1116	Base.cmp	FAITHFUL	yes	yes	yes	The proposition uses the matching source model, states its behavior for all represented inputs, and is settled.

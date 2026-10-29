@@ -452,49 +452,7 @@ theorem twiceConversions_proven : TwiceConversions := by
         obtain ⟨a, st, den⟩ := v
         exact FloatRanges.floatrange_len a st len den out h
 
-def entries : List Entry := [
-  { id := "rangescov-promotion-rules", juliaFile := "base/range.jl"
-    juliaFns := ["RangeStepStyle(::Type{<:AbstractRange})", "RangeStepStyle(::Type{<:AbstractRange{<:Integer}})",
-      "convert(::Type{T}, ::AbstractRange) where T<:AbstractRange", "el_same",
-      "promote_rule(::Type{UnitRange{T1}}, ::Type{UnitRange{T2}})", "promote_rule(::Type{OneTo{T1}}, ::Type{OneTo{T2}})",
-      "promote_rule(::Type{OneTo{T1}}, ::Type{UR})", "promote_rule(::Type{UnitRange{T1}}, ::Type{UR})",
-      "promote_rule(::Type{StepRange}, ::Type{StepRange})", "promote_rule(::Type{StepRange}, ::Type{UR})",
-      "promote_rule(::Type{StepRangeLen}, ::Type{StepRangeLen})", "promote_rule(::Type{StepRangeLen}, ::Type{OR})",
-      "promote_rule(::Type{LinRange}, ::Type{LinRange})", "promote_rule(::Type{LinRange}, ::Type{OR})",
-      "promote_rule(::Type{LinRange}, ::Type{StepRangeLen})"]
-    statement := "Every range promote_rule with built-in integer parameters yields a range type whose eltype is promote_type of the eltypes (el_same never falls back to typejoin); el_same keeps a container that already has the promoted eltype; RangeStepStyle is regular exactly for integer eltypes; convert returns r when it already has the target type."
-    source := "base/range.jl:285-288,1320-1401 (promote eltype if at least one container wouldn't change)"
-    status := .proven, prop := ``PromotionRules, thm := some ``promotionRules_proven },
-  { id := "rangescov-unitrange-convert-empty", juliaFile := "base/range.jl"
-    juliaFns := ["UnitRange{T}(::UnitRange)", "StepRange{T1,T2}(::AbstractRange)"]
-    statement := "Converting an empty integer UnitRange to another non-Bool integer element type succeeds and gives an empty range."
-    source := "convert(T, r) for AbstractRange, base/range.jl:288; elementwise conversion of the (empty) vector succeeds"
-    status := .refuted, prop := ``UnitRangeConvertEmpty, thm := some ``unitRangeConvertEmpty_refuted
-    issue := "none found (queries: issues convert UnitRange empty InexactError; issues UnitRange UInt empty; prs convert UnitRange empty InexactError; prs UnitRange UInt empty)"
-    notes := "convert(UnitRange{UInt8}, 0:-1): base/range.jl:1329 converts the normalized stop -1 exactly." },
-  { id := "rangescov-integer-conversions", juliaFile := "base/range.jl"
-    juliaFns := ["UnitRange{T}(::UnitRange{T})", "UnitRange{T}(::AbstractUnitRange)", "OneTo{T}(::OneTo{T})",
-      "OneTo{T}(::OneTo)", "AbstractUnitRange{T}(::AbstractUnitRange{T})", "AbstractUnitRange{T}(::UnitRange)",
-      "AbstractUnitRange{T}(::OneTo)", "OrdinalRange{T,S}(::OrdinalRange)", "OrdinalRange{T,T}(::AbstractUnitRange)",
-      "StepRange{T1,T2}(::StepRange{T1,T2})", "StepRange{T}(::StepRange{T})", "StepRange(::StepRange)",
-      "StepRange(::OrdinalRange)", "StepRange{T}(::OrdinalRange)", "(StepRange{T1,T2} where T1)(::AbstractRange)",
-      "StepRange(::StepRangeLen)", "StepRange{T}(::StepRangeLen)", "StepRangeLen{T,R,S,L}(::StepRangeLen{T,R,S,L})",
-      "StepRangeLen{T,R,S,L}(::StepRangeLen)", "StepRangeLen{T}(::StepRangeLen)", "StepRangeLen{T,R,S,L}(::AbstractRange)",
-      "StepRangeLen{T}(::AbstractRange)", "StepRangeLen(::AbstractRange)", "LinRange{T,L}(::LinRange{T,L})",
-      "LinRange{T,L}(::AbstractRange)", "LinRange{T}(::AbstractRange)", "LinRange(::AbstractRange)"]
-    statement := "Identity conversions return their argument; converting a nonempty same-type unit range keeps its endpoints; the abstract-type conversions are the documented compositions; StepRangeLen conversions keep length(r) and LinRange conversions have nonnegative length."
-    source := "base/range.jl:1328-1395"
-    status := .proven, prop := ``IntegerConversions, thm := some ``integerConversions_proven },
-  { id := "rangescov-twice-conversions", juliaFile := "base/twiceprecision.jl"
-    juliaFns := ["StepRangeLen{T,R,S,L}(::StepRangeLen{T,R,S,L})", "StepRangeLen{T,R,S,L}(::StepRangeLen)",
-      "StepRangeLen{Float64}(::StepRangeLen)", "StepRangeLen{T}(::StepRangeLen) where T<:IEEEFloat",
-      "StepRangeLen{Float64}(::AbstractRange)", "StepRangeLen{T}(::AbstractRange) where T<:IEEEFloat",
-      "_convertSRL(::Type, ::StepRangeLen{<:Integer})", "_convertSRL(::Type, ::AbstractRange{<:Integer})",
-      "_convertSRL(::Type, ::AbstractRange{U})", "__convertSRL(::Type, ::StepRangeLen{U})", "__convertSRL(::Type, ::AbstractRange{U})"]
-    statement := "TwicePrecision StepRangeLen conversions keep length and offset; the fallbacks store TwicePrecision copies of ref/step (or first/step); the identity method returns its argument; the IEEE StepRangeLen{T} conversion stores Float64 ref/step."
-    source := "base/twiceprecision.jl:541-589"
-    status := .proven, prop := ``TwiceConversions, thm := some ``twiceConversions_proven }
-]
+def entries : List Entry := []
 
 end Convert
 

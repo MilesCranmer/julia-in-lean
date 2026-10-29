@@ -235,26 +235,6 @@ private def entry (id fn statement source : String) (prop thm : Lean.Name) : Ent
   { id := id, juliaFile := "base/iddict.jl", juliaFns := [fn], statement := statement,
     source := source, status := .proven, prop := prop, thm := some thm }
 
-def entries : List Entry := [
-  entry "dictscov-iddict-l31" "IdDict{K,V}() where {K, V}" "The empty typed IdDict has a 32-word table and zero live and deleted counts." "IdDict docstring and invariant; base/iddict.jl:31" ``Property31 ``property31,
-  entry "dictscov-iddict-l33" "IdDict{K,V}(itr) where {K, V}" "The iterator constructor optionally size-hints, then inserts every pair in order." "IdDict docstring; base/iddict.jl:33-40" ``Property33 ``property33,
-  entry "dictscov-iddict-l42" "IdDict{K,V}(pairs::Pair...) where {K, V}" "The pair constructor size-hints and inserts every pair in order." "IdDict docstring; base/iddict.jl:42-47" ``Property42 ``property42,
-  entry "dictscov-iddict-l49" "IdDict{K,V}(d::IdDict{K,V}) where {K, V}" "The same-type copy duplicates the table and preserves both counts." "copy invariant; base/iddict.jl:49" ``Property49 ``property49,
-  entry "dictscov-iddict-l52" "IdDict()" "The untyped empty constructor delegates to IdDict{Any,Any}." "constructor invariant; base/iddict.jl:52" ``Property52 ``property52,
-  entry "dictscov-iddict-l53" "IdDict(kv::Tuple{})" "The empty-tuple constructor delegates to IdDict()." "constructor invariant; base/iddict.jl:53" ``Property53 ``property53,
-  entry "dictscov-iddict-l55" "IdDict(ps::Pair{K,V}...) where {K,V}" "Homogeneous pairs delegate to the fully typed constructor." "constructor invariant; base/iddict.jl:55" ``Property55 ``property55,
-  entry "dictscov-iddict-l56" "IdDict(ps::Pair{K}...) where {K}" "Key-homogeneous pairs delegate to IdDict{K,Any}." "constructor invariant; base/iddict.jl:56" ``Property56 ``property56,
-  entry "dictscov-iddict-l57" "IdDict(ps::(Pair{K,V} where K)...) where {V}" "Value-homogeneous pairs delegate to IdDict{Any,V}." "constructor invariant; base/iddict.jl:57" ``Property57 ``property57,
-  entry "dictscov-iddict-l58" "IdDict(ps::Pair...)" "Unconstrained pairs delegate to IdDict{Any,Any}." "constructor invariant; base/iddict.jl:58" ``Property58 ``property58,
-  entry "dictscov-iddict-l60" "IdDict(kv)" "The generic constructor selects key and value types from the iterator eltype." "IdDict docstring; base/iddict.jl:60" ``Property60 ``property60,
-  entry "dictscov-iddict-l62" "empty(d::IdDict, ::Type{K}, ::Type{V}) where {K, V}" "empty returns a new IdDict with the requested key and value types." "empty docstring base/abstractdict.jl:183-192; base/iddict.jl:62" ``Property62 ``property62,
-  entry "dictscov-iddict-l64" "rehash!(d::IdDict, newsz::Integer = length(d.ht)%UInt)" "rehash! replaces the runtime table with the requested size and returns the dictionary." "IdDict invariant; base/iddict.jl:64-67" ``Property64 ``property64,
-  entry "dictscov-iddict-l94" "get(d::IdDict{K,V}, @nospecialize(key), @nospecialize(default)) where {K, V}" "get returns the supplied default only when the runtime returns that identical default, otherwise the stored V." "get docstring; base/iddict.jl:94-97" ``Property94 ``property94,
-  entry "dictscov-iddict-l105" "pop!(d::IdDict{K,V}, @nospecialize(key), @nospecialize(default)) where {K, V}" "Defaulted pop returns default unchanged when absent; when present it returns V, decrements count, and increments ndel." "pop! docstring; base/iddict.jl:105-115" ``Property105 ``property105,
-  entry "dictscov-iddict-l139" "_oidd_nextind(a, i)" "The next-index wrapper reinterprets the runtime Csize_t result as Int." "iteration invariant; base/iddict.jl:139" ``Property139 ``property139,
-  entry "dictscov-iddict-l149" "copy(d::IdDict)" "copy invokes the same concrete type's copy constructor." "copy invariant; base/iddict.jl:149" ``Property149 ``property149,
-  entry "dictscov-iddict-l162" "get(default::Callable, d::IdDict{K,V}, @nospecialize(key)) where {K, V}" "Callable get invokes the default only for the sentinel result and otherwise returns the stored V." "get docstring; base/iddict.jl:162-169" ``Property162 ``property162,
-  entry "dictscov-iddict-l189" "filter!(f, d::IdDict)" "IdDict filter! delegates to deletion during one-pass iteration." "filter! docstring base/abstractdict.jl:420-423; base/iddict.jl:187-189" ``Property189 ``property189
-]
+def entries : List Entry := []
 
 end JuliaLean.DictsCov.IdDictRows

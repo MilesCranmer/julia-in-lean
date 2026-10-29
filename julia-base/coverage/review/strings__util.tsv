@@ -1,0 +1,103 @@
+line	name	verdict	mirror	property	settled	reason
+31	startswith	FAITHFUL	yes	yes	yes	The recursive model follows the two exhaustion checks, equality check, and ordered iteration for all character lists.
+40	startswith	FAITHFUL	yes	yes	yes	The model checks emptiness before first-character membership for every source and character collection.
+57	endswith	FAITHFUL	yes	yes	yes	The reverse-prefix model follows the complete reversed-character comparison loop for all inputs.
+67	endswith	FAITHFUL	yes	yes	yes	The model checks emptiness before reading the final character and proves that ordering for every source.
+69	startswith	FAITHFUL	yes	yes	yes	The byte model follows the length, memcmp, and character-boundary branches and characterizes every true result.
+83	startswith	FAITHFUL	yes	yes	yes	The specialization is modeled by the exact dense implementation and proves the matched prefix bytes.
+93	startswith	HOLLOW	no	no	yes	The list model assumes a decoded character and infallible mark/read/reset, omitting EOF, IO errors, and existing-mark behavior for arbitrary IO.
+99	startswith	HOLLOW	no	no	yes	The list model assumes infallible mark/read/reset and cannot model arbitrary IO reads, failures, or mark state.
+105	startswith	HOLLOW	no	no	yes	The arbitrary conversion function and list IO record omit String conversion failures and the behavior of the delegated arbitrary IO method.
+107	endswith	FAITHFUL	yes	yes	yes	The byte model follows the start calculation, suffix comparison, and character-boundary check for all inputs.
+120	endswith	FAITHFUL	yes	yes	yes	The specialization uses the exact dense suffix model and proves a necessary result invariant for all successful calls.
+152	contains	FAITHFUL	yes	yes	yes	The proposition states the exact argument reversal into occursin for arbitrary operand behavior.
+175	endswith	FAITHFUL	yes	yes	yes	The model constructs the documented Fix2 value with the exact function and stored suffix.
+198	startswith	FAITHFUL	yes	yes	yes	The model constructs the documented Fix2 value with the exact function and stored prefix.
+209	contains	FAITHFUL	yes	yes	yes	The model constructs the documented Fix2 value with the exact function and stored needle.
+236	chop	FAITHFUL	yes	yes	yes	The exact index model refutes the documented over-removal behavior on wrapping input and the reproducer exists.
+268	chopprefix	FAITHFUL	yes	yes	yes	The character-loop model removes exactly a matching prefix and otherwise preserves every input sequence.
+281	chopprefix	HOLLOW	no	no	yes	The proposition never applies a chopprefix result model and states only an input decomposition after denseStarts succeeds.
+290	chopprefix	FAITHFUL	yes	yes	yes	The model follows emptiness and first-character equality and proves exactly when the returned view starts after one character.
+320	chopsuffix	FAITHFUL	yes	yes	yes	The reverse-character loop model removes exactly a matching suffix and otherwise preserves every input sequence.
+334	chopsuffix	HOLLOW	no	no	yes	The proposition never applies a chopsuffix result model and proves only a source/suffix length fact after denseEnds succeeds.
+344	chopsuffix	FAITHFUL	yes	yes	yes	The model follows last-character inspection and proves the returned view stays within the source for every input.
+371	chomp	FAITHFUL	yes	yes	yes	The generic chomp model follows the final LF and preceding CR checks and proves agreement with the byte fast path for every byte string.
+379	chomp	FAITHFUL	yes	yes	yes	The byte fast-path and generic character-path models are both exact and proved equal for every byte string.
+416	lstrip	FAITHFUL	yes	yes	yes	The exact iteration model proves removal of the maximal predicate-satisfying prefix for every byte string and predicate.
+423	lstrip	FAITHFUL	yes	yes	yes	The wrapper delegates to the exact lstrip model with the Julia whitespace predicate.
+424	lstrip	FAITHFUL	yes	yes	yes	The wrapper delegates to the exact lstrip model with character-set membership.
+425	lstrip	FAITHFUL	yes	yes	yes	The constant error model returns the method's documented ArgumentError for every call.
+451	rstrip	FAITHFUL	yes	yes	yes	The exact reverse iteration model proves removal of the maximal predicate-satisfying suffix for every byte string and predicate.
+457	rstrip	FAITHFUL	yes	yes	yes	The wrapper delegates to the exact rstrip model with the Julia whitespace predicate.
+458	rstrip	FAITHFUL	yes	yes	yes	The wrapper delegates to the exact rstrip model with character-set membership.
+459	rstrip	FAITHFUL	yes	yes	yes	The constant error model returns the method's documented ArgumentError for every call.
+486	strip	FAITHFUL	yes	yes	yes	The wrapper model performs exact right stripping followed by left stripping with whitespace.
+487	strip	FAITHFUL	yes	yes	yes	The wrapper model performs exact right and then left character-set stripping.
+488	strip	FAITHFUL	yes	yes	yes	The constant error model returns the method's documented ArgumentError for every call.
+489	strip	FAITHFUL	yes	yes	yes	The exact composed models prove removal of maximal predicate-satisfying runs at both ends.
+511	lpad	FAITHFUL	yes	yes	yes	The wrapper model stringifies source and padding in source order and delegates with the unchanged requested width.
+516	_pad_remainder	HOLLOW	no	no	yes	The model directly constructs a view with an arbitrary stop and omits the character loop, text-width accumulation, and first-reaching boundary.
+524	_pad_remainder	FAITHFUL	yes	yes	yes	The model returns the same character for every requested remainder exactly as the method does.
+526	lpad	HOLLOW	yes	no	yes	The theorem covers only the nonpositive-padding early return and omits zero-width errors, division, remainder selection, and concatenation.
+564	rpad	FAITHFUL	yes	yes	yes	The one-line wrapper delegates after stringifying the source and padding with unchanged width.
+566	rpad	HOLLOW	yes	no	yes	The theorem covers only the nonpositive-padding early return and omits zero-width errors, division, remainder selection, and concatenation.
+609	rtruncate	HOLLOW	yes	no	yes	The proposition assumes the boundary helper returned nothing and proves only the already-fitting branch rather than all allowed inputs.
+642	ltruncate	HOLLOW	yes	no	yes	The proposition assumes the boundary helper returned nothing and proves only the already-fitting branch rather than all allowed inputs.
+676	ctruncate	HOLLOW	yes	no	yes	The proposition assumes the boundary helper returned nothing and proves only the already-fitting branch rather than all allowed inputs.
+687	check_textwidth	FAITHFUL	yes	yes	yes	The exact character loop model states the ordered width accumulation and early maximum-width test for all strings.
+697	string_truncate_boundaries	HOLLOW	yes	no	yes	The theorem covers only negative maximum widths and omits the fit check and complete width-balancing loop for nonnegative inputs.
+772	eachsplit	FAITHFUL	-	-	-	The exclusion is correct because this is only a generic function declaration with no method body.
+783	eltype	FAITHFUL	yes	yes	yes	The type model returns SubString of the source string type for every SplitIterator parameter.
+784	eltype	FAITHFUL	yes	yes	yes	The specialization model preserves the parent type without nesting SubString.
+786	IteratorSize	FAITHFUL	yes	yes	yes	The model returns SizeUnknown exactly as the constant trait method does.
+791	iterate	FAITHFUL	yes	yes	yes	The complete forward split state machine is modeled and proves reconstruction and the documented result limit.
+810	eltype	FAITHFUL	yes	yes	yes	The model returns SubString of the AbstractString source type.
+812	eltype	FAITHFUL	yes	yes	yes	The model returns the existing SubString type without nesting.
+814	iterate	HOLLOW	yes	no	yes	One associated proposition proves only the exhausted-state branch, despite claiming successful chunk construction and advance for the full method.
+820	eachsplit	HOLLOW	no	no	yes	The constructor model takes an already-converted JInt64 and omits conversion of every arbitrary Integer limit into the Int field.
+823	eachsplit	HOLLOW	no	no	yes	The model omits arbitrary-Integer limit conversion and proves only the splitter predicate, not preservation of all constructor fields.
+827	eachsplit	HOLLOW	no	no	yes	The model omits arbitrary-Integer limit conversion and proves only the splitter predicate, not preservation of all constructor fields.
+831	eachsplit	HOLLOW	no	no	yes	The model omits arbitrary-Integer limit conversion and the theorem says only which predicate was stored.
+870	eachrsplit	FAITHFUL	-	-	-	The exclusion is correct because this is only a generic function declaration with no method body.
+879	eltype	FAITHFUL	yes	yes	yes	The type model returns SubString of the reverse iterator's source type.
+880	eltype	FAITHFUL	yes	yes	yes	The specialization model preserves the original parent type without nested SubString.
+882	IteratorSize	FAITHFUL	yes	yes	yes	The model returns SizeUnknown exactly as the constant trait method does.
+884	eachrsplit	HOLLOW	no	no	yes	The reused constructor model omits arbitrary-Integer limit conversion into the Int field.
+887	eachrsplit	HOLLOW	no	no	yes	The reused model omits arbitrary-Integer limit conversion and proves only the character-membership predicate.
+891	eachrsplit	HOLLOW	no	no	yes	The reused model omits arbitrary-Integer limit conversion and proves only the equality predicate.
+895	eachrsplit	HOLLOW	no	no	yes	The reused model omits arbitrary-Integer limit conversion and proves only the whitespace predicate.
+898	Base.iterate	FAITHFUL	yes	yes	yes	The complete reverse split state machine is modeled and proves the documented right-to-left reconstruction.
+958	split	FAITHFUL	yes	yes	yes	The eachsplit and collection models prove reconstruction, result limit, and Integer-limit conversion behavior.
+964	split	HOLLOW	no	no	yes	The wrapper model takes an already-converted JInt64 and proves only stored fields, omitting arbitrary-Integer conversion and collection behavior.
+1001	rsplit	FAITHFUL	yes	yes	yes	The reverse iterator, collection, reversal, and Integer-limit behavior are modeled and prove ordered reconstruction.
+1007	rsplit	HOLLOW	no	no	yes	The wrapper model takes an already-converted JInt64 and proves only stored fields, omitting arbitrary-Integer conversion, collection, and reversal.
+1011	_replace	FAITHFUL	yes	yes	yes	The model appends the literal replacement bytes and returns their exact written count.
+1013	_replace	FAITHFUL	yes	yes	yes	The model follows applicable, position, show/print, and repr/write selection and states the resulting bytes.
+1023	_replace	FAITHFUL	yes	yes	yes	The model applies the function to the matched SubString and recursively dispatches its result.
+1025	_replace	FAITHFUL	yes	yes	yes	The model applies the function to the matched character and recursively dispatches its result.
+1028	_pat_replacer	FAITHFUL	yes	yes	yes	The generic pattern-preparation model returns every pattern unchanged.
+1029	_free_pat_replacer	FAITHFUL	yes	yes	yes	The generic cleanup model returns the unit value corresponding to nothing.
+1031	_pat_replacer	FAITHFUL	yes	yes	yes	The model constructs equality with the supplied character for every candidate.
+1032	_pat_replacer	FAITHFUL	yes	yes	yes	The model constructs membership in the supplied character collection for every candidate.
+1035	_replace_init	HOLLOW	yes	no	yes	The theorem covers only negative counts and omits index initialization, pattern preparation, first-match searches, normalization, and notfound computation.
+1053	_replace_finish	HOLLOW	no	no	yes	The proposition is a free-standing event-list identity with no source, patterns, count state, replacement loop, cleanup semantics, or write result.
+1068	_replace_once	HOLLOW	no	no	yes	The proposition applies the separate top-level replaceN model at count zero and never models _replace_once or any of its branches.
+1107	_replace_	HOLLOW	no	no	yes	The list-pair replaceN wrapper narrows the untyped source and NTuple domain and does not mirror this method's count-zero, initialization, notfound, and finish branches.
+1122	_replace_	HOLLOW	no	no	yes	The proposition relates a separate replacement model only after success and omits this method's IOBuffer allocation and branch order.
+1183	replace	FAITHFUL	yes	yes	yes	The wrapper model converts the source and count in order and invokes the supplied IO engine with unchanged stream and pairs.
+1186	replace	FAITHFUL	yes	yes	yes	The wrapper model converts source and count in order and invokes the String-returning engine with unchanged pairs.
+1235	hex2bytes	FAITHFUL	-	-	-	The exclusion is correct because this is only a generic function declaration with no method body.
+1237	hex2bytes	HOLLOW	no	no	yes	The generic wrapper model omits the asserted Int result of length, its failure, and the concrete Vector allocation semantics.
+1240	hex2bytes!	HOLLOW	yes	no	yes	The theorem covers only the non-ASCII rejection branch and omits delegation and decoding for ordinary ASCII inputs.
+1260	hex2bytes!	HOLLOW	yes	no	yes	The theorem covers only the two length errors and omits the empty return and complete two-elements-per-byte iterator loop.
+1276	number_from_hex	FAITHFUL	yes	yes	yes	The model converts AbstractChar to Char and delegates, relating every successful result to both exact calls.
+1277	number_from_hex	FAITHFUL	yes	yes	yes	The model follows Char codepoint conversion, UInt8 conversion failure, and delegation for every character.
+1278	number_from_hex	HOLLOW	yes	no	yes	The theorem covers only decimal digit bytes and omits alphabetic hex digits and the invalid-byte ArgumentError branches.
+1314	bytes2hex	FAITHFUL	-	-	-	The exclusion is correct because this is only a generic function declaration with no method body.
+1316	bytes2hex	HOLLOW	no	no	yes	The model is restricted to a byte list with eltype already true and omits arbitrary iterator behavior, the eltype error, allocation, and enumerate/store loop.
+1329	bytes2hex	HOLLOW	no	no	yes	The model is restricted to a byte list with eltype already true and omits arbitrary iterator behavior, the eltype error, and per-byte print loop.
+1337	ascii	FAITHFUL	yes	yes	yes	The exact byte loop proves success exactly when every byte is below 0x80 for every String byte sequence.
+1343	__throw_invalid_ascii	HOLLOW	no	no	yes	The proposition only distinguishes an invented invalid constructor from ascii and never models the fixed ArgumentError message or throwing helper.
+1364	ascii	FAITHFUL	yes	yes	yes	The model converts once to String, applies the exact ASCII loop, and characterizes success for every converted byte sequence.
+1366	Base.rest	HOLLOW	no	no	yes	The model stores only parent and start and omits SubString bounds, end selection, default-state conversion, and possible errors.
+1367	Base.rest	FAITHFUL	yes	yes	yes	The model consumes all remaining iterator characters in order, prints each, and returns their concatenated bytes.

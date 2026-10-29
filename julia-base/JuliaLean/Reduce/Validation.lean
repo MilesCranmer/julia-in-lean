@@ -149,7 +149,7 @@ def vecCases : List String := Id.run do
       s!"MAXABS {h} {fmtR fmtV (Vec.maxAbs ty v)}",
       s!"ANY {h} {fmtR fmtV (Vec.any id v)}",
       s!"ALL {h} {fmtR fmtV (Vec.all id v)}",
-      s!"FOLDR {h} {fmtR fmtV (Vec.foldr Val.plus (Vec.emptyPlus ty) v)}"]
+      s!"FOLDR {h} {fmtR fmtV (Vec.foldr Val.plus Val.firstPlus (Vec.emptyPlus ty) v)}"]
     for (iname, init) in inits do
       out := out ++ [
         s!"SUMINIT {iname} {h} {fmtV (Vec.sumInit init v)}",
@@ -171,18 +171,19 @@ def countCases : List String := Id.run do
       out := out ++ [s!"COUNT {iname} {n} => {fmtR fmtV (Vec.countBoolArray init xs)} {fmtV (Vec.countIter init xs)}"]
   return out
 
-def flattenInputs : List (String × List (List Val)) :=
-  [("empty", []), ("one_empty", [[]]), ("two_empty", [[], []]), ("single", [[I .i64 5]]),
-   ("mixed", [[], [I .i64 1, I .i64 2], [], [I .i64 3]]),
-   ("i8", [[I .i8 100, I .i8 100], [I .i8 100]]),
-   ("bool", [[.bool true, .bool true], [.bool true]]),
-   ("f64", [[atom 0, atom 0], [atom 0]]),
-   ("negz", [[atom 5], [atom 5]]),
-   ("wrap", [[I .i64 IntTy.i64.max], [I .i64 1]])]
+def flattenInputs : List (String × Ty × List (List Val)) :=
+  [("empty", .int .i64, []), ("one_empty", .int .i64, [[]]),
+   ("two_empty", .int .i64, [[], []]), ("single", .int .i64, [[I .i64 5]]),
+   ("mixed", .int .i64, [[], [I .i64 1, I .i64 2], [], [I .i64 3]]),
+   ("i8", .int .i8, [[I .i8 100, I .i8 100], [I .i8 100]]),
+   ("bool", .bool, [[.bool true, .bool true], [.bool true]]),
+   ("f64", .f64, [[atom 0, atom 0], [atom 0]]),
+   ("negz", .f64, [[atom 5], [atom 5]]),
+   ("wrap", .int .i64, [[I .i64 IntTy.i64.max], [I .i64 1]])]
 
 def flattenCases : List String :=
-  flattenInputs.map fun (name, vs) =>
-    s!"FLATTEN {name} => {fmtR fmtV (Vec.foldlFlatten Val.addSum Val.firstAddSum vs)}"
+  flattenInputs.map fun (name, ty, vs) =>
+    s!"FLATTEN {name} => {fmtR fmtV (Vec.foldlFlatten Val.addSum Val.firstAddSum Vec.emptyAddSum (.vector ty) vs)}"
 
 def shapes : List (Nat × Nat) := [(0, 0), (0, 3), (3, 0), (1, 1), (1, 20), (2, 3), (20, 2), (3, 2)]
 

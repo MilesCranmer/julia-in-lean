@@ -84,6 +84,37 @@ theorem mrImpl_foldl (f : α → β) (op : β → β → β) (blk : Nat)
     mrImpl f op f blk a rest = rest.foldl (fun v y => op v (f y)) (f a) :=
   mrImpl_foldl_aux f op blk hassoc (rest.length + 1) a rest (Nat.lt_succ_self _)
 
+/-- Changing `reduce_first` on values outside the input does not affect a reduction. -/
+theorem mrImpl_first_congr (f : α → β) (op : β → β → β) (g h : α → β) (blk : Nat) :
+    ∀ (n : Nat) (a : α) (rest : List α), rest.length < n →
+      (∀ x ∈ a :: rest, g x = h x) →
+      mrImpl f op g blk a rest = mrImpl f op h blk a rest
+  | 0, _, _, bound, _ => absurd bound (Nat.not_lt_zero _)
+  | _ + 1, a, [], _, same => by
+    rw [mrImpl_nil, mrImpl_nil]
+    exact same a (by simp)
+  | n + 1, a, b :: rest, bound, same => by
+    by_cases small : rest.length + 1 < blk
+    · rw [mrImpl_small f op g blk a b rest small, mrImpl_small f op h blk a b rest small]
+    · obtain ⟨c, rest2, dropped, lengths⟩ := drop_half_cons b rest
+      simp only [List.length_cons] at bound
+      rw [mrImpl_split f op g blk a b c rest rest2 small dropped,
+        mrImpl_split f op h blk a b c rest rest2 small dropped]
+      congr 1
+      · apply mrImpl_first_congr f op g h blk n a
+        · simp only [List.length_take, List.length_cons]; omega
+        · intro x hx
+          rcases List.mem_cons.mp hx with rfl | hx
+          · exact same x (by simp)
+          · exact same x (List.mem_cons_of_mem _ (List.mem_of_mem_take hx))
+      · apply mrImpl_first_congr f op g h blk n c rest2 (by omega)
+        intro x hx
+        apply same x
+        apply List.mem_cons_of_mem
+        apply List.mem_of_mem_drop
+        rw [dropped]
+        exact hx
+
 section pair
 variable {γ : Type}
 
@@ -174,6 +205,13 @@ theorem foldl_nested {γ δ : Type} (g : γ → δ → γ) :
   | [], _ => rfl
   | v :: vs, init => by
     rw [List.foldl_cons, foldl_nested g vs, List.flatten_cons, List.foldl_append]
+
+theorem flattenEmptySum_proven : FlattenEmptySum := by
+  intro vs h
+  unfold Vec.foldlFlatten
+  dsimp only
+  rw [foldl_nested, h]
+  rfl
 
 theorem foldl_optStep (op : Val → Val → Val) (step : Option Val → Val → Option Val)
     (hs : ∀ a x, step (some a) x = some (op a x)) :

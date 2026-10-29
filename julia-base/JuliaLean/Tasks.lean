@@ -56,11 +56,6 @@ def entries : List Entry := [
     source := "base/asyncmap.jl:5-25,76-129,238-290"
     status := .proven, prop := ``AsyncMapOrdered, thm := some ``asyncMapOrdered_proven
     notes := "The model permits every completion order and indexes each write by the input enumeration index. Differential checks covered ntasks 0, 1, 2, 4, a dynamic worker function, and batch_size 2." },
-  { id := "tasks-linked-list-wellformed", juliaFile := "base/linked_list.jl"
-    juliaFns := ["push!(::ILLRef)", "pop!(::ILLRef)", "list_deletefirst!(::ILLRef)", "_list_deletefirst!"]
-    statement := "For every sequence of push, tail-pop, and identity-delete operations starting from unique node membership, an IntrusiveLinkedList retains unique membership and hence a well-formed head-to-tail chain."
-    source := "base/linked_list.jl:3-13,64-142; intrusive-list invariant"
-    status := .proven, prop := ``LinkedListWellFormed, thm := some ``linkedListWellFormed_proven },
   { id := "tasks-scopedvalues-restore", juliaFile := "base/scopedvalues.jl"
     juliaFns := ["ScopedValues.with", "ScopedValues.@with"]
     statement := "For every outer scope, set of bindings, and normal or exceptional body outcome, with restores every scoped value to the outer scope on exit."

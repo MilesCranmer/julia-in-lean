@@ -1,0 +1,72 @@
+id: rational-input-approximation-tolerance
+title: "rationalize(Int8, 128//1; tol=eps(128.0)/2) returns outside the tolerance"
+priority: P2
+kind: wrong-result
+area: NumbersCov
+files: [base/rational.jl]
+functions: ["rationalize(::Type{T}, x::Rational, tol::Real)", "rationalize(::Type{T}, x::AbstractFloat, tol::Real)"]
+summary: |
+  For x = 128//1 and T = Int8, no Rational{Int8} is within eps(128.0)/2 of x.
+  The Rational-input overload accepts the tolerance and delegates to the floating
+  implementation, which returns 127//1 on the target nightly and 1//0 on Julia
+  1.13.2, both outside the requested tolerance.
+likelihood: |
+  Low: the input must exceed the numerator range of a fixed-width component type,
+  and the requested tolerance must be much smaller than the nearest representable
+  Rational{T}.
+maybe_intended: |
+  The overflow fallback deliberately returns the best semiconvergent representable
+  in T. Issue #52335 questions whether rationalize should instead throw when no
+  result meets tol; the documented tolerance guarantee and fallback behavior remain
+  in tension.
+reproducer: |
+  x = 128 // 1
+  tol = eps(float(x)) / 2
+  q = rationalize(Int8, x; tol=tol)
+  err = abs(float(x) - float(q))
+  # The result is 1//0 or 127//1, and err exceeds tol.
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    Julia 1.13.2
+    rationalize(Int8, 128//1; tol=eps(128.0)/2) = 1//0
+    tolerance = 1.4210854715202004e-14, error = Inf
+    REPRODUCED rational-input-approximation-tolerance
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    Julia 1.15.0-DEV.unknown
+    rationalize(Int8, 128//1; tol=eps(128.0)/2) = 127//1
+    tolerance = 1.4210854715202004e-14, error = 1.0
+    REPRODUCED rational-input-approximation-tolerance
+reproduced: {release: true, nightly: true}
+expected: |
+  Since no Rational{Int8} is within tol of 128, rationalize should throw InexactError
+  rather than return a value whose error exceeds tol.
+promised_by: |
+  The rationalize docstring, base/rational.jl:238-242, says the approximation will
+  differ from x by no more than tol. The Rational-input overload, base/rational.jl:326-332,
+  accepts tol and delegates to the floating implementation after checking the error
+  from converting x to Float64.
+cause: |
+  base/rational.jl:326-332 delegates to rationalize(T, float(x), tol) when the exact
+  numerator or denominator does not fit T and tol is at least eps(float(x))/2. The
+  floating implementation's overflow fallback at base/rational.jl:284-288 returns
+  the best semiconvergent that fits T without checking whether its error exceeds tol.
+  For this input it returns 127//1 on the target nightly; Julia 1.13.2 returns 1//0.
+possible_fix: |
+  Check the error of the overflow fallback against tol and throw InexactError when
+  no Rational{T} meets the requested bound, while retaining the best semiconvergent
+  when it does.
+duplicates:
+  issues:
+    - {number: 52335, state: open, relation: duplicate}
+    - {number: 60768, state: closed, relation: related}
+    - {number: 61138, state: open, relation: related}
+    - {number: 64269, state: open, relation: related}
+    - {number: 61057, state: merged, relation: related}
+    - {number: 61297, state: merged, relation: related}
+    - {number: 60828, state: closed, relation: related}
+  queries: ["issues: rationalize Rational tol overflow", "issues: rationalize Int8 Rational tolerance", "issues: rationalize promises impossible", "issues: rationalize", "prs: rationalize Rational tol overflow", "prs: rationalize Int8 Rational tolerance", "prs: rationalize promises impossible", "prs: rationalize"]
+lean:
+  property: JuliaLean.Proofs.base.rational.RationalInputApproximationTolerance
+  theorem: JuliaLean.Proofs.base.rational.rationalInputApproximationTolerance_refuted

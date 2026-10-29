@@ -21,11 +21,6 @@ line	name	verdict	mirror	property	settled	reason
 122	exponent_half	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behavior.
 123	significand_mask	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behavior.
 125	mantissa	HOLLOW	no	yes	yes	The equation states the significand-bit invariant, but mantissa uses a modulo specification instead of the source reinterpret, mask, and bitwise-and calls.
-131	significand_bits	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behavior.
-132	exponent_bits	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behavior.
-133	exponent_bias	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behavior.
-135	exponent_max	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behavior.
-137	exponent_raw_max	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behavior.
 154	exponent_max	FAITHFUL	-	-	-	no-behaviour: declares the generic function without a method body.
 162	exponent_raw_max	FAITHFUL	-	-	-	no-behaviour: declares the generic function without a method body.
 167	ieee754_exponent_min	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behavior.
@@ -40,10 +35,6 @@ line	name	verdict	mirror	property	settled	reason
 235	uabs	HOLLOW	no	no	yes	The Value-based fixed-width uabs model omits generic Integer inputs and does not mirror this method's direct abs call.
 236	uabs	HOLLOW	no	no	yes	The model admits every runtime integer type and branches on signedness instead of encoding the BitSigned type invariant and direct unsigned(abs(x)) body.
 241	Float16	HOLLOW	no	no	yes	The arbitrary toFloat32 function is not tied to Julia's two convert calls or to Integer inputs, so neither the method body nor its conversion contract is established.
-246	(::Type{$t1})	HOLLOW	no	no	yes	The generic IntTy dispatcher includes conversion methods outside this generated source family, so it is not a model or property of this row's fixed signedness domain.
-247	promote_rule	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behavior.
-252	(::Type{$t1})	HOLLOW	no	no	yes	The generic IntTy dispatcher includes conversion methods outside this generated source family, so it is not a model or property of this row's fixed signedness domain.
-253	promote_rule	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behavior.
 258	promote_rule	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behavior.
 259	promote_rule	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behavior.
 260	promote_rule	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behavior.
@@ -70,8 +61,6 @@ line	name	verdict	mirror	property	settled	reason
 386	float	HOLLOW	no	no	yes	Option.none is used as an unexplained surrogate for Union{}, so the proposition has no Lean function or invariant for the returned Julia type.
 387	float	HOLLOW	no	no	yes	The error model records only a function name and omits the source MethodError argument tuple and variadic arguments.
 406	unsafe_trunc	FAITHFUL	-	-	-	no-behaviour: declares the generic function without a method body.
-410	unsafe_trunc	HOLLOW	no	no	yes	The model replaces the source conversion body with exact truncation plus wrapping and fixes undocumented out-of-range results without a representability precondition.
-415	unsafe_trunc	HOLLOW	no	no	yes	The model replaces the source conversion body with exact truncation plus wrapping and fixes undocumented out-of-range results without a representability precondition.
 419	unsafe_trunc	HOLLOW	no	no	yes	The model replaces the source conversion body with exact truncation plus wrapping and fixes undocumented out-of-range results without a representability precondition.
 431	unsafe_trunc	HOLLOW	no	no	yes	The model replaces the source conversion body with exact truncation plus wrapping and fixes undocumented out-of-range results without a representability precondition.
 435	unsafe_trunc	HOLLOW	no	no	yes	The model replaces the source conversion body with exact truncation plus wrapping and fixes undocumented out-of-range results without a representability precondition.
@@ -113,18 +102,6 @@ line	name	verdict	mirror	property	settled	reason
 619	isequal	HOLLOW	no	yes	yes	The equation states the IEEE comparison invariant, but the Lean operation is a hand-written bit-level specification rather than the cited primitive call.
 622	_fpint	HOLLOW	no	yes	yes	The equation states the sign-magnitude key invariant, but the helper replaces reinterpret, eager ifelse, xor, and typemax with a different arithmetic formula.
 629	isless	HOLLOW	no	yes	yes	The equation states the total-order invariant, but Fl.isless replaces the source NaN branch and two ordered _fpint calls with a hand-written bit-order specification.
-652	==	HOLLOW	no	yes	yes	The equation states the mixed comparison invariant, but the generic rule dispatcher is not the cited generated body and does not preserve its eager bitwise call sequence.
-656	==	HOLLOW	no	yes	yes	The equation states the mixed comparison invariant, but the generic rule dispatcher is not the cited generated body and does not preserve its eager bitwise call sequence.
-658	<	HOLLOW	no	yes	yes	The equation states the mixed comparison invariant, but the generic rule dispatcher is not the cited generated body and does not preserve its eager bitwise call sequence.
-662	<=	HOLLOW	no	yes	yes	The equation states the mixed comparison invariant, but the generic rule dispatcher is not the cited generated body and does not preserve its eager bitwise call sequence.
-667	<	HOLLOW	no	yes	yes	The equation states the mixed comparison invariant, but the generic rule dispatcher is not the cited generated body and does not preserve its eager bitwise call sequence.
-671	<=	HOLLOW	no	yes	yes	The equation states the mixed comparison invariant, but the generic rule dispatcher is not the cited generated body and does not preserve its eager bitwise call sequence.
-680	$op	HOLLOW	no	yes	yes	The equation states the promoted comparison result, but the generic rule dispatcher is not this row's fixed conversion-and-redispatch body.
-681	$op	HOLLOW	no	yes	yes	The equation states the promoted comparison result, but the generic rule dispatcher is not this row's fixed conversion-and-redispatch body.
-683	$op	HOLLOW	no	yes	yes	The equation states the promoted comparison result, but the generic rule dispatcher is not this row's fixed conversion-and-redispatch body.
-684	$op	HOLLOW	no	yes	yes	The equation states the promoted comparison result, but the generic rule dispatcher is not this row's fixed conversion-and-redispatch body.
-686	$op	HOLLOW	no	yes	yes	The equation states the promoted comparison result, but the generic rule dispatcher is not this row's fixed conversion-and-redispatch body.
-687	$op	HOLLOW	no	yes	yes	The equation states the promoted comparison result, but the generic rule dispatcher is not this row's fixed conversion-and-redispatch body.
 692	abs	HOLLOW	no	yes	yes	The equation states absolute-value behavior, but clearing the sign bit is a hand-written specification rather than the source abs_float primitive call.
 702	isnan	HOLLOW	no	no	yes	An arbitrary ne function stands for x != x, so the proposition neither identifies the source comparison nor states isnan behavior.
 703	isnan	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behavior.
@@ -150,10 +127,6 @@ line	name	verdict	mirror	property	settled	reason
 863	nextfloat	HOLLOW	no	no	yes	The Lean function adds an arbitrary distance argument and therefore models nextfloat(x,d), not the cited one-argument nextfloat(x) body.
 871	prevfloat	FAITHFUL	yes	yes	yes	The Lean function follows this method body and its proved equation states the all-input behavior.
 879	prevfloat	HOLLOW	no	no	yes	The Lean function adds an arbitrary distance and calls prevFloat, while the cited body calls nextfloat(x,-1).
-888	round	HOLLOW	no	yes	yes	The equation states checked conversion behavior, but one dynamic helper combines both generator branches and is not this row's fixed generated method body.
-895	(::Type{$Ti})	HOLLOW	no	yes	yes	The equation states checked conversion behavior, but one dynamic helper combines both generator branches and is not this row's fixed generated method body.
-914	round	HOLLOW	no	yes	yes	The equation states checked conversion behavior, but one dynamic helper combines both generator branches and is not this row's fixed generated method body.
-921	(::Type{$Ti})	HOLLOW	no	yes	yes	The equation states checked conversion behavior, but one dynamic helper combines both generator branches and is not this row's fixed generated method body.
 953	issubnormal	HOLLOW	no	yes	yes	The equation states the documented subnormal predicate, but field access replaces the source reinterpret, masks, and bitwise tests.
 958	ispow2	HOLLOW	no	yes	yes	The equation states the power-of-two predicate, but a direct bit-pattern test replaces the source iszero and frexp call chain.
 959	iseven	HOLLOW	no	yes	yes	The equation states the parity invariant, but direct truncated-integer parity replaces the source maxintfloat, conversion, and recursive parity calls.

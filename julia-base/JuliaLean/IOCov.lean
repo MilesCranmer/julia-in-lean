@@ -327,18 +327,6 @@ def existingEntries : List Entry := [
     statement := "On a line without carriage returns, copyline copies the bytes before the newline and consumes the newline."
     source := "base/io.jl:719-779 (copyline docstring)"
     status := .proven, prop := ``Io.CopylinePlain, thm := some ``Io.copylinePlain },
-  { id := "iocov-iobuffer-show-compacted", juliaFile := "base/iobuffer.jl"
-    juliaFns := ["show(::IO, ::GenericIOBuffer)"]
-    statement := "The ptr printed by show(::IOBuffer) is the read position plus one, as the skipchars docstring example shows."
-    source := "base/io.jl:1628-1632 (skipchars docstring example)"
-    status := .refuted, prop := ``IOBuf.ShowPtrPosition, thm := some ``IOBuf.showPtrPosition_refuted
-    issue := "none found (queries: IOBuffer show ptr, IOBuffer show compacted)"
-    notes := "show subtracts get_offset, which is 0 after compaction, so a compacted PipeBuffer prints internal indices. Same on 1.13.2." },
-  { id := "iocov-iobuffer-show", juliaFile := "base/iobuffer.jl"
-    juliaFns := ["show(::IO, ::GenericIOBuffer)", "get_offset", "get_compacted"]
-    statement := "For a buffer that was never compacted, show prints ptr = position + 1 and the size relative to the offset."
-    source := "base/iobuffer.jl:334-342 (invariant)"
-    status := .proven, prop := ``IOBuf.ShowUncompacted, thm := some ``IOBuf.showUncompacted },
   { id := "iocov-libc-rawfd-int", juliaFile := "base/libc.jl"
     juliaFns := ["RawFD(::Integer)"]
     statement := "RawFD(fd) accepts exactly the Int32 range and throws InexactError otherwise."

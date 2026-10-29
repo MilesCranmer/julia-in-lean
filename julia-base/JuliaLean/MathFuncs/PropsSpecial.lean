@@ -32,9 +32,34 @@ theorem powNegZeroOddSign_refuted : ¬ powNegZeroOddSign := by
 below `-1074`, `exp2(x)` rounds to `+0.0`. -/
 def exp2Int128Underflow : Prop := ∀ x : JInt .i128, x.val < -1074 → exp2Int x = F64.zero
 
-theorem exp2Int128Underflow_refuted : ¬ exp2Int128Underflow := by
+theorem exp2Int128Underflow_proven : exp2Int128Underflow := by
+  intro x hx
+  simp [exp2Int, show ¬ x.val > 1023 by omega, hx]
+
+/-- The same underflow contract on the previous pinned implementation. -/
+def exp2Int128UnderflowLegacy : Prop :=
+  ∀ x : JInt .i128, x.val < -1074 → exp2IntLegacy x = F64.zero
+
+theorem exp2Int128Underflow_refuted : ¬ exp2Int128UnderflowLegacy := by
   intro h
   exact absurd (h (JInt.wrap .i128 (-2^64 - 1069)) (by decide)) (by decide)
+
+/-- Every fixed-width integer exponent below the binary64 subnormal range underflows to zero. -/
+def exp2BitIntegerUnderflow : Prop :=
+  ∀ (t : IntTy) (x : JInt t), x.val < -1074 → exp2Int x = F64.zero
+
+theorem exp2BitIntegerUnderflow_proven : exp2BitIntegerUnderflow := by
+  intro t x hx
+  simp [exp2Int, show ¬ x.val > 1023 by omega, hx]
+
+/-- For every fixed-width integer, `exp2` is the correctly rounded power of two:
+outside the representable exponent range it is infinity or zero, and within that
+range it is the exact value obtained by scaling one. -/
+def exp2BitIntegerExact : Prop :=
+  ∀ (t : IntTy) (x : JInt t),
+    exp2Int x = if x.val > 1023 then F64.inf
+      else if x.val < -1074 then F64.zero
+      else F64.ldexp F64.one x.val
 
 /-- `mod2pi(x::Float32) = rem2pi(x, RoundDown) = Float32(rem2pi(Float64(x), RoundDown))`;
 `base/math.jl:1241`, `base/special/rem2pi.jl:133`. -/

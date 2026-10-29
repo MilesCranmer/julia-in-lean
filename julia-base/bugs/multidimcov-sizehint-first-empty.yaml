@@ -1,0 +1,60 @@
+id: multidimcov-sizehint-first-empty
+title: "sizehint!(v, n; first=true) throws BoundsError when v is empty but has spare capacity"
+priority: P1
+kind: wrong-result
+area: MultidimCov
+files: [base/array.jl]
+functions: ["sizehint!(::Vector, ::Integer; first=true, shrink=true)"]
+summary: |
+  When a vector has length 0 but its memory is more than 1/8 larger than the requested
+  size, sizehint!(v, n; first=true) takes the shrink branch, allocates new memory of
+  length n and then asks for memoryref(newmem, n + 1), which is past the end. The call
+  throws BoundsError instead of returning v. sizehint!(v, 0; first=true) fails the same
+  way on a 0-element memory.
+likelihood: |
+  Needs first=true (new in 1.11) on an emptied vector that previously held more
+  elements, for example a buffer reused with empty! before refilling it with pushfirst!.
+  Plausible in queue-like code; every such call fails.
+maybe_intended: ""
+reproducer: |
+  a = collect(1:100)
+  empty!(a)
+  sizehint!(a, 10; first=true)
+output:
+  release: |
+    error = BoundsError: attempt to access 10-element Memory{Int64} at index [11]
+    REPRODUCED multidimcov-sizehint-first-empty
+  nightly: |
+    error = BoundsError: attempt to access 10-element Memory{Int64} at index [11]
+    REPRODUCED multidimcov-sizehint-first-empty
+reproduced: {release: true, nightly: true}
+expected: |
+  The call returns a unchanged (still empty), possibly with less capacity.
+promised_by: |
+  base/array.jl:1581: "sizehint!(s, n; first::Bool=false, shrink::Bool=true) -> s.
+  Suggest that collection s reserve capacity for at least n elements." The hint must
+  return s and never change its contents; nothing allows it to throw for an ordinary
+  vector and non-negative n.
+cause: |
+  base/array.jl:1631-1632: in the shrink branch with first=true, newref =
+  memoryref(newmem, inc + 1) with inc = sz - len. For len == 0 this is index sz + 1 of a
+  memory of length sz, and memoryref is bounds-checked, so it throws even though there
+  are no elements to copy.
+possible_fix: |
+  Use @inbounds memoryref(newmem, inc + 1) (the following unsafe_copyto! of len == 0
+  elements is a no-op), or skip the shrink entirely when len == 0 and first is true.
+duplicates:
+  issues: []
+  queries: ["sizehint first", "sizehint! first", "sizehint BoundsError", "sizehint shrink", "sizehint"]
+lean:
+  property: JuliaLean.MultidimCov.ArrayV2.P1617
+  theorem: JuliaLean.MultidimCov.ArrayV2.p1617_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: false
+  output: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    result = Int64[]
+    NOT REPRODUCED
+    sizehint preservation and conversion error: OK
+  proof: JuliaLean.MultidimCov.ArrayV2.p1617

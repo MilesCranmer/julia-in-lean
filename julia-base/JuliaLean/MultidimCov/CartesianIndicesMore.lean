@@ -66,15 +66,6 @@ theorem cartesianIndicesMoreRows : CartesianIndicesMoreRows := by
     cartesianSimdOuterBody, cartesianSimdInnerZeroBody, cartesianSimdInnerBody,
     cartesianSimdIndexZeroBody]
 
-def cartesianIndicesMoreEntries : List Entry := [
-  { id := "multidimcov-cartesianindices-more-exact"
-    juliaFile := "base/multidimensional.jl"
-    juliaFns := ["CartesianIndices empty construction, equality, axes, indexing, membership, copy, and SIMD helpers"]
-    statement := "The direct CartesianIndices methods return their componentwise axes, coordinates, membership, or SIMD metadata for every input."
-    source := "base/multidimensional.jl:298-518"
-    status := .proven
-    prop := ``CartesianIndicesMoreRows
-    thm := some ``cartesianIndicesMoreRows }
-]
+def cartesianIndicesMoreEntries : List Entry := []
 
 end JuliaLean.MultidimCov

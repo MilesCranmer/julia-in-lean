@@ -1,120 +1,120 @@
 file	line	endline	name	signature	status	entry	note
-base/precompilation.jl	20	28	setup_precompile_jobserver!	setup_precompile_jobserver!(ntokens::Int)	modelled	runtimecov-precomp-jobserver	method-specific source model and settled invariant.
-base/precompilation.jl	30	34	teardown_precompile_jobserver!	teardown_precompile_jobserver!()	modelled	runtimecov-precomp-jobserver	method-specific source model and settled invariant.
-base/precompilation.jl	62	63	WorkerLimiter	WorkerLimiter(max::Int, jobserver::Bool)	modelled	runtimecov-precomp-jobserver	method-specific source model and settled invariant.
-base/precompilation.jl	75	96	_jobserver_acquire_baseline	_jobserver_acquire_baseline(w::WorkerLimiter; cancel=Returns(false))	modelled	runtimecov-precomp-jobserver	method-specific source model and settled invariant.
-base/precompilation.jl	98	108	_jobserver_release_baseline	_jobserver_release_baseline(w::WorkerLimiter)	modelled	runtimecov-precomp-jobserver	method-specific source model and settled invariant.
-base/precompilation.jl	110	122	_acquire_slot	_acquire_slot(w::WorkerLimiter, priority::Float64)	modelled	runtimecov-precomp-worker-limiter	method-specific source model and settled invariant.
-base/precompilation.jl	124	130	_release_slot	_release_slot(w::WorkerLimiter)	modelled	runtimecov-precomp-worker-limiter	method-specific source model and settled invariant.
-base/precompilation.jl	132	143	Base.acquire	Base.acquire(w::WorkerLimiter; priority::Float64=0.0, cancel=Returns(false))	modelled	runtimecov-precomp-worker-limiter	method-specific source model and settled invariant.
-base/precompilation.jl	145	149	Base.release	Base.release(w::WorkerLimiter)	modelled	runtimecov-precomp-worker-limiter	method-specific source model and settled invariant.
-base/precompilation.jl	151	158	Base.acquire	Base.acquire(f, w::WorkerLimiter; priority::Float64=0.0, cancel=Returns(false))	modelled	runtimecov-precomp-worker-limiter	method-specific source model and settled invariant.
-base/precompilation.jl	183	183	PrecompileJob	PrecompileJob()	modelled	runtimecov-precomp-job-state	method-specific source model and settled invariant.
-base/precompilation.jl	186	186	is_pending	is_pending(j::PrecompileJob)	modelled	runtimecov-precomp-job-state	method-specific source model and settled invariant.
-base/precompilation.jl	187	187	is_started	is_started(j::PrecompileJob)	modelled	runtimecov-precomp-job-state	method-specific source model and settled invariant.
-base/precompilation.jl	188	188	is_recompiled	is_recompiled(j::PrecompileJob)	modelled	runtimecov-precomp-job-state	method-specific source model and settled invariant.
-base/precompilation.jl	189	189	is_soft_error	is_soft_error(j::PrecompileJob)	modelled	runtimecov-precomp-job-state	method-specific source model and settled invariant.
-base/precompilation.jl	190	190	is_failed	is_failed(j::PrecompileJob)	modelled	runtimecov-precomp-job-state	method-specific source model and settled invariant.
-base/precompilation.jl	191	191	is_dep_failed	is_dep_failed(j::PrecompileJob)	modelled	runtimecov-precomp-job-state	method-specific source model and settled invariant.
-base/precompilation.jl	192	192	has_pid	has_pid(j::PrecompileJob)	modelled	runtimecov-precomp-job-state	method-specific source model and settled invariant.
-base/precompilation.jl	193	193	had_pid	had_pid(j::PrecompileJob)	modelled	runtimecov-precomp-job-state	method-specific source model and settled invariant.
-base/precompilation.jl	194	194	is_locked	is_locked(j::PrecompileJob)	modelled	runtimecov-precomp-job-state	method-specific source model and settled invariant.
-base/precompilation.jl	195	195	is_waiting	is_waiting(j::PrecompileJob)	modelled	runtimecov-precomp-job-state	method-specific source model and settled invariant.
-base/precompilation.jl	197	197	mark_started!	mark_started!(j::PrecompileJob, t::Float64=time())	modelled	runtimecov-precomp-job-updates	method-specific source model and settled invariant.
-base/precompilation.jl	198	198	mark_recompiled!	mark_recompiled!(j::PrecompileJob)	modelled	runtimecov-precomp-job-updates	method-specific source model and settled invariant.
-base/precompilation.jl	199	199	mark_soft_error!	mark_soft_error!(j::PrecompileJob)	modelled	runtimecov-precomp-job-updates	method-specific source model and settled invariant.
-base/precompilation.jl	200	200	mark_failed!	mark_failed!(j::PrecompileJob, msg::String)	modelled	runtimecov-precomp-job-updates	method-specific source model and settled invariant.
-base/precompilation.jl	202	202	mark_dep_failed!	mark_dep_failed!(j::PrecompileJob, root::String)	modelled	runtimecov-precomp-job-updates	method-specific source model and settled invariant.
-base/precompilation.jl	203	203	set_pid!	set_pid!(j::PrecompileJob, pid::Int32)	modelled	runtimecov-precomp-job-updates	method-specific source model and settled invariant.
-base/precompilation.jl	204	204	clear_pid!	clear_pid!(j::PrecompileJob)	modelled	runtimecov-precomp-job-updates	method-specific source model and settled invariant.
-base/precompilation.jl	206	210	clear_failure!	clear_failure!(j::PrecompileJob)	modelled	runtimecov-precomp-job-updates	method-specific source model and settled invariant.
-base/precompilation.jl	336	336	Base.lock	Base.lock(f, bg::BackgroundPrecompileState)	modelled	runtimecov-precomp-background-lock	method-specific source model and settled invariant.
-base/precompilation.jl	337	337	Base.lock	Base.lock(bg::BackgroundPrecompileState)	modelled	runtimecov-precomp-background-lock	method-specific source model and settled invariant.
-base/precompilation.jl	338	338	Base.unlock	Base.unlock(bg::BackgroundPrecompileState)	modelled	runtimecov-precomp-background-lock	method-specific source model and settled invariant.
-base/precompilation.jl	354	354	ansi_moveup	ansi_moveup(n::Int)	modelled	runtimecov-precomp-formatting	method-specific source model and settled invariant.
-base/precompilation.jl	359	359	Base.showerror	Base.showerror(io::IO, err::PkgPrecompileError)	modelled	runtimecov-precomp-formatting	method-specific source model and settled invariant.
-base/precompilation.jl	360	360	Base.showerror	Base.showerror(io::IO, err::PkgPrecompileError, bt; kw...)	modelled	runtimecov-precomp-formatting	method-specific source model and settled invariant.
-base/precompilation.jl	363	363	Base.show	Base.show(io::IO, err::PkgPrecompileError)	modelled	runtimecov-precomp-formatting	method-specific source model and settled invariant.
-base/precompilation.jl	365	365	can_fancyprint	can_fancyprint(io::IO)	modelled	runtimecov-precomp-formatting	method-specific source model and settled invariant.
-base/precompilation.jl	371	371	unstable_iocontext	unstable_iocontext(io::IOContext{IO})	modelled	runtimecov-precomp-formatting	method-specific source model and settled invariant.
-base/precompilation.jl	372	372	unstable_iocontext	unstable_iocontext(io::IOContext)	modelled	runtimecov-precomp-formatting	method-specific source model and settled invariant.
-base/precompilation.jl	373	373	unstable_iocontext	unstable_iocontext(io::IO)	modelled	runtimecov-precomp-formatting	method-specific source model and settled invariant.
-base/precompilation.jl	375	380	printpkgstyle	printpkgstyle(io, header, msg; color=:green)	modelled	runtimecov-precomp-formatting	method-specific source model and settled invariant.
-base/precompilation.jl	382	382	timing_string	timing_string(t)	modelled	runtimecov-precomp-formatting	method-specific source model and settled invariant.
-base/precompilation.jl	390	438	format_verbose_timing	format_verbose_timing(payload::AbstractString, total_seconds::Float64, cache_bytes::Int, peak_rss_bytes::UInt64, hascolor::Bool)	modelled	runtimecov-precomp-formatting-more	method-specific source model and settled invariant.
-base/precompilation.jl	417	417	dim	dim(s, isz)	modelled	runtimecov-precomp-formatting-more	method-specific source model and settled invariant.
-base/precompilation.jl	418	427	col	col(x)	modelled	runtimecov-precomp-formatting-more	method-specific source model and settled invariant.
-base/precompilation.jl	442	442	format_verbose_timing_header	format_verbose_timing_header()	modelled	runtimecov-precomp-formatting	method-specific source model and settled invariant.
-base/precompilation.jl	446	454	_precompile_cache_bytes	_precompile_cache_bytes(cf_jl::AbstractString, cf_so::Union{Nothing,AbstractString})	modelled	runtimecov-precomp-cache-bytes	method-specific source model and settled invariant.
-base/precompilation.jl	458	466	color_string	color_string(cstr::String, col::Union{Int64, Symbol}, hascolor)	modelled	runtimecov-precomp-formatting	method-specific source model and settled invariant.
-base/precompilation.jl	486	486	start_progress	start_progress(io::IO, _::MiniProgressBar)	modelled	runtimecov-precomp-progress-boundaries	method-specific source model and settled invariant.
-base/precompilation.jl	488	536	show_progress	show_progress(io::IO, p::MiniProgressBar; termwidth=nothing, carriagereturn=true)	modelled	runtimecov-precomp-formatting-more	method-specific source model and settled invariant.
-base/precompilation.jl	538	538	end_progress	end_progress(io, p::MiniProgressBar)	modelled	runtimecov-precomp-progress-boundaries	method-specific source model and settled invariant.
-base/precompilation.jl	540	540	print_progress_bottom	print_progress_bottom(io::IO)	modelled	runtimecov-precomp-progress-boundaries	method-specific source model and settled invariant.
-base/precompilation.jl	567	567	ExplicitEnv	ExplicitEnv()	modelled	runtimecov-precomp-environment	method-specific source model and settled invariant.
-base/precompilation.jl	568	580	ExplicitEnv	"ExplicitEnv(::Nothing, envpath::String="""")"	modelled	runtimecov-precomp-environment	method-specific source model and settled invariant.
-base/precompilation.jl	581	810	ExplicitEnv	ExplicitEnv(envpath::String)	modelled	runtimecov-precomp-environment	method-specific source model and settled invariant.
-base/precompilation.jl	812	822	collect_workspace_deps	collect_workspace_deps(project_file::String)	modelled	runtimecov-precomp-environment	method-specific source model and settled invariant.
-base/precompilation.jl	824	850	collect_workspace_deps!	collect_workspace_deps!(workspace_deps::Dict{UUID, String}, seen::Set{String}, project_file::String)	modelled	runtimecov-precomp-environment	method-specific source model and settled invariant.
-base/precompilation.jl	859	911	fixup_stdlib_deps!	fixup_stdlib_deps!(deps::Dict{UUID, Vector{UUID}}, weakdeps::Dict{UUID, Vector{UUID}}, extensions::Dict{UUID, Dict{String, Vector{UUID}}}, names::Dict{UUID, String}, lookup_strategy::Dict{UUID, Union{SHA1, String, Nothing, Missing}})	modelled	runtimecov-precomp-environment	method-specific source model and settled invariant.
-base/precompilation.jl	916	922	full_name	full_name(ext_to_parent::Dict{PkgId, PkgId}, pkg::PkgId)	modelled	runtimecov-precomp-graph	method-specific source model and settled invariant.
-base/precompilation.jl	924	957	excluded_circular_deps_explanation	excluded_circular_deps_explanation(io::IOContext, ext_to_parent::Dict{PkgId, PkgId}, circular_deps, cycles)	modelled	runtimecov-precomp-graph	method-specific source model and settled invariant.
-base/precompilation.jl	960	966	scan_pkg!	scan_pkg!(stack, could_be_cycle, cycles, pkg, dmap)	modelled	runtimecov-scan-deps-unreported-cycle	method-specific source model and settled invariant.
-base/precompilation.jl	967	992	scan_deps!	scan_deps!(stack, could_be_cycle, cycles, pkg, dmap)	modelled	runtimecov-scan-deps-unreported-cycle	method-specific source model and settled invariant.
-base/precompilation.jl	995	1003	collect_all_deps	collect_all_deps(direct_deps, dep, alldeps=Set{Base.PkgId}())	modelled	runtimecov-precomp-graph	method-specific source model and settled invariant.
-base/precompilation.jl	1005	1018	visit_indirect_deps!	visit_indirect_deps!(direct_deps::Dict{PkgId, Vector{PkgId}}, visited::Set{PkgId}, node::PkgId, all_deps::Set{PkgId})	modelled	runtimecov-precomp-graph	method-specific source model and settled invariant.
-base/precompilation.jl	1022	1141	build_dep_graph	build_dep_graph(env::ExplicitEnv, manifest::Bool, _from_loading::Bool, requested_pkgids::Vector{PkgId})	modelled	runtimecov-precomp-graph	method-specific source model and settled invariant.
-base/precompilation.jl	1145	1164	detect_circular_deps!	detect_circular_deps!(direct_deps, serial_deps, was_processed, io, ext_to_parent)	modelled	runtimecov-precomp-graph	method-specific source model and settled invariant.
-base/precompilation.jl	1168	1190	filter_dep_graph!	filter_dep_graph!(direct_deps, pkg_names, ext_to_parent, requested_pkgids)	modelled	runtimecov-precomp-graph	method-specific source model and settled invariant.
-base/precompilation.jl	1193	1196	preresolved_snapshot	preresolved_snapshot(s::PrecompileSession)	modelled	runtimecov-precomp-graph	method-specific source model and settled invariant.
-base/precompilation.jl	1199	1204	checked_now!	checked_now!(s::PrecompileSession, path::String)	modelled	runtimecov-precomp-graph	method-specific source model and settled invariant.
-base/precompilation.jl	1337	1368	precompilepkgs	precompilepkgs(pkgs::Union{Vector{String}, Vector{PkgId}}=String[]; internal_call::Bool=false, strict::Bool = false, warn_loaded::Bool = true, timing::Bool = false, verbose::Bool = false, _from_loading::Bool=false, _reasons::Dict{Symbol,Int}=Dict{Symbol,Int}(), configs::Union{Config,Vector{Config}}=(``=>Base.CacheFlags()), io::IO=stderr, # asking for timing disables fancy mode, as timing is shown in non-fancy mode; # verbose implies timing (see below), so also disables fancy mode fancyprint::Bool = can_fancyprint(io) && !timing && !verbose, manifest::Bool=false, ignore_loaded::Bool=true, detachable::Bool=false, skip_dependents::Bool=true, force::Bool=false, # undocumented: `force` for stdlibs too. Warning: their new cache files land in # the user depot rather than the one julia ships them in, and shadow those from then on force_stdlibs::Bool=false)	modelled	runtimecov-precomp-public-background	method-specific source model and settled invariant.
-base/precompilation.jl	1384	1395	precompile_for_loading	precompile_for_loading(into::Module, names::Vector{Symbol})	modelled	runtimecov-precomp-loading-background	method-specific source model and settled invariant.
-base/precompilation.jl	1397	1455	_precompile_for_loading	_precompile_for_loading(into::Module, names::Vector{Symbol})	modelled	runtimecov-precomp-loading-background	method-specific source model and settled invariant.
-base/precompilation.jl	1417	1418	available	available(uuid::UUID)	modelled	runtimecov-precomp-loading-background	method-specific source model and settled invariant.
-base/precompilation.jl	1449	1449	label	label(pkg)	modelled	runtimecov-precomp-loading-background	method-specific source model and settled invariant.
-base/precompilation.jl	1459	1461	is_precompiling_in_background	is_precompiling_in_background()	modelled	runtimecov-precomp-public-background	method-specific source model and settled invariant.
-base/precompilation.jl	1466	1472	is_package_pending	is_package_pending(pkg::PkgId)	modelled	runtimecov-precomp-public-background	method-specific source model and settled invariant.
-base/precompilation.jl	1476	1481	wait_for_pending_package	wait_for_pending_package(pkg::PkgId)	modelled	runtimecov-precomp-loading-background	method-specific source model and settled invariant.
-base/precompilation.jl	1484	1490	broadcast_signal	broadcast_signal(sig::Int32)	modelled	runtimecov-precomp-loading-background	method-specific source model and settled invariant.
-base/precompilation.jl	1491	1491	broadcast_signal	broadcast_signal(sig::Integer)	modelled	runtimecov-precomp-loading-background	method-specific source model and settled invariant.
-base/precompilation.jl	1495	1501	mark_completed_pkgid!	mark_completed_pkgid!(pkg::PkgId)	modelled	runtimecov-precomp-public-background	method-specific source model and settled invariant.
-base/precompilation.jl	1503	1517	stop_background_precompile	stop_background_precompile(; graceful::Bool = true)	modelled	runtimecov-precomp-public-background	method-specific source model and settled invariant.
-base/precompilation.jl	1535	1548	keyboard_tip	keyboard_tip(s::BackgroundPrecompileState)	modelled	runtimecov-precomp-loading-background	method-specific source model and settled invariant.
-base/precompilation.jl	1550	1553	monitor_background_precompile	monitor_background_precompile(io::IO = stderr, detachable::Bool = true, wait_for_pkg::Union{Nothing, PkgId} = nothing; key_controls::Union{Bool, Nothing} = nothing)	modelled	runtimecov-precomp-loading-background	method-specific source model and settled invariant.
-base/precompilation.jl	1555	1847	_monitor_background_precompile	_monitor_background_precompile(io::IOContext{IO}, detachable::Bool, wait_for_pkg::Union{Nothing, PkgId}; key_controls::Union{Bool, Nothing})	modelled	runtimecov-precomp-loading-background	method-specific source model and settled invariant.
-base/precompilation.jl	1852	1858	stop_monitoring_unless_waited_on	stop_monitoring_unless_waited_on(counted::Bool)	modelled	runtimecov-precomp-loading-background	method-specific source model and settled invariant.
-base/precompilation.jl	1860	1963	launch_background_precompile	launch_background_precompile(pkgs::Union{Vector{String}, Vector{PkgId}}, internal_call::Bool, strict::Bool, warn_loaded::Bool, timing::Bool, verbose::Bool, _from_loading::Bool, _reasons::Dict{Symbol,Int}, configs::Vector{Config}, io::IOContext, fancyprint::Bool, manifest::Bool, ignore_loaded::Bool, detachable::Bool, skip_dependents::Bool, force::Bool, force_stdlibs::Bool)	modelled	runtimecov-precomp-public-background	method-specific source model and settled invariant.
-base/precompilation.jl	1965	1971	_collect_reachable!	_collect_reachable!(pkg_uuids::Set{UUID}, deps::Dict{UUID, Vector{UUID}}, uuid::UUID)	modelled	runtimecov-precomp-loading-background	method-specific source model and settled invariant.
-base/precompilation.jl	1973	2063	_precompilepkgs	_precompilepkgs(pkgs::Union{Vector{String}, Vector{PkgId}}, internal_call::Bool, strict::Bool, warn_loaded::Bool, timing::Bool, verbose::Bool, _from_loading::Bool, _reasons::Dict{Symbol,Int}, configs::Vector{Config}, io::IOContext, fancyprint′::Bool, manifest::Bool, ignore_loaded::Bool, detachable::Bool, skip_dependents::Bool, force::Bool, force_stdlibs::Bool)	modelled	runtimecov-precomp-public-background	method-specific source model and settled invariant.
-base/precompilation.jl	2079	2122	process_stats	process_stats(pid::Int32)	modelled	runtimecov-precomp-process-display	method-specific source model and settled invariant.
-base/precompilation.jl	2126	2154	poll_process_stats!	poll_process_stats!(cpu_pcts::Dict{Int32, Float64}, rss::Dict{Int32, UInt64}, prev_cpu_times::Dict{Int32, UInt64}, jobs::Dict{PkgConfig, PrecompileJob}, dt::Float64)	modelled	runtimecov-precomp-messages	method-specific source model and settled invariant.
-base/precompilation.jl	2159	2175	sample_peak_rss!	sample_peak_rss!(jobs::Dict{PkgConfig, PrecompileJob})	modelled	runtimecov-precomp-process-display	method-specific source model and settled invariant.
-base/precompilation.jl	2177	2194	should_stop	should_stop(s::PrecompileSession)	modelled	runtimecov-precomp-process-display	method-specific source model and settled invariant.
-base/precompilation.jl	2196	2200	make_signal_channel	make_signal_channel()	modelled	runtimecov-precomp-process-display	method-specific source model and settled invariant.
-base/precompilation.jl	2202	2217	describe_pkg	describe_pkg(s::PrecompileSession, pkg::PkgId, is_project_dep::Bool, is_serial_dep::Bool, flags::Cmd, cacheflags::Base.CacheFlags)	modelled	runtimecov-precomp-messages	method-specific source model and settled invariant.
-base/precompilation.jl	2220	2225	format_names_list	format_names_list(names::Vector{String}; max_names::Int=5)	modelled	runtimecov-precomp-process-display	method-specific source model and settled invariant.
-base/precompilation.jl	2227	2232	print_header	print_header(s::PrecompileSession)	modelled	runtimecov-precomp-messages	method-specific source model and settled invariant.
-base/precompilation.jl	2239	2257	explain_reasons!	explain_reasons!(s::PrecompileSession, reasons::Dict{Symbol,Int}=s.reasons)	modelled	runtimecov-precomp-messages	method-specific source model and settled invariant.
-base/precompilation.jl	2260	2268	loaded_version_differs	loaded_version_differs(pkg::PkgId)	modelled	runtimecov-precomp-messages	method-specific source model and settled invariant.
-base/precompilation.jl	2273	2280	loaded_version_conflicts	loaded_version_conflicts(s::PrecompileSession, pkgs)	modelled	runtimecov-precomp-messages	method-specific source model and settled invariant.
-base/precompilation.jl	2284	2289	resolved_version	resolved_version(pkg::PkgId)	modelled	runtimecov-precomp-process-display	method-specific source model and settled invariant.
-base/precompilation.jl	2295	2322	stacked_version_conflicts	stacked_version_conflicts(s::PrecompileSession, pkgs)	modelled	runtimecov-precomp-messages	method-specific source model and settled invariant.
-base/precompilation.jl	2325	2330	env_display_name	env_display_name(envdir::String)	modelled	runtimecov-precomp-messages	method-specific source model and settled invariant.
-base/precompilation.jl	2332	2342	stacked_conflicts_message	stacked_conflicts_message(dependents::Vector{String}, deps::Vector{String}, envdir::String, hascolor::Bool)	modelled	runtimecov-precomp-messages	method-specific source model and settled invariant.
-base/precompilation.jl	2346	2349	only_flags_mismatch	only_flags_mismatch(reasons::Dict{Symbol,Int})	modelled	runtimecov-precomp-messages	method-specific source model and settled invariant.
-base/precompilation.jl	2353	2364	loaded_conflicts_message	"loaded_conflicts_message(names::Vector{String}, hascolor::Bool; ongoing::Bool, cancelable::Bool, default_env::Bool=Base.active_project() == Base.load_path_expand(""@v#.#""))"	modelled	runtimecov-precomp-messages	method-specific source model and settled invariant.
-base/precompilation.jl	2366	2513	spawn_print_loop!	spawn_print_loop!(s::PrecompileSession)	modelled	runtimecov-precomp-messages	method-specific source model and settled invariant.
-base/precompilation.jl	2515	2552	precompilepkgs_monitor_std	precompilepkgs_monitor_std(s::PrecompileSession, pkg_config, job::PrecompileJob, pipe, single_requested_pkg::Bool)	modelled	runtimecov-precomp-messages	method-specific source model and settled invariant.
-base/precompilation.jl	2560	2597	precompile_pkgs_maybe_cachefile_lock	precompile_pkgs_maybe_cachefile_lock(f, s::PrecompileSession, pkg_config, job::PrecompileJob, fullname)	modelled	runtimecov-precomp-messages	method-specific source model and settled invariant.
-base/precompilation.jl	2601	2613	precompile_cost_estimate	precompile_cost_estimate(spec::Union{Nothing,Base.PkgLoadSpec})	modelled	runtimecov-precomp-messages	method-specific source model and settled invariant.
-base/precompilation.jl	2630	2638	SchedulePriorities	SchedulePriorities(direct_deps::Dict{PkgId,Vector{PkgId}}, sourcespecs::Dict{PkgId,Union{Nothing,Base.PkgLoadSpec}})	modelled	runtimecov-precomp-scheduling	method-specific source model and settled invariant.
-base/precompilation.jl	2640	2640	schedule_priority	schedule_priority(p::SchedulePriorities, pkg::PkgId)	modelled	runtimecov-precomp-scheduling	method-specific source model and settled invariant.
-base/precompilation.jl	2643	2654	schedule_height!	schedule_height!(p::SchedulePriorities, pkg::PkgId)	modelled	runtimecov-precomp-scheduling	method-specific source model and settled invariant.
-base/precompilation.jl	2658	2658	is_stdlib_source	is_stdlib_source(spec::Base.PkgLoadSpec)	modelled	runtimecov-precomp-scheduling	method-specific source model and settled invariant.
-base/precompilation.jl	2665	2673	failed_dependency	failed_dependency(s::PrecompileSession, deps::Vector{PkgId}, config::Config)	modelled	runtimecov-precomp-scheduling	method-specific source model and settled invariant.
-base/precompilation.jl	2676	2676	unverified_set	unverified_set(s::PrecompileSession, from_loading::Bool)	modelled	runtimecov-precomp-process-display	method-specific source model and settled invariant.
-base/precompilation.jl	2678	2925	spawn_precompile_tasks!	spawn_precompile_tasks!(s::PrecompileSession; direct_deps, was_processed, configs, circular_deps, requested_pkgids, pkg_names, requested_pkgs, from_loading)	modelled	runtimecov-precomp-scheduling	method-specific source model and settled invariant.
-base/precompilation.jl	2927	3048	drain_work_channel!	drain_work_channel!(s::PrecompileSession, work_channel::Channel{PrecompileRequest})	modelled	runtimecov-precomp-scheduling	method-specific source model and settled invariant.
-base/precompilation.jl	3050	3273	report_precompile_results!	report_precompile_results!(s::PrecompileSession)	modelled	runtimecov-precomp-scheduling	method-specific source model and settled invariant.
-base/precompilation.jl	3276	3481	do_precompile	do_precompile(pkgs::Union{Vector{String}, Vector{PkgId}}, internal_call::Bool, strict::Bool, warn_loaded::Bool, timing::Bool, _from_loading::Bool, _reasons::Dict{Symbol,Int}, configs::Vector{Config}, io::IOContext, fancyprint′::Bool, manifest::Bool, ignore_loaded::Bool, detachable::Bool, skip_dependents::Bool, force::Bool, force_stdlibs::Bool, work_channel::Channel{PrecompileRequest})	modelled	runtimecov-precomp-scheduling	method-specific source model and settled invariant.
+base/precompilation.jl	20	28	setup_precompile_jobserver!	setup_precompile_jobserver!(ntokens::Int)	todo		
+base/precompilation.jl	30	34	teardown_precompile_jobserver!	teardown_precompile_jobserver!()	todo		
+base/precompilation.jl	62	63	WorkerLimiter	WorkerLimiter(max::Int, jobserver::Bool)	todo		
+base/precompilation.jl	75	96	_jobserver_acquire_baseline	_jobserver_acquire_baseline(w::WorkerLimiter; cancel=Returns(false))	todo		
+base/precompilation.jl	98	108	_jobserver_release_baseline	_jobserver_release_baseline(w::WorkerLimiter)	todo		
+base/precompilation.jl	110	122	_acquire_slot	_acquire_slot(w::WorkerLimiter, priority::Float64)	todo		
+base/precompilation.jl	124	130	_release_slot	_release_slot(w::WorkerLimiter)	todo		
+base/precompilation.jl	132	143	Base.acquire	Base.acquire(w::WorkerLimiter; priority::Float64=0.0, cancel=Returns(false))	todo		
+base/precompilation.jl	145	149	Base.release	Base.release(w::WorkerLimiter)	todo		
+base/precompilation.jl	151	158	Base.acquire	Base.acquire(f, w::WorkerLimiter; priority::Float64=0.0, cancel=Returns(false))	todo		
+base/precompilation.jl	183	183	PrecompileJob	PrecompileJob()	todo		
+base/precompilation.jl	186	186	is_pending	is_pending(j::PrecompileJob)	todo		
+base/precompilation.jl	187	187	is_started	is_started(j::PrecompileJob)	todo		
+base/precompilation.jl	188	188	is_recompiled	is_recompiled(j::PrecompileJob)	todo		
+base/precompilation.jl	189	189	is_soft_error	is_soft_error(j::PrecompileJob)	todo		
+base/precompilation.jl	190	190	is_failed	is_failed(j::PrecompileJob)	todo		
+base/precompilation.jl	191	191	is_dep_failed	is_dep_failed(j::PrecompileJob)	todo		
+base/precompilation.jl	192	192	has_pid	has_pid(j::PrecompileJob)	todo		
+base/precompilation.jl	193	193	had_pid	had_pid(j::PrecompileJob)	todo		
+base/precompilation.jl	194	194	is_locked	is_locked(j::PrecompileJob)	todo		
+base/precompilation.jl	195	195	is_waiting	is_waiting(j::PrecompileJob)	todo		
+base/precompilation.jl	197	197	mark_started!	mark_started!(j::PrecompileJob, t::Float64=time())	todo		
+base/precompilation.jl	198	198	mark_recompiled!	mark_recompiled!(j::PrecompileJob)	todo		
+base/precompilation.jl	199	199	mark_soft_error!	mark_soft_error!(j::PrecompileJob)	todo		
+base/precompilation.jl	200	200	mark_failed!	mark_failed!(j::PrecompileJob, msg::String)	todo		
+base/precompilation.jl	202	202	mark_dep_failed!	mark_dep_failed!(j::PrecompileJob, root::String)	todo		
+base/precompilation.jl	203	203	set_pid!	set_pid!(j::PrecompileJob, pid::Int32)	todo		
+base/precompilation.jl	204	204	clear_pid!	clear_pid!(j::PrecompileJob)	todo		
+base/precompilation.jl	206	210	clear_failure!	clear_failure!(j::PrecompileJob)	todo		
+base/precompilation.jl	336	336	Base.lock	Base.lock(f, bg::BackgroundPrecompileState)	todo		
+base/precompilation.jl	337	337	Base.lock	Base.lock(bg::BackgroundPrecompileState)	todo		
+base/precompilation.jl	338	338	Base.unlock	Base.unlock(bg::BackgroundPrecompileState)	todo		
+base/precompilation.jl	354	354	ansi_moveup	ansi_moveup(n::Int)	todo		
+base/precompilation.jl	359	359	Base.showerror	Base.showerror(io::IO, err::PkgPrecompileError)	todo		
+base/precompilation.jl	360	360	Base.showerror	Base.showerror(io::IO, err::PkgPrecompileError, bt; kw...)	todo		
+base/precompilation.jl	363	363	Base.show	Base.show(io::IO, err::PkgPrecompileError)	todo		
+base/precompilation.jl	365	365	can_fancyprint	can_fancyprint(io::IO)	todo		
+base/precompilation.jl	371	371	unstable_iocontext	unstable_iocontext(io::IOContext{IO})	todo		
+base/precompilation.jl	372	372	unstable_iocontext	unstable_iocontext(io::IOContext)	todo		
+base/precompilation.jl	373	373	unstable_iocontext	unstable_iocontext(io::IO)	todo		
+base/precompilation.jl	375	380	printpkgstyle	printpkgstyle(io, header, msg; color=:green)	todo		
+base/precompilation.jl	382	382	timing_string	timing_string(t)	todo		
+base/precompilation.jl	390	438	format_verbose_timing	format_verbose_timing(payload::AbstractString, total_seconds::Float64, cache_bytes::Int, peak_rss_bytes::UInt64, hascolor::Bool)	todo		
+base/precompilation.jl	417	417	dim	dim(s, isz)	todo		
+base/precompilation.jl	418	427	col	col(x)	todo		
+base/precompilation.jl	442	442	format_verbose_timing_header	format_verbose_timing_header()	todo		
+base/precompilation.jl	446	454	_precompile_cache_bytes	_precompile_cache_bytes(cf_jl::AbstractString, cf_so::Union{Nothing,AbstractString})	todo		
+base/precompilation.jl	458	466	color_string	color_string(cstr::String, col::Union{Int64, Symbol}, hascolor)	todo		
+base/precompilation.jl	486	486	start_progress	start_progress(io::IO, _::MiniProgressBar)	todo		
+base/precompilation.jl	488	536	show_progress	show_progress(io::IO, p::MiniProgressBar; termwidth=nothing, carriagereturn=true)	todo		
+base/precompilation.jl	538	538	end_progress	end_progress(io, p::MiniProgressBar)	todo		
+base/precompilation.jl	540	540	print_progress_bottom	print_progress_bottom(io::IO)	todo		
+base/precompilation.jl	567	567	ExplicitEnv	ExplicitEnv()	todo		
+base/precompilation.jl	568	580	ExplicitEnv	"ExplicitEnv(::Nothing, envpath::String="""")"	todo		
+base/precompilation.jl	581	810	ExplicitEnv	ExplicitEnv(envpath::String)	todo		
+base/precompilation.jl	812	822	collect_workspace_deps	collect_workspace_deps(project_file::String)	todo		
+base/precompilation.jl	824	850	collect_workspace_deps!	collect_workspace_deps!(workspace_deps::Dict{UUID, String}, seen::Set{String}, project_file::String)	todo		
+base/precompilation.jl	859	911	fixup_stdlib_deps!	fixup_stdlib_deps!(deps::Dict{UUID, Vector{UUID}}, weakdeps::Dict{UUID, Vector{UUID}}, extensions::Dict{UUID, Dict{String, Vector{UUID}}}, names::Dict{UUID, String}, lookup_strategy::Dict{UUID, Union{SHA1, String, Nothing, Missing}})	todo		
+base/precompilation.jl	916	922	full_name	full_name(ext_to_parent::Dict{PkgId, PkgId}, pkg::PkgId)	todo		
+base/precompilation.jl	924	957	excluded_circular_deps_explanation	excluded_circular_deps_explanation(io::IOContext, ext_to_parent::Dict{PkgId, PkgId}, circular_deps, cycles)	todo		
+base/precompilation.jl	960	966	scan_pkg!	scan_pkg!(stack, could_be_cycle, cycles, pkg, dmap)	todo		
+base/precompilation.jl	967	992	scan_deps!	scan_deps!(stack, could_be_cycle, cycles, pkg, dmap)	todo		
+base/precompilation.jl	995	1003	collect_all_deps	collect_all_deps(direct_deps, dep, alldeps=Set{Base.PkgId}())	todo		
+base/precompilation.jl	1005	1018	visit_indirect_deps!	visit_indirect_deps!(direct_deps::Dict{PkgId, Vector{PkgId}}, visited::Set{PkgId}, node::PkgId, all_deps::Set{PkgId})	todo		
+base/precompilation.jl	1022	1141	build_dep_graph	build_dep_graph(env::ExplicitEnv, manifest::Bool, _from_loading::Bool, requested_pkgids::Vector{PkgId})	todo		
+base/precompilation.jl	1145	1164	detect_circular_deps!	detect_circular_deps!(direct_deps, serial_deps, was_processed, io, ext_to_parent)	todo		
+base/precompilation.jl	1168	1190	filter_dep_graph!	filter_dep_graph!(direct_deps, pkg_names, ext_to_parent, requested_pkgids)	todo		
+base/precompilation.jl	1193	1196	preresolved_snapshot	preresolved_snapshot(s::PrecompileSession)	todo		
+base/precompilation.jl	1199	1204	checked_now!	checked_now!(s::PrecompileSession, path::String)	todo		
+base/precompilation.jl	1337	1368	precompilepkgs	precompilepkgs(pkgs::Union{Vector{String}, Vector{PkgId}}=String[]; internal_call::Bool=false, strict::Bool = false, warn_loaded::Bool = true, timing::Bool = false, verbose::Bool = false, _from_loading::Bool=false, _reasons::Dict{Symbol,Int}=Dict{Symbol,Int}(), configs::Union{Config,Vector{Config}}=(``=>Base.CacheFlags()), io::IO=stderr, # asking for timing disables fancy mode, as timing is shown in non-fancy mode; # verbose implies timing (see below), so also disables fancy mode fancyprint::Bool = can_fancyprint(io) && !timing && !verbose, manifest::Bool=false, ignore_loaded::Bool=true, detachable::Bool=false, skip_dependents::Bool=true, force::Bool=false, # undocumented: `force` for stdlibs too. Warning: their new cache files land in # the user depot rather than the one julia ships them in, and shadow those from then on force_stdlibs::Bool=false)	todo		
+base/precompilation.jl	1384	1395	precompile_for_loading	precompile_for_loading(into::Module, names::Vector{Symbol})	todo		
+base/precompilation.jl	1397	1455	_precompile_for_loading	_precompile_for_loading(into::Module, names::Vector{Symbol})	todo		
+base/precompilation.jl	1417	1418	available	available(uuid::UUID)	todo		
+base/precompilation.jl	1449	1449	label	label(pkg)	todo		
+base/precompilation.jl	1459	1461	is_precompiling_in_background	is_precompiling_in_background()	todo		
+base/precompilation.jl	1466	1472	is_package_pending	is_package_pending(pkg::PkgId)	todo		
+base/precompilation.jl	1476	1481	wait_for_pending_package	wait_for_pending_package(pkg::PkgId)	todo		
+base/precompilation.jl	1484	1490	broadcast_signal	broadcast_signal(sig::Int32)	todo		
+base/precompilation.jl	1491	1491	broadcast_signal	broadcast_signal(sig::Integer)	todo		
+base/precompilation.jl	1495	1501	mark_completed_pkgid!	mark_completed_pkgid!(pkg::PkgId)	todo		
+base/precompilation.jl	1503	1517	stop_background_precompile	stop_background_precompile(; graceful::Bool = true)	todo		
+base/precompilation.jl	1535	1548	keyboard_tip	keyboard_tip(s::BackgroundPrecompileState)	todo		
+base/precompilation.jl	1550	1553	monitor_background_precompile	monitor_background_precompile(io::IO = stderr, detachable::Bool = true, wait_for_pkg::Union{Nothing, PkgId} = nothing; key_controls::Union{Bool, Nothing} = nothing)	todo		
+base/precompilation.jl	1555	1847	_monitor_background_precompile	_monitor_background_precompile(io::IOContext{IO}, detachable::Bool, wait_for_pkg::Union{Nothing, PkgId}; key_controls::Union{Bool, Nothing})	todo		
+base/precompilation.jl	1852	1858	stop_monitoring_unless_waited_on	stop_monitoring_unless_waited_on(counted::Bool)	todo		
+base/precompilation.jl	1860	1963	launch_background_precompile	launch_background_precompile(pkgs::Union{Vector{String}, Vector{PkgId}}, internal_call::Bool, strict::Bool, warn_loaded::Bool, timing::Bool, verbose::Bool, _from_loading::Bool, _reasons::Dict{Symbol,Int}, configs::Vector{Config}, io::IOContext, fancyprint::Bool, manifest::Bool, ignore_loaded::Bool, detachable::Bool, skip_dependents::Bool, force::Bool, force_stdlibs::Bool)	todo		
+base/precompilation.jl	1965	1971	_collect_reachable!	_collect_reachable!(pkg_uuids::Set{UUID}, deps::Dict{UUID, Vector{UUID}}, uuid::UUID)	todo		
+base/precompilation.jl	1973	2063	_precompilepkgs	_precompilepkgs(pkgs::Union{Vector{String}, Vector{PkgId}}, internal_call::Bool, strict::Bool, warn_loaded::Bool, timing::Bool, verbose::Bool, _from_loading::Bool, _reasons::Dict{Symbol,Int}, configs::Vector{Config}, io::IOContext, fancyprint′::Bool, manifest::Bool, ignore_loaded::Bool, detachable::Bool, skip_dependents::Bool, force::Bool, force_stdlibs::Bool)	todo		
+base/precompilation.jl	2079	2122	process_stats	process_stats(pid::Int32)	todo		
+base/precompilation.jl	2126	2154	poll_process_stats!	poll_process_stats!(cpu_pcts::Dict{Int32, Float64}, rss::Dict{Int32, UInt64}, prev_cpu_times::Dict{Int32, UInt64}, jobs::Dict{PkgConfig, PrecompileJob}, dt::Float64)	todo		
+base/precompilation.jl	2159	2175	sample_peak_rss!	sample_peak_rss!(jobs::Dict{PkgConfig, PrecompileJob})	todo		
+base/precompilation.jl	2177	2194	should_stop	should_stop(s::PrecompileSession)	todo		
+base/precompilation.jl	2196	2200	make_signal_channel	make_signal_channel()	todo		
+base/precompilation.jl	2202	2217	describe_pkg	describe_pkg(s::PrecompileSession, pkg::PkgId, is_project_dep::Bool, is_serial_dep::Bool, flags::Cmd, cacheflags::Base.CacheFlags)	todo		
+base/precompilation.jl	2220	2225	format_names_list	format_names_list(names::Vector{String}; max_names::Int=5)	todo		
+base/precompilation.jl	2227	2232	print_header	print_header(s::PrecompileSession)	todo		
+base/precompilation.jl	2239	2257	explain_reasons!	explain_reasons!(s::PrecompileSession, reasons::Dict{Symbol,Int}=s.reasons)	todo		
+base/precompilation.jl	2260	2268	loaded_version_differs	loaded_version_differs(pkg::PkgId)	todo		
+base/precompilation.jl	2273	2280	loaded_version_conflicts	loaded_version_conflicts(s::PrecompileSession, pkgs)	todo		
+base/precompilation.jl	2284	2289	resolved_version	resolved_version(pkg::PkgId)	todo		
+base/precompilation.jl	2295	2322	stacked_version_conflicts	stacked_version_conflicts(s::PrecompileSession, pkgs)	todo		
+base/precompilation.jl	2325	2330	env_display_name	env_display_name(envdir::String)	todo		
+base/precompilation.jl	2332	2342	stacked_conflicts_message	stacked_conflicts_message(dependents::Vector{String}, deps::Vector{String}, envdir::String, hascolor::Bool)	todo		
+base/precompilation.jl	2346	2349	only_flags_mismatch	only_flags_mismatch(reasons::Dict{Symbol,Int})	todo		
+base/precompilation.jl	2353	2364	loaded_conflicts_message	"loaded_conflicts_message(names::Vector{String}, hascolor::Bool; ongoing::Bool, cancelable::Bool, default_env::Bool=Base.active_project() == Base.load_path_expand(""@v#.#""))"	todo		
+base/precompilation.jl	2366	2513	spawn_print_loop!	spawn_print_loop!(s::PrecompileSession)	todo		
+base/precompilation.jl	2515	2552	precompilepkgs_monitor_std	precompilepkgs_monitor_std(s::PrecompileSession, pkg_config, job::PrecompileJob, pipe, single_requested_pkg::Bool)	todo		
+base/precompilation.jl	2560	2597	precompile_pkgs_maybe_cachefile_lock	precompile_pkgs_maybe_cachefile_lock(f, s::PrecompileSession, pkg_config, job::PrecompileJob, fullname)	todo		
+base/precompilation.jl	2601	2613	precompile_cost_estimate	precompile_cost_estimate(spec::Union{Nothing,Base.PkgLoadSpec})	todo		
+base/precompilation.jl	2630	2638	SchedulePriorities	SchedulePriorities(direct_deps::Dict{PkgId,Vector{PkgId}}, sourcespecs::Dict{PkgId,Union{Nothing,Base.PkgLoadSpec}})	todo		
+base/precompilation.jl	2640	2640	schedule_priority	schedule_priority(p::SchedulePriorities, pkg::PkgId)	todo		
+base/precompilation.jl	2643	2654	schedule_height!	schedule_height!(p::SchedulePriorities, pkg::PkgId)	todo		
+base/precompilation.jl	2658	2658	is_stdlib_source	is_stdlib_source(spec::Base.PkgLoadSpec)	todo		
+base/precompilation.jl	2665	2673	failed_dependency	failed_dependency(s::PrecompileSession, deps::Vector{PkgId}, config::Config)	todo		
+base/precompilation.jl	2676	2676	unverified_set	unverified_set(s::PrecompileSession, from_loading::Bool)	todo		
+base/precompilation.jl	2678	2925	spawn_precompile_tasks!	spawn_precompile_tasks!(s::PrecompileSession; direct_deps, was_processed, configs, circular_deps, requested_pkgids, pkg_names, requested_pkgs, from_loading)	todo		
+base/precompilation.jl	2927	3048	drain_work_channel!	drain_work_channel!(s::PrecompileSession, work_channel::Channel{PrecompileRequest})	todo		
+base/precompilation.jl	3050	3273	report_precompile_results!	report_precompile_results!(s::PrecompileSession)	todo		
+base/precompilation.jl	3276	3481	do_precompile	do_precompile(pkgs::Union{Vector{String}, Vector{PkgId}}, internal_call::Bool, strict::Bool, warn_loaded::Bool, timing::Bool, _from_loading::Bool, _reasons::Dict{Symbol,Int}, configs::Vector{Config}, io::IOContext, fancyprint′::Bool, manifest::Bool, ignore_loaded::Bool, detachable::Bool, skip_dependents::Bool, force::Bool, force_stdlibs::Bool, work_channel::Channel{PrecompileRequest})	todo		

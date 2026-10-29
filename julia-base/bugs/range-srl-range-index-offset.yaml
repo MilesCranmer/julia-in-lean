@@ -1,0 +1,52 @@
+id: range-srl-range-index-offset
+title: "Slicing a StepRangeLen with a range can throw when its offset is typemax"
+priority: P2
+kind: wrong-exception
+area: Ranges
+files: [base/range.jl]
+functions: ["getindex(r::StepRangeLen{T}, s::OrdinalRange{S})", "_getindex_hiprec(r::StepRangeLen, i::Integer)"]
+summary: |
+  Slicing a StepRangeLen whose offset is typemax(Int) with the in-bounds indices
+  1:2 throws InexactError while computing the result offset. The two selected
+  elements exist, but an intermediate floating-point calculation rounds the offset
+  to 2^63 before it can be clamped to the slice bounds.
+likelihood: |
+  Very low: it requires a StepRangeLen with an offset near typemax(Int) and a slice
+  that begins near the start of the range.
+maybe_intended: ""
+reproducer: |
+  r = StepRangeLen(0, 1, typemax(Int), typemax(Int))
+  r[1:2]  # expected a two-element range containing r[1] and r[2]
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    r[1] = -9223372036854775806, r[2] = -9223372036854775805
+    r[1:2] = InexactError(:Int64, (Int64, 9.223372036854776e18))
+    REPRODUCED range-srl-range-index-offset
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    r[1] = -9223372036854775806, r[2] = -9223372036854775805
+    r[1:2] = InexactError(:Int64, (Int64, 9.223372036854776e18))
+    REPRODUCED range-srl-range-index-offset
+reproduced: {release: true, nightly: true}
+expected: |
+  r[1:2] should return a two-element range containing the existing values r[1]
+  and r[2].
+promised_by: |
+  The AbstractArray getindex docstring, base/abstractarray.jl:1306-1310, says indexing
+  returns the subset selected by the indices. StepRangeLen, base/range.jl:516-522,
+  defines a range by its values and length; indices 1:2 are in bounds here.
+cause: |
+  base/range.jl:1075-1091 computes the new offset using 1 + round(L,
+  (r.offset - first(s))/sstep). With r.offset=typemax(Int) and first(s)=1, the exact
+  difference is typemax(Int)-1, but conversion to Float64 rounds it to 2^63.
+  round(Int, 2^63) throws before the result can be clamped to the slice indices.
+possible_fix: |
+  Compute the offset with exact integer arithmetic when the stride and indices are
+  integers, or use a wider exact intermediate before clamping to the result bounds.
+duplicates:
+  issues: []
+  queries: ["issues: StepRangeLen range index offset typemax InexactError", "issues: StepRangeLen indexing offset Float64 overflow", "prs: StepRangeLen range index offset typemax InexactError", "prs: StepRangeLen indexing offset Float64 overflow"]
+lean:
+  property: JuliaLean.Proofs.base.range.SRLRangeIndex
+  theorem: JuliaLean.Proofs.base.range.srlRangeIndex_refuted

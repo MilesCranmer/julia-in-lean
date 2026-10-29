@@ -1,124 +1,19 @@
 line	name	verdict	mirror	property	settled	reason
-297	Typeof	FAITHFUL	yes	-	-	The exclusion note applies because no-behaviour: declares the generic function without a method body.
-300	(f::typeof(Typeof))	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-313	TypeEqOf	FAITHFUL	yes	-	-	The exclusion note applies because no-behaviour: declares the generic function without a method body.
-316	(f::typeof(TypeEqOf))	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-322	iterate	FAITHFUL	yes	-	-	The exclusion note applies because no-behaviour: declares the generic function without a method body.
-324	nospecialize	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-327	Expr	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-329	latestworld	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 331	_is_internal	HOLLOW	no	no	yes	The Lean model identifies modules by a String name, so it cannot mirror Core module identity or state the macro behavior for every module.
 333	_total_meta	HOLLOW	no	no	yes	The Lean model identifies modules by a String name, so it cannot mirror Core module identity or state the macro behavior for every module.
 348	_foldable_meta	HOLLOW	no	no	yes	The Lean model identifies modules by a String name, so it cannot mirror Core module identity or state the macro behavior for every module.
-363	inline	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-364	noinline	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-365	nospecializeinfer	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-367	_boundscheck	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-370	TypeVar	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-371	TypeVar	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-372	TypeVar	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 373	UnionAll	HOLLOW	yes	no	yes	The proposition covers only selected UnionAll bodies and omits Vararg and other allowed body cases.
-381	convert	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-382	convert	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-383	cconvert	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-384	unsafe_convert	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-387	_typeof_captured_variable	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-390	kwcall	FAITHFUL	yes	-	-	The exclusion note applies because no-behaviour: declares the generic function without a method body.
-392	kwfunc	FAITHFUL	yes	-	-	The exclusion note applies because deprecated: the comment at base/boot.jl:391 marks kwfunc and kwftype as deprecated internal functions; use Core.kwcall.
-393	kwftype	FAITHFUL	yes	-	-	The exclusion note applies because deprecated: the comment at base/boot.jl:391 marks kwfunc and kwftype as deprecated internal functions; use Core.kwcall.
-398	Union{}	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-399	kwcall	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 403	resolve_typegroup	HOLLOW	no	no	yes	The Lean model drops the Module argument passed to jl_resolve_typegroup, and the proposition therefore does not cover every allowed module input.
-420	TypeApp	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-426	_contains_typeapp	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 436	apply_type_or_typeapp	HOLLOW	no	no	yes	The Lean model replaces both source loops with list combinators, and the proposition omits allowed non-DataType concrete heads.
-472	ErrorException	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-478	BoundsError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-479	BoundsError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-480	BoundsError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-483	DivideError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-486	OutOfMemoryError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-489	ReadOnlyMemoryError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-492	SegmentationFault	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-495	StackOverflowError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-498	UndefRefError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 504	UndefVarError	HOLLOW	no	no	yes	The Lean model takes world age as an input instead of reading the current runtime world age, so its proposition is not tied to this method.
 505	UndefVarError	HOLLOW	no	no	yes	The Lean model takes world age as an input instead of reading the current runtime world age, so its proposition is not tied to this method.
-509	ConcurrencyViolationError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-513	MissingCodeError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-516	InterruptException	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-521	DomainError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-522	DomainError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-534	TypeError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-537	TypeError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-542	InexactError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-546	OverflowError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-551	ArgumentError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-555	UndefKeywordError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-565	MethodError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-567	MethodError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-571	AssertionError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-573	AssertionError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-578	FieldError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-587	LoadError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-593	InitError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-599	ABIOverride	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-603	PrecompilableError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-606	TrimFailure	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-611	String	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-614	Nothing	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 617	getptls	HOLLOW	no	no	yes	The Lean model uses a bare pointer input as the result instead of calling jl_get_ptls_states, so the proposition is not tied to the current thread.
-619	include	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-620	eval	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-624	EvalInto	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-626	(this::EvalInto)	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-630	Box	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-631	Box	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 638	WeakRef	HOLLOW	no	yes	yes	The Lean model omits the runtime weak-reference allocation used by the delegated WeakRef(nothing) call.
 639	WeakRef	HOLLOW	no	no	yes	The Lean model omits runtime weak-reference allocation and treats the referent as permanently stored, so the proposition fails after collection.
-643	Tuple{}	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-647	VecElement{T}	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-649	VecElement	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-654	Const	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-664	_PartialStruct	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-671	InterConditional	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-679	InterMustAlias	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-687	PartialOpaque	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-692	PartialTask	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-696	PossiblyAmbiguous	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-700	GotoNode	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-701	NewvarNode	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-702	QuoteNode	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-703	SSAValue	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-704	Argument	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-705	ReturnNode	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-706	ReturnNode	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-707	GotoIfNot	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-708	EnterNode	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-709	EnterNode	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-710	LineNumberNode	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-711	LineNumberNode	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-715	DebugInfo	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-717	DebugInfo	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-719	SlotNumber	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-720	PhiNode	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-721	PiNode	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-722	PhiCNode	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-723	UpsilonNode	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-724	UpsilonNode	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-725	MethodMatch	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-736	LineInfoNode	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-740	CodeInstance	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 750	GlobalRef	HOLLOW	no	yes	yes	The Lean model replaces jl_module_globalref with direct record construction and therefore does not mirror this method's runtime call.
 751	Module	HOLLOW	no	yes	yes	The Lean model replaces jl_f_new_module with a record and omits fresh module identity, although the proposition states the documented defaults.
-757	UndefInitializer	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-762	(self::Type{GenericMemory{kind,T,addrspace}})	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-763	(self::Type{GenericMemory{kind,T,addrspace}})	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-765	(self::Type{GenericMemory{kind,T,addrspace}})	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-768	memoryref	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 769	memoryref	HOLLOW	no	no	yes	The Lean model accepts only BuiltinInt indices and omits general Integer conversion behavior, so the proposition does not cover every allowed Integer input.
 770	memoryref	HOLLOW	no	no	yes	The Lean model accepts only BuiltinInt indices and omits general Integer conversion behavior, so the proposition does not cover every allowed Integer input.
-771	GenericMemoryRef	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 772	GenericMemoryRef	HOLLOW	no	no	yes	The Lean model accepts only BuiltinInt indices and omits general Integer conversion behavior, so the proposition does not cover every allowed Integer input.
 773	GenericMemoryRef	HOLLOW	no	no	yes	The Lean model accepts only BuiltinInt indices and omits general Integer conversion behavior, so the proposition does not cover every allowed Integer input.
 779	new_as_memoryref	HOLLOW	yes	no	yes	The array-shape proposition constrains callers of new_as_memoryref but states no behavior of this helper itself.
@@ -126,55 +21,11 @@ line	name	verdict	mirror	property	settled	reason
 783	_checked_mul_dims	HOLLOW	yes	no	yes	The proposition states checked_dims results but no result or overflow-flag behavior for this _checked_mul_dims method.
 784	_checked_mul_dims	HOLLOW	yes	no	yes	The proposition states checked_dims results but no result or overflow-flag behavior for this _checked_mul_dims method.
 792	_checked_mul_dims	HOLLOW	yes	no	yes	The proposition states checked_dims results but no result or overflow-flag behavior for this _checked_mul_dims method.
-812	checked_dims	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-813	checked_dims	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-814	checked_dims	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-821	(self::Type{Array{T,1}})	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-825	(self::Type{Array{T,2}})	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-828	(self::Type{Array{T,3}})	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-831	(self::Type{Array{T, N}})	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-835	(self::Type{Array{T,1}})	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-836	(self::Type{Array{T,2}})	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-837	(self::Type{Array{T,3}})	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-838	(self::Type{Array{T,N}})	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-840	Array{T}	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-841	Array{T}	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-842	Array{T}	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-844	Array{T}	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-845	Array{T}	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-847	(self::Type{Array{T, 1}})	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-849	Array{T, N} where T	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-851	Array	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-852	Array{T}	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-854	AbstractArray{T}	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 860	_Symbol	HOLLOW	no	no	yes	The Lean model omits the foreign call and its pointer, size, and rooting arguments, while the proposition never states behavior for _Symbol itself.
 864	Symbol	HOLLOW	no	yes	yes	The Lean model omits the ordered jl_string_ptr, sizeof, and _Symbol calls and replaces them with a byte-level specification.
 869	Symbol	HOLLOW	no	yes	yes	The Lean model omits the ordered vector pointer, length, root, and _Symbol calls and replaces them with a slice specification.
-873	Symbol	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-878	fail	FAITHFUL	yes	-	-	The exclusion note applies because internal-bootstrap: local helper of the bootstrap import/using `let` block (base/boot.jl:877-921), used only by _eval_import/_eval_using, whose methods base/module.jl:5-10 deletes.
-879	length	FAITHFUL	yes	-	-	The exclusion note applies because internal-bootstrap: local helper of the bootstrap import/using `let` block (base/boot.jl:877-921), used only by _eval_import/_eval_using, whose methods base/module.jl:5-10 deletes.
-880	getindex	FAITHFUL	yes	-	-	The exclusion note applies because internal-bootstrap: local helper of the bootstrap import/using `let` block (base/boot.jl:877-921), used only by _eval_import/_eval_using, whose methods base/module.jl:5-10 deletes.
-884	==	FAITHFUL	yes	-	-	The exclusion note applies because internal-bootstrap: local helper of the bootstrap import/using `let` block (base/boot.jl:877-921), used only by _eval_import/_eval_using, whose methods base/module.jl:5-10 deletes.
-885	+	FAITHFUL	yes	-	-	The exclusion note applies because internal-bootstrap: local helper of the bootstrap import/using `let` block (base/boot.jl:877-921), used only by _eval_import/_eval_using, whose methods base/module.jl:5-10 deletes.
-886	<=	FAITHFUL	yes	-	-	The exclusion note applies because internal-bootstrap: local helper of the bootstrap import/using `let` block (base/boot.jl:877-921), used only by _eval_import/_eval_using, whose methods base/module.jl:5-10 deletes.
-888	_eval_import	FAITHFUL	yes	-	-	The exclusion note applies because internal-bootstrap: base/module.jl:5-10 deletes every method of Core._eval_import and Core._eval_using and replaces them with the full Base implementation.
-910	_eval_using	FAITHFUL	yes	-	-	The exclusion note applies because internal-bootstrap: base/module.jl:5-10 deletes every method of Core._eval_import and Core._eval_using and replaces them with the full Base implementation.
-941	doc	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-946	__doc__	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-950	isbasicdoc	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-951	firstarg	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 952	iscallexpr	HOLLOW	no	no	yes	The Lean model bypasses firstarg and the proposition omits non-call Expr heads and the empty where case.
-953	iscallexpr	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 954	ignoredoc	HOLLOW	no	no	yes	The Lean model evaluates iscallexpr before isbasicdoc, and the proposition omits the call-expression branch for allowed inputs.
-960	atdoc!	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-963	int128_str	FAITHFUL	yes	-	-	The exclusion note applies because no-behaviour: declares the macro without a method; the string macros and @cmd get their methods in Base.
-964	uint128_str	FAITHFUL	yes	-	-	The exclusion note applies because no-behaviour: declares the macro without a method; the string macros and @cmd get their methods in Base.
-965	big_str	FAITHFUL	yes	-	-	The exclusion note applies because no-behaviour: declares the macro without a method; the string macros and @cmd get their methods in Base.
-968	cmd	FAITHFUL	yes	-	-	The exclusion note applies because no-behaviour: declares the macro without a method; the string macros and @cmd get their methods in Base.
-974	CoreSTDOUT	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-977	CoreSTDERR	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-981	io_pointer	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-982	io_pointer	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 984	unsafe_write	HOLLOW	no	yes	yes	The Lean model omits the io_pointer lookup and jl_uv_puts call, although the proposition states the returned byte count for every input.
 986	unsafe_write	HOLLOW	no	yes	yes	The Lean model omits the io_pointer lookup and jl_uv_puts call, although the proposition states the returned byte count for every input.
 988	write	HOLLOW	no	no	yes	The Lean model omits io_pointer and jl_uv_putb, and the proposition states the byte-write result only for stderr.
@@ -189,16 +40,10 @@ line	name	verdict	mirror	property	settled	reason
 1004	show	HOLLOW	no	yes	yes	The Lean model bypasses the source call to the corresponding stdout method, although the proposition states the wrapper's all-input result.
 1005	print	HOLLOW	no	yes	yes	The Lean model bypasses the source call to the corresponding stdout method, although the proposition states the wrapper's all-input result.
 1006	println	HOLLOW	no	yes	yes	The Lean model bypasses the source call to the corresponding stdout method, although the proposition states the wrapper's all-input result.
-1012	GeneratedFunctionStub	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1022	NamedTuple	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1024	NamedTuple{names}	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1029	(NT::Type{NamedTuple{names,T}})	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1037	is_top_bit_set	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 1045	throw_inexacterror	HOLLOW	no	no	yes	The Lean error model drops the original val argument from InexactError, and the proposition never states throw_inexacterror behavior itself.
 1047	check_sign_bit	HOLLOW	no	yes	yes	The Lean error model drops the original input value from InexactError, although the helper and refuted propositions state documented all-input behavior.
 1055	checked_trunc_sint	HOLLOW	no	yes	yes	The Lean error model drops the original input value from the failing InexactError branch, although the proposition states the round-trip condition for all inputs.
 1063	checked_trunc_uint	HOLLOW	no	yes	yes	The Lean error model drops the original input value from the failing InexactError branch, although the proposition states the round-trip condition for all inputs.
-1071	toInt8	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 1072	toInt8	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1073	toInt8	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1074	toInt8	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
@@ -208,106 +53,57 @@ line	name	verdict	mirror	property	settled	reason
 1078	toInt8	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1079	toInt8	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1080	toInt8	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
-1081	toInt8	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1082	toInt16	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1083	toInt16	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 1084	toInt16	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1085	toInt16	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1086	toInt16	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
-1087	toInt16	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 1088	toInt16	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1089	toInt16	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1090	toInt16	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1091	toInt16	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
-1092	toInt16	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1093	toInt32	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1094	toInt32	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1095	toInt32	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 1096	toInt32	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1097	toInt32	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
-1098	toInt32	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1099	toInt32	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 1100	toInt32	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1101	toInt32	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1102	toInt32	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
-1103	toInt32	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1104	toInt64	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1105	toInt64	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1106	toInt64	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1107	toInt64	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 1108	toInt64	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
-1109	toInt64	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1110	toInt64	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1111	toInt64	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 1112	toInt64	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1113	toInt64	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
-1114	toInt64	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1115	toInt128	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1116	toInt128	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1117	toInt128	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1118	toInt128	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1119	toInt128	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1120	toInt128	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1121	toInt128	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1122	toInt128	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1123	toInt128	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 1124	toInt128	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
-1125	toInt128	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 1126	toUInt8	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1127	toUInt8	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1128	toUInt8	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1129	toUInt8	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1130	toUInt8	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
-1131	toUInt8	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 1132	toUInt8	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1133	toUInt8	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1134	toUInt8	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1135	toUInt8	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
-1136	toUInt8	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 1137	toUInt16	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1138	toUInt16	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1139	toUInt16	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1140	toUInt16	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1141	toUInt16	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
-1142	toUInt16	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1143	toUInt16	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 1144	toUInt16	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1145	toUInt16	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1146	toUInt16	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
-1147	toUInt16	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 1148	toUInt32	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1149	toUInt32	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1150	toUInt32	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1151	toUInt32	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1152	toUInt32	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
-1153	toUInt32	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1154	toUInt32	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1155	toUInt32	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 1156	toUInt32	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1157	toUInt32	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
-1158	toUInt32	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 1159	toUInt64	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1160	toUInt64	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1161	toUInt64	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1162	toUInt64	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1163	toUInt64	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
-1164	toUInt64	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1165	toUInt64	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1166	toUInt64	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1167	toUInt64	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 1168	toUInt64	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
-1169	toUInt64	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 1170	toUInt128	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1171	toUInt128	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1172	toUInt128	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1173	toUInt128	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
 1174	toUInt128	HOLLOW	no	yes	yes	The Lean conversion branch omits the original input value from a possible InexactError, although the exact-conversion proposition covers every input.
-1175	toUInt128	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1176	toUInt128	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1177	toUInt128	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1178	toUInt128	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1179	toUInt128	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1180	toUInt128	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 1184	Int8	HOLLOW	no	yes	yes	The Lean constructor can reach a checked conversion whose InexactError omits the original input value, although the proposition covers every BuiltinInts input.
 1185	Int16	HOLLOW	no	yes	yes	The Lean constructor can reach a checked conversion whose InexactError omits the original input value, although the proposition covers every BuiltinInts input.
 1186	Int32	HOLLOW	no	yes	yes	The Lean constructor can reach a checked conversion whose InexactError omits the original input value, although the proposition covers every BuiltinInts input.
@@ -318,13 +114,6 @@ line	name	verdict	mirror	property	settled	reason
 1191	UInt32	HOLLOW	no	yes	yes	The Lean constructor can reach a checked conversion whose InexactError omits the original input value, although the proposition covers every BuiltinInts input.
 1192	UInt64	HOLLOW	no	yes	yes	The Lean constructor can reach a checked conversion whose InexactError omits the original input value, although the proposition covers every BuiltinInts input.
 1193	UInt128	HOLLOW	no	yes	yes	The Lean constructor can reach a checked conversion whose InexactError omits the original input value, although the proposition covers every BuiltinInts input.
-1195	(::Type{T})	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1197	Int	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1198	UInt	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1200	Int64	FAITHFUL	yes	-	-	The exclusion note applies because platform: defined only inside `if Int === Int32` (base/boot.jl:1199-1202), i.e. on 32-bit platforms.
-1201	UInt64	FAITHFUL	yes	-	-	The exclusion note applies because platform: defined only inside `if Int === Int32` (base/boot.jl:1199-1202), i.e. on 32-bit platforms.
-1203	(PT::Type{Ptr{T}} where T)	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1204	(AS::Type{AddrSpace{Backend}} where Backend)	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 1206	Signed	HOLLOW	no	yes	yes	The Lean delegated constructor can omit the original input value from InexactError, although the proposition states exact same-width conversion for every input.
 1207	Unsigned	HOLLOW	no	yes	yes	The Lean delegated constructor can omit the original input value from InexactError, although the proposition states exact same-width conversion for every input.
 1208	Signed	HOLLOW	no	yes	yes	The Lean delegated constructor can omit the original input value from InexactError, although the proposition states exact same-width conversion for every input.
@@ -335,29 +124,9 @@ line	name	verdict	mirror	property	settled	reason
 1213	Unsigned	HOLLOW	no	yes	yes	The Lean delegated constructor can omit the original input value from InexactError, although the proposition states exact same-width conversion for every input.
 1214	Signed	HOLLOW	no	yes	yes	The Lean delegated constructor can omit the original input value from InexactError, although the proposition states exact same-width conversion for every input.
 1215	Unsigned	HOLLOW	no	yes	yes	The Lean delegated constructor can omit the original input value from InexactError, although the proposition states exact same-width conversion for every input.
-1217	Signed	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1218	Unsigned	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1220	Integer	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1221	Integer	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1227	struct_name_shim	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 1252	_setparser!	HOLLOW	no	yes	yes	The Lean model replaces setglobal! with a pure record update, although the proposition states the documented installation and return behavior.
 1253	_setlowerer!	HOLLOW	no	yes	yes	The Lean model replaces setglobal! with a pure record update, although the proposition states the documented installation and return behavior.
 1254	_set_toplevel_eval!	HOLLOW	no	yes	yes	The Lean model replaces setglobal! with a pure record update, although the proposition states the documented installation and return behavior.
-1257	_apply	FAITHFUL	yes	-	-	The exclusion note applies because deprecated: _apply is kept for deprecated uses of builtin functions (comment at base/boot.jl:1256); use _apply_iterate.
-1269	Pair	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1270	Pair{A, B}	FAITHFUL	yes	-	-	The exclusion note applies because internal-bootstrap: base/Base.jl:9 deletes this Pair{A,B}(a, b) method and base/Base.jl:10-13 installs a converting replacement.
 1276	_hasmethod	HOLLOW	no	no	yes	The Lean model takes the current world and lookup result as inputs instead of performing both runtime calls, so the proposition is not tied to this method.
-1284	arrayref	FAITHFUL	yes	-	-	The exclusion note applies because deprecated: arrayref, const_arrayref, arrayset and arraysize are kept for backward compatibility (comment at base/boot.jl:1283) and forward to Base.getindex/setindex!/size.
-1285	const_arrayref	FAITHFUL	yes	-	-	The exclusion note applies because deprecated: arrayref, const_arrayref, arrayset and arraysize are kept for backward compatibility (comment at base/boot.jl:1283) and forward to Base.getindex/setindex!/size.
-1286	arrayset	FAITHFUL	yes	-	-	The exclusion note applies because deprecated: arrayref, const_arrayref, arrayset and arraysize are kept for backward compatibility (comment at base/boot.jl:1283) and forward to Base.getindex/setindex!/size.
-1287	arraysize	FAITHFUL	yes	-	-	The exclusion note applies because deprecated: arrayref, const_arrayref, arrayset and arraysize are kept for backward compatibility (comment at base/boot.jl:1283) and forward to Base.getindex/setindex!/size.
-1288	arraysize	FAITHFUL	yes	-	-	The exclusion note applies because deprecated: arrayref, const_arrayref, arrayset and arraysize are kept for backward compatibility (comment at base/boot.jl:1283) and forward to Base.getindex/setindex!/size.
-1292	EnterNode	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1307	TypeNameError	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 1310	typename	HOLLOW	no	no	yes	The source catch-all accepts any Julia value, while the Lean model and proposition accept only represented JType values.
-1311	typename	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
 1312	typename	HOLLOW	yes	no	yes	The proposition omits the allowed case in which the first Union member has a name and the second typename call throws.
-1318	typename	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1322	>:	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1323	!==	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.
-1335	MacroSource	FAITHFUL	yes	yes	yes	The Lean model mirrors this method and its settled proposition states a documented all-input behavior.

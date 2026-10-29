@@ -1,0 +1,66 @@
+id: twiceprecision-srl-twice-sum-values
+title: "sum(-51540000771.0:3.0:51540000771.0) returns 1.0 instead of 0.0: TwicePrecision * Integer is inexact for large integers"
+priority: P2
+kind: wrong-result
+area: TwicePrecision
+files: [base/twiceprecision.jl]
+functions: ["sum(r::StepRangeLen{<:Any,<:TwicePrecision,<:TwicePrecision})", "*(x::TwicePrecision{<:IEEEFloat}, v::Integer)", "_tp_prod(t::TwicePrecision, x, y...)"]
+summary: |
+  sum of a Float64 range with integer-valued elements and more than about 2^27
+  elements can be wrong even when every element and the exact sum are representable.
+  For r = -51540000771.0:3.0:51540000771.0 (34360000515 elements, first(r) + last(r)
+  == 0.0) the exact sum is 0, but sum(r) returns 1.0 on target master and 131064.0 on
+  1.13.2. The step term r.step * sum(1:np) is exact; r.ref * length(r) is off by one,
+  because *(::TwicePrecision, ::Integer) loses bits for large integers.
+likelihood: |
+  Low: needs a float range with at least about 2^27 elements whose sum relies on the
+  extra precision of TwicePrecision. Ranges this long are cheap to create and sum is
+  O(1), so the input is not absurd, but the error is small relative to the terms.
+maybe_intended: |
+  Floating-point sums are not generally exact, but TwicePrecision ranges exist to make
+  range arithmetic exact for such inputs (PR #23194), and here the exact result 0.0 is
+  representable and the error comes from an internal product, not from the data.
+reproducer: |
+  r = -51540000771.0:3.0:51540000771.0
+  first(r) + last(r)   # 0.0
+  sum(r)               # 1.0 on master, 131064.0 on 1.13.2; expected 0.0
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    r = -5.1540000771e10:3.0:5.1540000771e10, length(r) = 34360000515, first(r) + last(r) = 0.0
+    sum(r) = 131064.0 (expected 0.0)
+    REPRODUCED twiceprecision-srl-twice-sum-values
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    r = -5.1540000771e10:3.0:5.1540000771e10, length(r) = 34360000515, first(r) + last(r) = 0.0
+    sum(r) = 1.0 (expected 0.0)
+    REPRODUCED twiceprecision-srl-twice-sum-values
+reproduced: {release: true, nightly: true}
+expected: |
+  sum(r) == 0.0, the exact sum of the integer-valued elements, which equals
+  length(r) * (first(r) + last(r)) / 2.
+promised_by: |
+  sum returns the sum of the elements of r; the elements are exact integers, the exact
+  sum 0 is representable, and the specialised method at base/twiceprecision.jl:606
+  computes it in TwicePrecision arithmetic precisely to return the exact sum for such
+  ranges.
+cause: |
+  base/twiceprecision.jl:619 computes ref = r.ref * l through
+  *(x::TwicePrecision{<:IEEEFloat}, v::Integer) (lines 310-315). That method truncates
+  x.hi to u = truncbits(x.hi, nb) with nb = top_set_bit(abs(v) - 1) and forms
+  ((x.hi - u) + x.lo) * v in Float64, which is exact only while the product fits in
+  53 bits; with x.hi = -51540000771 and v = 34360000515 (about 2^35) it is not.
+  A diagnostic run on target master shows ref * l = (-1.7709144530346605e21, 131064.0)
+  while the exact step term tp = (1.7709144530346605e21, -131063.0), so the sum is
+  1.0. Line 312 dates from 708d1bdb36e (2023), the rest from 67a860503a2 (2017).
+possible_fix: |
+  Split v as well as x.hi (e.g. multiply by the high and low halves of v separately, or
+  use two_mul on Float64(v) when v is exactly representable) so each partial product is
+  exact.
+duplicates:
+  issues:
+    - {number: 49569, state: closed, relation: related}
+  queries: ["sum StepRangeLen inexact", "sum float range wrong", "TwicePrecision multiply integer"]
+lean:
+  property: JuliaLean.Proofs.base.twiceprecision.SrlTwiceSumMatches
+  theorem: JuliaLean.Proofs.base.twiceprecision.srlTwiceSumMatches_refuted

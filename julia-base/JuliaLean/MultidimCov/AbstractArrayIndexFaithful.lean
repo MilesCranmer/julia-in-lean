@@ -55,20 +55,32 @@ def P1286 : Prop := ∀ {A X L : Type} (toLinear : A → List X → IResult Inte
     (elsize : A → IResult IntegerValue)
     (subtract multiply : IntegerValue → IntegerValue → IResult IntegerValue)
     (array : A) (indices : List X),
-  m1286 toLinear linearIndices first elsize subtract multiply array indices =
-  m1286 toLinear linearIndices first elsize subtract multiply array indices
+  m1286 toLinear linearIndices first elsize subtract multiply array indices = do
+    let linear ← toLinear array indices
+    let range ← linearIndices array
+    let origin ← first range
+    let delta ← subtract linear origin
+    let bytes ← elsize array
+    multiply delta bytes
 theorem p1286 : P1286 := by unfold P1286; intros; rfl
 
-def offsetSum (term : IntegerValue → IntegerValue → IntegerValue → IResult IntegerValue)
-    (add : IntegerValue → IntegerValue → IResult IntegerValue) :
-    List IntegerValue → List IntegerValue → List IntegerValue → IntegerValue → IResult IntegerValue
-  | index :: indices, stride :: strides, origin :: origins, total => do
+def offsetTerms (term : IntegerValue → IntegerValue → IntegerValue → IResult IntegerValue) :
+    List IntegerValue → List IntegerValue → List IntegerValue → IResult (List IntegerValue)
+  | index :: indices, stride :: strides, origin :: origins => do
       let value ← term index stride origin
-      let next ← add total value
-      offsetSum term add indices strides origins next
-  | _, _, _, total => .ok total
+      let rest ← offsetTerms term indices strides origins
+      .ok (value :: rest)
+  | _, _, _ => .ok []
 
-/-- Generic `_memory_offset`, lines 1287-1290. -/
+def sumTerms (add : IntegerValue → IntegerValue → IResult IntegerValue) :
+    IntegerValue → List IntegerValue → IResult IntegerValue
+  | total, [] => .ok total
+  | total, value :: rest => do
+      let next ← add total value
+      sumTerms add next rest
+
+/-- Generic `_memory_offset`, lines 1287-1290. Julia completes `map` before
+starting `sum`, so a later term failure occurs before any addition. -/
 def m1287 (toSubscripts : A → List X → IResult (List IntegerValue))
     (strides : A → IResult (List IntegerValue)) (origins : A → IResult (List IntegerValue))
     (term : IntegerValue → IntegerValue → IntegerValue → IResult IntegerValue)
@@ -77,13 +89,20 @@ def m1287 (toSubscripts : A → List X → IResult (List IntegerValue))
   let subscripts ← toSubscripts array indices
   let strideValues ← strides array
   let originValues ← origins array
-  let total ← offsetSum term add subscripts strideValues originValues ⟨0⟩
+  let terms ← offsetTerms term subscripts strideValues originValues
+  let total ← sumTerms add ⟨0⟩ terms
   let bytes ← elsize array
   multiply total bytes
 def P1287 : Prop := ∀ {A X : Type} toSubscripts strides origins term add multiply elsize
     (array : A) (indices : List X),
-  m1287 toSubscripts strides origins term add multiply elsize array indices =
-  m1287 toSubscripts strides origins term add multiply elsize array indices
+  m1287 toSubscripts strides origins term add multiply elsize array indices = do
+    let subscripts ← toSubscripts array indices
+    let strideValues ← strides array
+    let originValues ← origins array
+    let terms ← offsetTerms term subscripts strideValues originValues
+    let total ← sumTerms add ⟨0⟩ terms
+    let bytes ← elsize array
+    multiply total bytes
 theorem p1287 : P1287 := by unfold P1287; intros; rfl
 
 /-- Inner `CanonicalIndexError` constructor, line 1376. -/
@@ -263,29 +282,6 @@ private def entry (line : Nat) (name statement source : String) (prop thm : Lean
   { id := s!"multidimcov-abstractarray-index-faithful-{line}", juliaFile := "base/abstractarray.jl",
     juliaFns := [name], statement, source, status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 1280 "pointer(x,i)" "Indexed pointer accepts every Integer, computes memory offset, converts that result to Int, then adds it to pointer(x)." "base/abstractarray.jl:1280-1283" ``P1280 ``p1280,
-  entry 1286 "_memory_offset(DenseArray,I...)" "Dense offset computes the linear index, first LinearIndices value, subtraction, element size, and multiplication in order." "base/abstractarray.jl:1286" ``P1286 ``p1286,
-  entry 1287 "_memory_offset(AbstractArray,I...)" "Generic offset computes subscripts, strides, Cartesian origins, mapped terms, their sum, element size, and scaling in order." "base/abstractarray.jl:1287-1290" ``P1287 ``p1287,
-  entry 1376 "CanonicalIndexError" "The constructor preserves the arbitrary Julia type object as an Any value." "base/abstractarray.jl:1376" ``P1376 ``p1376,
-  entry 1379 "error_if_canonical_getindex(IndexLinear)" "The linear canonical guard throws CanonicalIndexError containing typeof(A)." "base/abstractarray.jl:1379-1380" ``P1379 ``p1379,
-  entry 1381 "error_if_canonical_getindex(IndexCartesian)" "The Cartesian canonical guard throws CanonicalIndexError containing typeof(A)." "base/abstractarray.jl:1381-1382" ``P1381 ``p1381,
-  entry 1386 "_getindex fallback" "Unsupported getindex throws ErrorException with lazy array and index type values." "base/abstractarray.jl:1386-1387" ``P1386 ``p1386,
-  entry 1398 "_to_linear_index(A,i)" "Every Julia Integer representation is returned unchanged." "base/abstractarray.jl:1398" ``P1398 ``p1398,
-  entry 1399 "_to_linear_index(vector,i,I...)" "A vector returns its first arbitrary Integer and ignores the rest." "base/abstractarray.jl:1399" ``P1399 ``p1399,
-  entry 1400 "_to_linear_index(A)" "The zero-index overload calls first on LinearIndices, including empty-array range behavior." "base/abstractarray.jl:1400" ``P1400 ``p1400,
-  entry 1401 "_to_linear_index(A,I...)" "The multi-index overload forwards every arbitrary Integer to _sub2ind." "base/abstractarray.jl:1401" ``P1401 ``p1401,
-  entry 1414 "_to_subscript_indices(A,i)" "One arbitrary Integer delegates to _unsafe_ind2sub." "base/abstractarray.jl:1414" ``P1414 ``p1414,
-  entry 1417 "_to_subscript_indices(0d,i)" "The zero-rank overload accepts every Integer and returns the empty tuple." "base/abstractarray.jl:1417" ``P1417 ``p1417,
-  entry 1418 "_to_subscript_indices(0d,I...)" "The zero-rank vararg overload accepts every Integer tuple and returns empty." "base/abstractarray.jl:1418" ``P1418 ``p1418,
-  entry 1419 "_to_subscript_indices(A,I...)" "The general overload splits arbitrary Integer inputs at rank before dispatch." "base/abstractarray.jl:1419-1423" ``P1419 ``p1419,
-  entry 1426 "__to_subscript_indices" "The helper obtains axes, remaining size, tuple tail, and each trailing first index in source order." "base/abstractarray.jl:1426-1430" ``P1426 ``p1426,
-  entry 1434 "_remaining_size" "The recursive overload calls tail on both tuples and propagates either empty-tuple error." "base/abstractarray.jl:1434" ``P1434 ``p1434,
-  entry 1435 "_unsafe_ind2sub((),i)" "The empty-shape overload accepts every Integer representation and returns empty." "base/abstractarray.jl:1435" ``P1435 ``p1435,
-  entry 1436 "_unsafe_ind2sub(shape,i)" "The nonempty overload forwards every Integer representation to _ind2sub." "base/abstractarray.jl:1436" ``P1436 ``p1436,
-  entry 1475 "error_if_canonical_setindex(IndexLinear)" "The linear canonical guard throws CanonicalIndexError containing typeof(A)." "base/abstractarray.jl:1475-1476" ``P1475 ``p1475,
-  entry 1477 "error_if_canonical_setindex(IndexCartesian)" "The Cartesian canonical guard throws CanonicalIndexError containing typeof(A)." "base/abstractarray.jl:1477-1478" ``P1477 ``p1477,
-  entry 1482 "_setindex! fallback" "Unsupported setindex throws ErrorException with lazy array and index type values." "base/abstractarray.jl:1482-1483" ``P1482 ``p1482
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.AbstractArrayIndexFaithful

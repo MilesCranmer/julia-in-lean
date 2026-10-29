@@ -13,6 +13,8 @@ import JuliaLean.Tuples
 import JuliaLean.BitArrays
 import JuliaLean.ArrayOps
 import JuliaLean.Arrays
+import JuliaLean.CSupport
+import JuliaLean.CData
 import JuliaLean.Complex
 import JuliaLean.MathFuncs
 import JuliaLean.Reduce
@@ -79,10 +81,86 @@ import JuliaLean.StringsCovB
 import JuliaLean.ConcurrencyCov
 import JuliaLean.DocsSyntaxCov
 import JuliaLean.MiscCov
+import JuliaLean.RationalCov
+import JuliaLean.FastMathCov
+import JuliaLean.NamedTupleCov
+import JuliaLean.AbstractArraySpecs
+import JuliaLean.Proofs.base.abstractarray
+import JuliaLean.Proofs.base.abstractarraymath
+import JuliaLean.Proofs.base.abstractdict
+import JuliaLean.Proofs.base.abstractset
+import JuliaLean.Proofs.base.anyall
+import JuliaLean.Proofs.base.array
+import JuliaLean.Proofs.base.arraymath
+import JuliaLean.Proofs.base.bitarray
+import JuliaLean.Proofs.base.bitset
+import JuliaLean.Proofs.base.bool
+import JuliaLean.Proofs.base.broadcast
+import JuliaLean.Proofs.base.char
+import JuliaLean.Proofs.base.checked
+import JuliaLean.Proofs.base.cmem
+import JuliaLean.Proofs.base.complex
+import JuliaLean.Proofs.base.dict
+import JuliaLean.Proofs.base.div
+import JuliaLean.Proofs.base.error
+import JuliaLean.Proofs.base.essentials
+import JuliaLean.Proofs.base.float
+import JuliaLean.Proofs.base.generator
+import JuliaLean.Proofs.base.genericmemory
+import JuliaLean.Proofs.base.hamt
+import JuliaLean.Proofs.base.hashing
+import JuliaLean.Proofs.base.iddict
+import JuliaLean.Proofs.base.idset
+import JuliaLean.Proofs.base.indices
+import JuliaLean.Proofs.base.int
+import JuliaLean.Proofs.base.intfuncs
+import JuliaLean.Proofs.base.iobuffer
+import JuliaLean.Proofs.base.iterators
+import JuliaLean.Proofs.base.linked_list
+import JuliaLean.Proofs.base.math
+import JuliaLean.Proofs.base.multidimensional
+import JuliaLean.Proofs.base.multinverses
+import JuliaLean.Proofs.base.namedtuple
+import JuliaLean.Proofs.base.ntuple
+import JuliaLean.Proofs.base.number
+import JuliaLean.Proofs.base.operators
+import JuliaLean.Proofs.base.ordering
+import JuliaLean.Proofs.base.pair
+import JuliaLean.Proofs.base.path
+import JuliaLean.Proofs.base.permuteddimsarray
+import JuliaLean.Proofs.base.pointer
+import JuliaLean.Proofs.base.promotion
+import JuliaLean.Proofs.base.range
+import JuliaLean.Proofs.base.rational
+import JuliaLean.Proofs.base.reduce
+import JuliaLean.Proofs.base.reducedim
+import JuliaLean.Proofs.base.refpointer
+import JuliaLean.Proofs.base.refvalue
+import JuliaLean.Proofs.base.reinterpretarray
+import JuliaLean.Proofs.base.reshapedarray
+import JuliaLean.Proofs.base.rounding
+import JuliaLean.Proofs.base.set
+import JuliaLean.Proofs.base.slicearray
+import JuliaLean.Proofs.base.some
+import JuliaLean.Proofs.base.sort
+import JuliaLean.Proofs.base.strings.basic
+import JuliaLean.Proofs.base.strings.cstring
+import JuliaLean.Proofs.base.strings.io
+import JuliaLean.Proofs.base.strings.lazy
+import JuliaLean.Proofs.base.strings.search
+import JuliaLean.Proofs.base.strings.string
+import JuliaLean.Proofs.base.strings.substring
+import JuliaLean.Proofs.base.strings.unicode
+import JuliaLean.Proofs.base.strings.util
+import JuliaLean.Proofs.base.subarray
+import JuliaLean.Proofs.base.tuple
+import JuliaLean.Proofs.base.twiceprecision
+import JuliaLean.Proofs.base.views
 
 namespace JuliaLean.Registry
 
-/-- Every registered property. Each area contributes its own `entries`. -/
+/-- Every registered Base property. Each area module and each `JuliaLean.Proofs.base` file
+contributes its own `entries`. -/
 def all : List Entry :=
   JuliaLean.Float.entries
     ++ JuliaLean.IntArith.entries
@@ -97,6 +175,8 @@ def all : List Entry :=
     ++ JuliaLean.BitArrays.entries
     ++ JuliaLean.ArrayOps.entries
     ++ JuliaLean.Arrays.entries
+    ++ JuliaLean.CSupport.entries
+    ++ JuliaLean.CData.entries
     ++ JuliaLean.Complex.entries
     ++ JuliaLean.MathFuncs.entries
     ++ JuliaLean.Reduce.entries
@@ -163,5 +243,79 @@ def all : List Entry :=
     ++ JuliaLean.ConcurrencyCov.entries
     ++ JuliaLean.DocsSyntaxCov.entries
     ++ JuliaLean.MiscCov.entries
-
+    ++ JuliaLean.RationalCov.entries
+    ++ JuliaLean.FastMathCov.entries
+    ++ JuliaLean.NamedTupleCov.entries
+    ++ JuliaLean.AbstractArraySpecs.entries
+    ++ JuliaLean.Proofs.base.abstractarray.entries
+    ++ JuliaLean.Proofs.base.abstractarraymath.entries
+    ++ JuliaLean.Proofs.base.abstractdict.entries
+    ++ JuliaLean.Proofs.base.abstractset.entries
+    ++ JuliaLean.Proofs.base.anyall.entries
+    ++ JuliaLean.Proofs.base.array.entries
+    ++ JuliaLean.Proofs.base.arraymath.entries
+    ++ JuliaLean.Proofs.base.bitarray.entries
+    ++ JuliaLean.Proofs.base.bitset.entries
+    ++ JuliaLean.Proofs.base.bool.entries
+    ++ JuliaLean.Proofs.base.broadcast.entries
+    ++ JuliaLean.Proofs.base.char.entries
+    ++ JuliaLean.Proofs.base.checked.entries
+    ++ JuliaLean.Proofs.base.cmem.entries
+    ++ JuliaLean.Proofs.base.complex.entries
+    ++ JuliaLean.Proofs.base.dict.entries
+    ++ JuliaLean.Proofs.base.div.entries
+    ++ JuliaLean.Proofs.base.error.entries
+    ++ JuliaLean.Proofs.base.essentials.entries
+    ++ JuliaLean.Proofs.base.float.entries
+    ++ JuliaLean.Proofs.base.generator.entries
+    ++ JuliaLean.Proofs.base.genericmemory.entries
+    ++ JuliaLean.Proofs.base.hamt.entries
+    ++ JuliaLean.Proofs.base.hashing.entries
+    ++ JuliaLean.Proofs.base.iddict.entries
+    ++ JuliaLean.Proofs.base.idset.entries
+    ++ JuliaLean.Proofs.base.indices.entries
+    ++ JuliaLean.Proofs.base.int.entries
+    ++ JuliaLean.Proofs.base.intfuncs.entries
+    ++ JuliaLean.Proofs.base.iobuffer.entries
+    ++ JuliaLean.Proofs.base.iterators.entries
+    ++ JuliaLean.Proofs.base.linked_list.entries
+    ++ JuliaLean.Proofs.base.math.entries
+    ++ JuliaLean.Proofs.base.multidimensional.entries
+    ++ JuliaLean.Proofs.base.multinverses.entries
+    ++ JuliaLean.Proofs.base.namedtuple.entries
+    ++ JuliaLean.Proofs.base.ntuple.entries
+    ++ JuliaLean.Proofs.base.number.entries
+    ++ JuliaLean.Proofs.base.operators.entries
+    ++ JuliaLean.Proofs.base.ordering.entries
+    ++ JuliaLean.Proofs.base.pair.entries
+    ++ JuliaLean.Proofs.base.path.entries
+    ++ JuliaLean.Proofs.base.permuteddimsarray.entries
+    ++ JuliaLean.Proofs.base.pointer.entries
+    ++ JuliaLean.Proofs.base.promotion.entries
+    ++ JuliaLean.Proofs.base.range.entries
+    ++ JuliaLean.Proofs.base.rational.entries
+    ++ JuliaLean.Proofs.base.reduce.entries
+    ++ JuliaLean.Proofs.base.reducedim.entries
+    ++ JuliaLean.Proofs.base.refpointer.entries
+    ++ JuliaLean.Proofs.base.refvalue.entries
+    ++ JuliaLean.Proofs.base.reinterpretarray.entries
+    ++ JuliaLean.Proofs.base.reshapedarray.entries
+    ++ JuliaLean.Proofs.base.rounding.entries
+    ++ JuliaLean.Proofs.base.set.entries
+    ++ JuliaLean.Proofs.base.slicearray.entries
+    ++ JuliaLean.Proofs.base.some.entries
+    ++ JuliaLean.Proofs.base.sort.entries
+    ++ JuliaLean.Proofs.base.strings.basic.entries
+    ++ JuliaLean.Proofs.base.strings.cstring.entries
+    ++ JuliaLean.Proofs.base.strings.io.entries
+    ++ JuliaLean.Proofs.base.strings.lazy.entries
+    ++ JuliaLean.Proofs.base.strings.search.entries
+    ++ JuliaLean.Proofs.base.strings.string.entries
+    ++ JuliaLean.Proofs.base.strings.substring.entries
+    ++ JuliaLean.Proofs.base.strings.unicode.entries
+    ++ JuliaLean.Proofs.base.strings.util.entries
+    ++ JuliaLean.Proofs.base.subarray.entries
+    ++ JuliaLean.Proofs.base.tuple.entries
+    ++ JuliaLean.Proofs.base.twiceprecision.entries
+    ++ JuliaLean.Proofs.base.views.entries
 end JuliaLean.Registry

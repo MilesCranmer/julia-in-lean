@@ -243,47 +243,7 @@ def entry (id fn statement source : String) (prop thm : Lean.Name) : Entry :=
   { id := id, juliaFile := "base/range.jl", juliaFns := [fn], statement := statement,
     source := source, status := .proven, prop := prop, thm := some thm }
 
-def entries : List Entry := [
-  entry "rangescov-r7-colon-generic" "(:)(start::T, stop::T) where T" "The generic two-argument colon supplies a unit step of the difference type." "base/range.jl:7" ``ColonGenericBehaviour ``colonGenericBehaviour_proven,
-  entry "rangescov-r16-colon-promote" "(:)(::T, ::AbstractFloat, ::T) where T<:Real" "The method promotes all three arguments and applies colon to the promoted tuple." "base/range.jl:16" ``ColonPromoteABehaviour ``colonPromoteABehaviour_proven,
-  entry "rangescov-r17-colon-promote" "(:)(::T, ::AbstractFloat, ::T) where T<:AbstractFloat" "The method promotes all three arguments and applies colon to the promoted tuple." "base/range.jl:17" ``ColonPromoteBBehaviour ``colonPromoteBBehaviour_proven,
-  entry "rangescov-r18-colon-promote" "(:)(::T, ::Real, ::T) where T<:AbstractFloat" "The method promotes all three arguments and applies colon to the promoted tuple." "base/range.jl:18" ``ColonPromoteCBehaviour ``colonPromoteCBehaviour_proven,
-  entry "rangescov-r167-range" "range(start; stop, length, step)" "The wrapper forwards start, step, stop and length to _range in that order." "base/range.jl:167-168" ``RangeStartKwBehaviour ``rangeStartKwBehaviour_proven,
-  entry "rangescov-r169-range" "range(start, stop; length, step)" "The wrapper forwards start, step, stop and length to _range in that order." "base/range.jl:169" ``RangeStartStopKwBehaviour ``rangeStartStopKwBehaviour_proven,
-  entry "rangescov-r172-range" "range(; start, stop, length, step)" "The wrapper forwards start, step, stop and length to _range in that order." "base/range.jl:172-173" ``RangeAllKwBehaviour ``rangeAllKwBehaviour_proven,
-  entry "rangescov-r175-range" "_range(nothing,nothing,nothing,nothing)" "This missing-argument combination calls range_error." "base/range.jl:175" ``R175 ``r175_proven,
-  entry "rangescov-r176-range" "_range(nothing,nothing,nothing,len)" "Length alone calls range_length." "range docstring; base/range.jl:176" ``R176 ``r176_proven,
-  entry "rangescov-r177-range" "_range(nothing,nothing,stop,nothing)" "Stop alone calls range_stop." "range docstring; base/range.jl:177" ``R177 ``r177_proven,
-  entry "rangescov-r178-range" "_range(nothing,nothing,stop,len)" "Stop and length call range_stop_length." "range docstring; base/range.jl:178" ``R178 ``r178_proven,
-  entry "rangescov-r179-range" "_range(nothing,step,nothing,nothing)" "Step alone is rejected by range_error." "range docstring; base/range.jl:179" ``R179 ``r179_proven,
-  entry "rangescov-r180-range" "_range(nothing,step,nothing,len)" "Step and length without start or stop are rejected." "range docstring; base/range.jl:180" ``R180 ``r180_proven,
-  entry "rangescov-r181-range" "_range(nothing,step,stop,nothing)" "Step and stop without start or length are rejected." "range docstring; base/range.jl:181" ``R181 ``r181_proven,
-  entry "rangescov-r182-range" "_range(nothing,step,stop,len)" "Step, stop and length call range_step_stop_length." "range docstring; base/range.jl:182" ``R182 ``r182_proven,
-  entry "rangescov-r183-range" "_range(start,nothing,nothing,nothing)" "Start alone is rejected by range_error." "range docstring; base/range.jl:183" ``R183 ``r183_proven,
-  entry "rangescov-r184-range" "_range(start,nothing,nothing,len)" "Start and length call range_start_length." "range docstring; base/range.jl:184" ``R184 ``r184_proven,
-  entry "rangescov-r185-range" "_range(start,nothing,stop,nothing)" "Start and stop call range_start_stop." "range docstring; base/range.jl:185" ``R185 ``r185_proven,
-  entry "rangescov-r186-range" "_range(start,nothing,stop,len)" "Start, stop and length call range_start_stop_length." "range docstring; base/range.jl:186" ``R186 ``r186_proven,
-  entry "rangescov-r187-range" "_range(start,step,nothing,nothing)" "Start and step without stop or length are rejected." "range docstring; base/range.jl:187" ``R187 ``r187_proven,
-  entry "rangescov-r188-range" "_range(start,step,nothing,len)" "Start, step and length call range_start_step_length." "range docstring; base/range.jl:188" ``R188 ``r188_proven,
-  entry "rangescov-r189-range" "_range(start,step,stop,nothing)" "Start, step and stop call range_start_step_stop." "range docstring; base/range.jl:189" ``R189 ``r189_proven,
-  entry "rangescov-r190-range" "_range(start,step,stop,len)" "Specifying all four values is rejected." "range docstring; base/range.jl:190" ``R190 ``r190_proven,
-  entry "rangescov-r196-range-stop" "range_stop(stop)" "The default start is one converted to the stop type." "range docstring; base/range.jl:196" ``RangeStopBehaviour ``rangeStopBehaviour_proven,
-  entry "rangescov-r285-step-style" "RangeStepStyle(::Type{<:AbstractRange})" "A general AbstractRange has irregular step style." "base/range.jl:285" ``RangeStepStyleIrregular ``rangeStepStyleIrregular_proven,
-  entry "rangescov-r286-step-style" "RangeStepStyle(::Type{<:AbstractRange{<:Integer}})" "An integer AbstractRange has regular step style." "base/range.jl:286" ``RangeStepStyleRegular ``rangeStepStyleRegular_proven,
-  entry "rangescov-r288-convert-range" "convert(::Type{T}, r::AbstractRange)" "Conversion returns r when it already has type T and otherwise constructs T(r)." "base/range.jl:288" ``ConvertRangeBehaviour ``convertRangeBehaviour_proven,
-  entry "rangescov-r377-overflow-case" "overflow_case(absdiff, absstep)" "The helper takes an unsigned remainder and converts it back to the difference type." "base/range.jl:377" ``OverflowCaseBehaviour ``overflowCaseBehaviour_proven,
-  entry "rangescov-r399-step-empty-bool" "steprange_last_empty(::Bool, step, stop)" "The Bool empty-range stop is start xor (step > zero(step))." "base/range.jl:399" ``StepEmptyBoolBehaviour ``stepEmptyBoolBehaviour_proven,
-  entry "rangescov-r401-step-empty-any" "steprange_last_empty(start, step, stop)" "The unconstrained fallback keeps the user stop." "base/range.jl:401" ``StepEmptyAnyBehaviour ``stepEmptyAnyBehaviour_proven,
-  entry "rangescov-r403-steprange-t" "StepRange{T}(start, step::S, stop)" "The one-parameter constructor delegates to StepRange{T,S}." "base/range.jl:403" ``StepRangeTBehaviour ``stepRangeTBehaviour_proven,
-  entry "rangescov-r487-oneto-t" "OneTo{T}(stop)" "The inner constructor rejects Bool and stores max(zero(T), stop) after conversion." "OneTo invariant; base/range.jl:487-491" ``OneToInnerBehaviour ``oneToInnerBehaviour_proven,
-  entry "rangescov-r488-throwbool" "throwbool(r)" "The local helper always throws ArgumentError." "base/range.jl:488" ``ThrowboolStopBehaviour ``throwboolStopBehaviour_proven,
-  entry "rangescov-r494-throwstart" "throwstart(r)" "The local helper always throws ArgumentError." "base/range.jl:494" ``ThrowstartBehaviour ``throwstartBehaviour_proven,
-  entry "rangescov-r495-throwstep" "throwstep(r)" "The local helper always throws ArgumentError." "base/range.jl:495" ``ThrowstepBehaviour ``throwstepBehaviour_proven,
-  entry "rangescov-r496-throwbool" "throwbool(r)" "The local helper always throws ArgumentError." "base/range.jl:496" ``ThrowboolRangeBehaviour ``throwboolRangeBehaviour_proven,
-  entry "rangescov-r505-oneto" "OneTo(stop::T)" "The outer constructor delegates to OneTo{T}." "base/range.jl:505" ``OneToOuterBehaviour ``oneToOuterBehaviour_proven,
-  entry "rangescov-r506-oneto-range" "OneTo(r::AbstractRange{T})" "The outer constructor delegates to OneTo{T}(r)." "base/range.jl:506" ``OneToRangeBehaviour ``oneToRangeBehaviour_proven,
-  entry "rangescov-r507-oneto" "oneto(r)" "oneto delegates to OneTo(r)." "base/range.jl:507" ``OnetoBehaviour ``onetoBehaviour_proven
-]
+def entries : List Entry := []
 
 end Dispatch
 end JuliaLean.RangesCov

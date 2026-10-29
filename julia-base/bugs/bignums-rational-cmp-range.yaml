@@ -69,5 +69,18 @@ duplicates:
   issues: []
   queries: ["mpq_cmp", "cmp Rational BigInt", "Rational{BigInt} cmp", "cmp returns", "MPQ", "PR MPQ cmp", "PR mpq_cmp"]
 lean:
-  property: JuliaLean.BigNums.RationalCmpUnit
+  property: JuliaLean.BigNums.LegacyRationalCmpUnit
   theorem: JuliaLean.BigNums.rationalCmpUnit_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: false
+  proof: JuliaLean.BigNums.rationalCmpUnit_proven
+  output: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    cmp(0//1, 2^200//1)           = -1
+    cmp(2^200//1, 0//1)           = 1
+    cmp(2^100//3, 5//7)           = 1
+    cmp(Rational{Int128} values)  = 1
+    cmp(BigInt(0), big(2)^200)    = -1
+    sort(vals; lt=(x, y) -> cmp(x, y) == -1) = Rational{BigInt}[0, 5//7, 1267650600228229401496703205376//3, 1606938044258990275541962092341162602522202993782792835301376]
+    sort(vals)                               = Rational{BigInt}[0, 5//7, 1267650600228229401496703205376//3, 1606938044258990275541962092341162602522202993782792835301376]

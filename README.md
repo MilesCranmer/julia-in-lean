@@ -1,8 +1,8 @@
 # Formalizing Julia in Lean
 
-Julia source code modelled in Lean 4. Each Julia function is mirrored by a Lean definition that follows the source line by line. Each property of that function, taken from a docstring, the manual, or an obvious invariant, ends either proven (a Lean theorem) or refuted (a Lean theorem of the negation, built from a concrete counterexample). Every refutation is backed by a pure-Julia script that reproduces the problem on real Julia.
+Julia source code modelled in Lean 4. Each Julia function is mirrored by a Lean definition that follows the source line by line. Each property of that function, taken from a docstring, the manual, or an obvious invariant, ends either proven (a Lean theorem) or refuted (a Lean theorem of the negation, built from a concrete counterexample). Every refutation outside the C runtime models is backed by a pure-Julia script that reproduces the problem on real Julia.
 
-The repository holds two Lean packages. `julia-base/` models parts of Julia Base and several standard libraries: 9,798 registered properties, 9,227 proven and 571 refuted, with 574 bug write-ups and 90 issues filed on JuliaLang/julia. `dynamicexpressions/` models DynamicExpressions.jl, the expression-tree package behind SymbolicRegression.jl and PySR: 385 properties in the first pass (332 proven, 53 refuted), 38 fix pull requests merged upstream, and a current registry of 400 entries with 394 proven and 6 refuted.
+The repository holds two Lean packages. `julia-base/` models parts of Julia Base and several standard libraries: 6,452 registered properties, 5,058 proven, 560 refuted and 834 open (`todo`), with 627 bug write-ups and 107 issues filed on JuliaLang/julia. `dynamicexpressions/` models DynamicExpressions.jl, the expression-tree package behind SymbolicRegression.jl and PySR: 385 properties in the first pass (332 proven, 53 refuted), 38 fix pull requests merged upstream, and a current registry of 400 entries with 394 proven and 6 refuted.
 
 The method is described in enough detail to repeat it for another package.
 
@@ -119,7 +119,7 @@ Every entry ends in one of two states.
 | PROVEN | a theorem whose type is exactly the property | none |
 | REFUTED | a theorem whose type is exactly the negation, built from a concrete counterexample and checked with `decide` | `repro/<id>.jl` prints `REPRODUCED <id>` as its last line |
 
-A refutation counts only when the reproducer shows the behaviour on real Julia: the 1.13.2 release, Julia master (1.15.0-DEV, pinned to commit `bbfa0ce4150`), or both. A bug seen only on master is a regression candidate. DynamicExpressions.jl reproducers run against the package. A Lean counterexample without a reproducer is a model bug, not a Julia bug.
+A refutation counts only when the reproducer shows the behaviour on real Julia: the 1.13.2 release, Julia master (1.15.0-DEV, pinned to commit `f755f49a9e4`; earlier findings were first confirmed on `bbfa0ce4150`), or both. A bug seen only on master is a regression candidate. DynamicExpressions.jl reproducers run against the package. A Lean counterexample without a reproducer is a model bug, not a Julia bug.
 
 ### Differential testing
 
@@ -198,23 +198,26 @@ Lean 4.34.1 (`lean-toolchain`: `leanprover/lean4:v4.34.1`), no Mathlib.
 
 | Count | |
 | --- | --- |
-| Registry entries | 9,798 |
-| Proven | 9,227 |
-| Refuted | 571 |
-| Bug write-ups | 574 |
+| Registry entries | 6,452 |
+| Proven | 5,058 |
+| Refuted | 560 |
+| Open (`todo`) | 834 |
+| Bug write-ups | 627 |
 
-There is one write-up per refuted registry entry, plus three standalone reports: `compiler-isa-flag-loop` is a compiler issue outside the Lean model; `iocov-encode-uri-padding` and `stringscova-search-offset-pattern-range` have reproducer write-ups but no refuted registry entries. Bug write-ups by priority:
+The Base formalization is in the middle of a rewrite into one source-mirrored model file (`JuliaLean/base/<path>.lean`) and one proofs file (`JuliaLean/Proofs/base/<path>.lean`) per Base file. Statements not yet settled in the new layout are listed in the registry with status `todo`. The proven count went down because properties that only restated their own model were removed or replaced by real specifications during the rewrite. Of the 73 Base files that now have a per-file model, 19 passed an independent review with a fixed prompt before they were committed (every method mirrored and covered, every property a real specification, with a few recorded exceptions): `arraymath`, `bool`, `checked`, `cmem`, `complex`, `float`, `hamt`, `int`, `linked_list`, `multidimensional`, `multinverses`, `number`, `pair`, `rational`, `slicearray`, `strings/cstring`, `strings/search`, `strings/substring` and `strings/unicode`.
+
+507 write-ups belong to a refuted registry entry with the same id, and 53 more refuted entries share the write-up of a bug with the same root cause, listed in its `covers` field. Of the other write-ups, 93 belong to entries the rewrite has reopened as `todo`, 11 to entries that are now proven, and 8 to C runtime model counterexamples that real Julia has not reproduced; 8 have no registry entry, for example `compiler-isa-flag-loop`, a compiler issue outside the Lean model. Bug write-ups by priority:
 
 | Priority | Count |
 | --- | --- |
 | P0 | 6 |
-| P1 | 63 |
-| P2 | 314 |
-| P3 | 191 |
+| P1 | 67 |
+| P2 | 358 |
+| P3 | 196 |
 
 Coverage: parts of about 90 files in `base/`, plus the stdlib packages Printf, Dates, Base64, UUIDs, CRC32c, TOML, Markdown, Sockets, Serialization, Artifacts, Random and Unicode.
 
-After the first two reports (including [#64121](https://github.com/JuliaLang/julia/issues/64121)), 90 issues were filed on JuliaLang/julia ([full list](https://github.com/JuliaLang/julia/issues?q=is%3Aissue%20author%3AMilesCranmerBot)), numbered [#64123](https://github.com/JuliaLang/julia/issues/64123) to [#64240](https://github.com/JuliaLang/julia/issues/64240). A few numbers in that range come from a separate C-runtime/GC project that is not in this repository. Selected filed issues, all open:
+After the first two reports (including [#64121](https://github.com/JuliaLang/julia/issues/64121)), 107 issues were filed on JuliaLang/julia ([full list](https://github.com/JuliaLang/julia/issues?q=is%3Aissue%20author%3AMilesCranmerBot)), numbered [#64123](https://github.com/JuliaLang/julia/issues/64123) to [#64453](https://github.com/JuliaLang/julia/issues/64453). A few of them report C runtime and GC findings; in this repository those findings are model counterexamples (`JuliaLean/CRuntime/`, `kind: model-counterexample`) that real Julia has not reproduced. Selected filed issues, all open except #64143 and #64175, which are closed:
 
 - [#64183](https://github.com/JuliaLang/julia/issues/64183): 1.14 regression. A stale `isa` refinement across loop iterations miscompiles code: inference folds `w && el isa String` to false when `w = el isa C` was set in the previous iteration. Found because `Markdown.rst` printed wrong output on master.
 - [#64147](https://github.com/JuliaLang/julia/issues/64147): BitArrays. Resizing `vec(M)` or `reshape(M, n)` corrupts the original `BitArray` (memory unsafe).
@@ -232,11 +235,11 @@ After the first two reports (including [#64121](https://github.com/JuliaLang/jul
 - [#64200](https://github.com/JuliaLang/julia/issues/64200): `uuid5` unescapes the name before hashing.
 - [#64192](https://github.com/JuliaLang/julia/issues/64192): shell. Line continuation can drop characters after non-ASCII text.
 
-Some confirmed bugs are held back from this repository until they have been reported.
+Exactly two confirmed bugs are held back from this repository until they have been reported.
 
 ### Memory safety
 
-The memory-safety phase lists every unchecked access in `base/` on master: `@inbounds`, `@boundscheck`-elided paths, `unsafe_load`, `unsafe_store!`, `unsafe_copyto!`, `memoryref`, and similar. The list, `memsafety/sites-<group>.tsv`, has 1,152 sites in about 90 files, split into six groups. Each site must end in one of four states:
+The memory-safety phase lists every unchecked access in `base/` on the target master: `@inbounds`, `@boundscheck`-elided paths, `unsafe_load`, `unsafe_store!`, `unsafe_copyto!`, `memoryref`, and similar. The list, `memsafety/sites-<group>.tsv`, has 1,194 sites in about 90 files, split into six groups. Each site must end in one of four states:
 
 | State | Requirement |
 | --- | --- |
@@ -245,7 +248,7 @@ The memory-safety phase lists every unchecked access in `base/` on master: `@inb
 | user-contract | the docstring makes the caller responsible; the sentence is quoted in the note |
 | not-unchecked | the site is not actually an unchecked access |
 
-`scripts/check_memsafety.py` fails while any site is unsettled. Current state: 250 sites are not unchecked accesses, 657 are proven, 52 are refuted, 189 are the caller's responsibility by contract, and 4 remain unsettled. This phase is unfinished.
+`scripts/check_memsafety.py` fails while any site is unsettled. Current state: 291 sites are not unchecked accesses, 3 are proven but have not passed the review rubric, 1 is the caller's responsibility by contract, and 899 remain unsettled while the proofs and refutations are moved to the target master. This phase is unfinished.
 
 ### DynamicExpressions.jl (`dynamicexpressions/`)
 
@@ -309,9 +312,12 @@ A checklist derived from the method above. Establish the checks before proof wor
 julia-base/
   lean-toolchain              leanprover/lean4:v4.34.1
   ARCHITECTURE.md             modelling rules, workflow, YAML schema, priority scale
+  JuliaLean/base/             source-mirrored model, one file per Base file
+  JuliaLean/Proofs/base/      properties and proofs, one file per Base file
   JuliaLean/<Area>.lean       registry entries of one area of Julia Base or a stdlib
   JuliaLean/<Area>/           models, properties, proofs, refutations, differential checks
-  JuliaLean/Registry.lean     collects every area's entries
+  JuliaLean/CRuntime/         C runtime and GC protocol models, audited by CRuntimeAudit.lean
+  JuliaLean/Registry.lean     collects every area's and proofs file's entries
   Audit.lean, Report.lean     registry checks; export to registry.tsv
   registry.tsv                every entry with its status
   repro/<id>.jl               one pure-Julia reproducer per refuted entry
@@ -323,6 +329,7 @@ julia-base/
   coverage/REVIEW_PROMPT.md   method review criteria
   scripts/audit.sh            lake build, forbidden-token scan, audit
   scripts/run-repros.sh       runs every reproducer on a given Julia
+  scripts/repro-target.sh     names the reproducer that confirms a refuted entry
   scripts/check-bugs.sh       validates bugs/*.yaml
   scripts/check_memsafety.py  fails while any memory-safety site is unsettled
   scripts/check_coverage.py   validates whole-Base method coverage
@@ -348,24 +355,25 @@ Build and check a package:
 cd julia-base
 lake build
 bash scripts/audit.sh
+lake build JuliaLean.Registry.Print JuliaLean.Registry.Metadata
 lake env lean Report.lean > registry.tsv
 JULIA=/path/to/julia bash scripts/run-repros.sh
 bash scripts/check-bugs.sh
-python3 scripts/check_memsafety.py
+python3 scripts/check_memsafety.py --repo /path/to/julia-source
 python3 scripts/check_coverage.py
 ```
 
-For `julia-base/`, run the reproducers against both the 1.13.2 release and Julia master; each refuted entry reproduces on at least one of them, and most on both. The DynamicExpressions.jl reproducers use `repro/Project.toml`, which pins the package at the modelled commit; the `evalcache-*` reproducers need the [PR #219](https://github.com/SymbolicML/DynamicExpressions.jl/issues/219) branch instead.
+For `julia-base/`, run the reproducers against both the 1.13.2 release and Julia master; each refuted entry reproduces on the pinned master, and all but 19 also on the release. `python3 scripts/check_coverage.py` also needs the pinned Base source and the registry evidence files described in `julia-base/ARCHITECTURE.md`. The DynamicExpressions.jl reproducers use `repro/Project.toml`, which pins the package at the modelled commit; the `evalcache-*` reproducers need the [PR #219](https://github.com/SymbolicML/DynamicExpressions.jl/issues/219) branch instead.
 
 ## Limits
 
-**What "proven" means.** A proven entry is a theorem about the Lean model. The model mirrors the Julia source by hand and is checked against the real implementation by differential testing, not by a verified compiler or a verified semantics of Julia. A proof therefore says: if the model is faithful on the inputs the property quantifies over, the property holds. Differential testing raises confidence in faithfulness; it does not establish it. The refuted side is stronger, because every refutation is confirmed by a reproducer on the real implementation.
+**What "proven" means.** A proven entry is a theorem about the Lean model. The model mirrors the Julia source by hand and is checked against the real implementation by differential testing, not by a verified compiler or a verified semantics of Julia. A proof therefore says: if the model is faithful on the inputs the property quantifies over, the property holds. Differential testing raises confidence in faithfulness; it does not establish it. The refuted side is stronger, because every refutation outside the C runtime models is confirmed by a reproducer on the real implementation.
 
 **Coverage is partial.** The Julia Base package covers parts of about 90 files in `base/` and a selection of stdlib packages. Within a covered file, only the functions named in the model have entries. The coverage rule guarantees that named functions have entries; it does not say anything about the rest of the file.
 
-Whole-Base method inventory: 12,765 methods in the manifest, 12,411 modelled, 334 excluded, and 20 todo. The fixed-prompt review has passed 3,562 methods, with line coverage of 12.2665% (9,200 of 75,001 definition lines; overlapping definitions counted separately). Most modelled methods have not yet passed review.
+Whole-Base method inventory at the pinned master: 12,774 methods in the manifest, 7,258 modelled, 262 excluded, and 5,254 todo. Most modelled methods have not yet passed review. The per-file review above covers 19 Base files; the checker's per-method review count and its line coverage (0 of 75,060 definition lines) count only reviews that carry evidence binding files, which the per-file reviews do not produce.
 
-**The memory-safety phase is unfinished.** Of the 1,152 listed sites, 250 are not unchecked accesses, 657 are proven, 52 are refuted, 189 are the caller's responsibility by contract, and 4 remain unsettled. The first-pass proofs were withdrawn after review (see the lessons above), and any new proof must pass the same review rubric before it counts.
+**The memory-safety phase is unfinished.** Of the 1,194 listed sites, 291 are not unchecked accesses, 3 are proven but have not passed review, 1 is the caller's responsibility by contract, and 899 remain unsettled after the move to the target master. The first-pass proofs were withdrawn after review (see the lessons above), and any new proof must pass the same review rubric before it counts.
 
 **Priorities are judgment calls.** Give each bug a conservative P0 to P3 priority from the scale above, then review it before filing. Whether an input is "ordinary" or "contrived", and whether a documented sentence is a promise or a description, are decisions that another reader could make differently. The write-ups record the reasoning so the decision can be revisited.
 

@@ -1,103 +1,103 @@
 file	line	endline	name	signature	status	entry	note
-base/strings/util.jl	31	39	startswith	startswith(a::AbstractString, b::AbstractString)	modelled	stringscova-util-startswith-faithful	
-base/strings/util.jl	40	40	startswith	startswith(str::AbstractString, chars::Chars)	modelled	stringscova-util-startswith-faithful	
-base/strings/util.jl	57	66	endswith	endswith(a::AbstractString, b::AbstractString)	modelled	stringscova-util-endswith-faithful	
-base/strings/util.jl	67	67	endswith	endswith(str::AbstractString, chars::Chars)	modelled	stringscova-util-endswith-faithful	
-base/strings/util.jl	69	78	startswith	startswith(a::DenseUTF8String, b::DenseUTF8String)	modelled	stringscova-util-startswith-faithful	
-base/strings/util.jl	83	85	startswith	startswith(a::Union{String,SubString{String}}, b::Union{String,SubString{String}})	modelled	stringscova-util-startswith-faithful	
-base/strings/util.jl	93	98	startswith	startswith(io::IO, prefix::Base.Chars)	modelled	stringutil-startswith-io-eof,stringutil-startswith-io-mark	
-base/strings/util.jl	99	104	startswith	startswith(io::IO, prefix::UTF8String)	modelled	stringscova-util-startswith-faithful	
-base/strings/util.jl	105	105	startswith	startswith(io::IO, prefix::AbstractString)	modelled	stringutil-startswith-io-mark,stringutil-startswith-io-peek	
-base/strings/util.jl	107	116	endswith	endswith(a::DenseUTF8String, b::DenseUTF8String)	modelled	stringscova-util-endswith-faithful	
-base/strings/util.jl	120	122	endswith	endswith(a::Union{String,SubString{String}}, b::Union{String,SubString{String}})	modelled	stringscova-util-endswith-faithful	
-base/strings/util.jl	152	152	contains	contains(haystack::AbstractString, needle)	modelled	stringscova-util-contains-faithful	
-base/strings/util.jl	175	175	endswith	endswith(s)	modelled	stringscova-util-endswith-faithful	
-base/strings/util.jl	198	198	startswith	startswith(s)	modelled	stringscova-util-startswith-faithful	
-base/strings/util.jl	209	209	contains	contains(needle)	modelled	stringscova-util-contains-faithful	
+base/strings/util.jl	31	39	startswith	startswith(a::AbstractString, b::AbstractString)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	40	40	startswith	startswith(str::AbstractString, chars::Chars)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	57	66	endswith	endswith(a::AbstractString, b::AbstractString)	modelled	stringscova-util-endswith-abstract-rebuilt	
+base/strings/util.jl	67	67	endswith	endswith(str::AbstractString, chars::Chars)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	69	78	startswith	startswith(a::DenseUTF8String, b::DenseUTF8String)	modelled	stringscova-util-startswith-dense-rebuilt	
+base/strings/util.jl	83	85	startswith	startswith(a::Union{String,SubString{String}}, b::Union{String,SubString{String}})	modelled	stringscova-util-startswith-fast-rebuilt	
+base/strings/util.jl	93	98	startswith	startswith(io::IO, prefix::Base.Chars)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	99	104	startswith	startswith(io::IO, prefix::UTF8String)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	105	105	startswith	startswith(io::IO, prefix::AbstractString)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	107	116	endswith	endswith(a::DenseUTF8String, b::DenseUTF8String)	modelled	stringscova-util-endswith-dense-rebuilt	
+base/strings/util.jl	120	122	endswith	endswith(a::Union{String,SubString{String}}, b::Union{String,SubString{String}})	todo		weak: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	152	152	contains	contains(haystack::AbstractString, needle)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	175	175	endswith	endswith(s)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	198	198	startswith	startswith(s)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	209	209	contains	contains(needle)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
 base/strings/util.jl	236	241	chop	chop(s::AbstractString; head::Integer = 0, tail::Integer = 1)	modelled	strings-chop-head-overflow	
-base/strings/util.jl	268	279	chopprefix	chopprefix(s::AbstractString, prefix::AbstractString)	modelled	stringscova-util-chopprefix-faithful	
-base/strings/util.jl	281	288	chopprefix	chopprefix(s::Union{String, SubString{String}}, prefix::Union{String, SubString{String}})	modelled	stringscova-util-chopprefix-faithful	
-base/strings/util.jl	290	296	chopprefix	chopprefix(s::AbstractString, prefix::AbstractChar)	modelled	stringscova-util-chopprefix-faithful	
-base/strings/util.jl	320	332	chopsuffix	chopsuffix(s::AbstractString, suffix::AbstractString)	modelled	stringscova-util-chopsuffix-faithful	
-base/strings/util.jl	334	342	chopsuffix	chopsuffix(s::Union{String, SubString{String}}, suffix::Union{String, SubString{String}})	modelled	stringscova-util-chopsuffix-faithful	
-base/strings/util.jl	344	350	chopsuffix	chopsuffix(s::AbstractString, suffix::AbstractChar)	modelled	stringscova-util-chopsuffix-faithful	
+base/strings/util.jl	268	279	chopprefix	chopprefix(s::AbstractString, prefix::AbstractString)	modelled	stringscova-util-chopprefix-abstract-rebuilt	
+base/strings/util.jl	281	288	chopprefix	chopprefix(s::Union{String, SubString{String}}, prefix::Union{String, SubString{String}})	modelled	stringscova-util-chopprefix-fast-rebuilt	
+base/strings/util.jl	290	296	chopprefix	chopprefix(s::AbstractString, prefix::AbstractChar)	modelled	stringscova-util-review-290	
+base/strings/util.jl	320	332	chopsuffix	chopsuffix(s::AbstractString, suffix::AbstractString)	modelled	stringscova-util-chopsuffix-abstract-rebuilt	
+base/strings/util.jl	334	342	chopsuffix	chopsuffix(s::Union{String, SubString{String}}, suffix::Union{String, SubString{String}})	todo		weak: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	344	350	chopsuffix	chopsuffix(s::AbstractString, suffix::AbstractChar)	todo		weak: old statement restates a helper implementation or lacks a full behavioral guarantee
 base/strings/util.jl	371	377	chomp	chomp(s::AbstractString)	modelled	stringutil-chomp-generic	
 base/strings/util.jl	379	391	chomp	chomp(s::Union{String, SubString{String}})	modelled	stringutil-chomp-generic	
 base/strings/util.jl	416	422	lstrip	lstrip(f, s::AbstractString)	modelled	stringutil-lstrip-chars	
-base/strings/util.jl	423	423	lstrip	lstrip(s::AbstractString)	modelled	stringscova-util-lstrip-faithful	
-base/strings/util.jl	424	424	lstrip	lstrip(s::AbstractString, chars::Chars)	modelled	stringscova-util-lstrip-faithful	
-base/strings/util.jl	425	425	lstrip	lstrip(::AbstractString, ::AbstractString)	modelled	stringscova-util-lstrip-faithful	
+base/strings/util.jl	423	423	lstrip	lstrip(s::AbstractString)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	424	424	lstrip	lstrip(s::AbstractString, chars::Chars)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	425	425	lstrip	lstrip(::AbstractString, ::AbstractString)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
 base/strings/util.jl	451	456	rstrip	rstrip(f, s::AbstractString)	modelled	stringutil-rstrip-chars	
-base/strings/util.jl	457	457	rstrip	rstrip(s::AbstractString)	modelled	stringscova-util-rstrip-faithful	
-base/strings/util.jl	458	458	rstrip	rstrip(s::AbstractString, chars::Chars)	modelled	stringscova-util-rstrip-faithful	
-base/strings/util.jl	459	459	rstrip	rstrip(::AbstractString, ::AbstractString)	modelled	stringscova-util-rstrip-faithful	
-base/strings/util.jl	486	486	strip	strip(s::AbstractString)	modelled	stringscova-util-strip-faithful	
-base/strings/util.jl	487	487	strip	strip(s::AbstractString, chars::Chars)	modelled	stringscova-util-strip-faithful	
-base/strings/util.jl	488	488	strip	strip(::AbstractString, ::AbstractString)	modelled	stringscova-util-strip-faithful	
+base/strings/util.jl	457	457	rstrip	rstrip(s::AbstractString)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	458	458	rstrip	rstrip(s::AbstractString, chars::Chars)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	459	459	rstrip	rstrip(::AbstractString, ::AbstractString)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	486	486	strip	strip(s::AbstractString)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	487	487	strip	strip(s::AbstractString, chars::Chars)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	488	488	strip	strip(::AbstractString, ::AbstractString)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
 base/strings/util.jl	489	489	strip	strip(f, s::AbstractString)	modelled	stringutil-strip-chars	
-base/strings/util.jl	511	511	lpad	lpad(s, n::Integer, p::Union{AbstractChar,AbstractString}=' ')	modelled	stringscova-util-lpad-faithful	
-base/strings/util.jl	516	523	_pad_remainder	_pad_remainder(p::AbstractString, r::Int)	modelled	stringutil-lpad-pieces,stringutil-pad-malformed,stringutil-rpad-pieces	
-base/strings/util.jl	524	524	_pad_remainder	_pad_remainder(p::AbstractChar, r::Int)	modelled	stringscova-util-pad-remainder-faithful	
-base/strings/util.jl	526	544	lpad	lpad( s::Union{AbstractChar,AbstractString}, n::Integer, p::Union{AbstractChar,AbstractString}=' ', )	modelled	stringutil-lpad-pieces,stringutil-pad-malformed,strings-lpad-typemin	
-base/strings/util.jl	564	564	rpad	rpad(s, n::Integer, p::Union{AbstractChar,AbstractString}=' ')	modelled	stringscova-util-rpad-faithful	
-base/strings/util.jl	566	584	rpad	rpad( s::Union{AbstractChar,AbstractString}, n::Integer, p::Union{AbstractChar,AbstractString}=' ', )	modelled	stringutil-rpad-pieces,stringutil-pad-malformed,strings-lpad-typemin	
-base/strings/util.jl	609	617	rtruncate	rtruncate(str::AbstractString, maxwidth::Integer, replacement::Union{AbstractString,AbstractChar} = '…')	modelled	stringutil-truncate-width,stringutil-truncate-width-bound	
-base/strings/util.jl	642	650	ltruncate	ltruncate(str::AbstractString, maxwidth::Integer, replacement::Union{AbstractString,AbstractChar} = '…')	modelled	stringutil-truncate-width	
-base/strings/util.jl	676	684	ctruncate	ctruncate(str::AbstractString, maxwidth::Integer, replacement::Union{AbstractString,AbstractChar} = '…'; prefer_left::Bool = true)	modelled	stringutil-truncate-width	
-base/strings/util.jl	687	695	check_textwidth	check_textwidth(str::AbstractString, maxwidth::Integer)	modelled	stringutil-truncate-width-bound	
-base/strings/util.jl	697	735	string_truncate_boundaries	string_truncate_boundaries( str::AbstractString, maxwidth::Integer, replacement::Union{AbstractString,AbstractChar}, ::Val{mode}, prefer_left::Bool = true) where {mode}	modelled	stringscova-util-truncate-faithful	
+base/strings/util.jl	511	511	lpad	lpad(s, n::Integer, p::Union{AbstractChar,AbstractString}=' ')	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	516	523	_pad_remainder	_pad_remainder(p::AbstractString, r::Int)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	524	524	_pad_remainder	_pad_remainder(p::AbstractChar, r::Int)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	526	544	lpad	lpad( s::Union{AbstractChar,AbstractString}, n::Integer, p::Union{AbstractChar,AbstractString}=' ', )	modelled	stringscova-util-review-526	
+base/strings/util.jl	564	564	rpad	rpad(s, n::Integer, p::Union{AbstractChar,AbstractString}=' ')	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	566	584	rpad	rpad( s::Union{AbstractChar,AbstractString}, n::Integer, p::Union{AbstractChar,AbstractString}=' ', )	modelled	stringscova-util-review-566	
+base/strings/util.jl	609	617	rtruncate	rtruncate(str::AbstractString, maxwidth::Integer, replacement::Union{AbstractString,AbstractChar} = '…')	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	642	650	ltruncate	ltruncate(str::AbstractString, maxwidth::Integer, replacement::Union{AbstractString,AbstractChar} = '…')	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	676	684	ctruncate	ctruncate(str::AbstractString, maxwidth::Integer, replacement::Union{AbstractString,AbstractChar} = '…'; prefer_left::Bool = true)	modelled	stringscova-util-review-676	
+base/strings/util.jl	687	695	check_textwidth	check_textwidth(str::AbstractString, maxwidth::Integer)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	697	735	string_truncate_boundaries	string_truncate_boundaries( str::AbstractString, maxwidth::Integer, replacement::Union{AbstractString,AbstractChar}, ::Val{mode}, prefer_left::Bool = true) where {mode}	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
 base/strings/util.jl	772	772	eachsplit	eachsplit	excluded		no-behaviour: generic eachsplit declaration has no method body
-base/strings/util.jl	783	783	eltype	eltype(::Type{<:SplitIterator{T}}) where T	modelled	stringscova-util-split-traits-faithful	
-base/strings/util.jl	784	784	eltype	eltype(::Type{<:SplitIterator{<:SubString{T}}}) where T	modelled	stringscova-util-split-traits-faithful	
-base/strings/util.jl	786	786	IteratorSize	IteratorSize(::Type{<:SplitIterator})	modelled	stringscova-util-split-traits-faithful	
+base/strings/util.jl	783	783	eltype	eltype(::Type{<:SplitIterator{T}}) where T	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	784	784	eltype	eltype(::Type{<:SplitIterator{<:SubString{T}}}) where T	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	786	786	IteratorSize	IteratorSize(::Type{<:SplitIterator})	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
 base/strings/util.jl	791	807	iterate	iterate(iter::SplitIterator, (i, k, n)=(firstindex(iter.str), firstindex(iter.str), 0))	modelled	stringutil-split-join,stringutil-split-limit	
-base/strings/util.jl	810	810	eltype	eltype(::Type{PartitionIterator{T}}) where {T<:AbstractString}	modelled	stringscova-util-partition-traits-faithful	
-base/strings/util.jl	812	812	eltype	eltype(::Type{PartitionIterator{T}}) where {T<:SubString}	modelled	stringscova-util-partition-traits-faithful	
+base/strings/util.jl	810	810	eltype	eltype(::Type{PartitionIterator{T}}) where {T<:AbstractString}	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	812	812	eltype	eltype(::Type{PartitionIterator{T}}) where {T<:SubString}	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
 base/strings/util.jl	814	818	iterate	iterate(itr::PartitionIterator{<:AbstractString}, state = firstindex(itr.c))	modelled	strings-partition-overflow	
-base/strings/util.jl	820	821	eachsplit	eachsplit(str::T, splitter; limit::Integer=0, keepempty::Bool=true) where {T<:AbstractString}	modelled	stringscova-util-eachsplit-faithful	
-base/strings/util.jl	823	825	eachsplit	eachsplit(str::T, splitter::Union{Tuple{Vararg{AbstractChar}},AbstractVector{<:AbstractChar},Set{<:AbstractChar}}; limit::Integer=0, keepempty=true) where {T<:AbstractString}	modelled	stringscova-util-eachsplit-faithful	
-base/strings/util.jl	827	828	eachsplit	eachsplit(str::T, splitter::AbstractChar; limit::Integer=0, keepempty=true) where {T<:AbstractString}	modelled	stringscova-util-eachsplit-faithful	
-base/strings/util.jl	831	832	eachsplit	eachsplit(str::AbstractString; limit::Integer=0, keepempty=false)	modelled	stringscova-util-eachsplit-faithful	
+base/strings/util.jl	820	821	eachsplit	eachsplit(str::T, splitter; limit::Integer=0, keepempty::Bool=true) where {T<:AbstractString}	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	823	825	eachsplit	eachsplit(str::T, splitter::Union{Tuple{Vararg{AbstractChar}},AbstractVector{<:AbstractChar},Set{<:AbstractChar}}; limit::Integer=0, keepempty=true) where {T<:AbstractString}	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	827	828	eachsplit	eachsplit(str::T, splitter::AbstractChar; limit::Integer=0, keepempty=true) where {T<:AbstractString}	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	831	832	eachsplit	eachsplit(str::AbstractString; limit::Integer=0, keepempty=false)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
 base/strings/util.jl	870	870	eachrsplit	eachrsplit	excluded		no-behaviour: generic eachrsplit declaration has no method body
-base/strings/util.jl	879	879	eltype	eltype(::Type{<:RSplitIterator{T}}) where T	modelled	stringscova-util-rsplit-traits-faithful	
-base/strings/util.jl	880	880	eltype	eltype(::Type{<:RSplitIterator{<:SubString{T}}}) where T	modelled	stringscova-util-rsplit-traits-faithful	
-base/strings/util.jl	882	882	IteratorSize	IteratorSize(::Type{<:RSplitIterator})	modelled	stringscova-util-rsplit-traits-faithful	
-base/strings/util.jl	884	885	eachrsplit	eachrsplit(str::T, splitter; limit::Integer=0, keepempty::Bool=true) where {T<:AbstractString}	modelled	stringscova-util-eachrsplit-faithful	
-base/strings/util.jl	887	889	eachrsplit	eachrsplit(str::T, splitter::Union{Tuple{Vararg{AbstractChar}},AbstractVector{<:AbstractChar},Set{<:AbstractChar}}; limit::Integer=0, keepempty=true) where {T<:AbstractString}	modelled	stringscova-util-eachrsplit-faithful	
-base/strings/util.jl	891	892	eachrsplit	eachrsplit(str::T, splitter::AbstractChar; limit::Integer=0, keepempty=true) where {T<:AbstractString}	modelled	stringscova-util-eachrsplit-faithful	
-base/strings/util.jl	895	896	eachrsplit	eachrsplit(str::AbstractString; limit::Integer=0, keepempty=false)	modelled	stringscova-util-eachrsplit-faithful	
+base/strings/util.jl	879	879	eltype	eltype(::Type{<:RSplitIterator{T}}) where T	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	880	880	eltype	eltype(::Type{<:RSplitIterator{<:SubString{T}}}) where T	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	882	882	IteratorSize	IteratorSize(::Type{<:RSplitIterator})	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	884	885	eachrsplit	eachrsplit(str::T, splitter; limit::Integer=0, keepempty::Bool=true) where {T<:AbstractString}	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	887	889	eachrsplit	eachrsplit(str::T, splitter::Union{Tuple{Vararg{AbstractChar}},AbstractVector{<:AbstractChar},Set{<:AbstractChar}}; limit::Integer=0, keepempty=true) where {T<:AbstractString}	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	891	892	eachrsplit	eachrsplit(str::T, splitter::AbstractChar; limit::Integer=0, keepempty=true) where {T<:AbstractString}	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	895	896	eachrsplit	eachrsplit(str::AbstractString; limit::Integer=0, keepempty=false)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
 base/strings/util.jl	898	927	Base.iterate	Base.iterate(it::RSplitIterator, (to, remaining_splits)=(lastindex(it.str), it.limit-1))	modelled	stringutil-rsplit-join	
 base/strings/util.jl	958	961	split	split(str::T, splitter; limit::Integer=0, keepempty::Bool=true) where {T<:AbstractString}	modelled	stringutil-split-join,stringutil-split-limit,stringutil-split-limit-type	
-base/strings/util.jl	964	966	split	split(str::AbstractString; limit::Integer=0, keepempty::Bool=false)	modelled	stringscova-util-split-collect-faithful	
+base/strings/util.jl	964	966	split	split(str::AbstractString; limit::Integer=0, keepempty::Bool=false)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
 base/strings/util.jl	1001	1004	rsplit	rsplit(str::T, splitter; limit::Integer=0, keepempty::Bool=true) where {T<:AbstractString}	modelled	stringutil-rsplit-join,stringutil-split-limit-type	
-base/strings/util.jl	1007	1009	rsplit	rsplit(str::AbstractString; limit::Integer=0, keepempty::Bool=false)	modelled	stringscova-util-rsplit-collect-faithful	
-base/strings/util.jl	1011	1012	_replace	_replace(io, repl::Union{<:AbstractString, <:AbstractChar}, str, r, pattern)	modelled	stringscova-util-replace-dispatch-faithful	
-base/strings/util.jl	1013	1022	_replace	_replace(io, repl, str, r, pattern)	modelled	stringscova-util-replace-dispatch-faithful	
-base/strings/util.jl	1023	1024	_replace	_replace(io, repl::Function, str, r, pattern)	modelled	stringscova-util-replace-dispatch-faithful	
-base/strings/util.jl	1025	1026	_replace	_replace(io, repl::Function, str, r, pattern::Function)	modelled	stringscova-util-replace-dispatch-faithful	
-base/strings/util.jl	1028	1028	_pat_replacer	_pat_replacer(x)	modelled	stringscova-util-pat-replacer-faithful	
-base/strings/util.jl	1029	1029	_free_pat_replacer	_free_pat_replacer(x)	modelled	stringscova-util-pat-replacer-faithful	
-base/strings/util.jl	1031	1031	_pat_replacer	_pat_replacer(x::AbstractChar)	modelled	stringscova-util-pat-replacer-faithful	
-base/strings/util.jl	1032	1032	_pat_replacer	_pat_replacer(x::Union{Tuple{Vararg{AbstractChar}},AbstractVector{<:AbstractChar},Set{<:AbstractChar}})	modelled	stringscova-util-pat-replacer-faithful	
-base/strings/util.jl	1035	1050	_replace_init	_replace_init(str, pat_repl::NTuple{N, Pair}, count::Int) where N	modelled	stringutil-replace-count-edge,stringutil-replace-reference	
-base/strings/util.jl	1053	1066	_replace_finish	_replace_finish(io::IO, str, count::Int, e1::Int, patterns::Tuple, replaces::Tuple, rs::Tuple)	modelled	regexunicode-replace-empty-after-match,stringutil-replace-count-min,stringutil-replace-reference	
-base/strings/util.jl	1068	1104	_replace_once	_replace_once(io::IO, str, start::Int, e1::Int, patterns::Tuple, replaces::Tuple, rs::Tuple, count::Int, n::Int, i::Int)	modelled	regexunicode-replace-empty-after-match,stringutil-replace-count-min,stringutil-replace-reference	
-base/strings/util.jl	1107	1119	_replace_	_replace_(io::IO, str, pat_repl::NTuple{N, Pair}, count::Int) where N	modelled	stringscova-util-replace-engine-faithful	
-base/strings/util.jl	1122	1131	_replace_	_replace_(str, pat_repl::NTuple{N, Pair}, count::Int) where N	modelled	stringscova-util-replace-engine-faithful	
-base/strings/util.jl	1183	1184	replace	replace(io::IO, s::AbstractString, pat_f::Pair...; count=typemax(Int))	modelled	stringscova-util-replace-engine-faithful	
-base/strings/util.jl	1186	1187	replace	replace(s::AbstractString, pat_f::Pair...; count=typemax(Int))	modelled	stringscova-util-replace-engine-faithful	
+base/strings/util.jl	1007	1009	rsplit	rsplit(str::AbstractString; limit::Integer=0, keepempty::Bool=false)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	1011	1012	_replace	_replace(io, repl::Union{<:AbstractString, <:AbstractChar}, str, r, pattern)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	1013	1022	_replace	_replace(io, repl, str, r, pattern)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	1023	1024	_replace	_replace(io, repl::Function, str, r, pattern)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	1025	1026	_replace	_replace(io, repl::Function, str, r, pattern::Function)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	1028	1028	_pat_replacer	_pat_replacer(x)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	1029	1029	_free_pat_replacer	_free_pat_replacer(x)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	1031	1031	_pat_replacer	_pat_replacer(x::AbstractChar)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	1032	1032	_pat_replacer	_pat_replacer(x::Union{Tuple{Vararg{AbstractChar}},AbstractVector{<:AbstractChar},Set{<:AbstractChar}})	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	1035	1050	_replace_init	_replace_init(str, pat_repl::NTuple{N, Pair}, count::Int) where N	modelled	stringscova-util-review-1035	
+base/strings/util.jl	1053	1066	_replace_finish	_replace_finish(io::IO, str, count::Int, e1::Int, patterns::Tuple, replaces::Tuple, rs::Tuple)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	1068	1104	_replace_once	_replace_once(io::IO, str, start::Int, e1::Int, patterns::Tuple, replaces::Tuple, rs::Tuple, count::Int, n::Int, i::Int)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	1107	1119	_replace_	_replace_(io::IO, str, pat_repl::NTuple{N, Pair}, count::Int) where N	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	1122	1131	_replace_	_replace_(str, pat_repl::NTuple{N, Pair}, count::Int) where N	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	1183	1184	replace	replace(io::IO, s::AbstractString, pat_f::Pair...; count=typemax(Int))	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	1186	1187	replace	replace(s::AbstractString, pat_f::Pair...; count=typemax(Int))	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
 base/strings/util.jl	1235	1235	hex2bytes	hex2bytes	excluded		no-behaviour: generic hex2bytes declaration has no method body
-base/strings/util.jl	1237	1237	hex2bytes	hex2bytes(s)	modelled	stringscova-util-hex-faithful	
-base/strings/util.jl	1240	1244	hex2bytes!	hex2bytes!(dest::AbstractArray{UInt8}, s::String)	modelled	stringutil-hex-roundtrip	
-base/strings/util.jl	1260	1274	hex2bytes!	hex2bytes!(dest::AbstractArray{UInt8}, itr)	modelled	stringscova-util-hex-faithful	
-base/strings/util.jl	1276	1276	number_from_hex	number_from_hex(c::AbstractChar)	modelled	stringscova-util-hex-faithful	
-base/strings/util.jl	1277	1277	number_from_hex	number_from_hex(c::Char)	modelled	stringutil-hex2bytes-nonascii	
-base/strings/util.jl	1278	1283	number_from_hex	number_from_hex(c::UInt8)	modelled	stringutil-hex-roundtrip	
+base/strings/util.jl	1237	1237	hex2bytes	hex2bytes(s)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	1240	1244	hex2bytes!	hex2bytes!(dest::AbstractArray{UInt8}, s::String)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	1260	1274	hex2bytes!	hex2bytes!(dest::AbstractArray{UInt8}, itr)	modelled	stringscova-util-hex2bytes-bang-iterator-rebuilt	
+base/strings/util.jl	1276	1276	number_from_hex	number_from_hex(c::AbstractChar)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	1277	1277	number_from_hex	number_from_hex(c::Char)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	1278	1283	number_from_hex	number_from_hex(c::UInt8)	modelled	stringscova-util-review-1278	
 base/strings/util.jl	1314	1314	bytes2hex	bytes2hex	excluded		no-behaviour: generic bytes2hex declaration has no method body
-base/strings/util.jl	1316	1327	bytes2hex	bytes2hex(itr)	modelled	stringscova-util-hex-faithful	
-base/strings/util.jl	1329	1334	bytes2hex	bytes2hex(io::IO, itr)	modelled	stringscova-util-hex-faithful	
-base/strings/util.jl	1337	1342	ascii	ascii(s::String)	modelled	stringscova-util-ascii-faithful	
-base/strings/util.jl	1343	1343	__throw_invalid_ascii	__throw_invalid_ascii(s::String, i::Int)	modelled	stringscova-util-ascii-faithful	
-base/strings/util.jl	1364	1364	ascii	ascii(x::AbstractString)	modelled	stringscova-util-ascii-faithful	
-base/strings/util.jl	1366	1366	Base.rest	Base.rest(s::Union{String,SubString{String}}, i=1)	modelled	stringscova-util-rest-faithful	
-base/strings/util.jl	1367	1373	Base.rest	Base.rest(s::AbstractString, st...)	modelled	stringscova-util-rest-faithful	
+base/strings/util.jl	1316	1327	bytes2hex	bytes2hex(itr)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	1329	1334	bytes2hex	bytes2hex(io::IO, itr)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	1337	1342	ascii	ascii(s::String)	modelled	stringscova-util-ascii-string-rebuilt	
+base/strings/util.jl	1343	1343	__throw_invalid_ascii	__throw_invalid_ascii(s::String, i::Int)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	1364	1364	ascii	ascii(x::AbstractString)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	1366	1366	Base.rest	Base.rest(s::Union{String,SubString{String}}, i=1)	todo		trivial: old statement restates a helper implementation or lacks a full behavioral guarantee
+base/strings/util.jl	1367	1373	Base.rest	Base.rest(s::AbstractString, st...)	modelled	stringscova-util-rest-generic-rebuilt	

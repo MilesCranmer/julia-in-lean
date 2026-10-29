@@ -1,0 +1,55 @@
+id: range-unit-step-getindex-empty
+title: "Indexing an AbstractUnitRange with an empty StepRange can throw at typemin"
+priority: P2
+kind: wrong-exception
+area: Ranges
+files: [base/range.jl]
+functions: ["getindex(r::AbstractUnitRange, s::StepRange{T})", "_empty_stop(start, step)"]
+summary: |
+  Indexing an AbstractUnitRange with an empty StepRange can throw while constructing
+  the empty result. When mapping the index range's start reaches typemin of the
+  result element type, the predecessor sentinel is not representable, even though
+  the selection contains no elements.
+likelihood: |
+  Very low: the selected range must be empty and its mapped start must be typemin
+  of the element type.
+maybe_intended: ""
+reproducer: |
+  r = Int8(-128):Int8(127)
+  s = Int8(1):Int8(1):Int8(0)
+  r[s]  # should be empty, as is collect(r)[collect(s)]
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    isempty(s) = true, collect(r)[collect(s)] = Int8[]
+    r[s] = InexactError(:trunc, (Int8, -129))
+    REPRODUCED range-unit-step-getindex-empty
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    isempty(s) = true, collect(r)[collect(s)] = Int8[]
+    r[s] = OverflowError("cannot represent an empty range starting at -128")
+    REPRODUCED range-unit-step-getindex-empty
+reproduced: {release: true, nightly: true}
+expected: |
+  Indexing r by the empty range s should return an empty range, matching
+  collect(r)[collect(s)].
+promised_by: |
+  The AbstractArray getindex docstring, base/abstractarray.jl:1306-1310, says it
+  returns the subset selected by the indices. Array indexing by a range, in
+  base/array.jl:1004-1007, returns the values at those indices; an empty range
+  therefore selects an empty result.
+cause: |
+  base/range.jl:1034 computes the stop for the empty result through _empty_stop at
+  base/range.jl:1002. For this input the mapped start is Int8(-128), and the helper
+  tries to form its predecessor, -129, in the same element type. Julia 1.13 throws
+  InexactError during conversion; the target nightly detects the overflow and
+  throws OverflowError instead.
+possible_fix: |
+  Construct an empty result without requiring a predecessor representable in the
+  result element type, for example by using a length-zero StepRangeLen.
+duplicates:
+  issues: []
+  queries: ["issues: AbstractUnitRange empty index StepRange OverflowError", "issues: range empty slice typemin start overflow", "prs: AbstractUnitRange empty index StepRange OverflowError", "prs: range empty slice typemin start overflow"]
+lean:
+  property: JuliaLean.Proofs.base.range.GetindexUnitStep
+  theorem: JuliaLean.Proofs.base.range.getindexUnitStep_refuted

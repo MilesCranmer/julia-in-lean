@@ -145,31 +145,6 @@ theorem checkedSetRow : CheckedSetRow := by
   intro unsafeSet original
   cases h : unsafeSet () <;> rfl
 
-def indexingMoreEntries : List Entry := [
-  { id := "multidimcov-indexing-more-exact"
-    juliaFile := "base/multidimensional.jl"
-    juliaFns := ["remaining atomic, bounds, Boolean, prechecked, reshape, and generated indexing overloads"]
-    statement := "The remaining indexing methods expose their exact routing branch, bounds result, state transition, reshape call, or mutation result."
-    source := "base/multidimensional.jl:735-1079"
-    status := .proven
-    prop := ``IndexingMoreRows
-    thm := some ``indexingMoreRows },
-  { id := "multidimcov-ensure-logical-exact"
-    juliaFile := "base/multidimensional.jl"
-    juliaFns := ["ensure_indexable(::Tuple{LogicalIndex,...})"]
-    statement := "Logical indices are collected before the remaining indices are recursively made indexable."
-    source := "base/multidimensional.jl:924"
-    status := .proven
-    prop := ``EnsureLogicalRow
-    thm := some ``ensureLogicalRow },
-  { id := "multidimcov-checked-set-exact"
-    juliaFile := "base/multidimensional.jl"
-    juliaFns := ["_setindex!(style,A,x,I...)"]
-    statement := "Checked assignment validates bounds, performs the unsafe assignment, then returns the original array."
-    source := "base/multidimensional.jl:1046-1051"
-    status := .proven
-    prop := ``CheckedSetRow
-    thm := some ``checkedSetRow }
-]
+def indexingMoreEntries : List Entry := []
 
 end JuliaLean.MultidimCov

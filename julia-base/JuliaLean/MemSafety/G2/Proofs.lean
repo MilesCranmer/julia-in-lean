@@ -123,7 +123,18 @@ private theorem constCartesianAccessAxes_safe (axes : List JuliaLean.AbstractArr
 
 theorem exprCopyInBounds : ExprCopyInBounds := by
   intro values
-  constructor <;> simpa [exprCopyAccesses, exprArgsAccesses] using mappedOneBased values.length
+  constructor
+  · intro access ha
+    simp only [exprCopyAccesses, List.mem_flatMap] at ha
+    obtain ⟨i, hi, ha⟩ := ha
+    simp only [List.mem_cons] at ha
+    rcases ha with rfl | ha
+    · exact oneBased_mem hi
+    · split at ha
+      · simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+        rcases ha with rfl | rfl <;> exact oneBased_mem hi
+      · simp at ha
+  · simpa [exprArgsAccesses] using mappedOneBased values.length
 
 theorem gmpBoolRemInBounds_refuted : ¬ GmpBoolRemInBounds := by
   intro h

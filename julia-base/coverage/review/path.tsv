@@ -23,9 +23,7 @@ line	name	verdict	mirror	property	settled	reason
 393	splitpath	HOLLOW	no	no	yes	The Lean wrapper omits String conversion and its asserted String result, and quantifies only already-converted PathText values instead of every AbstractString input.
 395	splitpath	HOLLOW	no	no	yes	The model removes splitdrive and the drive-restoration branch, while SplitpathJoinpath restricts inputs with undocumented Canonical and ComponentList hypotheses.
 415	joinpath	FAITHFUL	-	-	-	The exclusion applies because this collection method is defined only inside the Windows branch.
-416	assertstring	FAITHFUL	-	-	-	The exclusion applies because this local helper belongs to the Windows-only joinpath implementation.
 465	joinpath	HOLLOW	no	no	yes	The model restricts components to strings and omits both assertstring checks and collection indexing, while two cited properties rely on undocumented noDoubleSep, Canonical, or ComponentList hypotheses.
-466	assertstring	HOLLOW	no	no	yes	The model receives a precomputed Boolean and returns Unit instead of the source expression's value, while the proposition never quantifies over the helper's actual x input.
 487	joinpath	HOLLOW	no	no	yes	The Lean wrapper fixes every component to PathText and delegates to a string-only list model, omitting allowed AbstractString subtypes and tuple dispatch.
 516	_split_at_separators	HOLLOW	no	no	yes	The listed propositions only constrain normpath, while splitAtSeps replaces this method's findnext, index, view, and left-to-right loop with a right-recursive delimiter specification and states no output contract for _split_at_separators itself.
 555	normpath	HOLLOW	no	yes	yes	The normpath model omits the source splitdrive call and relies on splitAtSeps, which does not mirror the called helper's findnext, index, view, and loop sequence.

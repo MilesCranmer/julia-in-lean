@@ -491,63 +491,7 @@ theorem scalarIndexMethods_proven : ScalarIndexMethods := by
     simp only [unsafeGetindexCounted, Ranges.countedUnsafeGetindex, Ranges.countedHiprec]
     cases Ranges.Num.cast r.offset.ty i <;> rfl
 
-def entries : List Entry := [
-  { id := "rangescov-range-fallbacks", juliaFile := "base/range.jl"
-    juliaFns := ["length(::AbstractRange)", "size(::AbstractRange)", "has_offset_axes(::StepRange)",
-      "copy(::AbstractRange)", "getindex(::AbstractRange, ::Colon)"]
-    statement := "length of an AbstractRange without a length method throws ErrorException; size(r) == (length(r),); has_offset_axes(::StepRange) is false; copy(r) and r[:] return r."
-    source := "base/range.jl:705-706 (catch mistakes), 746-747, 922-923 (ranges are immutable), 1000"
-    status := .proven, prop := ``RangeFallbacks, thm := some ``rangeFallbacks_proven },
-  { id := "rangescov-isempty-methods", juliaFile := "base/range.jl"
-    juliaFns := ["isempty(::StepRange)", "isempty(::AbstractUnitRange)", "isempty(::LinRange)"]
-    statement := "isempty of StepRange and unit ranges is the endpoint/direction test; a constructed integer a:b is empty iff b < a; a LinRange is empty iff its length is 0."
-    source := "(:) docstring base/range.jl:54-55; base/range.jl:708-713"
-    status := .proven, prop := ``IsemptyMethods, thm := some ``isemptyMethods_proven },
-  { id := "rangescov-step-methods", juliaFile := "base/range.jl"
-    juliaFns := ["step(::StepRange)", "step(::AbstractUnitRange{T})", "step(::AbstractUnitRange{Bool})",
-      "step(::StepRangeLen)", "step(::StepRangeLen{<:AbstractFloat})", "step_hp(::StepRangeLen)",
-      "step_hp(::AbstractRange)"]
-    statement := "step returns the stored step of StepRange/StepRangeLen, oneunit(T)-zero(T) (value 1, type T) for non-Bool unit ranges and true for Bool unit ranges; step_hp is step for ordinal ranges and the TwicePrecision step for float StepRangeLen."
-    source := "step docstring base/range.jl:715-734; base/range.jl:735-744"
-    status := .proven, prop := ``StepMethods, thm := some ``stepMethods_proven },
-  { id := "rangescov-length-methods", juliaFile := "base/range.jl"
-    juliaFns := ["length(::AbstractUnitRange{<:smallints})", "checked_length(::AbstractUnitRange{<:smallints})",
-      "length(::OrdinalRange{<:smallints})", "checked_length(::OrdinalRange{<:smallints})",
-      "length(::OneTo)", "length(::OneTo{<:bigints})", "length(::OneTo{<:smallints})",
-      "checked_length(::OneTo{<:smallints})", "length(::StepRangeLen)", "length(::LinRange)",
-      "firstindex(::StepRange{<:bigints,<:bitints})", "firstindex(::StepRange{<:smallints,<:bitints})",
-      "length(::AbstractUnitRange{T})", "length(::OrdinalRange{T})", "checked_length(::OrdinalRange{T})",
-      "checked_length(::AbstractUnitRange{T})", "length(::OrdinalRange{<:bigints})",
-      "checked_length(::OrdinalRange{<:bigints})"]
-    statement := "For Int8..UInt32, length and checked_length of a nonempty a:b are Int(b)-Int(a)+1, the element count; length(OneTo(n)) is n for n >= 0; StepRangeLen/LinRange lengths are the stored lengths; firstindex is 1."
-    source := "length docstring (number of elements); base/range.jl:777-864"
-    status := .proven, prop := ``LengthMethods, thm := some ``lengthMethods_proven },
-  { id := "rangescov-endpoint-methods", juliaFile := "base/range.jl"
-    juliaFns := ["first(::OrdinalRange)", "first(::OneTo)", "first(::OneTo, ::Integer)", "last(::OrdinalRange)",
-      "last(::LinRange)", "minimum(::AbstractUnitRange)", "maximum(::AbstractUnitRange)"]
-    statement := "first(OneTo{T}) is oneunit(T); first/last of ordinal ranges are the stored endpoints; first(OneTo(m), n) throws for n < 0; minimum/maximum of unit ranges throw ArgumentError when empty and are first/last otherwise."
-    source := "base/range.jl:867-882 (Number of elements must be non-negative; range must be non-empty)"
-    status := .proven, prop := ``EndpointMethods, thm := some ``endpointMethods_proven },
-  { id := "rangescov-argextrema-methods", juliaFile := "base/range.jl"
-    juliaFns := ["argmin(::AbstractRange)", "argmax(::AbstractRange)"]
-    statement := "argmin/argmax throw ArgumentError on empty ranges; for increasing ranges argmin is firstindex and argmax lastindex, for decreasing ranges the reverse."
-    source := "argmin/argmax docstrings base/range.jl:886-909"
-    status := .proven, prop := ``ArgExtremaMethods, thm := some ``argExtremaMethods_proven },
-  { id := "rangescov-iterate-methods", juliaFile := "base/range.jl"
-    juliaFns := ["iterate(::Union{StepRangeLen,LinRange}, ::Integer)", "iterate(::OrdinalRange{T}, i)"]
-    statement := "Float64 StepRangeLen and LinRange iteration from state k yields r[k+1] while k+1 <= length and stops afterwards; ordinal iteration stops at last(r) and otherwise advances by step(r)."
-    source := "iteration protocol; base/range.jl:928-942"
-    status := .proven, prop := ``IterateMethods, thm := some ``iterateMethods_proven },
-  { id := "rangescov-scalar-index-methods", juliaFile := "base/range.jl"
-    juliaFns := ["isassigned(::AbstractRange, ::Integer)", "_getindex(::AbstractRange, ::Integer)",
-      "_in_unit_range", "_getindex(::UnitRange{T}, ::Integer)", "_getindex(::UnitRange{<:OverflowSafe}, ::Integer)",
-      "checkbounds(::Type{Bool}, ::StepRange{<:BitInteger64}, ::BitInteger64)", "unsafe_getindex(::OneTo, ::Integer)",
-      "unsafe_getindex(::AbstractRange, ::Integer)", "unsafe_getindex(::StepRangeLen, ::Integer)",
-      "unsafe_getindex(::LinRange, ::Integer)"]
-    statement := "isassigned rejects Bool indices and tests 1 <= i <= length(r); _getindex throws BoundsError when the bounds check fails; UnitRange indexing rejects nonpositive indices; OneTo indexing converts the index; a StepRangeLen element at index offset is ref (+ 0*step); the generic element is first + (i-1)*step converted."
-    source := "base/range.jl:944-990; AbstractArray indexing invariant"
-    status := .proven, prop := ``ScalarIndexMethods, thm := some ``scalarIndexMethods_proven }
-]
+def entries : List Entry := []
 
 end Access
 

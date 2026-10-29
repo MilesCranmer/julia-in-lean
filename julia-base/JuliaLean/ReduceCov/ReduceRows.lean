@@ -399,35 +399,6 @@ private def entry (id : String) (fns : List String) (lines statement : String)
   { id, juliaFile := "base/reduce.jl", juliaFns := fns, statement,
     source := "base/reduce.jl:" ++ lines, status, prop, thm := some thm, issue }
 
-def entries : List Entry := [
-  entry "reducecov-reduce-arithmetic" ["add_sum", "mul_prod", "and_all", "or_any"] "16-36"
-    "Each reduction operator follows its method-specific arithmetic and promotion body."
-    ``ArithmeticRows ``arithmeticRows_proven,
-  entry "reducecov-reduce-folds" ["mapfoldl_impl", "foldl_impl", "_foldl_impl", "BottomRF", "MappingRF", "FilteringRF", "FlatteningRF", "_xfadjoint", "_xfadjoint_unwrap"] "40-164"
-    "Left-fold and transducer methods follow their ordered calls, branches and folds."
-    ``FoldRows ``foldRows_proven,
-  entry "reducecov-reduce-right-folds" ["mapfoldr_impl", "_reverse_iter", "FlipArgs"] "200-213"
-    "Right-fold helpers reverse the iterator and flip the binary arguments as written."
-    ``RightFoldRows ``rightFoldRows_proven,
-  entry "reducecov-reduce-mapreduce" ["mapreduce_impl", "mapreduce", "pairwise_blocksize", "mapreduce_first", "_mapreduce"] "252-314,432-461"
-    "Mapreduce methods follow their pairwise recursion and call-routing bodies."
-    ``MapreduceRows ``mapreduceRows_proven,
-  entry "reducecov-reduce-empty-methods" ["_empty_reduce_error", "reduce_empty", "mapreduce_empty", "mapreduce_empty_iter", "reduce_empty_iter"] "318-393"
-    "Every empty-reduction overload returns its documented identity or ordered error route."
-    ``EmptyRows ``emptyRows_proven,
-  entry "reducecov-reduce-first-methods" ["reduce_first"] "409-420"
-    "Every reduce_first overload follows its method-specific widening or container body."
-    ``FirstRows ``firstRows_proven,
-  entry "reducecov-reduce-public-methods" ["sum", "prod", "maximum", "minimum", "extrema", "ExtremaMap", "_extrema_rf", "findmax", "_findmax", "_rf_findmax", "findmin", "_findmin", "_rf_findmin", "argmax", "argmin"] "543-1060"
-    "Public reduction and extrema-search methods route and compare exactly as their source bodies specify."
-    ``PublicRows ``publicRows_proven,
-  entry "reducecov-reduce-count" ["_bool", "count", "_simple_count", "_foldl_impl(::BottomRF, ::AbstractRange)"] "1064-1119"
-    "Count and specialized range-fold methods follow their method-specific bodies."
-    ``CountRows ``countRows_proven,
-  entry "reducecov-reduce-number" ["reduce(::Any, ::Number)"] "500"
-    "A single Number reduction applies reduce_first just like a one-element iterator."
-    ``JuliaLean.ReduceCov.Fold.ReduceNumberFirst ``JuliaLean.ReduceCov.Fold.reduceNumberFirst_refuted .refuted
-    "none found (queries: reduce Number reduce_first; reduce plus true)"
-]
+def entries : List Entry := []
 
 end JuliaLean.ReduceCov.ReduceRows

@@ -1,25 +1,27 @@
 file	line	endline	name	signature	status	entry	note
-base/terminfo.jl	69	69	TermInfo	TermInfo()	modelled	showcov-terminfo-l69	method-specific source-order model
-base/terminfo.jl	71	101	read	read(data::IO, ::Type{TermInfoRaw})	modelled	showcov-terminfo-l71	method-specific source-order model
-base/terminfo.jl	112	139	extendedterminfo	extendedterminfo(data::IO, NumInt::Union{Type{Int16}, Type{Int32}})	modelled	showcov-terminfo-l112	method-specific source-order model
-base/terminfo.jl	148	162	_terminfo_read_strings	_terminfo_read_strings(table::Vector{UInt8}, indices::Vector{Int16})	modelled	showcov-terminfo-l148	method-specific source-order model
-base/terminfo.jl	170	212	TermInfo	TermInfo(raw::TermInfoRaw)	modelled	showcov-terminfo-l170	method-specific source-order model
-base/terminfo.jl	194	194	longalias	longalias(key, value)	modelled	showcov-terminfo-l194	method-specific source-order model
-base/terminfo.jl	214	214	get	get(ti::TermInfo, key::Symbol, default::Bool)	modelled	showcov-terminfo-l214	method-specific source-order model
-base/terminfo.jl	215	215	get	get(ti::TermInfo, key::Symbol, default::Int)	modelled	showcov-terminfo-l215	method-specific source-order model
-base/terminfo.jl	216	216	get	get(ti::TermInfo, key::Symbol, default::String)	modelled	showcov-terminfo-l216	method-specific source-order model
-base/terminfo.jl	218	219	haskey	haskey(ti::TermInfo, key::Symbol)	modelled	showcov-terminfo-l218	method-specific source-order model
-base/terminfo.jl	221	227	getindex	getindex(ti::TermInfo, key::Symbol)	modelled	showcov-terminfo-l221	method-specific source-order model
-base/terminfo.jl	229	229	keys	keys(ti::TermInfo)	modelled	showcov-terminfo-l229	method-specific source-order model
-base/terminfo.jl	231	237	show	"show(io::IO, ::MIME""text/plain"", ti::TermInfo)"	modelled	showcov-terminfo-l231	method-specific source-order model
-base/terminfo.jl	248	279	find_terminfo_file	find_terminfo_file(term::String)	modelled	showcov-terminfo-l248	method-specific source-order model
-base/terminfo.jl	286	298	load_terminfo	load_terminfo(term::String)	modelled	showcov-terminfo-l286	method-specific source-order model
-base/terminfo.jl	317	317	ttyhascolor	ttyhascolor()	excluded		platform: Windows-only ttyhascolor method; this inventory covers the non-Windows method at line 319
-base/terminfo.jl	319	321	ttyhascolor	ttyhascolor()	modelled	showcov-terminfo-l319	method-specific source-order model
-base/terminfo.jl	357	374	ttyhastruecolor	ttyhastruecolor()	modelled	showcov-terminfo-l357	method-specific source-order model
-base/terminfo.jl	376	380	get_have_color	get_have_color()	modelled	showcov-terminfo-l376	method-specific source-order model
-base/terminfo.jl	382	386	get_have_truecolor	get_have_truecolor()	modelled	showcov-terminfo-l382	method-specific source-order model
-base/terminfo.jl	388	388	in	in(key_value::Pair{Symbol,Bool}, ::TTY)	modelled	showcov-terminfo-l388	method-specific source-order model
-base/terminfo.jl	389	389	haskey	haskey(::TTY, key::Symbol)	modelled	showcov-terminfo-l389	method-specific source-order model
-base/terminfo.jl	390	390	getindex	getindex(::TTY, key::Symbol)	modelled	showcov-terminfo-l390	method-specific source-order model
-base/terminfo.jl	391	391	get	get(::TTY, key::Symbol, default)	modelled	showcov-terminfo-l391	method-specific source-order model
+base/terminfo.jl	69	69	TermInfo	TermInfo()	todo		
+base/terminfo.jl	72	72	_terminfo_read_bytes	_terminfo_read_bytes(data::IO, nbytes::Integer)	todo		
+base/terminfo.jl	74	106	read	read(data::IO, ::Type{TermInfoRaw})	todo		
+base/terminfo.jl	117	154	extendedterminfo	extendedterminfo(data::IO, NumInt::Union{Type{Int16}, Type{Int32}})	todo		
+base/terminfo.jl	163	177	_terminfo_read_strings	_terminfo_read_strings(table::Vector{UInt8}, indices::Vector{Int16})	todo		
+base/terminfo.jl	185	227	TermInfo	TermInfo(raw::TermInfoRaw)	todo		
+base/terminfo.jl	209	209	longalias	longalias(key, value)	todo		
+base/terminfo.jl	229	229	get	get(ti::TermInfo, key::Symbol, default::Bool)	todo		
+base/terminfo.jl	230	230	get	get(ti::TermInfo, key::Symbol, default::Int)	todo		
+base/terminfo.jl	231	231	get	get(ti::TermInfo, key::Symbol, default::String)	todo		
+base/terminfo.jl	233	234	haskey	haskey(ti::TermInfo, key::Symbol)	todo		
+base/terminfo.jl	236	242	getindex	getindex(ti::TermInfo, key::Symbol)	todo		
+base/terminfo.jl	244	244	keys	keys(ti::TermInfo)	todo		
+base/terminfo.jl	246	252	show	"show(io::IO, ::MIME""text/plain"", ti::TermInfo)"	todo		
+base/terminfo.jl	255	262	_terminfo_stat_check	_terminfo_stat_check(check::Function, path::String)	todo		
+base/terminfo.jl	273	302	find_terminfo_file	find_terminfo_file(term::String)	todo		
+base/terminfo.jl	312	324	load_terminfo	load_terminfo(term::String)	todo		
+base/terminfo.jl	343	343	ttyhascolor	ttyhascolor()	todo		
+base/terminfo.jl	345	347	ttyhascolor	ttyhascolor()	todo		
+base/terminfo.jl	383	400	ttyhastruecolor	ttyhastruecolor()	todo		
+base/terminfo.jl	402	406	get_have_color	get_have_color()	todo		
+base/terminfo.jl	408	412	get_have_truecolor	get_have_truecolor()	todo		
+base/terminfo.jl	414	414	in	in(key_value::Pair{Symbol,Bool}, ::TTY)	todo		
+base/terminfo.jl	415	415	haskey	haskey(::TTY, key::Symbol)	todo		
+base/terminfo.jl	416	416	getindex	getindex(::TTY, key::Symbol)	todo		
+base/terminfo.jl	417	417	get	get(::TTY, key::Symbol, default)	todo		

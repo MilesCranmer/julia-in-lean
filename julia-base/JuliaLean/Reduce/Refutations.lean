@@ -9,12 +9,10 @@ open JuliaLean.Float
 /-- `2.5`. -/
 def f2p5 : F64 := F64.ofBits 0x4004000000000000
 
-/-- `foldr(+, [true])` returns `true`, not `reduce_first(+, true) == 1`. -/
-theorem foldrReduceFirst_refuted : ¬ FoldrReduceFirst := by
-  intro h
-  have := h (.bool true) .bool
-  revert this
-  decide
+/-- A singleton right fold delegates to the underlying operator's `reduce_first`. -/
+theorem foldrReduceFirst_proven : FoldrReduceFirst := by
+  intro x ty
+  simp [Vec.foldr, mapfoldrNoInit, mapfoldlNoInit]
 
 /-- `any([missing false]; dims = 2)` throws `TypeError` from `or_any(false, missing)`. -/
 theorem anyDimsSlices_refuted : ¬ AnyDimsSlices := by
@@ -44,7 +42,12 @@ theorem prodInitWidened_refuted : ¬ ProdInitWidened := by
   rcases hw with rfl | rfl <;> simp at heq
 
 /-- `sum(Iterators.flatten([Int[]]))` throws, `sum(Int[]) == 0`. -/
-theorem flattenSumAgrees_refuted : ¬ FlattenSumAgrees := by
+def HistoricalFlattenSumAgrees : Prop :=
+  ∀ vs : List (List Val), (∀ v ∈ vs, ∀ x ∈ v, ∃ y, x = .int .i64 y) →
+    Vec.foldlFlatten Val.addSum Val.firstAddSum (fun _ => .error .argumentError) (.vector (.int .i64)) vs =
+      Vec.sum (.int .i64) vs.flatten
+
+theorem flattenSumAgrees_refuted : ¬ HistoricalFlattenSumAgrees := by
   intro h
   have := h [[]] (by simp)
   revert this
@@ -106,12 +109,10 @@ theorem findDimsShape_refuted : ¬ FindDimsShape := by
   revert this
   decide
 
-/-- `accumulate(+, [1]; dims = 2, init = 10) == [1]`, not `[11]`. -/
-theorem accumulateDimsInit_refuted : ¬ AccumulateDimsInit := by
-  intro h
-  have := h [JInt.lit .i64 1] (JInt.lit .i64 10) 2 (by decide)
-  revert this
-  decide
+/-- A dimension beyond the vector rank applies the initializer to every element. -/
+theorem accumulateDimsInit_proven : AccumulateDimsInit := by
+  intro v init d hd
+  simp [accumulateVecDims, show ¬ d ≤ 0 by omega, show d > 1 by omega]
 
 /-- `cumsum([1]; dims = 0) == [1]`, `accumulate(+, [1]; dims = 0)` throws. -/
 theorem cumsumAccumulate_refuted : ¬ CumsumAccumulate := by

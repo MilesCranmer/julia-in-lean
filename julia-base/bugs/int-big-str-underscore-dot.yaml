@@ -1,0 +1,56 @@
+id: int-big-str-underscore-dot
+title: "big\"1_.\" parses as 1.0 although @big_str rejects '_' next to the dot"
+priority: P3
+kind: missing-error
+area: IntArith
+files: [base/int.jl]
+functions: ["@big_str"]
+summary: |
+  @big_str is written to reject an underscore right before or after the decimal
+  point: big"1_.0" and big"1._5" throw ArgumentError. The check skips the last
+  character of the string, so big"1_." (underscore before a trailing dot) is
+  accepted and returns the BigFloat 1.0.
+likelihood: |
+  Very low: needs a malformed big literal ending in "_.". The only effect is that
+  a typo is accepted.
+maybe_intended: |
+  The comment at base/int.jl:783 states the intent: "Do not allow '_' right before
+  or after dot." Accepting "1_." contradicts it and is inconsistent with "1_.0".
+reproducer: |
+  big"1_."    # 1.0
+  big"1_.0"   # ArgumentError: invalid number format 1_.0 for BigInt or BigFloat
+  big"1._5"   # ArgumentError
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    big"1_."  => 1.0
+    big"1_.0" => ArgumentError("invalid number format 1_.0 for BigInt or BigFloat")
+    big"1._5" => ArgumentError("invalid number format 1._5 for BigInt or BigFloat")
+    REPRODUCED int-big-str-underscore-dot
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    big"1_."  => 1.0
+    big"1_.0" => ArgumentError("invalid number format 1_.0 for BigInt or BigFloat")
+    big"1._5" => ArgumentError("invalid number format 1._5 for BigInt or BigFloat")
+    REPRODUCED int-big-str-underscore-dot
+reproduced: {release: true, nightly: true}
+expected: |
+  big"1_." throws ArgumentError("invalid number format 1_. for BigInt or BigFloat"),
+  like big"1_.0".
+promised_by: |
+  base/int.jl:782-783, in @big_str: "remove _ in s[2:end-1]. Do not allow '_' right
+  before or after dot." The @big_str docstring (base/int.jl:750-776) shows
+  big"_" being rejected as an invalid number format.
+cause: |
+  base/int.jl:789 loops over s[2:end-1] only and tests each character against the
+  previous one, then line 796 appends s[end] without the check. For "1_." the dot
+  is the last character, so `c == '.' && is_prev_underscore` is never evaluated,
+  and "1." then parses as a BigFloat.
+possible_fix: |
+  Apply the dot/underscore check to s[end] as well before appending it.
+duplicates:
+  issues: []
+  queries: ["big_str underscore", "big string macro underscore dot", "BigFloat literal underscore", "big\"1_.\""]
+lean:
+  property: JuliaLean.Proofs.base.int.BigStrSourceUnderscoreDot
+  theorem: JuliaLean.Proofs.base.int.bigStrSourceUnderscoreDot_refuted

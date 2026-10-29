@@ -69,17 +69,17 @@ base/irrationals.jl	210	210	one	one(::AbstractIrrational)	modelled	nummisc-cover
 base/irrationals.jl	211	211	one	one(::Type{<:AbstractIrrational})	modelled	nummisc-coverage-irrational-core	source-family: nummisc-coverage-irrational-core mirrors this method body and branch order.
 base/irrationals.jl	213	213	sign	sign(x::AbstractIrrational)	modelled	nummisc-coverage-irrational-core	source-family: nummisc-coverage-irrational-core mirrors this method body and branch order.
 base/irrationals.jl	215	215	-	-(x::AbstractIrrational)	modelled	nummisc-coverage-irrational-core	source-family: nummisc-coverage-irrational-core mirrors this method body and branch order.
-base/irrationals.jl	217	217	$op	$op(x::AbstractIrrational, y::AbstractIrrational)	modelled	nummisc-coverage-irrational-core	source-family: nummisc-coverage-irrational-core mirrors this method body and branch order.
+base/irrationals.jl	217	217	$op	$op(x::AbstractIrrational, y::AbstractIrrational)	todo		generated-loop: op in Symbol[:+, :-, :*, :/, :^]
 base/irrationals.jl	219	219	*	*(x::Bool, y::AbstractIrrational)	modelled	nummisc-coverage-irrational-core	source-family: nummisc-coverage-irrational-core mirrors this method body and branch order.
 base/irrationals.jl	221	221	^	^(x::AbstractIrrational, y::Integer)	modelled	nummisc-coverage-irrational-core	source-family: nummisc-coverage-irrational-core mirrors this method body and branch order.
 base/irrationals.jl	223	223	round	round(x::Irrational, r::RoundingMode)	modelled	nummisc-coverage-irrational-core	source-family: nummisc-coverage-irrational-core mirrors this method body and branch order.
 base/irrationals.jl	264	266	irrational	irrational(sym, val, def)	modelled	nummisc-coverage-irrational-macro	source-family: nummisc-coverage-irrational-macro mirrors this method body and branch order.
 base/irrationals.jl	267	269	irrational	irrational(sym, def)	modelled	nummisc-coverage-irrational-macro	source-family: nummisc-coverage-irrational-macro mirrors this method body and branch order.
 base/irrationals.jl	270	298	irrational	irrational(sym, val, def)	modelled	nummisc-coverage-irrational-macro	source-family: nummisc-coverage-irrational-macro mirrors this method body and branch order.
-base/irrationals.jl	274	279	Base.BigFloat	Base.BigFloat(::Irrational{$qsym}, r::MPFR.MPFRRoundingMode=Rounding.rounding_raw(BigFloat); precision=precision(BigFloat))	modelled	nummisc-coverage-irrational-macro	source-family: nummisc-coverage-irrational-macro mirrors this method body and branch order.
-base/irrationals.jl	281	285	Base.BigFloat	Base.BigFloat(::Irrational{$qsym}; precision=precision(BigFloat))	modelled	nummisc-coverage-irrational-macro	source-family: nummisc-coverage-irrational-macro mirrors this method body and branch order.
-base/irrationals.jl	291	291	Base.Float64	Base.Float64(::Irrational{$qsym})	modelled	nummisc-coverage-irrational-macro	source-family: nummisc-coverage-irrational-macro mirrors this method body and branch order.
-base/irrationals.jl	292	292	Base.Float32	Base.Float32(::Irrational{$qsym})	modelled	nummisc-coverage-irrational-macro	source-family: nummisc-coverage-irrational-macro mirrors this method body and branch order.
+base/irrationals.jl	274	279	Base.BigFloat	Base.BigFloat(::Irrational{$qsym}, r::MPFR.MPFRRoundingMode=Rounding.rounding_raw(BigFloat); precision=precision(BigFloat))	todo		generated-quote: irrational
+base/irrationals.jl	281	285	Base.BigFloat	Base.BigFloat(::Irrational{$qsym}; precision=precision(BigFloat))	todo		generated-quote: irrational
+base/irrationals.jl	291	291	Base.Float64	Base.Float64(::Irrational{$qsym})	todo		generated-quote: irrational
+base/irrationals.jl	292	292	Base.Float32	Base.Float32(::Irrational{$qsym})	todo		generated-quote: irrational
 base/irrationals.jl	300	300	big	big(x::AbstractIrrational)	modelled	nummisc-coverage-irrational-macro	source-family: nummisc-coverage-irrational-macro mirrors this method body and branch order.
 base/irrationals.jl	301	301	big	big(::Type{<:AbstractIrrational})	modelled	nummisc-coverage-irrational-macro	source-family: nummisc-coverage-irrational-macro mirrors this method body and branch order.
 base/irrationals.jl	304	308	alignment	alignment(io::IO, x::AbstractIrrational)	modelled	nummisc-coverage-irrational-macro	source-family: nummisc-coverage-irrational-macro mirrors this method body and branch order.

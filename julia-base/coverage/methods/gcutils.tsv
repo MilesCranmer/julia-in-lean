@@ -1,19 +1,19 @@
 file	line	endline	name	signature	status	entry	note
-base/gcutils.jl	37	37	==	==(w::WeakRef, v::WeakRef)	todo		
-base/gcutils.jl	38	38	==	==(w::WeakRef, v)	todo		
-base/gcutils.jl	39	39	==	==(w, v::WeakRef)	todo		
-base/gcutils.jl	42	46	_check_mutable	_check_mutable(@nospecialize(o))	todo		
-base/gcutils.jl	87	91	finalizer	finalizer(@nospecialize(f), @nospecialize(o))	todo		
-base/gcutils.jl	93	98	finalizer	finalizer(f::Ptr{Cvoid}, o::T) where T	todo		
-base/gcutils.jl	105	106	finalize	finalize(@nospecialize(o))	todo		
-base/gcutils.jl	136	137	gc	gc(full::Bool=true)	todo		
-base/gcutils.jl	149	149	enable	enable(on::Bool)	todo		
-base/gcutils.jl	159	159	enable_finalizers	enable_finalizers(on::Bool)	todo		
-base/gcutils.jl	161	166	enable_finalizers	enable_finalizers()	todo		
-base/gcutils.jl	168	170	disable_finalizers	disable_finalizers()	todo		
-base/gcutils.jl	185	187	in_finalizer	in_finalizer()	todo		
-base/gcutils.jl	237	243	preserve	preserve(args...)	todo		
-base/gcutils.jl	267	267	safepoint	safepoint()	todo		
-base/gcutils.jl	274	276	enable_logging	enable_logging(on::Bool=true)	todo		
-base/gcutils.jl	283	285	logging_enabled	logging_enabled()	todo		
-base/gcutils.jl	293	295	gc_active_impl	gc_active_impl()	todo		
+base/gcutils.jl	37	37	==	==(w::WeakRef, v::WeakRef)	modelled	concurrencycov-gcutils-weak-weak-eq	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/gcutils.jl	38	38	==	==(w::WeakRef, v)	modelled	concurrencycov-gcutils-weak-value-eq	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/gcutils.jl	39	39	==	==(w, v::WeakRef)	modelled	concurrencycov-gcutils-value-weak-eq	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/gcutils.jl	42	46	_check_mutable	_check_mutable(@nospecialize(o))	modelled	concurrencycov-gcutils-check-mutable	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/gcutils.jl	87	91	finalizer	finalizer(@nospecialize(f), @nospecialize(o))	modelled	concurrencycov-gcutils-finalizer	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/gcutils.jl	93	98	finalizer	finalizer(f::Ptr{Cvoid}, o::T) where T	modelled	concurrencycov-gcutils-pointer-finalizer	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/gcutils.jl	105	106	finalize	finalize(@nospecialize(o))	modelled	concurrencycov-gcutils-finalize	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/gcutils.jl	136	137	gc	gc(full::Bool=true)	modelled	concurrencycov-gcutils-gc	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/gcutils.jl	149	149	enable	enable(on::Bool)	modelled	concurrencycov-gcutils-enable	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/gcutils.jl	159	159	enable_finalizers	enable_finalizers(on::Bool)	modelled	concurrencycov-gcutils-set-finalizers	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/gcutils.jl	161	166	enable_finalizers	enable_finalizers()	modelled	concurrencycov-gcutils-enable-finalizers	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/gcutils.jl	168	170	disable_finalizers	disable_finalizers()	modelled	concurrencycov-gcutils-disable-finalizers	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/gcutils.jl	185	187	in_finalizer	in_finalizer()	modelled	concurrencycov-gcutils-in-finalizer	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/gcutils.jl	237	243	preserve	preserve(args...)	modelled	concurrencycov-gcutils-preserve	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/gcutils.jl	267	267	safepoint	safepoint()	modelled	concurrencycov-gcutils-safepoint	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/gcutils.jl	274	276	enable_logging	enable_logging(on::Bool=true)	modelled	concurrencycov-gcutils-enable-logging	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/gcutils.jl	283	285	logging_enabled	logging_enabled()	modelled	concurrencycov-gcutils-logging-enabled	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/gcutils.jl	293	295	gc_active_impl	gc_active_impl()	modelled	concurrencycov-gcutils-active-impl	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.

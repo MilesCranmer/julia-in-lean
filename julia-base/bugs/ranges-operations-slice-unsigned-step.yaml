@@ -23,6 +23,12 @@ output:
   nightly: |
     REPRODUCED ranges-operations-slice-unsigned-step
 reproduced: {release: true, nightly: true}
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    REPRODUCED ranges-operations-slice-unsigned-step
 expected: "Return the four selected elements UInt[4,3,2,1], in that order."
 promised_by: |
   Array indexing invariant: selecting valid integer indices by a range agrees

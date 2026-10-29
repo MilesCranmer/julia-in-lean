@@ -162,25 +162,6 @@ private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) 
     juliaFns := [name], statement, source := s!"base/multidimensional.jl:{line}; BitArray indexing source equation",
     status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 1374 "_unsafe_getindex!(BitArray,BitArray,range)" "One-dimensional bit indexing gathers the selected logical bits and returns the destination." ``P1374 ``p1374,
-  entry 1380 "_unsafe_getindex!(BitArray,BitArray,ranges)" "Generated stride indexing enumerates every Cartesian selection and gathers bits in destination order." ``P1380 ``p1380,
-  entry 1419 "_unsafe_getindex!(BitArray,BitArray,index arrays)" "General bit indexing enumerates every selected coordinate and gathers in order." ``P1419 ``p1419,
-  entry 1438 "copy_to_bitarray_chunks!(Bool source)" "Chunk copying reads every requested source bit and writes each destination bit at its exact position." ``P1438 ``p1438,
-  entry 1455 "try_bool_conversion(::Real)" "Boolean conversion checks equality to zero before equality to one and otherwise throws InexactError." ``P1455 ``p1455,
-  entry 1457 "unchecked_bool_convert(::Real)" "Unchecked conversion returns the negation of equality to zero." ``P1457 ``p1457,
-  entry 1459 "copy_to_bitarray_chunks!(Real source)" "Real chunk copying converts and writes each value in order, preserving partial mutation on conversion failure." ``P1459 ``p1459,
-  entry 1516 "setindex!(BitArray,array,range)" "Range assignment checks shape and writes each source bit to its selected destination." ``P1516 ``p1516,
-  entry 1527 "setindex!(BitArray,array,indices)" "Multidimensional assignment converts colons, checks shape, and scatters every source bit." ``P1527 ``p1527,
-  entry 1533 "_unsafe_setindex!(BitArray,array,indices)" "Unsafe specialized assignment scatters each source bit in iteration order." ``P1533 ``p1533,
-  entry 1568 "setindex!(BitArray,AbstractArray,indices)" "Generic assignment converts and writes each source value in order, preserving partial mutation on failure." ``P1568 ``p1568,
-  entry 1574 "fill!(one-dimensional BitArray view)" "One-dimensional view fill writes exactly the selected range." ``P1574 ``p1574,
-  entry 1583 "fill!(multidimensional BitArray view)" "Multidimensional view fill delegates to the generated index filler." ``P1583 ``p1583,
-  entry 1586 "_unsafe_fill_indices!" "Unsafe fill enumerates every Cartesian selection and writes the requested bit." ``P1586 ``p1586,
-  entry 1621 "isassigned(::BitArray,::Int...)" "BitArray assignment testing validates rank and every supplied axis coordinate." ``P1621 ``p1621,
-  entry 1637 "isassigned(::AbstractArray,::CartesianIndex)" "Cartesian assignment testing expands the stored coordinate tuple." ``P1637 ``p1637,
-  entry 1638 "isassigned(::AbstractArray,mixed indices)" "Mixed assignment testing converts every index before the unsafe query." ``P1638 ``p1638,
-  entry 1641 "isassigned(::AbstractArray,::Integer...)" "Integer assignment testing checks bounds before conversion and unsafe storage testing." ``P1641 ``p1641
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.MultidimensionalBitsFaithful

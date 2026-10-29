@@ -309,62 +309,7 @@ def entry (id fn statement source : String) (prop thm : Lean.Name) : Entry :=
   { id := id, juliaFile := "base/range.jl", juliaFns := [fn], statement := statement,
     source := source, status := .proven, prop := prop, thm := some thm }
 
-def entries : List Entry := [
-  entry "rangescov-colon-same-unit" "(:)(::T, ::T) where T<:Real"
-    "Integer a:b keeps b when a <= b and is the empty a:a-1 otherwise." "docstring of (:), base/range.jl:54-55"
-    ``ColonSameUnit ``colonSameUnit_proven,
-  entry "rangescov-unitrange-t" "UnitRange{T}(start, stop) where T<:Real"
-    "UnitRange{T}(a, b) for T-typed integers keeps b when a <= b and is a:a-1 otherwise." "docstring of (:); base/range.jl:430"
-    ``UnitRangeTSame ``unitRangeTSame_proven,
-  entry "rangescov-colon-promote-start" "(:)(::Real, ::Real)"
-    "The first element of a mixed-type integer a:b is a." "docstring of (:), base/range.jl:44-47"
-    ``ColonPromoteStart ``colonPromoteStart_proven,
-  entry "rangescov-unitrange-promote-start" "UnitRange(start, stop)"
-    "The first element of a mixed-type integer UnitRange(a, b) is a." "UnitRange docstring; base/range.jl:432-436"
-    ``UnitRangePromoteStart ``unitRangePromoteStart_proven,
-  entry "rangescov-unitrange-of-range" "unitrange(::AbstractUnitRange) / UnitRange(::AbstractUnitRange)"
-    "unitrange(r) and UnitRange(r) keep first(r)." "conversion keeps elements; base/range.jl:447,1342"
-    ``UnitrangeOfRangeStart ``unitrangeOfRangeStart_proven,
-  entry "rangescov-range-start-stop" "range_start_stop(start, stop)"
-    "range(a, b) for integers starts at a." "range docstring; base/range.jl:230"
-    ``RangeStartStopStart ``rangeStartStopStart_proven,
-  entry "rangescov-colon-same3-zero" "(:)(::T, ::T, ::T) where T<:Real"
-    "a:0:b for integers throws ArgumentError." "StepRange docstring (step cannot be zero)"
-    ``ColonSame3ZeroStep ``colonSame3ZeroStep_proven,
-  entry "rangescov-colon-ordered-zero" "_colon(::Ordered, ::Any, start, step, stop)"
-    "StepRange(a, 0, b) through _colon(Ordered()) throws ArgumentError." "StepRange docstring (step cannot be zero)"
-    ``ColonOrderedZeroStep ``colonOrderedZeroStep_proven,
-  entry "rangescov-colon-widen-zero" "_colon(start::T, step, stop::T)"
-    "Once the endpoints convert to typeof(start + zero(step)), a zero step throws ArgumentError." "StepRange docstring (step cannot be zero)"
-    ``ColonWidenZeroStep ``colonWidenZeroStep_proven,
-  entry "rangescov-colon-typed-zero" "(:)(::T, step, ::T) where T"
-    "start:0:stop with an integer step of the endpoint type throws ArgumentError." "StepRange docstring (step cannot be zero)"
-    ``ColonTypedZeroStep ``colonTypedZeroStep_proven,
-  entry "rangescov-colon-promote3-zero" "(:)(::A, step, ::C) / range_start_step_stop"
-    "a:0:b and range(a; step=0, stop=b) for same-type integers throw ArgumentError." "StepRange docstring (step cannot be zero)"
-    ``ColonPromote3ZeroStep ``colonPromote3ZeroStep_proven,
-  entry "rangescov-range-length" "range_length(::Integer)"
-    "range(; length=n) is OneTo(n) with max(0, n) elements." "range docstring; base/range.jl:193"
-    ``RangeLengthOneTo ``rangeLengthOneTo_proven,
-  entry "rangescov-range-stop-int" "range_stop(::Integer)"
-    "range(; stop=n) for an integer n is OneTo(n) with max(0, n) elements." "range docstring; base/range.jl:197"
-    ``RangeStopOneTo ``rangeStopOneTo_proven,
-  entry "rangescov-range3-length" "range(start, stop, ::Integer)"
-    "range(a, b, n) for Int endpoints has n elements whenever it returns." "range docstring; base/range.jl:170"
-    ``Range3Length ``range3Length_proven,
-  entry "rangescov-srl-inner" "StepRangeLen{T,R,S,L}(ref, step, ::Integer, ::Integer)"
-    "The integer StepRangeLen inner constructor stores ref and step, has length >= 0 and 1 <= offset <= max(1, len), and rejects negative lengths." "StepRangeLen docstring; base/range.jl:533-543"
-    ``SrlInner ``srlInner_proven,
-  entry "rangescov-srl-trs" "StepRangeLen{T,R,S}(ref, step, ::Integer, ::Integer)"
-    "StepRangeLen{T,R,S}(ref, step, len, offset) satisfies the StepRangeLen invariant." "StepRangeLen docstring; base/range.jl:546-547"
-    ``SrlTRSInvariant ``srlTRSInvariant_proven,
-  entry "rangescov-srl-auto" "StepRangeLen(ref, step, ::Integer, ::Integer)"
-    "StepRangeLen(ref, step, len, offset) has element type typeof(ref + zero(step)) and satisfies the invariant." "StepRangeLen docstring; base/range.jl:548-549"
-    ``SrlAutoInvariant ``srlAutoInvariant_proven,
-  entry "rangescov-srl-t" "StepRangeLen{T}(ref, step, ::Integer, ::Integer)"
-    "StepRangeLen{T}(ref, step, len, offset) satisfies the StepRangeLen invariant." "StepRangeLen docstring; base/range.jl:550-551"
-    ``SrlTInvariant ``srlTInvariant_proven
-]
+def entries : List Entry := []
 
 end Methods2
 

@@ -1,23 +1,23 @@
 file	line	endline	name	signature	status	entry	note
-base/shell.jl	20	29	rstrip_shell	rstrip_shell(s::AbstractString)	modelled	shellcmd-split-escaped-trailing-space	
-base/shell.jl	31	33	shell_parse	"shell_parse(str::AbstractString, interpolate::Bool=true; special::AbstractString="""", filename=""none"")"	modelled	shellcmd-line-continuation-index,shellcmd-split-escape-roundtrip,shellcmd-split-unterminated-quote	
-base/shell.jl	36	368	__repl_entry_shell_parse	__repl_entry_shell_parse(str::AbstractString, interpolate::Bool, special::AbstractString, filename)	modelled	misccov-shell-fd-overflow,misccov-shell-redirect-before-pipe,misccov-shell-empty-word-redirect	
-base/shell.jl	63	68	push_nonempty!	push_nonempty!(list, x)	modelled	misccov-shell-word-helpers	
-base/shell.jl	69	72	consume_upto!	consume_upto!(list, s, i, j)	modelled	misccov-shell-word-helpers	
-base/shell.jl	73	77	append_2to1!	append_2to1!(list, innerlist)	modelled	misccov-shell-word-helpers	
-base/shell.jl	86	103	parse_dollar_interp	parse_dollar_interp(st, s)	modelled	misccov-shell-dollar	
-base/shell.jl	106	114	redirect_word_expr	redirect_word_expr(word)	modelled	misccov-shell-redirect-word	
-base/shell.jl	328	343	build_seg_expr	build_seg_expr(seg_tuple, s_in, s_out, s_out_app, s_err, s_err_app)	modelled	misccov-shell-build-segment	
-base/shell.jl	385	392	shell_split	shell_split(s::AbstractString)	modelled	shellcmd-line-continuation-index,shellcmd-split-escape-roundtrip,shellcmd-split-escaped-trailing-space,shellcmd-split-unterminated-quote	
-base/shell.jl	394	422	print_shell_word	"print_shell_word(io::IO, word::AbstractString, special::AbstractString = """")"	modelled	shellcmd-split-escape-roundtrip	
-base/shell.jl	424	431	print_shell_escaped	"print_shell_escaped(io::IO, cmd::AbstractString, args::AbstractString...; special::AbstractString="""")"	modelled	shellcmd-split-escape-roundtrip	
-base/shell.jl	432	432	print_shell_escaped	"print_shell_escaped(io::IO; special::String="""")"	modelled	shellcmd-split-escape-roundtrip	
-base/shell.jl	452	453	shell_escape	"shell_escape(args::AbstractString...; special::AbstractString="""")"	modelled	shellcmd-split-escape-roundtrip	
-base/shell.jl	456	499	print_shell_escaped_posixly	print_shell_escaped_posixly(io::IO, args::AbstractString...)	modelled	shellcmd-posixly-roundtrip	
-base/shell.jl	519	520	shell_escape_posixly	shell_escape_posixly(args::AbstractString...)	modelled	shellcmd-posixly-reserved-word,shellcmd-posixly-roundtrip	
-base/shell.jl	544	565	shell_escape_csh	shell_escape_csh(io::IO, args::AbstractString...)	modelled	shellcmd-csh-posix-backslash,shellcmd-escape-empty-args	candidates:shellcmd-csh-posix-backslash,shellcmd-escape-empty-args
-base/shell.jl	566	568	shell_escape_csh	shell_escape_csh(args::AbstractString...)	modelled	shellcmd-csh-posix-backslash,shellcmd-escape-empty-args	candidates:shellcmd-csh-posix-backslash,shellcmd-escape-empty-args
-base/shell.jl	648	671	shell_escape_wincmd	shell_escape_wincmd(io::IO, s::AbstractString)	modelled	shellcmd-wincmd-roundtrip,shellcmd-wincmd-control-throws,shellcmd-wincmd-percent-doc	candidates:shellcmd-wincmd-control-throws,shellcmd-wincmd-percent-doc,shellcmd-wincmd-roundtrip
-base/shell.jl	672	673	shell_escape_wincmd	shell_escape_wincmd(s::AbstractString)	modelled	shellcmd-wincmd-roundtrip,shellcmd-wincmd-control-throws,shellcmd-wincmd-percent-doc	candidates:shellcmd-wincmd-control-throws,shellcmd-wincmd-percent-doc,shellcmd-wincmd-roundtrip
-base/shell.jl	696	715	escape_microsoft_c_args	escape_microsoft_c_args(io::IO, args::AbstractString...)	modelled	shellcmd-msargs-roundtrip,shellcmd-escape-empty-args	candidates:shellcmd-escape-empty-args,shellcmd-msargs-roundtrip
-base/shell.jl	716	718	escape_microsoft_c_args	escape_microsoft_c_args(args::AbstractString...)	modelled	shellcmd-msargs-roundtrip,shellcmd-escape-empty-args	candidates:shellcmd-escape-empty-args,shellcmd-msargs-roundtrip
+base/shell.jl	20	29	rstrip_shell	rstrip_shell(s::AbstractString)	todo		
+base/shell.jl	31	33	shell_parse	"shell_parse(str::AbstractString, interpolate::Bool=true; special::AbstractString="""", filename=""none"")"	todo		
+base/shell.jl	36	368	__repl_entry_shell_parse	__repl_entry_shell_parse(str::AbstractString, interpolate::Bool, special::AbstractString, filename)	todo		
+base/shell.jl	63	68	push_nonempty!	push_nonempty!(list, x)	todo		
+base/shell.jl	69	72	consume_upto!	consume_upto!(list, s, i, j)	todo		
+base/shell.jl	73	77	append_2to1!	append_2to1!(list, innerlist)	todo		
+base/shell.jl	86	103	parse_dollar_interp	parse_dollar_interp(st, s)	todo		
+base/shell.jl	106	114	redirect_word_expr	redirect_word_expr(word)	todo		
+base/shell.jl	328	343	build_seg_expr	build_seg_expr(seg_tuple, s_in, s_out, s_out_app, s_err, s_err_app)	todo		
+base/shell.jl	385	392	shell_split	shell_split(s::AbstractString)	todo		
+base/shell.jl	394	422	print_shell_word	"print_shell_word(io::IO, word::AbstractString, special::AbstractString = """")"	todo		
+base/shell.jl	424	431	print_shell_escaped	"print_shell_escaped(io::IO, cmd::AbstractString, args::AbstractString...; special::AbstractString="""")"	todo		
+base/shell.jl	432	432	print_shell_escaped	"print_shell_escaped(io::IO; special::String="""")"	todo		
+base/shell.jl	452	453	shell_escape	"shell_escape(args::AbstractString...; special::AbstractString="""")"	todo		
+base/shell.jl	456	499	print_shell_escaped_posixly	print_shell_escaped_posixly(io::IO, args::AbstractString...)	todo		
+base/shell.jl	519	520	shell_escape_posixly	shell_escape_posixly(args::AbstractString...)	todo		
+base/shell.jl	544	565	shell_escape_csh	shell_escape_csh(io::IO, args::AbstractString...)	todo		
+base/shell.jl	566	568	shell_escape_csh	shell_escape_csh(args::AbstractString...)	todo		
+base/shell.jl	648	671	shell_escape_wincmd	shell_escape_wincmd(io::IO, s::AbstractString)	todo		
+base/shell.jl	672	673	shell_escape_wincmd	shell_escape_wincmd(s::AbstractString)	todo		
+base/shell.jl	696	715	escape_microsoft_c_args	escape_microsoft_c_args(io::IO, args::AbstractString...)	todo		
+base/shell.jl	716	718	escape_microsoft_c_args	escape_microsoft_c_args(args::AbstractString...)	todo		

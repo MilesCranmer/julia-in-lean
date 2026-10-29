@@ -124,6 +124,33 @@ theorem bitVectorLoopInBounds : BitVectorLoopInBounds := by
       unfold InBounds <;> omega
   · contradiction
 
+theorem bitCompareInBounds : BitCompareInBounds := by
+  intro left right k i h
+  unfold bitCompareIndex at h
+  split at h
+  · simp only [Option.some.injEq] at h
+    subst i
+    unfold InBounds
+    omega
+  · contradiction
+
+theorem bitCopyVectorInBounds : BitCopyVectorInBounds := by
+  intro destBits srcBits destChunks srcChunks k final i h
+  dsimp [bitCopyVectorIndex] at h
+  split at h
+  · split at h
+    · simp only [Option.some.injEq] at h
+      subst i
+      unfold InBounds
+      omega
+    · split at h
+      · simp only [Option.some.injEq] at h
+        subst i
+        unfold InBounds
+        omega
+      · contradiction
+  · contradiction
+
 theorem bootArrayRefInBounds : BootArrayRefInBounds := by
   intro len i j h
   unfold bootArrayIndex at h
@@ -163,8 +190,9 @@ theorem hamtSlotInBounds : HamtSlotInBounds := by
   · contradiction
 
 theorem processStatsReadsInBounds : ProcessStatsReadsInBounds := by
-  intro site
-  cases site <;> simp [processStatsRead, ByteSpan.safe]
+  intro apple ret site span h
+  cases apple <;> cases site <;> by_cases hr : 0 < ret <;>
+    simp_all [processStatsRead] <;> subst span <;> simp [ByteSpan.safe]
 
 theorem rationalSplitInBounds : RationalSplitInBounds := by
   intro s which n i h

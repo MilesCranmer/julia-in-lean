@@ -204,15 +204,6 @@ theorem cartesianSimpleRows : CartesianSimpleRows := by
     cartesianPrevindExact, cartesianIterateErrorExact, cartesianRangeErrorExact,
     cartesianRangeShowExact, cartesianRangeInExact]
 
-def cartesianSimpleEntries : List Entry := [
-  { id := "multidimcov-cartesian-simple-exact"
-    juliaFile := "base/multidimensional.jl"
-    juliaFns := ["remaining CartesianIndex constructors, access, conversion, hashing, next/prev, display, and range methods"]
-    statement := "Each remaining CartesianIndex overload follows its own constructor, delegation, ordered loop, checked access, or documented error body for every input."
-    source := "CartesianIndex method bodies, base/multidimensional.jl:77-208"
-    status := .proven
-    prop := ``CartesianSimpleRows
-    thm := some ``cartesianSimpleRows }
-]
+def cartesianSimpleEntries : List Entry := []
 
 end JuliaLean.MultidimCov

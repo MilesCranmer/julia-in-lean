@@ -76,15 +76,6 @@ theorem methodWrapperRows : MethodWrapperRows := by
     partitionRangeEltypeBody, partitionRangeIteratorEltypeBody,
     overlapMalformedLeftBody, overlapMalformedRightBody]
 
-def methodWrapperEntries : List Entry := [
-  { id := "multidimcov-method-wrappers-exact"
-    juliaFile := "base/multidimensional.jl"
-    juliaFns := ["distinct bounds, generated-get, split-base, partition-eltype, and malformed-overlap overloads"]
-    statement := "Each otherwise-identical overload has a distinct body model and its complete return or error behavior."
-    source := "base/multidimensional.jl:530-657,764-1039,1159-1160"
-    status := .proven
-    prop := ``MethodWrapperRows
-    thm := some ``methodWrapperRows }
-]
+def methodWrapperEntries : List Entry := []
 
 end JuliaLean.MultidimCov

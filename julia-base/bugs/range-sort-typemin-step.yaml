@@ -1,0 +1,48 @@
+id: range-sort-typemin-step
+title: "sort returns an empty range when a descending range has a typemin step"
+priority: P2
+kind: wrong-result
+area: Ranges
+files: [base/range.jl]
+functions: ["sort(r::AbstractRange)", "_reverse(r::OrdinalRange, ::Colon)"]
+summary: |
+  Sorting a descending integer range whose step is typemin negates that step in
+  its original type. The negation wraps to the same negative step, so the reversed
+  range is empty and sort returns no elements.
+likelihood: |
+  Very low: it requires a descending integer range with a step equal to typemin,
+  such as an Int8 range with step -128.
+maybe_intended: ""
+reproducer: |
+  r = Int8(0):Int8(-128):Int8(-128)
+  collect(sort(r))  # [] instead of Int8[-128, 0]
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    collect(r) = Int8[0, -128], collect(sort(r)) = Int8[], expected Int8[-128, 0]
+    REPRODUCED range-sort-typemin-step
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    collect(r) = Int8[0, -128], collect(sort(r)) = Int8[], expected Int8[-128, 0]
+    REPRODUCED range-sort-typemin-step
+reproduced: {release: true, nightly: true}
+expected: |
+  sort(r) should produce an ascending range with the same elements as sort(collect(r)),
+  namely Int8[-128, 0].
+promised_by: |
+  sort docstring, base/sort.jl:1743-1748, says sort returns a sorted copy; the sort
+  manual, doc/src/base/sort.md:3-4, says the default order is ascending. The range
+  specialization should preserve those semantics.
+cause: |
+  base/range.jl:1463 reverses a descending range. The OrdinalRange reversal helper
+  constructs last(r):negate(step(r)):first(r) (base/range.jl:1445). Negating Int8(-128)
+  wraps to -128, so the new range still steps down from -128 toward 0 and is empty.
+possible_fix: |
+  Widen the integer step before negating it when reversing a range, or otherwise
+  construct the sorted range without negating typemin in its original type.
+duplicates:
+  issues: []
+  queries: ["issues: sort AbstractRange typemin step", "prs: sort AbstractRange typemin step"]
+lean:
+  property: JuliaLean.Proofs.base.range.StepRangeSort
+  theorem: JuliaLean.Proofs.base.range.stepRangeSort_refuted

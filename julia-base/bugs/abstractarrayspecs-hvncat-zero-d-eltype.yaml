@@ -1,0 +1,61 @@
+id: abstractarrayspecs-hvncat-zero-d-eltype
+title: "typed_hvncat(Any, 0, x) returns a zero-dimensional Array with typeof(x) as its element type"
+priority: P2
+kind: wrong-result
+area: AbstractArraySpecs
+files: [base/abstractarray.jl]
+functions: ["_typed_hvncat(T::Type, ::Val{0}, x)", "_typed_hvncat(T::Type, ::Val{0}, x::Number)"]
+covers: [abstractarrayspecs-hvncat-row2399]
+summary: |
+  The scalar and number zero-dimensional typed concatenation methods narrow an
+  explicitly requested abstract element type to the converted value's concrete type.
+  typed_hvncat(Any, 0, 1) returns Array{Int64,0}; the shape-tuple entry point does
+  the same. A String scalar similarly returns Array{String,0} instead of Array{Any,0}.
+likelihood: |
+  Low. Zero-dimensional typed concatenation is uncommon, although generic code can
+  request dimension 0 and an abstract element type when constructing arrays.
+maybe_intended: |
+  The method explicitly calls fill(convert(T, x)), which naturally infers the
+  converted value's concrete type. The typed constructors for positive-dimensional
+  concatenation allocate Array{T} explicitly and retain abstract element types.
+  The internal function has no separate public docstring promising its exact type.
+reproducer: |
+  eltype(Base._typed_hvncat(Any, Val(0), "a")) # String
+  eltype(Base._typed_hvncat(Any, Val(0), 1))   # Int64
+  eltype(Base.typed_hvncat(Any, 0, 1))        # Int64
+  eltype(Base.typed_hvncat(Any, (), false, 1)) # Int64
+output:
+  release: |
+    scalar requested Any, got String, size ()
+    number requested Any, got Int64, size ()
+    typed_hvncat(Any, 0, 1) eltype => Int64
+    typed_hvncat(Any, (), false, 1) eltype => Int64
+    REPRODUCED abstractarrayspecs-hvncat-zero-d-eltype
+  nightly: |
+    scalar requested Any, got String, size ()
+    number requested Any, got Int64, size ()
+    typed_hvncat(Any, 0, 1) eltype => Int64
+    typed_hvncat(Any, (), false, 1) eltype => Int64
+    REPRODUCED abstractarrayspecs-hvncat-zero-d-eltype
+reproduced: {release: true, nightly: true}
+expected: |
+  Every result has element type Any and size (). An explicitly supplied element
+  type is preserved, as it is for typed_hvncat with a positive dimension.
+promised_by: |
+  Typed-concatenation invariant: supplying T to typed_hvncat chooses the output's
+  element type. The scalar zero-dimensional overloads accept T explicitly, while
+  adjacent positive-dimensional overloads construct T[xs...] or Array{T,N}
+  (base/abstractarray.jl:2398-2399, 2411-2421).
+cause: |
+  base/abstractarray.jl:2398-2399 calls fill(convert(T, x)). convert(Any, x) returns
+  x unchanged, and fill allocates using typeof(x), so the result loses the
+  explicitly requested abstract type. This is a different method and root cause
+  from the Vector hcat comprehension in multidimcov-hcat-vector-eltype.
+possible_fix: |
+  Allocate Array{T,0}(undef) explicitly, store the converted value at [], and return it.
+duplicates:
+  issues: []
+  queries: ["issues: hvncat eltype", "prs: hvncat eltype", "issues: typed_hvncat Any", "prs: hvncat fill convert"]
+lean:
+  property: JuliaLean.AbstractArraySpecs.Hvn0ValueSpec
+  theorem: JuliaLean.AbstractArraySpecs.hvn0ValueSpec_refuted

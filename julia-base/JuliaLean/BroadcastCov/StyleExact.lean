@@ -221,43 +221,6 @@ private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) 
     prop := prop
     thm := some thm }
 
-def entries : List Entry := [
-  entry 37 "BroadcastStyle(::Type{Union{}})" "The bottom type has Unknown broadcast style." ``P37 ``p37,
-  entry 38 "BroadcastStyle(::Type{Union{}}, slurp...)" "The multi-argument bottom-type overload throws MethodError." ``P38 ``p38,
-  entry 49 "BroadcastStyle(::Type{<:Tuple})" "Tuple types use Style{Tuple}." ``P49 ``p49,
-  entry 87 "ArrayStyle{A}(::Val)" "The Val argument is ignored and ArrayStyle{A} is returned." ``P87 ``p87,
-  entry 98 "DefaultArrayStyle(::Val{N})" "The Val parameter becomes the DefaultArrayStyle rank for every type-level value." ``P98 ``p98,
-  entry 99 "DefaultArrayStyle{M}(::Val{N})" "The new Val parameter replaces the prior DefaultArrayStyle rank." ``P99 ``p99,
-  entry 102 "BroadcastStyle(::Type{<:AbstractArray{T,N}})" "An AbstractArray type uses DefaultArrayStyle{N}." ``P102 ``p102,
-  entry 103 "BroadcastStyle(::Type{T})" "The fallback type style uses ndims(T)." ``P103 ``p103,
-  entry 111 "ArrayConflict(::Val)" "The Val argument is ignored and ArrayConflict is returned." ``P111 ``p111,
-  entry 128 "BroadcastStyle(::S, ::S)" "A homogeneous style pair constructs the same style type." ``P128 ``p128,
-  entry 130 "BroadcastStyle(::BroadcastStyle, ::BroadcastStyle)" "The general style pair falls back to Unknown." ``P130 ``p130,
-  entry 132 "BroadcastStyle(::Unknown, ::Unknown)" "Two Unknown styles return Unknown." ``P132 ``p132,
-  entry 133 "BroadcastStyle(::S, ::Unknown)" "Unknown is neutral on the right." ``P133 ``p133,
-  entry 135 "BroadcastStyle(::AbstractArrayStyle{0}, ::Style{Tuple})" "A zero-dimensional array style yields the tuple style." ``P135 ``p135,
-  entry 136 "BroadcastStyle(::AbstractArrayStyle, ::Style{Tuple})" "A nonzero array style dominates tuple style." ``P136 ``p136,
-  entry 137 "BroadcastStyle(::A, ::A) where A<:ArrayStyle" "A homogeneous ArrayStyle pair constructs A." ``P137 ``p137,
-  entry 138 "BroadcastStyle(::ArrayStyle, ::ArrayStyle)" "Different ArrayStyle values fall back to Unknown." ``P138 ``p138,
-  entry 139 "BroadcastStyle(::A, ::A) where A<:AbstractArrayStyle" "A homogeneous AbstractArrayStyle pair constructs A." ``P139 ``p139,
-  entry 140 "BroadcastStyle(::AbstractArrayStyle, ::AbstractArrayStyle)" "Related array-style families promote rank; unrelated families return Unknown." ``P140 ``p140,
-  entry 147 "BroadcastStyle(::AbstractArrayStyle{Any}, ::DefaultArrayStyle)" "An Any-rank custom array style is preserved." ``P147 ``p147,
-  entry 148 "BroadcastStyle(::AbstractArrayStyle{N}, ::DefaultArrayStyle{N})" "A same-rank custom array style is preserved." ``P148 ``p148,
-  entry 149 "BroadcastStyle(::AbstractArrayStyle{M}, ::DefaultArrayStyle{N})" "A custom array style is rebuilt at the maximum rank." ``P149 ``p149,
-  entry 431 "combine_styles()" "The empty style combination returns DefaultArrayStyle{0}." ``P431 ``p431,
-  entry 432 "combine_styles(c)" "A single value combines its type's BroadcastStyle through result_style." ``P432 ``p432,
-  entry 433 "combine_styles(::Broadcasted)" "An assigned Broadcasted style is returned and Unknown or Nothing throws ArgumentError." ``P433 ``p433,
-  entry 437 "combine_styles(c1,c2)" "Two values combine their individual styles through result_style." ``P437 ``p437,
-  entry 438 "combine_styles(c1,c2,cs...)" "Varargs combine the first style with the recursively combined tail." ``P438 ``p438,
-  entry 458 "result_style(s)" "The unary result_style method returns its input style." ``P458 ``p458,
-  entry 459 "result_style(s1::S,s2::S)" "Identical homogeneous styles are preserved and inconsistent values error." ``P459 ``p459,
-  entry 463 "result_style(s1,s2)" "The general method computes forward and reverse pair rules before result_join." ``P463 ``p463,
-  entry 467 "result_join(Unknown,Unknown)" "Two unknown pair rules yield Unknown." ``P467 ``p467,
-  entry 468 "result_join(Unknown,s)" "A known reverse rule wins over an unknown forward rule." ``P468 ``p468,
-  entry 469 "result_join(s,Unknown)" "A known forward rule wins over an unknown reverse rule." ``P469 ``p469,
-  entry 474 "result_join(::AbstractArrayStyle,::AbstractArrayStyle,Unknown,Unknown)" "Conflicting unknown array-style rules yield ArrayConflict." ``P474 ``p474,
-  entry 477 "result_join(s1::S,s2::S)" "Matching rule types are resolved by result_style." ``P477 ``p477,
-  entry 479 "result_join conflicting rules" "Conflicting defined pair rules raise the diagnostic error." ``P479 ``p479
-]
+def entries : List Entry := []
 
 end JuliaLean.BroadcastCov.StyleExact

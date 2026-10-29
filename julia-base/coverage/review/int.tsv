@@ -84,7 +84,6 @@ line	name	verdict	mirror	property	settled	reason
 577	==	HOLLOW	no	yes	yes	The model compares values directly through intCmp and omits the source call with reversed operands, although it states equality for every mixed fixed-width pair.
 578	<	HOLLOW	no	yes	yes	The model compares values directly through intCmp and omits the reversed <= call and negation, although it states less-than for every mixed fixed-width pair.
 579	<=	HOLLOW	no	yes	yes	The model compares values directly through intCmp and omits the reversed < call and negation, although it states less-than-or-equal for every mixed fixed-width pair.
-582	$op	HOLLOW	no	no	yes	The single entry fixes intCmp to equality, so it omits the generated < and <= methods and does not cover the loop's three allowed operators.
 591	max	FAITHFUL	yes	yes	yes	The model computes the promoted result type, compares mathematical values, and wraps the selected operand exactly as the source max method does for every BitInteger pair.
 596	min	HOLLOW	no	no	yes	The model returns the general promoted type, while this method returns the signed first operand's type and converts only the unsigned branch to that type.
 597	min	HOLLOW	no	no	yes	The model returns the general promoted type, while this method returns the signed second operand's type and converts only the unsigned branch to that type.
@@ -96,11 +95,6 @@ line	name	verdict	mirror	property	settled	reason
 611	>>	FAITHFUL	yes	yes	yes	The signed-count model chooses right shift for nonnegative counts and left shift by the negated count otherwise for every fixed-width input.
 613	<<	FAITHFUL	yes	yes	yes	The signed-count model chooses left shift for nonnegative counts and right shift by the negated count otherwise for every fixed-width input.
 615	>>>	FAITHFUL	yes	yes	yes	The signed-count model chooses logical right shift for nonnegative counts and left shift by the negated count otherwise for every fixed-width input.
-621	rem	HOLLOW	no	yes	yes	The model uses one generic wrapping conversion instead of the generated trunc_int call for narrower targets, although it states the resulting fixed-width remainder.
-623	rem	HOLLOW	no	yes	yes	The model uses one generic wrapping conversion instead of this Bool source branch's convert call, although it states the resulting fixed-width remainder.
-626	rem	HOLLOW	no	yes	yes	The model uses one generic wrapping conversion instead of the generated sext_int call for a smaller signed source, although it states the resulting remainder.
-628	rem	HOLLOW	no	yes	yes	The model uses one generic wrapping conversion instead of the generated convert call for a smaller unsigned source, although it states the resulting remainder.
-631	rem	HOLLOW	no	yes	yes	The model uses one generic wrapping conversion instead of the generated equal-width bitcast call, although it states the resulting remainder.
 664	bitrotate	HOLLOW	no	yes	yes	The model directly indexes rotated bits and omits the source mask, two shifts, negated count, and bitwise-or sequence, although it states the documented rotation result.
 695	rem	HOLLOW	no	yes	yes	The model wraps through remType instead of returning the same typed value directly, although it states the identity result for every fixed-width input.
 696	rem	HOLLOW	no	yes	yes	The model converts directly through remType and omits the source unsigned(typeof(x)) construction and recursive remainder call.
@@ -181,5 +175,4 @@ line	name	verdict	mirror	property	settled	reason
 1086	div	FAITHFUL	yes	yes	yes	JInt.div mirrors checked_udiv_int for every UInt128 pair, including division by zero, and the proposition is proven.
 1088	rem	FAITHFUL	yes	yes	yes	JInt.remInt mirrors checked_srem_int for every Int128 pair, including division by zero, and the proposition is proven.
 1089	rem	FAITHFUL	yes	yes	yes	JInt.remInt mirrors checked_urem_int for every UInt128 pair, including division by zero, and the proposition is proven.
-1094	$op	HOLLOW	no	no	yes	The model omits not_sametype and quantifies over same-type operands that the source guard rejects, so it covers neither the full body nor every generated operator's allowed behaviour.
 1124	bitreverse	HOLLOW	no	yes	yes	The model directly indexes reversed bits and omits unsigned conversion, mask construction, three swap stages, bswap, and final type conversion, although it states the documented result.

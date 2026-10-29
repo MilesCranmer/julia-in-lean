@@ -4,7 +4,7 @@ import JuliaLean.ParsePrint.IntParse
 
 /-!
 Model of the pure address code of `stdlib/Sockets/src/IPAddr.jl` at Julia
-master `bbfa0ce4150`: `IPv4`/`IPv6` parse and print, `InetAddr` show, `isless`.
+master `f755f49a9e41380d7da126b3c1db9fe7f83dd027`: `IPv4`/`IPv6` parse and print, `InetAddr` show, `isless`.
 
 Strings are well-formed Unicode strings represented as `List Char`.
 Integer fields use the grammar and overflow precedence of

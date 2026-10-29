@@ -236,38 +236,6 @@ private def exactProvenEntry (id fn statement : String) (prop theoremName : Lean
     prop
     thm := some theoremName }
 
-def exactBugEntries : List Entry := [
-  { id := "multidimcov-logicalindex-mutable-mask"
-    juliaFile := "base/multidimensional.jl"
-    juliaFns := ["collect(::LogicalIndex)", "iterate(::LogicalIndex, state)"]
-    statement := "A LogicalIndex enumerates exactly the true positions of its retained current mask."
-    source := "LogicalIndex docstring and bodies, base/multidimensional.jl:827-872"
-    status := .refuted
-    prop := ``LogicalIndexTracksMaskExact
-    thm := some ``logicalIndexTracksMaskExact_refuted
-    issue := "none found (queries: LogicalIndex mutate mask stale count; LogicalIndex TypeError mask; PRs same)"
-    notes := "The exact iterate model exposes stale cached-count behavior after mask mutation; silent omission and TypeError were reproduced on both pinned versions." },
-  { id := "multidimcov-permutedims-offset-view"
-    juliaFile := "base/multidimensional.jl"
-    juliaFns := ["permutedims(::StridedArray, perm)"]
-    statement := "Every valid permutation succeeds for StridedArray axes, including offset axes."
-    source := "permutedims docstring, base/permuteddimsarray.jl:91-95,181-182; bodies at base/multidimensional.jl:1669-1713"
-    status := .refuted
-    prop := ``PermutedimsOffsetCorrectExact
-    thm := some ``permutedimsOffsetCorrectExact_refuted
-    issue := "none found (queries: permutedims SubArray offset axes; permutedims IdentityUnitRange DimensionMismatch; PRs same)"
-    notes := "The exact source-order model reaches checkdims_perm after one-based allocation and rejects the equal-length offset source axis." },
-  exactProvenEntry "multidimcov-l837-logical-ctor" "LogicalIndex{T,A}(mask)" "The inner constructor stores mask and count(mask)." ``L837LogicalCtor ``l837LogicalCtor,
-  exactProvenEntry "multidimcov-l839-logical-vector-ctor" "LogicalIndex(::AbstractVector{Bool})" "The vector constructor delegates with Int indices." ``L839LogicalVectorCtor ``l839LogicalVectorCtor,
-  exactProvenEntry "multidimcov-l840-logical-array-ctor" "LogicalIndex(::AbstractArray{Bool,N})" "The array constructor delegates with CartesianIndex{N}." ``L840LogicalArrayCtor ``l840LogicalArrayCtor,
-  exactProvenEntry "multidimcov-l841-logical-int-ctor" "LogicalIndex{Int}(::AbstractArray)" "The explicit Int constructor delegates to the inner constructor." ``L841LogicalIntCtor ``l841LogicalIntCtor,
-  exactProvenEntry "multidimcov-l842-logical-size" "size(::LogicalIndex)" "LogicalIndex size is its cached count as a one-tuple." ``L842LogicalSize ``l842LogicalSize,
-  exactProvenEntry "multidimcov-l844-logical-show" "show(::LogicalIndex)" "show collects then prints the collected indices." ``L844LogicalShow ``l844LogicalShow,
-  exactProvenEntry "multidimcov-l845-logical-print-array" "print_array(::LogicalIndex)" "print_array collects then delegates." ``L845LogicalPrintArray ``l845LogicalPrintArray,
-  exactProvenEntry "multidimcov-l851-logical-iterate-int" "iterate(::LogicalIndex{Int})" "The first Int iteration constructs linear indices and delegates from count one." ``L851LogicalIterIntFirst ``l851LogicalIterIntFirst,
-  exactProvenEntry "multidimcov-l855-logical-iterate-cartesian" "iterate(::LogicalIndex{CartesianIndex})" "The first Cartesian iteration constructs CartesianIndices and delegates from count one." ``L855LogicalIterCartesianFirst ``l855LogicalIterCartesianFirst,
-  exactProvenEntry "multidimcov-l1678-checkdims-wrapper" "checkdims_perm(::AbstractArray,::AbstractArray,perm)" "The array overload obtains axes and delegates." ``L1678CheckdimsWrapper ``l1678CheckdimsWrapper,
-  exactProvenEntry "multidimcov-l1679-checkdims" "checkdims_perm(::NTuple,::NTuple,perm)" "checkdims_perm checks length, permutation, then corresponding axes in order." ``L1679Checkdims ``l1679Checkdims
-]
+def exactBugEntries : List Entry := []
 
 end JuliaLean.MultidimCov

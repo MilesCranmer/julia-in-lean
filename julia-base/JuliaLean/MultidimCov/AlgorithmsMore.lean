@@ -117,23 +117,6 @@ theorem permutedimsGeneratedRow : PermutedimsGeneratedRow := by
   intro destination source permutation
   cases checkdimsPermExact destination source permutation <;> rfl
 
-def algorithmsMoreEntries : List Entry := [
-  { id := "multidimcov-algorithms-more-exact"
-    juliaFile := "base/multidimensional.jl"
-    juliaFns := ["remaining multidimensional diff, alias, copy, shift, BitArray, assignment, permutation, unique, sort, Ref, and hash methods"]
-    statement := "The remaining algorithms expose their validation errors, branch results, copied values, assignments, and output order for every input."
-    source := "base/multidimensional.jl:1113-2123"
-    status := .proven
-    prop := ``AlgorithmsMoreRows
-    thm := some ``algorithmsMoreRows },
-  { id := "multidimcov-permutedims-generated-exact"
-    juliaFile := "base/multidimensional.jl"
-    juliaFns := ["permutedims!(P,B,perm)"]
-    statement := "Generated permutedims! validates destination axes before copying and returns that destination."
-    source := "base/multidimensional.jl:1689-1713"
-    status := .proven
-    prop := ``PermutedimsGeneratedRow
-    thm := some ``permutedimsGeneratedRow }
-]
+def algorithmsMoreEntries : List Entry := []
 
 end JuliaLean.MultidimCov

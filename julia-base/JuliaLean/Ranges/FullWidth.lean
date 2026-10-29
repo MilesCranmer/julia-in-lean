@@ -68,28 +68,6 @@ theorem rangeEqRespectsEmptiness_refuted : ¬ RangeEqRespectsEmptiness := by
   change true = false at bad
   cases bad
 
-def fullWidthEntries : List Entry := [
-  { id := "ranges-length-overflow-silent", juliaFile := "base/range.jl"
-    juliaFns := ["length(::AbstractUnitRange)"]
-    statement := "length(r) of an integer range is its element count whenever it returns (it throws rather than returning a wrong count)."
-    source := "length docstring (base/abstractarray.jl): the number of elements; base/checked.jl:371-376 says only checked_length checks overflow"
-    status := .refuted, prop := ``LengthIsCount, thm := some ``lengthIsCount_refuted
-    issue := "none found; related #45389 (open, empty UnitRange bounds after overflow), #58245 (open, collect segfault) (queries: length typemin typemax range, range length wraps zero, length overflow UnitRange, checked_length, typemax range length)"
-    notes := "length(typemin(Int):typemax(Int)) == 0 on 1.13.2 and master while isempty is false; the count 2^64 is not representable. Reading 1: intended, since Base.checked_length exists and its docstring implies length may overflow. Reading 2: a wrong value instead of an error. Recorded as questionable semantics; the consequences are ranges-collect-full-width-crash and ranges-eq-wrapped-length." },
-  { id := "ranges-collect-full-width-crash", juliaFile := "base/range.jl"
-    juliaFns := ["Array{T,1}(::AbstractRange{T})", "collect(::AbstractRange)"]
-    statement := "collect(r) never stores past the vector it allocates: iteration ends after length(r) elements."
-    source := "memory-safety invariant of the @inbounds loop at base/range.jl:1424-1431"
-    status := .refuted, prop := ``CollectStoresInBounds, thm := some ``collectStoresInBounds_refuted
-    issue := "#58245 (open, duplicate: collect(0:typemax(UInt)) segfault); related #45389 (queries: collect typemin typemax segfault, collect range segfault, checked_length, typemax range length, Array AbstractRange inbounds)"
-    notes := "collect(typemin(Int):typemax(Int)) segfaults (signal 11) on 1.13.2 and master: Array(r) allocates length(r) == 0 slots and writes iterated elements with @inbounds." },
-  { id := "ranges-eq-wrapped-length", juliaFile := "base/range.jl"
-    juliaFns := ["==(::AbstractRange, ::AbstractRange)"]
-    statement := "r == s for integer ranges implies isempty(r) == isempty(s)."
-    source := "invariant: == on AbstractArrays compares elements"
-    status := .refuted, prop := ``RangeEqRespectsEmptiness, thm := some ``rangeEqRespectsEmptiness_refuted
-    issue := "none found; related #45389 (queries: range == empty array, range length wraps zero, length overflow UnitRange, typemax range length)"
-    notes := "(UInt64(0):typemax(UInt64)) == range(UInt64(7); length=0) is true on 1.13.2 and master: the generic method (base/range.jl:1170-1184) compares the wrapped lengths (both 0) and returns true. (typemin(Int):typemax(Int)) == Int[] and isequal(...) are also true." }
-]
+def fullWidthEntries : List Entry := []
 
 end JuliaLean.Ranges

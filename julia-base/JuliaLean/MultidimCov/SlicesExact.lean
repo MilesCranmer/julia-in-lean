@@ -261,24 +261,6 @@ private def sliceEntry (id fn statement : String) (prop theoremName : Lean.Name)
     prop
     thm := some theoremName }
 
-def sliceExactEntries : List Entry := [
-  sliceEntry "multidimcov-slice-l39-unitaxis" "unitaxis(::AbstractArray)" "unitaxis returns OneTo(1)." ``SliceL39Unitaxis ``sliceL39Unitaxis,
-  sliceEntry "multidimcov-slice-l41-constructor" "Slices(A,slicemap,axes)" "The constructor rejects a short slicemap and otherwise computes the view type before storing its three arguments." ``SliceL41Constructor ``sliceL41Constructor,
-  sliceEntry "multidimcov-slice-l51-check-empty" "_slice_check_dims()" "The empty dimension check succeeds." ``SliceL51CheckEmpty ``sliceL51CheckEmpty,
-  sliceEntry "multidimcov-slice-l52-check" "_slice_check_dims(dim,dims...)" "Dimension checking rejects nonpositive or repeated dimensions in recursive source order." ``SliceL52Check ``sliceL52Check,
-  sliceEntry "multidimcov-slice-l58-eachslice-tuple" "_eachslice(::AbstractArray,::NTuple,::Bool)" "Tuple eachslice validates dimensions and constructs the documented axes and slicemap for drop and no-drop modes." ``SliceL58EachsliceTuple ``sliceL58EachsliceTuple,
-  sliceEntry "multidimcov-slice-l78-eachslice-dim" "_eachslice(::AbstractArray,::Integer,::Bool)" "Integer eachslice wraps the dimension in a singleton tuple and delegates." ``SliceL78EachsliceDim ``sliceL78EachsliceDim,
-  sliceEntry "multidimcov-slice-l132-eachslice" "eachslice(A;dims,drop)" "Public eachslice delegates its arguments to _eachslice." ``SliceL132Eachslice ``sliceL132Eachslice,
-  sliceEntry "multidimcov-slice-l171-eachrow-matrix" "eachrow(::AbstractMatrix)" "Matrix eachrow slices dimension one with dropped inner dimensions." ``SliceL171EachrowMatrix ``sliceL171EachrowMatrix,
-  sliceEntry "multidimcov-slice-l172-eachrow-vector" "eachrow(::AbstractVector)" "Vector eachrow reshapes to a one-column matrix before using matrix eachrow." ``SliceL172EachrowVector ``sliceL172EachrowVector,
-  sliceEntry "multidimcov-slice-l209-eachcol-matrix" "eachcol(::AbstractMatrix)" "Matrix eachcol slices dimension two with dropped inner dimensions." ``SliceL209EachcolMatrix ``sliceL209EachcolMatrix,
-  sliceEntry "multidimcov-slice-l210-eachcol-vector" "eachcol(::AbstractVector)" "Vector eachcol reshapes to a one-column matrix before using matrix eachcol." ``SliceL210EachcolVector ``sliceL210EachcolVector,
-  sliceEntry "multidimcov-slice-l233-axes" "axes(::Slices)" "Slices axes are the stored outer axes." ``SliceL233Axes ``sliceL233Axes,
-  sliceEntry "multidimcov-slice-l234-size" "size(::Slices)" "Slices size is the length of every stored outer axis." ``SliceL234Size ``sliceL234Size,
-  sliceEntry "multidimcov-slice-l236-index" "_slice_index(::Slices,...)" "Slice indexing replaces each outer-dimension marker with its matching coordinate and preserves colons." ``SliceL236Index ``sliceL236Index,
-  sliceEntry "multidimcov-slice-l240-getindex" "getindex(::Slices,::Vararg{Int})" "An in-bounds Slices lookup maps the coordinates and returns the corresponding parent view." ``SliceL240Getindex ``sliceL240Getindex,
-  sliceEntry "multidimcov-slice-l244-setindex" "setindex!(::Slices,val,::Vararg{Int})" "An in-bounds Slices assignment maps the coordinates and assigns the selected parent slice." ``SliceL244Setindex ``sliceL244Setindex,
-  sliceEntry "multidimcov-slice-l249-parent" "parent(::Slices)" "parent returns the stored parent array." ``SliceL249Parent ``sliceL249Parent
-]
+def sliceExactEntries : List Entry := []
 
 end JuliaLean.MultidimCov

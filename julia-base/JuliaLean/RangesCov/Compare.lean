@@ -325,49 +325,7 @@ theorem membershipMethods_proven : MembershipMethods := by
     simp only [inChar, hs, ite_false]
     rcases hx with hx | hx <;> simp <;> omega
 
-def entries : List Entry := [
-  { id := "rangescov-integer-equality", juliaFile := "base/range.jl"
-    juliaFns := ["==(::T, ::T) where T<:AbstractRange", "==(::OrdinalRange, ::OrdinalRange)",
-      "==(::AbstractUnitRange, ::AbstractUnitRange)", "==(::OneTo, ::OneTo)",
-      "==(::Union{StepRange{T},StepRangeLen{T,T}}, ::Union{StepRange{T},StepRangeLen{T,T}})",
-      "_has_length_one(::OrdinalRange)", "_has_length_one(::AbstractRange)"]
-    statement := "Constructed same-type integer unit ranges are == iff they have the same elements; OneTo(n) == OneTo(m) iff max(0,n) == max(0,m); ordinal == is reflexive and an empty range equals exactly the empty ranges; _has_length_one of a StepRangeLen is length == 1."
-    source := "== compares array elements (base/abstractarray.jl); base/range.jl:1141-1168"
-    status := .proven, prop := ``IntegerEquality, thm := some ``integerEquality_proven },
-  { id := "rangescov-eq-twiceprecision", juliaFile := "base/range.jl"
-    juliaFns := ["==(::T, ::T) where T<:Union{StepRangeLen,LinRange}"]
-    statement := "r == s for two Float64 TwicePrecision StepRangeLens implies equal elements."
-    source := "== on AbstractArrays compares elements (base/abstractarray.jl)"
-    status := .refuted, prop := ``SrlEqElementwise, thm := some ``srlEqElementwise_refuted
-    issue := "none found (queries: issues StepRangeLen == elements; issues range equality TwicePrecision; issues == StepRangeLen different; prs StepRangeLen == elements; prs range equality TwicePrecision)"
-    notes := "Lean witness StepRangeLen(TwicePrecision(0.0), TwicePrecision(0.1), 4) vs nextfloat(0.1) step: equal first, length and last 0.30000000000000004, different r[2]. The reproducer uses range(0.0; step=0.30000000000000004, length=8)." },
-  { id := "rangescov-cmp-float-ranges", juliaFile := "base/range.jl"
-    juliaFns := ["cmp(::T, ::T) where T<:AbstractRange"]
-    statement := "cmp(r1, r2) of two Float64 ranges of the same type is the lexicographic cmp of their elements."
-    source := "cmp docstring base/operators.jl:500-508; cmp(::AbstractVector, ::AbstractVector) in base/abstractarray.jl"
-    status := .refuted, prop := ``CmpLexicographic, thm := some ``cmpLexicographic_refuted
-    issue := "none found; regression from #60337 (merged), related #60334 (queries: issues cmp range; issues cmp AbstractRange; issues isless range; prs cmp range; prs cmp AbstractRange; prs isless range)"
-    notes := "cmp(StepRangeLen(0.0, 0.1, 4), StepRangeLen(0.0, nextfloat(0.1), 4)) == 0 on master; release 1.13.2 has no range method and returns -1." },
-  { id := "rangescov-set-operations", juliaFile := "base/range.jl"
-    juliaFns := ["intersect(::OneTo, ::OneTo)", "union(::OneTo, ::OneTo)",
-      "intersect(::AbstractUnitRange{<:Integer}, ::AbstractUnitRange{<:Integer})",
-      "intersect(::Integer, ::AbstractUnitRange{<:Integer})", "intersect(::AbstractUnitRange{<:Integer}, ::Integer)",
-      "intersect(::AbstractRange, ::AbstractRange)", "intersect(::AbstractRange, ::AbstractRange, ::AbstractRange, ...)"]
-    statement := "OneTo intersect/union are OneTo(min/max of stops); unit/unit intersection is max(first):min(last); intersect(r, i) == intersect(i, r); the generic intersection keeps only elements in both inputs; the n-ary form folds."
-    source := "intersect/union docstrings (base/abstractset.jl); base/range.jl:1196-1283"
-    status := .proven, prop := ``SetOperations, thm := some ``setOperations_proven },
-  { id := "rangescov-findin-subset", juliaFile := "base/range.jl"
-    juliaFns := ["_findin(::AbstractRange{<:Integer}, ::AbstractUnitRange{<:Integer})", "issubset(::OneTo, ::OneTo)"]
-    statement := "_findin(r, span) is 1:length(r) when an increasing unit range lies inside span; issubset of OneTos compares stops."
-    source := "findall(in(span), r) semantics (base/array.jl:2966); base/range.jl:1286-1308"
-    status := .proven, prop := ``FindinSubset, thm := some ``findinSubset_proven },
-  { id := "rangescov-membership-methods", juliaFile := "base/range.jl"
-    juliaFns := ["in(::Real, ::AbstractRange{<:Real})", "in(::T, ::AbstractRange{T})",
-      "in(::AbstractChar, ::AbstractRange{<:AbstractChar})"]
-    statement := "in for real ranges is _in_range; the first element of a nonempty Char range is in it and characters outside [minimum, maximum] are not."
-    source := "in docstring base/operators.jl:1503-1506; base/range.jl:1474-1488"
-    status := .proven, prop := ``MembershipMethods, thm := some ``membershipMethods_proven }
-]
+def entries : List Entry := []
 
 end Compare
 

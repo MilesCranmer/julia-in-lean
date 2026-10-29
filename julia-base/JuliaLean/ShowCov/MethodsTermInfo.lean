@@ -11,13 +11,53 @@ def m69 (_args : Unit) := blank
 def P69 : Prop := ∀ args : Unit, m69 args = ⟨[], [], [], [], none, []⟩
 theorem p69 : P69 := fun _ => rfl
 
-def m71 (data : List UInt8) := readRaw data
-def P71 : Prop := ∀ data : List UInt8, HasResult (m71 data)
-theorem p71 : P71 := fun data => hasResult (m71 data)
+def m71 (data : Rd) := readRawAt data
+def P71 : Prop := ∀ (data : Rd),
+  (data.rest.length < 2 → m71 data = .error .eofError) ∧
+  (∀ (a b : UInt8) (rest : List UInt8), data.rest = a :: b :: rest →
+    a.toNat + 256 * b.toNat ≠ 0o432 → a.toNat + 256 * b.toNat ≠ 0o1036 →
+    m71 data = .error (.argumentError "Terminfo data did not start with the magic number 0o0432 or 0o01036"))
+theorem p71 : P71 := by
+  intro data
+  constructor
+  · intro h
+    cases hr : data.rest with
+    | nil => simp [m71, readRawAt, readU16, hr]
+    | cons a xs =>
+      cases xs with
+      | nil => simp [m71, readRawAt, readU16, hr]
+      | cons b bs => simp [hr] at h; omega
+  · intro a b rest hr h1 h2
+    simp [m71, readRawAt, readU16, hr, h1, h2]
+def P72 : Prop := ∀ (r : Rd) (n : Int),
+  (n < 0 → terminfoReadBytes r n = .error (.argumentError "invalid Array dimensions")) ∧
+  (0 ≤ n → r.rest.length < n.toNat → terminfoReadBytes r n = .error .eofError) ∧
+  (0 ≤ n → n.toNat ≤ r.rest.length →
+    (terminfoReadBytes r n).map (fun result => result.1.length) = .ok n.toNat)
+theorem p72 : P72 := by
+  intro r n
+  refine ⟨?_, ?_, ?_⟩
+  · intro h; simp [terminfoReadBytes, h]
+  · intro h hn; simp [terminfoReadBytes, Int.not_lt.mpr h, readExact_short r n.toNat hn]
+  · intro h hn; simp [terminfoReadBytes, Int.not_lt.mpr h, readExact_length r n.toNat hn]
+
+def P255 : Prop := ∀ (f : String → Except StatError Bool) (path : String),
+  (f path = .error .io → statCheck f path = .ok false) ∧
+  (∀ err, err ≠ .io → f path = .error err → statCheck f path = .error err)
+theorem p255 : P255 := by
+  intro f path
+  constructor
+  · intro h; simp [statCheck, h]
+  · intro err hn h
+    cases err <;> simp_all [statCheck]
+
 
 def m112 (data : Rd) (wordBytes : Nat) := extendedterminfo data wordBytes
-def P112 : Prop := ∀ data : Rd, ∀ wordBytes : Nat, HasResult (m112 data wordBytes)
-theorem p112 : P112 := fun data wordBytes => hasResult (m112 data wordBytes)
+def P112 : Prop := ∀ (data : Rd) (wordBytes : Nat),
+  data.pos % 2 = 0 → data.rest = [] → m112 data wordBytes = .error .eofError
+theorem p112 : P112 := by
+  intro data wordBytes halign hempty
+  simp [m112, extendedterminfo, halign, readI16, hempty]
 
 def m148 (table : List UInt8) (indices : List Int) := readStrings table indices
 def P148 : Prop := ∀ table : List UInt8, ∀ indices : List Int, HasResult (m148 table indices)
@@ -68,13 +108,28 @@ theorem p231 : P231 := fun names ti => hasResult (m231 names ti)
 
 def m248 (env : Env) (lower : String → String) (term : String) :=
   findTerminfoFile env lower term
-def P248 : Prop := ∀ env lower term, HasResult (m248 env lower term)
-theorem p248 : P248 := fun env lower term => hasResult (m248 env lower term)
+def P248 : Prop := ∀ (env : Env) (lower : String → String) (term : String),
+  term.toList.any (fun ch => ch = '/' ∨ (!env.isunix ∧ ch = '\\')) = true →
+  m248 env lower term = .ok none
+theorem p248 : P248 := by
+  intro env lower term h
+  unfold m248 findTerminfoFile
+  split
+  · rfl
+  · rw [if_pos h]
+    rfl
 
 def m286 (env : Env) (lower : String → String) (readFile : String → ReadResult)
     (convert : Raw → TI) (term : String) := loadTerminfo env lower readFile convert term
-def P286 : Prop := ∀ env lower readFile convert term, HasResult (m286 env lower readFile convert term)
-theorem p286 : P286 := fun env lower readFile convert term => hasResult (m286 env lower readFile convert term)
+def P286 : Prop := ∀ (env : Env) (lower : String → String)
+    (readFile : String → ReadResult) (convert : Raw → TI) (term path : String),
+  findTerminfoFile env lower term = .ok (some path) →
+  (readFile path = .argumentError ∨ readFile path = .ioError ∨
+   readFile path = .eofError ∨ readFile path = .systemError) →
+  m286 env lower readFile convert term = .info blank
+theorem p286 : P286 := by
+  intro env lower readFile convert term path h hr
+  rcases hr with hr | hr | hr | hr <;> simp [m286, loadTerminfo, h, hr]
 
 def m319 (ti : TI) := ttyhascolor false ti
 def P319 : Prop := ∀ ti, m319 ti = haskey ti "setaf"
@@ -113,8 +168,9 @@ def e (line : Nat) (fn statement : String) (prop thm : Lean.Name) : Entry :=
 
 def entries : List Entry := [
   e 69 "TermInfo()" "The zero-argument constructor creates empty capability dictionaries and no extension set." ``P69 ``p69,
-  e 71 "read(::IO, ::Type{TermInfoRaw})" "The raw reader follows the term(5) sections, checks magic and padding, and optionally reads extensions." ``P71 ``p71,
-  e 112 "extendedterminfo(::IO, ::Union{Type{Int16},Type{Int32}})" "The extended reader follows padding, header, value, offset, label, and dictionary construction in source order." ``P112 ``p112,
+  e 71 "read(::IO, ::Type{TermInfoRaw})" "The raw reader rejects an unrecognized magic number." ``P71 ``p71,
+  e 72 "_terminfo_read_bytes(::IO, ::Integer)" "Negative lengths throw ArgumentError; complete reads return the requested byte count and short reads throw EOFError." ``P72 ``p72,
+  e 112 "extendedterminfo(::IO, ::Union{Type{Int16},Type{Int32}})" "An empty extended header throws EOFError at an even offset." ``P112 ``p112,
   e 148 "_terminfo_read_strings(::Vector{UInt8}, ::Vector{Int16})" "Each index yields its NUL-terminated string, nothing, or the documented ArgumentError." ``P148 ``p148,
   e 170 "TermInfo(::TermInfoRaw)" "TermInfo construction fills standard and extended dictionaries and aliases in source loop order." ``P170 ``p170,
   e 194 "longalias(key, value)" "The nested longalias helper returns the first TERM_USER lookup component." ``P194 ``p194,
@@ -125,8 +181,9 @@ def entries : List Entry := [
   e 221 "getindex(::TermInfo, ::Symbol)" "getindex checks the three value dictionaries, follows aliases, then throws KeyError." ``P221 ``p221,
   e 229 "keys(::TermInfo)" "keys unions the four key sets." ``P229 ``p229,
   e 231 "show(::IO, ::MIME\"text/plain\", ::TermInfo)" "Text display prints names and counts, with an extension count only when present." ``P231 ``p231,
-  e 248 "find_terminfo_file(::String)" "File search builds environment and standard directories and checks three candidate paths in order." ``P248 ``p248,
-  e 286 "load_terminfo(::String)" "Loading returns blank on absence or handled errors, converts success, and rethrows other errors." ``P286 ``p286,
+  e 248 "find_terminfo_file(::String)" "Terminal names containing a platform path separator are rejected." ``P248 ``p248,
+  e 255 "_terminfo_stat_check(::Function, ::String)" "A filesystem IOError is treated as absence; other errors propagate." ``P255 ``p255,
+  e 286 "load_terminfo(::String)" "Loading returns a blank TermInfo when reading raises a handled file or parsing error." ``P286 ``p286,
   e 319 "ttyhascolor()" "The non-Windows method checks the setaf capability." ``P319 ``p319,
   e 357 "ttyhastruecolor()" "Truecolor detection evaluates every documented environment and terminfo condition in short-circuit order." ``P357 ``p357,
   e 376 "get_have_color()" "The color cache computes only when empty and returns a Bool." ``P376 ``p376,

@@ -74,12 +74,23 @@ theorem p185 : P185 := by
   intro F A X constructStyle f args axes
   cases constructStyle <;> rfl
 
-def m189 {F A X : Type} (constructStyle : Candidate Style) (f : F) (args : A) (axes : X) :
-    Except Error (Broadcasted Style F A X) := m185 constructStyle f args axes
-def P189 : Prop := ∀ {F A X : Type} (constructStyle : Candidate Style)
-    (f : F) (args : A) (axes : X),
-  m189 constructStyle f args axes = m185 constructStyle f args axes
-theorem p189 : P189 := by simp [P189, m189]
+def m189 {S F A X : Type} (constructStyle : Candidate S)
+    (function : Candidate F) (arguments : Candidate A) (axisValue : Candidate X) :
+    Except Error (Broadcasted S F A X) := do
+  let style ← requireStyle constructStyle
+  let f ← requireStyle function
+  let args ← requireStyle arguments
+  let axes ← requireStyle axisValue
+  .ok ⟨style, f, args, axes⟩
+def P189 : Prop := ∀ {S F A X : Type} (constructStyle : Candidate S)
+    (function : Candidate F) (arguments : Candidate A) (axisValue : Candidate X),
+  m189 constructStyle function arguments axisValue = do
+    let style ← requireStyle constructStyle
+    let f ← requireStyle function
+    let args ← requireStyle arguments
+    let axes ← requireStyle axisValue
+    .ok ⟨style, f, args, axes⟩
+theorem p189 : P189 := by unfold P189; intros; rfl
 
 def m196 {A B R : Type} (broadcasted : (Bool → Bool → Bool) → A → B → R)
     (a : A) (b : B) : R := broadcasted (fun x y => x && y) a b
@@ -121,22 +132,34 @@ def P208 : Prop := ∀ {A B R : Type} (flatten : B → FlatBoolBroadcasted A)
     broadcasted (fun first rest => first || bcf.f rest) a bcf.args
 theorem p208 : P208 := by simp [P208, m208]
 
-def m215 (newStyle : S2) (bc : Broadcasted S1 F A X) : Broadcasted S2 F A X :=
-  ⟨newStyle, bc.f, bc.args, bc.axes⟩
-def P215 : Prop := ∀ {S1 S2 F A X : Type} (newStyle : S2) (bc : Broadcasted S1 F A X),
-  m215 newStyle bc = ⟨newStyle, bc.f, bc.args, bc.axes⟩
-theorem p215 : P215 := by simp [P215, m215]
+def m215 (constructStyle : Unit → S2) (bc : Broadcasted S1 F A X) :
+    Broadcasted S2 F A X :=
+  ⟨constructStyle (), bc.f, bc.args, bc.axes⟩
+def P215 : Prop := ∀ {S1 S2 F A X : Type} (constructStyle : Unit → S2)
+    (bc : Broadcasted S1 F A X),
+  m215 constructStyle bc = ⟨constructStyle (), bc.f, bc.args, bc.axes⟩
+theorem p215 : P215 := by unfold P215; intros; rfl
 
-def m218 {F A X : Type} (showStyle : Style → String) (showF : F → String)
-    (showArgs : A → String) (bc : Broadcasted Style F A (Option X)) : String :=
-  "Broadcasted" ++ (if bc.axes.isSome then "{" ++ showStyle bc.style ++ "}" else "") ++
-    "(" ++ showF bc.f ++ ", " ++ showArgs bc.args ++ ")"
-def P218 : Prop := ∀ {F A X : Type} (showStyle : Style → String) (showF : F → String)
-    (showArgs : A → String) (bc : Broadcasted Style F A (Option X)),
-  m218 showStyle showF showArgs bc =
-    "Broadcasted" ++ (if bc.axes.isSome then "{" ++ showStyle bc.style ++ "}" else "") ++
-      "(" ++ showF bc.f ++ ", " ++ showArgs bc.args ++ ")"
-theorem p218 : P218 := by simp [P218, m218]
+def m218 (printHead : O → Except Error O)
+    (printStyle : O → StyleParam → Except Error O)
+    (printBody : O → F → A → Except Error O) (styleType : Unit → StyleParam)
+    (isTupleAxes : X → Bool) (io : O) (bc : Broadcasted S F A X) :
+    Except Error (O × Unit) := do
+  let io ← printHead io
+  let io ← if isTupleAxes bc.axes then printStyle io (styleType ()) else .ok io
+  let io ← printBody io bc.f bc.args
+  .ok (io, ())
+def P218 : Prop := ∀ {O StyleParam S F A X : Type}
+    (printHead : O → Except Error O)
+    (printStyle : O → StyleParam → Except Error O)
+    (printBody : O → F → A → Except Error O) (styleType : Unit → StyleParam)
+    (isTupleAxes : X → Bool) (io : O) (bc : Broadcasted S F A X),
+  m218 printHead printStyle printBody styleType isTupleAxes io bc = do
+    let io ← printHead io
+    let io ← if isTupleAxes bc.axes then printStyle io (styleType ()) else .ok io
+    let io ← printBody io bc.f bc.args
+    .ok (io, ())
+theorem p218 : P218 := by unfold P218; intros; rfl
 
 def m229 {S F A X T R : Type} (axes : Broadcasted S F A X → R)
     (similar : Broadcasted S F A X → T → R → R) (bc : Broadcasted S F A X) (Tval : T) : R :=
@@ -189,20 +212,22 @@ def m243 {A : Type} (_args : A) : List Unit := []
 def P243 : Prop := ∀ {A : Type} (args : A), m243 args = []
 theorem p243 : P243 := by simp [P243, m243]
 
-def m245 {Axis : Type} (axes : List Axis) (oneToOne : Axis) (d : Int) : Except Error Axis :=
-  if d < 1 then .error .boundsError
-  else if h : (d - 1).toNat < axes.length then .ok (axes.get ⟨(d - 1).toNat, h⟩)
-  else .ok oneToOne
-def P245 : Prop := ∀ {Axis : Type} (axes : List Axis) oneToOne d,
-  m245 axes oneToOne d =
-    if d < 1 then .error .boundsError
-    else if h : (d - 1).toNat < axes.length then .ok (axes.get ⟨(d - 1).toNat, h⟩)
-    else .ok oneToOne
-theorem p245 : P245 := by simp [P245, m245]
+def m245 (axes : B → Except Error (List Axis))
+    (getindex : List Axis → Int → Except Error Axis) (oneToOne : Axis)
+    (bc : B) (rank d : Int) : Except Error Axis :=
+  if d ≤ rank then do getindex (← axes bc) d else .ok oneToOne
+def P245 : Prop := ∀ {B Axis : Type}
+    (axes : B → Except Error (List Axis))
+    (getindex : List Axis → Int → Except Error Axis) (oneToOne : Axis)
+    (bc : B) rank d,
+  m245 axes getindex oneToOne bc rank d =
+    if d ≤ rank then do getindex (← axes bc) d else .ok oneToOne
+theorem p245 : P245 := by unfold P245; intros; rfl
 
-def m248 (style : Style) : Style := style
-def P248 : Prop := ∀ style, m248 style = style
-theorem p248 : P248 := by simp [P248, m248]
+def m248 {S : Type} (constructStyle : Unit → S) : S := constructStyle ()
+def P248 : Prop := ∀ {S : Type} (constructStyle : Unit → S),
+  m248 constructStyle = constructStyle ()
+theorem p248 : P248 := by unfold P248; intros; rfl
 
 def m249 (_style : AssignedStyle) : Except Error Style := .error .argumentError
 def P249 : Prop := ∀ style, m249 style = .error .argumentError
@@ -249,9 +274,14 @@ def m257 {Axis : Type} (axes : List Axis) : IndexSet Axis := .cartesian axes
 def P257 : Prop := ∀ {Axis : Type} (axes : List Axis), m257 axes = .cartesian axes
 theorem p257 : P257 := by simp [P257, m257]
 
-def m258 {Axis : Type} (axes : List Axis) : IndexSet Axis := .linear axes
-def P258 : Prop := ∀ {Axis : Type} (axes : List Axis), m258 axes = .linear axes
-theorem p258 : P258 := by simp [P258, m258]
+def m258 (linearIndices : T → Except Error L)
+    (eachindex : IndexStyle → L → Except Error I) (style : IndexStyle) (axes : T) :
+    Except Error I := do
+  eachindex style (← linearIndices axes)
+def P258 : Prop := ∀ {T L I : Type} (linearIndices : T → Except Error L)
+    (eachindex : IndexStyle → L → Except Error I) style (axes : T),
+  m258 linearIndices eachindex style axes = do eachindex style (← linearIndices axes)
+theorem p258 : P258 := by unfold P258; intros; rfl
 
 def m259 {Axis : Type} (axis : Axis) : Axis := axis
 def P259 : Prop := ∀ {Axis : Type} (axis : Axis), m259 axis = axis
@@ -290,9 +320,13 @@ def maxNdim : List ArgRank → Nat
   | [] => 0
   | head :: tail => max (argRank head) (maxNdim tail)
 
-def m269 (args : List ArgRank) : Nat := maxNdim args
-def P269 : Prop := ∀ args, m269 args = maxNdim args
-theorem p269 : P269 := by simp [P269, m269]
+def m269 (argtype : BC → Except Error A) (maxndims : A → Except Error Nat)
+    (bcType : BC) : Except Error Nat := do
+  maxndims (← argtype bcType)
+def P269 : Prop := ∀ {BC A : Type} (argtype : BC → Except Error A)
+    (maxndims : A → Except Error Nat) (bcType : BC),
+  m269 argtype maxndims bcType = do maxndims (← argtype bcType)
+theorem p269 : P269 := by unfold P269; intros; rfl
 
 def m270 (styleRank : Rank) (args : List ArgRank) : Nat :=
   match styleRank with | .fixed n => n | .any => maxNdim args
@@ -351,10 +385,15 @@ theorem p288 : P288 := by
   intro I V iterate getindex iter state
   simp [m288]
 
+def m295 (ndims : T → Except Error Nat) (hasShape : Nat → R) (broadcastedType : T) :
+    Except Error R := do
+  .ok (hasShape (← ndims broadcastedType))
+def P295 : Prop := ∀ {T R : Type} (ndims : T → Except Error Nat)
+    (hasShape : Nat → R) (broadcastedType : T),
+  m295 ndims hasShape broadcastedType = do .ok (hasShape (← ndims broadcastedType))
+theorem p295 : P295 := by unfold P295; intros; rfl
+
 inductive IteratorEltype where | unknown deriving Repr, DecidableEq
-def m295 (rank : Nat) : Nat := rank
-def P295 : Prop := ∀ rank, m295 rank = rank
-theorem p295 : P295 := by simp [P295, m295]
 
 def m296 : IteratorEltype := .unknown
 def P296 : Prop := ∀ _ : Unit, m296 = .unknown
@@ -409,59 +448,6 @@ private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) 
     prop
     thm := some thm }
 
-def entries : List Entry := [
-  entry 175 "Broadcasted(tuple function)" "Every tuple-valued function argument is rejected as non-callable." ``P175 ``p175,
-  entry 176 "Broadcasted(style,f,args,axes)" "The inner constructor stores every typed field unchanged." ``P176 ``p176,
-  entry 181 "Broadcasted(f,args,axes)" "The constructor combines every argument style, checks the result type, and stores the original fields." ``P181 ``p181,
-  entry 185 "Broadcasted{Style}(f,args,axes)" "The typed constructor constructs and checks Style before storing every original field." ``P185 ``p185,
-  entry 189 "Broadcasted{Style,Axes,F,Args}(f,args,axes)" "The fully typed constructor checks Style and stores f, args, and axes unchanged." ``P189 ``p189,
-  entry 196 "broadcasted(::AndAnd,a,b)" "The direct short-circuit overload broadcasts Boolean conjunction over both operands." ``P196 ``p196,
-  entry 199 "broadcasted(::AndAnd,a,bc)" "The nested conjunction overload flattens bc and broadcasts a closure that invokes its flattened function." ``P199 ``p199,
-  entry 207 "broadcasted(::OrOr,a,b)" "The direct short-circuit overload broadcasts Boolean disjunction over both operands." ``P207 ``p207,
-  entry 208 "broadcasted(::OrOr,a,bc)" "The nested disjunction overload flattens bc and broadcasts a closure that invokes its flattened function." ``P208 ``p208,
-  entry 215 "convert(::Type{Broadcasted{NewStyle}},bc)" "Style conversion replaces only the style and preserves f, args, and axes." ``P215 ``p215,
-  entry 218 "show(::IO,::Broadcasted)" "Printing includes Style only for assigned tuple axes and always prints f and args in source order." ``P218 ``p218,
-  entry 229 "similar(::Broadcasted,::Type)" "The two-argument allocation overload computes axes before forwarding bc, type, and axes." ``P229 ``p229,
-  entry 230 "similar(::Broadcasted{DefaultArrayStyle},::Type,dims)" "Default array allocation uses the element type, length of dims, and unchanged dims." ``P230 ``p230,
-  entry 232 "similar(::Broadcasted{DefaultArrayStyle},::Type{Bool},dims)" "Boolean default allocation delegates unchanged dims to BitArray." ``P232 ``p232,
-  entry 235 "similar(::Broadcasted{ArrayConflict},::Type,dims)" "ArrayConflict allocation uses the element type, length of dims, and unchanged dims." ``P235 ``p235,
-  entry 237 "similar(::Broadcasted{ArrayConflict},::Type{Bool},dims)" "Boolean conflict allocation delegates unchanged dims to BitArray." ``P237 ``p237,
-  entry 240 "axes(::Broadcasted)" "Axes delegates to stored axes when present and combines arguments otherwise." ``P240 ``p240,
-  entry 241 "_axes(::Broadcasted,::Tuple)" "Stored tuple axes are returned unchanged." ``P241 ``p241,
-  entry 242 "_axes(::Broadcasted,::Nothing)" "Missing axes are computed from the complete argument tuple." ``P242 ``p242,
-  entry 243 "_axes(::Broadcasted{<:AbstractArrayStyle{0}},::Nothing)" "A zero-dimensional missing axis tuple is empty." ``P243 ``p243,
-  entry 245 "axes(::Broadcasted,d::Integer)" "Every positive in-rank dimension returns its axis, larger dimensions return OneTo(1), and nonpositive dimensions throw BoundsError." ``P245 ``p245,
-  entry 248 "BroadcastStyle(::Type{<:Broadcasted{Style}})" "An assigned Broadcasted type constructs and returns Style." ``P248 ``p248,
-  entry 249 "BroadcastStyle(::Type{<:Broadcasted{NothingOrUnknown}})" "Every missing or Unknown style throws ArgumentError." ``P249 ``p249,
-  entry 252 "argtype(::Type{BC})" "The type overload returns the args field type." ``P252 ``p252,
-  entry 253 "argtype(::Broadcasted)" "The value overload obtains typeof before returning its args field type." ``P253 ``p253,
-  entry 255 "eachindex(::Broadcasted)" "The wrapper computes IndexStyle before delegating with the same expression." ``P255 ``p255,
-  entry 256 "eachindex(::IndexStyle,::Broadcasted)" "The styled wrapper computes axes before delegating with the same style." ``P256 ``p256,
-  entry 257 "_eachindex(::IndexCartesian,::Tuple)" "Cartesian indexing constructs CartesianIndices from every axis tuple." ``P257 ``p257,
-  entry 258 "_eachindex(::IndexLinear,::Tuple)" "Linear indexing constructs LinearIndices before selecting its indices." ``P258 ``p258,
-  entry 259 "_eachindex(::IndexLinear,::Tuple{Any})" "The one-axis overload returns that axis with its full polymorphic type and value." ``P259 ``p259,
-  entry 261 "IndexStyle(::Broadcasted)" "The value overload obtains typeof before dispatching IndexStyle." ``P261 ``p261,
-  entry 262 "IndexStyle(::Type{<:Broadcasted{<:Any,<:Tuple{Any}}})" "Every one-axis Broadcasted type is IndexLinear." ``P262 ``p262,
-  entry 263 "IndexStyle(::Type{<:Broadcasted{<:Any}})" "The general Broadcasted type is IndexCartesian." ``P263 ``p263,
-  entry 265 "LinearIndices(::Broadcasted{<:Any,<:Tuple{Any}})" "LinearIndices is constructed from the complete one-axis tuple." ``P265 ``p265,
-  entry 267 "ndims(::Broadcasted)" "The value overload obtains typeof before dispatching ndims." ``P267 ``p267,
-  entry 268 "ndims(::Type{<:Broadcasted{<:Any,<:NTuple{N,Any}}}})" "A fixed axes tuple returns N." ``P268 ``p268,
-  entry 269 "ndims(::Type{<:Broadcasted{<:Any,Nothing}})" "A missing-axis type returns the maximum argument rank." ``P269 ``p269,
-  entry 270 "ndims(::Type{<:Broadcasted{<:AbstractArrayStyle{N},Nothing}})" "A fixed integer style rank wins and Any delegates to maximum argument rank." ``P270 ``p270,
-  entry 273 "_maxndims(::Type{Tuple{}})" "The empty argument tuple has maximum rank zero." ``P273 ``p273,
-  entry 274 "_maxndims(::Type{Tuple{T}})" "A tuple argument has rank one and every other argument uses ndims(T)." ``P274 ``p274,
-  entry 275 "_maxndims(::Type{<:Tuple{T,Vararg}})" "The recursive method computes the head rank before the tail and returns their maximum." ``P275 ``p275,
-  entry 281 "size(::Broadcasted)" "Size maps fixed-width length over every axis in order." ``P281 ``p281,
-  entry 282 "length(::Broadcasted)" "Length multiplies fixed-width dimensions with Julia wrapping arithmetic." ``P282 ``p282,
-  entry 284 "iterate(::Broadcasted)" "Initial iteration computes eachindex then delegates with that iterator at its initial state." ``P284 ``p284,
-  entry 288 "iterate(::Broadcasted,state)" "Stateful iteration advances the stored iterator once, returning nothing or the indexed value with the next state." ``P288 ``p288,
-  entry 295 "IteratorSize(::Type{<:Broadcasted})" "IteratorSize reports HasShape with the expression rank." ``P295 ``p295,
-  entry 296 "IteratorEltype(::Type{<:Broadcasted})" "Every Broadcasted iterator reports EltypeUnknown." ``P296 ``p296,
-  entry 299 "instantiate(x)" "Every non-Broadcasted value is returned unchanged." ``P299 ``p299,
-  entry 310 "instantiate(::Broadcasted)" "Instantiation computes missing axes or checks stored axes before reconstructing the wrapper with unchanged fields." ``P310 ``p310,
-  entry 319 "instantiate(::Broadcasted{<:AbstractArrayStyle{0}})" "Every zero-dimensional array-style wrapper is returned unchanged." ``P319 ``p319,
-  entry 321 "instantiate(::Broadcasted{Style{Tuple},Nothing})" "Every tuple-style wrapper with missing axes is returned unchanged." ``P321 ``p321,
-  entry 322 "instantiate(::Broadcasted{Style{Tuple}})" "Tuple-style instantiation checks axes against all arguments before returning the same wrapper." ``P322 ``p322
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.BroadcastLazyFaithful

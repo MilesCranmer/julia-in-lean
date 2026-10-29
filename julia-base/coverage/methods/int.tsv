@@ -1,170 +1,170 @@
 file	line	endline	name	signature	status	entry	note
-base/int.jl	73	73	signed	signed(::Type{Bool})	modelled	floatintcov-int-l73	
-base/int.jl	74	74	signed	signed(::Type{UInt8})	modelled	floatintcov-int-l74	
-base/int.jl	75	75	signed	signed(::Type{UInt16})	modelled	floatintcov-int-l75	
-base/int.jl	76	76	signed	signed(::Type{UInt32})	modelled	floatintcov-int-l76	
-base/int.jl	77	77	signed	signed(::Type{UInt64})	modelled	floatintcov-int-l77	
-base/int.jl	78	78	signed	signed(::Type{UInt128})	modelled	floatintcov-int-l78	
-base/int.jl	79	79	signed	signed(::Type{T}) where {T<:Signed}	modelled	floatintcov-int-l79	
-base/int.jl	80	80	signed	signed(::Type{Union{}}, slurp...)	modelled	floatintcov-int-l80	
-base/int.jl	84	84	<	(<)(x::T, y::T) where {T<:BitSigned}	modelled	floatintcov-int-l84	
-base/int.jl	86	86	-	(-)(x::BitInteger)	modelled	floatintcov-int-l86	
-base/int.jl	87	87	-	(-)(x::T, y::T) where {T<:BitInteger}	modelled	floatintcov-int-l87	
-base/int.jl	88	88	+	(+)(x::T, y::T) where {T<:BitInteger}	modelled	floatintcov-int-l88	
-base/int.jl	89	89	*	(*)(x::T, y::T) where {T<:BitInteger}	modelled	floatintcov-int-l89	
-base/int.jl	91	91	-%	(-%)(x::BitInteger)	modelled	floatintcov-int-l91	
-base/int.jl	92	92	-%	(-%)(x::T, y::T) where {T<:BitInteger}	modelled	floatintcov-int-l92	
-base/int.jl	93	93	+%	(+%)(x::T, y::T) where {T<:BitInteger}	modelled	floatintcov-int-l93	
-base/int.jl	94	94	*%	(*%)(x::T, y::T) where {T<:BitInteger}	modelled	floatintcov-int-l94	
-base/int.jl	96	96	negate	negate(x)	modelled	floatintcov-int-l96	
-base/int.jl	97	97	negate	negate(x::Unsigned)	modelled	floatintcov-int-l97	
-base/int.jl	100	100	inv	inv(x::Integer)	modelled	floatintcov-int-l100	
-base/int.jl	101	101	/	(/)(x::T, y::T) where {T<:Integer}	modelled	floatintcov-int-l101	
-base/int.jl	103	103	/	(/)(x::BitInteger, y::BitInteger)	modelled	floatintcov-int-l103	
-base/int.jl	123	125	mul_hi	mul_hi(a::T, b::T) where {T<:Integer}	modelled	floatintcov-int-l123	
-base/int.jl	127	135	mul_hi	mul_hi(a::UInt128, b::UInt128)	modelled	floatintcov-int-l127	
-base/int.jl	137	141	mul_hi	mul_hi(a::Int128, b::Int128)	modelled	floatintcov-int-l137	
-base/int.jl	160	160	isodd	isodd(n::Number)	modelled	floatintcov-int-l160	
-base/int.jl	161	161	isodd	isodd(n::Real)	modelled	floatintcov-int-l161	
-base/int.jl	180	180	iseven	iseven(n::Number)	modelled	floatintcov-int-l180	
-base/int.jl	181	181	iseven	iseven(n::Real)	modelled	floatintcov-int-l181	
-base/int.jl	183	183	signbit	signbit(x::Integer)	modelled	floatintcov-int-l183	
-base/int.jl	184	184	signbit	signbit(x::Unsigned)	modelled	floatintcov-int-l184	
-base/int.jl	186	186	isnegative	isnegative(x::Unsigned)	modelled	floatintcov-int-l186	
-base/int.jl	188	188	flipsign	flipsign(x::T, y::T) where {T<:BitSigned}	modelled	floatintcov-int-l188	
-base/int.jl	189	189	flipsign	flipsign(x::BitSigned, y::BitSigned)	modelled	floatintcov-int-l189	
-base/int.jl	191	191	flipsign	flipsign(x::Signed, y::Float16)	modelled	floatintcov-int-l191	
-base/int.jl	192	192	flipsign	flipsign(x::Signed, y::Float32)	modelled	floatintcov-int-l192	
-base/int.jl	193	193	flipsign	flipsign(x::Signed, y::Float64)	modelled	floatintcov-int-l193	
-base/int.jl	194	194	flipsign	flipsign(x::Signed, y::Real)	modelled	floatintcov-int-l194	
-base/int.jl	196	196	copysign	copysign(x::Signed, y::Signed)	modelled	floatintcov-int-l196	
-base/int.jl	197	197	copysign	copysign(x::Signed, y::Float16)	modelled	floatintcov-int-l197	
-base/int.jl	198	198	copysign	copysign(x::Signed, y::Float32)	modelled	floatintcov-int-l198	
-base/int.jl	199	199	copysign	copysign(x::Signed, y::Float64)	modelled	floatintcov-int-l199	
-base/int.jl	200	200	copysign	copysign(x::Signed, y::Real)	modelled	floatintcov-int-l200	
+base/int.jl	73	73	signed	signed(::Type{Bool})	modelled	int-signed-bool-size	
+base/int.jl	74	74	signed	signed(::Type{UInt8})	modelled	int-rem-unsigned-signed	
+base/int.jl	75	75	signed	signed(::Type{UInt16})	modelled	int-rem-unsigned-signed	
+base/int.jl	76	76	signed	signed(::Type{UInt32})	modelled	int-rem-unsigned-signed	
+base/int.jl	77	77	signed	signed(::Type{UInt64})	modelled	int-rem-unsigned-signed	
+base/int.jl	78	78	signed	signed(::Type{UInt128})	modelled	int-rem-unsigned-signed	
+base/int.jl	79	79	signed	signed(::Type{T}) where {T<:Signed}	todo		trivial: restates body; returns its argument unchanged; no behaviour beyond the identity
+base/int.jl	80	80	signed	signed(::Type{Union{}}, slurp...)	modelled	int-invalid-type-method-errors	
+base/int.jl	84	84	<	(<)(x::T, y::T) where {T<:BitSigned}	modelled	int-lt-signed	
+base/int.jl	86	86	-	(-)(x::BitInteger)	modelled	int-neg-wraps	
+base/int.jl	87	87	-	(-)(x::T, y::T) where {T<:BitInteger}	modelled	int-sub-wraps	
+base/int.jl	88	88	+	(+)(x::T, y::T) where {T<:BitInteger}	modelled	int-add-wraps	
+base/int.jl	89	89	*	(*)(x::T, y::T) where {T<:BitInteger}	modelled	int-mul-wraps	
+base/int.jl	91	91	-%	(-%)(x::BitInteger)	modelled	int-neg-wrap-op	
+base/int.jl	92	92	-%	(-%)(x::T, y::T) where {T<:BitInteger}	modelled	int-sub-wrap-op	
+base/int.jl	93	93	+%	(+%)(x::T, y::T) where {T<:BitInteger}	modelled	int-add-wrap-op	
+base/int.jl	94	94	*%	(*%)(x::T, y::T) where {T<:BitInteger}	modelled	int-mul-wrap-op	
+base/int.jl	96	96	negate	negate(x)	modelled	int-generic-signed-negation	
+base/int.jl	97	97	negate	negate(x::Unsigned)	modelled	floatintcov-int-negate	
+base/int.jl	100	100	inv	inv(x::Integer)	modelled	int-floating-integer-division	
+base/int.jl	101	101	/	(/)(x::T, y::T) where {T<:Integer}	modelled	int-floating-integer-division	
+base/int.jl	103	103	/	(/)(x::BitInteger, y::BitInteger)	modelled	int-floating-integer-division	
+base/int.jl	123	125	mul_hi	mul_hi(a::T, b::T) where {T<:Integer}	modelled	floatintcov-int-mul-hi	
+base/int.jl	127	135	mul_hi	mul_hi(a::UInt128, b::UInt128)	modelled	int-mul-hi-128	
+base/int.jl	137	141	mul_hi	mul_hi(a::Int128, b::Int128)	modelled	int-mul-hi-128	
+base/int.jl	160	160	isodd	isodd(n::Number)	modelled	floatintcov-int-parity-dispatch	
+base/int.jl	161	161	isodd	isodd(n::Real)	modelled	floatintcov-int-parity-dispatch	
+base/int.jl	180	180	iseven	iseven(n::Number)	modelled	floatintcov-int-parity-dispatch	
+base/int.jl	181	181	iseven	iseven(n::Real)	modelled	floatintcov-int-parity-dispatch	
+base/int.jl	183	183	signbit	signbit(x::Integer)	modelled	floatintcov-int-sign-predicates	
+base/int.jl	184	184	signbit	signbit(x::Unsigned)	modelled	floatintcov-int-sign-predicates	
+base/int.jl	186	186	isnegative	isnegative(x::Unsigned)	modelled	floatintcov-int-sign-predicates	
+base/int.jl	188	188	flipsign	flipsign(x::T, y::T) where {T<:BitSigned}	modelled	floatintcov-int-sign-operations	
+base/int.jl	189	189	flipsign	flipsign(x::BitSigned, y::BitSigned)	modelled	floatintcov-int-sign-operations	
+base/int.jl	191	191	flipsign	flipsign(x::Signed, y::Float16)	modelled	int-flipsign-float	
+base/int.jl	192	192	flipsign	flipsign(x::Signed, y::Float32)	modelled	int-flipsign-float	
+base/int.jl	193	193	flipsign	flipsign(x::Signed, y::Float64)	modelled	int-flipsign-float	
+base/int.jl	194	194	flipsign	flipsign(x::Signed, y::Real)	modelled	floatintcov-int-sign-operations	
+base/int.jl	196	196	copysign	copysign(x::Signed, y::Signed)	modelled	int-copysign-exact	
+base/int.jl	197	197	copysign	copysign(x::Signed, y::Float16)	modelled	int-copysign-float	
+base/int.jl	198	198	copysign	copysign(x::Signed, y::Float32)	modelled	int-copysign-float	
+base/int.jl	199	199	copysign	copysign(x::Signed, y::Float64)	modelled	int-copysign-float	
+base/int.jl	200	200	copysign	copysign(x::Signed, y::Real)	modelled	int-copysign-exact	
 base/int.jl	231	231	abs	abs	excluded		no-behaviour: declares the generic function without a method body.
-base/int.jl	233	233	abs	abs(x::Unsigned)	modelled	floatintcov-int-l233	
-base/int.jl	234	234	abs	abs(x::Signed)	modelled	floatintcov-int-l234	
-base/int.jl	236	236	~	~(n::Integer)	modelled	floatintcov-int-l236	
-base/int.jl	261	261	unsigned	unsigned(x)	modelled	floatintcov-int-l261	
-base/int.jl	262	262	unsigned	unsigned(x::BitSigned)	modelled	floatintcov-int-l262	
-base/int.jl	272	272	signed	signed(x)	modelled	floatintcov-int-l272	
-base/int.jl	273	273	signed	signed(x::BitUnsigned)	modelled	floatintcov-int-l273	
-base/int.jl	275	275	div	div(x::BitSigned, y::Unsigned)	modelled	floatintcov-int-l275	
-base/int.jl	276	276	div	div(x::Unsigned, y::BitSigned)	modelled	floatintcov-int-l276	
-base/int.jl	278	278	rem	rem(x::BitSigned, y::Unsigned)	modelled	floatintcov-int-l278	
-base/int.jl	279	279	rem	rem(x::Unsigned, y::BitSigned)	modelled	floatintcov-int-l279	
-base/int.jl	281	284	divrem	divrem(x::BitSigned, y::Unsigned)	modelled	floatintcov-int-l281	
-base/int.jl	286	289	divrem	divrem(x::Unsigned, y::BitSigned)	modelled	floatintcov-int-l286	
-base/int.jl	331	334	mod	mod(x::T, y::T) where T<:Integer	modelled	floatintcov-int-l331	
-base/int.jl	338	341	mod	mod(x::T, y::T) where T<:BitSigned	modelled	floatintcov-int-l338	
-base/int.jl	342	346	mod	mod(x::BitSigned, y::Unsigned)	modelled	floatintcov-int-l342	
-base/int.jl	347	350	mod	mod(x::Unsigned, y::Signed)	modelled	floatintcov-int-l347	
-base/int.jl	351	351	mod	mod(x::T, y::T) where {T<:Unsigned}	modelled	floatintcov-int-l351	
-base/int.jl	355	355	div	div(x::T, y::T) where {T<:BitSigned64}	modelled	floatintcov-int-l355	
-base/int.jl	356	356	rem	rem(x::T, y::T) where {T<:BitSigned64}	modelled	floatintcov-int-l356	
-base/int.jl	357	357	div	div(x::T, y::T) where {T<:BitUnsigned64}	modelled	floatintcov-int-l357	
-base/int.jl	358	358	rem	rem(x::T, y::T) where {T<:BitUnsigned64}	modelled	floatintcov-int-l358	
-base/int.jl	381	381	~	(~)(x::BitInteger)	modelled	floatintcov-int-l381	
-base/int.jl	407	407	&	(&)(x::T, y::T) where {T<:BitInteger}	modelled	floatintcov-int-l407	
-base/int.jl	432	432	|	(|)(x::T, y::T) where {T<:BitInteger}	modelled	floatintcov-int-l432	
-base/int.jl	433	433	xor	xor(x::T, y::T) where {T<:BitInteger}	modelled	floatintcov-int-l433	
-base/int.jl	457	457	bswap	bswap(x::Union{Int8, UInt8, Bool})	modelled	floatintcov-int-l457	
-base/int.jl	458	459	bswap	bswap(x::Union{Int16, UInt16, Int32, UInt32, Int64, UInt64, Int128, UInt128})	modelled	floatintcov-int-l458	
-base/int.jl	475	475	count_ones	count_ones(x::BitInteger)	modelled	floatintcov-int-l475	
-base/int.jl	488	488	leading_zeros	leading_zeros(x::BitInteger)	modelled	floatintcov-int-l488	
-base/int.jl	501	501	trailing_zeros	trailing_zeros(x::BitInteger)	modelled	floatintcov-int-l501	
-base/int.jl	517	517	count_zeros	count_zeros(x::Integer)	modelled	floatintcov-int-l517	
-base/int.jl	530	530	leading_ones	leading_ones(x::Integer)	modelled	floatintcov-int-l530	
-base/int.jl	543	543	trailing_ones	trailing_ones(x::Integer)	modelled	floatintcov-int-l543	
-base/int.jl	569	569	top_set_bit	top_set_bit(x::BitInteger)	modelled	floatintcov-int-l569	
-base/int.jl	573	573	<	(< )(x::T, y::T) where {T<:BitUnsigned}	modelled	floatintcov-int-l573	
-base/int.jl	574	574	<=	(<=)(x::T, y::T) where {T<:BitSigned}	modelled	floatintcov-int-l574	
-base/int.jl	575	575	<=	(<=)(x::T, y::T) where {T<:BitUnsigned}	modelled	floatintcov-int-l575	
-base/int.jl	577	577	==	==(x::BitSigned, y::BitUnsigned)	modelled	floatintcov-int-l577	
-base/int.jl	578	578	<	<(x::BitSigned, y::BitUnsigned)	modelled	floatintcov-int-l578	
-base/int.jl	579	579	<=	<=(x::BitSigned, y::BitUnsigned)	modelled	floatintcov-int-l579	
-base/int.jl	582	588	$op	$op(x::BitUnsigned, y::BitSigned)	modelled	floatintcov-int-l582	
-base/int.jl	591	594	max	max(x::S, y::T) where {S <: BitInteger, T <: BitInteger}	modelled	floatintcov-int-l591	
-base/int.jl	596	596	min	min(x::S, y::BitUnsigned) where S <: BitSigned	modelled	floatintcov-int-l596	
-base/int.jl	597	597	min	min(x::BitUnsigned, y::T) where T <: BitSigned	modelled	floatintcov-int-l597	
-base/int.jl	599	599	minmax	minmax(x::BitInteger, y::BitInteger)	modelled	floatintcov-int-l599	
-base/int.jl	604	604	>>	>>(x::BitSigned, y::BitUnsigned)	modelled	floatintcov-int-l604	
-base/int.jl	605	605	>>	>>(x::BitUnsigned, y::BitUnsigned)	modelled	floatintcov-int-l605	
-base/int.jl	606	606	<<	<<(x::BitInteger, y::BitUnsigned)	modelled	floatintcov-int-l606	
-base/int.jl	607	607	>>>	>>>(x::BitInteger, y::BitUnsigned)	modelled	floatintcov-int-l607	
-base/int.jl	611	612	>>	>>(x::BitInteger, y::Int)	modelled	floatintcov-int-l611	
-base/int.jl	613	614	<<	<<(x::BitInteger, y::Int)	modelled	floatintcov-int-l613	
-base/int.jl	615	616	>>>	>>>(x::BitInteger, y::Int)	modelled	floatintcov-int-l615	
-base/int.jl	621	621	rem	rem(x::($from), ::Type{$to})	modelled	floatintcov-int-l621	
-base/int.jl	623	623	rem	rem(x::($from), ::Type{$to})	modelled	floatintcov-int-l623	
-base/int.jl	626	626	rem	rem(x::($from), ::Type{$to})	modelled	floatintcov-int-l626	
-base/int.jl	628	628	rem	rem(x::($from), ::Type{$to})	modelled	floatintcov-int-l628	
-base/int.jl	631	631	rem	rem(x::($from), ::Type{$to})	modelled	floatintcov-int-l631	
-base/int.jl	664	665	bitrotate	bitrotate(x::T, k::Integer) where {T <: BitInteger}	modelled	floatintcov-int-l664	
-base/int.jl	695	695	rem	rem(x::T, ::Type{T}) where {T<:Integer}	modelled	floatintcov-int-l695	
-base/int.jl	696	696	rem	rem(x::Signed, ::Type{Unsigned})	modelled	floatintcov-int-l696	
-base/int.jl	697	697	rem	rem(x::Unsigned, ::Type{Signed})	modelled	floatintcov-int-l697	
-base/int.jl	698	698	rem	rem(x::Integer, T::Type{<:Integer})	modelled	floatintcov-int-l698	
-base/int.jl	699	699	rem	rem(x::Integer, ::Type{Bool})	modelled	floatintcov-int-l699	
-base/int.jl	700	700	rem	rem(x, ::Type{Union{}}, slurp...)	modelled	floatintcov-int-l700	
-base/int.jl	701	701	mod	mod(x::Integer, ::Type{T}) where {T<:Integer}	modelled	floatintcov-int-l701	
-base/int.jl	702	702	mod	mod(x, ::Type{Union{}}, slurp...)	modelled	floatintcov-int-l702	
-base/int.jl	704	704	unsafe_trunc	unsafe_trunc(::Type{T}, x::Integer) where {T<:Integer}	modelled	floatintcov-int-l704	
-base/int.jl	705	705	unsafe_trunc	unsafe_trunc(::Type{Union{}}, slurp...)	modelled	floatintcov-int-l705	
-base/int.jl	725	727	int128_str	int128_str(s::String)	modelled	floatintcov-int-l725	
-base/int.jl	745	747	uint128_str	uint128_str(s::String)	modelled	floatintcov-int-l745	
-base/int.jl	778	804	big_str	big_str(s::String)	modelled	floatintcov-int-l778	
-base/int.jl	809	809	promote_rule	promote_rule(::Type{Int16}, ::Union{Type{Int8}, Type{UInt8}})	modelled	floatintcov-int-l809	
-base/int.jl	810	810	promote_rule	promote_rule(::Type{Int32}, ::Union{Type{Int16}, Type{Int8}, Type{UInt16}, Type{UInt8}})	modelled	floatintcov-int-l810	
-base/int.jl	811	811	promote_rule	promote_rule(::Type{Int64}, ::Union{Type{Int16}, Type{Int32}, Type{Int8}, Type{UInt16}, Type{UInt32}, Type{UInt8}})	modelled	floatintcov-int-l811	
-base/int.jl	812	812	promote_rule	promote_rule(::Type{Int128}, ::Union{Type{Int16}, Type{Int32}, Type{Int64}, Type{Int8}, Type{UInt16}, Type{UInt32}, Type{UInt64}, Type{UInt8}})	modelled	floatintcov-int-l812	
-base/int.jl	813	813	promote_rule	promote_rule(::Type{UInt16}, ::Union{Type{Int8}, Type{UInt8}})	modelled	floatintcov-int-l813	
-base/int.jl	814	814	promote_rule	promote_rule(::Type{UInt32}, ::Union{Type{Int16}, Type{Int8}, Type{UInt16}, Type{UInt8}})	modelled	floatintcov-int-l814	
-base/int.jl	815	815	promote_rule	promote_rule(::Type{UInt64}, ::Union{Type{Int16}, Type{Int32}, Type{Int8}, Type{UInt16}, Type{UInt32}, Type{UInt8}})	modelled	floatintcov-int-l815	
-base/int.jl	816	816	promote_rule	promote_rule(::Type{UInt128}, ::Union{Type{Int16}, Type{Int32}, Type{Int64}, Type{Int8}, Type{UInt16}, Type{UInt32}, Type{UInt64}, Type{UInt8}})	modelled	floatintcov-int-l816	
-base/int.jl	818	818	promote_rule	promote_rule(::Type{UInt8}, ::Type{Int8} )	modelled	floatintcov-int-l818	
-base/int.jl	819	819	promote_rule	promote_rule(::Type{UInt16}, ::Type{Int16} )	modelled	floatintcov-int-l819	
-base/int.jl	820	820	promote_rule	promote_rule(::Type{UInt32}, ::Type{Int32} )	modelled	floatintcov-int-l820	
-base/int.jl	821	821	promote_rule	promote_rule(::Type{UInt64}, ::Type{Int64} )	modelled	floatintcov-int-l821	
-base/int.jl	822	822	promote_rule	promote_rule(::Type{UInt128}, ::Type{Int128})	modelled	floatintcov-int-l822	
+base/int.jl	233	233	abs	abs(x::Unsigned)	modelled	intarith-division-abs-typemin	
+base/int.jl	234	234	abs	abs(x::Signed)	modelled	intarith-division-abs-typemin	
+base/int.jl	236	236	~	~(n::Integer)	modelled	int-complement-integer	
+base/int.jl	261	261	unsigned	unsigned(x)	modelled	intarith-division-signed-roundtrip	
+base/int.jl	262	262	unsigned	unsigned(x::BitSigned)	modelled	intarith-division-signed-roundtrip	
+base/int.jl	272	272	signed	signed(x)	modelled	int-lt-signed	
+base/int.jl	273	273	signed	signed(x::BitUnsigned)	modelled	int-lt-signed	
+base/int.jl	275	275	div	div(x::BitSigned, y::Unsigned)	modelled	floatintcov-int-division-methods	
+base/int.jl	276	276	div	div(x::Unsigned, y::BitSigned)	modelled	int-div-unsigned-signed-promotes	
+base/int.jl	278	278	rem	rem(x::BitSigned, y::Unsigned)	modelled	floatintcov-int-division-methods	
+base/int.jl	279	279	rem	rem(x::Unsigned, y::BitSigned)	modelled	floatintcov-int-division-methods	
+base/int.jl	281	284	divrem	divrem(x::BitSigned, y::Unsigned)	modelled	floatintcov-int-division-methods	
+base/int.jl	286	289	divrem	divrem(x::Unsigned, y::BitSigned)	modelled	floatintcov-int-division-methods	
+base/int.jl	331	334	mod	mod(x::T, y::T) where T<:Integer	modelled	intarith-division-signed-mod-reconstruct	
+base/int.jl	338	341	mod	mod(x::T, y::T) where T<:BitSigned	modelled	intarith-division-signed-mod-reconstruct	
+base/int.jl	342	346	mod	mod(x::BitSigned, y::Unsigned)	modelled	int-mod-mixed	
+base/int.jl	347	350	mod	mod(x::Unsigned, y::Signed)	modelled	int-mod-mixed	
+base/int.jl	351	351	mod	mod(x::T, y::T) where {T<:Unsigned}	modelled	int-generic-unsigned-modulo	
+base/int.jl	355	355	div	div(x::T, y::T) where {T<:BitSigned64}	modelled	int-divrem-same	
+base/int.jl	356	356	rem	rem(x::T, y::T) where {T<:BitSigned64}	modelled	int-divrem-same	
+base/int.jl	357	357	div	div(x::T, y::T) where {T<:BitUnsigned64}	modelled	int-divrem-same	
+base/int.jl	358	358	rem	rem(x::T, y::T) where {T<:BitUnsigned64}	modelled	int-divrem-same	
+base/int.jl	381	381	~	(~)(x::BitInteger)	modelled	floatintcov-int-bitwise	
+base/int.jl	407	407	&	(&)(x::T, y::T) where {T<:BitInteger}	modelled	floatintcov-int-bitwise	
+base/int.jl	432	432	|	(|)(x::T, y::T) where {T<:BitInteger}	modelled	floatintcov-int-bitwise	
+base/int.jl	433	433	xor	xor(x::T, y::T) where {T<:BitInteger}	modelled	floatintcov-int-bitwise	
+base/int.jl	457	457	bswap	bswap(x::Union{Int8, UInt8, Bool})	todo		trivial: restates body; returns its argument unchanged; no behaviour beyond the identity
+base/int.jl	458	459	bswap	bswap(x::Union{Int16, UInt16, Int32, UInt32, Int64, UInt64, Int128, UInt128})	modelled	floatintcov-int-bit-reversal	
+base/int.jl	475	475	count_ones	count_ones(x::BitInteger)	modelled	floatintcov-int-bit-counts	
+base/int.jl	488	488	leading_zeros	leading_zeros(x::BitInteger)	modelled	int-leading-zeros	
+base/int.jl	501	501	trailing_zeros	trailing_zeros(x::BitInteger)	modelled	int-trailing-zeros	
+base/int.jl	517	517	count_zeros	count_zeros(x::Integer)	modelled	floatintcov-int-bit-counts	
+base/int.jl	530	530	leading_ones	leading_ones(x::Integer)	modelled	int-leading-ones	
+base/int.jl	543	543	trailing_ones	trailing_ones(x::Integer)	modelled	int-trailing-ones	
+base/int.jl	569	569	top_set_bit	top_set_bit(x::BitInteger)	modelled	int-top-set-bit	
+base/int.jl	573	573	<	(< )(x::T, y::T) where {T<:BitUnsigned}	modelled	int-lt-unsigned	
+base/int.jl	574	574	<=	(<=)(x::T, y::T) where {T<:BitSigned}	modelled	int-le-signed	
+base/int.jl	575	575	<=	(<=)(x::T, y::T) where {T<:BitUnsigned}	modelled	int-le-unsigned	
+base/int.jl	577	577	==	==(x::BitSigned, y::BitUnsigned)	modelled	int-eq-signed-unsigned	
+base/int.jl	578	578	<	<(x::BitSigned, y::BitUnsigned)	modelled	int-lt-signed-unsigned	
+base/int.jl	579	579	<=	<=(x::BitSigned, y::BitUnsigned)	modelled	int-le-signed-unsigned	
+base/int.jl	582	588	$op	$op(x::BitUnsigned, y::BitSigned)	todo		generated-loop: op in (:(==), :<, :<=)
+base/int.jl	591	594	max	max(x::S, y::T) where {S <: BitInteger, T <: BitInteger}	modelled	int-max-exact	
+base/int.jl	596	596	min	min(x::S, y::BitUnsigned) where S <: BitSigned	modelled	int-min-signed-unsigned	
+base/int.jl	597	597	min	min(x::BitUnsigned, y::T) where T <: BitSigned	modelled	int-min-unsigned-signed	
+base/int.jl	599	599	minmax	minmax(x::BitInteger, y::BitInteger)	modelled	int-minmax-exact	
+base/int.jl	604	604	>>	>>(x::BitSigned, y::BitUnsigned)	modelled	floatintcov-int-shifts	
+base/int.jl	605	605	>>	>>(x::BitUnsigned, y::BitUnsigned)	modelled	floatintcov-int-shifts	
+base/int.jl	606	606	<<	<<(x::BitInteger, y::BitUnsigned)	modelled	floatintcov-int-shifts	
+base/int.jl	607	607	>>>	>>>(x::BitInteger, y::BitUnsigned)	modelled	floatintcov-int-shifts	
+base/int.jl	611	612	>>	>>(x::BitInteger, y::Int)	modelled	int-shift-int-count	
+base/int.jl	613	614	<<	<<(x::BitInteger, y::Int)	modelled	int-shift-int-count	
+base/int.jl	615	616	>>>	>>>(x::BitInteger, y::Int)	modelled	int-shift-int-count	
+base/int.jl	621	621	rem	rem(x::($from), ::Type{$to})	todo		generated-loop: to in BitInteger_types, from in (BitInteger_types..., Bool)
+base/int.jl	623	623	rem	rem(x::($from), ::Type{$to})	todo		generated-loop: to in BitInteger_types, from in (BitInteger_types..., Bool)
+base/int.jl	626	626	rem	rem(x::($from), ::Type{$to})	todo		generated-loop: to in BitInteger_types, from in (BitInteger_types..., Bool)
+base/int.jl	628	628	rem	rem(x::($from), ::Type{$to})	todo		generated-loop: to in BitInteger_types, from in (BitInteger_types..., Bool)
+base/int.jl	631	631	rem	rem(x::($from), ::Type{$to})	todo		generated-loop: to in BitInteger_types, from in (BitInteger_types..., Bool)
+base/int.jl	664	665	bitrotate	bitrotate(x::T, k::Integer) where {T <: BitInteger}	modelled	floatintcov-int-bitrotate	
+base/int.jl	695	695	rem	rem(x::T, ::Type{T}) where {T<:Integer}	todo		trivial: restates body; returns its argument unchanged; no behaviour beyond the identity
+base/int.jl	696	696	rem	rem(x::Signed, ::Type{Unsigned})	modelled	int-rem-signed-unsigned	
+base/int.jl	697	697	rem	rem(x::Unsigned, ::Type{Signed})	modelled	int-rem-unsigned-signed	
+base/int.jl	698	698	rem	rem(x::Integer, T::Type{<:Integer})	todo		trivial: restates body; rem(x::Integer, T::Type{<:Integer}) (line 698, model rem_Integer_Type) has nothing to promise (Nothing to promise block of JuliaLean/Proofs/base/int.lean)
+base/int.jl	699	699	rem	rem(x::Integer, ::Type{Bool})	modelled	int-rem-bool-parity	
+base/int.jl	700	700	rem	rem(x, ::Type{Union{}}, slurp...)	modelled	int-invalid-type-method-errors	
+base/int.jl	701	701	mod	mod(x::Integer, ::Type{T}) where {T<:Integer}	modelled	int-mod-type	
+base/int.jl	702	702	mod	mod(x, ::Type{Union{}}, slurp...)	modelled	int-invalid-type-method-errors	
+base/int.jl	704	704	unsafe_trunc	unsafe_trunc(::Type{T}, x::Integer) where {T<:Integer}	modelled	int-unsafe-trunc	
+base/int.jl	705	705	unsafe_trunc	unsafe_trunc(::Type{Union{}}, slurp...)	modelled	int-invalid-type-method-errors	
+base/int.jl	725	727	int128_str	int128_str(s::String)	modelled	floatintcov-int-string-macros	
+base/int.jl	745	747	uint128_str	uint128_str(s::String)	modelled	floatintcov-int-string-macros	
+base/int.jl	778	804	big_str	big_str(s::String)	modelled	floatintcov-int-string-macros	
+base/int.jl	809	809	promote_rule	promote_rule(::Type{Int16}, ::Union{Type{Int8}, Type{UInt8}})	modelled	intarith-division-promotion-shape	
+base/int.jl	810	810	promote_rule	promote_rule(::Type{Int32}, ::Union{Type{Int16}, Type{Int8}, Type{UInt16}, Type{UInt8}})	modelled	intarith-division-promotion-shape	
+base/int.jl	811	811	promote_rule	promote_rule(::Type{Int64}, ::Union{Type{Int16}, Type{Int32}, Type{Int8}, Type{UInt16}, Type{UInt32}, Type{UInt8}})	modelled	intarith-division-promotion-shape	
+base/int.jl	812	812	promote_rule	promote_rule(::Type{Int128}, ::Union{Type{Int16}, Type{Int32}, Type{Int64}, Type{Int8}, Type{UInt16}, Type{UInt32}, Type{UInt64}, Type{UInt8}})	modelled	intarith-division-promotion-shape	
+base/int.jl	813	813	promote_rule	promote_rule(::Type{UInt16}, ::Union{Type{Int8}, Type{UInt8}})	modelled	intarith-division-promotion-shape	
+base/int.jl	814	814	promote_rule	promote_rule(::Type{UInt32}, ::Union{Type{Int16}, Type{Int8}, Type{UInt16}, Type{UInt8}})	modelled	intarith-division-promotion-shape	
+base/int.jl	815	815	promote_rule	promote_rule(::Type{UInt64}, ::Union{Type{Int16}, Type{Int32}, Type{Int8}, Type{UInt16}, Type{UInt32}, Type{UInt8}})	modelled	intarith-division-promotion-shape	
+base/int.jl	816	816	promote_rule	promote_rule(::Type{UInt128}, ::Union{Type{Int16}, Type{Int32}, Type{Int64}, Type{Int8}, Type{UInt16}, Type{UInt32}, Type{UInt64}, Type{UInt8}})	modelled	intarith-division-promotion-shape	
+base/int.jl	818	818	promote_rule	promote_rule(::Type{UInt8}, ::Type{Int8} )	modelled	intarith-division-promotion-shape	
+base/int.jl	819	819	promote_rule	promote_rule(::Type{UInt16}, ::Type{Int16} )	modelled	intarith-division-promotion-shape	
+base/int.jl	820	820	promote_rule	promote_rule(::Type{UInt32}, ::Type{Int32} )	modelled	intarith-division-promotion-shape	
+base/int.jl	821	821	promote_rule	promote_rule(::Type{UInt64}, ::Type{Int64} )	modelled	intarith-division-promotion-shape	
+base/int.jl	822	822	promote_rule	promote_rule(::Type{UInt128}, ::Type{Int128})	modelled	intarith-division-promotion-shape	
 base/int.jl	856	856	typemin	typemin	excluded		no-behaviour: declares the generic function without a method body.
 base/int.jl	885	885	typemax	typemax	excluded		no-behaviour: declares the generic function without a method body.
-base/int.jl	887	887	typemin	typemin(::Type{Int8 })	modelled	floatintcov-int-l887	
-base/int.jl	888	888	typemax	typemax(::Type{Int8 })	modelled	floatintcov-int-l888	
-base/int.jl	889	889	typemin	typemin(::Type{UInt8 })	modelled	floatintcov-int-l889	
-base/int.jl	890	890	typemax	typemax(::Type{UInt8 })	modelled	floatintcov-int-l890	
-base/int.jl	891	891	typemin	typemin(::Type{Int16 })	modelled	floatintcov-int-l891	
-base/int.jl	892	892	typemax	typemax(::Type{Int16 })	modelled	floatintcov-int-l892	
-base/int.jl	893	893	typemin	typemin(::Type{UInt16})	modelled	floatintcov-int-l893	
-base/int.jl	894	894	typemax	typemax(::Type{UInt16})	modelled	floatintcov-int-l894	
-base/int.jl	895	895	typemin	typemin(::Type{Int32 })	modelled	floatintcov-int-l895	
-base/int.jl	896	896	typemax	typemax(::Type{Int32 })	modelled	floatintcov-int-l896	
-base/int.jl	897	897	typemin	typemin(::Type{UInt32})	modelled	floatintcov-int-l897	
-base/int.jl	898	898	typemax	typemax(::Type{UInt32})	modelled	floatintcov-int-l898	
-base/int.jl	899	899	typemin	typemin(::Type{Int64 })	modelled	floatintcov-int-l899	
-base/int.jl	900	900	typemax	typemax(::Type{Int64 })	modelled	floatintcov-int-l900	
-base/int.jl	901	901	typemin	typemin(::Type{UInt64})	modelled	floatintcov-int-l901	
-base/int.jl	902	902	typemax	typemax(::Type{UInt64})	modelled	floatintcov-int-l902	
-base/int.jl	903	903	typemin	typemin(::Type{UInt128})	modelled	floatintcov-int-l903	
-base/int.jl	904	904	typemax	typemax(::Type{UInt128})	modelled	floatintcov-int-l904	
-base/int.jl	905	905	typemin	typemin(::Type{Int128} )	modelled	floatintcov-int-l905	
-base/int.jl	906	906	typemax	typemax(::Type{Int128} )	modelled	floatintcov-int-l906	
-base/int.jl	907	907	typemin	typemin(::Type{Union{}}, slurp...)	modelled	floatintcov-int-l907	
-base/int.jl	908	908	typemax	typemax(::Type{Union{}}, slurp...)	modelled	floatintcov-int-l908	
-base/int.jl	911	911	widen	widen(::Type{Int8})	modelled	floatintcov-int-l911	
-base/int.jl	912	912	widen	widen(::Type{Int16})	modelled	floatintcov-int-l912	
-base/int.jl	913	913	widen	widen(::Type{Int32})	modelled	floatintcov-int-l913	
-base/int.jl	914	914	widen	widen(::Type{Int64})	modelled	floatintcov-int-l914	
-base/int.jl	915	915	widen	widen(::Type{UInt8})	modelled	floatintcov-int-l915	
-base/int.jl	916	916	widen	widen(::Type{UInt16})	modelled	floatintcov-int-l916	
-base/int.jl	917	917	widen	widen(::Type{UInt32})	modelled	floatintcov-int-l917	
-base/int.jl	918	918	widen	widen(::Type{UInt64})	modelled	floatintcov-int-l918	
-base/int.jl	923	923	widemul	widemul(x::Signed,y::Unsigned)	modelled	floatintcov-int-l923	
-base/int.jl	924	924	widemul	widemul(x::Unsigned,y::Signed)	modelled	floatintcov-int-l924	
-base/int.jl	926	926	widemul	widemul(x::Bool,y::Bool)	modelled	floatintcov-int-l926	
-base/int.jl	927	927	widemul	widemul(x::Bool,y::Number)	modelled	floatintcov-int-l927	
-base/int.jl	928	928	widemul	widemul(x::Number,y::Bool)	modelled	floatintcov-int-l928	
+base/int.jl	887	887	typemin	typemin(::Type{Int8 })	modelled	floatintcov-int-primitives	
+base/int.jl	888	888	typemax	typemax(::Type{Int8 })	modelled	floatintcov-int-primitives	
+base/int.jl	889	889	typemin	typemin(::Type{UInt8 })	modelled	floatintcov-int-primitives	
+base/int.jl	890	890	typemax	typemax(::Type{UInt8 })	modelled	floatintcov-int-primitives	
+base/int.jl	891	891	typemin	typemin(::Type{Int16 })	modelled	floatintcov-int-primitives	
+base/int.jl	892	892	typemax	typemax(::Type{Int16 })	modelled	floatintcov-int-primitives	
+base/int.jl	893	893	typemin	typemin(::Type{UInt16})	modelled	floatintcov-int-primitives	
+base/int.jl	894	894	typemax	typemax(::Type{UInt16})	modelled	floatintcov-int-primitives	
+base/int.jl	895	895	typemin	typemin(::Type{Int32 })	modelled	floatintcov-int-primitives	
+base/int.jl	896	896	typemax	typemax(::Type{Int32 })	modelled	floatintcov-int-primitives	
+base/int.jl	897	897	typemin	typemin(::Type{UInt32})	modelled	floatintcov-int-primitives	
+base/int.jl	898	898	typemax	typemax(::Type{UInt32})	modelled	floatintcov-int-primitives	
+base/int.jl	899	899	typemin	typemin(::Type{Int64 })	modelled	floatintcov-int-primitives	
+base/int.jl	900	900	typemax	typemax(::Type{Int64 })	modelled	floatintcov-int-primitives	
+base/int.jl	901	901	typemin	typemin(::Type{UInt64})	modelled	floatintcov-int-primitives	
+base/int.jl	902	902	typemax	typemax(::Type{UInt64})	modelled	floatintcov-int-primitives	
+base/int.jl	903	903	typemin	typemin(::Type{UInt128})	modelled	floatintcov-int-primitives	
+base/int.jl	904	904	typemax	typemax(::Type{UInt128})	modelled	floatintcov-int-primitives	
+base/int.jl	905	905	typemin	typemin(::Type{Int128} )	modelled	floatintcov-int-primitives	
+base/int.jl	906	906	typemax	typemax(::Type{Int128} )	modelled	floatintcov-int-primitives	
+base/int.jl	907	907	typemin	typemin(::Type{Union{}}, slurp...)	modelled	int-invalid-type-method-errors	
+base/int.jl	908	908	typemax	typemax(::Type{Union{}}, slurp...)	modelled	int-invalid-type-method-errors	
+base/int.jl	911	911	widen	widen(::Type{Int8})	modelled	hashops-widen-addition	
+base/int.jl	912	912	widen	widen(::Type{Int16})	modelled	hashops-widen-addition	
+base/int.jl	913	913	widen	widen(::Type{Int32})	modelled	hashops-widen-addition	
+base/int.jl	914	914	widen	widen(::Type{Int64})	modelled	hashops-widen-addition	
+base/int.jl	915	915	widen	widen(::Type{UInt8})	modelled	hashops-widen-addition	
+base/int.jl	916	916	widen	widen(::Type{UInt16})	modelled	hashops-widen-addition	
+base/int.jl	917	917	widen	widen(::Type{UInt32})	modelled	hashops-widen-addition	
+base/int.jl	918	918	widen	widen(::Type{UInt64})	modelled	hashops-widen-addition	
+base/int.jl	923	923	widemul	widemul(x::Signed,y::Unsigned)	modelled	floatintcov-int-widemul	
+base/int.jl	924	924	widemul	widemul(x::Unsigned,y::Signed)	modelled	floatintcov-int-widemul	
+base/int.jl	926	926	widemul	widemul(x::Bool,y::Bool)	modelled	floatintcov-int-widemul	
+base/int.jl	927	927	widemul	widemul(x::Bool,y::Number)	modelled	int-widemul-bool	
+base/int.jl	928	928	widemul	widemul(x::Number,y::Bool)	modelled	int-widemul-bool	
 base/int.jl	934	947	widemul	widemul(u::Int64, v::Int64)	excluded		platform: method body is active only when Core.sizeof(Int) == 4.
 base/int.jl	949	962	widemul	widemul(u::UInt64, v::UInt64)	excluded		platform: method body is active only when Core.sizeof(Int) == 4.
 base/int.jl	964	973	*	*(u::Int128, v::Int128)	excluded		platform: method body is active only when Core.sizeof(Int) == 4.
@@ -176,10 +176,10 @@ base/int.jl	1042	1042	div	div(x::UInt128, y::UInt128)	excluded		platform: method
 base/int.jl	1044	1046	rem	rem(x::Int128, y::Int128)	excluded		platform: method body is active only when Core.sizeof(Int) == 4.
 base/int.jl	1048	1077	rem	rem(x::UInt128, y::UInt128)	excluded		platform: method body is active only when Core.sizeof(Int) == 4.
 base/int.jl	1079	1081	mod	mod(x::Int128, y::Int128)	excluded		platform: method body is active only when Core.sizeof(Int) == 4.
-base/int.jl	1083	1083	*	*(x::T, y::T) where {T<:Union{Int128,UInt128}}	modelled	floatintcov-int-l1083	
-base/int.jl	1085	1085	div	div(x::Int128, y::Int128)	modelled	floatintcov-int-l1085	
-base/int.jl	1086	1086	div	div(x::UInt128, y::UInt128)	modelled	floatintcov-int-l1086	
-base/int.jl	1088	1088	rem	rem(x::Int128, y::Int128)	modelled	floatintcov-int-l1088	
-base/int.jl	1089	1089	rem	rem(x::UInt128, y::UInt128)	modelled	floatintcov-int-l1089	
-base/int.jl	1094	1099	$op	$op(a::Integer, b::Integer)	modelled	floatintcov-int-l1094	
-base/int.jl	1124	1134	bitreverse	bitreverse(x::BitInteger)	modelled	floatintcov-int-l1124	
+base/int.jl	1083	1083	*	*(x::T, y::T) where {T<:Union{Int128,UInt128}}	modelled	floatintcov-int-128-primitives	
+base/int.jl	1085	1085	div	div(x::Int128, y::Int128)	modelled	int-divrem-same	
+base/int.jl	1086	1086	div	div(x::UInt128, y::UInt128)	modelled	int-divrem-same	
+base/int.jl	1088	1088	rem	rem(x::Int128, y::Int128)	modelled	int-divrem-same	
+base/int.jl	1089	1089	rem	rem(x::UInt128, y::UInt128)	modelled	int-divrem-same	
+base/int.jl	1094	1099	$op	$op(a::Integer, b::Integer)	todo		"generated-loop: op in (:+, :-, :*, :&, :|, :xor, Symbol(""+%""), Symbol(""-%""), Symbol(""*%""))"
+base/int.jl	1124	1134	bitreverse	bitreverse(x::BitInteger)	modelled	int-bitreverse	

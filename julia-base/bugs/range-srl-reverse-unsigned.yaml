@@ -1,0 +1,50 @@
+id: range-srl-reverse-unsigned
+title: "reverse(::StepRangeLen) throws for an unsigned step"
+priority: P2
+kind: wrong-exception
+area: Ranges
+files: [base/range.jl]
+functions: ["_reverse(r::StepRangeLen, ::Colon)", "StepRangeLen{T,R,S,L}(...)"]
+summary: |
+  Reversing a StepRangeLen with an unsigned step throws MethodError. The reversal
+  helper negates the step but reconstructs the original concrete type, whose step
+  parameter remains unsigned, instead of returning the reversed sequence.
+likelihood: |
+  Low: it requires a StepRangeLen constructed with an unsigned step and a call to
+  reverse on that range.
+maybe_intended: ""
+reproducer: |
+  r = StepRangeLen(UInt8(1), UInt8(2), 3)
+  collect(reverse(r))  # should be UInt8[5, 3, 1]
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    collect(r) = UInt8[0x01, 0x03, 0x05]
+    collect(reverse(r)) = MethodError(StepRangeLen{UInt8, UInt8, UInt8, Int64}, (0x01, -2, 3, 3), 0x000000000000994d)
+    REPRODUCED range-srl-reverse-unsigned
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    collect(r) = UInt8[0x01, 0x03, 0x05]
+    collect(reverse(r)) = MethodError(StepRangeLen{UInt8, UInt8, UInt8, Int64}, (0x01, -2, 3, 3), 0x000000000000b21f)
+    REPRODUCED range-srl-reverse-unsigned
+reproduced: {release: true, nightly: true}
+expected: |
+  reverse(r) should produce a range whose elements are UInt8[5, 3, 1], the reverse
+  of collect(r).
+promised_by: |
+  reverse docstring, base/array.jl:2212-2216, says reverse returns a copy of the
+  input in reversed order. StepRangeLen docstring, base/range.jl:516-522, defines
+  the range's generated values and length.
+cause: |
+  base/range.jl:1446-1452 rebuilds typeof(r) with negate(r.step). For a UInt8 step
+  of 2, negation produces the signed value -2, while typeof(r) requires an unsigned
+  UInt8 step parameter, so the constructor dispatch raises MethodError.
+possible_fix: |
+  Rebuild the reversed range with a step type that can represent the negated
+  unsigned step, while preserving the element type, length, and reversed offset.
+duplicates:
+  issues: []
+  queries: ["issues: StepRangeLen reverse unsigned", "prs: StepRangeLen reverse unsigned"]
+lean:
+  property: JuliaLean.Proofs.base.range.SRLIntReverse
+  theorem: JuliaLean.Proofs.base.range.sRLIntReverse_refuted

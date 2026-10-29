@@ -380,42 +380,6 @@ private def entry (id fn statement source : String) (prop thm : Lean.Name) : Ent
   { id, juliaFile := "base/abstractarray.jl", juliaFns := [fn], statement, source,
     status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry "abstractarraycov-line16-convert" "convert(::Type{T}, a::T) where T<:AbstractArray" "Conversion to the value's existing array type returns that value for every array." "base/abstractarray.jl:16" ``Property16 ``property16,
-  entry "abstractarraycov-line17-convert" "convert(::Type{AbstractArray{T}}, a::AbstractArray)" "The element-type conversion calls the AbstractArray constructor once and returns its typed result." "base/abstractarray.jl:17" ``Property17 ``property17,
-  entry "abstractarraycov-line18-convert" "convert(::Type{AbstractArray{T,N}}, a::AbstractArray{<:Any,N})" "The rank-preserving conversion calls the rank-specific constructor once and returns its typed result." "base/abstractarray.jl:18" ``Property18 ``property18,
-  entry "abstractarraycov-line42-size" "size(::AbstractArray, dim)" "The method converts dim to Int before calling size and then returns the selected or trailing singleton dimension." "base/abstractarray.jl:42-46" ``Property42 ``property42,
-  entry "abstractarraycov-line79-axes" "axes(::AbstractArray{T,N}, d)" "The method compares d with rank before indexing axes and returns OneTo(1) past rank." "base/abstractarray.jl:79-82" ``Property79 ``property79,
-  entry "abstractarraycov-line100-axes" "axes(A)" "The method maps unchecked_oneto over size(A) in order." "base/abstractarray.jl:100-103" ``Property100 ``property100,
-  entry "abstractarraycov-line114-has-offset-axes" "has_offset_axes()" "The zero-argument method is false." "base/abstractarray.jl:114" ``Property114 ``property114,
-  entry "abstractarraycov-line115-has-offset-axes" "has_offset_axes(A)" "The generic method scans axes in order, converting each first index to Int and short-circuiting at the first offset." "base/abstractarray.jl:115" ``Property115 ``property115,
-  entry "abstractarraycov-line116-has-offset-axes" "has_offset_axes(::AbstractVector)" "The vector fast path converts firstindex to Int before comparing it with one." "base/abstractarray.jl:116" ``Property116 ``property116,
-  entry "abstractarraycov-line117-has-offset-axes" "has_offset_axes(::Colon)" "Colon never has offset axes." "base/abstractarray.jl:117" ``Property117 ``property117,
-  entry "abstractarraycov-line118-has-offset-axes" "has_offset_axes(::Array)" "Array never has offset axes." "base/abstractarray.jl:118" ``Property118 ``property118,
-  entry "abstractarraycov-line122-has-offset-axes" "has_offset_axes(A, As...)" "The vararg method checks arguments left to right and short-circuits on true or an error." "base/abstractarray.jl:122" ``Property122 ``property122,
-  entry "abstractarraycov-line135-require-one-based" "require_one_based_indexing(A...)" "The method returns unit exactly when has_offset_axes is false and otherwise throws ArgumentError." "base/abstractarray.jl:135" ``Property135 ``property135,
-  entry "abstractarraycov-line140-axes1" "axes1(::AbstractArray{<:Any,0})" "A zero-dimensional array has the singleton first axis." "base/abstractarray.jl:140" ``Property140 ``property140,
-  entry "abstractarraycov-line141-axes1" "axes1(::AbstractArray)" "The method returns the first member of axes(A), including its bounds error." "base/abstractarray.jl:141" ``Property141 ``property141,
-  entry "abstractarraycov-line142-axes1" "axes1(iter)" "The generic iterable method calls length and then oneto." "base/abstractarray.jl:142" ``Property142 ``property142,
-  entry "abstractarraycov-line169-keys" "keys(::AbstractArray)" "The generic array method constructs CartesianIndices from axes(A)." "base/abstractarray.jl:169" ``Property169 ``property169,
-  entry "abstractarraycov-line170-keys" "keys(::AbstractVector)" "The vector method constructs LinearIndices from the vector." "base/abstractarray.jl:170" ``Property170 ``property170,
-  entry "abstractarraycov-line192-keytype" "keytype(::AbstractArray)" "The value method calls typeof before keytype." "base/abstractarray.jl:192" ``Property192 ``property192,
-  entry "abstractarraycov-line193-keytype" "keytype(::Type{Union{}}, slurp...)" "The Bottom keytype method delegates to Bottom eltype." "base/abstractarray.jl:193" ``Property193 ``property193,
-  entry "abstractarraycov-line195-keytype" "keytype(::Type{<:AbstractArray})" "A generic rank-N array has CartesianIndex{N} keys." "base/abstractarray.jl:195" ``Property195 ``property195,
-  entry "abstractarraycov-line196-keytype" "keytype(::Type{<:AbstractVector})" "An AbstractVector has Int keys." "base/abstractarray.jl:196" ``Property196 ``property196,
-  entry "abstractarraycov-line198-valtype" "valtype(::AbstractArray)" "The value method calls typeof before valtype." "base/abstractarray.jl:198" ``Property198 ``property198,
-  entry "abstractarraycov-line199-valtype" "valtype(::Type{Union{}}, slurp...)" "The Bottom valtype method delegates to Bottom eltype." "base/abstractarray.jl:199" ``Property199 ``property199,
-  entry "abstractarraycov-line217-valtype" "valtype(::Type{<:AbstractArray})" "Array valtype delegates to eltype." "base/abstractarray.jl:217" ``Property217 ``property217,
-  entry "abstractarraycov-line219-prevind" "prevind(::AbstractArray, ::Integer)" "prevind converts the index to Int before subtracting one with Julia Int arithmetic." "base/abstractarray.jl:219" ``Property219 ``property219,
-  entry "abstractarraycov-line220-nextind" "nextind(::AbstractArray, ::Integer)" "nextind converts the index to Int before adding one with Julia Int arithmetic." "base/abstractarray.jl:220" ``Property220 ``property220,
-  entry "abstractarraycov-line243-eltype" "eltype(::Type)" "The default type eltype is Any." "base/abstractarray.jl:243" ``Property243 ``property243,
-  entry "abstractarraycov-line244-eltype" "eltype(::Type{Bottom}, slurp...)" "Bottom eltype throws the documented ArgumentError." "base/abstractarray.jl:244" ``Property244 ``property244,
-  entry "abstractarraycov-line245-eltype" "eltype(x)" "The value method calls typeof before eltype." "base/abstractarray.jl:245" ``Property245 ``property245,
-  entry "abstractarraycov-line246-eltype" "eltype(::Type{<:AbstractArray{E}})" "The array type method returns its defined element parameter and Any otherwise." "base/abstractarray.jl:246" ``Property246 ``property246,
-  entry "abstractarraycov-line261-elsize" "elsize(::AbstractArray)" "The value method calls typeof before elsize." "base/abstractarray.jl:261" ``Property261 ``property261,
-  entry "abstractarraycov-line278-ndims" "ndims(::AbstractArray{T,N})" "The value method returns rank N as Int." "base/abstractarray.jl:278" ``Property278 ``property278,
-  entry "abstractarraycov-line279-ndims" "ndims(::Type{<:AbstractArray{<:Any,N}})" "The type method returns rank N as Int." "base/abstractarray.jl:279" ``Property279 ``property279,
-  entry "abstractarraycov-line280-ndims" "ndims(::Type{Union{}}, slurp...)" "Bottom ndims throws the documented ArgumentError." "base/abstractarray.jl:280" ``Property280 ``property280
-]
+def entries : List Entry := []
 
 end JuliaLean.AbstractArrayCov.Rows.Basic

@@ -455,43 +455,6 @@ private def accessEntry (id fn statement : String) (prop theoremName : Lean.Name
     prop
     thm := some theoremName }
 
-def subarrayAccessEntries : List Entry := [
-  accessEntry "multidimcov-sub-l221-view" "view(::AbstractArray,inds...)" "view converts and unaliases indices, checks bounds, removes trailing scalars, reshapes the parent, then constructs the unsafe view." ``SubL221View ``subL221View,
-  accessEntry "multidimcov-sub-l230-view-unit" "view(::AbstractUnitRange,::AbstractUnitRange)" "The unit-range overload delegates to getindex." ``SubL230RangeUnit ``subL230RangeUnit,
-  accessEntry "multidimcov-sub-l234-view-step" "view(::AbstractUnitRange,::StepRange)" "The stepped-index overload delegates to getindex." ``SubL234RangeStep ``subL234RangeStep,
-  accessEntry "multidimcov-sub-l238-view-steprange" "view(::StepRange,::AbstractRange)" "The StepRange overload delegates to getindex." ``SubL238StepRange ``subL238StepRange,
-  accessEntry "multidimcov-sub-l242-view-steprangelen" "view(::StepRangeLen,::OrdinalRange)" "The StepRangeLen overload delegates to getindex." ``SubL242StepRangeLen ``subL242StepRangeLen,
-  accessEntry "multidimcov-sub-l246-view-linrange" "view(::LinRange,::OrdinalRange)" "The LinRange overload delegates to getindex." ``SubL246LinRange ``subL246LinRange,
-  accessEntry "multidimcov-sub-l252-view-colon" "view(::AbstractRange,::Colon)" "The Colon range overload delegates to getindex." ``SubL252RangeColon ``subL252RangeColon,
-  accessEntry "multidimcov-sub-l257-unsafe-array" "unsafe_view(::AbstractArray,inds...)" "Unsafe view on an array delegates to the SubArray constructor." ``SubL257UnsafeArray ``subL257UnsafeArray,
-  accessEntry "multidimcov-sub-l267-unsafe-subarray" "unsafe_view(::SubArray,inds...)" "Unsafe view on a view delegates to reindex selection." ``SubL267UnsafeSubarray ``subL267UnsafeSubarray,
-  accessEntry "multidimcov-sub-l269-maybe-wrapper" "_maybe_reindex(V,I)" "The two-argument wrapper passes the index tuple twice to dispatch." ``SubL269MaybeWrapper ``subL269MaybeWrapper,
-  accessEntry "multidimcov-sub-l270-maybe-cartesian" "_maybe_reindex(V,I,::Tuple{AbstractArray{CartesianIndex},...})" "A multidimensional CartesianIndex array keeps a nested SubArray." ``SubL270MaybeCartesian ``subL270MaybeCartesian,
-  accessEntry "multidimcov-sub-l273-maybe-cartesian-one" "_maybe_reindex(V,I,::Tuple{AbstractArray{CartesianIndex{1}},...})" "A CartesianIndex{1} array continues scanning the tail." ``SubL273MaybeCartesianOne ``subL273MaybeCartesianOne,
-  accessEntry "multidimcov-sub-l275-maybe-tail" "_maybe_reindex(V,I,::Tuple{Any,...})" "The general scan continues with the tail." ``SubL275MaybeTail ``subL275MaybeTail,
-  accessEntry "multidimcov-sub-l276-maybe-terminal" "_maybe_reindex(V,I,::Tuple{})" "Terminal reindex composes indices, converts them for the parent, and constructs one flattened view." ``SubL276MaybeTerminal ``subL276MaybeTerminal,
-  accessEntry "multidimcov-sub-l295-reindex-scalar" "reindex(::Tuple{ScalarIndex,...},subidxs)" "Scalar parent indices are retained without consuming a subindex." ``SubL295ReindexScalar ``subL295ReindexScalar,
-  accessEntry "multidimcov-sub-l299-reindex-slice" "reindex(::Tuple{Slice,...},subidxs)" "A Slice passes the first subindex through and consumes it." ``SubL299ReindexSlice ``subL299ReindexSlice,
-  accessEntry "multidimcov-sub-l303-reindex-vector" "reindex(::Tuple{AbstractVector,...},subidxs)" "A vector parent index is indexed by one subindex before recursion." ``SubL303ReindexVector ``subL303ReindexVector,
-  accessEntry "multidimcov-sub-l307-reindex-matrix" "reindex(::Tuple{AbstractMatrix,...},subidxs)" "A matrix parent index is indexed by two subindices before recursion." ``SubL307ReindexMatrix ``subL307ReindexMatrix,
-  accessEntry "multidimcov-sub-l311-reindex-array" "reindex(::Tuple{AbstractArray{T,N},...},subidxs)" "An N-dimensional parent index consumes N subindices before recursion." ``SubL311ReindexArray ``subL311ReindexArray,
-  accessEntry "multidimcov-sub-l316-get" "getindex(::SubArray,::Vararg{Int})" "General view indexing checks bounds, composes indices, and reads the parent." ``SubL316Get ``subL316Get,
-  accessEntry "multidimcov-sub-l328-reindex-range" "_reindexlinear(::FastSubArray,::AbstractUnitRange)" "Fast range reindexing broadcasts offset plus stride times each index." ``SubL328ReindexRange ``subL328ReindexRange,
-  accessEntry "multidimcov-sub-l330-fast-get" "getindex(::FastSubArray,::Int)" "In-bounds fast indexing reads the parent at cached offset plus stride times index." ``SubL330FastGet ``subL330FastGet,
-  accessEntry "multidimcov-sub-l339-fast-vector-get" "getindex(::FastSubArray{T,1},::Int)" "The vector specialization performs the same checked cached-layout lookup." ``SubL339FastVectorGet ``subL339FastVectorGet,
-  accessEntry "multidimcov-sub-l351-contiguous-reindex" "_reindexlinear(::FastContiguousSubArray,::Int)" "Contiguous scalar reindexing adds the cached offset without multiplication." ``SubL351ContiguousReindex ``subL351ContiguousReindex,
-  accessEntry "multidimcov-sub-l352-contiguous-range" "_reindexlinear(::FastContiguousSubArray,::AbstractUnitRange)" "Contiguous range reindexing adds the cached offset to every index." ``SubL352ContiguousRange ``subL352ContiguousRange,
-  accessEntry "multidimcov-sub-l376-contiguous-get" "getindex(::FastContiguousSubArray,::_OneBasedRanges)" "In-bounds contiguous range indexing forwards the shifted range to the parent." ``SubL376ContiguousGet ``subL376ContiguousGet,
-  accessEntry "multidimcov-sub-l383-colon-get" "getindex(::FastContiguousSubArray,::Colon)" "Colon indexing converts Colon then delegates to getindex." ``SubL383ColonGet ``subL383ColonGet,
-  accessEntry "multidimcov-sub-l386-set" "setindex!(::SubArray,x,::Vararg{Int})" "General view assignment bounds-checks before composing and writing parent indices." ``SubL386Set ``subL386Set,
-  accessEntry "multidimcov-sub-l392-fast-set" "setindex!(::FastSubArray,x,::Int)" "Fast scalar assignment rejects an index below the view axis before writing." ``SubL392FastSet ``subL392FastSet,
-  accessEntry "multidimcov-sub-l398-fast-vector-set" "setindex!(::FastSubArray{T,1},x,::Int)" "The vector assignment specialization performs the same checked cached-layout write." ``SubL398FastVectorSet ``subL398FastVectorSet,
-  accessEntry "multidimcov-sub-l405-fast-range-set" "setindex!(::FastSubArray,x,::AbstractUnitRange)" "Fast range assignment rejects any out-of-bounds range before writing." ``SubL405FastRangeSet ``subL405FastRangeSet,
-  accessEntry "multidimcov-sub-l412-colon-set" "setindex!(::FastSubArray,x,::Colon)" "Colon assignment converts Colon then delegates to setindex!." ``SubL412FastColonSet ``subL412FastColonSet,
-  accessEntry "multidimcov-sub-l414-isassigned" "isassigned(::SubArray,::Vararg{Int})" "General isassigned returns false before parent access when view bounds fail." ``SubL414Isassigned ``subL414Isassigned,
-  accessEntry "multidimcov-sub-l420-fast-isassigned" "isassigned(::FastSubArray,::Int)" "Fast isassigned returns false for an index below the view axis." ``SubL420FastIsassigned ``subL420FastIsassigned,
-  accessEntry "multidimcov-sub-l426-fast-vector-isassigned" "isassigned(::FastSubArray{T,1},::Int)" "The vector specialization performs the same checked cached-layout query." ``SubL426FastVectorIsassigned ``subL426FastVectorIsassigned,
-  accessEntry "multidimcov-sub-l433-indexstyle" "IndexStyle(::Type{<:FastSubArray})" "Every FastSubArray reports IndexLinear." ``SubL433IndexStyle ``subL433IndexStyle
-]
+def subarrayAccessEntries : List Entry := []
 
 end JuliaLean.MultidimCov

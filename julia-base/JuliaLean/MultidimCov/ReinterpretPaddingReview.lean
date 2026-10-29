@@ -110,14 +110,6 @@ private def raPaddingEntry (id fn statement source : String)
   { id, juliaFile := "base/reinterpretarray.jl", juliaFns := [fn], statement, source,
     status := .proven, prop, thm := some thm }
 
-def reinterpretPaddingReviewEntries : List Entry := [
-  raPaddingEntry "multidimcov-reinterpretarray-padding-map" "showerror, non_padding_bytes, fill_nonpadding_bytes!, array_subpadding, struct_subpadding, packedsize, ispacked, has_bit_padding" "Padding discovery follows primitive bits, recursive fields, cyclic byte compatibility, and datatype padding in source order." "base/reinterpretarray.jl:738-837" ``RAPaddingMapProperty ``raPaddingMapProperty,
-  raPaddingEntry "multidimcov-reinterpretarray-packed-copy" "_copytopacked!, _copyfrompacked!" "Packed copying traverses fields in order, copies packed fields directly, recurses for padded fields, and advances exact byte offsets." "base/reinterpretarray.jl:839-877" ``RAPackedCopiesProperty ``raPackedCopiesProperty,
-  raPaddingEntry "multidimcov-reinterpretarray-scalar-padding" "_reinterpret, _reinterpret_padding, String(::ReinterpretArray)" "Scalar reinterpret validates bits and packed sizes before direct or padding-aware copy; String permits empty unreadable arrays and otherwise checks readability." "base/reinterpretarray.jl:879-939" ``RAScalarPaddingProperty ``raScalarPaddingProperty,
-  raPaddingEntry "multidimcov-reinterpretarray-mapreduce-wrapper" "_mapreduce(::IndexSCartesian2)" "The reduction wrapper checks the second iterator dimension and selects empty reduction or first-to-last implementation." "base/reinterpretarray.jl:943-951" ``RA943Property ``ra943Property,
-  raPaddingEntry "multidimcov-reinterpretarray-mapreduce-kernel" "mapreduce_impl(::SCartesianIndex2,blksize)" "The reduction kernel visits every static Cartesian element in sequential mode or splits columns pairwise, with every access in bounds." "base/reinterpretarray.jl:953-979" ``RA953Property ``ra953Property,
-  raPaddingEntry "multidimcov-reinterpretarray-mapreduce-default" "mapreduce_impl(::SCartesianIndex2)" "The default wrapper computes pairwise_blocksize before calling the explicit-block kernel." "base/reinterpretarray.jl:981-982" ``RA981Property ``ra981Property,
-  raPaddingEntry "multidimcov-reinterpretarray-totuple" "_totuple(::Type{All32},::Union{Array,Memory})" "The fast tuple path checks length, selects the exact prefix view for matching bits elements, reads index one safely, or collects the requested count." "base/reinterpretarray.jl:987-996" ``RA987Property ``ra987Property
-]
+def reinterpretPaddingReviewEntries : List Entry := []
 
 end JuliaLean.MultidimCov

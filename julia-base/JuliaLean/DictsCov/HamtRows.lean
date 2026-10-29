@@ -325,32 +325,6 @@ private def entry (id fn statement source : String) (prop thm : Lean.Name) : Ent
   { id := id, juliaFile := "base/hamt.jl", juliaFns := [fn], statement := statement,
     source := source, status := .proven, prop := prop, thm := some thm }
 
-def entries : List Entry := [
-  entry "dictscov-hamt-l65" "HAMT{K,V}(data, bitmap) where {K,V}" "The inner constructor stores the supplied sparse data and bitmap." "invariant; base/hamt.jl:65" ``Property65 ``property65,
-  entry "dictscov-hamt-l66" "HAMT{K, V}() where {K, V}" "The empty constructor has no children and a zero bitmap." "HAMT invariant; base/hamt.jl:66" ``Property66 ``property66,
-  entry "dictscov-hamt-l69" "init_hamt(K, V, k, v)" "A single-entry allocation contains one leaf and an unset bitmap." "HAMT invariant; base/hamt.jl:69-74" ``Property69 ``property69,
-  entry "dictscov-hamt-l76" "HAMT{K,V}((k,v)::Pair{K,V}) where {K, V}" "The typed-pair constructor sets the bitmap bit selected by the key hash." "HAMT invariant; base/hamt.jl:76-81" ``Property76 ``property76,
-  entry "dictscov-hamt-l82" "HAMT{K,V}(kv::Pair) where {K, V}" "The converting constructor converts the pair before typed construction." "constructor invariant; base/hamt.jl:82" ``Property82 ``property82,
-  entry "dictscov-hamt-l84" "HAMT(pair::Pair{K,V}) where {K, V}" "The type-inferring constructor delegates with the pair's key and value types." "constructor invariant; base/hamt.jl:84" ``Property84 ``property84,
-  entry "dictscov-hamt-l93" "HashState(key)" "A new hash state uses objectid at depth and shift zero." "invariant; base/hamt.jl:93" ``Property93 ``property93,
-  entry "dictscov-hamt-l94" "HashState{K}(@nospecialize(other::HashState), @nospecialize(key)) where {K}" "The derived hash state advances to the other state's depth." "invariant; base/hamt.jl:94-100" ``Property94 ``property94,
-  entry "dictscov-hamt-l101" "HashState(other::HashState, key)" "The inferred constructor delegates to the key-typed constructor." "invariant; base/hamt.jl:101" ``Property101 ``property101,
-  entry "dictscov-hamt-l103" "next(h::HashState{K}) where {K}" "next increments depth and shift, rehashing and resetting shift after MAX_SHIFT." "HAMT invariant; base/hamt.jl:103-117" ``Property103 ``property103,
-  entry "dictscov-hamt-l122" "BitmapIndex(h::HashState)" "BitmapIndex selects the five hash bits at the current shift." "HAMT invariant; base/hamt.jl:122" ``Property122 ``property122,
-  entry "dictscov-hamt-l124" "Base.:(<<)(v, bi::BitmapIndex)" "A BitmapIndex shifts left by its stored index." "invariant; base/hamt.jl:124" ``Property124 ``property124,
-  entry "dictscov-hamt-l125" "Base.:(>>)(v, bi::BitmapIndex)" "A BitmapIndex shifts right by its stored index." "invariant; base/hamt.jl:125" ``Property125 ``property125,
-  entry "dictscov-hamt-l127" "isset(trie::HAMT, bi::BitmapIndex)" "isset tests the selected bitmap bit." "HAMT invariant; base/hamt.jl:127" ``Property127 ``property127,
-  entry "dictscov-hamt-l128" "set!(trie::HAMT, bi::BitmapIndex)" "set! sets exactly the selected bitmap bit." "HAMT invariant; base/hamt.jl:128-131" ``Property128 ``property128,
-  entry "dictscov-hamt-l133" "unset!(trie::HAMT, bi::BitmapIndex)" "unset! clears exactly the selected bitmap bit." "HAMT invariant; base/hamt.jl:133-136" ``Property133 ``property133,
-  entry "dictscov-hamt-l138" "entry_index(trie::HAMT, bi::BitmapIndex)" "entry_index is one plus the number of lower occupied bits." "HAMT invariant; base/hamt.jl:138-141" ``Property138 ``property138,
-  entry "dictscov-hamt-l143" "islevel_empty(trie::HAMT)" "A HAMT level is empty exactly when its bitmap is zero." "HAMT invariant; base/hamt.jl:143" ``Property143 ``property143,
-  entry "dictscov-hamt-l144" "islevel_empty(::Leaf)" "A leaf level is never empty." "HAMT invariant; base/hamt.jl:144" ``Property144 ``property144,
-  entry "dictscov-hamt-l158" "path(trie::HAMT{K,V}, h::HashState, copy=false) where {K, V}" "path follows occupied bitmap entries, optionally copying each branch, until it finds a leaf or empty slot." "path docstring and invariant; base/hamt.jl:147-186" ``Property158 ``property158,
-  entry "dictscov-hamt-l242" "Base.length(::Leaf)" "Every leaf contributes one entry." "HAMT invariant; base/hamt.jl:242" ``Property242 ``property242,
-  entry "dictscov-hamt-l243" "Base.length(trie::HAMT)" "HAMT length is the recursive sum of child lengths." "HAMT invariant; base/hamt.jl:243" ``Property243 ``property243,
-  entry "dictscov-hamt-l245" "Base.isempty(::Leaf)" "A leaf is not empty." "HAMT invariant; base/hamt.jl:245" ``Property245 ``property245,
-  entry "dictscov-hamt-l246" "Base.isempty(trie::HAMT)" "A HAMT is empty when its level is empty or every child is empty." "HAMT invariant; base/hamt.jl:246-251" ``Property246 ``property246,
-  entry "dictscov-hamt-l254" "Base.iterate(trie::HAMT, state=nothing)" "The iterator performs depth-first traversal and returns every leaf pair with resumable state." "HAMT invariant; base/hamt.jl:253-275" ``Property254 ``property254
-]
+def entries : List Entry := []
 
 end JuliaLean.DictsCov.HamtRows

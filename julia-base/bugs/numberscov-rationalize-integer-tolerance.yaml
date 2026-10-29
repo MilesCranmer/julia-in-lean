@@ -1,22 +1,28 @@
 id: numberscov-rationalize-integer-tolerance
-title: "rationalize(T, x::Integer; tol) ignores tol and can return infinity outside the requested tolerance"
-priority: P1
+title: "rationalize(Int8, 128.0; tol=0.0) returns a result outside tol (127//1 on master, 1//0 on 1.13) instead of honoring or rejecting the tolerance"
+priority: P2
 kind: wrong-result
 area: NumbersCov
 files: [base/rational.jl]
-functions: ["rationalize(::Type{T}, x::Integer; kvs...)"]
+functions: ["rationalize(::Type{T}, x::AbstractFloat, tol::Real)", "rationalize(::Type{T}, x::AbstractFloat; tol::Real)", "rationalize(::Type{T}, x::Integer; kvs...)"]
 summary: |
-  rationalize(Int8, 128; tol=1) returns 1//0. The finite Rational{Int8}
-  value 127//1 differs from the input by exactly the requested tolerance, while
-  the returned infinity is outside every finite tolerance.
+  rationalize(Int8, 128.0; tol=0.0) cannot satisfy its documented bound, because
+  no Rational{Int8} equals 128, but it returns a value anyway instead of throwing.
+  Target master returns 127//1 (error 1.0); Julia 1.13.2 returns 1//0 (error Inf).
+  The integer overload has the same defect: rationalize(Int8, 128; tol=1) ignores
+  tol and returns 1//0 although 127//1 lies within the tolerance (filed upstream
+  as #64269).
 likelihood: |
-  Callers can request a small fixed-width component type for storage and pass a
-  value just outside its integer range. An explicit tolerance is the documented
-  way to permit an approximation in this situation.
+  Needs a fixed-width component type too small for the value or for the requested
+  precision, which happens when callers pick Int8/Int16 for storage or pass a tight
+  tol. The result is silently outside the tolerance the caller asked for; nothing
+  signals that the promise was broken.
 maybe_intended: |
-  The integer overload deliberately maps values outside T to rational
-  infinities, but accepting a tol keyword while ignoring it contradicts the
-  documented error bound and differs from the AbstractFloat overload.
+  The overflow branches (base/rational.jl:284 "find best semiconvergent that fits
+  in T") deliberately return the best approximation representable in T, and
+  #61297 improved that fallback. Open issue #52335 ("`rationalize` promises the
+  impossible") records that the docstring and this best-effort behaviour disagree
+  and asks to either change the documentation or throw; it is undecided.
 reproducer: |
   T = Int8
   x = 128
@@ -28,41 +34,71 @@ reproducer: |
   println("isfinite(result) = ", isfinite(q))
   println("127//1 is within tolerance = ", abs(x - 127//1) <= tol)
 
-  if q == 1//0 && abs(x - 127//1) <= tol
-      println("REPRODUCED numberscov-rationalize-integer-tolerance")
-  else
-      error("bug did not reproduce")
-  end
+  @assert q == 1//0 && abs(x - 127//1) <= tol
+
+  float_x = 128.0
+  float_tol = 0.0
+  float_q = rationalize(T, float_x; tol=float_tol)
+  float_error = abs(float_x - float_q)
+  println("rationalize(Int8, 128.0; tol=0.0) = ", float_q)
+  println("floating approximation error = ", float_error)
+  @assert (float_q == 127//1 && float_error == 1.0) ||
+          (float_q == 1//0 && isinf(float_error))
+  @assert float_error > float_tol
+  println("REPRODUCED numberscov-rationalize-integer-tolerance")
 output:
   release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
     Julia 1.13.2
     rationalize(Int8, 128; tol=1) = 1//0
     isfinite(result) = false
     127//1 is within tolerance = true
+    rationalize(Int8, 128.0; tol=0.0) = 1//0
+    floating approximation error = Inf
     REPRODUCED numberscov-rationalize-integer-tolerance
   nightly: |
-    Julia 1.15.0-DEV.126
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    Julia 1.15.0-DEV.unknown
     rationalize(Int8, 128; tol=1) = 1//0
     isfinite(result) = false
     127//1 is within tolerance = true
+    rationalize(Int8, 128.0; tol=0.0) = 127//1
+    floating approximation error = 1.0
     REPRODUCED numberscov-rationalize-integer-tolerance
 reproduced: {release: true, nightly: true}
 expected: |
-  Return a Rational{Int8} within one of 128, such as 127//1, or throw if the
-  implementation cannot produce a result satisfying the requested tolerance.
+  Either a Rational{T} within tol of x, or an error when no such value exists in
+  Rational{T} (as the Rational-input overload already does: base/rational.jl:331
+  throws InexactError when the tolerance cannot be met). For the integer input,
+  127//1, which is within tol=1 of 128.
 promised_by: |
-  The rationalize docstring at base/rational.jl:238-243 says the result will
-  differ from x by no more than tol.
+  The rationalize docstring, base/rational.jl:239-242: "Approximate floating point
+  number `x` as a [`Rational`](@ref) number with components of the given integer
+  type. The result will differ from `x` by no more than `tol`." The promise is
+  unconditional and covers the floating method at line 256 and its keyword form
+  at line 320.
 cause: |
-  base/rational.jl:334-342 accepts arbitrary keyword arguments as kvs but never
-  reads them. For a bounded T, it maps every integer below typemin(T) or above
-  typemax(T) directly to -1//0 or 1//0.
+  For x = 128.0 the fractional part is 0, so the continued-fraction loop is
+  skipped and a_min = cld(128 - 0, 1 + 0) = 128 (base/rational.jl:305).
+  convert(Int8, 128) throws InexactError at line 307; the catch at lines 311-317
+  computes the largest semiconvergent that fits, ia = min(127, 127) = 127, and
+  returns 127//1 without comparing its error with tol. Before #61297 (merged
+  2026-03-19, so absent from 1.13.2) the fallback returned p//q = 1//0. The integer
+  overload (lines 335-342) accepts kvs... but never reads tol and maps
+  x > typemax(T) to 1//0.
 possible_fix: |
-  Make the integer overload honor and validate tol, returning a finite boundary
-  approximation when it satisfies tol and throwing otherwise.
+  After computing the fallback in both catch branches, throw (e.g. InexactError,
+  as the Rational overload does) when its distance from x exceeds tol, or
+  document that the result is the best approximation in T when tol cannot be met.
+  Make the integer overload honor tol the same way.
 duplicates:
-  issues: []
-  queries: ["rationalize Integer tolerance", "rationalize Int8 1//0", "rationalize tol ignored integer", "rationalize out of range integer"]
+  issues:
+    - {number: 52335, state: open, relation: duplicate}
+    - {number: 64269, state: open, relation: duplicate}
+    - {number: 61297, state: merged, relation: related}
+    - {number: 61138, state: open, relation: related}
+    - {number: 61161, state: open, relation: related}
+  queries: ["rationalize", "rationalize tol", "rationalize tolerance not satisfied", "rationalize Int8 overflow", "rationalize semiconvergent", "rationalize Integer tolerance", "rationalize out of range integer"]
 lean:
-  property: JuliaLean.NumbersCov.rationalizeIntegerWithinTolerance
-  theorem: JuliaLean.NumbersCov.rationalizeIntegerWithinTolerance_refuted
+  property: JuliaLean.Proofs.base.rational.RationalFloatingTolerance
+  theorem: JuliaLean.Proofs.base.rational.rationalFloatingTolerance_refuted

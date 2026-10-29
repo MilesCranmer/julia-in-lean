@@ -152,10 +152,10 @@ def entries : List Entry := Methods.entries ++ [
     juliaFns := ["iswritable(::IOStream)", "write(::IOStream, ::UInt8)", "unsafe_write(::IOStream, ::Ptr{UInt8}, ::UInt)"]
     statement := "A closed IOStream is not writable and a nonempty write raises an error."
     source := "base/iostream.jl:79-84,104,411-425; base/io.jl:186-188,267-271"
-    status := .refuted, prop := ``ClosedIOStreamWriteErrors,
-    thm := some ``closedIOStreamWriteErrors_refuted
+    status := .proven, prop := ``ClosedIOStreamWriteErrors,
+    thm := some ``closedIOStreamWriteErrors_proven
     issue := "#64218"
-    notes := "After close, isopen(io) == false but iswritable(io) == true; byte and string writes return 0 on 1.13.2 and master." },
+    notes := "Julia 1.13.2 and prior master returned zero after close; target master checks isopen before the access mode." },
   { id := "streams-event-close-idempotent", juliaFile := "base/asyncevent.jl"
     juliaFns := ["close(::Union{Timer,AsyncCondition})", "isopen", "wait", "uv_asynccb", "uv_timercb"]
     statement := "Closing a Timer or AsyncCondition is idempotent, prevents new events, and wait on a closed object without a pending event throws EOFError."

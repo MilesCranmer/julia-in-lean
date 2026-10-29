@@ -17,7 +17,7 @@ base/multimedia.jl	208	208	_binrepr	_binrepr(m::MIME, x, context)	modelled	error
 base/multimedia.jl	209	209	_binrepr	_binrepr(m::MIME, x::Vector{UInt8}, context)	modelled	errorshow-multimedia-l209	method-specific source model:errorshow-multimedia-l209
 base/multimedia.jl	226	226	istextmime	istextmime(m::MIME)	modelled	errorshow-multimedia-l226	method-specific source model:errorshow-multimedia-l226
 base/multimedia.jl	227	227	istextmime	istextmime(m::AbstractString)	modelled	errorshow-multimedia-l227	method-specific source model:errorshow-multimedia-l227
-base/multimedia.jl	236	236	istextmime	istextmime(::MIME{Symbol(mime)})	modelled	errorshow-multimedia-l236	method-specific source model:errorshow-multimedia-l236
+base/multimedia.jl	236	236	istextmime	istextmime(::MIME{Symbol(mime)})	todo		"generated-loop: mime in [""application/atom+xml"", ""application/ecmascript"", ""application/javascript"", ""application/julia"", ""application/json"", ""application/postscript"", ""application/rdf+xml"", ""application/rss+xml"", ""application/x-latex"", ""application/xhtml+xml"", ""application/xml"", ""application/xml-dtd"", ""image/svg+xml"", ""model/vrml"", ""model/x3d+vrml"", ""model/x3d+xml""]"
 base/multimedia.jl	259	259	display	display(d::AbstractDisplay, mime::AbstractString, @nospecialize x)	modelled	errorshow-multimedia-l259	method-specific source model:errorshow-multimedia-l259
 base/multimedia.jl	260	260	display	display(mime::AbstractString, @nospecialize x)	modelled	errorshow-multimedia-l260	method-specific source model:errorshow-multimedia-l260
 base/multimedia.jl	270	270	displayable	displayable(d::AbstractDisplay, mime::AbstractString)	modelled	errorshow-multimedia-l270	method-specific source model:errorshow-multimedia-l270

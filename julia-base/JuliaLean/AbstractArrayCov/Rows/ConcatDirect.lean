@@ -19,12 +19,12 @@ def method1697 (_dim : Int) : List α := []
 def Property1697 : Prop := ∀ (α : Type) dim, (method1697 dim : List α) = []
 theorem property1697 : Property1697 := by unfold Property1697; intros; rfl
 
-def method1699 (_type : τ) : List α := []
-def Property1699 : Prop := ∀ (τ α : Type) (t : τ), (method1699 t : List α) = []
+def method1699 (elementType : Type) : List elementType := []
+def Property1699 : Prop := ∀ (elementType : Type), method1699 elementType = []
 theorem property1699 : Property1699 := by unfold Property1699; intros; rfl
 
-def method1700 (_type : τ) : List α := []
-def Property1700 : Prop := ∀ (τ α : Type) (t : τ), (method1700 t : List α) = []
+def method1700 (elementType : Type) : List elementType := []
+def Property1700 : Prop := ∀ (elementType : Type), method1700 elementType = []
 theorem property1700 : Property1700 := by unfold Property1700; intros; rfl
 
 /-- Same-type scalar `vcat` comprehensions, lines 1703-1704. -/
@@ -466,12 +466,14 @@ def Property2248 : Prop := ∀ (σ τ α β : Type) (shape : List Nat → σ)
   method2248 shape call t rows xs = call t (shape rows) true xs
 theorem property2248 : Property2248 := by unfold Property2248; intros; rfl
 
-def method2250 (_rows : List Nat) : List α := []
-def Property2250 : Prop := ∀ (α : Type) rows, (method2250 rows : List α) = []
+inductive JuliaAny
+
+def method2250 (_rows : List Nat) : List JuliaAny := []
+def Property2250 : Prop := ∀ rows, method2250 rows = []
 theorem property2250 : Property2250 := by unfold Property2250; intros; rfl
 
-def method2251 (_t : τ) (_rows : List Nat) : List α := []
-def Property2251 : Prop := ∀ (τ α : Type) (t : τ) rows, (method2251 t rows : List α) = []
+def method2251 (elementType : Type) (_rows : List Nat) : List elementType := []
+def Property2251 : Prop := ∀ (elementType : Type) rows, method2251 elementType rows = []
 theorem property2251 : Property2251 := by unfold Property2251; intros; rfl
 
 def method2274 (promote : List α → τ) (call : τ → List Nat → List α → β)
@@ -507,94 +509,6 @@ private def entry (line : Nat) (slug fn statement source : String)
   { id := s!"abstractarraycov-line{line}-{slug}", juliaFile := "base/abstractarray.jl",
     juliaFns := [fn], statement, source, status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 1697 "cat-empty" "_cat(catdim)" "The zero-input helper returns an empty Any vector." "base/abstractarray.jl:1697" ``Property1697 ``property1697,
-  entry 1699 "typed-vcat-empty" "typed_vcat(T)" "Zero-input typed_vcat returns an empty T vector." "base/abstractarray.jl:1699" ``Property1699 ``property1699,
-  entry 1700 "typed-hcat-empty" "typed_hcat(T)" "Zero-input typed_hcat returns an empty T vector." "base/abstractarray.jl:1700" ``Property1700 ``property1700,
-  entry 1703 "vcat-scalars" "vcat(X::T...)" "Same-type scalar vcat preserves eachindex order." "base/abstractarray.jl:1703" ``Property1703 ``property1703,
-  entry 1704 "vcat-numbers" "vcat(X::T...) where T<:Number" "Same-number-type vcat preserves eachindex order." "base/abstractarray.jl:1704" ``Property1704 ``property1704,
-  entry 1705 "hcat-scalars" "hcat(X::T...)" "Same-type scalar hcat creates one row in eachindex order." "base/abstractarray.jl:1705" ``Property1705 ``property1705,
-  entry 1706 "hcat-numbers" "hcat(X::T...) where T<:Number" "Same-number-type hcat creates one row in eachindex order." "base/abstractarray.jl:1706" ``Property1706 ``property1706,
-  entry 1708 "vcat-numbers" "vcat(X::Number...)" "Numeric vcat promotes, allocates length(X), fills in column-major order, and returns the array." "base/abstractarray.jl:1708-1712" ``Property1708 ``property1708,
-  entry 1714 "hcat-numbers" "hcat(X::Number...)" "Numeric hcat promotes, allocates 1 by length(X), fills, and returns the matrix." "base/abstractarray.jl:1714-1718" ``Property1714 ``property1714,
-  entry 1720 "typed-vcat-numbers" "typed_vcat(T,X::Number...)" "Typed numeric vcat allocates length(X), fills, and returns." "base/abstractarray.jl:1720-1724" ``Property1720 ``property1720,
-  entry 1726 "typed-hcat-numbers" "typed_hcat(T,X::Number...)" "Typed numeric hcat allocates one row, fills, and returns." "base/abstractarray.jl:1726-1730" ``Property1726 ``property1726,
-  entry 1732 "vcat-vectors" "vcat(::AbstractVector...)" "Mixed vector vcat promotes element types before typed_vcat." "base/abstractarray.jl:1732" ``Property1732 ``property1732,
-  entry 1733 "vcat-vectors" "vcat(::AbstractVector{T}...)" "Same-element vector vcat calls typed_vcat with T." "base/abstractarray.jl:1733" ``Property1733 ``property1733,
-  entry 1740 "typed-vcat-similar" "_typed_vcat_similar" "Allocation uses the first vector, requested type, and total length." "base/abstractarray.jl:1740" ``Property1740 ``property1740,
-  entry 1741 "typed-vcat" "_typed_vcat(T,V)" "The method sums vector lengths, allocates once, then calls the fill loop." "base/abstractarray.jl:1741-1742" ``Property1741 ``property1741,
-  entry 1755 "typed-hcat" "typed_hcat(T,A...)" "The wrapper packs arrays before _typed_hcat." "base/abstractarray.jl:1755" ``Property1755 ``property1755,
-  entry 1759 "typed-hcat-error" "typed_hcat(::AbstractArray,other...)" "The ambiguity trap always throws ArgumentError." "base/abstractarray.jl:1759-1762" ``Property1759 ``property1759,
-  entry 1765 "hcat-arrays" "hcat(::AbstractVecOrMat...)" "Mixed array hcat promotes before typed_hcat." "base/abstractarray.jl:1765" ``Property1765 ``property1765,
-  entry 1766 "hcat-arrays" "hcat(::AbstractVecOrMat{T}...)" "Same-element hcat calls typed_hcat with T." "base/abstractarray.jl:1766" ``Property1766 ``property1766,
-  entry 1802 "vcat-arrays" "vcat(::AbstractVecOrMat...)" "Mixed array vcat promotes before typed_vcat." "base/abstractarray.jl:1802" ``Property1802 ``property1802,
-  entry 1803 "vcat-arrays" "vcat(::AbstractVecOrMat{T}...)" "Same-element vcat calls typed_vcat with T." "base/abstractarray.jl:1803" ``Property1803 ``property1803,
-  entry 1825 "typed-vcat" "typed_vcat(T,A...)" "The wrapper packs arrays before _typed_vcat." "base/abstractarray.jl:1825" ``Property1825 ``property1825,
-  entry 1827 "reduce-vcat" "reduce(vcat,A)" "The reduction mapreduces element types before one _typed_vcat call." "base/abstractarray.jl:1827-1828" ``Property1827 ``property1827,
-  entry 1830 "reduce-hcat" "reduce(hcat,A)" "The reduction mapreduces element types before one _typed_hcat call." "base/abstractarray.jl:1830-1831" ``Property1830 ``property1830,
-  entry 1836 "cat-size" "cat_size(scalar)" "A scalar has concatenation shape (1,)." "base/abstractarray.jl:1836" ``Property1836 ``property1836,
-  entry 1837 "cat-size" "cat_size(array)" "Array concatenation shape is size(A)." "base/abstractarray.jl:1837" ``Property1837 ``property1837,
-  entry 1838 "cat-size" "cat_size(scalar,d)" "A scalar has size one in every dimension." "base/abstractarray.jl:1838" ``Property1838 ``property1838,
-  entry 1839 "cat-size" "cat_size(array,d)" "Array dimensional concatenation size delegates to size(A,d)." "base/abstractarray.jl:1839" ``Property1839 ``property1839,
-  entry 1841 "cat-length" "cat_length(scalar)" "A scalar has concatenation length one." "base/abstractarray.jl:1841" ``Property1841 ``property1841,
-  entry 1842 "cat-length" "cat_length(array)" "Array concatenation length delegates to length." "base/abstractarray.jl:1842" ``Property1842 ``property1842,
-  entry 1844 "cat-ndims" "cat_ndims(scalar)" "A scalar has zero dimensions." "base/abstractarray.jl:1844" ``Property1844 ``property1844,
-  entry 1845 "cat-ndims" "cat_ndims(array)" "Array concatenation rank delegates to ndims." "base/abstractarray.jl:1845" ``Property1845 ``property1845,
-  entry 1847 "cat-indices" "cat_indices(scalar,d)" "A scalar uses OneTo(1)." "base/abstractarray.jl:1847" ``Property1847 ``property1847,
-  entry 1848 "cat-indices" "cat_indices(array,d)" "Array concatenation indices delegate to axes(A,d)." "base/abstractarray.jl:1848" ``Property1848 ``property1848,
-  entry 1850 "cat-similar" "cat_similar(scalar,T,tuple)" "Scalar tuple shape allocates Array{T}." "base/abstractarray.jl:1850" ``Property1850 ``property1850,
-  entry 1851 "cat-similar" "cat_similar(scalar,T,vector)" "Scalar vector shape splats into Array{T}." "base/abstractarray.jl:1851" ``Property1851 ``property1851,
-  entry 1852 "cat-similar" "cat_similar(Array,T,tuple)" "Array tuple shape allocates Array{T}." "base/abstractarray.jl:1852" ``Property1852 ``property1852,
-  entry 1853 "cat-similar" "cat_similar(Array,T,vector)" "Array vector shape splats into Array{T}." "base/abstractarray.jl:1853" ``Property1853 ``property1853,
-  entry 1854 "cat-similar" "cat_similar(AbstractArray,T,tuple)" "Custom array tuple shape delegates to similar." "base/abstractarray.jl:1854" ``Property1854 ``property1854,
-  entry 1855 "cat-similar" "cat_similar(AbstractArray,T,vector)" "Custom array vector shape delegates to similar with splatted dims." "base/abstractarray.jl:1855" ``Property1855 ``property1855,
-  entry 1858 "cat-shape" "cat_shape(dims,shape::Tuple{Int...})" "A concrete Int shape is returned unchanged." "base/abstractarray.jl:1858" ``Property1858 ``property1858,
-  entry 1867 "cat-size-shape" "cat_size_shape(dims)" "No inputs produce one zero per cat dimension." "base/abstractarray.jl:1867" ``Property1867 ``property1867,
-  entry 1869 "cat-size-shape" "_cat_size_shape(dims,shape)" "The recursion base returns the accumulated shape." "base/abstractarray.jl:1869" ``Property1869 ``property1869,
-  entry 1872 "cshp" "_cshp(ndim,(),(),())" "All-empty shape recursion returns empty." "base/abstractarray.jl:1872" ``Property1872 ``property1872,
-  entry 1873 "cshp" "_cshp(ndim,(),(),nshape)" "With no accumulated shape, the new shape is returned." "base/abstractarray.jl:1873" ``Property1873 ``property1873,
-  entry 1874 "cshp" "_cshp(ndim,dims,(),())" "Empty shapes produce one per remaining dimension." "base/abstractarray.jl:1874" ``Property1874 ``property1874,
-  entry 1894 "cs" "_cs(d,a,b)" "Equal sizes return a; unequal sizes throw a dimension mismatch." "base/abstractarray.jl:1894-1895" ``Property1894 ``property1894,
-  entry 1897 "dims2cat" "dims2cat(Val(dims))" "The Val overload delegates to the value overload." "base/abstractarray.jl:1897" ``Property1897 ``property1897,
-  entry 1905 "cat" "_cat(dims,X...)" "Generic cat promotes element types before _cat_t." "base/abstractarray.jl:1905" ``Property1905 ``property1905,
-  entry 1918 "cat-t" "cat_t(T,X...;dims)" "Compatibility cat_t reorders dims before _cat_t." "base/abstractarray.jl:1918" ``Property1918 ``property1918,
-  entry 1921 "internal-cat" "__cat" "Initial cat filling starts with zero offsets of result rank." "base/abstractarray.jl:1921" ``Property1921 ``property1921,
-  entry 1928 "cat-offset" "__cat_offset!(A,...,offsets)" "The no-input cat fill base returns A." "base/abstractarray.jl:1928" ``Property1928 ``property1928,
-  entry 1941 "copy-or-fill" "_copy_or_fill!(A,inds,scalar)" "Scalar blocks fill the indexed view." "base/abstractarray.jl:1941" ``Property1941 ``property1941,
-  entry 1942 "copy-or-fill" "_copy_or_fill!(A,inds,array)" "Array blocks assign into the indexed destination." "base/abstractarray.jl:1942" ``Property1942 ``property1942,
-  entry 2003 "vcat" "vcat(X...)" "Public vcat delegates to cat with dimension one." "base/abstractarray.jl:2003" ``Property2003 ``property2003,
-  entry 2053 "hcat" "hcat(X...)" "Public hcat delegates to cat with dimension two." "base/abstractarray.jl:2053" ``Property2053 ``property2053,
-  entry 2055 "typed-vcat" "typed_vcat(T,X...)" "Generic typed_vcat delegates to _cat_t with dimension one." "base/abstractarray.jl:2055" ``Property2055 ``property2055,
-  entry 2056 "typed-hcat" "typed_hcat(T,X...)" "Generic typed_hcat delegates to _cat_t with dimension two." "base/abstractarray.jl:2056" ``Property2056 ``property2056,
-  entry 2169 "cat" "cat(A...;dims)" "Public cat forwards dims and arguments to _cat." "base/abstractarray.jl:2169" ``Property2169 ``property2169,
-  entry 2171 "cat-array" "_cat(catdims,arrays...)" "Same-element arrays call _cat_t without promotion." "base/abstractarray.jl:2171" ``Property2171 ``property2171,
-  entry 2175 "vcat-array" "vcat(A)" "One-array vcat calls cat in dimension one." "base/abstractarray.jl:2175" ``Property2175 ``property2175,
-  entry 2176 "vcat-array" "vcat(A,B)" "Two-array vcat calls cat in dimension one." "base/abstractarray.jl:2176" ``Property2176 ``property2176,
-  entry 2177 "vcat-array" "vcat(arrays...)" "Array vcat calls cat in dimension one." "base/abstractarray.jl:2177" ``Property2177 ``property2177,
-  entry 2178 "vcat-mixed" "vcat(array-or-number...)" "Mixed vcat calls cat in dimension one." "base/abstractarray.jl:2178" ``Property2178 ``property2178,
-  entry 2179 "hcat-array" "hcat(A)" "One-array hcat calls cat in dimension two." "base/abstractarray.jl:2179" ``Property2179 ``property2179,
-  entry 2180 "hcat-array" "hcat(A,B)" "Two-array hcat calls cat in dimension two." "base/abstractarray.jl:2180" ``Property2180 ``property2180,
-  entry 2181 "hcat-array" "hcat(arrays...)" "Array hcat calls cat in dimension two." "base/abstractarray.jl:2181" ``Property2181 ``property2181,
-  entry 2182 "hcat-mixed" "hcat(array-or-number...)" "Mixed hcat calls cat in dimension two." "base/abstractarray.jl:2182" ``Property2182 ``property2182,
-  entry 2184 "typed-vcat-array" "typed_vcat(T,A)" "One-array typed_vcat calls _cat_t in dimension one." "base/abstractarray.jl:2184" ``Property2184 ``property2184,
-  entry 2185 "typed-vcat-array" "typed_vcat(T,A,B)" "Two-array typed_vcat calls _cat_t in dimension one." "base/abstractarray.jl:2185" ``Property2185 ``property2185,
-  entry 2186 "typed-vcat-array" "typed_vcat(T,arrays...)" "Array typed_vcat calls _cat_t in dimension one." "base/abstractarray.jl:2186" ``Property2186 ``property2186,
-  entry 2187 "typed-hcat-array" "typed_hcat(T,A)" "One-array typed_hcat calls _cat_t in dimension two." "base/abstractarray.jl:2187" ``Property2187 ``property2187,
-  entry 2188 "typed-hcat-array" "typed_hcat(T,A,B)" "Two-array typed_hcat calls _cat_t in dimension two." "base/abstractarray.jl:2188" ``Property2188 ``property2188,
-  entry 2189 "typed-hcat-array" "typed_hcat(T,arrays...)" "Array typed_hcat calls _cat_t in dimension two." "base/abstractarray.jl:2189" ``Property2189 ``property2189,
-  entry 2194 "hvcat-rows" "hvcat_rows(rows...)" "The lowering helper maps row lengths before flattening and calling hvcat." "base/abstractarray.jl:2194" ``Property2194 ``property2194,
-  entry 2195 "typed-hvcat-rows" "typed_hvcat_rows(T,rows...)" "The typed lowering helper maps row lengths before typed_hvcat." "base/abstractarray.jl:2195" ``Property2195 ``property2195,
-  entry 2197 "hvcat-columns" "hvcat(nbc,values...)" "The integer-column method checks modulus, divides row count, builds the row tuple, and dispatches." "base/abstractarray.jl:2197-2204" ``Property2197 ``property2197,
-  entry 2244 "hvcat-arrays" "hvcat(rows,arrays...)" "Mixed array hvcat promotes before typed_hvcat." "base/abstractarray.jl:2244" ``Property2244 ``property2244,
-  entry 2245 "hvcat-arrays" "hvcat(rows,arrays{T}...)" "Same-element array hvcat calls typed_hvcat with T." "base/abstractarray.jl:2245" ``Property2245 ``property2245,
-  entry 2247 "rows-dimshape" "rows_to_dimshape(rows)" "Uniform rows become a rectangular dimension pair; uneven rows retain the shape and total count." "base/abstractarray.jl:2247" ``Property2247 ``property2247,
-  entry 2248 "typed-hvcat" "typed_hvcat(T,rows,arrays...)" "Array block concatenation computes dimshape before row-first typed_hvncat." "base/abstractarray.jl:2248" ``Property2248 ``property2248,
-  entry 2250 "hvcat-empty" "hvcat(rows)" "No-value hvcat returns an empty Any vector." "base/abstractarray.jl:2250" ``Property2250 ``property2250,
-  entry 2251 "typed-hvcat-empty" "typed_hvcat(T,rows)" "No-value typed_hvcat returns an empty T vector." "base/abstractarray.jl:2251" ``Property2251 ``property2251,
-  entry 2274 "hvcat-numbers" "hvcat(rows,numbers...)" "Mixed-number hvcat promotes before typed_hvcat." "base/abstractarray.jl:2274" ``Property2274 ``property2274,
-  entry 2275 "hvcat-values" "hvcat(rows,values...)" "Generic hvcat promotes eltypeof before typed_hvcat." "base/abstractarray.jl:2275" ``Property2275 ``property2275,
-  entry 2277 "hvcat-mixed" "hvcat(rows,array-or-number...)" "The specific mixed overload promotes eltypeof before typed_hvcat." "base/abstractarray.jl:2277" ``Property2277 ``property2277,
-  entry 2292 "typed-hvcat" "typed_hvcat(T,rows,values...)" "The fallback computes rows_to_dimshape before row-first typed_hvncat." "base/abstractarray.jl:2292" ``Property2292 ``property2292
-]
+def entries : List Entry := []
 
 end JuliaLean.AbstractArrayCov.Rows.ConcatDirect

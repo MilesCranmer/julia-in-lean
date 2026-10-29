@@ -53,3 +53,12 @@ duplicates:
 lean:
   property: JuliaLean.Dicts.UnionPushEquiv
   theorem: JuliaLean.Dicts.unionPushEquiv_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: false
+  proof: JuliaLean.Dicts.unionPushEquiv_thm
+  output: |
+    Set{Bool}([1, 0, 2]) = InexactError(:Bool, (Bool, 2))
+    Set{Bool}([1, 2, 0]) = InexactError(:Bool, (Bool, 2))
+    push! of 1, 0, 2 into Set{Bool}() = InexactError(:Bool, (Bool, 2))
+covers: [dicts-set-union, bitsetscov-abstractset-union]

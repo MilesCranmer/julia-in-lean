@@ -279,8 +279,7 @@ def modeFlags : OpenMode → Bool × Bool × Bool × Bool
   | .aplus => (true, true, false, true)
 
 def ioWrite (s : IOFileM) (bytes : List UInt8) : Except StreamErr (Nat × IOFileM) :=
-  if !s.writable then .error .argumentError
-  else if !s.isopen then .ok (0, s)
+  if !s.isopen || !s.writable then .error .argumentError
   else
     let prefixData := s.data.take s.position
     let suffix := s.data.drop (s.position + bytes.length)

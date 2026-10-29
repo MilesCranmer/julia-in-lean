@@ -1,0 +1,92 @@
+id: int-div-unsigned-signed-promotes
+title: "div(0x0a, Int16(-3)) returns 0xfffd::UInt16 although promote_type(UInt8, Int16) == Int16 and the quotient is -3"
+priority: P1
+kind: wrong-result
+area: IntArith
+files: [base/int.jl, base/div.jl]
+functions: ["div(::Unsigned, ::BitSigned)", "divrem(::Unsigned, ::BitSigned)", "rem(::Unsigned, ::BitSigned)", "fld(::Unsigned, ::Signed)", "cld(::Unsigned, ::Signed)", "fldmod(::Unsigned, ::Signed)"]
+summary: |
+  For an unsigned dividend and a signed divisor, div always returns an unsigned
+  type, even when the signed type is wider and promote_type picks it.
+  div(0x0a, Int16(-3)) returns 0xfffd::UInt16 instead of Int16(-3), and
+  div(0x0a, -3) with an Int literal returns 0xfffffffffffffffd instead of -3.
+  The same unsigned methods give fld 0xfffc (expected -4), cld 0xfffd (expected -3),
+  divrem (0xfffd, 0x0001) (expected (-3, 1)), fldmod (0xfffc, 0xfffe) (expected (-4, -2)),
+  and rem 0x0001::UInt16 (right value, unsigned type). mod(0x0a, Int16(-3)) is
+  already correct (-2::Int16).
+likelihood: |
+  Needs an unsigned dividend with a negative divisor of a wider signed type. That
+  includes the common case of a narrow unsigned value (UInt8/UInt16/UInt32) divided
+  by a negative Int literal, e.g. div(0x0a, -3). Uncommon, but the result is
+  silently a huge positive number.
+maybe_intended: |
+  The unsigned result type of div(::Unsigned, ::Signed) has been in the source
+  since 2012 (b08f7e1385, "Fix & add tests for signed/unsigned div, rem, fld, and
+  mod"; base/int.jl:276). When both types have the same width, promote_type is the
+  unsigned type and the wrapped result agrees with Julia's wrapping integer
+  arithmetic (div(0x0a, Int8(-3)) == 0xfd, like 0x0a - 0x0d). Neither the div
+  docstring nor the manual documents an unsigned result when the signed operand
+  is wider, and the matching operators (+, -, *, and mod since #57853) return
+  promote_type there.
+reproducer: |
+  promote_type(UInt8, Int16)   # Int16
+  div(0x0a, Int16(-3))         # 0xfffd :: UInt16; div(promote(0x0a, Int16(-3))...) == -3
+  fldmod(0x0a, Int16(-3))      # (0xfffc, 0xfffe); promoted: (-4, -2)
+  div(0x0a, -3)                # 0xfffffffffffffffd; while 0x0a - 3 == 7
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    promote_type(UInt8, Int16) = Int16
+    div(0x0a, Int16(-3))       = 0xfffd :: UInt16   div(promote(...)...) = -3
+    rem(0x0a, Int16(-3))       = 0x0001 :: UInt16   rem(promote(...)...) = 1
+    fld(0x0a, Int16(-3))       = 0xfffc :: UInt16   fld(promote(...)...) = -4
+    cld(0x0a, Int16(-3))       = 0xfffd :: UInt16   cld(promote(...)...) = -3
+    mod(0x0a, Int16(-3))       = -2 :: Int16   mod(promote(...)...) = -2
+    divrem(0x0a, Int16(-3))    = (0xfffd, 0x0001) :: Tuple{UInt16, UInt16}   divrem(promote(...)...) = (-3, 1)
+    fldmod(0x0a, Int16(-3))    = (0xfffc, 0xfffe) :: Tuple{UInt16, UInt16}   fldmod(promote(...)...) = (-4, -2)
+    div(0x0a, -3) = 0xfffffffffffffffd   (0x0a - 3 = 7)
+    REPRODUCED int-div-unsigned-signed-promotes
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    promote_type(UInt8, Int16) = Int16
+    div(0x0a, Int16(-3))       = 0xfffd :: UInt16   div(promote(...)...) = -3
+    rem(0x0a, Int16(-3))       = 0x0001 :: UInt16   rem(promote(...)...) = 1
+    fld(0x0a, Int16(-3))       = 0xfffc :: UInt16   fld(promote(...)...) = -4
+    cld(0x0a, Int16(-3))       = 0xfffd :: UInt16   cld(promote(...)...) = -3
+    mod(0x0a, Int16(-3))       = -2 :: Int16   mod(promote(...)...) = -2
+    divrem(0x0a, Int16(-3))    = (0xfffd, 0x0001) :: Tuple{UInt16, UInt16}   divrem(promote(...)...) = (-3, 1)
+    fldmod(0x0a, Int16(-3))    = (0xfffc, 0xfffe) :: Tuple{UInt16, UInt16}   fldmod(promote(...)...) = (-4, -2)
+    div(0x0a, -3) = 0xfffffffffffffffd   (0x0a - 3 = 7)
+    REPRODUCED int-div-unsigned-signed-promotes
+reproduced: {release: true, nightly: true}
+expected: |
+  div(0x0a, Int16(-3)) === Int16(-3), and likewise fld -4, cld -3, rem 1,
+  divrem (-3, 1) and fldmod (-4, -2), all of type Int16, as for the promoted
+  arguments. div(0x0a, -3) === -3.
+promised_by: |
+  div docstring, base/operators.jl:861-865: "The quotient from Euclidean (integer)
+  division. Generally equivalent to a mathematical operation x/y without a
+  fractional part." divrem docstring, base/div.jl:256-260: "The quotient and
+  remainder from Euclidean division. Equivalent to `(div(x, y, r), rem(x, y, r))`."
+  The mathematical quotient of 10 by -3 rounded toward zero is -3, which the wider
+  signed operand type Int16 (and Int for div(0x0a, -3)) can represent; the result
+  0xfffd is 65533, not -3.
+cause: |
+  base/int.jl:276 defines div(x::Unsigned, y::BitSigned) =
+  unsigned(flipsign(signed(div(x, unsigned(abs(y)))), y)): the quotient is computed
+  in promote_type(UInt8, UInt16) = UInt16 and converted back with unsigned, so a
+  negative quotient wraps. divrem (base/int.jl:286-289) does the same, and
+  rem (line 279) returns rem(x, unsigned(abs(y))), which is unsigned. fld, cld and
+  fldmod for (Unsigned, Signed) are built on divrem (base/div.jl:395-398, 404-407,
+  441, 443) and inherit the unsigned type.
+possible_fix: |
+  When the signed type is wider than the unsigned one, convert both operands to
+  promote_type(typeof(x), typeof(y)) and divide there; keep the wrapping unsigned
+  result only when promote_type is itself unsigned.
+duplicates:
+  issues:
+    - {number: 57851, state: closed, relation: related}
+  queries: ["div unsigned signed", "div UInt negative divisor", "unsigned divided by negative", "mixed signed unsigned division", "fld unsigned signed", "rem unsigned signed promotion", "unsigned div", "div signed unsigned wrong", "mod signed unsigned", "integer division mixed signedness", "div promote_type"]
+lean:
+  property: JuliaLean.Proofs.base.int.UnsignedSignedExactQuotient
+  theorem: JuliaLean.Proofs.base.int.unsignedSignedExactQuotient_refuted

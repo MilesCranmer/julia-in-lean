@@ -1,0 +1,64 @@
+id: ranges-operations-empty-unsigned-slice
+title: "Empty slicing at unsigned zero throws instead of returning an empty range"
+priority: P2
+kind: wrong-exception
+area: Ranges
+files: [base/range.jl]
+functions: ["getindex(::AbstractUnitRange, ::AbstractUnitRange)", "getindex(::AbstractUnitRange, ::StepRange)"]
+summary: |
+  Indexing UInt8(0):UInt8(3) by either 1:0 or 1:2:0 throws even though
+  both selectors are valid and contain no indices.
+likelihood: |
+  Empty slices occur naturally at boundaries. The failure requires an unsigned
+  source starting at zero and an empty selector starting at index one.
+maybe_intended: ""
+reproducer: |
+  r = UInt8(0):UInt8(3)
+  for s in (1:0, 1:2:0)
+      @assert checkbounds(Bool, r, s) && isempty(s)
+      failure = try
+          r[s]
+          nothing
+      catch e
+          e
+      end
+      @assert failure isa Union{InexactError,OverflowError}
+  end
+  println("REPRODUCED ranges-operations-empty-unsigned-slice")
+output:
+  release: |
+    REPRODUCED ranges-operations-empty-unsigned-slice
+  nightly: |
+    REPRODUCED ranges-operations-empty-unsigned-slice
+reproduced: {release: true, nightly: true}
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    REPRODUCED ranges-operations-empty-unsigned-slice
+expected: |
+  r[1:0] and r[1:2:0] return an empty range with eltype UInt8, as the same
+  selectors do for a signed range such as 0:3.
+promised_by: |
+  Indexing by a valid index collection returns the selected elements:
+  checkbounds(Bool, r, s) is true for both selectors, so r[s] must succeed with
+  length(r[s]) == length(s) == 0 (getindex(::AbstractUnitRange, ...) at
+  base/range.jl:1013-1050).
+cause: |
+  base/range.jl:1013-1027 (unit selector) and 1034-1050 (step selector) build the
+  result from start = f + first(s) - firstindex(r) = UInt8(0) and, for an empty s,
+  call _empty_stop(start, step) (base/range.jl:1002-1011), which needs a stop one
+  step below start. For a unit selector step(r) is UInt8(1), so start - 1 wraps to
+  0xff, the check stop < start fails, and _empty_stop throws OverflowError. For a
+  step selector the step is an Int, so start - 1 is the Int -1, and
+  oftype(f, -1) at line 1046 throws InexactError.
+possible_fix: |
+  Represent the empty result using a constructor that permits an empty range
+  at unsigned zero rather than requiring an unrepresentable endpoint.
+duplicates:
+  issues: []
+  queries: ["empty range slice UInt8 OverflowError InexactError", "empty range UInt8 index OverflowError", "unsigned range empty getindex", "UInt8 range indexing empty", "_empty_stop"]
+lean:
+  property: JuliaLean.Ranges.emptyUnitSlicePromise
+  theorem: JuliaLean.Ranges.emptyUnitSlicePromiseRefuted

@@ -1,18 +1,19 @@
 id: arrayops-deleteat-range-overflow
-title: "deleteat!(a, 1:typemax(Int)) throws an internal ArgumentError instead of BoundsError: i + delta wraps"
+title: "deleteat!(a, -1:typemax(Int)) throws an internal ArgumentError instead of BoundsError: length(r) overflows"
 priority: P2
 kind: wrong-exception
 area: ArrayOps
 files: [base/array.jl]
 functions: ["deleteat!(::Vector, r::AbstractUnitRange{<:Integer})", "_deleteat!(a, i, delta)"]
 summary: |
-  deleteat!(a, lo:hi) with hi near typemax(Int) passes the end-of-vector check
-  because _deleteat! computes i + delta in wrapping Int arithmetic. For
-  1:typemax(Int) it then throws the internal message
-  ArgumentError("_deletebeg! requires delta in 0:length(a)"); for k:typemax(Int)
-  (k >= 2) it throws a BoundsError about a MemoryRef at an index near typemax,
-  and for UInt ranges ending at typemax(UInt) an InexactError. The vector is
-  left unchanged.
+  deleteat!(a, lo:hi) with hi near typemax(Int) throws an internal error instead of
+  BoundsError, because the range length or index sum wraps in Int arithmetic. On
+  1.13.2, 1:typemax(Int) throws ArgumentError("_deletebeg! requires delta in
+  0:length(a)"), because i + delta wraps in _deleteat!. On target nightly that case
+  correctly throws BoundsError, but -1:typemax(Int) still fails on both versions:
+  length(r) overflows to -9223372036854775807, and _deleteat! throws
+  ArgumentError("_deleteat! requires delta >= 0") instead of BoundsError for the
+  out-of-bounds start -1. The vector is left unchanged.
 likelihood: |
   Needs a range ending at (or very near) typemax, e.g. deleteat!(v, k:typemax(Int))
   written to mean "everything from k on". Rare; the call still fails, only with the
@@ -22,50 +23,67 @@ maybe_intended: |
   private helper, which suggests the wrap was not intended.
 reproducer: |
   a = [1, 2, 3]
-  err = try
-      deleteat!(a, 1:typemax(Int))
-      nothing
-  catch e
-      e
-  end
-  println(repr(err))
-  println(a)
-  # expected: BoundsError, as for deleteat!(a, 1:4)
-  println(repr(try deleteat!([1, 2, 3], 1:4); nothing catch e; e end))
-  if err isa ArgumentError && occursin("_deletebeg!", err.msg)
-      println("REPRODUCED arrayops-deleteat-range-overflow")
-  end
+  err = try deleteat!(a, 1:typemax(Int)); nothing catch e; e end
+  println(repr(err))                 # 1.13.2: ArgumentError("_deletebeg! ..."); nightly: BoundsError
+  b = [1, 2, 3]
+  r = -1:typemax(Int)
+  println(length(r))                 # -9223372036854775807
+  println(repr(try deleteat!(b, r); nothing catch e; e end))
+  # ArgumentError("_deleteat! requires delta >= 0"); expected BoundsError
 output:
   release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
     ArgumentError("_deletebeg! requires delta in 0:length(a)")
     [1, 2, 3]
-    BoundsError([1, 2, 3], 4)
+    Original positive-start case now throws BoundsError: false
+    length(-1:typemax(Int)) = -9223372036854775807
+    ArgumentError("_deleteat! requires delta >= 0")
+    [1, 2, 3]
     REPRODUCED arrayops-deleteat-range-overflow
   nightly: |
-    ArgumentError("_deletebeg! requires delta in 0:length(a)")
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    BoundsError([1, 2, 3], 9223372036854775807)
     [1, 2, 3]
-    BoundsError([1, 2, 3], 4)
+    Original positive-start case now throws BoundsError: true
+    length(-1:typemax(Int)) = -9223372036854775807
+    ArgumentError("_deleteat! requires delta >= 0")
+    [1, 2, 3]
     REPRODUCED arrayops-deleteat-range-overflow
 reproduced: {release: true, nightly: true}
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    BoundsError([1, 2, 3], 9223372036854775807)
+    [1, 2, 3]
+    Original positive-start case now throws BoundsError: true
+    length(-1:typemax(Int)) = -9223372036854775807
+    ArgumentError("_deleteat! requires delta >= 0")
+    [1, 2, 3]
 expected: |
-  BoundsError, as for deleteat!([1, 2, 3], 1:4).
+  BoundsError for both ranges, as for deleteat!([1, 2, 3], 1:4), with the vector
+  unchanged.
 promised_by: |
-  deleteat! docstring, base/array.jl:1916-1944 (removes the items at the given
-  indices); _deleteat! itself reports out-of-range deletions as
-  BoundsError (base/array.jl:1316-1317). Invariant: index arithmetic does not wrap.
+  deleteat! docstring, base/array.jl:1912-1915 (removes the items at the given
+  indices); _deleteat! itself reports out-of-range deletions as BoundsError
+  (base/array.jl:1311-1312). Invariant: index arithmetic does not wrap.
 cause: |
-  base/array.jl:1317 checks `i + delta <= len + 1` with i::Int and delta = length(r);
-  for delta near typemax(Int) the sum wraps to a negative number and the check
-  passes. base/array.jl:1319 (`2*i + delta <= len`) also wraps, so the
-  front-deletion branch runs: for i == 1 the copy is empty and _deletebeg!
-  (base/array.jl:1282-1283) throws its ArgumentError; for i >= 2 memoryref at
-  1 + delta throws BoundsError.
+  On target nightly, deleteat!(::Vector, ::AbstractUnitRange) (base/array.jl:1900-1909)
+  passes delta = length(r) to _deleteat!. For -1:typemax(Int), length(r) wraps to a
+  negative Int, so the check `0 <= delta` at base/array.jl:1310 throws its internal
+  ArgumentError before the bounds check `1 <= i <= len` at line 1311 sees i = -1.
+  On 1.13.2 the end check was `i + delta <= len + 1`, which wraps for
+  1:typemax(Int); the front-deletion branch then reached _deletebeg!, whose
+  ArgumentError (base/array.jl:1277-1278 on nightly) escaped. Target nightly
+  replaced that check with `delta <= len + 1 - i` (line 1312).
 possible_fix: |
-  Compare without overflow, e.g. `delta <= len + 1 - i` (both sides are nonnegative after the earlier checks).
+  Check the bounds of first(r) and last(r) against the vector before computing
+  length(r), or compute the length without overflow; then throw BoundsError.
 duplicates:
   issues:
     - {number: 22055, state: closed, relation: related}
-  queries: ["deleteat overflow", "deleteat typemax", "deleteat! BoundsError", "deleteat"]
+  queries: ["deleteat overflow", "deleteat typemax", "deleteat! BoundsError", "deleteat", "deleteat! range overflow", "_deleteat! requires delta", "deleteat! ArgumentError BoundsError range", "deleteat! negative length range"]
 lean:
   property: JuliaLean.ArrayOps.DeleteatRangeSpec
   theorem: JuliaLean.ArrayOps.deleteatRangeSpec_refuted

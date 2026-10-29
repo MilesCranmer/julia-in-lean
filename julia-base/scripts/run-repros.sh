@@ -4,9 +4,11 @@
 #   JULIA=/path/to/julia scripts/run-repros.sh      (default: julia on PATH)
 #
 # Reads the `REFUTED <id>` lines that scripts/audit.sh writes to .lake/audit.out,
-# runs repro/<id>.jl for each, and prints `<id> REPRODUCED` when the output
-# contains the line `REPRODUCED <id>`, else `<id> not-reproduced`. Ends with
-# `REPROS <n> FAILURES <k>` and exits nonzero when any reproducer failed.
+# runs repro/<target>.jl for each, where scripts/repro-target.sh names the target
+# (the id itself, or the bug whose `covers` list names it), and prints
+# `<id> REPRODUCED` when the output contains the line `REPRODUCED <target>`, else
+# `<id> not-reproduced`. Ends with `REPROS <n> FAILURES <k>` and exits nonzero
+# when any reproducer failed.
 set -uo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 JULIA=${JULIA:-julia}
@@ -19,8 +21,8 @@ fi
 count=0 failures=0
 while read -r id; do
     count=$((count + 1))
-    if [[ -f repro/$id.jl ]] &&
-        grep -qx "REPRODUCED $id" <<<"$("$JULIA" --startup-file=no --history-file=no "repro/$id.jl" </dev/null 2>&1)"; then
+    if target=$(bash scripts/repro-target.sh "$id") &&
+        grep -qx "REPRODUCED $target" <<<"$("$JULIA" --startup-file=no --history-file=no "repro/$target.jl" </dev/null 2>&1)"; then
         echo "$id REPRODUCED"
     else
         echo "$id not-reproduced"

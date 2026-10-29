@@ -194,38 +194,6 @@ private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) 
     juliaFns := [name], statement, source := s!"base/multidimensional.jl:{line}; CartesianIndices source equation",
     status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 299 "CartesianIndices(::NTuple{OrdinalRange})" "Every range endpoint and step is converted to Int in order before construction." ``P299 ``p299,
-  entry 304 "CartesianIndices(::CartesianIndex)" "Every coordinate becomes a one-based axis." ``P304 ``p304,
-  entry 305 "CartesianIndices(::NTuple{IntegerOrRange})" "Every integer becomes OneTo and every range is converted before construction." ``P305 ``p305,
-  entry 308 "CartesianIndices(::AbstractArray)" "The array constructor reads and stores axes(A)." ``P308 ``p308,
-  entry 310 "_convert2ind(::Bool)" "Bool conversion delegates to oneto and retains the resulting Int axis." ``P310 ``p310,
-  entry 311 "_convert2ind(::Integer)" "Arbitrary Integer conversion delegates to oneto with conversion failures." ``P311 ``p311,
-  entry 312 "_convert2ind(::AbstractUnitRange)" "Unit-range conversion reads and converts both endpoints before construction." ``P312 ``p312,
-  entry 313 "_convert2ind(::OrdinalRange)" "Ordinal conversion reads and converts first, step, and last." ``P313 ``p313,
-  entry 315 "show(::IO,::CartesianIndices)" "Printing emits the constructor and every stored axis in order." ``P315 ``p315,
-  entry 322 "show(::IO,::MIME,::CartesianIndices)" "Text/plain display delegates to ordinary show." ``P322 ``p322,
-  entry 350 ":(::CartesianIndex,::CartesianIndex)" "Colon constructs one unit-step range per coordinate pair." ``P350 ``p350,
-  entry 352 ":(::CartesianIndex,::CartesianIndex,::CartesianIndex)" "Stepped colon constructs every range from first, step, and last coordinates." ``P352 ``p352,
-  entry 355 "promote_rule(::CartesianIndices,::CartesianIndices)" "Promotion combines the two homogeneous range tuple types." ``P355 ``p355,
-  entry 360 "convert(::NTuple,::CartesianIndices)" "Tuple conversion converts every stored axis in order." ``P360 ``p360,
-  entry 363 "convert(::NTuple{AbstractUnitRange},::CartesianIndices)" "AbstractUnitRange tuple conversion converts every axis." ``P363 ``p363,
-  entry 365 "convert(::NTuple{UnitRange{Int}},::CartesianIndices)" "Int UnitRange tuple conversion converts every axis." ``P365 ``p365,
-  entry 367 "convert(::NTuple{UnitRange},::CartesianIndices)" "UnitRange tuple conversion converts every axis." ``P367 ``p367,
-  entry 369 "convert(::Tuple{Vararg{AbstractUnitRange{Int}}},::CartesianIndices)" "Vararg Int abstract-range conversion converts every axis." ``P369 ``p369,
-  entry 371 "convert(::Tuple{Vararg{AbstractUnitRange}},::CartesianIndices)" "Vararg abstract-range conversion converts every axis." ``P371 ``p371,
-  entry 373 "convert(::Tuple{Vararg{UnitRange{Int}}},::CartesianIndices)" "Vararg Int unit-range conversion converts every axis." ``P373 ``p373,
-  entry 375 "convert(::Tuple{Vararg{UnitRange}},::CartesianIndices)" "Vararg unit-range conversion converts every axis." ``P375 ``p375,
-  entry 378 "convert(::Type{CartesianIndices},::CartesianIndices)" "Typed conversion converts the stored range tuple before reconstructing." ``P378 ``p378,
-  entry 382 "==(::CartesianIndices,::CartesianIndices)" "Equality compares the complete stored range tuple." ``P382 ``p382,
-  entry 387 "axes(::CartesianIndices)" "Axes maps OneTo(length) over every stored range." ``P387 ``p387,
-  entry 388 "has_offset_axes(::CartesianIndices)" "Offset detection delegates to every stored range." ``P388 ``p388,
-  entry 400 "getindex(::CartesianIndices,::Int...)" "Integer indexing evaluates every range at its supplied coordinate before constructing CartesianIndex." ``P400 ``p400,
-  entry 413 "getindex(::CartesianIndices,::RangeOrColon...)" "Range indexing selects each stored range in order before construction." ``P413 ``p413,
-  entry 421 "getindex(::CartesianIndices,::CartesianIndices)" "CartesianIndices indexing delegates with the selector ranges." ``P421 ``p421,
-  entry 428 "view(::CartesianIndices,::RangeOrColon...)" "View delegates to range selection with the complete index tuple." ``P428 ``p428,
-  entry 431 "view(::CartesianIndices,::CartesianIndices)" "CartesianIndices view delegates with the selector ranges." ``P431 ``p431,
-  entry 435 "eachindex(::IndexCartesian,::AbstractArray)" "Cartesian eachindex constructs from axes(A)." ``P435 ``p435
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.MultidimensionalIndicesFaithful

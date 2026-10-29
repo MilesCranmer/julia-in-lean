@@ -1,0 +1,52 @@
+id: multidimcov-isbitsunion-many-members
+title: "isbitsunion is false for a Union of 127 or more isbits types, contradicting its docstring"
+priority: P3
+kind: documentation
+area: MultidimCov
+files: [base/array.jl]
+functions: ["isbitsunion(u::Type)"]
+summary: |
+  Base.isbitsunion(u) is documented as "each type included in a Union is
+  isbitstype", but it asks the runtime whether the union is stored inline, which the
+  runtime refuses for 127 or more members. A Union of 127 distinct Val{i} types,
+  all isbitstype, gives false; with 126 members it gives true.
+likelihood: |
+  Low: unions with that many members are rare outside generated code.
+maybe_intended: |
+  The runtime limit (jl_islayout_inline rejects 127 or more selector values) is
+  deliberate; the docstring does not mention it, and callers may rely on
+  isbitsunion meaning inline storage.
+reproducer: |
+  U = Union{[Val{i} for i in 1:127]...}
+  all(isbitstype, [Val{i} for i in 1:127])   # true
+  Base.isbitsunion(U)                         # false
+output:
+  release: |
+    all members isbitstype: true
+    isbitsunion with 126 members: true
+    isbitsunion with 127 members: false
+    REPRODUCED multidimcov-isbitsunion-many-members
+  nightly: |
+    all members isbitstype: true
+    isbitsunion with 126 members: true
+    isbitsunion with 127 members: false
+    REPRODUCED multidimcov-isbitsunion-many-members
+reproduced: {release: true, nightly: true}
+expected: |
+  Either true, as the docstring promises, or a docstring that mentions the member
+  limit of inline union storage.
+promised_by: |
+  base/array.jl:192-195: "Return whether a type is an "is-bits" Union type, meaning
+  each type included in a Union is isbitstype."
+cause: |
+  base/array.jl:206 uses allocatedinline (jl_stored_inline), and jl_islayout_inline
+  in src/datatype.c returns 0 unless the member count is below 127.
+possible_fix: |
+  Document that isbitsunion also requires the union to be small enough to be stored
+  inline (fewer than 127 members).
+duplicates:
+  issues: []
+  queries: ["isbitsunion", "isbitsunion 127", "union 127 isbits", "Union 127 types inline"]
+lean:
+  property: JuliaLean.MultidimCov.ArrayV2.P206
+  theorem: JuliaLean.MultidimCov.ArrayV2.p206_refuted

@@ -42,5 +42,5 @@ duplicates:
   issues: []
   queries: ["copysign typemin", "flipsign typemin", "copysign overflow", "flipsign overflow", "copysign", "flipsign"]
 lean:
-  property: JuliaLean.MathFuncs.copysignMagnitudeSign
-  theorem: JuliaLean.MathFuncs.copysignMagnitudeSign_refuted
+  property: JuliaLean.Proofs.base.int.CopysignMagnitudeSign
+  theorem: JuliaLean.Proofs.base.int.copysignMagnitudeSign_refuted

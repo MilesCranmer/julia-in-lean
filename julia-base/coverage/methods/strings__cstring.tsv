@@ -1,46 +1,46 @@
 file	line	endline	name	signature	status	entry	note
-base/strings/cstring.jl	31	31	Cstring	Cstring(p::Union{Ptr{Int8},Ptr{UInt8},Ptr{Cvoid}})	modelled	stringscova-cstring-ctor-faithful	
-base/strings/cstring.jl	32	32	Cwstring	Cwstring(p::Union{Ptr{Cwchar_t},Ptr{Cvoid}})	modelled	stringscova-cwstring-ctor-faithful	
-base/strings/cstring.jl	33	33	Ptr{T}	Ptr{T}(p::Cstring) where {T<:Union{Int8,UInt8,Cvoid}}	modelled	stringscova-cstring-ptr-faithful	
+base/strings/cstring.jl	31	31	Cstring	Cstring(p::Union{Ptr{Int8},Ptr{UInt8},Ptr{Cvoid}})	todo		trivial: Cstring construction preserves the pointer address
+base/strings/cstring.jl	32	32	Cwstring	Cwstring(p::Union{Ptr{Cwchar_t},Ptr{Cvoid}})	todo		trivial: Cwstring construction preserves the pointer address
+base/strings/cstring.jl	33	33	Ptr{T}	Ptr{T}(p::Cstring) where {T<:Union{Int8,UInt8,Cvoid}}	todo		trivial: Ptr conversion only retags the stored address
 base/strings/cstring.jl	34	34	Ptr{T}	Ptr{T}(p::Cwstring) where {T<:Union{Cwchar_t,Cvoid}}	modelled	stringscova-cwstring-pointer-type	
-base/strings/cstring.jl	36	36	convert	convert(::Type{Cstring}, p::Union{Ptr{Int8},Ptr{UInt8},Ptr{Cvoid}})	modelled	stringscova-cstring-convert-faithful	
-base/strings/cstring.jl	37	37	convert	convert(::Type{Cwstring}, p::Union{Ptr{Cwchar_t},Ptr{Cvoid}})	modelled	stringscova-cwstring-convert-faithful	
-base/strings/cstring.jl	38	38	convert	convert(::Type{Ptr{T}}, p::Cstring) where {T<:Union{Int8,UInt8,Cvoid}}	modelled	stringscova-cstring-convert-ptr-faithful	
-base/strings/cstring.jl	39	39	convert	convert(::Type{Ptr{T}}, p::Cwstring) where {T<:Union{Cwchar_t,Cvoid}}	modelled	stringscova-cwstring-convert-ptr-faithful	
+base/strings/cstring.jl	36	36	convert	convert(::Type{Cstring}, p::Union{Ptr{Int8},Ptr{UInt8},Ptr{Cvoid}})	todo		trivial: convert delegates to the address-preserving constructor
+base/strings/cstring.jl	37	37	convert	convert(::Type{Cwstring}, p::Union{Ptr{Cwchar_t},Ptr{Cvoid}})	todo		trivial: convert delegates to the address-preserving constructor
+base/strings/cstring.jl	38	38	convert	convert(::Type{Ptr{T}}, p::Cstring) where {T<:Union{Int8,UInt8,Cvoid}}	todo		trivial: convert delegates to the address-preserving pointer conversion
+base/strings/cstring.jl	39	39	convert	convert(::Type{Ptr{T}}, p::Cwstring) where {T<:Union{Cwchar_t,Cvoid}}	todo		trivial: convert delegates to the address-preserving pointer conversion
 base/strings/cstring.jl	53	53	pointer	pointer	excluded		no-behaviour: generic pointer declaration has no method body
-base/strings/cstring.jl	55	55	pointer	pointer(p::Cstring)	modelled	stringscova-cstring-pointer-faithful	
-base/strings/cstring.jl	56	56	pointer	pointer(p::Cwstring)	modelled	stringscova-cwstring-pointer-faithful	
+base/strings/cstring.jl	55	55	pointer	pointer(p::Cstring)	todo		trivial: pointer returns the same address with Cchar as pointee
+base/strings/cstring.jl	56	56	pointer	pointer(p::Cwstring)	todo		trivial: pointer returns the same address with Cwchar_t as pointee
 base/strings/cstring.jl	59	59	==	==(x::Union{Cstring,Cwstring}, y::Ptr)	modelled	stringscova-cstring-eq-ptr-faithful	
 base/strings/cstring.jl	60	60	==	==(x::Ptr, y::Union{Cstring,Cwstring})	modelled	stringscova-ptr-eq-cstring-faithful	
 base/strings/cstring.jl	62	62	unsafe_string	unsafe_string(s::Cstring)	modelled	stringscova-cstring-unsafe-string-faithful	
-base/strings/cstring.jl	65	65	cconvert	cconvert(::Type{Cstring}, s::String)	modelled	stringscova-cstring-cconvert-string-faithful	
-base/strings/cstring.jl	66	67	cconvert	cconvert(::Type{Cstring}, s::AbstractString)	modelled	stringscova-cstring-cconvert-abstract-faithful	
+base/strings/cstring.jl	65	65	cconvert	cconvert(::Type{Cstring}, s::String)	todo		trivial: cconvert returns the original String
+base/strings/cstring.jl	66	67	cconvert	cconvert(::Type{Cstring}, s::AbstractString)	todo		trivial: forwards to String conversion without an independent Cstring guarantee
 base/strings/cstring.jl	69	73	cconvert	cconvert(::Type{Cwstring}, s::AbstractString)	modelled	stringscova-cwstring-cconvert-abstract-faithful,transcode-cwstring-nul-terminated,transcode-utf32-invalid	rebuilt after fixed review
-base/strings/cstring.jl	75	75	eltype	eltype(::Type{Cstring})	modelled	stringscova-cstring-eltype-faithful	
-base/strings/cstring.jl	76	76	eltype	eltype(::Type{Cwstring})	modelled	stringscova-cwstring-eltype-faithful	
+base/strings/cstring.jl	75	75	eltype	eltype(::Type{Cstring})	todo		trivial: constant element type with no independent behavior
+base/strings/cstring.jl	76	76	eltype	eltype(::Type{Cwstring})	todo		trivial: constant element type with no independent behavior
 base/strings/cstring.jl	78	79	containsnul	containsnul(p::Ptr, len)	modelled	stringscova-containsnul-ptr-faithful	
 base/strings/cstring.jl	80	80	containsnul	containsnul(s::String)	modelled	stringscova-containsnul-string-faithful	rebuilt after fixed review
-base/strings/cstring.jl	81	81	containsnul	containsnul(s::AbstractString)	modelled	stringscova-containsnul-abstract-faithful	rebuilt after fixed review
+base/strings/cstring.jl	81	81	containsnul	containsnul(s::AbstractString)	todo		trivial: returns the supplied membership result
 base/strings/cstring.jl	83	88	unsafe_convert	unsafe_convert(::Type{Cstring}, s::String)	modelled	stringscova-cstring-unsafe-string-convert-faithful	rebuilt after fixed review
-base/strings/cstring.jl	90	90	unsafe_convert	unsafe_convert(::Type{Cstring}, s::Union{Memory{UInt8},Memory{Int8}})	modelled	stringscova-cstring-unsafe-memory-faithful	
+base/strings/cstring.jl	90	90	unsafe_convert	unsafe_convert(::Type{Cstring}, s::Union{Memory{UInt8},Memory{Int8}})	todo		trivial: pointer wrapper preserves the Memory storage address
 base/strings/cstring.jl	92	100	cconvert	cconvert(::Type{Cwstring}, v::Vector{Cwchar_t})	modelled	stringscova-cwstring-cconvert-vector-faithful,transcode-cwstring-empty-vector,transcode-cwstring-nul-terminated	rebuilt after fixed review
-base/strings/cstring.jl	101	101	unsafe_convert	unsafe_convert(::Type{Cwstring}, s)	modelled	stringscova-cwstring-unsafe-generic-faithful	
-base/strings/cstring.jl	102	102	unsafe_convert	unsafe_convert(::Type{Cwstring}, s::Cwstring)	modelled	stringscova-cwstring-unsafe-identity-faithful	
-base/strings/cstring.jl	105	105	cconvert	cconvert(::Type{Cstring}, s::Symbol)	modelled	stringscova-cstring-cconvert-symbol-faithful	
-base/strings/cstring.jl	106	106	unsafe_convert	unsafe_convert(::Type{Cstring}, s::Symbol)	modelled	stringscova-cstring-unsafe-symbol-faithful	
+base/strings/cstring.jl	101	101	unsafe_convert	unsafe_convert(::Type{Cwstring}, s)	todo		trivial: pointer conversion followed by Cwstring retagging
+base/strings/cstring.jl	102	102	unsafe_convert	unsafe_convert(::Type{Cwstring}, s::Cwstring)	todo		trivial: identity conversion with no independent behavior
+base/strings/cstring.jl	105	105	cconvert	cconvert(::Type{Cstring}, s::Symbol)	todo		trivial: cconvert returns the original Symbol
+base/strings/cstring.jl	106	106	unsafe_convert	unsafe_convert(::Type{Cstring}, s::Symbol)	todo		trivial: pointer wrapper preserves the Symbol storage address
 base/strings/cstring.jl	119	123	cwstring	cwstring(s::AbstractString)	modelled	stringscova-cwstring-windows-faithful,transcode-cwstring-overlong-nul	rebuilt after fixed review
 base/strings/cstring.jl	161	161	transcode	transcode	excluded		no-behaviour: generic transcode declaration has no method body
-base/strings/cstring.jl	163	163	transcode	transcode(::Type{T}, src::AbstractVector{T}) where {T<:Union{UInt8,UInt16,UInt32,Int32}}	modelled	stringscova-transcode-identity-faithful	
+base/strings/cstring.jl	163	163	transcode	transcode(::Type{T}, src::AbstractVector{T}) where {T<:Union{UInt8,UInt16,UInt32,Int32}}	todo		trivial: same-code-unit conversion returns its input
 base/strings/cstring.jl	164	164	transcode	transcode(::Type{T}, src::String) where {T<:Union{Int32,UInt32}}	modelled	stringscova-transcode-string32-faithful,transcode-utf32-invalid,transcode-utf32-length	rebuilt after fixed review
-base/strings/cstring.jl	165	166	transcode	transcode(::Type{T}, src::AbstractVector{UInt8}) where {T<:Union{Int32,UInt32}}	modelled	stringscova-transcode-bytes32-faithful	
-base/strings/cstring.jl	167	168	transcode	transcode(::Type{T}, src::CodeUnits{UInt8,String}) where {T<:Union{Int32,UInt32}}	modelled	stringscova-transcode-codeunits32-faithful	
+base/strings/cstring.jl	165	166	transcode	transcode(::Type{T}, src::AbstractVector{UInt8}) where {T<:Union{Int32,UInt32}}	todo		trivial: copy-and-forward wrapper has no independent conversion guarantee
+base/strings/cstring.jl	167	168	transcode	transcode(::Type{T}, src::CodeUnits{UInt8,String}) where {T<:Union{Int32,UInt32}}	todo		trivial: parent-string construction and forwarding add no independent conversion guarantee
 base/strings/cstring.jl	170	176	transcode	transcode(::Type{UInt8}, src::Vector{<:Union{Int32,UInt32}})	modelled	stringscova-transcode-32-to-bytes-faithful,transcode-utf32-out-of-range	rebuilt after fixed review
-base/strings/cstring.jl	177	177	transcode	transcode(::Type{String}, src::String)	modelled	stringscova-transcode-string-identity-faithful	
-base/strings/cstring.jl	178	178	transcode	transcode(T, src::String)	modelled	stringscova-transcode-string-codeunits-faithful	
+base/strings/cstring.jl	177	177	transcode	transcode(::Type{String}, src::String)	todo		trivial: same-string conversion returns its input
+base/strings/cstring.jl	178	178	transcode	transcode(T, src::String)	todo		trivial: forwards to the selected transcode overload
 base/strings/cstring.jl	182	182	transcode	transcode(::Type{String}, src::Vector{UInt8})	modelled	stringscova-transcode-vector-string-faithful	
-base/strings/cstring.jl	183	183	transcode	transcode(::Type{String}, src)	modelled	stringscova-transcode-to-string-faithful	
+base/strings/cstring.jl	183	183	transcode	transcode(::Type{String}, src)	todo		trivial: generic wrapper only constructs String from UInt8 transcode output
 base/strings/cstring.jl	185	234	transcode	transcode(::Type{UInt16}, src::AbstractVector{UInt8})	modelled	transcode-utf8-utf16-total	
 base/strings/cstring.jl	236	306	transcode	transcode(::Type{UInt8}, src::AbstractVector{UInt16})	modelled	transcode-utf16-utf8-complete	
 base/strings/cstring.jl	321	323	unsafe_string	unsafe_string(p::Ptr{T}, length::Integer) where {T<:Union{UInt16,UInt32,Cwchar_t}}	modelled	stringscova-unsafe-wide-length-faithful	
 base/strings/cstring.jl	324	330	unsafe_string	unsafe_string(p::Ptr{T}) where {T<:Union{UInt16,UInt32,Cwchar_t}}	modelled	stringscova-unsafe-wide-nul-faithful	
-base/strings/cstring.jl	331	331	unsafe_string	unsafe_string(cw::Cwstring)	modelled	stringscova-unsafe-cwstring-faithful	
+base/strings/cstring.jl	331	331	unsafe_string	unsafe_string(cw::Cwstring)	todo		trivial: converts the Cwstring pointer and forwards to wide unsafe_string

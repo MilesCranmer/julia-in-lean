@@ -375,32 +375,6 @@ private def trimEntry (id fn statement : String) (prop theoremName : Lean.Name) 
     prop
     thm := some theoremName }
 
-def subarrayTrimEntries : List Entry := [
-  trimEntry "multidimcov-sub-l119-array-unalias" "unaliascopy(::SubArray{...,<:Array,...})" "Array-parent unaliascopy allocates the trimmed shape, copies through trimmed selections, densifies indices, recomputes linear layout when needed, and rebuilds the view." ``SubL119ArrayUnalias ``subL119ArrayUnalias,
-  trimEntry "multidimcov-sub-l134-trim-range" "_trimmedshape(::AbstractRange,...)" "A general range contributes zero when empty and its maximum otherwise." ``SubL134TrimRange ``subL134TrimRange,
-  trimEntry "multidimcov-sub-l137-trim-ci0" "_trimmedshape(::AbstractArray{CartesianIndex{0}},...)" "A CartesianIndex{0} array contributes no dimension." ``SubL137TrimCartesianZero ``subL137TrimCartesianZero,
-  trimEntry "multidimcov-sub-l138-trim-ci" "_trimmedshape(::AbstractArray{CartesianIndex{N}},...)" "A CartesianIndex{N} array contributes its length and N-1 singleton dimensions." ``SubL138TrimCartesian ``subL138TrimCartesian,
-  trimEntry "multidimcov-sub-l141-parent-generic" "_trimmedpind(i,...)" "Generic parent trimming emits one colon per index axis and recurses." ``SubL141ParentGeneric ``subL141ParentGeneric,
-  trimEntry "multidimcov-sub-l142-parent-range" "_trimmedpind(::AbstractRange,...)" "General ranges are preserved in the trimmed parent indices." ``SubL142ParentRange ``subL142ParentRange,
-  trimEntry "multidimcov-sub-l143-parent-dense" "_trimmedpind(::Union{UnitRange,StepRange,OneTo},...)" "Dense ranges become colons in the trimmed parent indices." ``SubL143ParentDense ``subL143ParentDense,
-  trimEntry "multidimcov-sub-l144-parent-ci0" "_trimmedpind(::AbstractArray{CartesianIndex{0}},...)" "CartesianIndex{0} arrays are skipped in trimmed parent indices." ``SubL144ParentCartesianZero ``subL144ParentCartesianZero,
-  trimEntry "multidimcov-sub-l145-parent-empty" "_trimmedpind()" "Empty trimmed parent indices are empty." ``SubL145ParentEmpty ``subL145ParentEmpty,
-  trimEntry "multidimcov-sub-l146-view-generic" "_trimmedvind(i,...)" "Generic view trimming emits one colon per axis and recurses." ``SubL146ViewGeneric ``subL146ViewGeneric,
-  trimEntry "multidimcov-sub-l147-view-ci0" "_trimmedvind(::AbstractArray{CartesianIndex{0}},...)" "CartesianIndex{0} view trimming uses each axis first value." ``SubL147ViewCartesianZero ``subL147ViewCartesianZero,
-  trimEntry "multidimcov-sub-l148-view-empty" "_trimmedvind()" "Empty trimmed view indices are empty." ``SubL148ViewEmpty ``subL148ViewEmpty,
-  trimEntry "multidimcov-sub-l150-index-scalar" "_trimmedindex(::ScalarIndex)" "Scalar dense indices retain their type-level role with value one." ``SubL150IndexScalar ``subL150IndexScalar,
-  trimEntry "multidimcov-sub-l151-index-range" "_trimmedindex(::AbstractRange)" "A general AbstractRange is retained unchanged." ``SubL151IndexRange ``subL151IndexRange,
-  trimEntry "multidimcov-sub-l152-index-dense" "_trimmedindex(::Union{UnitRange,StepRange,OneTo})" "A dense range becomes a same-length one-based range." ``SubL152IndexDense ``subL152IndexDense,
-  trimEntry "multidimcov-sub-l153-index-array" "_trimmedindex(::AbstractArray{ScalarIndex})" "A scalar-index array becomes reshaped linear indices with the same axes." ``SubL153IndexScalarArray ``subL153IndexScalarArray,
-  trimEntry "multidimcov-sub-l154-index-ci0" "_trimmedindex(::AbstractArray{CartesianIndex{0}})" "A CartesianIndex{0} array is copied with the same shape and length." ``SubL154IndexCartesianZero ``subL154IndexCartesianZero,
-  trimEntry "multidimcov-sub-l155-index-ci" "_trimmedindex(::AbstractArray{CartesianIndex{N}})" "A CartesianIndex{N} array becomes reshaped Cartesian linear indices with its original axes." ``SubL155IndexCartesian ``subL155IndexCartesian,
-  trimEntry "multidimcov-sub-l165-reshape-one" "_maybe_reshape_parent(::AbstractArray,::NTuple{1,Bool})" "The one-dimensional overload delegates to reshape with Val(1)." ``SubL165ReshapeOne ``subL165ReshapeOne,
-  trimEntry "multidimcov-sub-l166-reshape-vector" "_maybe_reshape_parent(::AbstractVector,::NTuple{1,Bool})" "The vector overload delegates to reshape with Val(1)." ``SubL166ReshapeVector ``subL166ReshapeVector,
-  trimEntry "multidimcov-sub-l167-reshape-identity" "_maybe_reshape_parent(::AbstractArray{T,N},::NTuple{N,Bool})" "A rank-matched parent is returned unchanged." ``SubL167ReshapeIdentity ``subL167ReshapeIdentity,
-  trimEntry "multidimcov-sub-l168-reshape-rank" "_maybe_reshape_parent(::AbstractArray,::NTuple{N,Bool})" "A rank-mismatched parent delegates to reshape with Val(N)." ``SubL168ReshapeRank ``subL168ReshapeRank,
-  trimEntry "multidimcov-sub-l170-remove-general" "rm_singleton_indices(ndims,J1,Js...)" "General singleton removal retains the head and recurses after consuming its effective dimensions." ``SubL170RemoveGeneral ``subL170RemoveGeneral,
-  trimEntry "multidimcov-sub-l171-remove-scalar" "rm_singleton_indices(::Tuple{},::ScalarIndex,Js...)" "Trailing scalar indices are dropped after parent dimensions are exhausted." ``SubL171RemoveScalar ``subL171RemoveScalar,
-  trimEntry "multidimcov-sub-l172-remove-empty" "rm_singleton_indices(::Tuple)" "No remaining supplied indices returns the empty tuple." ``SubL172RemoveEmpty ``subL172RemoveEmpty
-]
+def subarrayTrimEntries : List Entry := []
 
 end JuliaLean.MultidimCov

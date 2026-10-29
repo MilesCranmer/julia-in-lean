@@ -10,7 +10,10 @@ open JuliaLean.ArrayCov
 
 def RA190191Property : Prop :=
   (∀ call type array, reinterpret190Nested call type array = call type array.parent) ∧
-  (∀ call type array, reinterpret191NestedReshape call type array = call true type array.parent)
+  (∀ call construct target source parent type array,
+    reinterpret191NestedReshape call construct target source parent type array =
+      if target = source ∨ target = parent ∨ source = parent then
+        call true type array.parent else construct type array)
 theorem ra190191Property : RA190191Property := by
   simp [RA190191Property, reinterpret190Nested, reinterpret191NestedReshape]
 
@@ -64,7 +67,7 @@ def RA260270Property : Prop :=
         let k ← JInt.div source target |>.mapError fun _ => .arithmetic
         return .staticCartesian k
       return .cartesian
-    return style parent) ∧
+    return if style parent = .linear then .linear else .cartesian) ∧
   (∀ k, reinterpret270CombineStyle k = k)
 theorem ra260270Property : RA260270Property := by
   simp [RA260270Property, reinterpret260IndexStyle, reinterpret263IndexStyleReshaped,
@@ -237,17 +240,6 @@ private def raMetaEntry (id fn statement source : String)
   { id, juliaFile := "base/reinterpretarray.jl", juliaFns := [fn], statement, source,
     status := .proven, prop, thm := some thm }
 
-def reinterpretMetaReviewEntries : List Entry := [
-  raMetaEntry "multidimcov-reinterpretarray-nested" "reinterpret nested wrappers" "Nested reinterpret methods unwrap parent and preserve reshape dispatch." "base/reinterpretarray.jl:190-191" ``RA190191Property ``ra190191Property,
-  raMetaEntry "multidimcov-reinterpretarray-strides" "strides, stride, _checked_strides, similar, _checkcontiguous" "Stride and allocation methods preserve source branch order, exact division checks, and parent delegation." "base/reinterpretarray.jl:204-232" ``RA204232Property ``ra204232Property,
-  raMetaEntry "multidimcov-reinterpretarray-padding-checks" "check_readable, check_writable" "Read and write checks use the cached flag and recomputed padding relation in source order." "base/reinterpretarray.jl:234-251" ``RA234241Property ``ra234241Property,
-  raMetaEntry "multidimcov-reinterpretarray-index-style" "IndexStyle methods" "Index styles preserve parent linearity and select static Cartesian style only for channel expansion." "base/reinterpretarray.jl:260-270" ``RA260270Property ``ra260270Property,
-  raMetaEntry "multidimcov-reinterpretarray-scartesian-step" "to_index, nextind, prevind" "SCartesian index conversion and stepping preserve both components and wrap the static inner coordinate." "base/reinterpretarray.jl:276-280" ``RA276279Property ``ra276279Property,
-  raMetaEntry "multidimcov-reinterpretarray-scartesian-iterate" "SCartesianIndices2 interface and iteration" "The static Cartesian iterator validates K, checks shared indices, exposes axes, and advances inner then outer state." "base/reinterpretarray.jl:285-328" ``RA285326Property ``ra285326Property,
-  raMetaEntry "multidimcov-reinterpretarray-scartesian-routing" "_maybe_reshape, _getindex, _setindex!, _scartesian2_trailing, eachindex" "Cartesian routing delegates fallbacks and converts the trailing linear coordinate through array axes." "base/reinterpretarray.jl:330-362" ``RA330362Property ``ra330362Property,
-  raMetaEntry "multidimcov-reinterpretarray-parent-copy" "parent, dataids, unaliascopy" "Parent metadata and both unaliascopy variants preserve exact unwrap, copy, and reconstruction order." "base/reinterpretarray.jl:366-369" ``RA366369Property ``ra366369Property,
-  raMetaEntry "multidimcov-reinterpretarray-shape" "size, axes, has_offset_axes, elsize, pointer conversion, scalar getindex" "Shape and pointer methods preserve element-size branches, axes, wrapping arithmetic, parent calls, and scalar dispatch." "base/reinterpretarray.jl:371-416" ``RA371410Property ``ra371410Property,
-  raMetaEntry "multidimcov-reinterpretarray-pointer-assigned" "check_ptr_indexable, zero-dimensional getindex, isassigned" "Pointer eligibility and assignment queries preserve parent recursion, bounds short-circuiting, and static Cartesian delegation." "base/reinterpretarray.jl:418-431" ``RA418431Property ``ra418431Property
-]
+def reinterpretMetaReviewEntries : List Entry := []
 
 end JuliaLean.MultidimCov

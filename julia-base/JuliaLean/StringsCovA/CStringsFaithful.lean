@@ -477,6 +477,17 @@ theorem cconvertCwstringVector_proven : CconvertCwstringVectorProperty := by
   intros
   rfl
 
+/-- Windows-only `cwstring(s::AbstractString)`, `base/strings/cstring.jl:119-123`. -/
+def cwstringAbstract (s : AbstractStringInput) : SJl (List UInt16) := do
+  let concrete ← s.string
+  Transcode.cwstring concrete
+
+def CwstringAbstractProperty : Prop :=
+  (∀ s concrete, s.string = .ok concrete →
+    cwstringAbstract s = Transcode.cwstring concrete) ∧
+  (∀ s error, s.string = .error error → cwstringAbstract s = .error error)
+theorem cwstringAbstract_proven : CwstringAbstractProperty := by
+  constructor <;> intro s value h <;> unfold cwstringAbstract <;> rw [h] <;> rfl
 
 structure IntegerValue where
   value : Int

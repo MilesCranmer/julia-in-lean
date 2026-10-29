@@ -1,0 +1,57 @@
+id: cruntime-world-stop-execution-safety
+title: "Formal world-stop model admits a cached safepoint load during collection"
+priority: P2
+kind: model-counterexample
+area: GC
+files: [src/safepoint.c, src/julia_threads.h, src/gc-stock.c]
+functions: ["jl_safepoint_resume_thread", "jl_gc_state_set", "jl_gc_safepoint_"]
+summary: |
+  From an assumed PublicAPIEntry, the model permits a suspended thread to
+  publish GC-unsafe and cache its protected safepoint pointer. A modeled
+  controller resumes it, replaces the pointer, and unprotects the cached page.
+  With successful protection events as an explicit premise, the cached load
+  completes while the modeled collection phase remains active. This refutes
+  the model's critical-marker/root-location exclusion property; it does not
+  establish arbitrary client heap execution or a native Julia crash.
+likelihood: |
+  The formal trace requires suspension/resume to overlap the unsafe transition
+  and modeled collection. The model does not prove Julia startup or thread
+  adoption reaches its assumed PublicAPIEntry. No native failure is reproduced.
+maybe_intended: |
+  Unmodeled Julia or platform constraints may exclude the admitted entry or
+  schedule. Native evidence is required before claiming a runtime defect.
+reproducer: |
+  println("NOT REPRODUCED cruntime-world-stop-execution-safety")
+  println("Formal source/C11 counterexample only; no deterministic Julia trigger is known.")
+output:
+  release: |
+    NOT RUN: formal source/C11 counterexample only.
+  nightly: |
+    NOT RUN: formal source/C11 counterexample only.
+reproduced: {release: false, nightly: false}
+expected: |
+  Under the admitted PublicAPIEntry and successful-protection premises, no
+  modeled `.critical` marker or operation selected by `sourceTouchesRoots`
+  should execute while the modeled collection phase is active.
+promised_by: |
+  Model invariant over `criticalDuringGC`, which records `.critical` and
+  `sourceTouchesRoots` operations. It is not a claim about every Julia heap
+  access outside the modeled interpreter.
+cause: |
+  The counterexample uses the model's separate pointer load and dereference for
+  jl_gc_safepoint_ at src/julia_threads.h:638-643 while the modeled
+  jl_safepoint_resume_thread path changes that pointer and disables the
+  suspension page at src/safepoint.c:456-467. Whether the full runtime admits
+  this modeled interleaving remains unconfirmed.
+possible_fix: |
+  If native evidence confirms the modeled interleaving is reachable and harmful,
+  possible mitigations include retaining suspension-page protection during an
+  active collection or revalidating safepoint state before return. The formal
+  trace alone does not justify a source change.
+duplicates:
+  issues:
+    - {number: 62863, state: open, relation: related}
+  queries: ["jl_safepoint_resume_thread GC", "cached safepoint pointer", "resume thread during GC"]
+lean:
+  property: JuliaLean.CRuntime.WorldStop.stoppedWorldExcludesCriticalExecution
+  theorem: JuliaLean.CRuntime.WorldStop.stoppedWorldExcludesCriticalExecution_refuted

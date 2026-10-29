@@ -416,30 +416,6 @@ private def entry (line : Nat) (name statement source : String) (prop thm : Lean
   { id := s!"multidimcov-abstractarraymath-faithful-{line}", juliaFile := "base/abstractarraymath.jl",
     juliaFns := [name], statement, source, status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 86 "_dropdims" "The method validates dims, constructs retained axes, and in the concrete-axis branch uses _sub only as the required type assertion before reshaping to the retained axes." "base/abstractarraymath.jl:86-103" ``P86 ``p86,
-  entry 194 "conj!(Number array)" "Numeric conj! broadcasts into the same array and returns the mutated array state after the broadcast succeeds." "base/abstractarraymath.jl:194" ``P194 ``p194,
-  entry 195 "conj!(Real array)" "The real-array overload returns the identical array object." "base/abstractarraymath.jl:195" ``P195 ``p195,
-  entry 196 "conj!(nested array)" "The nested-array overload mutates every element through conj! and returns the resulting outer array state." "base/abstractarraymath.jl:196" ``P196 ``p196,
-  entry 220 "conj(AbstractArray)" "This method specifically calls broadcast_preserving_zero_d with conj and the actual array." "base/abstractarraymath.jl:220" ``P220 ``p220,
-  entry 221 "conj(Real array)" "The real-array overload returns the identical array object without copying." "base/abstractarraymath.jl:221" ``P221 ``p221,
-  entry 245 "real(AbstractArray)" "This method specifically calls broadcast_preserving_zero_d with real and the actual array." "base/abstractarraymath.jl:245" ``P245 ``p245,
-  entry 246 "real(Real array)" "The real-array overload returns the identical array object without copying." "base/abstractarraymath.jl:246" ``P246 ``p246,
-  entry 269 "imag(AbstractArray)" "This method specifically calls broadcast_preserving_zero_d with imag and the actual array." "base/abstractarraymath.jl:269" ``P269 ``p269,
-  entry 293 "-(AbstractArray)" "This method specifically calls broadcast_preserving_zero_d with unary minus and the actual array." "base/abstractarraymath.jl:293" ``P293 ``p293,
-  entry 295 "+(Number array)" "Unary plus returns the identical numeric array object." "base/abstractarraymath.jl:295" ``P295 ``p295,
-  entry 296 "*(numeric matrix)" "Unary multiplication returns the identical numeric matrix object." "base/abstractarraymath.jl:296" ``P296 ``p296,
-  entry 328 "_selectdim" "The method distinguishes the below-one ArgumentError from the trailing-dimension BoundsError, preserves failing comparisons, and views only accepted inputs." "base/abstractarraymath.jl:328-333" ``P328 ``p328,
-  entry 335 "circshift(AbstractArray,Real)" "The Real overload allocates similar(a) before converting the shift and then calls circshift! with the singleton tuple." "base/abstractarraymath.jl:335-337" ``P335 ``p335,
-  entry 411 "circshift(AbstractArray,generic)" "The generic overload allocates similar(a) before splatting and converting every shift and then calls circshift!." "base/abstractarraymath.jl:411-413" ``P411 ``p411,
-  entry 496 "to_tuple(iterator)" "The generic conversion consumes the iterator in order and splats the collected values into tuple construction." "base/abstractarraymath.jl:496" ``P496 ``p496,
-  entry 498 "pad(a,b)" "Two-way padding reads both lengths, constructs Val(max), and calls fill_to_length with fill value one for both inputs." "base/abstractarraymath.jl:498-501" ``P498 ``p498,
-  entry 502 "pad(a,b,c)" "Three-way padding reads all lengths, constructs Val(max), and calls fill_to_length with fill value one for every input." "base/abstractarraymath.jl:502-505" ``P502 ``p502,
-  entry 526 "repeat check" "Validation traverses every heterogeneous count with isa(Integer), then negativity and rank checks in source order for inner and outer." "base/abstractarraymath.jl:526-552" ``P526 ``p526,
-  entry 559 "repeat_outer(matrix)" "Matrix repetition reads both dimensions, checked-multiplies both output dimensions, allocates, and assigns the whole source matrix to every exact output block." "base/abstractarraymath.jl:559-571" ``P559 ``p559,
-  entry 573 "repeat_outer(vector)" "Vector repetition checked-multiplies output length, allocates, constructs every exact destination slice, and assigns the whole source vector." "base/abstractarraymath.jl:573-581" ``P573 ``p573,
-  entry 583 "repeat_outer(general)" "General outer repetition reads size, checked-multiplies each dimension, allocates, traverses both Cartesian spaces, computes i+d*(j-1), and copies each source element." "base/abstractarraymath.jl:583-597" ``P583 ``p583,
-  entry 599 "repeat_inner" "Inner repetition reads size, checked-multiplies each dimension, allocates, traverses both Cartesian spaces, computes (i-1)*d+j, and copies each source element." "base/abstractarraymath.jl:599-612" ``P599 ``p599
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.AbstractArrayMathFaithful

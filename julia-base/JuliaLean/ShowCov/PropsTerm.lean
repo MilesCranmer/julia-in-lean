@@ -190,11 +190,49 @@ def ExtendedLabels : Prop :=
   ∀ name : List UInt8, name ≠ [] → (0 : UInt8) ∉ name → name.length < 64 →
     (readRaw (flagOnlyFile name)).map (·.extended) = .ok (some [(name, .bool true)])
 
-theorem extendedLabels_refuted : ¬ ExtendedLabels := by
+/-- The same property for the previous nightly's parser. -/
+def ExtendedLabelsHistorical : Prop :=
+  ∀ name : List UInt8, name ≠ [] → (0 : UInt8) ∉ name → name.length < 64 →
+    (readRawHistorical (flagOnlyFile name)).map (·.extended) = .ok (some [(name, .bool true)])
+
+theorem extendedLabels_refuted : ¬ ExtendedLabelsHistorical := by
   intro h
   have := h [0x41, 0x58] (by decide) (by decide) (by decide)
   revert this
   decide
+
+theorem extendedLabels_proven : ExtendedLabels := by
+  intro name hn hz hl
+  have hlen : (2 : Int) ≤ (name.length : Int) + 17 + 1 := by omega
+  have h16 : le16 (name.length + 1) = [(name.length + 1).toUInt8, 0] := by
+    have hi : (0 : Int) ≤ (name.length : Int) + 1 := by omega
+    have hi' : (name.length : Int) + 1 < 65536 := by omega
+    have hn' : name.length + 1 < 256 := by omega
+    simp [le16, Int.emod_eq_of_lt hi hi', Nat.mod_eq_of_lt hn', Nat.div_eq_of_lt hn']
+  simp only [flagOnlyFile, h16]
+  have hn256 : name.length + 1 < 256 := by omega
+  have hi256 : (name.length : Int) + 1 < 256 := by omega
+  have hi0 : (0 : Int) ≤ (name.length : Int) + 1 := by omega
+  have hlen2 : (1 : Int) ≤ (name.length : Int) + 5 := by omega
+  have hbound : name.length + 1 < 32768 := by omega
+  have ht : (name ++ [0]).take (name.length + 1) = name ++ [0] := by
+    exact List.take_of_length_le (by simp)
+  have htw : ∀ n : List UInt8, (0 : UInt8) ∉ n →
+      (n ++ [0]).takeWhile (fun x => !decide (x = 0)) = n := by
+    intro n
+    induction n with
+    | nil => simp
+    | cons b bs ih =>
+      intro h
+      have hh : (0 : UInt8) ≠ b ∧ (0 : UInt8) ∉ bs := by simpa using h
+      have hb : b ≠ 0 := Ne.symm hh.1
+      simp [hb, ih hh.2]
+  have hnonneg : ¬ ((name.length : Int) + 1 < 0) := by omega
+  simp [flagOnlyFile, le16, readRaw, readRawAt, readU16, readI16, readU8, readExact,
+    Rd.rest, Rd.eof, leSigned, alignEven, extendedterminfo, reinterpretInts,
+    reinterpretIntsF, readStrings, readString, cstringAt, extendedNamesOffset,
+    dictOfPairs, splitBar, hz, hn, hlen, hlen2, Nat.mod_eq_of_lt hn256,
+    Int.emod_eq_of_lt hi0 hi256, hbound, hnonneg, ht, htw name hz, Except.map]
 
 /-- `_terminfo_read_strings`: indices `-1` and `-2` give `nothing`, smaller ones
 throw `ArgumentError`, and a nonnegative index gives the NUL-free bytes up to
@@ -254,7 +292,7 @@ theorem termInfoStrings_proven : TermInfoStrings := by
   · intro h0 hz
     simp [readString, h0, cstringAt, hz]
   · intro h1 h2
-    simp [readRaw, readU16, Rd.rest, h1, h2]
+    simp [readRaw, readRawAt, readU16, Rd.rest, h1, h2]
 
 /-- `TermInfo` lookups: a key held by `flags`, `numbers` or `strings` is
 returned directly (in that order), an absent key throws `KeyError`, `get`
@@ -331,40 +369,63 @@ succeeds, and rethrows other errors (`base/terminfo.jl:281-298`). -/
 def TerminfoLoading : Prop :=
   ∀ (e : Env) (lower : String → String) (term : String) (readFile : String → ReadResult)
     (conv : Raw → TI) (p : String),
-    findTerminfoFile e lower "" = none ∧
-    (findTerminfoFile e lower term = some p → e.isfile p = true) ∧
-    (findTerminfoFile e lower term = none → loadTerminfo e lower readFile conv term = .info blank) ∧
-    (findTerminfoFile e lower term = some p →
+    findTerminfoFile e lower "" = .ok none ∧
+    (findTerminfoFile e lower term = .ok (some p) → statCheck e.isfile p = .ok true) ∧
+    (findTerminfoFile e lower term = .ok none → loadTerminfo e lower readFile conv term = .info blank) ∧
+    (findTerminfoFile e lower term = .ok (some p) →
       (readFile p = .argumentError ∨ readFile p = .ioError) →
       loadTerminfo e lower readFile conv term = .info blank) ∧
-    (findTerminfoFile e lower term = some p → ∀ raw, readFile p = .ok raw →
+    (findTerminfoFile e lower term = .ok (some p) → ∀ raw, readFile p = .ok raw →
       loadTerminfo e lower readFile conv term = .info (conv raw)) ∧
-    (findTerminfoFile e lower term = some p → readFile p = .otherError →
+    (findTerminfoFile e lower term = .ok (some p) → readFile p = .otherError →
       loadTerminfo e lower readFile conv term = .rethrown)
 
+theorem findTerminfoFile_go_isfile (e : Env) (lower : String → String)
+    (term chr hex p : String) (dirs : List String)
+    (h : findTerminfoFile.go e lower term chr hex dirs = .ok (some p)) :
+    statCheck e.isfile p = .ok true := by
+  induction dirs with
+  | nil => simp [findTerminfoFile.go, pure, Except.pure] at h
+  | cons d ds ih =>
+    simp only [findTerminfoFile.go, bind, Except.bind, pure, Except.pure] at h
+    cases h1 : statCheck e.isfile (joinpath [d, chr, term]) with
+    | error err => simp [h1, Except.bind] at h
+    | ok b =>
+      cases b with
+      | true => simp [h1, Except.bind, pure] at h; subst p; exact h1
+      | false =>
+        cases h2 : statCheck e.isfile (joinpath [d, hex, term]) with
+        | error err => simp [h1, h2, Except.bind] at h
+        | ok b =>
+          cases b with
+          | true => simp [h1, h2, Except.bind, pure] at h; subst p; exact h2
+          | false =>
+            cases h3 : statCheck e.isfile (joinpath [d, lower chr, lower term]) with
+            | error err => simp [h1, h2, h3, Except.bind] at h
+            | ok b =>
+              cases b with
+              | true => simp [h1, h2, h3, Except.bind, pure] at h; subst p; exact h3
+              | false => apply ih; simpa [h1, h2, h3, Except.bind] using h
+
 theorem findTerminfoFile_isfile (e : Env) (lower : String → String) (term p : String)
-    (h : findTerminfoFile e lower term = some p) : e.isfile p = true := by
+    (h : findTerminfoFile e lower term = .ok (some p)) :
+    statCheck e.isfile p = .ok true := by
   unfold findTerminfoFile at h
   split at h
-  · simp at h
-  · rename_i c cs _
-    generalize searchDirs e = dirs at h
-    induction dirs with
-    | nil => simp [findTerminfoFile.go] at h
-    | cons d ds ih =>
-      simp only [findTerminfoFile.go] at h
-      split at h
-      · rename_i hf; cases h; exact hf
-      · split at h
-        · rename_i _ hf; cases h; exact hf
-        · split at h
-          · rename_i _ _ hf; cases h; exact hf
-          · exact ih h
+  · simp [pure, Except.pure] at h
+  · split at h
+    · simp [pure, Except.pure] at h
+    · simp only [bind, Except.bind] at h
+      cases hd : searchDirs e with
+      | error err => simp [hd] at h
+      | ok dirs =>
+        apply findTerminfoFile_go_isfile e lower term _ _ p dirs
+        simpa [hd] using h
 
 theorem terminfoLoading_proven : TerminfoLoading := by
   intro e lower term readFile conv p
   refine ⟨?_, findTerminfoFile_isfile e lower term p, ?_, ?_, ?_, ?_⟩
-  · simp [findTerminfoFile]
+  · simp [findTerminfoFile, pure, Except.pure]
   · intro h; simp [loadTerminfo, h]
   · intro h hr; rcases hr with hr | hr <;> simp [loadTerminfo, h, hr]
   · intro h raw hr; simp [loadTerminfo, h, hr]

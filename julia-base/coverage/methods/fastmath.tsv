@@ -44,17 +44,17 @@ base/fastmath.jl	233	234	eq_fast	eq_fast(x::T, y::T) where {T<:ComplexTypes}	mod
 base/fastmath.jl	235	236	eq_fast	eq_fast(x::Complex{T}, b::T) where {T<:FloatTypes}	modelled	nummisc-coverage-fastmath-complex	method-mirror: Coverage.cEqScalarRight with an all-input conjunct in nummisc-coverage-fastmath-complex.
 base/fastmath.jl	237	238	eq_fast	eq_fast(a::T, y::Complex{T}) where {T<:FloatTypes}	modelled	nummisc-coverage-fastmath-complex	method-mirror: Coverage.cEqScalarLeft with an all-input conjunct in nummisc-coverage-fastmath-complex.
 base/fastmath.jl	240	240	ne_fast	ne_fast(x::T, y::T) where {T<:ComplexTypes}	modelled	nummisc-coverage-fastmath-complex	method-mirror: Coverage.cNeFast with an all-input conjunct in nummisc-coverage-fastmath-complex.
-base/fastmath.jl	250	250	$op_fast	$op_fast(xs...)	modelled	nummisc-coverage-fastmath-scalar	method-mirror: Coverage.fallbackVarargsTerm with an all-input conjunct in nummisc-coverage-fastmath-scalar.
-base/fastmath.jl	258	258	$op_fast	$op_fast(xs...)	modelled	nummisc-coverage-fastmath-scalar	method-mirror: Coverage.fallbackVarargsTerm with an all-input conjunct in nummisc-coverage-fastmath-scalar.
-base/fastmath.jl	260	261	$op_fast	$op_fast(x::Number, y::Number, zs::Number...)	modelled	nummisc-coverage-fastmath-scalar	method-mirror: Coverage.promoteVarargsTerm with an all-input conjunct in nummisc-coverage-fastmath-scalar.
-base/fastmath.jl	263	263	$op_fast	$op_fast(x::T,ys::T...) where {T<:Number}	modelled	nummisc-coverage-fastmath-scalar	method-mirror: Coverage.fallbackVarargsTerm with an all-input conjunct in nummisc-coverage-fastmath-scalar.
-base/fastmath.jl	270	270	$op_fast	$op_fast(x)	modelled	nummisc-coverage-fastmath-scalar	method-mirror: Coverage.fallbackVarargsTerm with an all-input conjunct in nummisc-coverage-fastmath-scalar.
-base/fastmath.jl	272	272	$op_fast	$op_fast(x, y)	modelled	nummisc-coverage-fastmath-scalar	method-mirror: Coverage.fallbackVarargsTerm with an all-input conjunct in nummisc-coverage-fastmath-scalar.
-base/fastmath.jl	274	275	$op_fast	$op_fast(x::Number, y::Number)	modelled	nummisc-coverage-fastmath-scalar	method-mirror: Coverage.promoteBinaryTerm with an all-input conjunct in nummisc-coverage-fastmath-scalar.
-base/fastmath.jl	277	277	$op_fast	$op_fast(x::T,y::T) where {T<:Number}	modelled	nummisc-coverage-fastmath-scalar	method-mirror: Coverage.fallbackVarargsTerm with an all-input conjunct in nummisc-coverage-fastmath-scalar.
-base/fastmath.jl	281	281	$op_fast	($op_fast)(a, b, c, xs...)	modelled	nummisc-coverage-fastmath-scalar	method-mirror: Coverage.naryFoldTerm with an all-input conjunct in nummisc-coverage-fastmath-scalar.
-base/fastmath.jl	286	287	$op_fast	$op_fast(a::Number, b::Number, c::Number, xs::Number...)	modelled	nummisc-coverage-fastmath-scalar	method-mirror: Coverage.promoteNaryTerm with an all-input conjunct in nummisc-coverage-fastmath-scalar.
-base/fastmath.jl	289	289	$op_fast	$op_fast(a::T, b::T, c::T, xs::T...) where {T<:Number}	modelled	nummisc-coverage-fastmath-scalar	method-mirror: Coverage.naryFoldTerm with an all-input conjunct in nummisc-coverage-fastmath-scalar.
+base/fastmath.jl	250	250	$op_fast	$op_fast(xs...)	todo		generated-loop: op in (:abs, :abs2, :conj, :inv, :sign)
+base/fastmath.jl	258	258	$op_fast	$op_fast(xs...)	todo		generated-loop: op in (:-, :/, :(==), :!=, :<, :<=, :cmp, :rem, :minmax)
+base/fastmath.jl	260	261	$op_fast	$op_fast(x::Number, y::Number, zs::Number...)	todo		generated-loop: op in (:-, :/, :(==), :!=, :<, :<=, :cmp, :rem, :minmax)
+base/fastmath.jl	263	263	$op_fast	$op_fast(x::T,ys::T...) where {T<:Number}	todo		generated-loop: op in (:-, :/, :(==), :!=, :<, :<=, :cmp, :rem, :minmax)
+base/fastmath.jl	270	270	$op_fast	$op_fast(x)	todo		generated-loop: op in (:+, :*, :min, :max)
+base/fastmath.jl	272	272	$op_fast	$op_fast(x, y)	todo		generated-loop: op in (:+, :*, :min, :max)
+base/fastmath.jl	274	275	$op_fast	$op_fast(x::Number, y::Number)	todo		generated-loop: op in (:+, :*, :min, :max)
+base/fastmath.jl	277	277	$op_fast	$op_fast(x::T,y::T) where {T<:Number}	todo		generated-loop: op in (:+, :*, :min, :max)
+base/fastmath.jl	281	281	$op_fast	($op_fast)(a, b, c, xs...)	todo		generated-loop: op in (:+, :*, :min, :max)
+base/fastmath.jl	286	287	$op_fast	$op_fast(a::Number, b::Number, c::Number, xs::Number...)	todo		generated-loop: op in (:+, :*, :min, :max)
+base/fastmath.jl	289	289	$op_fast	$op_fast(a::T, b::T, c::T, xs::T...) where {T<:Number}	todo		generated-loop: op in (:+, :*, :min, :max)
 base/fastmath.jl	294	294	exp2_fast	exp2_fast(x::Union{Float32,Float64})	modelled	nummisc-coverage-fastmath-scalar	method-mirror: Coverage.exp2FastTerm with an all-input conjunct in nummisc-coverage-fastmath-scalar.
 base/fastmath.jl	295	295	exp_fast	exp_fast(x::Union{Float32,Float64})	modelled	nummisc-coverage-fastmath-scalar	method-mirror: Coverage.expFastTerm with an all-input conjunct in nummisc-coverage-fastmath-scalar.
 base/fastmath.jl	296	296	exp10_fast	exp10_fast(x::Union{Float32,Float64})	modelled	nummisc-coverage-fastmath-scalar	method-mirror: Coverage.exp10FastTerm with an all-input conjunct in nummisc-coverage-fastmath-scalar.
@@ -100,11 +100,11 @@ base/fastmath.jl	363	363	sinh_fast	sinh_fast(x::T) where {T<:ComplexTypes}	model
 base/fastmath.jl	364	364	sqrt_fast	sqrt_fast(x::ComplexTypes)	modelled	nummisc-coverage-fastmath-complex	method-mirror: Coverage.cSqrtFast with an all-input conjunct in nummisc-coverage-fastmath-complex.
 base/fastmath.jl	365	365	tan_fast	tan_fast(x::ComplexTypes)	modelled	nummisc-coverage-fastmath-complex	method-mirror: Coverage.cTanFast with an all-input conjunct in nummisc-coverage-fastmath-complex.
 base/fastmath.jl	366	366	tanh_fast	tanh_fast(x::ComplexTypes)	modelled	nummisc-coverage-fastmath-complex	method-mirror: Coverage.cTanhFast with an all-input conjunct in nummisc-coverage-fastmath-complex.
-base/fastmath.jl	377	377	$f_fast	$f_fast(x)	modelled	nummisc-coverage-fastmath-complex	method-mirror: Coverage.unaryMathFallbackTerm with an all-input conjunct in nummisc-coverage-fastmath-complex.
-base/fastmath.jl	385	385	$f_fast	$f_fast(x, y)	modelled	nummisc-coverage-fastmath-complex	method-mirror: Coverage.binaryMathFallbackTerm with an all-input conjunct in nummisc-coverage-fastmath-complex.
-base/fastmath.jl	387	387	$f_fast	$f_fast(x::Number, y::Number)	modelled	nummisc-coverage-fastmath-complex	method-mirror: Coverage.binaryMathPromoteTerm with an all-input conjunct in nummisc-coverage-fastmath-complex.
-base/fastmath.jl	389	389	$f_fast	$f_fast(x::T, y::T) where {T<:Number}	modelled	nummisc-coverage-fastmath-complex	method-mirror: Coverage.binaryMathFallbackTerm with an all-input conjunct in nummisc-coverage-fastmath-complex.
-base/fastmath.jl	393	393	$f_fast	$f_fast(x::Number, y::Integer)	modelled	nummisc-coverage-fastmath-complex	method-mirror: Coverage.powerNumberIntegerFallbackTerm with an all-input conjunct in nummisc-coverage-fastmath-complex.
+base/fastmath.jl	377	377	$f_fast	$f_fast(x)	todo		generated-loop: f in (:acos, :acosh, :angle, :asin, :asinh, :atan, :atanh, :cbrt, :cis, :cos, :cosh, :exp10, :exp2, :exp, :expm1, :log10, :log1p, :log2, :log, :sin, :sinh, :sqrt, :tan, :tanh)
+base/fastmath.jl	385	385	$f_fast	$f_fast(x, y)	todo		generated-loop: f in (:^, :atan, :hypot, :log)
+base/fastmath.jl	387	387	$f_fast	$f_fast(x::Number, y::Number)	todo		generated-loop: f in (:^, :atan, :hypot, :log)
+base/fastmath.jl	389	389	$f_fast	$f_fast(x::T, y::T) where {T<:Number}	todo		generated-loop: f in (:^, :atan, :hypot, :log)
+base/fastmath.jl	393	393	$f_fast	$f_fast(x::Number, y::Integer)	todo		generated-loop: f in (:^, :atan, :hypot, :log)
 base/fastmath.jl	399	399	maximum_fast	maximum_fast(a; kw...)	modelled	nummisc-coverage-fastmath-complex	method-mirror: Coverage.maximumFastTerm with an all-input conjunct in nummisc-coverage-fastmath-complex.
 base/fastmath.jl	400	400	minimum_fast	minimum_fast(a; kw...)	modelled	nummisc-coverage-fastmath-complex	method-mirror: Coverage.minimumFastTerm with an all-input conjunct in nummisc-coverage-fastmath-complex.
 base/fastmath.jl	402	402	maximum_fast	maximum_fast(f, a; kw...)	modelled	nummisc-coverage-fastmath-complex	method-mirror: Coverage.maximumMapFastTerm with an all-input conjunct in nummisc-coverage-fastmath-complex.

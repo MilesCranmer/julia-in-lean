@@ -1,0 +1,55 @@
+id: c-runtime-page-acquire-zero-retained-scratch
+title: "Parallel sweep model frees scratch after a worker's pre-free base load"
+priority: P2
+kind: model-counterexample
+area: GC
+files: [src/gc-stock.c]
+functions: ["gc_sweep_pool_parallel", "gc_sweep_wait_for_all_pages", "gc_sweep_pool"]
+summary: |
+  The collecting thread completes its own sweep call and decrements the active
+  count to zero. A second worker then increments the count and loads the
+  concrete non-NULL scratch base before pausing ahead of the sweep loop. After
+  closing the scratch pointer, the collector's acquire load can read its own
+  earlier zero decrement rather than the later worker increment. The modeled
+  empty copy and merge then reach scratch deallocation while the worker remains
+  paused. Ghost history records the worker's earlier in-bounds base load.
+likelihood: |
+  Requires the acquire-zero load to miss a later sequentially consistent worker
+  increment. The memory projection is C11-consistent, data-race-free,
+  read-from typed and declaration typed. No current compiler or CPU
+  manifestation is known.
+maybe_intended: ""
+reproducer: |
+  println("NOT REPRODUCED c-runtime-page-acquire-zero-retained-scratch")
+  println("Formal C11 counterexample only; no deterministic Julia trigger is known.")
+output:
+  release: |
+    NOT RUN: formal C11 counterexample only.
+  nightly: |
+    NOT RUN: formal C11 counterexample only.
+reproduced: {release: false, nightly: false}
+expected: |
+  Once the collector accepts zero active sweep workers, no worker may retain
+  the old scratch pointer, and cleanup must preserve the scratch allocation
+  while execution history records a paused worker's earlier non-NULL base load.
+promised_by: |
+  The completion protocol at src/gc-stock.c:1449-1505 relies on the active
+  count and scratch pointer to exclude workers before the copy, merge and free
+  operations at src/gc-stock.c:1584-1635.
+cause: |
+  The worker increment and scratch load are sequentially consistent. The
+  acquire count load at src/gc-stock.c:1449-1452 can read the collecting
+  thread's earlier zero decrement at src/gc-stock.c:1505, which creates no
+  synchronizes-with edge from the later worker increment.
+possible_fix: |
+  If runtime evidence confirms this execution, strengthen the completion
+  handshake so the zero observation is ordered after every worker that can
+  load the old scratch allocation. The trace evaluates no post-free C pointer
+  value and stops before line 1471 pointer arithmetic, dereference or worker
+  decrement. It does not establish a use-after-free or crash.
+duplicates:
+  issues: []
+  queries: ["gc_n_threads_sweeping_pools gc_allocd_scratch", "page sweep scratch stale counter"]
+lean:
+  property: JuliaLean.CRuntime.PagePool.AcquireZeroExcludesRetainedScratch
+  theorem: JuliaLean.CRuntime.PagePool.AcquireZeroExcludesRetainedScratch_refuted

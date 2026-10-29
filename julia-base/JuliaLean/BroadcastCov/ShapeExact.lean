@@ -233,33 +233,6 @@ private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) 
     source := s!"base/broadcast.jl:{line}; source equation and broadcast-shape invariant",
     status := .proven, prop := prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 502 "combine_axes(A,B...)" "The vararg overload combines axes(A) with recursively combined trailing axes." ``P502 ``p502,
-  entry 503 "combine_axes(A,B)" "The binary overload combines axes(A) and axes(B)." ``P503 ``p503,
-  entry 504 "combine_axes(A)" "The unary overload returns axes(A)." ``P504 ``p504,
-  entry 521 "broadcast_shape(shape)" "A single shape is returned unchanged." ``P521 ``p521,
-  entry 522 "broadcast_shape(shape,shape1,shapes...)" "Multiple shapes combine the first pair before recursive combination." ``P522 ``p522,
-  entry 524 "_bcs((),())" "Two empty shapes combine to empty." ``P524 ``p524,
-  entry 525 "_bcs((),newshape)" "An empty left shape copies the right head before recursing." ``P525 ``p525,
-  entry 526 "_bcs(shape,())" "An empty right shape copies the left head before recursing." ``P526 ``p526,
-  entry 527 "_bcs(shape,newshape)" "The general case combines heads before recursively combining tails." ``P527 ``p527,
-  entry 531 "_bcs1(::Integer,::Integer)" "Integer extents expand singleton values and reject incompatible lengths in branch order." ``P531 ``p531,
-  entry 532 "_bcs1(::Integer,b)" "An integer extent accepts one or an exactly matching one-based axis." ``P532 ``p532,
-  entry 533 "_bcs1(a,::Integer)" "The reversed mixed overload swaps its arguments." ``P533 ``p533,
-  entry 534 "_bcs1(a,b)" "The general axis method tests reverse compatibility before forward compatibility." ``P534 ``p534,
-  entry 536 "_bcsm(a,b)" "Axis matching accepts equality or a singleton second axis." ``P536 ``p536,
-  entry 537 "_bcsm(a,::Number)" "A numeric second extent matches exactly one." ``P537 ``p537,
-  entry 538 "_bcsm(::Number,::Number)" "Numeric extents match equality or a singleton second value." ``P538 ``p538,
-  entry 542 "axistype(a::T,b::T)" "Equal axis types preserve the first value." ``P542 ``p542,
-  entry 543 "axistype(::OneTo,::OneTo)" "Two OneTo axes convert the first to OneTo{Int}." ``P543 ``p543,
-  entry 544 "axistype(a,b)" "The fallback converts the first axis to UnitRange{Int}." ``P544 ``p544,
-  entry 548 "check_broadcast_shape(shape)" "A destination shape alone needs no check." ``P548 ``p548,
-  entry 549 "check_broadcast_shape(shape,())" "An empty source shape needs no check." ``P549 ``p549,
-  entry 550 "check_broadcast_shape((),())" "Two empty shapes need no check." ``P550 ``p550,
-  entry 551 "check_broadcast_shape((),Ashp)" "Extra source axes must all be singleton." ``P551 ``p551,
-  entry 557 "check_broadcast_shape(shape,Ashp)" "The general check validates heads before recursively validating tails." ``P557 ``p557,
-  entry 561 "check_broadcast_axes(shape,A)" "The array overload checks shape against axes(A)." ``P561 ``p561,
-  entry 563 "check_broadcast_axes(shape,A,As...)" "The vararg overload checks A before recursively checking As." ``P563 ``p563
-]
+def entries : List Entry := []
 
 end JuliaLean.BroadcastCov.ShapeExact

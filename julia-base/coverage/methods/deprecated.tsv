@@ -2,7 +2,7 @@ file	line	endline	name	signature	status	entry	note
 base/deprecated.jl	110	113	__has_internal_change	__has_internal_change(version_or::VersionNumber, change_name::Symbol)	modelled	misccov-deprecated-internal-change	
 base/deprecated.jl	179	231	deprecate	deprecate(old, new, export_old=true)	modelled	misccov-deprecated-macro	
 base/deprecated.jl	180	188	cannot_export_nonsymbol	cannot_export_nonsymbol()	modelled	misccov-deprecated-macro	generated-macro: deprecate
-base/deprecated.jl	222	226	$(esc(old))	$(esc(old))(args...; kwargs...)	excluded		deprecated: compatibility definition retained only for deprecated behavior
+base/deprecated.jl	222	226	$(esc(old))	$(esc(old))(args...; kwargs...)	todo		generated-macro: deprecate
 base/deprecated.jl	253	259	depwarn	depwarn(msg, funcsym; force::Bool=false)	modelled	misccov-depwarn	
 base/deprecated.jl	260	289	_depwarn	_depwarn(msg, funcsym, force::Bool)	modelled	misccov-depwarn	
 base/deprecated.jl	291	291	firstcaller	firstcaller(bt::Vector, ::Nothing)	modelled	misccov-depwarn	

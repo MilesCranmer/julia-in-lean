@@ -208,27 +208,6 @@ private def entry (line : Nat) (slug fn statement source : String)
   { id := s!"abstractarraycov-line{line}-{slug}", juliaFile := "base/abstractarray.jl",
     juliaFns := [fn], statement, source, status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 2967 "stack" "stack(iter;dims)" "Public stack delegates to _stack with dims." "base/abstractarray.jl:2967" ``Property2967 ``property2967,
-  entry 2996 "stack-map" "stack(f,iter;dims)" "Mapped stack lazily maps f before _stack." "base/abstractarray.jl:2996" ``Property2996 ``property2996,
-  entry 2997 "stack-zip-map" "stack(f,xs,yzs...;dims)" "Multi-input stack zips, maps f, then calls _stack." "base/abstractarray.jl:2997" ``Property2997 ``property2997,
-  entry 2999 "stack-dispatch" "_stack(dims,iter)" "The wrapper computes IteratorSize before dispatch." "base/abstractarray.jl:2999" ``Property2999 ``property2999,
-  entry 3001 "stack-collect" "_stack(dims,::IteratorSize,iter)" "Unknown-size stack collects once before dispatch." "base/abstractarray.jl:3001" ``Property3001 ``property3001,
-  entry 3003 "stack-shaped" "_stack(dims,::HasShapeOrLength,iter)" "The method selects concrete element type directly or collects once, rejects empty, promotes, and dispatches." "base/abstractarray.jl:3003-3014" ``Property3003 ``property3003,
-  entry 3016 "typed-stack-colon" "_typed_stack(:,T,S,A,Aax)" "Colon stack rejects empty input, derives slice axes, allocates combined axes, and copies slices in order." "base/abstractarray.jl:3016-3032" ``Property3016 ``property3016,
-  entry 3034 "iterator-axes" "_iterator_axes(x)" "The wrapper computes IteratorSize before dispatch." "base/abstractarray.jl:3034" ``Property3034 ``property3034,
-  entry 3035 "iterator-axes-length" "_iterator_axes(x,::HasLength)" "Length-only iterators use a singleton OneTo axis." "base/abstractarray.jl:3035" ``Property3035 ``property3035,
-  entry 3036 "iterator-axes" "_iterator_axes(x,::IteratorSize)" "Other iterators delegate to axes." "base/abstractarray.jl:3036" ``Property3036 ``property3036,
-  entry 3039 "typed-stack-dispatch" "_typed_stack(dims,T,S,A)" "The wrapper computes IteratorSize(S) before dispatch." "base/abstractarray.jl:3039-3040" ``Property3039 ``property3039,
-  entry 3041 "typed-stack-shaped" "_typed_stack(dims,T,S,::HasShape,A)" "The shape method selects colon stack exactly at rank plus one and dimensional stack otherwise." "base/abstractarray.jl:3041-3047" ``Property3041 ``property3041,
-  entry 3048 "typed-stack-fallback" "_typed_stack(dims,T,S,::IteratorSize,A)" "The fallback delegates to _dim_stack." "base/abstractarray.jl:3048-3049" ``Property3048 ``property3048,
-  entry 3051 "vec-axis" "_vec_axis" "One iterator axis is preserved; several collapse to OneTo of the product." "base/abstractarray.jl:3051" ``Property3051 ``property3051,
-  entry 3053 "dim-stack" "_dim_stack" "The method peels once, rejects empty or invalid dimension, inserts the collection axis, allocates, then fills." "base/abstractarray.jl:3053-3073" ``Property3053 ``property3053,
-  entry 3075 "dim-stack-fill" "_dim_stack!" "The fill writes the first slice, then validates and writes remaining slices at incrementing indices." "base/abstractarray.jl:3075-3087" ``Property3075 ``property3075,
-  entry 3089 "stack-size-check" "_stack_size_check" "The helper succeeds exactly for equal iterator axes and throws otherwise." "base/abstractarray.jl:3089-3096" ``Property3089 ``property3089,
-  entry 3098 "ensure-array" "_ensure_array(::AbstractArray)" "An array is returned unchanged." "base/abstractarray.jl:3098" ``Property3098 ``property3098,
-  entry 3099 "ensure-array" "_ensure_array(x)" "A nonarray supplies the empty range sentinel for allocation." "base/abstractarray.jl:3099" ``Property3099 ``property3099,
-  entry 3101 "empty-stack" "_empty_stack" "Empty stack always throws the documented ArgumentError." "base/abstractarray.jl:3101" ``Property3101 ``property3101
-]
+def entries : List Entry := []
 
 end JuliaLean.AbstractArrayCov.Rows.Stack

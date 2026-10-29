@@ -1,0 +1,46 @@
+id: c-runtime-page-next-data-race
+title: "GC page-stack rollback races with a concurrent next-pointer read"
+priority: P2
+kind: model-counterexample
+area: GC
+files: [src/gc-pages.c, src/gc-stock.h]
+functions: ["jl_gc_alloc_page", "push_lf_back", "pop_lf_back"]
+summary: |
+  A stalled page-stack pop can read a metadata node's plain next field while
+  the Windows failed-commit rollback writes that same field before re-pushing
+  the node. The accesses have no happens-before relation and form a C11 data race.
+likelihood: |
+  Requires concurrent allocation plus Windows MEM_COMMIT failure during page
+  reuse. No post-race runtime outcome or deterministic trigger is established.
+maybe_intended: ""
+reproducer: |
+  println("NOT REPRODUCED c-runtime-page-next-data-race")
+  println("Formal C11 data-race counterexample only; no deterministic Julia trigger is known.")
+output:
+  release: |
+    NOT RUN: formal C11 counterexample only.
+  nightly: |
+    NOT RUN: formal C11 counterexample only.
+reproduced: {release: false, nightly: false}
+expected: |
+  Concurrent page-stack operations must not perform conflicting unordered
+  accesses to a metadata node's next field.
+promised_by: |
+  Invariant: Julia's C runtime must be data-race-free on metadata used by its
+  lock-free page stacks.
+cause: |
+  pop_lf_back reads old_back->next at src/gc-stock.h:220-225. The rollback
+  push writes elt->next at src/gc-stock.h:182-184 after src/gc-pages.c:171-174
+  reintroduces the same node.
+possible_fix: |
+  Prevent same-epoch reinsertion on commit failure, or make the stack node
+  protocol safe against concurrent next-field reuse.
+duplicates:
+  issues:
+    - {number: 64149, state: open, relation: duplicate}
+    - {number: 62162, state: merged, relation: related}
+    - {number: 62274, state: merged, relation: related}
+  queries: ["MEM_COMMIT global_page_pool_freed", "gc page pool ABA commit failure"]
+lean:
+  property: JuliaLean.CRuntime.PagePool.PageNextDataRaceFreedom
+  theorem: JuliaLean.CRuntime.PagePool.PageNextDataRaceFreedom_refuted

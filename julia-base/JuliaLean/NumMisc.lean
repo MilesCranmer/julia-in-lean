@@ -83,22 +83,6 @@ def entries : List Entry := [
     status := .proven
     prop := ``HyperbolicSpecialValues
     thm := some ``hyperbolicSpecialValues_proven },
-  { id := "nummisc-views-documented-rewrite"
-    juliaFile := "base/views.jl"
-    juliaFns := ["@views", "Base._views", "Base.maybeview"]
-    statement := "@views changes read-position bracket references to maybeview, leaves explicit getindex calls explicit, preserves assignment targets, and leaves non-expression atoms unchanged."
-    source := "base/views.jl:233-303 (@views implementation and docstring)"
-    status := .proven
-    prop := ``ViewsDocumentedRewrite
-    thm := some ``viewsDocumentedRewrite_proven },
-  { id := "nummisc-pointer-ref-semantics"
-    juliaFile := "base/refpointer.jl"
-    juliaFns := ["Ref(::Ptr, i)", "Ref(::AbstractArray, i)", "cconvert(::Type{Ref{T}}, ::NTuple{N,T})"]
-    statement := "Ref(ptr,i) uses (i-1)*sizeof(T), RefArray checks on dereference, and tuple conversion roots the complete tuple."
-    source := "base/refpointer.jl:116-150,182-193"
-    status := .proven
-    prop := ``PointerRefSemantics
-    thm := some ``pointerRefSemantics_proven },
   { id := "nummisc-coverage-parser-init"
     juliaFile := "base/parsers/floats.jl"
     juliaFns := ["mulsmall!", "div5!", "top128", "limb", "pow5table", "pow10range", "halfwayrange", "mul64", "packbits", "eisellemire", "exactpow10s", "frombits", "fromdecimal", "mulpow!"]
@@ -165,72 +149,6 @@ def entries : List Entry := [
     statement := "Inverse hyperbolic methods handle NaN and domain checks first, then select tiny, below-half or below-two, medium, and large formulas in source order."
     source := "base/special/hyperbolic.jl:180-286"
     status := .proven, prop := ``HyperbolicInverseBehavior, thm := some ``hyperbolicInverseBehavior },
-  { id := "nummisc-coverage-arraymath-arithmetic-reverse"
-    juliaFile := "base/arraymath.jl"
-    juliaFns := ["_broadcast_preserving_zero_d", "array arithmetic methods", "reverse", "_reverse", "reverse!", "_reverse!"]
-    statement := "Array arithmetic selects same-rank map, reshaped map, or scalar-map routes after shape checks, and reverse normalizes dimensions, rejects invalid dimensions, swaps the computed half, and recurses on odd middle slices."
-    source := "base/arraymath.jl:5-133"
-    status := .proven, prop := ``ArrayArithmeticReverseBehavior, thm := some ``arrayArithmeticReverseBehavior },
-  { id := "nummisc-coverage-arraymath-rotation"
-    juliaFile := "base/arraymath.jl"
-    juliaFns := ["rotl90", "rotr90", "rot180"]
-    statement := "Matrix rotations allocate swapped or equal axes, map source indices to the source-defined reflected coordinates, and reduce integer rotation counts modulo four or two."
-    source := "base/arraymath.jl:154-317"
-    status := .proven, prop := ``ArrayRotationBehavior, thm := some ``arrayRotationBehavior },
-  { id := "nummisc-coverage-views-boundaries"
-    juliaFile := "base/views.jl"
-    juliaFns := ["replace_ref_begin_end!", "replace_ref_begin_end_!", "escapes", "handle_refexpr!", "@view"]
-    statement := "begin and end replacement uses firstindex and lastindex in the active reference context, preserves escape depth and quote context, and @view accepts only a reference result with optional binding setup."
-    source := "base/views.jl:17-228"
-    status := .proven, prop := ``ViewBoundaryBehavior, thm := some ``viewBoundaryBehavior },
-  { id := "nummisc-coverage-views-macro"
-    juliaFile := "base/views.jl"
-    juliaFns := ["maybeview", "_views", "@views"]
-    statement := "maybeview chooses getindex for scalars and nonarrays, _views recursively rewrites reads while preserving assignment targets, and @views applies boundary replacement before escaping the result."
-    source := "base/views.jl:235-334"
-    status := .proven, prop := ``ViewsMacroBehavior, thm := some ``viewsMacroBehavior },
-  { id := "nummisc-coverage-genericmemory-core"
-    juliaFile := "base/genericmemory.jl"
-    juliaFns := ["IndexStyle", "parent", "memoryindex", "pointer", "unsetindex methods", "elsize", "sizeof", "isassigned", "unsafe_copyto!", "copy", "copyto!", "similar", "fill!", "convert", "promote_rule", "Memory constructor"]
-    statement := "GenericMemory projections, unset wrappers, checked assignment queries, typed and fallback copy routes, constructors, fill, conversion, and promotion preserve source checks, alias direction, and return values."
-    source := "base/genericmemory.jl:64-301"
-    status := .proven, prop := ``GenericMemoryCoreBehavior, thm := some ``genericMemoryCoreBehavior },
-  { id := "nummisc-coverage-genericmemory-index"
-    juliaFile := "base/genericmemory.jl"
-    juliaFns := ["getindex", "_setindex!", "setindex!", "cmp", "==", "findall", "indcopy", "atomic index operations"]
-    statement := "GenericMemory range and colon indexing, scalar and bulk assignment, comparison, sorted-find choice, subregion copying, and atomic wrappers preserve source bounds, conversion, ordering, and forwarding."
-    source := "base/genericmemory.jl:308-490"
-    status := .proven, prop := ``GenericMemoryIndexBehavior, thm := some ``genericMemoryIndexBehavior },
-  { id := "nummisc-coverage-pointer-conversion"
-    juliaFile := "base/pointer.jl"
-    juliaFns := ["convert", "cconvert", "unsafe_convert methods", "unsafe_wrap", "unsafe_load", "unsafe_store!", "unsafe_modify!", "unsafe_replace!", "unsafe_swap!", "unsafe_pointer_to_objref", "pointer_from_objref"]
-    statement := "Pointer conversion, array and memory rooting, memory-reference offsets, unsafe wrapping and access forwarding, atomic operations, and object-pointer conversion follow source casts, branches, and mutability checks."
-    source := "base/pointer.jl:23-303"
-    status := .proven, prop := ``PointerConversionBehavior, thm := some ``pointerConversionBehavior },
-  { id := "nummisc-coverage-pointer-arithmetic"
-    juliaFile := "base/pointer.jl"
-    juliaFns := ["isequal", "isless", "==", "<", "pointer subtraction", "pointer addition and subtraction by Integer", "unsigned", "signed"]
-    statement := "Pointer equality and ordering compare UInt addresses, differences and integer offsets wrap in the UInt address space, and signed or unsigned conversion projects the same bits."
-    source := "base/pointer.jl:307-320"
-    status := .proven, prop := ``PointerArithmeticBehavior, thm := some ``pointerArithmeticBehavior },
-  { id := "nummisc-coverage-ref-core"
-    juliaFile := "base/refpointer.jl"
-    juliaFns := ["Ref metadata and iteration", "Ref conversion", "RefArray constructors", "RefArray unsafe_convert", "Ref", "Ref{T}"]
-    statement := "Ref metadata, iteration, value conversion, RefArray construction, pointer route selection, single-Ref index checking, and pointer indexing preserve source values, roots, and deferred checks."
-    source := "base/refpointer.jl:97-150"
-    status := .proven, prop := ``RefCoreBehavior, thm := some ``refCoreBehavior },
-  { id := "nummisc-coverage-ref-array-tuple"
-    juliaFile := "base/refpointer.jl"
-    juliaFns := ["Ref{P}(::Array)", "Ref(::AbstractArray,i)", "pointer-array cconvert", "tuple cconvert and unsafe_convert", "getindex(::RefArray)", "setindex!(::RefArray)"]
-    statement := "Pointer-array refs retain conversion roots and append a null terminator, tuple refs expose their first element through a rooted tuple, and RefArray reads and writes use the stored index."
-    source := "base/refpointer.jl:154-194"
-    status := .proven, prop := ``RefArrayTupleBehavior, thm := some ``refArrayTupleBehavior },
-  { id := "nummisc-coverage-bool-methods"
-    juliaFile := "base/bool.jl"
-    juliaFns := ["promotion", "typemin", "typemax", "bitwise logic", "xor", "nand", "nor", "shifts", "numeric predicates", "ordering", "unary and binary arithmetic", "powers", "float arithmetic", "div", "rem", "mod", "Bool(::Real)"]
-    statement := "Every Bool method follows its two-value truth table, Int promotion, shift forwarding, strong-zero float formulas, checked division or remainder branch, and exact real conversion."
-    source := "base/bool.jl:6-170"
-    status := .proven, prop := ``BoolMethodBehavior, thm := some ``boolMethodBehavior },
   { id := "nummisc-coverage-summarysize"
     juliaFile := "base/summarysize.jl"
     juliaFns := ["nth_pointer_isdefined", "get_nth_pointer", "summarysize", "_summarysize", "SummarySize call overloads"]

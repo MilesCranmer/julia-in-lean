@@ -13,6 +13,13 @@ inductive Tree (S X α : Type) where
   | leaf (value : α)
   | node (style : S) (f : List α → Result α) (args : List (Tree S X α)) (axes : X)
 
+structure BroadcastNode (S X α : Type) where
+  style : S
+  f : List α → Result α
+  args : List (Tree S X α)
+  axes : X
+
+
 def treeArgs : Tree S X α → List (Tree S X α)
   | .leaf _ => []
   | .node _ _ args _ => args
@@ -25,19 +32,22 @@ def isFlatArgs : List (Tree S X α) → Bool
   | [] => true
   | head :: tail => !isNode head && isFlatArgs tail
 
-def m364 (bc : Tree S X α) : Bool := isFlatArgs (treeArgs bc)
-def P364 : Prop := ∀ {S X α : Type} (bc : Tree S X α),
-  m364 bc = isFlatArgs (treeArgs bc)
-theorem p364 : P364 := by simp [P364, m364]
+def m364 (bc : BroadcastNode S X α) : Bool := isFlatArgs bc.args
+def P364 : Prop := ∀ {S X α : Type} (bc : BroadcastNode S X α),
+  m364 bc = isFlatArgs bc.args
+theorem p364 : P364 := by unfold P364; intros; rfl
 
-def m365 {S X α : Type} (_head : Tree S X α) (_tail : List (Tree S X α)) : Bool := false
-def P365 : Prop := ∀ {S X α : Type} (head : Tree S X α) tail, m365 head tail = false
-theorem p365 : P365 := by simp [P365, m365]
+def m365 {S X α : Type} (_head : BroadcastNode S X α)
+    (_tail : List (Tree S X α)) : Bool := false
+def P365 : Prop := ∀ {S X α : Type} (head : BroadcastNode S X α) tail,
+  m365 head tail = false
+theorem p365 : P365 := by unfold P365; intros; rfl
 
-def m366 {S X α : Type} (_head : Tree S X α) (tail : List (Tree S X α)) : Bool := isFlatArgs tail
-def P366 : Prop := ∀ {S X α : Type} (head : Tree S X α) tail,
-  m366 head tail = isFlatArgs tail
-theorem p366 : P366 := by simp [P366, m366]
+def m366 {S X α : Type} (_head : α) (tail : List (Tree S X α)) : Bool :=
+  isFlatArgs tail
+def P366 : Prop := ∀ {S X α : Type} (head : α) tail,
+  m366 (S := S) (X := X) head tail = isFlatArgs tail
+theorem p366 : P366 := by unfold P366; intros; rfl
 
 def m367 : Bool := true
 def P367 : Prop := ∀ _ : Unit, m367 = true
@@ -53,10 +63,10 @@ mutual
     | head :: tail => catNested head ++ catNestedArgs tail
 end
 
-def m369 (bc : Tree S X α) : List (Tree S X α) := catNestedArgs (treeArgs bc)
-def P369 : Prop := ∀ {S X α : Type} (bc : Tree S X α),
-  m369 bc = catNestedArgs (treeArgs bc)
-theorem p369 : P369 := by simp [P369, m369]
+def m369 (bc : BroadcastNode S X α) : List (Tree S X α) := catNestedArgs bc.args
+def P369 : Prop := ∀ {S X α : Type} (bc : BroadcastNode S X α),
+  m369 bc = catNestedArgs bc.args
+theorem p369 : P369 := by unfold P369; intros; rfl
 
 def m370 {S X α : Type} : List (Tree S X α) := []
 def P370 : Prop := ∀ {S X α : Type}, (m370 : List (Tree S X α)) = []
@@ -72,12 +82,14 @@ def P372 : Prop := ∀ {S X α : Type} (head : Tree S X α) tail,
   m372 head tail = catNested head ++ catNestedArgs tail
 theorem p372 : P372 := by simp [P372, m372]
 
-def m373 (leaf : Tree S X α) : List (Tree S X α) := [leaf]
-def P373 : Prop := ∀ {S X α : Type} (leaf : Tree S X α), m373 leaf = [leaf]
-theorem p373 : P373 := by simp [P373, m373]
+def m373 (value : α) : List (Tree S X α) := [.leaf value]
+def P373 : Prop := ∀ {S X α : Type} (value : α),
+  m373 (S := S) (X := X) value = [.leaf value]
+theorem p373 : P373 := by unfold P373; intros; rfl
 
 def pick (n : Nat) : Selector α := fun args =>
-  match args[n - 1]? with | some value => .ok value | none => .error .bounds
+  if n = 0 then .error .bounds
+  else match args[n - 1]? with | some value => .ok value | none => .error .bounds
 
 def prepareArgs : List (Selector α) → List α → Result (List α)
   | [], _ => .ok []
@@ -87,36 +99,43 @@ def prepareArgs : List (Selector α) → List α → Result (List α)
       pure (first :: tail)
 
 mutual
-  def makeOne : Tree S X α → Nat → List (Selector α) × Nat
+  def makeOne (maybeconstructor : (List α → Result α) → List α → Result α) :
+      Tree S X α → Nat → List (Selector α) × Nat
     | .leaf _, n => ([pick n], n + 1)
     | .node _ f args _, n =>
-        let made := makeMany args n
-        ([fun flat => do f (← prepareArgs made.1 flat)], made.2)
+        let made := makeMany maybeconstructor args n
+        let callable := maybeconstructor f
+        ([fun flat => do callable (← prepareArgs made.1 flat)], made.2)
 
-  def makeMany : List (Tree S X α) → Nat → List (Selector α) × Nat
+  def makeMany (maybeconstructor : (List α → Result α) → List α → Result α) :
+      List (Tree S X α) → Nat → List (Selector α) × Nat
     | [], n => ([], n)
     | head :: tail, n =>
-        let first := makeOne head n
-        let rest := makeMany tail first.2
+        let first := makeOne maybeconstructor head n
+        let rest := makeMany maybeconstructor tail first.2
         (first.1 ++ rest.1, rest.2)
 end
 
-def m382 (args : List (Tree S X α)) : List (Selector α) := (makeMany args 1).1
-def P382 : Prop := ∀ {S X α : Type} (args : List (Tree S X α)),
-  m382 args = (makeMany args 1).1
-theorem p382 : P382 := by simp [P382, m382]
+def m382 (maybeconstructor : (List α → Result α) → List α → Result α)
+    (args : List (Tree S X α)) : List (Selector α) :=
+  (makeMany maybeconstructor args 1).1
+def P382 : Prop := ∀ {S X α : Type} maybeconstructor (args : List (Tree S X α)),
+  m382 maybeconstructor args = (makeMany maybeconstructor args 1).1
+theorem p382 : P382 := by unfold P382; intros; rfl
 
-def m386 (head : Tree S X α) (tail : List (Tree S X α)) (n : Nat) :
+def m386 (maybeconstructor : (List α → Result α) → List α → Result α)
+    (head : Tree S X α) (tail : List (Tree S X α)) (n : Nat) :
     List (Selector α) × Nat :=
-  let first := makeOne head n
-  let rest := makeMany tail first.2
+  let first := makeOne maybeconstructor head n
+  let rest := makeMany maybeconstructor tail first.2
   (first.1 ++ rest.1, rest.2)
-def P386 : Prop := ∀ {S X α : Type} (head : Tree S X α) tail n,
-  m386 head tail n =
-    let first := makeOne head n
-    let rest := makeMany tail first.2
+def P386 : Prop := ∀ {S X α : Type} maybeconstructor
+    (head : Tree S X α) tail n,
+  m386 maybeconstructor head tail n =
+    let first := makeOne maybeconstructor head n
+    let rest := makeMany maybeconstructor tail first.2
     (first.1 ++ rest.1, rest.2)
-theorem p386 : P386 := by simp [P386, m386]
+theorem p386 : P386 := by unfold P386; intros; rfl
 
 def m391 {α : Type} (n : Nat) : List (Selector α) × Nat := ([], n)
 def P391 : Prop := ∀ {α : Type} n, (m391 n : List (Selector α) × Nat) = ([], n)
@@ -126,22 +145,25 @@ def m395 (n : Nat) (args : List α) : Result α := pick n args
 def P395 : Prop := ∀ {α : Type} n (args : List α), m395 n args = pick n args
 theorem p395 : P395 := by simp [P395, m395]
 
-def m398 {S X α : Type} (_leaf : Tree S X α) (n : Nat) : List (Selector α) × Nat :=
+def m398 {α : Type} (_leaf : α) (n : Nat) : List (Selector α) × Nat :=
   ([pick n], n + 1)
-def P398 : Prop := ∀ {S X α : Type} (leaf : Tree S X α) n,
+def P398 : Prop := ∀ {α : Type} (leaf : α) n,
   m398 leaf n = ([pick n], n + 1)
-theorem p398 : P398 := by simp [P398, m398]
+theorem p398 : P398 := by unfold P398; intros; rfl
 
-def m400 (f : List α → Result α) (args : List (Tree S X α)) (n : Nat) :
+def m400 (maybeconstructor : (List α → Result α) → List α → Result α)
+    (f : List α → Result α) (args : List (Tree S X α)) (n : Nat) :
     List (Selector α) × Nat :=
-  let made := makeMany args n
-  ([fun flat => do f (← prepareArgs made.1 flat)], made.2)
-def P400 : Prop := ∀ {S X α : Type} (f : List α → Result α)
-    (args : List (Tree S X α)) n,
-  m400 f args n =
-    let made := makeMany args n
-    ([fun flat => do f (← prepareArgs made.1 flat)], made.2)
-theorem p400 : P400 := by simp [P400, m400]
+  let made := makeMany maybeconstructor args n
+  let callable := maybeconstructor f
+  ([fun flat => do callable (← prepareArgs made.1 flat)], made.2)
+def P400 : Prop := ∀ {S X α : Type} maybeconstructor
+    (f : List α → Result α) (args : List (Tree S X α)) n,
+  m400 maybeconstructor f args n =
+    let made := makeMany maybeconstructor args n
+    let callable := maybeconstructor f
+    ([fun flat => do callable (← prepareArgs made.1 flat)], made.2)
+theorem p400 : P400 := by unfold P400; intros; rfl
 
 def m407 (head : Selector α) (tail : List (Selector α)) (args : List α) : Result (List α) := do
   let first ← head args
@@ -165,24 +187,29 @@ def m409 {α : Type} (_args : List α) : Result (List α) := .ok []
 def P409 : Prop := ∀ {α : Type} (args : List α), m409 args = .ok []
 theorem p409 : P409 := by simp [P409, m409]
 
-def m346 : Tree S X α → Tree S X α
-  | leaf@(.leaf _) => leaf
-  | node@(.node style f args axes) =>
-      if isFlatArgs args then node
+def m346 (maybeconstructor : (List α → Result α) → List α → Result α) :
+    BroadcastNode S X α → BroadcastNode S X α
+  | bc =>
+      if isFlatArgs bc.args then bc
       else
-        let flatArgs := catNestedArgs args
-        let selectors := (makeMany args 1).1
-        .node style (fun flat => do f (← prepareArgs selectors flat)) flatArgs axes
+        let flatArgs := catNestedArgs bc.args
+        let selectors := (makeMany maybeconstructor bc.args 1).1
+        let callable := maybeconstructor bc.f
+        { bc with
+          f := fun flat => do callable (← prepareArgs selectors flat)
+          args := flatArgs }
 
-def P346 : Prop := ∀ {S X α : Type} (style : S) (f : List α → Result α)
-    (args : List (Tree S X α)) (axes : X),
-  m346 (.node style f args axes) =
-    if isFlatArgs args then .node style f args axes
+def P346 : Prop := ∀ {S X α : Type} maybeconstructor (bc : BroadcastNode S X α),
+  m346 maybeconstructor bc =
+    if isFlatArgs bc.args then bc
     else
-      let flatArgs := catNestedArgs args
-      let selectors := (makeMany args 1).1
-      .node style (fun flat => do f (← prepareArgs selectors flat)) flatArgs axes
-theorem p346 : P346 := by simp [P346, m346]
+      let flatArgs := catNestedArgs bc.args
+      let selectors := (makeMany maybeconstructor bc.args 1).1
+      let callable := maybeconstructor bc.f
+      { bc with
+        f := fun flat => do callable (← prepareArgs selectors flat)
+        args := flatArgs }
+theorem p346 : P346 := by unfold P346; intros; rfl
 
 private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) : Entry :=
   { id := s!"multidimcov-broadcast-faithful-{line}"
@@ -194,26 +221,6 @@ private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) 
     prop
     thm := some thm }
 
-def entries : List Entry := [
-  entry 346 "flatten(::Broadcasted)" "Flatten preserves an already flat expression; otherwise it expands leaves, builds ordered selectors, and reconstructs the same style and axes with the composed function." ``P346 ``p346,
-  entry 364 "isflat(::Broadcasted)" "Flatness delegates to the complete argument tuple." ``P364 ``p364,
-  entry 365 "_isflat(::NestedTuple)" "Every tuple headed by a nested Broadcasted is non-flat." ``P365 ``p365,
-  entry 366 "_isflat(::Tuple)" "The general nonempty tuple checks its tail after dispatch excludes a nested head." ``P366 ``p366,
-  entry 367 "_isflat(::Tuple{})" "The empty tuple is flat." ``P367 ``p367,
-  entry 369 "cat_nested(::Broadcasted)" "A nested wrapper expands its complete argument tuple." ``P369 ``p369,
-  entry 370 "cat_nested_args(::Tuple{})" "The empty argument tuple expands to empty." ``P370 ``p370,
-  entry 371 "cat_nested_args(::Tuple{Any})" "A singleton tuple expands its one argument." ``P371 ``p371,
-  entry 372 "cat_nested_args(::Tuple)" "The recursive expansion processes the head before the tail." ``P372 ``p372,
-  entry 373 "cat_nested(a)" "Every leaf becomes a singleton tuple of the same polymorphic value." ``P373 ``p373,
-  entry 382 "make_makeargs(args)" "Selector construction begins at Julia index one and returns the selector tuple." ``P382 ``p382,
-  entry 386 "_make_makeargs(args,n)" "The recursive selector builder processes the head, threads its counter into the tail, and returns the final counter." ``P386 ``p386,
-  entry 391 "_make_makeargs((),n)" "The empty selector builder returns no selectors and the unchanged counter." ``P391 ``p391,
-  entry 395 "(::Pick{N})(args)" "Pick returns argument N with one-based bounds behavior for every element type." ``P395 ``p395,
-  entry 398 "_make_makeargs1(leaf,n)" "A leaf produces Pick{n} and increments the counter once." ``P398 ``p398,
-  entry 400 "_make_makeargs1(::Broadcasted,n)" "A nested wrapper builds all child selectors before constructing its evaluation closure and returning the final counter." ``P400 ``p400,
-  entry 407 "prepare_args(tuple,x)" "The recursive case evaluates the head selector before preparing the tail." ``P407 ``p407,
-  entry 408 "prepare_args(singleton,x)" "The singleton case evaluates its sole selector and returns that value." ``P408 ``p408,
-  entry 409 "prepare_args((),())" "The empty selector tuple returns an empty argument tuple." ``P409 ``p409
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.BroadcastFlattenFaithful

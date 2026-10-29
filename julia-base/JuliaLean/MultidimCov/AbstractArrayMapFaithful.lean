@@ -128,8 +128,35 @@ def P3385 : Prop := ∀ {F A K AX I : Type} (mapWhole : F → A → CResult A)
     function array dimensions,
   m3385 mapWhole ndims firstindex getindex apply isArray size similarScalar setFirst axes oneToOne
     similarAxes cartesianDrop concatenate isStrided isNumberArray inner function array dimensions =
-  m3385 mapWhole ndims firstindex getindex apply isArray size similarScalar setFirst axes oneToOne
-    similarAxes cartesianDrop concatenate isStrided isNumberArray inner function array dimensions
+    if dimensions.isEmpty then mapWhole function array
+    else do
+      validateDimensions ndims array dimensions
+      let rank ← ndims array
+      let mask := dimensionMask rank dimensions
+      let initialIndices ← firstSliceIndices firstindex array mask 1
+      let slice ← getindex array initialIndices
+      let rawResult ← apply function slice
+      let result ← if isArray rawResult then do
+        let resultRank ← ndims rawResult
+        let selectedCount := mask.count true
+        if selectedCount < resultRank then
+          let resultShape ← size rawResult
+          if (resultShape.drop selectedCount).any (1 < ·) then
+            .error (.dimensionMismatch (.literal "mapslices cannot assign slice result into output"))
+          else .ok rawResult
+        else .ok rawResult
+      else do
+        let boxed ← similarScalar slice rawResult
+        setFirst boxed rawResult
+      let outputAxes ← resultAxes axes axes result array mask 1 1
+      let output ← similarAxes result outputAxes
+      let iterationAxes ← (List.range rank.toNat).mapM fun offset =>
+        if mask.getD offset false then oneToOne else axes array ⟨Int.ofNat offset + 1⟩
+      let indices ← cartesianDrop array iterationAxes
+      let resultIndices ← sliceResultIndices axes firstindex output mask 1 true
+      let initialized ← concatenate output result resultIndices
+      let safe := isStrided slice && isNumberArray rawResult
+      inner initialized indices function array mask slice safe
 theorem p3385 : P3385 := by unfold P3385; intros; rfl
 
 def chooseIndices (axes : A → IntegerValue → StackOutcome AX)
@@ -199,9 +226,16 @@ def P3450 : Prop := ∀ {O A AX S K F R I : Type} (size : O → StackOutcome (Li
     (iterate : I → StackOutcome (IterationRun (List K)))
     output indices function array mask slice safe,
   m3450 size axes unsafeGetSlice apply isArray assign getindex concatenate iterate output indices
-    function array mask slice safe =
-  m3450 size axes unsafeGetSlice apply isArray assign getindex concatenate iterate output indices
-    function array mask slice safe
+    function array mask slice safe = do
+      let shape ← size output
+      let mustExtend := (mask.zip shape).any fun pair => pair.1 && 1 < pair.2
+      let run ← iterate indices
+      let result ← mapslicesInnerLoop axes unsafeGetSlice apply isArray assign getindex concatenate
+        function array mask safe mustExtend output slice run.values
+      match run.terminal with
+      | .done => .returned result.1
+      | .failed failure => .thrown failure
+      | .diverges => .diverged
 theorem p3450 : P3450 := by unfold P3450; intros; rfl
 
 def unaryMapLoop (read : A → K → StackOutcome V) (apply : F → V → StackOutcome W)
@@ -228,8 +262,13 @@ def P3482 : Prop := ∀ {D A K V W F : Type}
     (zipIndices : D → A → StackOutcome (IterationRun (K × K)))
     (read : A → K → StackOutcome V) (apply : F → V → StackOutcome W)
     (write : D → K → W → StackOutcome D) function dest source,
-  m3482 zipIndices read apply write function dest source =
-  m3482 zipIndices read apply write function dest source
+  m3482 zipIndices read apply write function dest source = do
+    let run ← zipIndices dest source
+    let result ← unaryMapLoop read apply write function source dest run.values
+    match run.terminal with
+    | .done => .returned result
+    | .failed failure => .thrown failure
+    | .diverges => .diverged
 theorem p3482 : P3482 := by unfold P3482; intros; rfl
 
 def collectMapped (iterate : A → StackOutcome (IterationRun (K × V)))
@@ -289,15 +328,23 @@ def m3494 (iterate : I → StackOutcome (IterationRun V))
   | .diverges => .diverged
 def P3494 : Prop := ∀ {I V W F : Type} (iterate : I → StackOutcome (IterationRun V))
     (apply : F → V → StackOutcome W) function iterator,
-  m3494 iterate apply function iterator =
-  m3494 iterate apply function iterator
+  m3494 iterate apply function iterator = do
+    let run ← iterate iterator
+    let values ← mapIteratorValues apply function run.values
+    match run.terminal with
+    | .done => .returned values
+    | .failed failure => .thrown failure
+    | .diverges => .diverged
 theorem p3494 : P3494 := by unfold P3494; intros; rfl
 
-/-- Generic `map`, line 3521. -/
-def m3521 := @m3494
-def P3521 : Prop := ∀ {I V W F : Type} (iterate : I → StackOutcome (IterationRun V))
-    (apply : F → V → StackOutcome W) function iterator,
-  m3521 iterate apply function iterator = m3494 iterate apply function iterator
+/-- Generic `map`, line 3521. `collect` receives the Generator itself so its
+allocation and widening semantics remain observable. -/
+def m3521 (generator : F → I → G) (collect : G → StackOutcome O)
+    (function : F) (iterator : I) : StackOutcome O :=
+  collect (generator function iterator)
+def P3521 : Prop := ∀ {F I G O : Type} (generator : F → I → G)
+    (collect : G → StackOutcome O) function iterator,
+  m3521 generator collect function iterator = collect (generator function iterator)
 theorem p3521 : P3521 := by unfold P3521; intros; rfl
 
 def m3523 : CResult A := .error (.errorException "map is not defined on dictionaries")
@@ -334,8 +381,13 @@ def P3527 : Prop := ∀ {D A B KD KA KB VA VB W F : Type}
     (readA : A → KA → StackOutcome VA) (readB : B → KB → StackOutcome VB)
     (apply : F → VA → VB → StackOutcome W) (write : D → KD → W → StackOutcome D)
     function dest left right,
-  m3527 zipIndices readA readB apply write function dest left right =
-  m3527 zipIndices readA readB apply write function dest left right
+  m3527 zipIndices readA readB apply write function dest left right = do
+    let run ← zipIndices dest left right
+    let result ← binaryMapLoop readA readB apply write function left right dest run.values
+    match run.terminal with
+    | .done => .returned result
+    | .failed failure => .thrown failure
+    | .diverges => .diverged
 theorem p3527 : P3527 := by unfold P3527; intros; rfl
 
 def m3538 (_index : K) : List V := []
@@ -351,8 +403,11 @@ def m3539 (getArray : List A → Int → StackOutcome A) (getValue : A → K →
 def P3539 : Prop := ∀ {A K V : Type} (getArray : List A → Int → StackOutcome A)
     (getValue : A → K → StackOutcome V)
     (recursive : K → List A → StackOutcome (List V)) index arrays,
-  m3539 getArray getValue recursive index arrays =
-  m3539 getArray getValue recursive index arrays
+  m3539 getArray getValue recursive index arrays = do
+    let first ← getArray arrays 1
+    let value ← getValue first index
+    let rest ← match arrays with | [] => .thrown .bounds | _ :: tail => recursive index tail
+    .returned (value :: rest)
 theorem p3539 : P3539 := by unfold P3539; intros; rfl
 
 def mapNLinear (iterate : L → StackOutcome (IterationRun K))
@@ -386,6 +441,15 @@ def mapNCartesian (iterate : D → List A → StackOutcome (IterationRun (K × L
   | .failed failure => .thrown failure
   | .diverges => .diverged
 
+def allLinearIndices (linearIndices : A → StackOutcome L)
+    (equal : L → L → StackOutcome Bool) (destIndices : L) :
+    List A → StackOutcome Bool
+  | [] => .returned true
+  | array :: rest => do
+      if ← equal (← linearIndices array) destIndices then
+        allLinearIndices linearIndices equal destIndices rest
+      else .returned false
+
 /-- `map_n!`, lines 3544-3591. -/
 def m3544 (linearIndicesDest : D → StackOutcome L) (linearIndices : A → StackOutcome L)
     (equal : L → L → StackOutcome Bool) (linear : L → StackOutcome (IterationRun K))
@@ -395,11 +459,8 @@ def m3544 (linearIndicesDest : D → StackOutcome L) (linearIndices : A → Stac
     (apply : F → List V → StackOutcome W) (set : D → K → W → StackOutcome D)
     (function : F) (dest : D) (arrays : List A) : StackOutcome D := do
   let destIndices ← linearIndicesDest dest
-  let rec allLinear : List A → StackOutcome Bool
-    | [] => .returned true
-    | array :: rest => do
-        if ← equal (← linearIndices array) destIndices then allLinear rest else .returned false
-  if ← allLinear arrays then mapNLinear linear ithAll apply set function arrays dest destIndices
+  if ← allLinearIndices linearIndices equal destIndices arrays then
+    mapNLinear linear ithAll apply set function arrays dest destIndices
   else mapNCartesian cartesian getArray getValue apply set function dest arrays
 def P3544 : Prop := ∀ {D A L K V W F : Type}
     (linearIndicesDest : D → StackOutcome L) (linearIndices : A → StackOutcome L)
@@ -410,9 +471,11 @@ def P3544 : Prop := ∀ {D A L K V W F : Type}
     (apply : F → List V → StackOutcome W) (set : D → K → W → StackOutcome D)
     function dest arrays,
   m3544 linearIndicesDest linearIndices equal linear ithAll cartesian getArray getValue apply set
-    function dest arrays =
-  m3544 linearIndicesDest linearIndices equal linear ithAll cartesian getArray getValue apply set
-    function dest arrays
+    function dest arrays = do
+      let destIndices ← linearIndicesDest dest
+      if ← allLinearIndices linearIndices equal destIndices arrays then
+        mapNLinear linear ithAll apply set function arrays dest destIndices
+      else mapNCartesian cartesian getArray getValue apply set function dest arrays
 theorem p3544 : P3544 := by unfold P3544; intros; rfl
 
 /-- Vararg `map!`, lines 3593-3596. -/
@@ -426,21 +489,14 @@ def P3593 : Prop := ∀ {F D A : Type} (mapN : F → D → List A → CResult D)
     .error (.assertion "should dispatch to map!(f, A)") else mapN function dest arrays
 theorem p3593 : P3593 := by unfold P3593; intros; rfl
 
-/-- Multi-input `map`, line 3645. -/
-def m3645 (zipIterate : I → List I → StackOutcome (IterationRun (List V)))
-    (apply : F → List V → StackOutcome W) (function : F)
-    (first : I) (rest : List I) : StackOutcome (List W) := do
-  let run ← zipIterate first rest
-  let values ← run.values.mapM (apply function)
-  match run.terminal with
-  | .done => .returned values
-  | .failed failure => .thrown failure
-  | .diverges => .diverged
-def P3645 : Prop := ∀ {I V W F : Type}
-    (zipIterate : I → List I → StackOutcome (IterationRun (List V)))
-    (apply : F → List V → StackOutcome W) function first rest,
-  m3645 zipIterate apply function first rest =
-  m3645 zipIterate apply function first rest
+/-- Multi-input `map`, line 3645. The Generator retains shortest-iterator
+semantics; `collect` retains allocation and widening behavior. -/
+def m3645 (generator : F → I → List I → G) (collect : G → StackOutcome O)
+    (function : F) (first : I) (rest : List I) : StackOutcome O :=
+  collect (generator function first rest)
+def P3645 : Prop := ∀ {F I G O : Type} (generator : F → I → List I → G)
+    (collect : G → StackOutcome O) function first rest,
+  m3645 generator collect function first rest = collect (generator function first rest)
 theorem p3645 : P3645 := by unfold P3645; intros; rfl
 
 inductive Mutation (A : Type) where
@@ -474,7 +530,11 @@ def P3649 : Prop := ∀ {X V A K : Type} (convert : X → CResult V)
     (resize : A → Int → Mutation A) (lastindex : A → CResult K)
     (set : A → K → V → Mutation A) array item,
   m3649 convert length add resize lastindex set array item =
-  m3649 convert length add resize lastindex set array item
+    liftMutation array (convert item) fun converted =>
+    liftMutation array (length array) fun oldLength =>
+    liftMutation array (add oldLength 1) fun newLength =>
+    continueMutation (resize array newLength) fun resized =>
+    liftMutation resized (lastindex resized) fun index => set resized index converted
 theorem p3649 : P3649 := by unfold P3649; intros; rfl
 
 /-- Any-vector single `push!`, lines 3659-3663. -/
@@ -489,7 +549,10 @@ def P3659 : Prop := ∀ {A K X : Type} (length : A → CResult Int)
     (add : Int → Int → CResult Int) (resize : A → Int → Mutation A)
     (lastindex : A → CResult K) (set : A → K → X → Mutation A) array item,
   m3659 length add resize lastindex set array item =
-  m3659 length add resize lastindex set array item
+    liftMutation array (length array) fun oldLength =>
+    liftMutation array (add oldLength 1) fun newLength =>
+    continueMutation (resize array newLength) fun resized =>
+    liftMutation resized (lastindex resized) fun index => set resized index item
 theorem p3659 : P3659 := by unfold P3659; intros; rfl
 
 def pushManyLoop (get : X → Int → CResult V) (addIndex : K → Int → CResult K)
@@ -521,7 +584,13 @@ def P3665 : Prop := ∀ {A X K V : Type} (lengthA : A → CResult Int)
     (subtract : K → Int → CResult K) (get : X → Int → CResult V)
     (addIndex : K → Int → CResult K) (set : A → K → V → Mutation A) array items,
   m3665 lengthA lengthX add resize lastindex subtract get addIndex set array items =
-  m3665 lengthA lengthX add resize lastindex subtract get addIndex set array items
+    liftMutation array (lengthA array) fun oldLength =>
+    liftMutation array (lengthX items) fun count =>
+    liftMutation array (add oldLength count) fun newLength =>
+    continueMutation (resize array newLength) fun resized =>
+    liftMutation resized (lastindex resized) fun last =>
+    liftMutation resized (subtract last count) fun base =>
+    pushManyLoop get addIndex set items base resized 1 count.toNat
 theorem p3665 : P3665 := by unfold P3665; intros; rfl
 
 def foldPushOutcome (push : A → V → StackOutcome A) : A → List V → StackOutcome A
@@ -548,8 +617,16 @@ def P3688 : Prop := ∀ {A S StateArg V : Type} (allocate : StackOutcome A)
     (length : S → StackOutcome Int) (sizehint : A → Int → StackOutcome A)
     (restIterator : S → StateArg → StackOutcome (IterationRun V))
     (push : A → V → StackOutcome A) source state,
-  m3688 allocate length sizehint restIterator push source state =
-  m3688 allocate length sizehint restIterator push source state
+  m3688 allocate length sizehint restIterator push source state = do
+    let empty ← allocate
+    let count ← length source
+    let hinted ← sizehint empty count
+    let run ← restIterator source state
+    let result ← foldPushOutcome push hinted run.values
+    match run.terminal with
+    | .done => .returned result
+    | .failed error => .thrown error
+    | .diverges => .diverged
 theorem p3688 : P3688 := by unfold P3688; intros; rfl
 
 structure KeepState (A K : Type) where
@@ -605,7 +682,20 @@ def P3699 : Prop := ∀ {A K I V : Type} (firstindex : A → CResult K)
     (nextind : A → K → CResult K) (lastindex : A → CResult K)
     (deleteRange : A → K → K → Mutation A) array indices,
   m3699 firstindex iterate less equal get set nextind lastindex deleteRange array indices =
-  m3699 firstindex iterate less equal get set nextind lastindex deleteRange array indices
+    liftMutation array (firstindex array) fun first =>
+    match iterate indices with
+    | .thrown error => .failure array error
+    | .diverged => .diverged array
+    | .returned run =>
+        let initial : KeepState A K := ⟨array, first, none⟩
+        match keepIndicesLoop less equal get set nextind initial run.values with
+        | .failure state error => .failure state.array error
+        | .diverged state => .diverged state.array
+        | .success state => match run.terminal with
+          | .failed error => .failure state.array error
+          | .diverges => .diverged state.array
+          | .done => liftMutation state.array (lastindex state.array) fun last =>
+            deleteRange state.array state.destination last
 theorem p3699 : P3699 := by unfold P3699; intros; rfl
 
 structure MaskState (A K : Type) where
@@ -664,8 +754,23 @@ def P3717 : Prop := ∀ {A M K V : Type} (lengthA : A → CResult Int)
     (deleteRange : A → K → K → Mutation A) array mask,
   m3717 lengthA lengthM firstindex eachindex getMask get equal set nextind lastindex deleteRange
     array mask =
-  m3717 lengthA lengthM firstindex eachindex getMask get equal set nextind lastindex deleteRange
-    array mask
+    liftMutation array (lengthM mask) fun maskLength =>
+    liftMutation array (lengthA array) fun arrayLength =>
+    if maskLength != arrayLength then .failure array .bounds
+    else liftMutation array (firstindex array) fun first =>
+      match eachindex array mask with
+      | .thrown error => .failure array error
+      | .diverged => .diverged array
+      | .returned run =>
+          let initial : MaskState A K := ⟨array, first⟩
+          match keepMaskLoop getMask get equal set nextind mask initial run.values with
+          | .failure state error => .failure state.array error
+          | .diverged state => .diverged state.array
+          | .success state => match run.terminal with
+            | .failed error => .failure state.array error
+            | .diverges => .diverged state.array
+            | .done => liftMutation state.array (lastindex state.array) fun last =>
+              deleteRange state.array state.destination last
 theorem p3717 : P3717 := by unfold P3717; intros; rfl
 
 /-- Vector `circshift!`, lines 3756-3766. -/
@@ -692,36 +797,24 @@ def P3756 : Prop := ∀ {A K : Type} (length : A → CResult Int)
     (addOne : K → CResult K) (reverseRange : A → K → K → Mutation A)
     (reverseAll : A → Mutation A) array shift,
   m3756 length modulo lastindex firstindex subtract addOne reverseRange reverseAll array shift =
-  m3756 length modulo lastindex firstindex subtract addOne reverseRange reverseAll array shift
+    liftMutation array (length array) fun count =>
+    if count = 0 then .success array
+    else liftMutation array (modulo shift count) fun normalized =>
+      if normalized.value = 0 then .success array
+      else liftMutation array (lastindex array) fun last =>
+        liftMutation array (firstindex array) fun first =>
+        liftMutation array (subtract last normalized) fun split =>
+        continueMutation (reverseRange array first split) fun firstReversed =>
+        liftMutation firstReversed (addOne split) fun secondStart =>
+        liftMutation firstReversed (lastindex firstReversed) fun final =>
+        continueMutation (reverseRange firstReversed secondStart final) fun secondReversed =>
+        reverseAll secondReversed
 theorem p3756 : P3756 := by unfold P3756; intros; rfl
 
 private def entry (line : Nat) (name statement source : String) (prop thm : Lean.Name) : Entry :=
   { id := s!"multidimcov-abstractarray-map-faithful-{line}", juliaFile := "base/abstractarray.jl",
     juliaFns := [name], statement, source, status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 3385 "mapslices" "Mapslices validates every dimension, constructs the first slice, normalizes scalar or array results, allocates output axes, initializes the first result, decides reuse, and invokes the inner loop." "base/abstractarray.jl:3385-3448" ``P3385 ``p3385,
-  entry 3450 "_inner_mapslices!" "The inner loop computes must-extend, executes arbitrary Cartesian iteration, constructs source and destination selectors, reuses or allocates slices, calls f, and mutates output in order." "base/abstractarray.jl:3450-3476" ``P3450 ``p3450,
-  entry 3482 "map!(unary)" "Unary map! executes arbitrary zipped index iteration, reads, applies f, and writes each destination while preserving axes, errors, and divergence." "base/abstractarray.jl:3482-3489" ``P3482 ``p3482,
-  entry 3491 "map(AbstractArray)" "Array map iterates actual indexed values, applies f to each, allocates like the source, and writes mapped values at the same keys." "base/abstractarray.jl:3491" ``P3491 ``p3491,
-  entry 3493 "mapany(AbstractArray)" "Array mapany calls length, allocates Vector{Any}, then executes unary map! with propagated mutation errors." "base/abstractarray.jl:3493" ``P3493 ``p3493,
-  entry 3494 "mapany(iterator)" "Generic mapany executes arbitrary iteration and each f call, preserving failure or divergence." "base/abstractarray.jl:3494" ``P3494 ``p3494,
-  entry 3521 "map(iterator)" "Generic map executes arbitrary iteration and each f call before collecting mapped values." "base/abstractarray.jl:3521" ``P3521 ``p3521,
-  entry 3523 "map(AbstractDict)" "Dictionary map throws ErrorException with the documented message." "base/abstractarray.jl:3523" ``P3523 ``p3523,
-  entry 3524 "map(AbstractSet)" "Set map throws ErrorException with the documented message." "base/abstractarray.jl:3524" ``P3524 ``p3524,
-  entry 3527 "map!(binary)" "Binary map! executes arbitrary triple-index iteration, both reads, f, and each write in source order." "base/abstractarray.jl:3527-3536" ``P3527 ``p3527,
-  entry 3538 "ith_all empty" "The empty array tuple accepts an arbitrary index type and returns empty." "base/abstractarray.jl:3538" ``P3538 ``p3538,
-  entry 3539 "ith_all" "Recursive ith_all indexes the array tuple and then the first array at the arbitrary index, propagating BoundsError before recursion." "base/abstractarray.jl:3539-3542" ``P3539 ``p3539,
-  entry 3544 "map_n!" "N-ary map obtains real LinearIndices, checks all arrays, runs the complete linear loop or constructs and runs the Cartesian zip loop." "base/abstractarray.jl:3544-3591" ``P3544 ``p3544,
-  entry 3593 "map!(vararg)" "Vararg map! throws AssertionError for an empty source tuple and otherwise propagates map_n! directly." "base/abstractarray.jl:3593-3596" ``P3593 ``p3593,
-  entry 3645 "map(multiple iterators)" "Multi-input map executes arbitrary zip iteration and each splatted f call, preserving shortest exhaustion, failures, and divergence." "base/abstractarray.jl:3645" ``P3645 ``p3645
-  , entry 3649 "push!(AbstractVector,item)" "Generic push! converts before mutation, computes and resizes length, obtains the new last index, and stores, retaining partial state on later failure." "base/abstractarray.jl:3649-3657" ``P3649 ``p3649
-  , entry 3659 "push!(AbstractVector{Any},item)" "Any-vector push! computes and resizes length, obtains lastindex, and stores, retaining the resized state on failure." "base/abstractarray.jl:3659-3663" ``P3659 ``p3659
-  , entry 3665 "push!(AbstractVector{Any},items...)" "Vararg push! measures and resizes once, obtains offset-aware lastindex, then checks and stores every argument in order with partial mutation state." "base/abstractarray.jl:3665-3675" ``P3665 ``p3665
-  , entry 3688 "rest(AbstractArray,state...)" "Rest allocates the typed vector, applies sizehint!, executes arbitrary rest iteration, and folds push! while preserving failures, divergence, and partial output." "base/abstractarray.jl:3688-3695" ``P3688 ``p3688
-  , entry 3699 "_keepat!(indices)" "Index keepat iterates arbitrary indices, checks strict order, performs the required checked read before optional write, advances offset indices, and deletes the suffix while retaining partial mutations on error." "base/abstractarray.jl:3699-3715" ``P3699 ``p3699
-  , entry 3717 "_keepat!(mask)" "Mask keepat validates lengths with BoundsError, iterates shared arbitrary axes, compacts in place with checked reads, advances offset indices, and deletes the suffix with partial-state failures." "base/abstractarray.jl:3717-3731" ``P3717 ``p3717
-  , entry 3756 "circshift!(AbstractVector,shift)" "Circular shift accepts every Integer, handles empty and zero shifts, computes offset-aware split indices, and executes all three reverse! calls with propagated partial mutation." "base/abstractarray.jl:3756-3766" ``P3756 ``p3756
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.AbstractArrayMapFaithful

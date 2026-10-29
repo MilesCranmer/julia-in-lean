@@ -4,11 +4,8 @@ line	name	verdict	mirror	property	settled	reason
 16	_broadcast_preserving_zero_d	HOLLOW	yes	no	yes	The proposition repeats the full model body definitionally and proves no independent elementwise or shape-preserving behavior of the method.
 27	_broadcast_preserving_zero_d	HOLLOW	yes	no	yes	The proposition only unfolds the Fix2 and map wrapper and proves no independent array-scalar arithmetic behavior.
 31	_broadcast_preserving_zero_d	HOLLOW	yes	no	yes	The proposition only unfolds the Fix1 and map wrapper and proves no independent scalar-array arithmetic behavior.
-36	$f	HOLLOW	yes	no	yes	The proposition repeats the promote-then-broadcast model body and proves no independent elementwise addition or subtraction behavior after shape validation.
 42	+	HOLLOW	yes	no	yes	The proposition only unfolds the opaque map call and proves no independent elementwise unary-plus behavior or result axes.
 44	+	HOLLOW	yes	no	yes	The proposition repeats the validation and broadcast model body and proves no independent variadic elementwise-sum behavior or result shape.
-54	$f	HOLLOW	yes	no	yes	The proposition only unfolds the opaque broadcast wrapper and proves no independent scalar-array division, left-division, or multiplication behavior.
-57	$f	HOLLOW	yes	no	yes	The proposition only unfolds the opaque broadcast wrapper and proves no independent array-scalar division or multiplication behavior.
 92	reverse	HOLLOW	yes	no	yes	The proposition only unfolds forwarding to an opaque reverse implementation and proves no promised relation between input and reversed indices.
 93	_reverse	HOLLOW	yes	no	yes	The proposition only unfolds copy-then-reverse forwarding and proves neither the reversal index relation nor preservation of the input array.
 103	reverse!	HOLLOW	yes	no	yes	The proposition only unfolds forwarding to an opaque implementation and proves no promised in-place reversal behavior.

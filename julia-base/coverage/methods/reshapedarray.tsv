@@ -1,122 +1,122 @@
 file	line	endline	name	signature	status	entry	note
-base/reshapedarray.jl	10	10	ReshapedArray	ReshapedArray(parent::AbstractArray{T}, dims::NTuple{N,Int}, mi) where {T,N}	modelled	arraycov-reshaped-construction	
-base/reshapedarray.jl	20	20	ReshapedArrayIterator	ReshapedArrayIterator(A::ReshapedArray)	modelled	arraycov-reshaped-construction	
-base/reshapedarray.jl	21	24	_rs_iterator	_rs_iterator(P, mi::NTuple{M}) where M	modelled	arraycov-reshaped-construction	
+base/reshapedarray.jl	10	10	ReshapedArray	ReshapedArray(parent::AbstractArray{T}, dims::NTuple{N,Int}, mi) where {T,N}	modelled	reshapedarray-array-shares-storage	
+base/reshapedarray.jl	20	20	ReshapedArrayIterator	ReshapedArrayIterator(A::ReshapedArray)	modelled	reshapedarray-array-shares-storage	
+base/reshapedarray.jl	21	24	_rs_iterator	_rs_iterator(P, mi::NTuple{M}) where M	modelled	reshapedarray-array-shares-storage	
 base/reshapedarray.jl	31	34	iterate	iterate(R::ReshapedArrayIterator, i...)	modelled	arraycov-reshaped-iterator-exhaustion	
-base/reshapedarray.jl	35	35	length	length(R::ReshapedArrayIterator)	modelled	arraycov-reshaped-construction	
-base/reshapedarray.jl	36	36	eltype	eltype(::Type{<:ReshapedArrayIterator{I}}) where {I}	modelled	arraycov-reshaped-construction	
-base/reshapedarray.jl	38	39	throw_dmrsa	throw_dmrsa(dims, len)	modelled	multidimcov-reshapedarray-faithful-38	row-specific faithful source-order replacement
-base/reshapedarray.jl	43	51	reshape	reshape(a::Array{T,M}, dims::NTuple{N,Int}) where {T,N,M}	modelled	multidimcov-reshapedarray-faithful-43	row-specific faithful source-order replacement
+base/reshapedarray.jl	35	35	length	length(R::ReshapedArrayIterator)	modelled	reshapedarray-array-shares-storage	
+base/reshapedarray.jl	36	36	eltype	eltype(::Type{<:ReshapedArrayIterator{I}}) where {I}	modelled	reshapedarray-array-shares-storage	
+base/reshapedarray.jl	38	39	throw_dmrsa	throw_dmrsa(dims, len)	modelled	reshapedarray-dimension-errors	row-specific faithful source-order replacement
+base/reshapedarray.jl	43	51	reshape	reshape(a::Array{T,M}, dims::NTuple{N,Int}) where {T,N,M}	modelled	reinterpretarrays-reshape-check-sound	row-specific faithful source-order replacement
 base/reshapedarray.jl	55	62	reshape!	reshape!(a::Array{T,N}, dims::NTuple{N,Int}) where {T,N}	modelled	multidimcov-reshape-bang-field	row-specific faithful source model and reproduced refutation
-base/reshapedarray.jl	122	122	reshape	reshape(parent::AbstractArray, dims::IntOrInd...)	modelled	multidimcov-reshapedarray-faithful-122	row-specific faithful source-order replacement
-base/reshapedarray.jl	123	123	reshape	reshape(parent::AbstractArray, shp::Tuple{Union{Integer,AbstractOneTo}, Vararg{Union{Integer,AbstractOneTo}}})	modelled	multidimcov-reshapedarray-faithful-123	row-specific faithful source-order replacement
-base/reshapedarray.jl	126	126	reshape	reshape(parent::AbstractArray, shp::Tuple{Union{Integer,OneTo}, Vararg{Union{Integer,OneTo}}})	modelled	multidimcov-reshapedarray-faithful-126	row-specific faithful source-order replacement
-base/reshapedarray.jl	127	127	reshape	reshape(parent::AbstractArray, dims::Tuple{Integer, Vararg{Integer}})	modelled	multidimcov-reshapedarray-faithful-127	row-specific faithful source-order replacement
-base/reshapedarray.jl	128	128	reshape	reshape(parent::AbstractArray, dims::Dims)	modelled	multidimcov-reshapedarray-faithful-128	row-specific faithful source-order replacement
-base/reshapedarray.jl	131	131	reshape	reshape(parent::AbstractVector, ::Colon)	modelled	arraycov-reshaped-shape-wrappers	
-base/reshapedarray.jl	132	132	reshape	reshape(parent::AbstractVector, ::Tuple{Colon})	modelled	arraycov-reshaped-shape-wrappers	
-base/reshapedarray.jl	133	133	reshape	reshape(parent::AbstractArray, dims::Int...)	modelled	multidimcov-reshapedarray-faithful-133	row-specific faithful source-order replacement
-base/reshapedarray.jl	134	134	reshape	reshape(parent::AbstractArray, dims::Integer...)	modelled	multidimcov-reshapedarray-faithful-134	row-specific faithful source-order replacement
-base/reshapedarray.jl	135	135	reshape	reshape(parent::AbstractArray, dims::Union{Integer,Colon}...)	modelled	multidimcov-reshapedarray-faithful-135	row-specific faithful source-order replacement
-base/reshapedarray.jl	136	136	reshape	reshape(parent::AbstractArray, dims::Tuple{Vararg{Union{Integer,Colon}}})	modelled	multidimcov-reshapedarray-faithful-136	row-specific faithful source-order replacement
-base/reshapedarray.jl	138	139	throw1	throw1(dims)	modelled	multidimcov-reshapedarray-faithful-138	row-specific faithful source-order replacement
-base/reshapedarray.jl	140	141	throw2	throw2(lenA, dims)	modelled	multidimcov-reshapedarray-faithful-140	row-specific faithful source-order replacement
-base/reshapedarray.jl	143	151	_reshape_uncolon	_reshape_uncolon(A, _dims::Tuple{Vararg{Union{Integer, Colon}}})	modelled	multidimcov-reshapedarray-faithful-143	row-specific faithful source-order replacement
-base/reshapedarray.jl	152	162	_reshape_uncolon_computesize	_reshape_uncolon_computesize(len::Int, dims, pre::Tuple{Vararg{Int}}, post::Tuple{Vararg{Int}})	modelled	multidimcov-reshapedarray-faithful-152	row-specific faithful source-order replacement
-base/reshapedarray.jl	163	171	_reshape_uncolon_computesize	_reshape_uncolon_computesize(len, dims, pre, post)	modelled	multidimcov-reshapedarray-faithful-163	row-specific faithful source-order replacement
-base/reshapedarray.jl	172	177	_reshape_uncolon_computesize_nonempty	_reshape_uncolon_computesize_nonempty(len, dims, pr)	modelled	arraycov-reshape-core	
-base/reshapedarray.jl	178	178	_any_colon	_any_colon()	modelled	arraycov-reshaped-shape-wrappers	
-base/reshapedarray.jl	179	179	_any_colon	_any_colon(dim::Colon, tail...)	modelled	arraycov-reshaped-shape-wrappers	
-base/reshapedarray.jl	180	180	_any_colon	_any_colon(dim::Any, tail...)	modelled	arraycov-reshaped-shape-wrappers	
-base/reshapedarray.jl	181	181	_before_colon	_before_colon(dim::Any, tail...)	modelled	arraycov-reshaped-shape-wrappers	
-base/reshapedarray.jl	182	182	_before_colon	_before_colon(dim::Colon, tail...)	modelled	arraycov-reshaped-shape-wrappers	
-base/reshapedarray.jl	183	183	_after_colon	_after_colon(dim::Any, tail...)	modelled	arraycov-reshaped-shape-wrappers	
-base/reshapedarray.jl	184	184	_after_colon	_after_colon(dim::Colon, tail...)	modelled	arraycov-reshaped-shape-wrappers	
-base/reshapedarray.jl	186	186	reshape	reshape(parent::AbstractArray{T,N}, ndims::Val{N}) where {T,N}	modelled	arraycov-reshaped-rank-routes	
-base/reshapedarray.jl	187	189	reshape	reshape(parent::AbstractArray, ndims::Val{N}) where N	modelled	multidimcov-reshapedarray-faithful-187	row-specific faithful source-order replacement
-base/reshapedarray.jl	194	194	rdims_trailing	rdims_trailing(l, inds...)	modelled	multidimcov-reshapedarray-faithful-194	row-specific faithful source-order replacement
-base/reshapedarray.jl	195	195	rdims_trailing	rdims_trailing(l)	modelled	multidimcov-reshapedarray-faithful-195	row-specific faithful source-order replacement
-base/reshapedarray.jl	196	196	rdims	rdims(out::Val{N}, inds::Tuple) where {N}	modelled	multidimcov-reshapedarray-faithful-196	row-specific faithful source-order replacement
-base/reshapedarray.jl	197	197	rdims	rdims(out::Tuple{}, inds::Tuple{})	modelled	arraycov-reshaped-rank-routes	
-base/reshapedarray.jl	198	198	rdims	rdims(out::Tuple{}, inds::Tuple{Any})	modelled	arraycov-reshaped-rank-routes	
-base/reshapedarray.jl	199	199	rdims	rdims(out::Tuple{}, inds::NTuple{M,Any}) where {M}	modelled	arraycov-reshaped-rank-routes	
-base/reshapedarray.jl	200	200	rdims	rdims(out::Tuple{Any}, inds::Tuple{})	modelled	arraycov-reshaped-rank-routes	
-base/reshapedarray.jl	201	201	rdims	rdims(out::NTuple{N,Any}, inds::Tuple{}) where {N}	modelled	arraycov-reshaped-rank-routes	
-base/reshapedarray.jl	202	202	rdims	rdims(out::Tuple{Any}, inds::Tuple{Any})	modelled	arraycov-reshaped-rank-routes	
-base/reshapedarray.jl	203	203	rdims	rdims(out::Tuple{Any}, inds::NTuple{M,Any}) where {M}	modelled	multidimcov-reshapedarray-faithful-203	row-specific faithful source-order replacement
-base/reshapedarray.jl	204	204	rdims	rdims(out::NTuple{N,Any}, inds::NTuple{N,Any}) where {N}	modelled	arraycov-reshaped-rank-routes	
-base/reshapedarray.jl	205	205	rdims	rdims(out::NTuple{N,Any}, inds::NTuple{M,Any}) where {N,M}	modelled	arraycov-reshaped-rank-routes	
-base/reshapedarray.jl	209	209	_reshape	_reshape(parent::Vector, dims::Dims{1})	modelled	arraycov-reshaped-rank-routes	
-base/reshapedarray.jl	210	210	_reshape	_reshape(parent::Array, dims::Dims{1})	modelled	arraycov-reshaped-rank-routes	
-base/reshapedarray.jl	211	211	_reshape	_reshape(parent::Array, dims::Dims)	modelled	arraycov-reshaped-rank-routes	
-base/reshapedarray.jl	214	219	_reshape	_reshape(v::AbstractVector, dims::Dims{1})	modelled	multidimcov-reshapedarray-faithful-214	row-specific faithful source-order replacement
-base/reshapedarray.jl	221	225	_reshape	_reshape(parent::AbstractArray, dims::Dims)	modelled	multidimcov-reshapedarray-faithful-221	row-specific faithful source-order replacement
-base/reshapedarray.jl	227	229	_throw_dmrs	_throw_dmrs(n, str, dims)	modelled	multidimcov-reshapedarray-faithful-227	row-specific faithful source-order replacement
-base/reshapedarray.jl	232	232	_reshape	_reshape(v::ReshapedArray{<:Any,1}, dims::Dims{1})	modelled	multidimcov-reshapedarray-faithful-232	row-specific faithful source-order replacement
-base/reshapedarray.jl	233	233	_reshape	_reshape(R::ReshapedArray, dims::Dims)	modelled	multidimcov-reshapedarray-faithful-233	row-specific faithful source-order replacement
-base/reshapedarray.jl	235	241	__reshape	__reshape(p::Tuple{AbstractArray,IndexStyle}, dims::Dims)	modelled	multidimcov-reshapedarray-faithful-235	row-specific faithful source-order replacement
-base/reshapedarray.jl	243	246	__reshape	__reshape(p::Tuple{AbstractArray{<:Any,0},IndexCartesian}, dims::Dims)	modelled	arraycov-reshape-core	
-base/reshapedarray.jl	248	251	__reshape	__reshape(p::Tuple{AbstractArray,IndexLinear}, dims::Dims)	modelled	arraycov-reshape-core	
-base/reshapedarray.jl	253	253	size	size(A::ReshapedArray)	modelled	arraycov-reshaped-metadata	
-base/reshapedarray.jl	254	254	length	length(A::ReshapedArray)	modelled	arraycov-reshaped-metadata	
-base/reshapedarray.jl	255	255	similar	similar(A::ReshapedArray, eltype::Type, dims::Dims)	modelled	multidimcov-reshapedarray-faithful-255	row-specific faithful source-order replacement
-base/reshapedarray.jl	256	256	similar	similar(::Type{TA}, dims::Dims) where {T,N,P,TA<:ReshapedArray{T,N,P}}	modelled	multidimcov-reshapedarray-faithful-256	row-specific faithful source-order replacement
-base/reshapedarray.jl	257	257	IndexStyle	IndexStyle(::Type{<:ReshapedArrayLF})	modelled	arraycov-reshaped-metadata	
-base/reshapedarray.jl	258	258	parent	parent(A::ReshapedArray)	modelled	arraycov-reshaped-metadata	
-base/reshapedarray.jl	259	259	parentindices	parentindices(A::ReshapedArray)	modelled	arraycov-reshaped-metadata	
-base/reshapedarray.jl	260	260	elsize	elsize(::Type{<:ReshapedArray{<:Any,<:Any,P}}) where {P}	modelled	arraycov-reshaped-metadata	
-base/reshapedarray.jl	262	262	unaliascopy	unaliascopy(A::ReshapedArray)	modelled	multidimcov-reshapedarray-faithful-262	row-specific faithful source-order replacement
-base/reshapedarray.jl	263	263	dataids	dataids(A::ReshapedArray)	modelled	arraycov-reshaped-metadata	
-base/reshapedarray.jl	265	265	mightalias	mightalias(A::ReshapedArray, B::ReshapedArray)	modelled	arraycov-reshaped-metadata	
-base/reshapedarray.jl	267	267	mightalias	mightalias(A::ReshapedArray, B::SubArray)	modelled	arraycov-reshaped-metadata	
-base/reshapedarray.jl	268	268	mightalias	mightalias(A::SubArray, B::ReshapedArray)	modelled	arraycov-reshaped-metadata	
-base/reshapedarray.jl	270	270	ind2sub_rs	ind2sub_rs(ax, ::Tuple{}, i::Int)	modelled	arraycov-reshaped-index-math	
-base/reshapedarray.jl	271	271	ind2sub_rs	ind2sub_rs(ax, szs, i)	modelled	arraycov-reshaped-index-math	
-base/reshapedarray.jl	272	272	_ind2sub_rs	_ind2sub_rs(ax, ::Tuple{}, ind)	modelled	multidimcov-reshapedarray-faithful-272	row-specific faithful source-order replacement
-base/reshapedarray.jl	273	276	_ind2sub_rs	_ind2sub_rs(ax, szs, ind)	modelled	multidimcov-reshapedarray-faithful-273	row-specific faithful source-order replacement
-base/reshapedarray.jl	277	277	offset_if_vec	offset_if_vec(i::Integer, axs::Tuple{<:AbstractUnitRange})	modelled	arraycov-reshaped-index-math	
-base/reshapedarray.jl	278	278	offset_if_vec	offset_if_vec(i::Integer, axs::Tuple)	modelled	arraycov-reshaped-index-math	
-base/reshapedarray.jl	280	285	isassigned	isassigned(A::ReshapedArrayLF, index::Int)	modelled	arraycov-reshaped-access	
-base/reshapedarray.jl	286	292	isassigned	isassigned(A::ReshapedArray{T,N}, indices::Vararg{Int, N}) where {T,N}	modelled	arraycov-reshaped-access	
-base/reshapedarray.jl	294	299	getindex	getindex(A::ReshapedArrayLF, index::Int)	modelled	multidimcov-reshapedarray-faithful-294	row-specific faithful source-order replacement
-base/reshapedarray.jl	300	303	getindex	getindex(A::ReshapedArray{T,N}, indices::Vararg{Int,N}) where {T,N}	modelled	multidimcov-reshapedarray-faithful-300	row-specific faithful source-order replacement
-base/reshapedarray.jl	304	308	getindex	getindex(A::ReshapedArray, index::ReshapedIndex)	modelled	multidimcov-reshapedarray-faithful-304	row-specific faithful source-order replacement
-base/reshapedarray.jl	310	315	_unsafe_getindex	_unsafe_getindex(A::ReshapedArray{T,N}, indices::Vararg{Int,N}) where {T,N}	modelled	multidimcov-reshapedarray-faithful-310	row-specific faithful source-order replacement
-base/reshapedarray.jl	316	316	_unsafe_getindex_rs	_unsafe_getindex_rs(A, i::Integer)	modelled	multidimcov-reshapedarray-faithful-316	row-specific faithful source-order replacement
-base/reshapedarray.jl	317	317	_unsafe_getindex_rs	_unsafe_getindex_rs(A, I)	modelled	multidimcov-reshapedarray-faithful-317	row-specific faithful source-order replacement
-base/reshapedarray.jl	319	324	setindex!	setindex!(A::ReshapedArrayLF, val, index::Int)	modelled	multidimcov-reshapedarray-faithful-319	row-specific faithful source-order replacement
-base/reshapedarray.jl	325	328	setindex!	setindex!(A::ReshapedArray{T,N}, val, indices::Vararg{Int,N}) where {T,N}	modelled	multidimcov-reshapedarray-faithful-325	row-specific faithful source-order replacement
-base/reshapedarray.jl	329	333	setindex!	setindex!(A::ReshapedArray, val, index::ReshapedIndex)	modelled	multidimcov-reshapedarray-faithful-329	row-specific faithful source-order replacement
-base/reshapedarray.jl	335	340	_unsafe_setindex!	_unsafe_setindex!(A::ReshapedArray{T,N}, val, indices::Vararg{Int,N}) where {T,N}	modelled	multidimcov-reshapedarray-faithful-335	row-specific faithful source-order replacement
-base/reshapedarray.jl	344	344	setindex!	setindex!(A::ReshapedRange, val, index::Int)	modelled	arraycov-reshaped-simple-routes	
-base/reshapedarray.jl	345	345	setindex!	setindex!(A::ReshapedRange{T,N}, val, indices::Vararg{Int,N}) where {T,N}	modelled	arraycov-reshaped-simple-routes	
-base/reshapedarray.jl	346	346	setindex!	setindex!(A::ReshapedRange, val, index::ReshapedIndex)	modelled	arraycov-reshaped-simple-routes	
-base/reshapedarray.jl	348	348	_rs_setindex!_err	_rs_setindex!_err()	modelled	multidimcov-reshapedarray-faithful-348	row-specific faithful source-order replacement
-base/reshapedarray.jl	350	350	cconvert	cconvert(::Type{Ptr{T}}, a::ReshapedArray{T}) where {T}	modelled	multidimcov-reshapedarray-faithful-350	row-specific faithful source-order replacement
-base/reshapedarray.jl	351	351	unsafe_convert	unsafe_convert(::Type{Ptr{T}}, a::ReshapedArray{T}) where {T}	modelled	multidimcov-reshapedarray-faithful-351	row-specific faithful source-order replacement
-base/reshapedarray.jl	355	355	viewindexing	viewindexing(I::Tuple{Slice, ReshapedUnitRange, Vararg{ScalarIndex}})	modelled	arraycov-reshaped-simple-routes	
-base/reshapedarray.jl	356	356	viewindexing	viewindexing(I::Tuple{ReshapedRange, Vararg{ScalarIndex}})	modelled	arraycov-reshaped-simple-routes	
-base/reshapedarray.jl	357	357	compute_stride1	compute_stride1(s, inds, I::Tuple{ReshapedRange, Vararg{Any}})	modelled	multidimcov-reshapedarray-faithful-357	row-specific faithful source-order replacement
-base/reshapedarray.jl	358	359	compute_offset1	compute_offset1(parent::AbstractVector, stride1::Integer, I::Tuple{ReshapedRange})	modelled	arraycov-reshaped-pointer-routes	
-base/reshapedarray.jl	360	361	substrides	substrides(strds::NTuple{N,Int}, I::Tuple{ReshapedRange{<:Integer}, Vararg{Any}}) where N	modelled	multidimcov-reshapedarray-faithful-360	row-specific faithful source-order replacement
-base/reshapedarray.jl	368	376	unsafe_convert	unsafe_convert(::Type{Ptr{S}}, V::SubArray{T,N,P,<:Tuple{Vararg{StridedSubArrayIndex}}}) where {S,T,N,P}	modelled	multidimcov-reshapedarray-faithful-368	row-specific faithful source-order replacement
-base/reshapedarray.jl	384	390	_offset_cconvert	_offset_cconvert(::Type{Ptr{T}}, byte_offset::Int, cconv_parent::OffsetCConvert{T}) where {T}	modelled	arraycov-reshaped-pointer-routes	
-base/reshapedarray.jl	391	396	_offset_cconvert	_offset_cconvert(::Type{Ptr{T}}, byte_offset::Int, cconv_parent::C) where {T,C}	modelled	arraycov-reshaped-pointer-routes	
-base/reshapedarray.jl	398	400	unsafe_convert	unsafe_convert(::Type{Ptr{S}}, c::OffsetCConvert{T}) where {S, T}	modelled	multidimcov-reshapedarray-faithful-398	row-specific faithful source-order replacement
-base/reshapedarray.jl	402	415	cconvert	cconvert(::Type{Ptr{S}}, V::SubArray{T,N,P,<:Tuple{Vararg{StridedSubArrayIndex}}}) where {S,T,N,P}	modelled	multidimcov-reshapedarray-faithful-402	row-specific faithful source-order replacement
-base/reshapedarray.jl	417	417	_checkcontiguous	_checkcontiguous(::Type{Bool}, A::AbstractArray)	modelled	arraycov-reshaped-simple-routes	
-base/reshapedarray.jl	420	420	_checkcontiguous	_checkcontiguous(::Type{Bool}, A::DenseArray)	modelled	arraycov-reshaped-simple-routes	
-base/reshapedarray.jl	421	421	_checkcontiguous	_checkcontiguous(::Type{Bool}, A::ReshapedArray)	modelled	arraycov-reshaped-simple-routes	
-base/reshapedarray.jl	422	422	_checkcontiguous	_checkcontiguous(::Type{Bool}, A::FastContiguousSubArray)	modelled	arraycov-reshaped-simple-routes	
-base/reshapedarray.jl	424	431	strides	strides(a::ReshapedArray)	modelled	multidimcov-reshapedarray-faithful-424	row-specific faithful source-order replacement
-base/reshapedarray.jl	433	436	_reshaped_strides	_reshaped_strides(::Dims{0}, reshaped::Int, msz::Int, ::Int, ::Int, ::Dims, ::Dims)	modelled	arraycov-reshaped-strides	
-base/reshapedarray.jl	437	446	_reshaped_strides	_reshaped_strides(sz::Dims, reshaped::Int, msz::Int, mst::Int, n::Int, apsz::Dims, apst::Dims)	modelled	arraycov-reshaped-strides	
-base/reshapedarray.jl	448	448	merge_adjacent_dim	merge_adjacent_dim(::Dims{0}, ::Dims{0})	modelled	arraycov-reshaped-simple-routes	
-base/reshapedarray.jl	449	449	merge_adjacent_dim	merge_adjacent_dim(apsz::Dims{1}, apst::Dims{1})	modelled	arraycov-reshaped-simple-routes	
-base/reshapedarray.jl	450	464	merge_adjacent_dim	merge_adjacent_dim(apsz::Dims{N}, apst::Dims{N}, n::Int = 1) where {N}	modelled	multidimcov-reshapedarray-faithful-450	row-specific faithful source-order replacement
-base/reshapedarray.jl	466	466	map	map(f, R::ReshapedArray)	modelled	multidimcov-reshapedarray-faithful-466	row-specific faithful source-order replacement
-base/reshapedarray.jl	468	468	iterate	iterate(R::ReshapedArray)	modelled	arraycov-reshaped-delegates	
-base/reshapedarray.jl	469	469	iterate	iterate(R::ReshapedArray, state)	modelled	arraycov-reshaped-delegates	
-base/reshapedarray.jl	471	471	mapfoldl_impl	mapfoldl_impl(f, op, nt, R::ReshapedArray)	modelled	arraycov-reshaped-delegates	
-base/reshapedarray.jl	472	472	mapfoldr_impl	mapfoldr_impl(f, op, nt, R::ReshapedArray)	modelled	arraycov-reshaped-delegates	
-base/reshapedarray.jl	474	474	in	in(x, R::ReshapedArray)	modelled	arraycov-reshaped-delegates	
+base/reshapedarray.jl	122	122	reshape	reshape(parent::AbstractArray, dims::IntOrInd...)	todo		trivial: reshape overload forwards unchanged arguments
+base/reshapedarray.jl	123	123	reshape	reshape(parent::AbstractArray, shp::Tuple{Union{Integer,AbstractOneTo}, Vararg{Union{Integer,AbstractOneTo}}})	todo		trivial: shape overload only converts and forwards
+base/reshapedarray.jl	126	126	reshape	reshape(parent::AbstractArray, shp::Tuple{Union{Integer,OneTo}, Vararg{Union{Integer,OneTo}}})	todo		trivial: legacy shape overload only converts and forwards
+base/reshapedarray.jl	127	127	reshape	reshape(parent::AbstractArray, dims::Tuple{Integer, Vararg{Integer}})	todo		trivial: integer tuple overload only converts and forwards
+base/reshapedarray.jl	128	128	reshape	reshape(parent::AbstractArray, dims::Dims)	todo		trivial: Dims overload forwards to the general reshape method
+base/reshapedarray.jl	131	131	reshape	reshape(parent::AbstractVector, ::Colon)	todo		trivial: overload wrappers and colon scanners restate dispatch
+base/reshapedarray.jl	132	132	reshape	reshape(parent::AbstractVector, ::Tuple{Colon})	todo		trivial: overload wrappers and colon scanners restate dispatch
+base/reshapedarray.jl	133	133	reshape	reshape(parent::AbstractArray, dims::Int...)	todo		trivial: Int vararg overload forwards to tuple reshape
+base/reshapedarray.jl	134	134	reshape	reshape(parent::AbstractArray, dims::Integer...)	todo		trivial: Integer vararg overload forwards to tuple reshape
+base/reshapedarray.jl	135	135	reshape	reshape(parent::AbstractArray, dims::Union{Integer,Colon}...)	todo		trivial: mixed vararg overload forwards to tuple reshape
+base/reshapedarray.jl	136	136	reshape	reshape(parent::AbstractArray, dims::Tuple{Vararg{Union{Integer,Colon}}})	todo		trivial: colon tuple overload delegates to colon inference
+base/reshapedarray.jl	138	139	throw1	throw1(dims)	modelled	reshapedarray-dimension-errors	row-specific faithful source-order replacement
+base/reshapedarray.jl	140	141	throw2	throw2(lenA, dims)	modelled	reshapedarray-dimension-errors	row-specific faithful source-order replacement
+base/reshapedarray.jl	143	151	_reshape_uncolon	_reshape_uncolon(A, _dims::Tuple{Vararg{Union{Integer, Colon}}})	modelled	reinterpretarrays-reshape-colon-sound	row-specific faithful source-order replacement
+base/reshapedarray.jl	152	162	_reshape_uncolon_computesize	_reshape_uncolon_computesize(len::Int, dims, pre::Tuple{Vararg{Int}}, post::Tuple{Vararg{Int}})	modelled	reinterpretarrays-reshape-colon-sound	row-specific faithful source-order replacement
+base/reshapedarray.jl	163	171	_reshape_uncolon_computesize	_reshape_uncolon_computesize(len, dims, pre, post)	modelled	reshapedarray-generic-colon-product	row-specific faithful source-order replacement
+base/reshapedarray.jl	172	177	_reshape_uncolon_computesize_nonempty	_reshape_uncolon_computesize_nonempty(len, dims, pr)	modelled	reinterpretarrays-reshape-check-sound	
+base/reshapedarray.jl	178	178	_any_colon	_any_colon()	todo		trivial: overload wrappers and colon scanners restate dispatch
+base/reshapedarray.jl	179	179	_any_colon	_any_colon(dim::Colon, tail...)	todo		trivial: overload wrappers and colon scanners restate dispatch
+base/reshapedarray.jl	180	180	_any_colon	_any_colon(dim::Any, tail...)	todo		trivial: overload wrappers and colon scanners restate dispatch
+base/reshapedarray.jl	181	181	_before_colon	_before_colon(dim::Any, tail...)	todo		trivial: overload wrappers and colon scanners restate dispatch
+base/reshapedarray.jl	182	182	_before_colon	_before_colon(dim::Colon, tail...)	todo		trivial: overload wrappers and colon scanners restate dispatch
+base/reshapedarray.jl	183	183	_after_colon	_after_colon(dim::Any, tail...)	todo		trivial: overload wrappers and colon scanners restate dispatch
+base/reshapedarray.jl	184	184	_after_colon	_after_colon(dim::Colon, tail...)	todo		trivial: overload wrappers and colon scanners restate dispatch
+base/reshapedarray.jl	186	186	reshape	reshape(parent::AbstractArray{T,N}, ndims::Val{N}) where {T,N}	todo		trivial: rank routing restates the dispatch body
+base/reshapedarray.jl	187	189	reshape	reshape(parent::AbstractArray, ndims::Val{N}) where N	todo		trivial: rank reshape forwards axes-derived dimensions
+base/reshapedarray.jl	194	194	rdims_trailing	rdims_trailing(l, inds...)	todo		trivial: private trailing-length recursion has no separate contract
+base/reshapedarray.jl	195	195	rdims_trailing	rdims_trailing(l)	todo		trivial: terminal trailing-length helper forwards length
+base/reshapedarray.jl	196	196	rdims	rdims(out::Val{N}, inds::Tuple) where {N}	todo		trivial: Val wrapper prepares unit axes for rank dispatch
+base/reshapedarray.jl	197	197	rdims	rdims(out::Tuple{}, inds::Tuple{})	todo		trivial: rank routing restates the dispatch body
+base/reshapedarray.jl	198	198	rdims	rdims(out::Tuple{}, inds::Tuple{Any})	todo		trivial: rank routing restates the dispatch body
+base/reshapedarray.jl	199	199	rdims	rdims(out::Tuple{}, inds::NTuple{M,Any}) where {M}	todo		trivial: rank routing restates the dispatch body
+base/reshapedarray.jl	200	200	rdims	rdims(out::Tuple{Any}, inds::Tuple{})	todo		trivial: rank routing restates the dispatch body
+base/reshapedarray.jl	201	201	rdims	rdims(out::NTuple{N,Any}, inds::Tuple{}) where {N}	todo		trivial: rank routing restates the dispatch body
+base/reshapedarray.jl	202	202	rdims	rdims(out::Tuple{Any}, inds::Tuple{Any})	todo		trivial: rank routing restates the dispatch body
+base/reshapedarray.jl	203	203	rdims	rdims(out::Tuple{Any}, inds::NTuple{M,Any}) where {M}	todo		trivial: singleton rank helper computes a collapsed dimension
+base/reshapedarray.jl	204	204	rdims	rdims(out::NTuple{N,Any}, inds::NTuple{N,Any}) where {N}	todo		trivial: rank routing restates the dispatch body
+base/reshapedarray.jl	205	205	rdims	rdims(out::NTuple{N,Any}, inds::NTuple{M,Any}) where {N,M}	todo		trivial: rank routing restates the dispatch body
+base/reshapedarray.jl	209	209	_reshape	_reshape(parent::Vector, dims::Dims{1})	todo		trivial: rank routing restates the dispatch body
+base/reshapedarray.jl	210	210	_reshape	_reshape(parent::Array, dims::Dims{1})	todo		trivial: rank routing restates the dispatch body
+base/reshapedarray.jl	211	211	_reshape	_reshape(parent::Array, dims::Dims)	todo		trivial: rank routing restates the dispatch body
+base/reshapedarray.jl	214	219	_reshape	_reshape(v::AbstractVector, dims::Dims{1})	modelled	reinterpretarrays-reshape-check-sound	row-specific faithful source-order replacement
+base/reshapedarray.jl	221	225	_reshape	_reshape(parent::AbstractArray, dims::Dims)	modelled	reinterpretarrays-reshape-check-sound	row-specific faithful source-order replacement
+base/reshapedarray.jl	227	229	_throw_dmrs	_throw_dmrs(n, str, dims)	modelled	reshapedarray-dimension-errors	row-specific faithful source-order replacement
+base/reshapedarray.jl	232	232	_reshape	_reshape(v::ReshapedArray{<:Any,1}, dims::Dims{1})	todo		trivial: reshaped-vector overload forwards its parent
+base/reshapedarray.jl	233	233	_reshape	_reshape(R::ReshapedArray, dims::Dims)	todo		trivial: reshaped-array overload forwards its parent
+base/reshapedarray.jl	235	241	__reshape	__reshape(p::Tuple{AbstractArray,IndexStyle}, dims::Dims)	modelled	reshapedarray-array-shares-storage	row-specific faithful source-order replacement
+base/reshapedarray.jl	243	246	__reshape	__reshape(p::Tuple{AbstractArray{<:Any,0},IndexCartesian}, dims::Dims)	modelled	reinterpretarrays-reshape-check-sound	
+base/reshapedarray.jl	248	251	__reshape	__reshape(p::Tuple{AbstractArray,IndexLinear}, dims::Dims)	modelled	reinterpretarrays-reshape-check-sound	
+base/reshapedarray.jl	253	253	size	size(A::ReshapedArray)	modelled	reshapedarray-array-shares-storage	
+base/reshapedarray.jl	254	254	length	length(A::ReshapedArray)	modelled	reshapedarray-array-shares-storage	
+base/reshapedarray.jl	255	255	similar	similar(A::ReshapedArray, eltype::Type, dims::Dims)	todo		trivial: similar delegates to the parent
+base/reshapedarray.jl	256	256	similar	similar(::Type{TA}, dims::Dims) where {T,N,P,TA<:ReshapedArray{T,N,P}}	todo		trivial: type-level similar delegates to the parent type
+base/reshapedarray.jl	257	257	IndexStyle	IndexStyle(::Type{<:ReshapedArrayLF})	modelled	reshapedarray-array-shares-storage	
+base/reshapedarray.jl	258	258	parent	parent(A::ReshapedArray)	modelled	reshapedarray-array-shares-storage	
+base/reshapedarray.jl	259	259	parentindices	parentindices(A::ReshapedArray)	modelled	reshapedarray-array-shares-storage	
+base/reshapedarray.jl	260	260	elsize	elsize(::Type{<:ReshapedArray{<:Any,<:Any,P}}) where {P}	modelled	reshapedarray-array-shares-storage	
+base/reshapedarray.jl	262	262	unaliascopy	unaliascopy(A::ReshapedArray)	todo		trivial: unaliascopy delegates parent copying then reconstructs metadata
+base/reshapedarray.jl	263	263	dataids	dataids(A::ReshapedArray)	modelled	reshapedarray-array-shares-storage	
+base/reshapedarray.jl	265	265	mightalias	mightalias(A::ReshapedArray, B::ReshapedArray)	modelled	reshapedarray-array-shares-storage	
+base/reshapedarray.jl	267	267	mightalias	mightalias(A::ReshapedArray, B::SubArray)	modelled	reshapedarray-array-shares-storage	
+base/reshapedarray.jl	268	268	mightalias	mightalias(A::SubArray, B::ReshapedArray)	modelled	reshapedarray-array-shares-storage	
+base/reshapedarray.jl	270	270	ind2sub_rs	ind2sub_rs(ax, ::Tuple{}, i::Int)	modelled	reinterpretarrays-ind2sub-rs	
+base/reshapedarray.jl	271	271	ind2sub_rs	ind2sub_rs(ax, szs, i)	modelled	reinterpretarrays-ind2sub-rs	
+base/reshapedarray.jl	272	272	_ind2sub_rs	_ind2sub_rs(ax, ::Tuple{}, ind)	modelled	reinterpretarrays-ind2sub-rs	row-specific faithful source-order replacement
+base/reshapedarray.jl	273	276	_ind2sub_rs	_ind2sub_rs(ax, szs, ind)	modelled	reinterpretarrays-ind2sub-rs	row-specific faithful source-order replacement
+base/reshapedarray.jl	277	277	offset_if_vec	offset_if_vec(i::Integer, axs::Tuple{<:AbstractUnitRange})	modelled	reinterpretarrays-ind2sub-rs	
+base/reshapedarray.jl	278	278	offset_if_vec	offset_if_vec(i::Integer, axs::Tuple)	modelled	reinterpretarrays-ind2sub-rs	
+base/reshapedarray.jl	280	285	isassigned	isassigned(A::ReshapedArrayLF, index::Int)	modelled	memsafety-reshapedarray-indexing	
+base/reshapedarray.jl	286	292	isassigned	isassigned(A::ReshapedArray{T,N}, indices::Vararg{Int, N}) where {T,N}	modelled	memsafety-reshapedarray-indexing	
+base/reshapedarray.jl	294	299	getindex	getindex(A::ReshapedArrayLF, index::Int)	modelled	memsafety-reshapedarray-indexing	row-specific faithful source-order replacement
+base/reshapedarray.jl	300	303	getindex	getindex(A::ReshapedArray{T,N}, indices::Vararg{Int,N}) where {T,N}	modelled	memsafety-reshapedarray-indexing	row-specific faithful source-order replacement
+base/reshapedarray.jl	304	308	getindex	getindex(A::ReshapedArray, index::ReshapedIndex)	modelled	memsafety-reshapedarray-indexing	row-specific faithful source-order replacement
+base/reshapedarray.jl	310	315	_unsafe_getindex	_unsafe_getindex(A::ReshapedArray{T,N}, indices::Vararg{Int,N}) where {T,N}	modelled	memsafety-reshapedarray-ind2sub	row-specific faithful source-order replacement
+base/reshapedarray.jl	316	316	_unsafe_getindex_rs	_unsafe_getindex_rs(A, i::Integer)	todo		trivial: scalar helper forwards the parent getindex call
+base/reshapedarray.jl	317	317	_unsafe_getindex_rs	_unsafe_getindex_rs(A, I)	todo		trivial: tuple helper forwards the parent getindex call
+base/reshapedarray.jl	319	324	setindex!	setindex!(A::ReshapedArrayLF, val, index::Int)	modelled	reshapedarray-assignment-returns-value	row-specific faithful source-order replacement
+base/reshapedarray.jl	325	328	setindex!	setindex!(A::ReshapedArray{T,N}, val, indices::Vararg{Int,N}) where {T,N}	modelled	reshapedarray-assignment-returns-value	row-specific faithful source-order replacement
+base/reshapedarray.jl	329	333	setindex!	setindex!(A::ReshapedArray, val, index::ReshapedIndex)	modelled	reshapedarray-assignment-returns-value	row-specific faithful source-order replacement
+base/reshapedarray.jl	335	340	_unsafe_setindex!	_unsafe_setindex!(A::ReshapedArray{T,N}, val, indices::Vararg{Int,N}) where {T,N}	modelled	memsafety-reshapedarray-ind2sub	row-specific faithful source-order replacement
+base/reshapedarray.jl	344	344	setindex!	setindex!(A::ReshapedRange, val, index::Int)	modelled	reshapedarray-range-assignment-error	
+base/reshapedarray.jl	345	345	setindex!	setindex!(A::ReshapedRange{T,N}, val, indices::Vararg{Int,N}) where {T,N}	modelled	reshapedarray-range-assignment-error	
+base/reshapedarray.jl	346	346	setindex!	setindex!(A::ReshapedRange, val, index::ReshapedIndex)	modelled	reshapedarray-range-assignment-error	
+base/reshapedarray.jl	348	348	_rs_setindex!_err	_rs_setindex!_err()	modelled	reshapedarray-range-assignment-error	row-specific faithful source-order replacement
+base/reshapedarray.jl	350	350	cconvert	cconvert(::Type{Ptr{T}}, a::ReshapedArray{T}) where {T}	todo		trivial: pointer conversion forwards to the parent
+base/reshapedarray.jl	351	351	unsafe_convert	unsafe_convert(::Type{Ptr{T}}, a::ReshapedArray{T}) where {T}	todo		trivial: unsafe pointer conversion forwards to the parent
+base/reshapedarray.jl	355	355	viewindexing	viewindexing(I::Tuple{Slice, ReshapedUnitRange, Vararg{ScalarIndex}})	modelled	reshapedarray-range-assignment-error	
+base/reshapedarray.jl	356	356	viewindexing	viewindexing(I::Tuple{ReshapedRange, Vararg{ScalarIndex}})	modelled	reshapedarray-range-assignment-error	
+base/reshapedarray.jl	357	357	compute_stride1	compute_stride1(s, inds, I::Tuple{ReshapedRange, Vararg{Any}})	todo		trivial: private range stride helper supports the view stride method
+base/reshapedarray.jl	358	359	compute_offset1	compute_offset1(parent::AbstractVector, stride1::Integer, I::Tuple{ReshapedRange})	modelled	reshapedarray-pointer-offsets	
+base/reshapedarray.jl	360	361	substrides	substrides(strds::NTuple{N,Int}, I::Tuple{ReshapedRange{<:Integer}, Vararg{Any}}) where N	todo		trivial: private range stride helper supports the view stride method
+base/reshapedarray.jl	368	376	unsafe_convert	unsafe_convert(::Type{Ptr{S}}, V::SubArray{T,N,P,<:Tuple{Vararg{StridedSubArrayIndex}}}) where {S,T,N,P}	modelled	reshapedarray-pointer-offsets	row-specific faithful source-order replacement
+base/reshapedarray.jl	384	390	_offset_cconvert	_offset_cconvert(::Type{Ptr{T}}, byte_offset::Int, cconv_parent::OffsetCConvert{T}) where {T}	modelled	reshapedarray-pointer-offsets	
+base/reshapedarray.jl	391	396	_offset_cconvert	_offset_cconvert(::Type{Ptr{T}}, byte_offset::Int, cconv_parent::C) where {T,C}	modelled	reshapedarray-pointer-offsets	
+base/reshapedarray.jl	398	400	unsafe_convert	unsafe_convert(::Type{Ptr{S}}, c::OffsetCConvert{T}) where {S, T}	modelled	reshapedarray-pointer-offsets	row-specific faithful source-order replacement
+base/reshapedarray.jl	402	415	cconvert	cconvert(::Type{Ptr{S}}, V::SubArray{T,N,P,<:Tuple{Vararg{StridedSubArrayIndex}}}) where {S,T,N,P}	modelled	reshapedarray-pointer-offsets	row-specific faithful source-order replacement
+base/reshapedarray.jl	417	417	_checkcontiguous	_checkcontiguous(::Type{Bool}, A::AbstractArray)	modelled	reshapedarray-range-assignment-error	
+base/reshapedarray.jl	420	420	_checkcontiguous	_checkcontiguous(::Type{Bool}, A::DenseArray)	modelled	reshapedarray-range-assignment-error	
+base/reshapedarray.jl	421	421	_checkcontiguous	_checkcontiguous(::Type{Bool}, A::ReshapedArray)	modelled	reshapedarray-range-assignment-error	
+base/reshapedarray.jl	422	422	_checkcontiguous	_checkcontiguous(::Type{Bool}, A::FastContiguousSubArray)	modelled	reshapedarray-range-assignment-error	
+base/reshapedarray.jl	424	431	strides	strides(a::ReshapedArray)	modelled	reshapedarray-contiguous-strides	row-specific faithful source-order replacement
+base/reshapedarray.jl	433	436	_reshaped_strides	_reshaped_strides(::Dims{0}, reshaped::Int, msz::Int, ::Int, ::Int, ::Dims, ::Dims)	modelled	reshapedarray-contiguous-strides	
+base/reshapedarray.jl	437	446	_reshaped_strides	_reshaped_strides(sz::Dims, reshaped::Int, msz::Int, mst::Int, n::Int, apsz::Dims, apst::Dims)	modelled	reshapedarray-contiguous-strides	
+base/reshapedarray.jl	448	448	merge_adjacent_dim	merge_adjacent_dim(::Dims{0}, ::Dims{0})	modelled	reshapedarray-range-assignment-error	
+base/reshapedarray.jl	449	449	merge_adjacent_dim	merge_adjacent_dim(apsz::Dims{1}, apst::Dims{1})	modelled	reshapedarray-range-assignment-error	
+base/reshapedarray.jl	450	464	merge_adjacent_dim	merge_adjacent_dim(apsz::Dims{N}, apst::Dims{N}, n::Int = 1) where {N}	modelled	reshapedarray-vector-strides	row-specific faithful source-order replacement
+base/reshapedarray.jl	466	466	map	map(f, R::ReshapedArray)	todo		trivial: map delegates to parent map and reshape
+base/reshapedarray.jl	468	468	iterate	iterate(R::ReshapedArray)	todo		trivial: map, iteration, fold, and membership forward to the parent
+base/reshapedarray.jl	469	469	iterate	iterate(R::ReshapedArray, state)	todo		trivial: map, iteration, fold, and membership forward to the parent
+base/reshapedarray.jl	471	471	mapfoldl_impl	mapfoldl_impl(f, op, nt, R::ReshapedArray)	todo		trivial: map, iteration, fold, and membership forward to the parent
+base/reshapedarray.jl	472	472	mapfoldr_impl	mapfoldr_impl(f, op, nt, R::ReshapedArray)	todo		trivial: map, iteration, fold, and membership forward to the parent
+base/reshapedarray.jl	474	474	in	in(x, R::ReshapedArray)	todo		trivial: map, iteration, fold, and membership forward to the parent

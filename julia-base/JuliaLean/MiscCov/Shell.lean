@@ -3,7 +3,7 @@ import JuliaLean.ShellCmd.Parse
 /-!
 # `__repl_entry_shell_parse(str, interpolate, special, filename)`, `base/shell.jl:36-368`
 
-Master `bbfa0ce4150`, including the `interpolate = true` branches (`$`, `|`, `<`, `>`
+Master `f755f49a9e41380d7da126b3c1db9fe7f83dd027`, including the `interpolate = true` branches (`$`, `|`, `<`, `>`
 and `~`) that `JuliaLean.ShellCmd.Parse` leaves out. Strings, characters, byte
 indices, `pairs(s)`, `s[i:j]`, `prevind` and `nextind` are those of
 `JuliaLean.ShellCmd.Basic`: a string is the list of characters iteration yields,
@@ -124,7 +124,9 @@ def setRedirect (σ : PS) (re : SEx) : PS :=
 /-- `isdigit(c)`: `'0' <= c <= '9'` on the raw bits. -/
 def isdigitC (c : JC) : Bool := A '0' ≤ c && c ≤ A '9'
 
-/-- `parse(Int, w)` for a nonempty word of ASCII digits: `OverflowError` above `typemax(Int)`. -/
+/-- `parse(Int, String(w)::String)` for a nonempty word of ASCII digits:
+`OverflowError` above `typemax(Int)`. The list representation abstracts the
+copy to a concrete String and does not represent custom conversion failures. -/
 def parseFd (w : JS) : SH Int :=
   let v : Nat := w.foldl (fun a c => a * 10 + (c.toNat / 2 ^ 24 - 48)) 0
   if v > 2 ^ 63 - 1 then .error (.jl (.overflowError "")) else .ok v

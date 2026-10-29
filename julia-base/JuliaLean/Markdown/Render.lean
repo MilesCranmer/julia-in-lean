@@ -6,7 +6,7 @@ import JuliaLean.Markdown.Inline
 Models of `Markdown.html` (`stdlib/Markdown/src/render/html.jl`, `rich.jl`),
 `Markdown.latex` (`render/latex.jl`, `IPython/IPython.jl`), `Markdown.rst`
 (`render/rst.jl`) and `Markdown.plain` (`render/plain.jl`) at master
-`bbfa0ce4150`, over the tree of `JuliaLean.Markdown.Ast`. Output is a byte list;
+`f755f49a9e41380d7da126b3c1db9fe7f83dd027`, over the tree of `JuliaLean.Markdown.Ast`. Output is a byte list;
 `latex` and `rst` return `Except Err` because some nodes have no method.
 
 * `styled` is `String(styled(code))` (StyledStrings markup, applied to code whose

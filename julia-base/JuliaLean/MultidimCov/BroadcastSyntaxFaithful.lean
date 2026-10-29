@@ -75,7 +75,7 @@ def dotSyntax (isoperator : String → Bool) : Value → Value
         | _, _ => .expr "call" dotted
       else if head = "comparison" then
         .expr "comparison" ((dotted.zipIdx).map fun pair => dotComparisonArg isoperator pair.2 pair.1)
-      else if head = "$" then dotted.head?.getD (.other "nothing")
+      else if head = "$" then args.head?.getD (.other "nothing")
       else if head = "let" || head = "for" then
         .expr head [undot (dotted.head?.getD (.other "nothing")), dotted[1]?.getD (.other "nothing")]
       else if head = "generator" || head = "filter" then
@@ -96,17 +96,22 @@ def P1319 : Prop := ∀ isoperator head args,
   m1319 isoperator head args = dotSyntax isoperator (.expr head args)
 theorem p1319 : P1319 := by simp [P1319, m1319]
 
-def m1390 (isoperator : String → Bool) (value : Value) : Value := dotSyntax isoperator value
-def P1390 : Prop := ∀ isoperator value, m1390 isoperator value = dotSyntax isoperator value
+def m1390 (isoperator : String → Bool) (escape : Value → Value) (value : Value) : Value :=
+  escape (dotSyntax isoperator value)
+def P1390 : Prop := ∀ isoperator escape value,
+  m1390 isoperator escape value = escape (dotSyntax isoperator value)
 theorem p1390 : P1390 := by simp [P1390, m1390]
 
-def m1394 {F A K R : Type} (broadcasted : F → List A → R)
-    (callWithKeywords : F → List K → List A → R) (f : F) (args : List A) (kwargs : List K) : R :=
-  if kwargs.isEmpty then broadcasted f args else callWithKeywords f kwargs args
-def P1394 : Prop := ∀ {F A K R : Type} (broadcasted : F → List A → R)
-    (callWithKeywords : F → List K → List A → R) f args kwargs,
-  m1394 broadcasted callWithKeywords f args kwargs =
-    if kwargs.isEmpty then broadcasted f args else callWithKeywords f kwargs args
+def m1394 {F G A K R : Type} (broadcastedF : F → List A → R)
+    (broadcastedClosure : G → List A → R) (capture : F → List K → G)
+    (f : F) (args : List A) (kwargs : List K) : R :=
+  if kwargs.isEmpty then broadcastedF f args
+  else broadcastedClosure (capture f kwargs) args
+def P1394 : Prop := ∀ {F G A K R : Type} (broadcastedF : F → List A → R)
+    (broadcastedClosure : G → List A → R) (capture : F → List K → G) f args kwargs,
+  m1394 broadcastedF broadcastedClosure capture f args kwargs =
+    if kwargs.isEmpty then broadcastedF f args
+    else broadcastedClosure (capture f kwargs) args
 theorem p1394 : P1394 := by simp [P1394, m1394]
 
 def m1401 {F A B S R : Type} (broadcastable : A → B) (combineStyles : List B → S)
@@ -145,14 +150,16 @@ def P1414 : Prop := ∀ {F A B S R : Type} (broadcastable : A → B) (combineSty
     styled (combineStyles (firstMapped :: secondMapped :: restMapped)) f (firstMapped :: secondMapped :: restMapped)
 theorem p1414 : P1414 := by simp [P1414, m1414]
 
-structure Broadcasted (S F A : Type) where
+structure Broadcasted (S F A X : Type) where
   style : S
   f : F
   args : List A
+  axes : Option X
   deriving Repr, DecidableEq
-def m1420 (style : S) (f : F) (args : List A) : Broadcasted S F A := ⟨style, f, args⟩
-def P1420 : Prop := ∀ {S F A : Type} (style : S) (f : F) args,
-  m1420 style f args = (⟨style, f, args⟩ : Broadcasted S F A)
+def m1420 {S F A X : Type} (style : S) (f : F) (args : List A) : Broadcasted S F A X :=
+  ⟨style, f, args, none⟩
+def P1420 : Prop := ∀ {S F A X : Type} (style : S) (f : F) args,
+  m1420 style f args = (⟨style, f, args, none⟩ : Broadcasted S F A X)
 theorem p1420 : P1420 := by simp [P1420, m1420]
 
 structure BroadcastFunction (F : Type) where
@@ -164,10 +171,22 @@ def P1452 : Prop := ∀ {F A K R : Type} (broadcast : F → List A → List K �
   m1452 broadcast op args kwargs = broadcast op.f args kwargs
 theorem p1452 : P1452 := by simp [P1452, m1452]
 
-def m1454 {F : Type} (showF : F → String) (op : BroadcastFunction F) : String :=
-  "BroadcastFunction(" ++ showF op.f ++ ")"
-def P1454 : Prop := ∀ {F : Type} (showF : F → String) op,
-  m1454 showF op = "BroadcastFunction(" ++ showF op.f ++ ")"
+inductive ShowError where | failed deriving Repr, DecidableEq
+abbrev ShowResult (α : Type) := Except ShowError α
+
+def m1454 {F IO : Type} (print : IO → String → ShowResult IO)
+    (showF : IO → F → ShowResult IO) (io : IO) (op : BroadcastFunction F) : ShowResult Unit := do
+  let io ← print io "BroadcastFunction("
+  let io ← showF io op.f
+  let _ ← print io ")"
+  pure ()
+def P1454 : Prop := ∀ {F IO : Type} (print : IO → String → ShowResult IO)
+    (showF : IO → F → ShowResult IO) io op,
+  m1454 print showF io op = do
+    let io ← print io "BroadcastFunction("
+    let io ← showF io op.f
+    let _ ← print io ")"
+    pure ()
 theorem p1454 : P1454 := by simp [P1454, m1454]
 
 def m1460 {F : Type} (render : BroadcastFunction F → String) (op : BroadcastFunction F) : String := render op
@@ -185,24 +204,6 @@ private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) 
     prop
     thm := some thm }
 
-def entries : List Entry := [
-  entry 1297 "dotview(args...)" "dotview forwards every argument unchanged to maybeview." ``P1297 ``p1297,
-  entry 1304 "dottable(x)" "Every nonsymbol, nonexpression value is not dottable." ``P1304 ``p1304,
-  entry 1306 "dottable(::Symbol)" "Symbol dotting excludes colon and existing dot operators while retaining the special double-dot symbol." ``P1306 ``p1306,
-  entry 1307 "dottable(::Expr)" "Every expression except a dollar splice is dottable." ``P1307 ``p1307,
-  entry 1308 "undot(x)" "Every nonexpression value passes through unchanged." ``P1308 ``p1308,
-  entry 1309 "undot(::Expr)" "Undot rewrites dot assignment, recursively processes blocks, and preserves every other expression." ``P1309 ``p1309,
-  entry 1318 "__dot__(x)" "Every nonexpression value passes through unchanged." ``P1318 ``p1318,
-  entry 1319 "__dot__(::Expr)" "Expression rewriting recursively transforms every argument and implements each source head branch, including operator comparisons, splices, bindings, definitions, subtyping, and assignments." ``P1319 ``p1319,
-  entry 1390 "@__dot__" "The macro rewrites the complete expression before escaping it." ``P1390 ``p1390,
-  entry 1394 "broadcasted_kwsyntax" "Keyword syntax preserves direct f dispatch when kwargs are empty and otherwise broadcasts a keyword-capturing closure." ``P1394 ``p1394,
-  entry 1401 "broadcasted(f,args...)" "Generic construction maps broadcastable over every argument, combines every mapped style, then dispatches with mapped arguments." ``P1401 ``p1401,
-  entry 1409 "broadcasted(f,arg1,args...)" "The first explicit argument is converted before the mapped tail and retained in style combination and construction." ``P1409 ``p1409,
-  entry 1414 "broadcasted(f,arg1,arg2,args...)" "Both explicit arguments are converted in order before the mapped tail and retained in construction." ``P1414 ``p1414,
-  entry 1420 "broadcasted(style,f,args...)" "Explicit-style construction stores style, function, and every argument unchanged." ``P1420 ``p1420,
-  entry 1452 "(::BroadcastFunction)(x...;kwargs...)" "A BroadcastFunction calls its stored function through dotted syntax with every positional and keyword argument." ``P1452 ``p1452,
-  entry 1454 "show(::IO,::BroadcastFunction)" "Printing emits BroadcastFunction, the stored function, and parentheses in order." ``P1454 ``p1454,
-  entry 1460 "show(::IO,::MIME,::BroadcastFunction)" "The text/plain overload delegates to the ordinary show method." ``P1460 ``p1460
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.BroadcastSyntaxFaithful

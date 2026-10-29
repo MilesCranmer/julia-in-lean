@@ -1,0 +1,50 @@
+id: abstractarrayspecs-eachindex-size-mismatch
+title: "eachindex(A, B) returns OneTo(length) for linear arrays of different sizes instead of throwing DimensionMismatch"
+priority: P3
+kind: documentation
+area: AbstractArraySpecs
+files: [base/abstractarray.jl]
+functions: ["eachindex(A::AbstractArray, B::AbstractArray)", "eachindex(::IndexLinear, A::AbstractArray, B::AbstractArray...)"]
+summary: |
+  The eachindex docstring promises a DimensionMismatch when the arrays have different
+  sizes or dimensionalities. For arrays that all use linear indexing, eachindex only
+  compares eachindex(IndexLinear(), X), which is OneTo(length(X)) for every non-vector,
+  so eachindex(zeros(2, 3), zeros(3, 2)) and eachindex(zeros(6), zeros(2, 3)) return
+  Base.OneTo(6). Cartesian-style arrays of the same sizes do throw.
+likelihood: |
+  Code that relies on eachindex(A, B) to validate shapes before a loop gets no error
+  for transposed or reshaped arguments of equal length.
+maybe_intended: |
+  Known upstream as #38690 (open), which proposes either fixing the docstring or the
+  check; linear-index compatibility may be intended.
+reproducer: |
+  eachindex(zeros(2, 3), zeros(3, 2))   # Base.OneTo(6)
+  eachindex(zeros(6), zeros(2, 3))      # Base.OneTo(6)
+output:
+  release: |
+    Base.OneTo(6)
+    Base.OneTo(6)
+    REPRODUCED abstractarrayspecs-eachindex-size-mismatch
+  nightly: |
+    Base.OneTo(6)
+    Base.OneTo(6)
+    REPRODUCED abstractarrayspecs-eachindex-size-mismatch
+reproduced: {release: true, nightly: true}
+expected: |
+  DimensionMismatch, as documented (or a docstring that describes the linear-index
+  comparison).
+promised_by: |
+  eachindex docstring, base/abstractarray.jl:356-360: "If the arrays have different
+  sizes and/or dimensionalities, a `DimensionMismatch` exception will be thrown."
+cause: |
+  base/abstractarray.jl:397-404 compares only eachindex(IndexLinear(), X) of each
+  argument, and line 395 makes that oneto(length(X)) for every non-vector.
+possible_fix: |
+  Compare axes as the IndexCartesian method does, or document the linear comparison.
+duplicates:
+  issues:
+    - {number: 38690, state: open, relation: duplicate}
+  queries: ["issues: eachindex DimensionMismatch", "issues: eachindex different sizes", "issues: eachindex mismatched shapes", "issues: eachindex"]
+lean:
+  property: JuliaLean.AbstractArraySpecs.EachindexSizeMismatch
+  theorem: JuliaLean.AbstractArraySpecs.eachindexSizeMismatch_refuted

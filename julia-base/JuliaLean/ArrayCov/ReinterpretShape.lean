@@ -65,7 +65,7 @@ def reinterpret263IndexStyleReshaped (parentStyle : Int → IndexStyleModel)
       let k ← JInt.div sourceSize targetSize |>.mapError fun _ => .arithmetic
       return .staticCartesian k
     return .cartesian
-  return parentStyle parentType
+  return if parentStyle parentType = .linear then .linear else .cartesian
 
 def ReinterpretStridesAndChecksCorrect : Prop :=
   (∀ ndims strides length get array k, reinterpret205Stride ndims strides length get array k =
@@ -107,7 +107,7 @@ def ReinterpretStrideCalculationCorrect : Prop :=
           let k ← JInt.div source target |>.mapError fun _ => .arithmetic
           return .staticCartesian k
         return .cartesian
-      return style parent)
+      return if style parent = .linear then .linear else .cartesian)
 
 theorem reinterpretStrideCalculationCorrect : ReinterpretStrideCalculationCorrect := by
   simp [ReinterpretStrideCalculationCorrect, reinterpret222CheckedStrides,

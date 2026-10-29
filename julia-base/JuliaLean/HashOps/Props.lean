@@ -103,9 +103,4 @@ def WidenNoLoss : Prop :=
   ∀ (t : IntTy) (x y : JInt t),
     widenAdd t x y = x.val + y.val ∧ widenSub t x y = x.val - y.val
 
-/-- The part of the widen guarantee that does hold: addition is exact for every
-fixed-width integer type. -/
-def WidenAdditionNoLoss : Prop :=
-  ∀ (t : IntTy) (x y : JInt t), widenAdd t x y = x.val + y.val
-
 end JuliaLean.HashOps

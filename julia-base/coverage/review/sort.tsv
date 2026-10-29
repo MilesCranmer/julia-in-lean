@@ -1,0 +1,143 @@
+line	name	verdict	mirror	property	settled	reason
+48	issorted	FAITHFUL	yes	yes	yes	The proposition uses the finite-iterator loop and proves the documented adjacent-order characterization for every element type and comparator.
+86	issorted	FAITHFUL	yes	yes	yes	The wrapper model preserves the rev branch, ordering construction, and call for every input.
+97	partialsort!	HOLLOW	no	no	yes	The model stops at sampling for large nonempty targets and the proposition covers only integer arrays and range selectors, so it neither mirrors the whole method nor covers all allowed inputs.
+110	maybeview	HOLLOW	yes	no	yes	The exact range-view helper is used, but the proposition states partialsort correctness rather than a property of maybeview for all inputs.
+111	maybeview	HOLLOW	yes	no	yes	The exact scalar-index helper is used, but the proposition states partialsort correctness rather than a property of maybeview for all inputs.
+166	partialsort!	FAITHFUL	yes	yes	yes	The wrapper model forwards every argument through the constructed ordering for all inputs.
+176	partialsort	HOLLOW	no	no	yes	The Lean model has no separate copy-before-partialsort wrapper, so source preservation and the wrapper call are missing.
+184	searchsortedfirst	HOLLOW	yes	no	yes	The interpreter mirrors the positional method, but the proposition fixes the keyword window 1:length(v) instead of covering every allowed lo and hi.
+203	searchsortedlast	HOLLOW	yes	no	yes	The interpreters mirror the method, but VectorSearchCorrect covers only the keyword window rather than every allowed positional window claimed by this row.
+221	searchsorted	HOLLOW	no	no	yes	WindowSearchInBounds invokes only searchsortedlast, so this row lacks both a model use and a behavioral proposition for searchsorted.
+243	searchsortedlast	HOLLOW	no	no	yes	The finite five-value Float64 abstraction models one Forward counterexample rather than all Real ranges and FastRangeOrderings accepted by the method.
+256	searchsortedfirst	HOLLOW	no	no	yes	The finite five-value Float64 abstraction models one Forward counterexample rather than all Real ranges and FastRangeOrderings accepted by the method.
+269	searchsortedlast	HOLLOW	no	no	yes	The model specializes x to the range integer type and collapses the floor and ceil branches, omitting allowed noninteger Real inputs.
+285	searchsortedfirst	HOLLOW	no	no	yes	The model specializes x to the range integer type and collapses the floor and ceil branches, omitting allowed noninteger Real inputs.
+301	searchsorted	HOLLOW	no	no	yes	The wrapper composes two searches over a five-value Float64 abstraction, so it does not model all Real ranges or orderings accepted by this method.
+464	insorted	FAITHFUL	-	-	-	The line only declares the insorted generic function and has no method body or observable behavior.
+465	insorted	HOLLOW	no	no	yes	The Lean function directly scans for order equivalence instead of calling searchsorted, and the finite SortValue domain does not cover all allowed values and keywords.
+466	insorted	HOLLOW	no	no	yes	The Lean function folds equality over a list instead of mirroring AbstractRange membership, and its four-value domain does not cover all allowed ranges.
+470	getkw	HOLLOW	no	no	yes	The model maps names to strings but omits the macro's expression construction, getter calls, bindings, and evaluation order.
+503	make_scratch	FAITHFUL	yes	yes	yes	The allocation model returns one backing and view vector of the requested type and length for every target type and length.
+507	make_scratch	FAITHFUL	yes	yes	yes	The same-type model performs the conditional resize and returns the resized vector in both tuple positions for every input.
+511	make_scratch	HOLLOW	no	no	yes	SortScratchAccepted keeps only an element-type failure path, while MakeScratchCorrect assumes an ok result and never proves the promised view length for all inputs.
+542	_sort!	FAITHFUL	-	-	-	The line only declares the _sort! generic function and has no method body or observable behavior.
+559	_sort!	FAITHFUL	yes	yes	yes	The polymorphic model exactly forwards the vector to the next algorithm for every result type.
+560	_sort!	HOLLOW	no	no	yes	The route enum omits keyword retrieval, parent extraction, vec conversion, and the actual recursive _sort! call and result.
+591	WithoutMissingVector	HOLLOW	no	no	yes	The model returns the input array instead of constructing the wrapper with its nonmissing element type, and the proposition omits safe successful construction.
+598	Base.getindex	HOLLOW	no	no	yes	The model conflates out-of-bounds access with a missing element and the proposition contains no getindex claim.
+603	Base.setindex!	HOLLOW	no	no	yes	The model silently ignores invalid indices and omits assignment conversion, while the proposition only equates it to the same simplified write helper.
+607	Base.size	HOLLOW	no	no	yes	The model returns a Nat instead of the vector size tuple and the proposition only unfolds that abstraction.
+608	Base.axes	HOLLOW	no	no	yes	The model returns a pair of numbers instead of the delegated axes object and the proposition only unfolds that abstraction.
+620	send_to_end!	HOLLOW	yes	no	yes	The loops mirror the source scan and swaps, but the proposition is only their definitional expansion and never states the documented partition or stability result.
+645	send_to_end!	HOLLOW	no	no	yes	A route tag replaces the predicate complement, reversed view, nested call, index arithmetic, mutation, and returned bounds.
+647	send_to_end!	HOLLOW	no	no	yes	A route tag replaces the predicate complement, reversed view, nested call, index arithmetic, mutation, and returned bounds.
+651	_sort!	HOLLOW	no	no	yes	The route enum and scratch counterexample omit the partition loops, recursive calls, keyword updates, mutations, and return value of MissingOptimization.
+703	after_zero	FAITHFUL	yes	yes	yes	The model and proposition give the exact Forward result for every sign bit.
+704	after_zero	FAITHFUL	yes	yes	yes	The model and proposition give the exact Reverse result for every sign bit.
+705	is_concrete_IEEEFloat	FAITHFUL	yes	yes	yes	The two Boolean type predicates mirror the conjunction and are quantified over every possible predicate result.
+706	_sort!	HOLLOW	no	no	yes	The route enum omits both partition sequences, reinterpretation, recursive sorting calls, scratch propagation, and mutations.
+745	_sort!	FAITHFUL	yes	yes	yes	The polymorphic generic method exactly forwards to the next algorithm for every result type.
+746	_sort!	HOLLOW	no	no	yes	The array-only model omits keyword lookup and the returned scratch value, while its proposition unfolds the implementation instead of stating the documented sorting result.
+774	_sort!	FAITHFUL	yes	yes	yes	The polymorphic conditional model selects and returns the yes or no recursive call result for both UIntMappable outcomes.
+793	Small{N}	FAITHFUL	yes	yes	yes	The constructor model preserves N, small, and big for every supplied algorithm value.
+794	Small{N}	FAITHFUL	yes	yes	yes	The default constructor model inserts the default small algorithm and preserves N and big for every input.
+795	_sort!	FAITHFUL	yes	yes	yes	The model retrieves the effective bounds abstractly and selects the small or big recursive result under the exact threshold test for every input.
+835	_sort!	HOLLOW	yes	no	yes	The insertion-sort interpreter mirrors the loop, but the proposition proves only the whole-vector window and omits every other allowed lo and hi keyword window.
+864	_sort!	HOLLOW	no	no	yes	The route model omits the two _issorted calls, the size guard's effects, reversal, scratch returns, and next-algorithm call, and the proposition proves only the already-sorted branch.
+893	_sort!	HOLLOW	no	no	yes	The model scans an entire zero-based array instead of the requested lo:hi window and the proposition covers only the empty-array case.
+922	ConsiderCountingSort	HOLLOW	no	no	yes	No Lean constructor mirrors ConsiderCountingSort(CountingSort(), next), and the proposition concerns only a later dispatch calculation.
+923	_sort!	HOLLOW	no	no	yes	The model accepts precomputed range and span values and omits wrapping arithmetic, keyword retrieval, and both recursive _sort! calls.
+933	_sort!	HOLLOW	no	no	yes	The generic pass-through method has no corresponding Lean function or proposition.
+946	maybe_reverse	FAITHFUL	yes	yes	yes	The model and proposition return the input unchanged for every list.
+947	maybe_reverse	FAITHFUL	yes	yes	yes	The model and proposition reverse every input list.
+948	_sort!	HOLLOW	no	no	yes	The mapped-Nat specification omits keyword values, wrapping offset arithmetic, typed writes, loop state, and the returned scratch vector.
+982	ConsiderRadixSort	HOLLOW	no	no	yes	No Lean constructor mirrors ConsiderRadixSort(RadixSort(), next), and the proposition concerns only a later dispatch calculation.
+983	_sort!	HOLLOW	no	no	yes	The route model takes the logarithm expression and bit range as supplied values and omits mapping arithmetic and both recursive calls.
+1017	_sort!	HOLLOW	no	no	yes	A constant five-Boolean trace replaces every value transformation, scratch call, radix pass, branch, mutation, and return value.
+1079	ScratchQuickSort	HOLLOW	no	no	yes	The proposition proves the behavior of sorting with a no-target algorithm but does not model or state the behavior of this constructor method itself.
+1080	ScratchQuickSort	HOLLOW	no	no	yes	The range-counterexample proposition has no model or property for the separate lo and hi constructor.
+1081	ScratchQuickSort	HOLLOW	no	no	yes	The proposition quantifies only range selectors and does not cover this scalar-target constructor and its next argument.
+1082	ScratchQuickSort	HOLLOW	yes	no	yes	KSel.target mirrors first(r) and last(r), but the proposition concerns partialsort output rather than constructor behavior for all ordinal ranges and next algorithms.
+1088	partition!	HOLLOW	yes	no	yes	The interpreter mirrors the helper, but the proposition only proves whole-sort correctness at its internal call sites rather than partition behavior for all allowed arguments.
+1121	_sort!	HOLLOW	yes	no	yes	The interpreter mirrors the loop, but the proposition fixes a whole-vector no-target call with fresh scratch and omits allowed targets, windows, scratch, offset, swap, and rev inputs.
+1224	BracketedSort	HOLLOW	no	no	yes	The empty-range proposition models a partialsort outcome and never models or states this constructor's returned algorithm value.
+1226	bracket_kernel!	HOLLOW	no	no	yes	The list predicate summary omits the source loop's indexed mutations and returned counters, and its proposition merely repeats the selected flags.
+1248	move!	HOLLOW	no	no	yes	A route tag replaces length checks, alias tests, pair swaps, range reversals, and the mutated vector.
+1264	_sort!	HOLLOW	no	no	yes	A five-way route chosen from already evaluated Booleans omits the method's estimates, trials, loops, moves, fallbacks, calls, and mutations.
+1368	_sort!	HOLLOW	no	no	yes	The route model omits both _issorted calls, reversal, scratch returns, and next-algorithm call, and the proposition proves only the already-sorted branch.
+1384	radix_sort!	HOLLOW	no	no	yes	The list-level radix model omits buffer indices, offsets, count allocation, pass calls, and the Boolean identifying the sorted buffer.
+1402	radix_sort_pass!	HOLLOW	no	no	yes	A stable bucket filter is a specification of the result rather than a mirror of the two counting and placement loops with their mutations.
+1430	radix_chunk_size_heuristic	HOLLOW	no	no	yes	The model receives the computed guess as an argument and the registry proposition does not mention the heuristic at all.
+1443	maybe_unsigned	FAITHFUL	yes	yes	yes	The model and proposition return every Integer input unchanged.
+1444	maybe_unsigned	HOLLOW	no	no	yes	The unbounded modulo abstraction lacks the fixed-width BitSigned type invariant and the proposition only restates that abstraction.
+1445	_issorted	HOLLOW	yes	no	yes	The loop is mirrored transitively, but SortGenericStable states default-sort stability rather than _issorted behavior for every allowed window.
+1473	InitialOptimizations	FAITHFUL	yes	yes	yes	The unary pipeline model preserves all five documented constructor calls in their source nesting order for every next algorithm.
+1592	_sort!	HOLLOW	no	no	yes	A fixed list of stage names replaces the recursive _sort! call and contains no vector, ordering, keywords, mutation, or return value.
+1597	Base.show	HOLLOW	no	no	yes	The token-list model omits IO effects and the proposition only says the wrapper calls its own print-tree abstraction.
+1600	print_tree	HOLLOW	yes	no	yes	The recursive token model mirrors the branches, but the proposition states no output property of print_tree beyond its use by the show wrapper.
+1617	show_type	HOLLOW	no	no	yes	The model accepts the type name as a bare string instead of calling Base.show_type_name on the algorithm type.
+1618	show_type	FAITHFUL	yes	yes	yes	The model and proposition print the exact Small{N} type name for every N.
+1620	defalg	FAITHFUL	yes	yes	yes	The type-class model returns the stable default for every nonnumeric abstract array.
+1621	defalg	FAITHFUL	yes	yes	yes	The type-class model returns the unstable default for every numeric or missing-union abstract array.
+1622	defalg	FAITHFUL	yes	yes	yes	The disambiguation class maps Missing arrays to the unstable default exactly as the source method does.
+1623	defalg	FAITHFUL	yes	yes	yes	The disambiguation class maps bottom-element arrays to the unstable default exactly as the source method does.
+1624	defalg	FAITHFUL	yes	yes	yes	The fallback class returns the stable default for every non-array value.
+1732	sort!	HOLLOW	no	no	yes	The abstract core wrapper omits algorithm wrapping, ordering construction, scratch packaging, mutation, and return behavior, while the other entries cover only restricted default or counterexample paths.
+1780	sort	FAITHFUL	yes	yes	yes	The functional copy model preserves the source and applies the supplied sort! core to the copied value for every vector.
+1783	sort	HOLLOW	no	no	yes	The model receives an already collected list and therefore omits collect(v), the iterator input, and its failure or iteration behavior.
+1785	sort	HOLLOW	no	no	yes	The models omit scratch validation and ordering construction and cover only default tuple dispatch or a finite algorithm counterexample domain.
+1798	_sort	HOLLOW	yes	no	yes	The branch and merge calls are mirrored, but the proposition proves only the length-greater-than-nine branch and omits all shorter allowed tuples.
+1809	_mergesort	HOLLOW	yes	no	yes	The base cases exist in the interpreter, but the proposition states no behavior for this zero-or-one-element method.
+1810	_mergesort	HOLLOW	yes	no	yes	The recursive split and merge are modeled, but the proposition gives no behavioral result for tuples of length at least two.
+1814	merge	FAITHFUL	yes	yes	yes	The exact base-case model and proposition return every left tuple unchanged when the right tuple is empty.
+1815	merge	FAITHFUL	yes	yes	yes	The exact base-case model and proposition return every right tuple unchanged when the left tuple is empty.
+1816	merge	FAITHFUL	yes	yes	yes	Both exact empty-tuple base cases imply the ambiguity method returns the empty left tuple.
+1817	merge	HOLLOW	yes	no	yes	The recursive comparison model mirrors the method, but the proposition contains no claim for two nonempty tuples.
+1853	partialsortperm	HOLLOW	no	no	yes	The counterexample model fixes integer values, default comparison, and a scalar index and omits similar, axes, keyword forwarding, and general selectors.
+1896	partialsortperm!	HOLLOW	no	no	yes	One model stops after axes validation and initialization while the other fixes a narrow integer case, so neither mirrors the sorting call and result for all inputs.
+1966	sortperm	HOLLOW	no	no	yes	The model records only a reverse-choice Boolean and omits both _sortperm calls, keyword forwarding, results, and exceptions.
+1980	_sortperm	HOLLOW	no	no	yes	A route enum omits extrema, overflow arithmetic, fast-path call, index copying, generic sort call, and returned permutation.
+2037	sortperm!	HOLLOW	no	no	yes	The model stops after validation and index initialization and omits ordering construction, sort!, mutation, and its return value.
+2058	sortperm_int_range	HOLLOW	no	no	yes	The stable bucket specification replaces the source count, prefix-sum, and placement loops and is unconstrained for invalid range lengths.
+2112	sort	HOLLOW	no	no	yes	A two-value route omits axes lookup, permutation construction, array copies, chunk sorting, reshape, and the returned array.
+2136	sort_chunks!	HOLLOW	no	no	yes	The model has no LinearIndices calculation or forwarding call with first and last indices.
+2141	sort_chunks!	HOLLOW	no	no	yes	A scratch route tag replaces the chunk loop, recursive handoff after acquired scratch, mutations, and returned array.
+2149	sort_chunks!	HOLLOW	no	no	yes	A scratch route tag replaces the chunk loop, repeated _sort! calls, mutations, and returned array.
+2187	sort!	HOLLOW	no	no	yes	The route summary and two-dimensional exception model omit the dimension loop, views, copy path, nested sorts, mutations, and general arrays.
+2206	get_view	HOLLOW	no	no	yes	The model returns an option-index pattern rather than constructing a view of A, and the proposition proves only the pattern length.
+2224	get_value	FAITHFUL	yes	yes	yes	The identity model and proposition return x for every Val payload.
+2237	UIntMappable	FAITHFUL	yes	yes	yes	The unsupported type class returns none for every ordering class, matching the fallback method.
+2251	uint_map	FAITHFUL	-	-	-	The line only declares the uint_map generic function and has no method body or observable behavior.
+2261	uint_unmap	FAITHFUL	-	-	-	The line only declares the uint_unmap generic function and has no method body or observable behavior.
+2267	uint_map	FAITHFUL	yes	yes	yes	The model and proposition return every unsigned word unchanged.
+2268	uint_unmap	FAITHFUL	yes	yes	yes	The model and proposition return every same-width unsigned word unchanged.
+2270	uint_map	FAITHFUL	yes	yes	yes	The fixed-width word model flips the sign bit and the proposition proves the documented reversible mapping.
+2272	uint_unmap	FAITHFUL	yes	yes	yes	The fixed-width word model flips the sign bit back and the proposition proves the documented round trip.
+2275	UIntMappable	FAITHFUL	yes	yes	yes	The type model returns the corresponding unsigned width for every bit-integer type.
+2282	uint_map	FAITHFUL	yes	yes	yes	The UInt32 code-unit model mirrors reinterpretation and preserves every Char bit pattern.
+2283	uint_unmap	FAITHFUL	yes	yes	yes	The UInt32 code-unit model mirrors reinterpretation back to Char for every word.
+2284	UIntMappable	FAITHFUL	yes	yes	yes	The type model returns UInt32 for Char exactly as the source method does.
+2287	uint_map	FAITHFUL	yes	yes	yes	The model calls the forward mapping and complements its fixed-width word for every input.
+2288	uint_unmap	FAITHFUL	yes	yes	yes	The model complements the fixed-width word before calling the forward unmapping for every input.
+2289	UIntMappable	FAITHFUL	yes	yes	yes	The reverse-order type model delegates to the forward ordering and preserves its result for every type class.
+2295	uint_map!	HOLLOW	no	no	yes	The Nat-array loop omits reinterpretation, concrete element and unsigned types, ordering dispatch, aliasing, and the returned unsigned view.
+2303	uint_unmap!	HOLLOW	no	no	yes	The Nat-array loop omits typed conversion, ordering dispatch, wrapping unsigned addition, assignment conversion, and the returned original vector.
+2396	maybe_apply_initial_optimizations	HOLLOW	no	no	yes	A Boolean classification replaces the returned algorithm object and does not model identity on every Algorithm subtype.
+2397	maybe_apply_initial_optimizations	HOLLOW	no	no	yes	A Boolean classification replaces construction of InitialOptimizations around the supplied QuickSort value.
+2398	maybe_apply_initial_optimizations	HOLLOW	no	no	yes	A Boolean classification replaces construction of InitialOptimizations around the supplied MergeSort value.
+2399	maybe_apply_initial_optimizations	HOLLOW	no	no	yes	A Boolean classification replaces construction of InitialOptimizations around the supplied InsertionSort value.
+2409	selectpivot!	FAITHFUL	yes	yes	yes	The interpreter mirrors both comparison branches and swaps, and the proposition proves the source postcondition that the returned pivot is stored at lo.
+2435	partition!	HOLLOW	yes	no	yes	The interpreter mirrors the partition loops, but the proposition proves only quicksort empty and small-window paths that never execute partition.
+2454	sort!	HOLLOW	yes	no	yes	The entry model contains the bounds branch and quicksort call, but the proposition fixes boundsOK=true and omits every out-of-bounds input.
+2459	_quicksort!	HOLLOW	yes	no	yes	The interpreter mirrors the recursive kernel, but the proposition covers only empty and insertion-sort windows and omits all larger inputs.
+2480	sort!	HOLLOW	no	no	yes	The model drops the supplied scratch vector and invoke signature, and the proposition fixes a successful bounds flag.
+2482	sort!	HOLLOW	no	no	yes	The entry model drops the optional scratch vector and the proposition fixes successful bounds instead of covering every call.
+2488	_mergesort!	HOLLOW	no	no	yes	The model always allocates its own temporary array and omits caller scratch resizing and one-based checks, while the proposition covers only small windows.
+2533	sort!	HOLLOW	yes	no	yes	The entry model contains the bounds branch and partial-quicksort call, but the proposition fixes boundsOK=true and omits every out-of-bounds input.
+2539	_partialquicksort!	HOLLOW	no	no	yes	One proposition reaches only the small-window path and the other models only a post-partition branch, so the full loop is never covered for all targets.
+2571	sort!	HOLLOW	no	no	yes	Although a forwarding helper is defined, LegacyEntriesCorrect never mentions the three-argument method or its firstindex and lastindex behavior.
+2572	sort!	HOLLOW	no	no	yes	Although a bounds-and-forwarding helper is defined, LegacyEntriesCorrect never mentions this five-argument generic method.
+2577	sort!	FAITHFUL	yes	yes	yes	The polymorphic wrapper ignores the sixth argument and forwards the other five arguments in order for every input.
+2578	sort!	HOLLOW	no	no	yes	The Unit-valued counterexample model omits vector mutation, keyword construction, arbitrary custom algorithms, and the successful fallback path.
+2586	_sort!	HOLLOW	no	no	yes	The model keeps only the recursion-guard exception and replaces the else branch's legacy sort call and scratch return with ok Unit.

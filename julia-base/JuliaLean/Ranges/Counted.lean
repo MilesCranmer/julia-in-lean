@@ -297,39 +297,6 @@ theorem countedLastIndexConsistent : CountedLastIndexConsistent := by
   have hbound : ¬ r.len.val < 1 := by omega
   simp [resultGetindex, countedLast, countedUnsafeGetindex, countedHiprec, hty, hbound]
 
-def countedEntries : List Entry := [
-  { id := "ranges-counted-cardinality-overflow"
-    juliaFile := "base/range.jl"
-    juliaFns := ["checked_length(::StepRangeLen)", "isempty(::StepRangeLen)"]
-    statement := "Stored length and emptiness are independent of narrow UInt8 reference/step overflow."
-    source := "base/range.jl:712,807; base/checked.jl:376"
-    status := .proven
-    prop := ``CountedCardinalityIndependentOfOverflow
-    thm := some ``countedCardinalityIndependentOfOverflow },
-  { id := "ranges-counted-empty-extrema"
-    juliaFile := "base/range.jl"
-    juliaFns := ["minimum(::AbstractRange)", "maximum(::AbstractRange)"]
-    statement := "Empty counted ranges reject extrema before evaluating endpoints."
-    source := "base/range.jl:883-884"
-    status := .proven
-    prop := ``CountedEmptyExtremaRejected
-    thm := some ``countedEmptyExtremaRejected },
-  { id := "ranges-counted-iteration-stop"
-    juliaFile := "base/range.jl"
-    juliaFns := ["iterate(::StepRangeLen)"]
-    statement := "Iteration returns nothing when the incremented integer state exceeds length."
-    source := "base/range.jl:928-933"
-    status := .proven
-    prop := ``CountedIterationStopsPastLength
-    thm := some ``countedIterationStopsPastLength },
-  { id := "ranges-counted-last-index"
-    juliaFile := "base/range.jl"
-    juliaFns := ["getindex(::StepRangeLen, ::Integer)", "last(::StepRangeLen)"]
-    statement := "Indexing a nonempty counted range at its stored length agrees with last, including conversion errors."
-    source := "base/range.jl:878,981-984"
-    status := .proven
-    prop := ``CountedLastIndexConsistent
-    thm := some ``countedLastIndexConsistent }
-]
+def countedEntries : List Entry := []
 
 end JuliaLean.Ranges

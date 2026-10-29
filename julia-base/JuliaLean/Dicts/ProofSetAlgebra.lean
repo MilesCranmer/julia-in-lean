@@ -32,6 +32,195 @@ theorem setIn_of_rep {o : KeyOps K} (hl : o.Lawful) {s : SetT K} {m : RMap K Uni
 theorem pushConv_self (o : KeyOps K) (s : SetT K) (x : K) :
     pushConv o (Conv.self o) s x = setindex o s () x := rfl
 
+/-- A reference set at the finite keyspace bound contains every key. -/
+theorem full_reference_contains {o : KeyOps K} {m : RMap K Unit}
+    (hmax : ∀ xs : List K, xs.Pairwise (fun a b => o.eq a b = false) →
+      (xs.length : Int) ≤ o.maxValues.val)
+    (hd : Distinct o m) (hcount : (m.length : Int) = o.maxValues.val) (x : K) :
+    (rfind o m x).isSome = true := by
+  cases hf : rfind o m x with
+  | some e => rfl
+  | none =>
+    have hn := rfind_eq_none_iff.mp hf
+    have hp : (x :: m.map Prod.fst).Pairwise (fun a b => o.eq a b = false) := by
+      apply List.pairwise_cons.mpr
+      constructor
+      · intro y hy
+        obtain ⟨e, he, rfl⟩ := List.mem_map.mp hy
+        exact hn e he
+      · simpa only [List.pairwise_map] using hd
+    have bound := hmax (x :: m.map Prod.fst) hp
+    simp only [List.length_cons, List.length_map] at bound
+    omega
+
+/-- Reference insertion applies the same key conversion as `push!`. -/
+def unionRefPush (o : KeyOps K) (c : Conv Q K) (m : RMap K Unit) (q : Q) : DR (RMap K Unit) :=
+  match c.isa q with
+  | some k => pure (rset o m k ())
+  | none => do
+    let k ← c.convert q
+    if !(c.iseq q k) then throw .keyTypeError
+    pure (rset o m k ())
+
+theorem unionRefPush_spec {o : KeyOps K} (hl : o.Lawful) (c : Conv Q K)
+    {s : SetT K} {m : RMap K Unit} (h : Rep o s m) (hc : s.count + 1 ≤ 2 ^ 32) (q : Q) :
+    SameOutcome (pushConv o c s q) (unionRefPush o c m q)
+      (fun s' m' => Rep o s' m' ∧ s'.count ≤ s.count + 1) := by
+  have step (k : K) :
+      SameOutcome (setindex o s () k) (.ok (rset o m k ()))
+        (fun s' m' => Rep o s' m' ∧ s'.count ≤ s.count + 1) := by
+    obtain ⟨s', hs, hr, -⟩ := h.setindex hl (by omega) k ()
+    rw [hs]
+    exact ⟨hr, by rw [hr.count_eq, h.count_eq]; exact rset_length_le o m k ()⟩
+  cases hi : c.isa q with
+  | some k =>
+    simpa [pushConv, setindexConv, unionRefPush, hi] using step k
+  | none =>
+    cases he : c.convert q with
+    | error e => simp [pushConv, setindexConv, unionRefPush, hi, he, SameOutcome]
+    | ok k =>
+      cases hq : c.iseq q k with
+      | false =>
+        simp only [pushConv, setindexConv, unionRefPush, hi, he, except_ok_bind, hq]
+        rfl
+      | true => simpa [pushConv, setindexConv, unionRefPush, hi, he, hq] using step k
+
+theorem unionFold_spec {o : KeyOps K} (hl : o.Lawful) (c : Conv Q K) :
+    ∀ (xs : List Q) (s : SetT K) (m : RMap K Unit), Rep o s m →
+      s.count + xs.length ≤ 2 ^ 32 →
+      SameOutcome (xs.foldlM (pushConv o c) s) (xs.foldlM (unionRefPush o c) m)
+        (fun s' m' => Rep o s' m' ∧ s'.count ≤ s.count + xs.length)
+  | [], s, m, hr, _ => ⟨hr, by simp⟩
+  | q :: qs, s, m, hr, hc => by
+    have hs := unionRefPush_spec hl c hr (by simp only [List.length_cons] at hc; omega) q
+    cases hp : pushConv o c s q with
+    | error e =>
+      cases hq : unionRefPush o c m q with
+      | error e' =>
+        simp only [hp, hq, SameOutcome] at hs
+        simp [List.foldlM_cons, hp, hq, SameOutcome, hs]
+      | ok m' => simp [hp, hq, SameOutcome] at hs
+    | ok s' =>
+      cases hq : unionRefPush o c m q with
+      | error e => simp [hp, hq, SameOutcome] at hs
+      | ok m' =>
+        simp only [hp, hq, SameOutcome] at hs
+        have ih := unionFold_spec hl c qs s' m' hs.1 (by simp only [List.length_cons] at hc; omega)
+        apply SameOutcome.mono (R := fun t r => Rep o t r ∧ t.count ≤ s'.count + qs.length)
+          (by simpa [List.foldlM_cons, hp, hq] using ih)
+        intro t r ht
+        exact ⟨ht.1, by simp only [List.length_cons]; omega⟩
+
+theorem unionRefFold_full {o : KeyOps K} (hl : o.Lawful) (c : Conv Q K)
+    (cl : ConvLawful o c) (hsub : c.eltypeSubtype = true) :
+    ∀ (xs : List Q) (m : RMap K Unit), (∀ x, (rfind o m x).isSome = true) →
+      ∃ m', xs.foldlM (unionRefPush o c) m = .ok m' ∧
+        ∀ x, (rfind o m' x).isSome = true
+  | [], m, hm => ⟨m, rfl, hm⟩
+  | q :: qs, m, hm => by
+    obtain ⟨k, hk⟩ := cl.subtype_isa hsub q
+    have hm' : ∀ x, (rfind o (rset o m k ()) x).isSome = true := by
+      intro x
+      rw [isSome_rfind_rset hl, hm x, Bool.or_true]
+    obtain ⟨m', hf, hfull⟩ := unionRefFold_full hl c cl hsub qs (rset o m k ()) hm'
+    refine ⟨m', ?_, hfull⟩
+    simpa [List.foldlM_cons, unionRefPush, hk] using hf
+
+theorem unionLoop_reference {o : KeyOps K} (hl : o.Lawful) (hmv : MaxValuesOK o)
+    (c : Conv Q K) (cl : ConvLawful o c) :
+    ∀ (xs : List Q) (s : SetT K) (m : RMap K Unit), Rep o s m →
+      s.count + xs.length ≤ 2 ^ 32 →
+      SameOutcome (unionLoop o c s xs) (xs.foldlM (unionRefPush o c) m)
+        (fun s' m' => (∀ x, setIn o s' x = .ok (rfind o m' x).isSome) ∧
+          s'.count ≤ s.count + xs.length)
+  | [], s, m, hr, _ => ⟨fun x => setIn_of_rep hl hr x, by simp⟩
+  | q :: qs, s, m, hr, hc => by
+    have hs := unionRefPush_spec hl c hr (by simp only [List.length_cons] at hc; omega) q
+    cases hp : pushConv o c s q with
+    | error e =>
+      cases hq : unionRefPush o c m q with
+      | error e' =>
+        simp only [hp, hq, SameOutcome] at hs
+        simp [unionLoop, List.foldlM_cons, hp, hq, SameOutcome, hs]
+      | ok m' => simp [hp, hq, SameOutcome] at hs
+    | ok s' =>
+      cases hq : unionRefPush o c m q with
+      | error e => simp [hp, hq, SameOutcome] at hs
+      | ok m' =>
+        simp only [hp, hq, SameOutcome] at hs
+        by_cases hexit : c.eltypeSubtype && ((s'.count : Int) == o.maxValues.val)
+        · have hexit' : c.eltypeSubtype = true ∧ (s'.count : Int) = o.maxValues.val := by
+            simpa only [Bool.and_eq_true, beq_iff_eq] using hexit
+          have hsub := hexit'.1
+          have hcount := hexit'.2
+          have hfull : ∀ x, (rfind o m' x).isSome = true := by
+            cases hmv with
+            | inl big => have := hs.2; simp only [List.length_cons] at hc; omega
+            | inr finite =>
+              apply full_reference_contains finite (hs.1.distinct hl)
+              rw [← hs.1.count_eq]
+              exact hcount
+          obtain ⟨m'', hf, hfull'⟩ := unionRefFold_full hl c cl hsub qs m' hfull
+          simp only [unionLoop, hp, except_ok_bind, hexit, ite_true,
+            List.foldlM_cons, hq, hf, SameOutcome]
+          refine ⟨?_, by simp only [List.length_cons]; omega⟩
+          intro x
+          rw [setIn_of_rep hl hs.1 x]
+          change (Except.ok (rfind o m' x).isSome : DR Bool) = .ok (rfind o m'' x).isSome
+          rw [hfull x, hfull' x]
+        · have hcond : ¬ (c.eltypeSubtype = true ∧ (s'.count : Int) = o.maxValues.val) := by
+            simpa only [Bool.and_eq_true, beq_iff_eq] using hexit
+          have ih := unionLoop_reference hl hmv c cl qs s' m' hs.1
+            (by simp only [List.length_cons] at hc; omega)
+          apply SameOutcome.mono (R := fun t r =>
+            (∀ x, setIn o t x = .ok (rfind o r x).isSome) ∧ t.count ≤ s'.count + qs.length)
+            (by simpa [unionLoop, hp, hcond, List.foldlM_cons, hq] using ih)
+          intro t r ht
+          exact ⟨ht.1, by simp only [List.length_cons]; omega⟩
+
+set_option maxRecDepth 4096 in
+theorem unionPushEquiv_thm : UnionPushEquiv := by
+  intro K Q o c hl cl hmv s ms reach itr hlen
+  have hreach := Reach.rep hl hmv reach
+  have hr := hreach.1
+  have hc := hreach.2
+  have hhint := merge_hint hmv hr itr.length (by omega)
+  let s1 := Classical.choose hhint
+  have hhint' := Classical.choose_spec hhint
+  have hh := hhint'.1
+  have hr1 := hhint'.2.1
+  have hc1 := hhint'.2.2.1
+  change s1.count = s.count at hc1
+  change sizehint o s (JInt.lit .i64 ((s.count : Int) + (itr.length : Int))) false = .ok s1 at hh
+  have hu := unionLoop_reference hl hmv c cl itr s1 ms hr1 (by omega)
+  have hf := unionFold_spec hl c itr s ms hr (by omega)
+  unfold unionBang
+  rw [hh, except_ok_bind]
+  cases href : itr.foldlM (unionRefPush o c) ms with
+  | error e =>
+    cases hleft : unionLoop o c s1 itr <;> cases hright : itr.foldlM (pushConv o c) s <;>
+      simp only [hleft, hright, href, SameOutcome] at hu hf ⊢ <;>
+      first | exact False.elim hu | exact False.elim hf | exact hu.trans hf.symm
+  | ok m =>
+    cases hleft : unionLoop o c s1 itr <;> cases hright : itr.foldlM (pushConv o c) s <;>
+      simp only [hleft, hright, href, SameOutcome] at hu hf ⊢ <;>
+      first | exact False.elim hu | exact False.elim hf | skip
+    intro x
+    rw [hu.1 x, setIn_of_rep hl hf.1 x]
+    rfl
+
+/-- Without the subtype shortcut, union performs every insertion in order. -/
+theorem unionLoop_nonSubtype (o : KeyOps K) (c : Conv Q K)
+    (h : c.eltypeSubtype = false) :
+    ∀ (xs : List Q) (s : SetT K),
+      unionLoop o c s xs = xs.foldlM (pushConv o c) s := by
+  intro xs
+  induction xs with
+  | nil => intro s; rfl
+  | cons x xs ih =>
+    intro s
+    simp [unionLoop, h, List.foldlM_cons, ih]
+
 theorem unionLoop_spec {o : KeyOps K} (hl : o.Lawful) (hg : GenericMax o) :
     ∀ (L : RMap K Unit) (s : SetT K) (m : RMap K Unit), Rep o s m → s.count + L.length ≤ 2 ^ 31 →
       ∃ s', unionLoop o (Conv.self o) s (L.map (·.1)) = .ok s' ∧

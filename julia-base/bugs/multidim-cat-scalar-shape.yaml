@@ -5,6 +5,7 @@ kind: wrong-result
 area: Multidim
 files: [base/abstractarray.jl]
 functions: ["cat(A...; dims)", "vcat(A::Union{AbstractArray,Number}...)", "hcat(A::Union{AbstractArray,Number}...)", "cat_size_shape", "_cshp", "__cat_offset1!"]
+covers: [abstractarrayspecs-cat-row1859, abstractarrayspecs-cat-row1870, abstractarrayspecs-cat-row1905-ordinary, abstractarrayspecs-cat-row1918-ordinary, abstractarrayspecs-cat-row2003-ordinary, abstractarrayspecs-cat-row2055-ordinary, abstractarrayspecs-cat-row2176-ordinary, abstractarrayspecs-cat-row2185-ordinary, abstractarrays-source-cat-size-shape-entry]
 summary: |
   The shape computation of cat checks a non-concatenated dimension only when both the
   running shape and the new argument have it. A scalar (size (1,)) or an empty array
@@ -30,6 +31,15 @@ reproducer: |
   vcat(Int[], [1 2; 3 4])           # DimensionMismatch
 output:
   release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    two-array vcat => [1 2; 3 4]
+    two-array typed_vcat => [1 2; 3 4]
+    _cat => [1 2; 3 4]
+    cat_t => [1 2; 3 4]
+    generic vcat => [1 2; 3 4]
+    generic typed_vcat => [1 2; 3 4]
+    cat_shape => (2, 2)
+    _cat_size_shape => (2, 2)
     [1 1; 2 3]
     DimensionMismatch("number of columns of each array must match (got (1, 2))")
     [1 2;;; 3 3]
@@ -46,6 +56,26 @@ output:
     DimensionMismatch("number of columns of each array must match (got (1, 2))")
     REPRODUCED multidim-cat-scalar-shape
 reproduced: {release: true, nightly: true}
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    two-array vcat => [1 2; 3 4]
+    two-array typed_vcat => [1 2; 3 4]
+    _cat => [1 2; 3 4]
+    cat_t => [1 2; 3 4]
+    generic vcat => [1 2; 3 4]
+    generic typed_vcat => [1 2; 3 4]
+    cat_shape => (2, 2)
+    _cat_size_shape => (2, 2)
+    [1 1; 2 3]
+    DimensionMismatch("number of columns of each array must match (got (1, 2))")
+    [1 2;;; 3 3]
+    DimensionMismatch("tried to assign 1-element array to 1×2×1 destination")
+    [1 2; 3 4]
+    DimensionMismatch("number of columns of each array must match (got (1, 2))")
+    REPRODUCED multidim-cat-scalar-shape
 expected: |
   DimensionMismatch in each case, as for the same arguments wrapped in 1-element
   arrays or given in the opposite order.

@@ -103,12 +103,40 @@ theorem abstractArrayIterationSafe_proven : AbstractArrayIterationSafe := by
     exact linearArrayIndices_safe_early a i (List.mem_of_mem_take hi)
 
 theorem deepcopyMemorySafe_proven : DeepcopyMemorySafe := by
-  intro α x i hi
-  simp only [deepcopyMemoryAccesses, oneBasedLoop, List.mem_map,
-    List.mem_range] at hi
-  obtain ⟨k, hk, rfl⟩ := hi
-  simp only [List.length_replicate]
-  constructor <;> unfold inOneBased <;> omega
+  have sourceSafe : ∀ (α : Type) (isbits : Bool) (x : List (Option α)) i,
+      i ∈ deepcopyMemoryAccesses isbits x → inOneBased x.length i := by
+    intro α isbits x i hi
+    cases isbits with
+    | true => simp [deepcopyMemoryAccesses] at hi
+    | false =>
+      simp only [deepcopyMemoryAccesses, Bool.false_eq_true, ↓reduceIte,
+        oneBasedLoop, List.mem_map, List.mem_range] at hi
+      obtain ⟨k, hk, rfl⟩ := hi
+      unfold inOneBased
+      omega
+  refine ⟨sourceSafe, ?_, ?_⟩
+  · intro α isbits x i hi
+    unfold deepcopyMemoryWrites at hi
+    have hsource : i ∈ deepcopyMemoryAccesses isbits x := by
+      exact (List.mem_filter.mp hi).1
+    simpa only [List.length_replicate] using sourceSafe α isbits x i hsource
+  · intro α x
+    constructor
+    · intro hz
+      simp [deepcopyBitsBytes, hz]
+    · intro ha hn
+      have hmul : (x.elementSize : Int) * x.elements.length =
+          (x.elements.length * x.elementSize : Nat) := by
+        simp [Int.mul_comm]
+      have hrange : IntTy.min .i64 ≤ (x.elements.length * x.elementSize : Nat) ∧
+          (x.elements.length * x.elementSize : Int) ≤ IntTy.max .i64 := by
+        constructor
+        · simp only [IntTy.min, IntTy.signed, IntTy.bits]; omega
+        · exact x.sizeFits
+      refine ⟨?_, x.extent, ?_⟩
+      · simp only [deepcopyBitsBytes, if_pos (And.intro ha hn), hmul]
+        exact congrArg some (wrapInt_of_inRange .i64 _ hrange)
+      · exact Nat.le_refl _
 
 theorem dictProbeSafe_proven : DictProbeSafe := by
   intro K V o t hash index hinv hi

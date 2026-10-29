@@ -186,6 +186,8 @@ structure ConvLawful {Q K : Type} (o : KeyOps K) (c : Conv Q K) : Prop where
   hash_eq : ∀ q k, c.iseq q k = true → c.hash q = o.hash k
   iseq_eq : ∀ q k k', c.iseq q k = true → o.eq k k' = true → c.iseq q k' = true
   isa_convert : ∀ q k, c.isa q = some k → c.convert q = .ok k ∧ c.iseq q k = true
+  /-- The iterator interface requires yielded values to inhabit its declared element type. -/
+  subtype_isa : c.eltypeSubtype = true → ∀ q, ∃ k, c.isa q = some k
 
 /-- `in!(x, s)` is `in(x, s) ? true : (push!(s, x); false)` (docstring `base/set.jl:94-100`). -/
 def InBangEquiv : Prop :=

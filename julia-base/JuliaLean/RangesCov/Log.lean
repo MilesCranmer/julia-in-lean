@@ -198,37 +198,7 @@ theorem logRangeShowQualified_refuted : ¬ LogRangeShowQualified := by
   have := h "Float64" (fun _ => "1.0") ⟨Float.F64.one, Float.F64.one, FloatRanges.i64 1, default⟩
   simp [showLog] at this
 
-def entries : List Entry := [
-  { id := "rangescov-logrange-endpoints", juliaFile := "base/range.jl"
-    juliaFns := ["LogRange{T}(::T, ::T, ::Int) where T<:Real", "getindex(::LogRange{T}, ::Int)", "first(::LogRange)",
-      "last(::LogRange)", "length(::LogRange)", "size(::LogRange)"]
-    statement := "A constructed LogRange has r[1] == first(r) == start, r[end] == last(r) == stop, length(r) == len and size(r) == (len,), for any log and exp."
-    source := "LogRange docstring (first and last elements are exactly those provided)"
-    status := .proven, prop := ``LogEndpoints, thm := some ``logEndpoints_proven },
-  { id := "rangescov-logrange-domain", juliaFile := "base/range.jl"
-    juliaFns := ["LogRange{T}(::T, ::T, ::Int) where T<:Real"]
-    statement := "LogRange throws DomainError when start is zero, negative or not finite."
-    source := "LogRange constructor checks, base/range.jl:1655-1666"
-    status := .proven, prop := ``LogDomain, thm := some ``logDomain_proven },
-  { id := "rangescov-logrange-outer-constructors", juliaFile := "base/range.jl"
-    juliaFns := ["LogRange{T}(::Real, ::Real, ::Integer)", "LogRange(::Real, ::Real, ::Integer)",
-      "logrange(::Real, ::Real, ::Integer)", "logrange(::Real, ::Real; length::Integer)"]
-    statement := "LogRange{Float64}(a, b, n), LogRange(a, b, n) and logrange(a, b, n) with Int arguments have first Float64(a), last Float64(b) and length n."
-    source := "logrange docstring; base/range.jl:1592-1683"
-    status := .proven, prop := ``LogOuterConstructors, thm := some ``logOuterConstructors_proven },
-  { id := "rangescov-logrange-extra", juliaFile := "base/range.jl"
-    juliaFns := ["_logrange_extra(::Real, ::Real, ::Int)", "_logrange_extra(::Float64, ::Float64, ::Int)"]
-    statement := "_logrange_extra(a, b, len) treats a and b alike: swapping them swaps the two components."
-    source := "invariant; base/range.jl:1691-1702"
-    status := .proven, prop := ``LograngeExtraSymmetric, thm := some ``lograngeExtraSymmetric_proven },
-  { id := "rangescov-logrange-show-unparseable", juliaFile := "base/range.jl"
-    juliaFns := ["show(::IO, ::LogRange{T})"]
-    statement := "repr of a LogRange starts with the qualified name Base.LogRange{, like repr(Base.OneTo(3))."
-    source := "repr/show contract (output parses back), compare show(::IO, ::OneTo), base/range.jl:1131"
-    status := .refuted, prop := ``LogRangeShowQualified, thm := some ``logRangeShowQualified_refuted
-    issue := "none found (queries: issues LogRange show; issues LogRange repr; prs LogRange show)"
-    notes := "show(io, ::LogRange) prints LogRange{Float64}(1.0, 4.0, 5); eval(Meta.parse(repr(r))) throws UndefVarError in Main." }
-]
+def entries : List Entry := []
 
 end Log
 

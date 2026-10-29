@@ -120,6 +120,28 @@ def BitVectorLoopInBounds : Prop :=
   ∀ (chunks k : Nat) (fromEnd : Bool) (i : Int),
     bitVectorLoopIndex chunks k fromEnd = some i → InBounds chunks i
 
+/-- `cmp` scans both chunk vectors through the smaller length. -/
+def bitCompareIndex (left right k : Nat) : Option Int :=
+  if k < min left right then some (k + 1) else none
+
+def BitCompareInBounds : Prop :=
+  ∀ left right k i, bitCompareIndex left right k = some i →
+    InBounds left i ∧ InBounds right i
+
+/-- `copyto!(dest::BitArray, src::BitArray)` checks logical lengths,
+then uses the smaller chunk-vector length, including its final chunk. -/
+def bitCopyVectorIndex (destBits srcBits destChunks srcChunks k : Nat)
+    (final : Bool) : Option Int :=
+  let nc := min destChunks srcChunks
+  if srcBits ≤ destBits ∧ nc > 0 then
+    if final then some nc else if k < nc - 1 then some (k + 1) else none
+  else none
+
+def BitCopyVectorInBounds : Prop :=
+  ∀ destBits srcBits destChunks srcChunks k final i,
+    bitCopyVectorIndex destBits srcBits destChunks srcChunks k final = some i →
+    InBounds destChunks i ∧ InBounds srcChunks i
+
 /-- The bootstrap array getter's unsigned comparison before `memoryrefnew`,
 `base/boot.jl:879-883`. -/
 def bootArrayIndex (len : Nat) (i : Int) : Option Int :=
@@ -178,13 +200,16 @@ structure ByteSpan where
 
 def ByteSpan.safe (a : ByteSpan) : Prop := a.offset + a.readBytes ≤ a.objectBytes
 
-def processStatsRead : ProcessStatSite → ByteSpan
-  | .rss => ⟨96, 8, 8⟩
-  | .user => ⟨96, 16, 8⟩
-  | .system => ⟨96, 24, 8⟩
+def processStatsRead (apple : Bool) (ret : Int) (site : ProcessStatSite) : Option ByteSpan :=
+  if apple ∧ ret > 0 then
+    some <| match site with
+      | .rss => ⟨96, 8, 8⟩
+      | .user => ⟨96, 16, 8⟩
+      | .system => ⟨96, 24, 8⟩
+  else none
 
 def ProcessStatsReadsInBounds : Prop :=
-  ∀ site : ProcessStatSite, (processStatsRead site).safe
+  ∀ apple ret site span, processStatsRead apple ret site = some span → span.safe
 
 /-- `split(s, '/'; limit=2)` returns one field without a slash and two with a
 slash. Only the two-field branch reads `ss[1]` and `ss[2]`,

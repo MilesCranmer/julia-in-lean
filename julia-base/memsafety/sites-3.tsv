@@ -2,192 +2,192 @@ site	file	line	kind	group	status	entry	note	code
 abstractarray:614	base/abstractarray.jl	614	@boundscheck	3	not-unchecked		This is the bounds check itself; it performs no unchecked access.	@boundscheck checkbounds(A, I...)
 abstractarray:958	base/abstractarray.jl	958	@boundscheck	3	not-unchecked		This is the bounds check itself; it performs no unchecked access.	@boundscheck checkbounds(dest, i)
 abstractarray:959	base/abstractarray.jl	959	@boundscheck	3	not-unchecked		This is the bounds check itself; it performs no unchecked access.	@boundscheck n <= lastindex(dest) - i + 1 || throw(BoundsError(dest, i))
-abstractarray:961	base/abstractarray.jl	961	@inbounds	3	proven	memsafety-abstractarray-copy		@inbounds dest[i] = x
-abstractarray:1030	base/abstractarray.jl	1030	@inbounds	3	proven	memsafety-abstractarray-copy		@inbounds dest[i] = val
-abstractarray:1033	base/abstractarray.jl	1033	@inbounds	3	proven	memsafety-abstractarray-copy		@inbounds dest[i] = val
-abstractarray:1098	base/abstractarray.jl	1098	@inbounds	3	proven	memsafety-abstractarray-copy		@inbounds for i in srcinds
-abstractarray:1104	base/abstractarray.jl	1104	@inbounds	3	proven	memsafety-abstractarray-copy		@inbounds for a in src
-abstractarray:1113	base/abstractarray.jl	1113	@inbounds	3	proven	memsafety-abstractarray-copy		@inbounds dest[I] = src[I]
-abstractarray:1118	base/abstractarray.jl	1118	@inbounds	3	proven	memsafety-abstractarray-copy		@inbounds dest[Idest] = src[Isrc]
-abstractarray:1148	base/abstractarray.jl	1148	@inbounds	3	proven	memsafety-abstractarray-copy		@inbounds for i = 0:n-1
+abstractarray:961	base/abstractarray.jl	961	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:961 proven memsafety-abstractarray-copy	@inbounds dest[i] = x
+abstractarray:1030	base/abstractarray.jl	1030	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:1030 proven memsafety-abstractarray-copy	@inbounds dest[i] = val
+abstractarray:1033	base/abstractarray.jl	1033	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:1033 proven memsafety-abstractarray-copy	@inbounds dest[i] = val
+abstractarray:1098	base/abstractarray.jl	1098	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:1098 proven memsafety-abstractarray-copy	@inbounds for i in srcinds
+abstractarray:1104	base/abstractarray.jl	1104	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:1104 proven memsafety-abstractarray-copy	@inbounds for a in src
+abstractarray:1113	base/abstractarray.jl	1113	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:1113 proven memsafety-abstractarray-copy	@inbounds dest[I] = src[I]
+abstractarray:1118	base/abstractarray.jl	1118	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:1118 proven memsafety-abstractarray-copy	@inbounds dest[Idest] = src[Isrc]
+abstractarray:1148	base/abstractarray.jl	1148	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:1148 proven memsafety-abstractarray-copy	@inbounds for i = 0:n-1
 abstractarray:1169	base/abstractarray.jl	1169	@boundscheck	3	not-unchecked		This is the bounds check itself; it performs no unchecked access.	@boundscheck checkbounds(B, ir_dest, jr_dest)
 abstractarray:1170	base/abstractarray.jl	1170	@boundscheck	3	not-unchecked		This is the bounds check itself; it performs no unchecked access.	@boundscheck checkbounds(A, ir_src, jr_src)
-abstractarray:1176	base/abstractarray.jl	1176	@inbounds	3	proven	memsafety-abstractarray-copy		@inbounds B[idest,jdest] = A′[isrc,jsrc]
-abstractarray:1371	base/abstractarray.jl	1371	@inbounds	3	user-contract		The unsafe_getindex/unsafe_setindex! API requires the caller to supply valid indices.	@inline unsafe_getindex(A::AbstractArray, I...) = @inbounds getindex(A, I...)
+abstractarray:1176	base/abstractarray.jl	1176	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:1176 proven memsafety-abstractarray-copy	@inbounds B[idest,jdest] = A′[isrc,jsrc]
+abstractarray:1371	base/abstractarray.jl	1371	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:1371 user-contract | The unsafe_getindex/unsafe_setindex! API requires the caller to supply valid indices.	@inline unsafe_getindex(A::AbstractArray, I...) = @inbounds getindex(A, I...)
 abstractarray:1394	base/abstractarray.jl	1394	@boundscheck	3	not-unchecked		This is the bounds check itself; it performs no unchecked access.	@boundscheck checkbounds(A, I...) # generally _to_linear_index requires bounds checking
-abstractarray:1395	base/abstractarray.jl	1395	@inbounds	3	proven	memsafety-abstractarray-copy		@inbounds r = getindex(A, _to_linear_index(A, I...))
+abstractarray:1395	base/abstractarray.jl	1395	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:1395 proven memsafety-abstractarray-copy	@inbounds r = getindex(A, _to_linear_index(A, I...))
 abstractarray:1406	base/abstractarray.jl	1406	@boundscheck	3	not-unchecked		This is the bounds check itself; it performs no unchecked access.	@boundscheck checkbounds(A, I...) # generally _to_subscript_indices requires bounds checking
-abstractarray:1407	base/abstractarray.jl	1407	@inbounds	3	proven	memsafety-abstractarray-copy		@inbounds r = getindex(A, _to_subscript_indices(A, I...)...)
-abstractarray:1471	base/abstractarray.jl	1471	@inbounds	3	user-contract		The unsafe_getindex/unsafe_setindex! API requires the caller to supply valid indices.	@inbounds r = setindex!(A, v, I...)
+abstractarray:1407	base/abstractarray.jl	1407	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:1407 proven memsafety-abstractarray-copy	@inbounds r = getindex(A, _to_subscript_indices(A, I...)...)
+abstractarray:1471	base/abstractarray.jl	1471	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:1471 user-contract | The unsafe_getindex/unsafe_setindex! API requires the caller to supply valid indices.	@inbounds r = setindex!(A, v, I...)
 abstractarray:1489	base/abstractarray.jl	1489	@boundscheck	3	not-unchecked		This is the bounds check itself; it performs no unchecked access.	@boundscheck checkbounds(A, I...)
-abstractarray:1490	base/abstractarray.jl	1490	@inbounds	3	proven	memsafety-abstractarray-copy		@inbounds r = setindex!(A, v, _to_linear_index(A, I...))
+abstractarray:1490	base/abstractarray.jl	1490	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:1490 proven memsafety-abstractarray-copy	@inbounds r = setindex!(A, v, _to_linear_index(A, I...))
 abstractarray:1501	base/abstractarray.jl	1501	@boundscheck	3	not-unchecked		This is the bounds check itself; it performs no unchecked access.	@boundscheck checkbounds(A, I...)
-abstractarray:1502	base/abstractarray.jl	1502	@inbounds	3	proven	memsafety-abstractarray-copy		@inbounds r = setindex!(A, v, _to_subscript_indices(A, I...)...)
-abstractarray:2262	base/abstractarray.jl	2262	@inbounds	3	proven	memsafety-abstractarray-concat		@inbounds for i=1:nr
-abstractarray:2543	base/abstractarray.jl	2543	@inbounds	3	proven	memsafety-abstractarray-concat		@inbounds A[Ai] = xs[k]
-abstractarray:2551	base/abstractarray.jl	2551	@inbounds	3	proven	memsafety-abstractarray-concat		@inbounds A[k] = xs[k]
-abstractarray:2572	base/abstractarray.jl	2572	@inbounds	3	proven	memsafety-abstractarray-concat		@inbounds A[i, j] = xs[k]
-abstractarray:2581	base/abstractarray.jl	2581	@inbounds	3	proven	memsafety-abstractarray-concat		@inbounds A[k] = xs[k]
-abstractarray:2602	base/abstractarray.jl	2602	@inbounds	3	proven	memsafety-abstractarray-concat		@inbounds A[Ai] = xs[k]
-abstractarray:2618	base/abstractarray.jl	2618	@inbounds	3	proven	memsafety-abstractarray-concat		@inbounds A[k] = xs[k]
-abstractarray:2840	base/abstractarray.jl	2840	@inbounds	3	proven	memsafety-abstractarray-concat		@inbounds A[startindex:endindex] = a
-abstractarray:2843	base/abstractarray.jl	2843	@inbounds	3	proven	memsafety-abstractarray-concat		@inbounds Ai = hvncat_calcindex(offsets, inneroffsets, outdimsprod, N)
-abstractarray:2844	base/abstractarray.jl	2844	@inbounds	3	proven	memsafety-abstractarray-concat		@inbounds A[Ai] = ai
-abstractarray:2845	base/abstractarray.jl	2845	@inbounds	3	proven	memsafety-abstractarray-concat		@inbounds for j ∈ 1:N
-abstractarray:2854	base/abstractarray.jl	2854	@inbounds	3	proven	memsafety-abstractarray-concat		@inbounds A[startindex] = a
-abstractarray:2857	base/abstractarray.jl	2857	@inbounds	3	proven	memsafety-abstractarray-concat		@inbounds for i ∈ (d1, d2, 3:N...)
-abstractarray:3085	base/abstractarray.jl	3085	@inbounds	3	proven	memsafety-abstractarray-iteration		@inbounds copyto!(view(B, before..., i, after...), x)
-abstractarray:3484	base/abstractarray.jl	3484	@inbounds	3	proven	memsafety-abstractarray-iteration		val = f(@inbounds A[j])
-abstractarray:3485	base/abstractarray.jl	3485	@inbounds	3	proven	memsafety-abstractarray-iteration		@inbounds dest[i] = val
-abstractarray:3529	base/abstractarray.jl	3529	@inbounds	3	proven	memsafety-abstractarray-iteration		@inbounds a, b = A[j], B[k]
-abstractarray:3531	base/abstractarray.jl	3531	@inbounds	3	proven	memsafety-abstractarray-iteration		@inbounds dest[i] = val
-abstractarray:3548	base/abstractarray.jl	3548	@inbounds	3	proven	memsafety-abstractarray-iteration		@inbounds as = ith_all(i, As)
-abstractarray:3550	base/abstractarray.jl	3550	@inbounds	3	proven	memsafety-abstractarray-iteration		@inbounds dest[i] = val
-abstractarray:3708	base/abstractarray.jl	3708	@inbounds	3	proven	memsafety-abstractarray-iteration		@inbounds a[i] = ak # k > i, so a[i] is inbounds
-abstractarray:3721	base/abstractarray.jl	3721	@inbounds	3	proven	memsafety-abstractarray-iteration		@inbounds begin
+abstractarray:1502	base/abstractarray.jl	1502	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:1502 proven memsafety-abstractarray-copy	@inbounds r = setindex!(A, v, _to_subscript_indices(A, I...)...)
+abstractarray:2262	base/abstractarray.jl	2262	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:2262 proven memsafety-abstractarray-concat	@inbounds for i=1:nr
+abstractarray:2543	base/abstractarray.jl	2543	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:2543 proven memsafety-abstractarray-concat	@inbounds A[Ai] = xs[k]
+abstractarray:2551	base/abstractarray.jl	2551	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:2551 proven memsafety-abstractarray-concat	@inbounds A[k] = xs[k]
+abstractarray:2572	base/abstractarray.jl	2572	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:2572 proven memsafety-abstractarray-concat	@inbounds A[i, j] = xs[k]
+abstractarray:2581	base/abstractarray.jl	2581	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:2581 proven memsafety-abstractarray-concat	@inbounds A[k] = xs[k]
+abstractarray:2602	base/abstractarray.jl	2602	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:2602 proven memsafety-abstractarray-concat	@inbounds A[Ai] = xs[k]
+abstractarray:2618	base/abstractarray.jl	2618	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:2618 proven memsafety-abstractarray-concat	@inbounds A[k] = xs[k]
+abstractarray:2840	base/abstractarray.jl	2840	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:2840 proven memsafety-abstractarray-concat	@inbounds A[startindex:endindex] = a
+abstractarray:2843	base/abstractarray.jl	2843	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:2843 proven memsafety-abstractarray-concat	@inbounds Ai = hvncat_calcindex(offsets, inneroffsets, outdimsprod, N)
+abstractarray:2844	base/abstractarray.jl	2844	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:2844 proven memsafety-abstractarray-concat	@inbounds A[Ai] = ai
+abstractarray:2845	base/abstractarray.jl	2845	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:2845 proven memsafety-abstractarray-concat	@inbounds for j ∈ 1:N
+abstractarray:2854	base/abstractarray.jl	2854	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:2854 proven memsafety-abstractarray-concat	@inbounds A[startindex] = a
+abstractarray:2857	base/abstractarray.jl	2857	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:2857 proven memsafety-abstractarray-concat	@inbounds for i ∈ (d1, d2, 3:N...)
+abstractarray:3085	base/abstractarray.jl	3085	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:3085 proven memsafety-abstractarray-iteration	@inbounds copyto!(view(B, before..., i, after...), x)
+abstractarray:3484	base/abstractarray.jl	3484	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:3484 proven memsafety-abstractarray-iteration	val = f(@inbounds A[j])
+abstractarray:3485	base/abstractarray.jl	3485	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:3485 proven memsafety-abstractarray-iteration	@inbounds dest[i] = val
+abstractarray:3529	base/abstractarray.jl	3529	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:3529 proven memsafety-abstractarray-iteration	@inbounds a, b = A[j], B[k]
+abstractarray:3531	base/abstractarray.jl	3531	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:3531 proven memsafety-abstractarray-iteration	@inbounds dest[i] = val
+abstractarray:3548	base/abstractarray.jl	3548	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:3548 proven memsafety-abstractarray-iteration	@inbounds as = ith_all(i, As)
+abstractarray:3550	base/abstractarray.jl	3550	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:3550 proven memsafety-abstractarray-iteration	@inbounds dest[i] = val
+abstractarray:3708	base/abstractarray.jl	3708	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:3708 proven memsafety-abstractarray-iteration	@inbounds a[i] = ak # k > i, so a[i] is inbounds
+abstractarray:3721	base/abstractarray.jl	3721	@inbounds	3	todo		Pending target-source proof or review; previous: abstractarray:3721 proven memsafety-abstractarray-iteration	@inbounds begin
 deepcopy:114	base/deepcopy.jl	114	memoryref	3	not-unchecked		This operation creates or inspects a memory reference without dereferencing storage.	xr = memoryref(x)
 deepcopy:115	base/deepcopy.jl	115	memoryref	3	not-unchecked		This operation creates or inspects a memory reference without dereferencing storage.	dr = memoryref(dest)
-deepcopy:117	base/deepcopy.jl	117	memoryref	3	proven	memsafety-deepcopy-memory		xi = Core.memoryrefnew(xr, i, false)
-deepcopy:118	base/deepcopy.jl	118	memoryref	3	proven	memsafety-deepcopy-memory		if Core.memoryref_isassigned(xi, :not_atomic, false)
-deepcopy:119	base/deepcopy.jl	119	memoryref	3	proven	memsafety-deepcopy-memory		xi = Core.memoryrefget(xi, :not_atomic, false)
-deepcopy:123	base/deepcopy.jl	123	memoryref	3	proven	memsafety-deepcopy-memory		di = Core.memoryrefnew(dr, i, false)
-deepcopy:124	base/deepcopy.jl	124	memoryref	3	proven	memsafety-deepcopy-memory		Core.memoryrefset!(di, xi, :not_atomic, false)
+deepcopy:117	base/deepcopy.jl	117	memoryref	3	todo		Non-bits loop and bits copy path modelled; independent review pending.	xi = Core.memoryrefnew(xr, i, false)
+deepcopy:118	base/deepcopy.jl	118	memoryref	3	todo		Non-bits loop and bits copy path modelled; independent review pending.	if Core.memoryref_isassigned(xi, :not_atomic, false)
+deepcopy:119	base/deepcopy.jl	119	memoryref	3	todo		Non-bits loop and bits copy path modelled; independent review pending.	xi = Core.memoryrefget(xi, :not_atomic, false)
+deepcopy:123	base/deepcopy.jl	123	memoryref	3	todo		Non-bits loop and bits copy path modelled; independent review pending.	di = Core.memoryrefnew(dr, i, false)
+deepcopy:124	base/deepcopy.jl	124	memoryref	3	todo		Non-bits loop and bits copy path modelled; independent review pending.	Core.memoryrefset!(di, xi, :not_atomic, false)
 deepcopy:143	base/deepcopy.jl	143	memoryref	3	not-unchecked		This operation creates or inspects a memory reference without dereferencing storage.	dest = memoryref(deepcopy_internal(mem, stackdict)::typeof(mem))
 deepcopy:144	base/deepcopy.jl	144	memoryref	3	not-unchecked		This operation creates or inspects a memory reference without dereferencing storage.	i = memoryrefoffset(x)
 deepcopy:145	base/deepcopy.jl	145	memoryref	3	not-unchecked		Core.memoryrefnew is called with boundscheck=true.	i == 1 || (dest = Core.memoryrefnew(dest, i, true))
-dict:168	base/dict.jl	168	@inbounds	3	proven	memsafety-dict-probes		@inbounds if (olds[i] & 0x80) != 0
-dict:250	base/dict.jl	250	@inbounds	3	proven	memsafety-dict-probes		@assume_effects :terminates_locally :noub @inbounds while true
-dict:283	base/dict.jl	283	@inbounds	3	proven	memsafety-dict-probes		@inbounds while true
-dict:310	base/dict.jl	310	@inbounds	3	proven	memsafety-dict-probes		@inbounds while iter < maxallowed
-dict:365	base/dict.jl	365	@inbounds	3	proven	memsafety-dict-probes		@inbounds h.keys[index] = key
-dict:366	base/dict.jl	366	@inbounds	3	proven	memsafety-dict-probes		@inbounds h.vals[index] = v
-dict:368	base/dict.jl	368	@inbounds	3	proven	memsafety-dict-probes		@inbounds _setindex!(h, v, key, -index, sh)
-dict:380	base/dict.jl	380	@inbounds	3	proven	memsafety-dict-probes		@inbounds h.keys[index] = key
-dict:381	base/dict.jl	381	@inbounds	3	proven	memsafety-dict-probes		@inbounds h.vals[index] = v
-dict:383	base/dict.jl	383	@inbounds	3	proven	memsafety-dict-probes		@inbounds _setindex!(h, v, key, -index, sh)
-dict:472	base/dict.jl	472	@inbounds	3	proven	memsafety-dict-probes		@inbounds h.keys[index] = key
-dict:473	base/dict.jl	473	@inbounds	3	proven	memsafety-dict-probes		@inbounds h.vals[index] = v
-dict:475	base/dict.jl	475	@inbounds	3	proven	memsafety-dict-probes		@inbounds _setindex!(h, v, key, -index, sh)
-dict:482	base/dict.jl	482	@inbounds	3	proven	memsafety-dict-probes		return index < 0 ? throw(KeyError(key)) : @assume_effects :noub @inbounds h.vals[index]::V
-dict:509	base/dict.jl	509	@inbounds	3	proven	memsafety-dict-probes		@inbounds return (index < 0) ? default : h.vals[index]::V
-dict:531	base/dict.jl	531	@inbounds	3	proven	memsafety-dict-probes		@inbounds return (index < 0) ? default() : h.vals[index]::V
-dict:577	base/dict.jl	577	@inbounds	3	proven	memsafety-dict-probes		@inbounds return (index<0) ? default : h.keys[index]::K
-dict:581	base/dict.jl	581	@inbounds	3	proven	memsafety-dict-probes		@inbounds val = h.vals[index]
-dict:625	base/dict.jl	625	@inbounds	3	proven	memsafety-dict-probes		@inbounds key = h.keys[idx]
-dict:626	base/dict.jl	626	@inbounds	3	proven	memsafety-dict-probes		@inbounds val = h.vals[idx]
-dict:632	base/dict.jl	632	@inbounds	3	proven	memsafety-dict-probes		@inbounds begin
-dict:692	base/dict.jl	692	@inbounds	3	proven	memsafety-dict-probes		@inbounds if isslotfilled(h,i)
-dict:722	base/dict.jl	722	@inbounds	3	proven	memsafety-dict-probes		(@inbounds vals[i], i == typemax(Int) ? 0 : i+1)
-dict:727	base/dict.jl	727	@inbounds	3	proven	memsafety-dict-probes		@inbounds for i=1:length(h.slots)
-dict:745	base/dict.jl	745	@inbounds	3	proven	memsafety-dict-probes		@inbounds for i = dict.idxfloor:lastindex(vals)
-dict:770	base/dict.jl	770	@inbounds	3	proven	memsafety-dict-probes		@inbounds _setindex!(d1, v, k, -i, sh)
-dict:1041	base/dict.jl	1041	@inbounds	3	proven	memsafety-dict-persistent-path		leaf = @inbounds trie.data[i]::HAMT.Leaf{K,V}
-env:59	base/env.jl	59	unsafe_load	3	proven	memsafety-environment-buffers		_environ() = unsafe_load(ccall(:_NSGetEnviron, Ptr{Ptr{Cstring}}, ()))
-env:70	base/env.jl	70	unsafe_load	3	proven	memsafety-environment-buffers		_environ() = unsafe_load(_environ_ptr())
-env:207	base/env.jl	207	unsafe_load	3	proven	memsafety-environment-buffers		if unsafe_load(block[1]) == 0
-env:215	base/env.jl	215	unsafe_copyto!	3	proven	memsafety-environment-buffers		GC.@preserve buf unsafe_copyto!(pointer(buf), pos, len)
-env:235	base/env.jl	235	unsafe_load	3	proven	memsafety-environment-buffers		envp = unsafe_load(envs, i + 1)
-intfuncs:888	base/intfuncs.jl	888	unsafe_store!	3	proven	memsafety-intfuncs-formatting		unsafe_store!(p, (d >> 0x00) % UInt8, i-3)
-intfuncs:889	base/intfuncs.jl	889	unsafe_store!	3	proven	memsafety-intfuncs-formatting		unsafe_store!(p, (d >> 0x08) % UInt8, i-2)
-intfuncs:890	base/intfuncs.jl	890	unsafe_store!	3	proven	memsafety-intfuncs-formatting		unsafe_store!(p, (d >> 0x10) % UInt8, i-1)
-intfuncs:891	base/intfuncs.jl	891	unsafe_store!	3	proven	memsafety-intfuncs-formatting		unsafe_store!(p, (d >> 0x18) % UInt8, i)
-intfuncs:896	base/intfuncs.jl	896	unsafe_store!	3	proven	memsafety-intfuncs-formatting		unsafe_store!(p, 0x30 + ((x % UInt8)::UInt8 & 0x1), i)
-intfuncs:900	base/intfuncs.jl	900	unsafe_store!	3	proven	memsafety-intfuncs-formatting		neg && unsafe_store!(p, 0x2d, 1) # UInt8('-')
-intfuncs:913	base/intfuncs.jl	913	unsafe_store!	3	proven	memsafety-intfuncs-formatting		unsafe_store!(p, 0x30 + ((x % UInt8)::UInt8 & 0x7), i)
-intfuncs:917	base/intfuncs.jl	917	unsafe_store!	3	proven	memsafety-intfuncs-formatting		neg && unsafe_store!(p, 0x2d, 1) # UInt8('-')
-intfuncs:943	base/intfuncs.jl	943	@inbounds	3	proven	memsafety-intfuncs-formatting		@inbounds d100 = _dec_d100[(c % Int)::Int + 1]
-intfuncs:944	base/intfuncs.jl	944	@inbounds	3	proven	memsafety-intfuncs-formatting		@inbounds buf[pos + i - 2] = d100 % UInt8
-intfuncs:945	base/intfuncs.jl	945	@inbounds	3	proven	memsafety-intfuncs-formatting		@inbounds buf[pos + i - 1] = (d100 >> 0x8) % UInt8
-intfuncs:949	base/intfuncs.jl	949	@inbounds	3	proven	memsafety-intfuncs-formatting		@inbounds buf[pos] = UInt8('0') + rem(digits, 0xa) % UInt8
-intfuncs:957	base/intfuncs.jl	957	@inbounds	3	proven	memsafety-intfuncs-formatting		@inbounds buf[pos] = UInt8('0')
-intfuncs:996	base/intfuncs.jl	996	@inbounds	3	proven	memsafety-intfuncs-formatting		v = @inbounds _dec_d100[1 + (s % Int)]
-intfuncs:997	base/intfuncs.jl	997	unsafe_store!	3	proven	memsafety-intfuncs-formatting		unsafe_store!(p, (v >> 8) % UInt8, i - 2*j)
-intfuncs:998	base/intfuncs.jl	998	unsafe_store!	3	proven	memsafety-intfuncs-formatting		unsafe_store!(p, v % UInt8, i - 2*j - 1)
-intfuncs:1000	base/intfuncs.jl	1000	unsafe_store!	3	proven	memsafety-intfuncs-formatting		unsafe_store!(p, 0x30 + (r32 % UInt8), i - 8)
-intfuncs:1007	base/intfuncs.jl	1007	@inbounds	3	proven	memsafety-intfuncs-formatting		v = @inbounds _dec_d100[1 + (r % Int)]
-intfuncs:1008	base/intfuncs.jl	1008	unsafe_store!	3	proven	memsafety-intfuncs-formatting		unsafe_store!(p, (v >> 8) % UInt8, i)
-intfuncs:1009	base/intfuncs.jl	1009	unsafe_store!	3	proven	memsafety-intfuncs-formatting		unsafe_store!(p, v % UInt8, i - 1)
-intfuncs:1013	base/intfuncs.jl	1013	unsafe_store!	3	proven	memsafety-intfuncs-formatting		unsafe_store!(p, 0x30 + (rem(y, 0xa) % UInt8), i)
-intfuncs:1015	base/intfuncs.jl	1015	unsafe_store!	3	proven	memsafety-intfuncs-formatting		neg && unsafe_store!(p, 0x2d, 1) # '-'
-intfuncs:1030	base/intfuncs.jl	1030	unsafe_store!	3	proven	memsafety-intfuncs-formatting		unsafe_store!(p, d1 + ifelse(d1 > 0x9, 0x57, 0x30), i-1)
-intfuncs:1031	base/intfuncs.jl	1031	unsafe_store!	3	proven	memsafety-intfuncs-formatting		unsafe_store!(p, d2 + ifelse(d2 > 0x9, 0x57, 0x30), i)
-intfuncs:1037	base/intfuncs.jl	1037	unsafe_store!	3	proven	memsafety-intfuncs-formatting		unsafe_store!(p, d + ifelse(d > 0x9, 0x57, 0x30), i)
-intfuncs:1039	base/intfuncs.jl	1039	unsafe_store!	3	proven	memsafety-intfuncs-formatting		neg && unsafe_store!(p, 0x2d, 1) # UInt8('-')
-intfuncs:1059	base/intfuncs.jl	1059	@inbounds+unsafe_store!	3	proven	memsafety-intfuncs-formatting		unsafe_store!(p, @inbounds(digits[1 + (rem(x, b) % Int)::Int]), i)
-intfuncs:1062	base/intfuncs.jl	1062	@inbounds+unsafe_store!	3	proven	memsafety-intfuncs-formatting		unsafe_store!(p, @inbounds(digits[1 + (mod(x, -b) % Int)::Int]), i)
-intfuncs:1067	base/intfuncs.jl	1067	unsafe_store!	3	proven	memsafety-intfuncs-formatting		neg && unsafe_store!(p, 0x2d, 1) # UInt8('-')
-intfuncs:1152	base/intfuncs.jl	1152	unsafe_store!	3	proven	memsafety-intfuncs-formatting		unsafe_store!(p, (d >> 0x00) % UInt8, i-3)
-intfuncs:1153	base/intfuncs.jl	1153	unsafe_store!	3	proven	memsafety-intfuncs-formatting		unsafe_store!(p, (d >> 0x08) % UInt8, i-2)
-intfuncs:1154	base/intfuncs.jl	1154	unsafe_store!	3	proven	memsafety-intfuncs-formatting		unsafe_store!(p, (d >> 0x10) % UInt8, i-1)
-intfuncs:1155	base/intfuncs.jl	1155	unsafe_store!	3	proven	memsafety-intfuncs-formatting		unsafe_store!(p, (d >> 0x18) % UInt8, i)
-intfuncs:1161	base/intfuncs.jl	1161	unsafe_store!	3	proven	memsafety-intfuncs-formatting		unsafe_store!(p, 0x30 + (b & 0x01), i)
-intfuncs:1519	base/intfuncs.jl	1519	@inbounds	3	proven	memsafety-intfuncs-formatting		@inbounds for i in eachindex(x)
-io:361	base/io.jl	361	unsafe_load	3	user-contract		The unsafe_read/unsafe_write docstring requires ref to address nbytes of caller-owned storage.	written += write(s, unsafe_load(p, i))
-io:377	base/io.jl	377	unsafe_store!	3	user-contract		The unsafe_read/unsafe_write docstring requires ref to address nbytes of caller-owned storage.	unsafe_store!(p, read(s, UInt8)::UInt8, i)
-io:818	base/io.jl	818	unsafe_load	3	proven	memsafety-io-internal-buffers		endian_bom = GC.@preserve a unsafe_load(convert(Ptr{UInt8}, pointer(a)))
-io:1708	base/io.jl	1708	@inbounds	3	proven	memsafety-io-internal-buffers		@inbounds nl += a[i] == aeol
-module:68	base/module.jl	68	unsafe_load	3	proven	memsafety-module-symbol-prefix		c1(sym) = bitcast(Char, UInt32(unsafe_load(unsafe_convert(Ptr{UInt8}, sym))) << 24)
-parse:72	base/parse.jl	72	@inbounds	3	proven	memsafety-parse-integer		b = @inbounds codeunit(s, i)
-parse:87	base/parse.jl	87	@inbounds	3	proven	memsafety-parse-integer		b = @inbounds codeunit(s, j)
-parse:107	base/parse.jl	107	@inbounds	3	proven	memsafety-parse-integer		c = @inbounds codeunit(s, i)
-parse:116	base/parse.jl	116	@inbounds	3	proven	memsafety-parse-integer		if i < j && @inbounds(codeunit(s, i)) == UInt8('0')
-parse:117	base/parse.jl	117	@inbounds	3	proven	memsafety-parse-integer		c = @inbounds codeunit(s, i + 1)
-parse:130	base/parse.jl	130	@inbounds	3	proven	memsafety-parse-integer		c = @inbounds codeunit(s, i)
-parse:133	base/parse.jl	133	@inbounds	3	proven	memsafety-parse-integer		if k <= j && ((@inbounds codeunit(s, k)) - UInt8('1') <= 0x08) &
-parse:134	base/parse.jl	134	@inbounds	3	proven	memsafety-parse-integer		((@inbounds codeunit(s, j)) - UInt8('0') <= 0x09)
-parsers.floats:102	base/parsers/floats.jl	102	@inbounds	3	proven	memsafety-parsers-float		@inbounds p5 = POW5[q - POW5_MIN + 1]
-parsers.floats:149	base/parsers/floats.jl	149	@inbounds	3	proven	memsafety-parsers-float		x = T(q < 0 ? S(w) / (@inbounds p10[1 - q]) : S(w) * (@inbounds p10[q + 1]))
-parsers.floats:177	base/parsers/floats.jl	177	@inbounds	3	proven	memsafety-parsers-float		d = (@inbounds buf[i]) - UInt8('0')
-parsers.floats:217	base/parsers/floats.jl	217	@inbounds	3	proven	memsafety-parsers-float		d = (@inbounds buf[i]) - UInt8('0')
-parsers.floats:230	base/parsers/floats.jl	230	@inbounds	3	proven	memsafety-parsers-float		b = @inbounds buf[i]
-parsers.floats:236	base/parsers/floats.jl	236	@inbounds	3	proven	memsafety-parsers-float		d = (@inbounds buf[i]) - UInt8('0')
-parsers.floats:274	base/parsers/floats.jl	274	@inbounds	3	proven	memsafety-parsers-float		b = @inbounds buf[i]
-parsers.floats:294	base/parsers/floats.jl	294	@inbounds	3	proven	memsafety-parsers-float		if l <= j && (@inbounds buf[l]) == UInt8('.')
-parsers.floats:301	base/parsers/floats.jl	301	@inbounds	3	proven	memsafety-parsers-float		if l <= j && (@inbounds buf[l]) | 0x20 == UInt8('p')
-parsers.floats:314	base/parsers/floats.jl	314	@inbounds	3	proven	memsafety-parsers-float		(@inbounds buf[i + k - 1]) | 0x20 == codeunit(word, k) || return false
-parsers.floats:327	base/parsers/floats.jl	327	@inbounds	3	proven	memsafety-parsers-float		(@inbounds buf[j]) == UInt8(')') || return INVALID
-parsers.floats:330	base/parsers/floats.jl	330	@inbounds	3	proven	memsafety-parsers-float		isnanchar(@inbounds buf[k]) || return INVALID
-parsers.floats:333	base/parsers/floats.jl	333	@inbounds	3	proven	memsafety-parsers-float		if i <= j && (@inbounds buf[i]) == UInt8('0')
-parsers.floats:335	base/parsers/floats.jl	335	@inbounds	3	proven	memsafety-parsers-float		if i < j && (@inbounds buf[i + 1]) | 0x20 == UInt8('x')
-parsers.floats:354	base/parsers/floats.jl	354	@inbounds	3	proven	memsafety-parsers-float		elseif n > 4 && matchword(buf, i, "nan") && (@inbounds buf[i + 3]) == UInt8('(')
-parsers.floats:367	base/parsers/floats.jl	367	@inbounds	3	proven	memsafety-parsers-float		b = @inbounds buf[i]
-parsers.floats:372	base/parsers/floats.jl	372	@inbounds	3	proven	memsafety-parsers-float		b = @inbounds buf[i]
-parsers.floats:375	base/parsers/floats.jl	375	@inbounds	3	proven	memsafety-parsers-float		b == UInt8('0') && i < j && (@inbounds buf[i + 1]) | 0x20 == UInt8('x') &&
-parsers.floats:383	base/parsers/floats.jl	383	@inbounds	3	proven	memsafety-parsers-float		if i <= j && (@inbounds buf[i]) == UInt8('.')
-parsers.floats:390	base/parsers/floats.jl	390	@inbounds	3	proven	memsafety-parsers-float		if i <= j && (@inbounds buf[i]) | 0x20 == UInt8('e')
-parsers.floats:399	base/parsers/floats.jl	399	@inbounds	3	proven	memsafety-parsers-float		while k <= last && (@inbounds buf[k]) in (UInt8('0'), UInt8('.'))
-parsers.floats:400	base/parsers/floats.jl	400	@inbounds	3	proven	memsafety-parsers-float		(@inbounds buf[k]) == UInt8('0') && (nd -= 1)
-path:733	base/path.jl	733	unsafe_wrap	3	proven	memsafety-path-platform-buffers		sid_str = transcode(String, unsafe_wrap(Array, str_sid_ptr[], len))
-path:800	base/path.jl	800	unsafe_load	3	proven	memsafety-path-platform-buffers		uid = unsafe_load(Ptr{Cuint}(pointer(pwd_storage) + 2 * sizeof(Ptr{Cvoid})))
-pcre:56	base/pcre.jl	56	@inbounds	3	proven	memsafety-pcre-context-names		ctx = @inbounds ctxs[tid]
-pcre:274	base/pcre.jl	274	unsafe_load	3	proven	memsafety-pcre-context-names		high_byte = UInt16(unsafe_load(nametable_ptr, offset))
-pcre:275	base/pcre.jl	275	unsafe_load	3	proven	memsafety-pcre-context-names		low_byte = UInt16(unsafe_load(nametable_ptr, offset+1))
-reduce:255	base/reduce.jl	255	@inbounds	3	user-contract		base/reduce.jl:247-248 states that ifirst:ilast must be a valid non-empty subset of A indices.	@inbounds a1 = A[ifirst]
-reduce:259	base/reduce.jl	259	@inbounds	3	user-contract		base/reduce.jl:247-248 states that ifirst:ilast must be a valid non-empty subset of A indices.	@inbounds a1 = A[ifirst]
-reduce:260	base/reduce.jl	260	@inbounds	3	user-contract		base/reduce.jl:247-248 states that ifirst:ilast must be a valid non-empty subset of A indices.	@inbounds a2 = A[ifirst+1]
-reduce:263	base/reduce.jl	263	@inbounds	3	user-contract		base/reduce.jl:247-248 states that ifirst:ilast must be a valid non-empty subset of A indices.	@inbounds ai = A[i]
-reduce:442	base/reduce.jl	442	@inbounds	3	proven	memsafety-reduce-linear		@inbounds a1 = A[first(inds)]
-reduce:445	base/reduce.jl	445	@inbounds	3	proven	memsafety-reduce-linear		@inbounds i = first(inds)
-reduce:446	base/reduce.jl	446	@inbounds	3	proven	memsafety-reduce-linear		@inbounds a1 = A[i]
-reduce:447	base/reduce.jl	447	@inbounds	3	proven	memsafety-reduce-linear		@inbounds a2 = A[i+=1]
-reduce:450	base/reduce.jl	450	@inbounds	3	proven	memsafety-reduce-linear		@inbounds Ai = A[i+=1]
-reduce:1106	base/reduce.jl	1106	unsafe_load	3	proven	memsafety-reduce-linear		n = (n + count_ones(unsafe_load(ptr, i) & mask)) % T
-strings.unicode:403	base/strings/unicode.jl	403	@inbounds	3	proven	memsafety-unicode-category		@assume_effects :nothrow :foldable category_string(c::Char) = @inbounds category_strings[category_code(c)+1]
-strings.util:273	base/strings/util.jl	273	@inbounds	3	proven	memsafety-string-positions		j === nothing && return @inbounds SubString(s, k) # ran out of prefix: success!
-strings.util:326	base/strings/util.jl	326	@inbounds	3	proven	memsafety-string-positions		j === nothing && return @inbounds SubString(s, firstindex(s), k) # ran out of suffix: success!
-strings.util:338	base/strings/util.jl	338	@inbounds	3	proven	memsafety-string-positions		@inbounds SubString(s, firstindex(s), prevind(s, astart))
-strings.util:385	base/strings/util.jl	385	@inbounds	3	proven	memsafety-string-positions		has_lf = @inbounds(cu[ncu]) == 0x0a
-strings.util:387	base/strings/util.jl	387	@inbounds	3	proven	memsafety-string-positions		has_cr = has_lf & two_bytes & (@inbounds(cu[ncu - two_bytes]) == 0x0d)
-strings.util:390	base/strings/util.jl	390	@inbounds	3	proven	memsafety-string-positions		@inbounds raw_substring(s, 1, len)
-strings.util:419	base/strings/util.jl	419	@inbounds	3	proven	memsafety-string-positions		!f(c) && return @inbounds SubString(s, i, e)
-strings.util:453	base/strings/util.jl	453	@inbounds	3	proven	memsafety-string-positions		f(c::AbstractChar) || return @inbounds SubString(s, 1, i::Int)
-strings.util:710	base/strings/util.jl	710	@inbounds	3	proven	memsafety-string-positions		@inbounds while true
-strings.util:798	base/strings/util.jl	798	@inbounds	3	proven	memsafety-string-positions		substr = @inbounds SubString(iter.str, i, prevind(iter.str, j)::Int)
-strings.util:806	base/strings/util.jl	806	@inbounds	3	proven	memsafety-string-positions		@inbounds SubString(iter.str, i), (ncodeunits(iter.str) + 2, k, n + 1)
-strings.util:1262	base/strings/util.jl	1262	@boundscheck	3	not-unchecked		This is the bounds check itself; it performs no unchecked access.	@boundscheck 2*length(dest) != length(itr) && throw(ArgumentError("length of output array must be half of the length of input iterable"))
-strings.util:1266	base/strings/util.jl	1266	@inbounds	3	proven	memsafety-string-hex		@inbounds for i in eachindex(dest)
-strings.util:1322	base/strings/util.jl	1322	@inbounds+unsafe_store!	3	proven	memsafety-string-hex		unsafe_store!(p, @inbounds(hex_chars[1 + x >> 4]), 2i - 1)
-strings.util:1323	base/strings/util.jl	1323	@inbounds+unsafe_store!	3	proven	memsafety-string-hex		unsafe_store!(p, @inbounds(hex_chars[1 + x & 0xf]), 2i)
-strings.util:1339	base/strings/util.jl	1339	@inbounds	3	proven	memsafety-string-hex		@inbounds codeunit(s, i) < 0x80 || __throw_invalid_ascii(s, i)
-timing:152	base/timing.jl	152	unsafe_wrap	3	proven	memsafety-timing-globals		return Base.unsafe_wrap(Array, page_utilization_raw, JL_GC_N_MAX_POOLS, own=false)
-timing:181	base/timing.jl	181	unsafe_wrap	3	proven	memsafety-timing-globals		reasons_as_array = Base.unsafe_wrap(Vector{UInt64}, reason, length(FULL_SWEEP_REASONS), own=false)
+dict:168	base/dict.jl	168	@inbounds	3	todo		Pending target-source proof or review; previous: dict:168 proven memsafety-dict-probes	@inbounds if (olds[i] & 0x80) != 0
+dict:250	base/dict.jl	250	@inbounds	3	todo		Pending target-source proof or review; previous: dict:250 proven memsafety-dict-probes	@assume_effects :terminates_locally :noub @inbounds while true
+dict:283	base/dict.jl	283	@inbounds	3	todo		Pending target-source proof or review; previous: dict:283 proven memsafety-dict-probes	@inbounds while true
+dict:310	base/dict.jl	310	@inbounds	3	todo		Pending target-source proof or review; previous: dict:310 proven memsafety-dict-probes	@inbounds while iter < maxallowed
+dict:365	base/dict.jl	365	@inbounds	3	todo		Pending target-source proof or review; previous: dict:365 proven memsafety-dict-probes	@inbounds h.keys[index] = key
+dict:366	base/dict.jl	366	@inbounds	3	todo		Pending target-source proof or review; previous: dict:366 proven memsafety-dict-probes	@inbounds h.vals[index] = v
+dict:368	base/dict.jl	368	@inbounds	3	todo		Pending target-source proof or review; previous: dict:368 proven memsafety-dict-probes	@inbounds _setindex!(h, v, key, -index, sh)
+dict:380	base/dict.jl	380	@inbounds	3	todo		Pending target-source proof or review; previous: dict:380 proven memsafety-dict-probes	@inbounds h.keys[index] = key
+dict:381	base/dict.jl	381	@inbounds	3	todo		Pending target-source proof or review; previous: dict:381 proven memsafety-dict-probes	@inbounds h.vals[index] = v
+dict:383	base/dict.jl	383	@inbounds	3	todo		Pending target-source proof or review; previous: dict:383 proven memsafety-dict-probes	@inbounds _setindex!(h, v, key, -index, sh)
+dict:472	base/dict.jl	472	@inbounds	3	todo		Pending target-source proof or review; previous: dict:472 proven memsafety-dict-probes	@inbounds h.keys[index] = key
+dict:473	base/dict.jl	473	@inbounds	3	todo		Pending target-source proof or review; previous: dict:473 proven memsafety-dict-probes	@inbounds h.vals[index] = v
+dict:475	base/dict.jl	475	@inbounds	3	todo		Pending target-source proof or review; previous: dict:475 proven memsafety-dict-probes	@inbounds _setindex!(h, v, key, -index, sh)
+dict:482	base/dict.jl	482	@inbounds	3	todo		Pending target-source proof or review; previous: dict:482 proven memsafety-dict-probes	return index < 0 ? throw(KeyError(key)) : @assume_effects :noub @inbounds h.vals[index]::V
+dict:509	base/dict.jl	509	@inbounds	3	todo		Pending target-source proof or review; previous: dict:509 proven memsafety-dict-probes	@inbounds return (index < 0) ? default : h.vals[index]::V
+dict:531	base/dict.jl	531	@inbounds	3	todo		Pending target-source proof or review; previous: dict:531 proven memsafety-dict-probes	@inbounds return (index < 0) ? default() : h.vals[index]::V
+dict:577	base/dict.jl	577	@inbounds	3	todo		Pending target-source proof or review; previous: dict:577 proven memsafety-dict-probes	@inbounds return (index<0) ? default : h.keys[index]::K
+dict:581	base/dict.jl	581	@inbounds	3	todo		Pending target-source proof or review; previous: dict:581 proven memsafety-dict-probes	@inbounds val = h.vals[index]
+dict:625	base/dict.jl	625	@inbounds	3	todo		Pending target-source proof or review; previous: dict:625 proven memsafety-dict-probes	@inbounds key = h.keys[idx]
+dict:626	base/dict.jl	626	@inbounds	3	todo		Pending target-source proof or review; previous: dict:626 proven memsafety-dict-probes	@inbounds val = h.vals[idx]
+dict:632	base/dict.jl	632	@inbounds	3	todo		Pending target-source proof or review; previous: dict:632 proven memsafety-dict-probes	@inbounds begin
+dict:692	base/dict.jl	692	@inbounds	3	todo		Pending target-source proof or review; previous: dict:692 proven memsafety-dict-probes	@inbounds if isslotfilled(h,i)
+dict:722	base/dict.jl	722	@inbounds	3	todo		Pending target-source proof or review; previous: dict:722 proven memsafety-dict-probes	(@inbounds vals[i], i == typemax(Int) ? 0 : i+1)
+dict:727	base/dict.jl	727	@inbounds	3	todo		Pending target-source proof or review; previous: dict:727 proven memsafety-dict-probes	@inbounds for i=1:length(h.slots)
+dict:745	base/dict.jl	745	@inbounds	3	todo		Pending target-source proof or review; previous: dict:745 proven memsafety-dict-probes	@inbounds for i = dict.idxfloor:lastindex(vals)
+dict:770	base/dict.jl	770	@inbounds	3	todo		Pending target-source proof or review; previous: dict:770 proven memsafety-dict-probes	@inbounds _setindex!(d1, v, k, -i, sh)
+dict:1041	base/dict.jl	1041	@inbounds	3	todo		Target model and dependency review pending; historical: memsafety-dict-persistent-path	leaf = @inbounds trie.data[i]::HAMT.Leaf{K,V}
+env:59	base/env.jl	59	unsafe_load	3	todo		Pending target-source proof or review; previous: env:59 proven memsafety-environment-buffers	_environ() = unsafe_load(ccall(:_NSGetEnviron, Ptr{Ptr{Cstring}}, ()))
+env:70	base/env.jl	70	unsafe_load	3	todo		Pending target-source proof or review; previous: env:70 proven memsafety-environment-buffers	_environ() = unsafe_load(_environ_ptr())
+env:207	base/env.jl	207	unsafe_load	3	todo		Pending target-source proof or review; previous: env:207 proven memsafety-environment-buffers	if unsafe_load(block[1]) == 0
+env:215	base/env.jl	215	unsafe_copyto!	3	todo		Pending target-source proof or review; previous: env:215 proven memsafety-environment-buffers	GC.@preserve buf unsafe_copyto!(pointer(buf), pos, len)
+env:235	base/env.jl	235	unsafe_load	3	todo		Pending target-source proof or review; previous: env:235 proven memsafety-environment-buffers	envp = unsafe_load(envs, i + 1)
+intfuncs:888	base/intfuncs.jl	888	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:888 proven memsafety-intfuncs-formatting	unsafe_store!(p, (d >> 0x00) % UInt8, i-3)
+intfuncs:889	base/intfuncs.jl	889	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:889 proven memsafety-intfuncs-formatting	unsafe_store!(p, (d >> 0x08) % UInt8, i-2)
+intfuncs:890	base/intfuncs.jl	890	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:890 proven memsafety-intfuncs-formatting	unsafe_store!(p, (d >> 0x10) % UInt8, i-1)
+intfuncs:891	base/intfuncs.jl	891	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:891 proven memsafety-intfuncs-formatting	unsafe_store!(p, (d >> 0x18) % UInt8, i)
+intfuncs:896	base/intfuncs.jl	896	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:896 proven memsafety-intfuncs-formatting	unsafe_store!(p, 0x30 + ((x % UInt8)::UInt8 & 0x1), i)
+intfuncs:900	base/intfuncs.jl	900	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:900 proven memsafety-intfuncs-formatting	neg && unsafe_store!(p, 0x2d, 1) # UInt8('-')
+intfuncs:913	base/intfuncs.jl	913	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:913 proven memsafety-intfuncs-formatting	unsafe_store!(p, 0x30 + ((x % UInt8)::UInt8 & 0x7), i)
+intfuncs:917	base/intfuncs.jl	917	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:917 proven memsafety-intfuncs-formatting	neg && unsafe_store!(p, 0x2d, 1) # UInt8('-')
+intfuncs:943	base/intfuncs.jl	943	@inbounds	3	todo		Pending target-source proof or review; previous: intfuncs:943 proven memsafety-intfuncs-formatting	@inbounds d100 = _dec_d100[(c % Int)::Int + 1]
+intfuncs:944	base/intfuncs.jl	944	@inbounds	3	todo		Pending target-source proof or review; previous: intfuncs:944 proven memsafety-intfuncs-formatting	@inbounds buf[pos + i - 2] = d100 % UInt8
+intfuncs:945	base/intfuncs.jl	945	@inbounds	3	todo		Pending target-source proof or review; previous: intfuncs:945 proven memsafety-intfuncs-formatting	@inbounds buf[pos + i - 1] = (d100 >> 0x8) % UInt8
+intfuncs:949	base/intfuncs.jl	949	@inbounds	3	todo		Pending target-source proof or review; previous: intfuncs:949 proven memsafety-intfuncs-formatting	@inbounds buf[pos] = UInt8('0') + rem(digits, 0xa) % UInt8
+intfuncs:957	base/intfuncs.jl	957	@inbounds	3	todo		Pending target-source proof or review; previous: intfuncs:957 proven memsafety-intfuncs-formatting	@inbounds buf[pos] = UInt8('0')
+intfuncs:996	base/intfuncs.jl	996	@inbounds	3	todo		Pending target-source proof or review; previous: intfuncs:996 proven memsafety-intfuncs-formatting	v = @inbounds _dec_d100[1 + (s % Int)]
+intfuncs:997	base/intfuncs.jl	997	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:997 proven memsafety-intfuncs-formatting	unsafe_store!(p, (v >> 8) % UInt8, i - 2*j)
+intfuncs:998	base/intfuncs.jl	998	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:998 proven memsafety-intfuncs-formatting	unsafe_store!(p, v % UInt8, i - 2*j - 1)
+intfuncs:1000	base/intfuncs.jl	1000	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:1000 proven memsafety-intfuncs-formatting	unsafe_store!(p, 0x30 + (r32 % UInt8), i - 8)
+intfuncs:1007	base/intfuncs.jl	1007	@inbounds	3	todo		Pending target-source proof or review; previous: intfuncs:1007 proven memsafety-intfuncs-formatting	v = @inbounds _dec_d100[1 + (r % Int)]
+intfuncs:1008	base/intfuncs.jl	1008	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:1008 proven memsafety-intfuncs-formatting	unsafe_store!(p, (v >> 8) % UInt8, i)
+intfuncs:1009	base/intfuncs.jl	1009	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:1009 proven memsafety-intfuncs-formatting	unsafe_store!(p, v % UInt8, i - 1)
+intfuncs:1013	base/intfuncs.jl	1013	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:1013 proven memsafety-intfuncs-formatting	unsafe_store!(p, 0x30 + (rem(y, 0xa) % UInt8), i)
+intfuncs:1015	base/intfuncs.jl	1015	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:1015 proven memsafety-intfuncs-formatting	neg && unsafe_store!(p, 0x2d, 1) # '-'
+intfuncs:1030	base/intfuncs.jl	1030	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:1030 proven memsafety-intfuncs-formatting	unsafe_store!(p, d1 + ifelse(d1 > 0x9, 0x57, 0x30), i-1)
+intfuncs:1031	base/intfuncs.jl	1031	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:1031 proven memsafety-intfuncs-formatting	unsafe_store!(p, d2 + ifelse(d2 > 0x9, 0x57, 0x30), i)
+intfuncs:1037	base/intfuncs.jl	1037	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:1037 proven memsafety-intfuncs-formatting	unsafe_store!(p, d + ifelse(d > 0x9, 0x57, 0x30), i)
+intfuncs:1039	base/intfuncs.jl	1039	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:1039 proven memsafety-intfuncs-formatting	neg && unsafe_store!(p, 0x2d, 1) # UInt8('-')
+intfuncs:1059	base/intfuncs.jl	1059	@inbounds+unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:1059 proven memsafety-intfuncs-formatting	unsafe_store!(p, @inbounds(digits[1 + (rem(x, b) % Int)::Int]), i)
+intfuncs:1062	base/intfuncs.jl	1062	@inbounds+unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:1062 proven memsafety-intfuncs-formatting	unsafe_store!(p, @inbounds(digits[1 + (mod(x, -b) % Int)::Int]), i)
+intfuncs:1067	base/intfuncs.jl	1067	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:1067 proven memsafety-intfuncs-formatting	neg && unsafe_store!(p, 0x2d, 1) # UInt8('-')
+intfuncs:1152	base/intfuncs.jl	1152	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:1152 proven memsafety-intfuncs-formatting	unsafe_store!(p, (d >> 0x00) % UInt8, i-3)
+intfuncs:1153	base/intfuncs.jl	1153	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:1153 proven memsafety-intfuncs-formatting	unsafe_store!(p, (d >> 0x08) % UInt8, i-2)
+intfuncs:1154	base/intfuncs.jl	1154	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:1154 proven memsafety-intfuncs-formatting	unsafe_store!(p, (d >> 0x10) % UInt8, i-1)
+intfuncs:1155	base/intfuncs.jl	1155	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:1155 proven memsafety-intfuncs-formatting	unsafe_store!(p, (d >> 0x18) % UInt8, i)
+intfuncs:1161	base/intfuncs.jl	1161	unsafe_store!	3	todo		Pending target-source proof or review; previous: intfuncs:1161 proven memsafety-intfuncs-formatting	unsafe_store!(p, 0x30 + (b & 0x01), i)
+intfuncs:1519	base/intfuncs.jl	1519	@inbounds	3	todo		Pending target-source proof or review; previous: intfuncs:1519 proven memsafety-intfuncs-formatting	@inbounds for i in eachindex(x)
+io:361	base/io.jl	361	unsafe_load	3	todo		Pending target-source proof or review; previous: io:361 user-contract | The unsafe_read/unsafe_write docstring requires ref to address nbytes of caller-owned storage.	written += write(s, unsafe_load(p, i))
+io:377	base/io.jl	377	unsafe_store!	3	todo		Pending target-source proof or review; previous: io:377 user-contract | The unsafe_read/unsafe_write docstring requires ref to address nbytes of caller-owned storage.	unsafe_store!(p, read(s, UInt8)::UInt8, i)
+io:818	base/io.jl	818	unsafe_load	3	todo		Pending target-source proof or review; previous: io:818 proven memsafety-io-internal-buffers	endian_bom = GC.@preserve a unsafe_load(convert(Ptr{UInt8}, pointer(a)))
+io:1708	base/io.jl	1708	@inbounds	3	todo		Pending target-source proof or review; previous: io:1708 proven memsafety-io-internal-buffers	@inbounds nl += a[i] == aeol
+module:68	base/module.jl	68	unsafe_load	3	todo		Target model and dependency review pending; historical: memsafety-module-symbol-prefix	c1(sym) = bitcast(Char, UInt32(unsafe_load(unsafe_convert(Ptr{UInt8}, sym))) << 24)
+parse:72	base/parse.jl	72	@inbounds	3	todo		Pending target-source proof or review; previous: parse:72 proven memsafety-parse-integer	b = @inbounds codeunit(s, i)
+parse:87	base/parse.jl	87	@inbounds	3	todo		Pending target-source proof or review; previous: parse:87 proven memsafety-parse-integer	b = @inbounds codeunit(s, j)
+parse:107	base/parse.jl	107	@inbounds	3	todo		Pending target-source proof or review; previous: parse:107 proven memsafety-parse-integer	c = @inbounds codeunit(s, i)
+parse:116	base/parse.jl	116	@inbounds	3	todo		Pending target-source proof or review; previous: parse:116 proven memsafety-parse-integer	if i < j && @inbounds(codeunit(s, i)) == UInt8('0')
+parse:117	base/parse.jl	117	@inbounds	3	todo		Pending target-source proof or review; previous: parse:117 proven memsafety-parse-integer	c = @inbounds codeunit(s, i + 1)
+parse:130	base/parse.jl	130	@inbounds	3	todo		Pending target-source proof or review; previous: parse:130 proven memsafety-parse-integer	c = @inbounds codeunit(s, i)
+parse:133	base/parse.jl	133	@inbounds	3	todo		Pending target-source proof or review; previous: parse:133 proven memsafety-parse-integer	if k <= j && ((@inbounds codeunit(s, k)) - UInt8('1') <= 0x08) &
+parse:134	base/parse.jl	134	@inbounds	3	todo		Pending target-source proof or review; previous: parse:134 proven memsafety-parse-integer	((@inbounds codeunit(s, j)) - UInt8('0') <= 0x09)
+parsers.floats:102	base/parsers/floats.jl	102	@inbounds	3	todo		Pending target-source proof or review; previous: parsers.floats:102 proven memsafety-parsers-float	@inbounds p5 = POW5[q - POW5_MIN + 1]
+parsers.floats:149	base/parsers/floats.jl	149	@inbounds	3	todo		Pending target-source proof or review; previous: parsers.floats:149 proven memsafety-parsers-float	x = T(q < 0 ? S(w) / (@inbounds p10[1 - q]) : S(w) * (@inbounds p10[q + 1]))
+parsers.floats:177	base/parsers/floats.jl	177	@inbounds	3	todo		Pending target-source proof or review; previous: parsers.floats:177 proven memsafety-parsers-float	d = (@inbounds buf[i]) - UInt8('0')
+parsers.floats:217	base/parsers/floats.jl	217	@inbounds	3	todo		Pending target-source proof or review; previous: parsers.floats:217 proven memsafety-parsers-float	d = (@inbounds buf[i]) - UInt8('0')
+parsers.floats:230	base/parsers/floats.jl	230	@inbounds	3	todo		Pending target-source proof or review; previous: parsers.floats:230 proven memsafety-parsers-float	b = @inbounds buf[i]
+parsers.floats:236	base/parsers/floats.jl	236	@inbounds	3	todo		Pending target-source proof or review; previous: parsers.floats:236 proven memsafety-parsers-float	d = (@inbounds buf[i]) - UInt8('0')
+parsers.floats:274	base/parsers/floats.jl	274	@inbounds	3	todo		Pending target-source proof or review; previous: parsers.floats:274 proven memsafety-parsers-float	b = @inbounds buf[i]
+parsers.floats:294	base/parsers/floats.jl	294	@inbounds	3	todo		Pending target-source proof or review; previous: parsers.floats:294 proven memsafety-parsers-float	if l <= j && (@inbounds buf[l]) == UInt8('.')
+parsers.floats:301	base/parsers/floats.jl	301	@inbounds	3	todo		Pending target-source proof or review; previous: parsers.floats:301 proven memsafety-parsers-float	if l <= j && (@inbounds buf[l]) | 0x20 == UInt8('p')
+parsers.floats:314	base/parsers/floats.jl	314	@inbounds	3	todo		Pending target-source proof or review; previous: parsers.floats:314 proven memsafety-parsers-float	(@inbounds buf[i + k - 1]) | 0x20 == codeunit(word, k) || return false
+parsers.floats:327	base/parsers/floats.jl	327	@inbounds	3	todo		Pending target-source proof or review; previous: parsers.floats:327 proven memsafety-parsers-float	(@inbounds buf[j]) == UInt8(')') || return INVALID
+parsers.floats:330	base/parsers/floats.jl	330	@inbounds	3	todo		Pending target-source proof or review; previous: parsers.floats:330 proven memsafety-parsers-float	isnanchar(@inbounds buf[k]) || return INVALID
+parsers.floats:333	base/parsers/floats.jl	333	@inbounds	3	todo		Pending target-source proof or review; previous: parsers.floats:333 proven memsafety-parsers-float	if i <= j && (@inbounds buf[i]) == UInt8('0')
+parsers.floats:335	base/parsers/floats.jl	335	@inbounds	3	todo		Pending target-source proof or review; previous: parsers.floats:335 proven memsafety-parsers-float	if i < j && (@inbounds buf[i + 1]) | 0x20 == UInt8('x')
+parsers.floats:354	base/parsers/floats.jl	354	@inbounds	3	todo		Pending target-source proof or review; previous: parsers.floats:354 proven memsafety-parsers-float	"elseif n > 4 && matchword(buf, i, ""nan"") && (@inbounds buf[i + 3]) == UInt8('(')"
+parsers.floats:367	base/parsers/floats.jl	367	@inbounds	3	todo		Pending target-source proof or review; previous: parsers.floats:367 proven memsafety-parsers-float	b = @inbounds buf[i]
+parsers.floats:372	base/parsers/floats.jl	372	@inbounds	3	todo		Pending target-source proof or review; previous: parsers.floats:372 proven memsafety-parsers-float	b = @inbounds buf[i]
+parsers.floats:375	base/parsers/floats.jl	375	@inbounds	3	todo		Pending target-source proof or review; previous: parsers.floats:375 proven memsafety-parsers-float	b == UInt8('0') && i < j && (@inbounds buf[i + 1]) | 0x20 == UInt8('x') &&
+parsers.floats:383	base/parsers/floats.jl	383	@inbounds	3	todo		Pending target-source proof or review; previous: parsers.floats:383 proven memsafety-parsers-float	if i <= j && (@inbounds buf[i]) == UInt8('.')
+parsers.floats:390	base/parsers/floats.jl	390	@inbounds	3	todo		Pending target-source proof or review; previous: parsers.floats:390 proven memsafety-parsers-float	if i <= j && (@inbounds buf[i]) | 0x20 == UInt8('e')
+parsers.floats:399	base/parsers/floats.jl	399	@inbounds	3	todo		Pending target-source proof or review; previous: parsers.floats:399 proven memsafety-parsers-float	while k <= last && (@inbounds buf[k]) in (UInt8('0'), UInt8('.'))
+parsers.floats:400	base/parsers/floats.jl	400	@inbounds	3	todo		Pending target-source proof or review; previous: parsers.floats:400 proven memsafety-parsers-float	(@inbounds buf[k]) == UInt8('0') && (nd -= 1)
+path:733	base/path.jl	733	unsafe_wrap	3	todo		Pending target-source proof or review; previous: path:733 proven memsafety-path-platform-buffers	sid_str = transcode(String, unsafe_wrap(Array, str_sid_ptr[], len))
+path:800	base/path.jl	800	unsafe_load	3	todo		Pending target-source proof or review; previous: path:800 proven memsafety-path-platform-buffers	uid = unsafe_load(Ptr{Cuint}(pointer(pwd_storage) + 2 * sizeof(Ptr{Cvoid})))
+pcre:56	base/pcre.jl	56	@inbounds	3	todo		Pending target-source proof or review; previous: pcre:56 proven memsafety-pcre-context-names	ctx = @inbounds ctxs[tid]
+pcre:274	base/pcre.jl	274	unsafe_load	3	todo		Pending target-source proof or review; previous: pcre:274 proven memsafety-pcre-context-names	high_byte = UInt16(unsafe_load(nametable_ptr, offset))
+pcre:275	base/pcre.jl	275	unsafe_load	3	todo		Pending target-source proof or review; previous: pcre:275 proven memsafety-pcre-context-names	low_byte = UInt16(unsafe_load(nametable_ptr, offset+1))
+reduce:255	base/reduce.jl	255	@inbounds	3	todo		Pending target-source proof or review; previous: reduce:255 user-contract | base/reduce.jl:247-248 states that ifirst:ilast must be a valid non-empty subset of A indices.	@inbounds a1 = A[ifirst]
+reduce:259	base/reduce.jl	259	@inbounds	3	todo		Pending target-source proof or review; previous: reduce:259 user-contract | base/reduce.jl:247-248 states that ifirst:ilast must be a valid non-empty subset of A indices.	@inbounds a1 = A[ifirst]
+reduce:260	base/reduce.jl	260	@inbounds	3	todo		Pending target-source proof or review; previous: reduce:260 user-contract | base/reduce.jl:247-248 states that ifirst:ilast must be a valid non-empty subset of A indices.	@inbounds a2 = A[ifirst+1]
+reduce:263	base/reduce.jl	263	@inbounds	3	todo		Pending target-source proof or review; previous: reduce:263 user-contract | base/reduce.jl:247-248 states that ifirst:ilast must be a valid non-empty subset of A indices.	@inbounds ai = A[i]
+reduce:445	base/reduce.jl	445	@inbounds	3	todo		Pending target-source proof or review; previous: reduce:442 proven memsafety-reduce-linear	@inbounds a1 = A[first(inds)]
+reduce:448	base/reduce.jl	448	@inbounds	3	todo		Pending target-source proof or review; previous: reduce:445 proven memsafety-reduce-linear	@inbounds i = first(inds)
+reduce:449	base/reduce.jl	449	@inbounds	3	todo		Pending target-source proof or review; previous: reduce:446 proven memsafety-reduce-linear	@inbounds a1 = A[i]
+reduce:450	base/reduce.jl	450	@inbounds	3	todo		Pending target-source proof or review; previous: reduce:447 proven memsafety-reduce-linear	@inbounds a2 = A[i+=1]
+reduce:453	base/reduce.jl	453	@inbounds	3	todo		Pending target-source proof or review; previous: reduce:450 proven memsafety-reduce-linear	@inbounds Ai = A[i+=1]
+reduce:1109	base/reduce.jl	1109	unsafe_load	3	todo		Pending target-source proof or review; previous: reduce:1106 proven memsafety-reduce-linear	n = (n + count_ones(unsafe_load(ptr, i) & mask)) % T
+strings.unicode:403	base/strings/unicode.jl	403	@inbounds	3	todo		Pending target-source proof or review; previous: strings.unicode:403 proven memsafety-unicode-category	@assume_effects :nothrow :foldable category_string(c::Char) = @inbounds category_strings[category_code(c)+1]
+strings.util:273	base/strings/util.jl	273	@inbounds	3	todo		Pending target-source proof or review; previous: strings.util:273 proven memsafety-string-positions	j === nothing && return @inbounds SubString(s, k) # ran out of prefix: success!
+strings.util:326	base/strings/util.jl	326	@inbounds	3	todo		Pending target-source proof or review; previous: strings.util:326 proven memsafety-string-positions	j === nothing && return @inbounds SubString(s, firstindex(s), k) # ran out of suffix: success!
+strings.util:338	base/strings/util.jl	338	@inbounds	3	todo		Pending target-source proof or review; previous: strings.util:338 proven memsafety-string-positions	@inbounds SubString(s, firstindex(s), prevind(s, astart))
+strings.util:385	base/strings/util.jl	385	@inbounds	3	todo		Pending target-source proof or review; previous: strings.util:385 proven memsafety-string-positions	has_lf = @inbounds(cu[ncu]) == 0x0a
+strings.util:387	base/strings/util.jl	387	@inbounds	3	todo		Pending target-source proof or review; previous: strings.util:387 proven memsafety-string-positions	has_cr = has_lf & two_bytes & (@inbounds(cu[ncu - two_bytes]) == 0x0d)
+strings.util:390	base/strings/util.jl	390	@inbounds	3	todo		Pending target-source proof or review; previous: strings.util:390 proven memsafety-string-positions	@inbounds raw_substring(s, 1, len)
+strings.util:419	base/strings/util.jl	419	@inbounds	3	todo		Pending target-source proof or review; previous: strings.util:419 proven memsafety-string-positions	!f(c) && return @inbounds SubString(s, i, e)
+strings.util:453	base/strings/util.jl	453	@inbounds	3	todo		Pending target-source proof or review; previous: strings.util:453 proven memsafety-string-positions	f(c::AbstractChar) || return @inbounds SubString(s, 1, i::Int)
+strings.util:710	base/strings/util.jl	710	@inbounds	3	todo		Pending target-source proof or review; previous: strings.util:710 proven memsafety-string-positions	@inbounds while true
+strings.util:798	base/strings/util.jl	798	@inbounds	3	todo		Pending target-source proof or review; previous: strings.util:798 proven memsafety-string-positions	substr = @inbounds SubString(iter.str, i, prevind(iter.str, j)::Int)
+strings.util:806	base/strings/util.jl	806	@inbounds	3	todo		Pending target-source proof or review; previous: strings.util:806 proven memsafety-string-positions	@inbounds SubString(iter.str, i), (ncodeunits(iter.str) + 2, k, n + 1)
+strings.util:1262	base/strings/util.jl	1262	@boundscheck	3	not-unchecked		This is the bounds check itself; it performs no unchecked access.	"@boundscheck 2*length(dest) != length(itr) && throw(ArgumentError(""length of output array must be half of the length of input iterable""))"
+strings.util:1266	base/strings/util.jl	1266	@inbounds	3	todo		Pending target-source proof or review; previous: strings.util:1266 proven memsafety-string-hex	@inbounds for i in eachindex(dest)
+strings.util:1322	base/strings/util.jl	1322	@inbounds+unsafe_store!	3	todo		Pending target-source proof or review; previous: strings.util:1322 proven memsafety-string-hex	unsafe_store!(p, @inbounds(hex_chars[1 + x >> 4]), 2i - 1)
+strings.util:1323	base/strings/util.jl	1323	@inbounds+unsafe_store!	3	todo		Pending target-source proof or review; previous: strings.util:1323 proven memsafety-string-hex	unsafe_store!(p, @inbounds(hex_chars[1 + x & 0xf]), 2i)
+strings.util:1339	base/strings/util.jl	1339	@inbounds	3	todo		Pending target-source proof or review; previous: strings.util:1339 proven memsafety-string-hex	@inbounds codeunit(s, i) < 0x80 || __throw_invalid_ascii(s, i)
+timing:152	base/timing.jl	152	unsafe_wrap	3	todo		Pending target-source proof or review; previous: timing:152 proven memsafety-timing-globals	return Base.unsafe_wrap(Array, page_utilization_raw, JL_GC_N_MAX_POOLS, own=false)
+timing:181	base/timing.jl	181	unsafe_wrap	3	todo		Pending target-source proof or review; previous: timing:181 proven memsafety-timing-globals	reasons_as_array = Base.unsafe_wrap(Vector{UInt64}, reason, length(FULL_SWEEP_REASONS), own=false)

@@ -281,15 +281,6 @@ theorem indexingExactRows : IndexingExactRows := by
     unsafeGetindexExact, generatedGetBodyExact, throwChecksizeExact,
     generatedSetBodyExact, vectorDiffExact]
 
-def indexingExactEntries : List Entry := [
-  { id := "multidimcov-indexing-exact"
-    juliaFile := "base/multidimensional.jl"
-    juliaFns := ["atomic routing, Cartesian and Boolean bounds, LogicalIndex BitArray iteration, to_indices, prechecked iteration, generated get/set, and vector diff"]
-    statement := "Each remaining multidimensional indexing overload follows its source-order routing, bounds, conversion, iteration, reshape, gather, scatter, or error body."
-    source := "base/multidimensional.jl:735-1081"
-    status := .proven
-    prop := ``IndexingExactRows
-    thm := some ``indexingExactRows }
-]
+def indexingExactEntries : List Entry := []
 
 end JuliaLean.MultidimCov

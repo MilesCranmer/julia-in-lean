@@ -3,6 +3,7 @@ import JuliaLean.ConcurrencyCov.ThreadsProps
 import JuliaLean.ConcurrencyCov.LocksProps
 import JuliaLean.ConcurrencyCov.ParkProps
 import JuliaLean.ConcurrencyCov.ChannelsCov
+import JuliaLean.ConcurrencyCov.GcUtils
 import JuliaLean.ConcurrencyCov.Threadcall
 import JuliaLean.ConcurrencyCov.ThreadsOverloads
 import JuliaLean.ConcurrencyCov.TimingProps
@@ -13,7 +14,7 @@ namespace JuliaLean.ConcurrencyCov
 
 open JuliaLean.Registry
 
-/-- Registry entries for concurrency, timing, and logging coverage. -/
+/-- Registry entries for concurrency, GC wrappers, timing, and logging coverage. -/
 def entries : List Entry := [
   { id := "concurrencycov-thread-queries", juliaFile := "base/threadingconstructs.jl"
     juliaFns := ["threadid", "maxthreadid", "nthreads", "_nthreads_in_pool", "_tpid_to_sym",
@@ -122,6 +123,19 @@ def entries : List Entry := [
     statement := "Threaded foreach waits for the requested workers and applies each worker's channel items once; schedule traits select direct or spawn-and-wait application."
     source := "base/threads_overloads.jl:41-66", status := .proven
     prop := ``ThreadsOverloads.ThreadsForeachSpec, thm := some ``ThreadsOverloads.threadsForeachSpec_proven },
+
+  { id := "concurrencycov-gc-finalizers", juliaFile := "base/gcutils.jl"
+    juliaFns := ["==(::WeakRef)", "_check_mutable", "finalizer", "finalize"]
+    statement := "WeakRef comparison delegates to isequal, and finalizer registration checks mutability before registering and returning its object."
+    source := "base/gcutils.jl:37-106", status := .proven
+    prop := ``GcUtils.FinalizerSpec, thm := some ``GcUtils.finalizerSpec_proven },
+  { id := "concurrencycov-gc-wrappers", juliaFile := "base/gcutils.jl"
+    juliaFns := ["GC.gc", "GC.enable", "GC.enable_finalizers", "GC.disable_finalizers",
+      "GC.in_finalizer", "GC.@preserve", "GC.safepoint", "GC.enable_logging",
+      "GC.logging_enabled", "GC.gc_active_impl"]
+    statement := "GC wrappers select collection mode, balance task-local finalizer state, preserve expression results, and expose runtime logging and implementation values."
+    source := "base/gcutils.jl:136-295", status := .proven
+    prop := ``GcUtils.GcWrapperSpec, thm := some ``GcUtils.gcWrapperSpec_proven },
 
   { id := "concurrencycov-timing-counters", juliaFile := "base/timing.jl"
     juliaFns := ["gc_num", "gc_total_bytes", "GC_Diff", "gc_alloc_count", "cumulative_compile_time_ns",

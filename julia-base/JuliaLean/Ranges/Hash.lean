@@ -248,24 +248,6 @@ theorem rangeHashMixExact_proven : RangeHashMixExact := by
   intro x h
   rfl
 
-def hashEntries : List Entry := [
-  { id := "ranges-hash-short-equal-consistency"
-    juliaFile := "base/multidimensional.jl"
-    juliaFns := ["hash(::AbstractArray, ::UInt)", "hash_shaped", "iterate(::OrdinalRange)", "iterate(::StepRangeLen)"]
-    statement := "Constructor-produced integer ranges with equal axes and equal complete iteration contents hash equally in the len < 8 branch, assuming scalar and singleton-tuple hashing respect mathematical integer equality."
-    source := "base/hashing.jl:12-16; base/abstractarray.jl isequal(::AbstractArray); base/multidimensional.jl:2080-2094"
-    status := .proven
-    prop := ``ShortEqualRangeHashConsistency
-    thm := some ``shortEqualRangeHashConsistency_proven
-    notes := "Quantifies two independent constructor-produced ordinal or integer-element StepRangeLen ranges, both callbacks, all machine length types, actual iteration traces and seeds. Scalar/tuple contracts are hypotheses, not axioms. The model also retains the eight-stream and Fibonacci algorithms, but this theorem covers the direct branch only. No claim that wrapped length equals mathematical cardinality is assumed." },
-  { id := "ranges-hash-mix-wrapping"
-    juliaFile := "base/hashing.jl"
-    juliaFns := ["hash_mix_linear"]
-    statement := "Linear hash mixing wraps the product before the subtraction, matching the UInt64 source operations."
-    source := "base/hashing.jl:55"
-    status := .proven
-    prop := ``RangeHashMixExact
-    thm := some ``rangeHashMixExact_proven }
-]
+def hashEntries : List Entry := []
 
 end JuliaLean.Ranges

@@ -1,68 +1,68 @@
 file	line	endline	name	signature	status	entry	note
-base/strings/string.jl	35	47	StringView{T}	StringView{T}(data::T) where {T <: AbstractVector{UInt8}}	modelled	stringscova-string-view-ctor-faithful	
-base/strings/string.jl	60	61	string_index_err	string_index_err((@nospecialize s::AbstractString), i::Integer)	modelled	stringscova-string-index-error-faithful	
-base/strings/string.jl	62	76	showerror	showerror(io::IO, exc::StringIndexError)	modelled	stringscova-string-index-error-faithful	
-base/strings/string.jl	78	78	between	between(b::T, lo::T, hi::T) where {T<:Integer}	modelled	stringscova-string-between-faithful	
-base/strings/string.jl	112	112	String	String(v::AbstractVector{UInt8})	modelled	stringscova-string-constructors-faithful	
+base/strings/string.jl	35	47	StringView{T}	StringView{T}(data::T) where {T <: AbstractVector{UInt8}}	modelled	strings-stringview-construction	
+base/strings/string.jl	60	61	string_index_err	string_index_err((@nospecialize s::AbstractString), i::Integer)	modelled	strings-string-index-errors	
+base/strings/string.jl	62	76	showerror	showerror(io::IO, exc::StringIndexError)	modelled	strings-index-error-display	
+base/strings/string.jl	78	78	between	between(b::T, lo::T, hi::T) where {T<:Integer}	modelled	strings-between-inclusive	
+base/strings/string.jl	112	112	String	String(v::AbstractVector{UInt8})	modelled	strings-abstractvector-construction	
 base/strings/string.jl	114	127	String	String(v::Vector{UInt8})	modelled	transcode-string-vector-alias	
-base/strings/string.jl	136	138	unsafe_takestring	unsafe_takestring(m::Memory{UInt8})	modelled	stringscova-string-constructors-faithful	
-base/strings/string.jl	159	159	takestring!	takestring!(v::Vector{UInt8})	modelled	stringscova-string-constructors-faithful	
-base/strings/string.jl	172	175	unsafe_string	unsafe_string(p::Union{Ptr{UInt8},Ptr{Int8}}, len::Integer)	modelled	stringscova-string-constructors-faithful	
-base/strings/string.jl	176	179	unsafe_string	unsafe_string(p::Union{Ptr{UInt8},Ptr{Int8}})	modelled	stringscova-string-constructors-faithful	
-base/strings/string.jl	184	185	_string_n	_string_n(n::Integer)	modelled	stringscova-string-constructors-faithful	
-base/strings/string.jl	192	192	String	String(s::AbstractString)	modelled	stringscova-string-constructors-faithful	
-base/strings/string.jl	193	193	String	String(s::Symbol)	modelled	stringscova-string-constructors-faithful	
-base/strings/string.jl	195	195	unsafe_wrap	unsafe_wrap(::Type{Memory{UInt8}}, s::String)	modelled	stringscova-string-storage-conversion-faithful	
-base/strings/string.jl	196	196	unsafe_wrap	unsafe_wrap(::Type{Vector{UInt8}}, s::String)	modelled	stringscova-string-storage-conversion-faithful	
-base/strings/string.jl	198	198	Vector{UInt8}	Vector{UInt8}(s::CodeUnits{UInt8,String})	modelled	stringscova-string-storage-conversion-faithful	
-base/strings/string.jl	199	199	Vector{UInt8}	Vector{UInt8}(s::String)	modelled	stringscova-string-storage-conversion-faithful	
-base/strings/string.jl	200	200	Array{UInt8}	Array{UInt8}(s::String)	modelled	stringscova-string-storage-conversion-faithful	
-base/strings/string.jl	202	202	String	String(s::CodeUnits{UInt8,String})	modelled	stringscova-string-storage-conversion-faithful	
-base/strings/string.jl	206	206	pointer	pointer(s::String)	modelled	stringscova-string-pointer-faithful	
-base/strings/string.jl	207	207	pointer	pointer(s::String, i::Integer)	modelled	stringscova-string-pointer-faithful	
-base/strings/string.jl	209	209	ncodeunits	ncodeunits(s::String)	modelled	stringscova-string-codeunit-faithful	
-base/strings/string.jl	210	210	codeunit	codeunit(s::String)	modelled	stringscova-string-codeunit-faithful	
-base/strings/string.jl	212	212	codeunit	codeunit(s::String, i::Integer)	modelled	stringscova-string-codeunit-faithful	
-base/strings/string.jl	213	217	codeunit	codeunit(s::String, i::Int)	modelled	stringscova-string-codeunit-faithful	
-base/strings/string.jl	221	221	_memcmp	_memcmp(a::String, b::String)	modelled	stringscova-string-memcmp-faithful	
-base/strings/string.jl	223	223	_memcmp	_memcmp(a::Union{Ptr{UInt8},AbstractString}, b::Union{Ptr{UInt8},AbstractString})	modelled	stringscova-string-memcmp-faithful	
-base/strings/string.jl	224	230	_memcmp	_memcmp(a::Union{Ptr{UInt8},AbstractString}, b::Union{Ptr{UInt8},AbstractString}, len::Int)	modelled	stringscova-string-memcmp-faithful	
+base/strings/string.jl	136	138	unsafe_takestring	unsafe_takestring(m::Memory{UInt8})	modelled	strings-takestring-bytes	
+base/strings/string.jl	159	159	takestring!	takestring!(v::Vector{UInt8})	modelled	transcode-string-vector-alias	
+base/strings/string.jl	172	175	unsafe_string	unsafe_string(p::Union{Ptr{UInt8},Ptr{Int8}}, len::Integer)	modelled	strings-unsafe-string-length-copies-bytes	
+base/strings/string.jl	176	179	unsafe_string	unsafe_string(p::Union{Ptr{UInt8},Ptr{Int8}})	modelled	strings-unsafe-string-nul-prefix	
+base/strings/string.jl	184	185	_string_n	_string_n(n::Integer)	modelled	strings-allocation-size	
+base/strings/string.jl	192	192	String	String(s::AbstractString)	modelled	strings-string-from-abstract	
+base/strings/string.jl	193	193	String	String(s::Symbol)	modelled	strings-symbol-string	
+base/strings/string.jl	195	195	unsafe_wrap	unsafe_wrap(::Type{Memory{UInt8}}, s::String)	modelled	strings-storage-conversions	
+base/strings/string.jl	196	196	unsafe_wrap	unsafe_wrap(::Type{Vector{UInt8}}, s::String)	modelled	strings-storage-conversions	
+base/strings/string.jl	198	198	Vector{UInt8}	Vector{UInt8}(s::CodeUnits{UInt8,String})	modelled	strings-storage-conversions	
+base/strings/string.jl	199	199	Vector{UInt8}	Vector{UInt8}(s::String)	modelled	strings-storage-conversions	
+base/strings/string.jl	200	200	Array{UInt8}	Array{UInt8}(s::String)	modelled	strings-storage-conversions	
+base/strings/string.jl	202	202	String	String(s::CodeUnits{UInt8,String})	modelled	strings-storage-conversions	
+base/strings/string.jl	206	206	pointer	pointer(s::String)	todo		trivial: pointer(::String) directly forwards to unsafe_convert with no additional transformation.
+base/strings/string.jl	207	207	pointer	pointer(s::String, i::Integer)	modelled	strings-pointer-offsets	
+base/strings/string.jl	209	209	ncodeunits	ncodeunits(s::String)	modelled	strings-byte-length	
+base/strings/string.jl	210	210	codeunit	codeunit(s::String)	modelled	strings-codeunit-type	
+base/strings/string.jl	212	212	codeunit	codeunit(s::String, i::Integer)	todo		trivial: Integer overload converts to Int and forwards to the bounds-checked Int method.
+base/strings/string.jl	213	217	codeunit	codeunit(s::String, i::Int)	modelled	strings-codeunit-bytes	
+base/strings/string.jl	221	221	_memcmp	_memcmp(a::String, b::String)	modelled	strings-cmp-malformed	
+base/strings/string.jl	223	223	_memcmp	_memcmp(a::Union{Ptr{UInt8},AbstractString}, b::Union{Ptr{UInt8},AbstractString})	modelled	strings-cmp-malformed	
+base/strings/string.jl	224	230	_memcmp	_memcmp(a::Union{Ptr{UInt8},AbstractString}, b::Union{Ptr{UInt8},AbstractString}, len::Int)	modelled	strings-cmp-malformed	
 base/strings/string.jl	232	236	cmp	cmp(a::String, b::String)	modelled	strings-cmp-malformed	
-base/strings/string.jl	238	238	==	==(a::String, b::String)	modelled	stringscova-string-eq-faithful	
-base/strings/string.jl	240	240	typemin	typemin(::Type{String})	modelled	stringscova-string-typemin-faithful	
-base/strings/string.jl	241	241	typemin	typemin(::String)	modelled	stringscova-string-typemin-faithful	
+base/strings/string.jl	238	238	==	==(a::String, b::String)	modelled	strings-string-equality-bytes	
+base/strings/string.jl	240	240	typemin	typemin(::Type{String})	modelled	strings-string-typemin	
+base/strings/string.jl	241	241	typemin	typemin(::String)	modelled	strings-string-typemin	
 base/strings/string.jl	245	245	thisind	thisind(s::String, i::Int)	modelled	strings-thisind-idempotent	
-base/strings/string.jl	249	249	lastindex	lastindex(s::String)	modelled	stringscova-string-lastindex-faithful	
-base/strings/string.jl	252	271	_thisind_str	_thisind_str(s, i::Int)	modelled	stringscova-string-thisind-faithful	
-base/strings/string.jl	259	270	_thisind_continued	_thisind_continued(s, i)	modelled	stringscova-string-thisind-faithful	
+base/strings/string.jl	249	249	lastindex	lastindex(s::String)	todo		trivial: lastindex directly calls thisind at ncodeunits.
+base/strings/string.jl	252	271	_thisind_str	_thisind_str(s, i::Int)	modelled	stringscova-string-thisind-rebuilt	
+base/strings/string.jl	259	270	_thisind_continued	_thisind_continued(s, i)	modelled	stringscova-string-thisind-continued-rebuilt	
 base/strings/string.jl	273	273	nextind	nextind(s::String, i::Int)	modelled	strings-nextind-after-prevind,strings-prevind-after-nextind	
-base/strings/string.jl	276	306	_nextind_str	_nextind_str(s, i::Int)	modelled	stringscova-string-nextind-faithful	
-base/strings/string.jl	282	305	_nextind_continued	_nextind_continued(s, i, n, l)	modelled	stringscova-string-nextind-faithful	
-base/strings/string.jl	433	433	_utf_dfa_step	_utf_dfa_step(state::_UTF8DFAState, byte::UInt8)	modelled	stringscova-string-dfa-faithful	
-base/strings/string.jl	435	440	_isvalid_utf8_dfa	_isvalid_utf8_dfa(state::_UTF8DFAState, bytes::AbstractVector{UInt8}, first::Int = firstindex(bytes), last::Int = lastindex(bytes))	modelled	stringscova-string-dfa-faithful	
-base/strings/string.jl	442	451	_find_nonascii_chunk	_find_nonascii_chunk(chunk_size,cu::AbstractVector{CU}, first,last) where {CU}	modelled	stringscova-string-find-nonascii-faithful	
-base/strings/string.jl	459	459	byte_string_classify	byte_string_classify(s::AbstractString)	modelled	stringscova-string-classification-faithful	
-base/strings/string.jl	462	474	byte_string_classify	byte_string_classify(bytes::AbstractVector{UInt8})	modelled	stringscova-string-classification-faithful	
-base/strings/string.jl	476	497	_byte_string_classify_nonascii	_byte_string_classify_nonascii(bytes::AbstractVector{UInt8}, first::Int, last::Int)	modelled	stringscova-string-classification-faithful	
-base/strings/string.jl	499	499	isvalid	isvalid(::Type{String}, bytes::AbstractVector{UInt8})	modelled	stringscova-string-isvalid-faithful	
-base/strings/string.jl	500	500	isvalid	isvalid(::Type{String}, s::AbstractString)	modelled	stringscova-string-isvalid-faithful	
-base/strings/string.jl	502	502	isvalid	isvalid(s::AbstractString)	modelled	stringscova-string-isvalid-faithful	
-base/strings/string.jl	504	504	is_valid_continuation	is_valid_continuation(c)	modelled	stringscova-string-continuation-faithful	
+base/strings/string.jl	276	306	_nextind_str	_nextind_str(s, i::Int)	modelled	stringscova-string-nextind-dispatch-rebuilt	
+base/strings/string.jl	282	305	_nextind_continued	_nextind_continued(s, i, n, l)	modelled	stringscova-string-nextind-dispatch-rebuilt	
+base/strings/string.jl	433	433	_utf_dfa_step	_utf_dfa_step(state::_UTF8DFAState, byte::UInt8)	modelled	stringscova-string-isvalid-bytes-rebuilt	
+base/strings/string.jl	435	440	_isvalid_utf8_dfa	_isvalid_utf8_dfa(state::_UTF8DFAState, bytes::AbstractVector{UInt8}, first::Int = firstindex(bytes), last::Int = lastindex(bytes))	modelled	stringscova-string-isvalid-bytes-rebuilt	
+base/strings/string.jl	442	451	_find_nonascii_chunk	_find_nonascii_chunk(chunk_size,cu::AbstractVector{CU}, first,last) where {CU}	modelled	stringscova-string-find-nonascii-rebuilt	
+base/strings/string.jl	459	459	byte_string_classify	byte_string_classify(s::AbstractString)	modelled	stringscova-string-isvalid-bytes-rebuilt	
+base/strings/string.jl	462	474	byte_string_classify	byte_string_classify(bytes::AbstractVector{UInt8})	modelled	stringscova-string-isvalid-bytes-rebuilt	
+base/strings/string.jl	476	497	_byte_string_classify_nonascii	_byte_string_classify_nonascii(bytes::AbstractVector{UInt8}, first::Int, last::Int)	modelled	stringscova-string-isvalid-bytes-rebuilt	
+base/strings/string.jl	499	499	isvalid	isvalid(::Type{String}, bytes::AbstractVector{UInt8})	modelled	stringscova-string-isvalid-bytes-rebuilt	
+base/strings/string.jl	500	500	isvalid	isvalid(::Type{String}, s::AbstractString)	modelled	stringscova-string-isvalid-bytes-rebuilt	
+base/strings/string.jl	502	502	isvalid	isvalid(s::AbstractString)	modelled	stringscova-string-isvalid-bytes-rebuilt	
+base/strings/string.jl	504	504	is_valid_continuation	is_valid_continuation(c)	modelled	stringscova-string-continuation-rebuilt	
 base/strings/string.jl	508	514	iterate	iterate(s::Union{String, StringView}, i::Int=firstindex(s))	modelled	strings-iterate-valid-indices,strings-length-iterate-steps	
-base/strings/string.jl	517	538	iterate_continued	iterate_continued(s, i::Int, u::UInt32)	modelled	stringscova-string-iterate-faithful	
-base/strings/string.jl	540	545	getindex	getindex(s::Union{String, StringView}, i::Int)	modelled	stringscova-string-scalar-getindex-faithful	
-base/strings/string.jl	548	573	getindex_continued	getindex_continued(s, i::Int, u::UInt32)	modelled	stringscova-string-scalar-getindex-faithful	
-base/strings/string.jl	575	578	getindex	getindex(s::Union{String, StringView}, r::AbstractUnitRange{<:Integer})	modelled	stringscova-string-range-getindex-faithful	
-base/strings/string.jl	580	595	getindex	getindex(s::String, r::UnitRange{Int})	modelled	stringscova-string-range-getindex-faithful	
+base/strings/string.jl	517	538	iterate_continued	iterate_continued(s, i::Int, u::UInt32)	modelled	stringscova-string-iterate-continued-rebuilt	
+base/strings/string.jl	540	545	getindex	getindex(s::Union{String, StringView}, i::Int)	modelled	stringscova-string-getindex-rebuilt	
+base/strings/string.jl	548	573	getindex_continued	getindex_continued(s, i::Int, u::UInt32)	modelled	stringscova-string-getindex-continued-rebuilt	
+base/strings/string.jl	575	578	getindex	getindex(s::Union{String, StringView}, r::AbstractUnitRange{<:Integer})	todo		trivial: outer range method converts endpoints and dispatches to range indexing.
+base/strings/string.jl	580	595	getindex	getindex(s::String, r::UnitRange{Int})	modelled	memsafety-string-range-copy	
 base/strings/string.jl	598	600	length	length(s::String)	modelled	strings-length-iterate-steps	
-base/strings/string.jl	602	604	length	length(s::StringView)	modelled	stringscova-string-length-faithful	
-base/strings/string.jl	607	609	length	length(s::String, i::Int, j::Int)	modelled	stringscova-string-length-faithful	
-base/strings/string.jl	611	613	length	length(s::StringView, i::Int, j::Int)	modelled	stringscova-string-length-faithful	
-base/strings/string.jl	615	624	_length	_length(s::Union{String, StringView}, i::Int, j::Int)	modelled	stringscova-string-length-faithful	
-base/strings/string.jl	626	628	length_continued	length_continued(s::String, i::Int, n::Int, c::Int)	modelled	stringscova-string-length-faithful	
-base/strings/string.jl	630	632	length_continued	length_continued(s::StringView, i::Int, n::Int, c::Int)	modelled	stringscova-string-length-faithful	
-base/strings/string.jl	635	658	_length_continued	_length_continued(s::Union{String, StringView}, i::Int, n::Int, c::Int)	modelled	stringscova-string-length-faithful	
-base/strings/string.jl	662	662	isvalid	isvalid(s::String, i::Int)	modelled	strings-iterate-valid-indices	
-base/strings/string.jl	665	665	isascii	isascii(s::String)	modelled	stringscova-string-isascii-faithful	
-base/strings/string.jl	668	668	repeat	repeat(c::Char, r::BitInteger)	modelled	stringscova-string-repeat-char-faithful	
-base/strings/string.jl	682	715	repeat	repeat(c::AbstractChar, r::Integer)	modelled	stringscova-string-repeat-char-faithful	
+base/strings/string.jl	602	604	length	length(s::StringView)	modelled	stringscova-string-length-view-rebuilt	
+base/strings/string.jl	607	609	length	length(s::String, i::Int, j::Int)	modelled	strings-character-length-range	
+base/strings/string.jl	611	613	length	length(s::StringView, i::Int, j::Int)	modelled	strings-character-length-range	
+base/strings/string.jl	615	624	_length	_length(s::Union{String, StringView}, i::Int, j::Int)	modelled	strings-character-length-range	
+base/strings/string.jl	626	628	length_continued	length_continued(s::String, i::Int, n::Int, c::Int)	modelled	strings-character-length-range	
+base/strings/string.jl	630	632	length_continued	length_continued(s::StringView, i::Int, n::Int, c::Int)	modelled	strings-character-length-range	
+base/strings/string.jl	635	658	_length_continued	_length_continued(s::Union{String, StringView}, i::Int, n::Int, c::Int)	modelled	strings-character-length-range	
+base/strings/string.jl	662	662	isvalid	isvalid(s::String, i::Int)	modelled	strings-iterate-valid-indices,strings-string-index-validity	
+base/strings/string.jl	665	665	isascii	isascii(s::String)	modelled	strings-ascii-agreement	
+base/strings/string.jl	668	668	repeat	repeat(c::Char, r::BitInteger)	todo		trivial: BitInteger overload forwards to generic repeat.
+base/strings/string.jl	682	715	repeat	repeat(c::AbstractChar, r::Integer)	modelled	strings-repeat-character	

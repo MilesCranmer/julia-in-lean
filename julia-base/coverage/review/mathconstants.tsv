@@ -4,7 +4,6 @@ line	name	verdict	mirror	property	settled	reason
 29	(::Type{T})	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
 32	Base.rationalize	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
 35	Base.lessrational	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
-139	Base.:^	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
 141	Base.literal_pow	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
 143	Base.log	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
 144	Base.log	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.

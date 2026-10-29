@@ -237,34 +237,6 @@ private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) 
     source := s!"base/broadcast.jl:{line}; source equation and dispatch invariant",
     status := .proven, prop := prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 240 "axes(::Broadcasted)" "axes reads the stored axes and dispatches to _axes." ``P240 ``p240,
-  entry 241 "_axes(::Broadcasted,::Tuple)" "Stored tuple axes are returned unchanged." ``P241 ``p241,
-  entry 242 "_axes(::Broadcasted,::Nothing)" "Missing axes are combined from the arguments." ``P242 ``p242,
-  entry 243 "_axes(::Broadcasted{<:AbstractArrayStyle{0}},::Nothing)" "Zero-dimensional style has empty axes." ``P243 ``p243,
-  entry 245 "axes(::Broadcasted,d)" "An in-rank dimension indexes axes and a trailing dimension returns OneTo(1)." ``P245 ``p245,
-  entry 255 "eachindex(::Broadcasted)" "The default overload dispatches with IndexStyle(bc)." ``P255 ``p255,
-  entry 256 "eachindex(::IndexStyle,::Broadcasted)" "Styled iteration delegates with axes(bc)." ``P256 ``p256,
-  entry 257 "_eachindex(::IndexCartesian,tuple)" "Cartesian iteration constructs CartesianIndices." ``P257 ``p257,
-  entry 258 "_eachindex(::IndexLinear,tuple)" "Linear iteration constructs LinearIndices before eachindex." ``P258 ``p258,
-  entry 259 "_eachindex(::IndexLinear,::Tuple{Any})" "One-dimensional linear iteration returns the sole axis." ``P259 ``p259,
-  entry 261 "IndexStyle(::Broadcasted)" "The value overload dispatches through typeof." ``P261 ``p261,
-  entry 262 "IndexStyle(::Type{<:Broadcasted{...,Tuple{Any}}})" "A single-axis Broadcasted is IndexLinear." ``P262 ``p262,
-  entry 263 "IndexStyle(::Type{<:Broadcasted})" "Other Broadcasted types are IndexCartesian." ``P263 ``p263,
-  entry 265 "LinearIndices(::Broadcasted)" "LinearIndices constructs from axes and asserts rank one." ``P265 ``p265,
-  entry 267 "ndims(::Broadcasted)" "The value overload dispatches through its type." ``P267 ``p267,
-  entry 268 "ndims(::Type{<:Broadcasted{...,NTuple{N}}})" "Known tuple axes return N." ``P268 ``p268,
-  entry 269 "ndims(::Type{<:Broadcasted{...,Nothing}})" "Unknown axes compute the maximum argument rank." ``P269 ``p269,
-  entry 270 "ndims(::Type{<:Broadcasted{<:AbstractArrayStyle{N},Nothing}})" "Concrete integer N wins; other parameters use argument ranks." ``P270 ``p270,
-  entry 273 "_maxndims(::Type{Tuple{}})" "An empty argument tuple has rank zero." ``P273 ``p273,
-  entry 274 "_maxndims(::Type{Tuple{T}})" "A tuple argument counts as rank one and other values use ndims(T)." ``P274 ``p274,
-  entry 275 "_maxndims(::Type{<:Tuple{T,Vararg}})" "The recursive maximum computes the head rank before the tail rank." ``P275 ``p275,
-  entry 281 "size(::Broadcasted)" "Size maps length over the broadcast axes." ``P281 ``p281,
-  entry 282 "length(::Broadcasted)" "Length is the product of size." ``P282 ``p282,
-  entry 284 "iterate(::Broadcasted)" "Initial iteration creates and stores the eachindex iterator." ``P284 ``p284,
-  entry 288 "iterate(::Broadcasted,state)" "State iteration advances the iterator, indexes bc, and packages the new state." ``P288 ``p288,
-  entry 295 "IteratorSize(::Type{<:Broadcasted})" "IteratorSize is HasShape at the Broadcasted rank." ``P295 ``p295,
-  entry 296 "IteratorEltype(::Type{<:Broadcasted})" "Broadcasted element type is declared unknown." ``P296 ``p296
-]
+def entries : List Entry := []
 
 end JuliaLean.BroadcastCov.AxisMetaExact

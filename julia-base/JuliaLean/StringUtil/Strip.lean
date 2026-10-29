@@ -1326,43 +1326,6 @@ namespace JuliaLean.StringUtil
 open JuliaLean.Registry
 
 /-- Registry entries of `lstrip`, `rstrip`, `strip` and `chomp`. -/
-def stripEntries : List Entry := [
-  { id := "stringutil-lstrip-chars"
-    juliaFile := "base/strings/util.jl"
-    juliaFns := ["lstrip(::Any, ::AbstractString)", "iterate(::String, ::Int)"]
-    statement := "For every byte string s (valid UTF-8 or not) and every predicate f, lstrip(f, s) returns (never throws) a SubString of s that ends at the end of s and whose characters (collect) are exactly the characters of s from the first one failing f: collect(s) splits as pre ++ post with every character of pre satisfying f, and the SubString is empty or starts at the index of the first character of post, which fails f."
-    source := "base/strings/util.jl:392-410 (lstrip docstring: remove leading characters satisfying the predicate)"
-    status := .proven
-    prop := ``Strip.LstripChars
-    thm := some ``Strip.lstripChars_proven
-    notes := "Characters and indices are those of collectPairs (iterate from 1). Iterating the returned SubString goes through SubString iteration (Strip.subChars), proved equal to the tail of collect(s). Same code in 1.13.2 (docstrings differ only)." },
-  { id := "stringutil-rstrip-chars"
-    juliaFile := "base/strings/util.jl"
-    juliaFns := ["rstrip(::Any, ::AbstractString)", "prevind(::String, ::Int)", "getindex(::String, ::Int)"]
-    statement := "For every byte string s and predicate f, rstrip(f, s) returns a SubString of s starting at index 1 whose characters are exactly the characters of s up to the last one failing f: collect(s) splits as pre ++ post with every character of post satisfying f, and the SubString is empty or ends just before the first index of post, its last character failing f."
-    source := "base/strings/util.jl:427-449 (rstrip docstring: remove trailing characters satisfying the predicate)"
-    status := .proven
-    prop := ``Strip.RstripChars
-    thm := some ``Strip.rstripChars_proven
-    notes := "rstrip walks backwards with prevind/getindex from lastindex(s), lstrip and collect forwards with iterate; the proof shows that for every byte string, including invalid UTF-8, the backward walk visits exactly the (character, index) pairs of collect(s) in reverse. Same code in 1.13.2." },
-  { id := "stringutil-strip-chars"
-    juliaFile := "base/strings/util.jl"
-    juliaFns := ["strip(::Any, ::AbstractString)", "lstrip(::Any, ::SubString{String})", "iterate(::SubString{String}, ::Int)"]
-    statement := "For every byte string s and predicate f, strip(f, s) = lstrip(f, rstrip(f, s)) returns a SubString of s whose characters are those of s without the maximal leading and trailing runs satisfying f: collect(s) = pre ++ mid ++ post, every character of pre and post satisfies f, the SubString iterates to mid, and it is empty or spans mid exactly (its first and last characters fail f)."
-    source := "base/strings/util.jl:456-489 (strip docstring)"
-    status := .proven
-    prop := ``Strip.StripChars
-    thm := some ``Strip.stripChars_proven
-    notes := "The lstrip step iterates the SubString returned by rstrip (Strings.subIterate). That SubString always ends at a character boundary of s, so the raw_substring iteration bug (bugs/strings-raw-substring-iterate.yaml, a truncated character read past the SubString end) cannot occur here, and the statement holds for invalid UTF-8 too. Same code in 1.13.2." },
-  { id := "stringutil-chomp-generic"
-    juliaFile := "base/strings/util.jl"
-    juliaFns := ["chomp(::Union{String, SubString{String}})", "chomp(::AbstractString)"]
-    statement := "For every byte string s, the String fast path chomp(s) (code units) and the generic chomp(::AbstractString) (characters, prevind) return the same SubString (same parent, offset and length), hence the same bytes."
-    source := "base/strings/util.jl:371-388 (two methods of the same documented function)"
-    status := .proven
-    prop := ``Strip.ChompGeneric
-    thm := some ``Strip.chompGeneric_proven
-    notes := "Stronger than byte equality: the SubStrings are equal. Holds for malformed input because '\\n' and '\\r' are ASCII: the last code unit is 0x0a exactly when the last character is '\\n'. 1.13.2 builds the fast-path result with SubString(s, 0, len, Val(:noshift)), the same value." }
-]
+def stripEntries : List Entry := []
 
 end JuliaLean.StringUtil

@@ -1,18 +1,18 @@
 file	line	endline	name	signature	status	entry	note
 base/dict.jl	3	23	show	show(io::IO, t::AbstractDict{K,V}) where V where K	modelled	dictscov-show-limit-ellipsis	
-base/dict.jl	77	82	Dict{K,V}	Dict{K,V}() where V where K	modelled	dictscov-dict-l77	
+base/dict.jl	77	82	Dict{K,V}	Dict{K,V}() where V where K	modelled	dictscov-dict-construct	
 base/dict.jl	83	86	Dict{K,V}	Dict{K,V}(d::Dict{K,V}) where V where K	modelled	dictscov-dict-l83	
-base/dict.jl	87	89	Dict{K, V}	Dict{K, V}(slots::Memory{UInt8}, keys::Memory{K}, vals::Memory{V}, ndel::Int, count::Int, age::UInt, idxfloor::Int, maxprobe::Int, popcursor::Int) where {K, V}	modelled	dictscov-dict-l87	
+base/dict.jl	87	89	Dict{K, V}	Dict{K, V}(slots::Memory{UInt8}, keys::Memory{K}, vals::Memory{V}, ndel::Int, count::Int, age::UInt, idxfloor::Int, maxprobe::Int, popcursor::Int) where {K, V}	todo		trivial: direct struct construction installs supplied fields without an independent user-visible promise
 base/dict.jl	91	98	Dict{K,V}	Dict{K,V}(kv) where V where K	modelled	dictscov-dict-l91	
 base/dict.jl	99	99	Dict{K,V}	Dict{K,V}(p::Pair) where {K,V}	modelled	dictscov-dict-l99	
 base/dict.jl	100	107	Dict{K,V}	Dict{K,V}(ps::Pair...) where V where K	modelled	dictscov-dict-l100	
-base/dict.jl	109	109	Dict	Dict()	modelled	dictscov-dict-l109	
+base/dict.jl	109	109	Dict	Dict()	modelled	dictscov-dict-construct	
 base/dict.jl	110	110	Dict	Dict(kv::Tuple{})	modelled	dictscov-dict-l110	
-base/dict.jl	111	111	copy	copy(d::Dict)	modelled	dictscov-dict-l111	
+base/dict.jl	111	111	copy	copy(d::Dict)	modelled	dictscov-dict-construct	
 base/dict.jl	115	115	Dict	Dict(ps::Pair{K,V}...) where {K,V}	modelled	dictscov-dict-l115	
-base/dict.jl	116	116	Dict	Dict(ps::Pair...)	modelled	dictscov-dict-l116	
-base/dict.jl	118	118	Dict	Dict(kv)	modelled	dictscov-dict-l118	
-base/dict.jl	120	120	empty	empty(a::AbstractDict, ::Type{K}, ::Type{V}) where {K, V}	modelled	dictscov-dict-l120	
+base/dict.jl	116	116	Dict	Dict(ps::Pair...)	modelled	dictscov-dict-construct	
+base/dict.jl	118	118	Dict	Dict(kv)	modelled	dictscov-dict-construct	
+base/dict.jl	120	120	empty	empty(a::AbstractDict, ::Type{K}, ::Type{V}) where {K, V}	modelled	dictscov-dict-construct	
 base/dict.jl	123	123	_shorthash7	_shorthash7(hsh::UInt)	modelled	dictscov-dict-l123	
 base/dict.jl	128	133	hashindex	hashindex(key, sz::Integer)	modelled	dictscov-dict-l128	
 base/dict.jl	135	135	isslotempty	isslotempty(h::Dict, i::Int)	modelled	dictscov-dict-l135	
@@ -22,8 +22,8 @@ base/dict.jl	139	194	rehash!	rehash!(h::Dict{K,V}, newsz = length(h.keys)) where
 base/dict.jl	196	204	sizehint!	sizehint!(d::Dict{T}, newsz::Integer; shrink::Bool=true) where T	modelled	dicts-ops-agree,dicts-sizehint-small,dicts-sizehint-wrap-hang	
 base/dict.jl	224	238	empty!	empty!(h::Dict{K,V}) where V where K	modelled	dicts-empty,dicts-ops-agree	
 base/dict.jl	241	263	ht_keyindex	ht_keyindex(h::Dict{K,V}, key) where V where K	modelled	dictscov-dict-l241	
-base/dict.jl	270	322	ht_keyindex2_shorthash!	ht_keyindex2_shorthash!(h::Dict{K,V}, key) where V where K	modelled	dictscov-dict-l270	
-base/dict.jl	325	325	ht_keyindex2!	ht_keyindex2!(h::Dict, key)	modelled	dictscov-dict-l325	
+base/dict.jl	270	322	ht_keyindex2_shorthash!	ht_keyindex2_shorthash!(h::Dict{K,V}, key) where V where K	modelled	dictscov-dict-keyindex	
+base/dict.jl	325	325	ht_keyindex2!	ht_keyindex2!(h::Dict, key)	modelled	dictscov-dict-keyindex	
 base/dict.jl	327	345	_setindex!	_setindex!(h::Dict, v, key, index, sh = _shorthash7(hash(key)))	modelled	dictscov-dict-l327	
 base/dict.jl	347	357	setindex!	setindex!(h::Dict{K,V}, v0, key0) where V where K	modelled	dictscov-dict-l347	
 base/dict.jl	359	372	setindex!	setindex!(h::Dict{K,V}, v0, key::K) where V where K	modelled	dictscov-dict-l359	
@@ -44,63 +44,63 @@ base/dict.jl	631	656	_delete!	_delete!(h::Dict{K,V}, index) where {K,V}	modelled
 base/dict.jl	681	687	delete!	delete!(h::Dict, key)	modelled	dicts-delete-lookup,dicts-ops-agree	
 base/dict.jl	689	697	skip_deleted	skip_deleted(h::Dict, i)	modelled	dictscov-dict-l689	
 base/dict.jl	698	704	skip_deleted_floor!	skip_deleted_floor!(h::Dict)	modelled	dictscov-dict-l698	
-base/dict.jl	706	706	_iterate_dict	_iterate_dict(t::Dict{K,V}, i) where {K,V}	modelled	dictscov-dict-l706	
-base/dict.jl	707	709	iterate	iterate(t::Dict)	modelled	dictscov-dict-l707	
-base/dict.jl	710	710	iterate	iterate(t::Dict, i)	modelled	dictscov-dict-l710	
+base/dict.jl	706	706	_iterate_dict	_iterate_dict(t::Dict{K,V}, i) where {K,V}	modelled	dictscov-dict-iterate	
+base/dict.jl	707	709	iterate	iterate(t::Dict)	modelled	dictscov-dict-iterate	
+base/dict.jl	710	710	iterate	iterate(t::Dict, i)	modelled	dictscov-dict-iterate	
 base/dict.jl	712	712	isempty	isempty(t::Dict)	modelled	dictscov-dict-l712	
 base/dict.jl	713	713	length	length(t::Dict)	modelled	dicts-ops-agree	
 base/dict.jl	715	715	Iterators.only	Iterators.only(t::Dict)	modelled	dictscov-dict-l715	
-base/dict.jl	717	723	Base.iterate	Base.iterate(v::T, i::Int = v.dict.idxfloor) where T <: Union{KeySet{<:Any, <:Dict}, ValueIterator{<:Dict}}	modelled	dictscov-dict-l717	
+base/dict.jl	717	723	Base.iterate	Base.iterate(v::T, i::Int = v.dict.idxfloor) where T <: Union{KeySet{<:Any, <:Dict}, ValueIterator{<:Dict}}	modelled	dictscov-dict-iterate	
 base/dict.jl	725	733	filter!	filter!(pred, h::Dict{K,V}) where {K,V}	modelled	dicts-filter,dicts-ops-agree	
 base/dict.jl	735	739	reduce	reduce(::typeof(merge), items::Vector{<:Dict})	modelled	dictscov-dict-l735	
 base/dict.jl	741	751	map!	map!(f, iter::ValueIterator{<:Dict})	modelled	dictscov-dict-l741	
 base/dict.jl	753	774	mergewith!	mergewith!(combine, d1::Dict{K, V}, d2::AbstractDict) where {K, V}	modelled	dicts-ops-agree	
-base/dict.jl	780	780	ImmutableDict{K,V}	ImmutableDict{K,V}() where {K,V}	modelled	dictscov-dict-l780	
-base/dict.jl	781	781	ImmutableDict{K,V}	ImmutableDict{K,V}(key, value) where {K,V}	modelled	dictscov-dict-l781	
-base/dict.jl	782	782	ImmutableDict{K,V}	ImmutableDict{K,V}(parent::ImmutableDict, key, value) where {K,V}	modelled	dictscov-dict-l782	
-base/dict.jl	811	811	ImmutableDict	ImmutableDict(KV::Pair{K,V}) where {K,V}	modelled	dictscov-dict-l811	
-base/dict.jl	812	812	ImmutableDict	ImmutableDict(t::ImmutableDict{K,V}, KV::Pair) where {K,V}	modelled	dictscov-dict-l812	
-base/dict.jl	813	814	ImmutableDict	ImmutableDict(t::ImmutableDict{K,V}, KV::Pair, rest::Pair...) where {K,V}	modelled	dictscov-dict-l813	
-base/dict.jl	815	815	ImmutableDict	ImmutableDict(KV::Pair, rest::Pair...)	modelled	dictscov-dict-l815	
+base/dict.jl	780	780	ImmutableDict{K,V}	ImmutableDict{K,V}() where {K,V}	modelled	dictscov-dict-immutable-construct	
+base/dict.jl	781	781	ImmutableDict{K,V}	ImmutableDict{K,V}(key, value) where {K,V}	modelled	dictscov-dict-immutable-construct	
+base/dict.jl	782	782	ImmutableDict{K,V}	ImmutableDict{K,V}(parent::ImmutableDict, key, value) where {K,V}	modelled	dictscov-dict-immutable-construct	
+base/dict.jl	811	811	ImmutableDict	ImmutableDict(KV::Pair{K,V}) where {K,V}	modelled	dictscov-dict-immutable-construct	
+base/dict.jl	812	812	ImmutableDict	ImmutableDict(t::ImmutableDict{K,V}, KV::Pair) where {K,V}	modelled	dictscov-dict-immutable-construct	
+base/dict.jl	813	814	ImmutableDict	ImmutableDict(t::ImmutableDict{K,V}, KV::Pair, rest::Pair...) where {K,V}	modelled	dictscov-dict-immutable-construct	
+base/dict.jl	815	815	ImmutableDict	ImmutableDict(KV::Pair, rest::Pair...)	modelled	dictscov-dict-immutable-construct	
 base/dict.jl	817	826	in	in(key_value::Pair, dict::ImmutableDict, valcmp=(==))	modelled	dicts-immutabledict-in-missing	
-base/dict.jl	828	834	haskey	haskey(dict::ImmutableDict, key)	modelled	dictscov-dict-l828	
-base/dict.jl	836	842	getindex	getindex(dict::ImmutableDict, key)	modelled	dictscov-dict-l836	
-base/dict.jl	843	849	get	get(dict::ImmutableDict, key, default)	modelled	dictscov-dict-l843	
-base/dict.jl	851	857	get	get(default::Callable, dict::ImmutableDict, key)	modelled	dictscov-dict-l851	
-base/dict.jl	860	863	iterate	iterate(d::ImmutableDict{K,V}, t=d) where {K, V}	modelled	dictscov-dict-l860	
-base/dict.jl	864	864	length	length(t::ImmutableDict)	modelled	dictscov-dict-l864	
-base/dict.jl	865	865	isempty	isempty(t::ImmutableDict)	modelled	dictscov-dict-l865	
-base/dict.jl	866	866	empty	empty(::ImmutableDict, ::Type{K}, ::Type{V}) where {K, V}	modelled	dictscov-dict-l866	
+base/dict.jl	828	834	haskey	haskey(dict::ImmutableDict, key)	modelled	dictscov-dict-immutable-lookup	
+base/dict.jl	836	842	getindex	getindex(dict::ImmutableDict, key)	modelled	dictscov-dict-immutable-lookup	
+base/dict.jl	843	849	get	get(dict::ImmutableDict, key, default)	modelled	dictscov-dict-immutable-lookup	
+base/dict.jl	851	857	get	get(default::Callable, dict::ImmutableDict, key)	modelled	dictscov-dict-immutable-lookup	
+base/dict.jl	860	863	iterate	iterate(d::ImmutableDict{K,V}, t=d) where {K, V}	modelled	dictscov-dict-immutable-iteration	
+base/dict.jl	864	864	length	length(t::ImmutableDict)	modelled	dictscov-dict-immutable-iteration	
+base/dict.jl	865	865	isempty	isempty(t::ImmutableDict)	modelled	dictscov-dict-immutable-iteration	
+base/dict.jl	866	866	empty	empty(::ImmutableDict, ::Type{K}, ::Type{V}) where {K, V}	modelled	dictscov-dict-immutable-iteration	
 base/dict.jl	886	888	setindex	setindex(d::ImmutableDict, value, key)	modelled	dicts-immutabledict-lossy-key	
-base/dict.jl	890	890	_similar_for	_similar_for(c::AbstractDict, ::Type{Pair{K,V}}, itr, isz, len) where {K, V}	modelled	dictscov-dict-l890	
-base/dict.jl	891	892	_similar_for	_similar_for(c::AbstractDict, ::Type{T}, itr, isz, len) where {T}	modelled	dictscov-dict-l891	
-base/dict.jl	903	905	KeyValue.set	KeyValue.set(::Type{PersistentDict{K, V}}) where {K, V}	modelled	dictscov-dict-l903	
-base/dict.jl	906	908	KeyValue.set	KeyValue.set(::Type{PersistentDict{K, V}}, ::Nothing, key, val) where {K, V}	modelled	dictscov-dict-l906	
-base/dict.jl	909	910	KeyValue.set	KeyValue.set( dict::PersistentDict{K, V}, key, val) where {K, V}	modelled	dictscov-dict-l909	
+base/dict.jl	890	890	_similar_for	_similar_for(c::AbstractDict, ::Type{Pair{K,V}}, itr, isz, len) where {K, V}	modelled	dictscov-dict-immutable-similar	
+base/dict.jl	891	892	_similar_for	_similar_for(c::AbstractDict, ::Type{T}, itr, isz, len) where {T}	modelled	dictscov-dict-immutable-similar	
+base/dict.jl	903	905	KeyValue.set	KeyValue.set(::Type{PersistentDict{K, V}}) where {K, V}	modelled	dictscov-dict-persistent-construct	
+base/dict.jl	906	908	KeyValue.set	KeyValue.set(::Type{PersistentDict{K, V}}, ::Nothing, key, val) where {K, V}	modelled	dictscov-dict-persistent-construct	
+base/dict.jl	909	910	KeyValue.set	KeyValue.set( dict::PersistentDict{K, V}, key, val) where {K, V}	modelled	dictscov-dict-persistent-set	
 base/dict.jl	911	912	KeyValue.set	KeyValue.set( dict::PersistentDict{K, V}, key::K, val::V) where {K, V}	modelled	dicts-persistentdict-nothrow	
-base/dict.jl	913	919	_keyvalueset	_keyvalueset(dict::PersistentDict{K, V}, key, @nospecialize(val)) where {K, V}	modelled	dictscov-dict-l913	
-base/dict.jl	920	921	KeyValue.set	KeyValue.set( dict::PersistentDict{K, V}, key) where {K, V}	modelled	dictscov-dict-l920	
-base/dict.jl	922	923	KeyValue.set	KeyValue.set( dict::PersistentDict{K, V}, key::K) where {K, V}	modelled	dictscov-dict-l922	
-base/dict.jl	924	933	_keyvalueset	_keyvalueset(dict::PersistentDict{K, V}, key) where {K, V}	modelled	dictscov-dict-l924	
-base/dict.jl	969	969	PersistentDict{K,V}	PersistentDict{K,V}() where {K, V}	modelled	dictscov-dict-l969	
-base/dict.jl	970	975	PersistentDict{K,V}	PersistentDict{K,V}(KV::Pair) where {K,V}	modelled	dictscov-dict-l970	
-base/dict.jl	976	981	PersistentDict	PersistentDict(KV::Pair{K,V}) where {K,V}	modelled	dictscov-dict-l976	
-base/dict.jl	982	982	PersistentDict	PersistentDict(dict::PersistentDict, pair::Pair)	modelled	dictscov-dict-l982	
-base/dict.jl	983	983	PersistentDict{K,V}	PersistentDict{K,V}(dict::PersistentDict{K,V}, pair::Pair) where {K,V}	modelled	dictscov-dict-l983	
-base/dict.jl	986	990	PersistentDict	PersistentDict(dict::PersistentDict{K,V}, key, val) where {K,V}	modelled	dictscov-dict-l986	
-base/dict.jl	992	998	PersistentDict{K,V}	PersistentDict{K,V}(KV::Pair, rest::Pair...) where {K,V}	modelled	dictscov-dict-l992	
-base/dict.jl	1000	1006	PersistentDict	PersistentDict(kv::Pair, rest::Pair...)	modelled	dictscov-dict-l1000	
-base/dict.jl	1008	1008	eltype	eltype(::PersistentDict{K,V}) where {K,V}	modelled	dictscov-dict-l1008	
-base/dict.jl	1010	1015	in	in(key_val::Pair{K,V}, dict::PersistentDict{K,V}, valcmp=(==)) where {K,V}	modelled	dictscov-dict-l1010	
-base/dict.jl	1017	1019	haskey	haskey(dict::PersistentDict{K}, key::K) where K	modelled	dictscov-dict-l1017	
-base/dict.jl	1021	1025	getindex	getindex(dict::PersistentDict{K,V}, key::K) where {K,V}	modelled	dictscov-dict-l1021	
-base/dict.jl	1027	1031	get	get(dict::PersistentDict{K,V}, key::K, default) where {K,V}	modelled	dictscov-dict-l1027	
-base/dict.jl	1033	1045	KeyValue.get	KeyValue.get(dict::PersistentDict{K, V}, key) where {K, V}	modelled	dictscov-dict-l1033	
-base/dict.jl	1047	1051	KeyValue.get	KeyValue.get(default, dict::PersistentDict, key)	modelled	dictscov-dict-l1047	
-base/dict.jl	1053	1057	get	get(default::Callable, dict::PersistentDict{K,V}, key::K) where {K,V}	modelled	dictscov-dict-l1053	
-base/dict.jl	1059	1061	delete	delete(dict::PersistentDict{K}, key::K) where K	modelled	dictscov-dict-l1059	
-base/dict.jl	1063	1063	iterate	iterate(dict::PersistentDict, state=nothing)	modelled	dictscov-dict-l1063	
-base/dict.jl	1065	1065	length	length(dict::PersistentDict)	modelled	dictscov-dict-l1065	
-base/dict.jl	1066	1066	isempty	isempty(dict::PersistentDict)	modelled	dictscov-dict-l1066	
-base/dict.jl	1067	1067	empty	empty(::PersistentDict, ::Type{K}, ::Type{V}) where {K, V}	modelled	dictscov-dict-l1067	
-base/dict.jl	1069	1069	Iterators.only	Iterators.only(dict::PersistentDict)	modelled	dictscov-dict-l1069	
+base/dict.jl	913	919	_keyvalueset	_keyvalueset(dict::PersistentDict{K, V}, key, @nospecialize(val)) where {K, V}	modelled	dictscov-dict-persistent-set	
+base/dict.jl	920	921	KeyValue.set	KeyValue.set( dict::PersistentDict{K, V}, key) where {K, V}	modelled	dictscov-dict-persistent-delete	
+base/dict.jl	922	923	KeyValue.set	KeyValue.set( dict::PersistentDict{K, V}, key::K) where {K, V}	modelled	dictscov-dict-persistent-delete	
+base/dict.jl	924	933	_keyvalueset	_keyvalueset(dict::PersistentDict{K, V}, key) where {K, V}	modelled	dictscov-dict-persistent-delete	
+base/dict.jl	969	969	PersistentDict{K,V}	PersistentDict{K,V}() where {K, V}	modelled	dictscov-dict-persistent-construct	
+base/dict.jl	970	975	PersistentDict{K,V}	PersistentDict{K,V}(KV::Pair) where {K,V}	modelled	dictscov-dict-persistent-construct	
+base/dict.jl	976	981	PersistentDict	PersistentDict(KV::Pair{K,V}) where {K,V}	modelled	dictscov-dict-persistent-construct	
+base/dict.jl	982	982	PersistentDict	PersistentDict(dict::PersistentDict, pair::Pair)	modelled	dictscov-dict-persistent-set	
+base/dict.jl	983	983	PersistentDict{K,V}	PersistentDict{K,V}(dict::PersistentDict{K,V}, pair::Pair) where {K,V}	modelled	dictscov-dict-persistent-set	
+base/dict.jl	986	990	PersistentDict	PersistentDict(dict::PersistentDict{K,V}, key, val) where {K,V}	modelled	dictscov-dict-persistent-set	
+base/dict.jl	992	998	PersistentDict{K,V}	PersistentDict{K,V}(KV::Pair, rest::Pair...) where {K,V}	modelled	dictscov-dict-persistent-construct	
+base/dict.jl	1000	1006	PersistentDict	PersistentDict(kv::Pair, rest::Pair...)	modelled	dictscov-dict-persistent-construct	
+base/dict.jl	1008	1008	eltype	eltype(::PersistentDict{K,V}) where {K,V}	modelled	dictscov-dict-persistent-collection	
+base/dict.jl	1010	1015	in	in(key_val::Pair{K,V}, dict::PersistentDict{K,V}, valcmp=(==)) where {K,V}	modelled	dictscov-dict-persistent-membership	
+base/dict.jl	1017	1019	haskey	haskey(dict::PersistentDict{K}, key::K) where K	modelled	dictscov-dict-persistent-lookup	
+base/dict.jl	1021	1025	getindex	getindex(dict::PersistentDict{K,V}, key::K) where {K,V}	modelled	dictscov-dict-persistent-lookup	
+base/dict.jl	1027	1031	get	get(dict::PersistentDict{K,V}, key::K, default) where {K,V}	modelled	dictscov-dict-persistent-lookup	
+base/dict.jl	1033	1045	KeyValue.get	KeyValue.get(dict::PersistentDict{K, V}, key) where {K, V}	modelled	dictscov-dict-persistent-lookup	
+base/dict.jl	1047	1051	KeyValue.get	KeyValue.get(default, dict::PersistentDict, key)	modelled	dictscov-dict-persistent-lookup	
+base/dict.jl	1053	1057	get	get(default::Callable, dict::PersistentDict{K,V}, key::K) where {K,V}	modelled	dictscov-dict-persistent-lookup	
+base/dict.jl	1059	1061	delete	delete(dict::PersistentDict{K}, key::K) where K	modelled	dictscov-dict-persistent-delete	
+base/dict.jl	1063	1063	iterate	iterate(dict::PersistentDict, state=nothing)	modelled	dictscov-dict-persistent-collection	
+base/dict.jl	1065	1065	length	length(dict::PersistentDict)	modelled	dictscov-dict-persistent-collection	
+base/dict.jl	1066	1066	isempty	isempty(dict::PersistentDict)	modelled	dictscov-dict-persistent-collection	
+base/dict.jl	1067	1067	empty	empty(::PersistentDict, ::Type{K}, ::Type{V}) where {K, V}	modelled	dictscov-dict-persistent-collection	
+base/dict.jl	1069	1069	Iterators.only	Iterators.only(dict::PersistentDict)	todo		trivial: one-line forwarding to Iterators._only; cardinality behavior belongs to that generic helper

@@ -1,0 +1,57 @@
+id: range-findin-overflow
+title: "findall(in(Int8(50):Int8(100)), Int8(-100):Int8(-90)) returns -105:11: _findin subtracts in the element type"
+priority: P1
+kind: wrong-result
+area: Ranges
+files: [base/range.jl]
+functions: ["findall(pred::Fix2{typeof(in)}, x::AbstractArray)", "_findin(r::AbstractRange{<:Integer}, span::AbstractUnitRange{<:Integer})"]
+summary: |
+  findall(in(span), r) for an integer range r and unit range span computes the index
+  bounds from first(span) - first(r) and last(r) - last(span) in the element type.
+  For narrow integer types the difference wraps: findall(in(Int8(50):Int8(100)),
+  Int8(-100):Int8(-90)) returns -105:11 (including negative, invalid indices) instead
+  of an empty result, because 50 - (-100) = 150 wraps to -106 in Int8.
+likelihood: |
+  Needs findall(in(span), r) with ranges of a narrow (Int8, Int16, UInt8, ...) or
+  near-typemax element type whose endpoints are far apart. Small-integer ranges are
+  ordinary, but this call pattern on them is uncommon. The result is silently wrong
+  and can contain out-of-bounds indices.
+maybe_intended: ""
+reproducer: |
+  r = Int8(-100):Int8(-90)
+  span = Int8(50):Int8(100)
+  findall(in(span), r)   # -105:11; no element of r is in span, expected empty
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    findall(in(span), r) = -105:11, expected Int64[]
+    REPRODUCED range-findin-overflow
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    findall(in(span), r) = -105:11, expected Int64[]
+    REPRODUCED range-findin-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  An empty collection of indices, the same as [i for (i, x) in pairs(r) if x in span].
+promised_by: |
+  findall docstring, base/array.jl:2736: "Return a vector `I` of the indices or keys of `A`
+  where f(A[I]) returns true." findall(in(span), r) must return exactly the indices of
+  r whose elements lie in span; base/array.jl:2961 forwards it to _findin.
+cause: |
+  base/range.jl:1302-1304 (positive step) compute cld(fspan-fr, sr)+1 and
+  length(r) - cld(lr-lspan, sr), and lines 1305-1307 (negative step) cld(lspan-fr, sr)
+  and cld(lr-fspan, sr), with fspan, fr, lr, lspan of the element type. For Int8,
+  fspan - fr = 50 - (-100) wraps to -106, so ifirst = cld(-106, 1) + 1 = -105, and
+  the result ifirst:ilast is -105:11. The subtraction pattern dates from 499b7c55e15
+  (2013); #48653 replaced the float division with cld without widening.
+possible_fix: |
+  Do the differences in a type that cannot overflow (e.g. widen, or Int after
+  checking the ranges overlap) and return an empty range early when
+  last(r) < first(span) or first(r) > last(span) for a positive step.
+duplicates:
+  issues:
+    - {number: 48653, state: merged, relation: related}
+  queries: ["findall in range overflow", "_findin", "findall in Int8 range", "_findin overflow"]
+lean:
+  property: JuliaLean.Proofs.base.range.FindinIndices
+  theorem: JuliaLean.Proofs.base.range.findinIndices_refuted

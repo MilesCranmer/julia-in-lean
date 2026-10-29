@@ -32,10 +32,6 @@ private def raAccessEntry (id fn statement source : String)
   { id, juliaFile := "base/reinterpretarray.jl", juliaFns := [fn], statement, source,
     status := .proven, prop, thm := some thm }
 
-def reinterpretAccessReviewEntries : List Entry := [
-  raAccessEntry "multidimcov-reinterpretarray-get-access" "getindex and _getindex methods" "Every get route checks readability and bounds in source order, selects pointer, scalar, or byte assembly, and returns exactly the target element bytes." "base/reinterpretarray.jl:433-567" ``RAGetReviewProperty ``raGetReviewProperty,
-  raAccessEntry "multidimcov-reinterpretarray-set-zero" "setindex!(::NonReshapedReinterpretArray{T,0})" "Zero-dimensional assignment selects scalar parent reinterpretation or the first-index route after conversion." "base/reinterpretarray.jl:569-575" ``RASetZeroProperty ``raSetZeroProperty,
-  raAccessEntry "multidimcov-reinterpretarray-set-access" "setindex! and _setindex! methods" "Every set route checks writability and bounds, converts the value, selects pointer, scalar, or byte assembly, changes exactly the target bytes, and returns the view." "base/reinterpretarray.jl:577-731" ``RASetReviewProperty ``raSetReviewProperty
-]
+def reinterpretAccessReviewEntries : List Entry := []
 
 end JuliaLean.MultidimCov

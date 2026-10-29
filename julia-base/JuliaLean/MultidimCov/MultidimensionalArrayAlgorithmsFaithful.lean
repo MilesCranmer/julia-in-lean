@@ -200,28 +200,6 @@ private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) 
     juliaFns := [name], statement, source := s!"base/multidimensional.jl:{line}; array algorithm source equation",
     status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 1113 "diff(::AbstractArray;dims)" "Multidimensional diff validates rank, derives both view ranges, and subtracts corresponding elements." ``P1113 ``p1113,
-  entry 1123 "diff(::AbstractRange;dims)" "Range diff validates dims then subtracts every consecutive pair." ``P1123 ``p1123,
-  entry 1130 "mightalias(::SubArray,::SubArray)" "Alias detection takes immutable, matching-parent, and data-id branches in source order." ``P1130 ``p1130,
-  entry 1153 "_parentsmatch(::AbstractArray,::AbstractArray)" "General parents match exactly by object identity." ``P1153 ``p1153,
-  entry 1154 "_parentsmatch(::DenseArray,::DenseArray)" "Dense parents compare element size, pointer, then complete shape." ``P1154 ``p1154,
-  entry 1155 "_parentsmatch(::StridedArray,::StridedArray)" "Strided parents compare element size, pointer, then strides." ``P1155 ``p1155,
-  entry 1162 "_indicesmightoverlap(range,range)" "Range overlap constructs the intersection before recursively checking tails." ``P1162 ``p1162,
-  entry 1166 "_indicesmightoverlap(unitrange,unitrange)" "Unit ranges compare endpoint overlap before recursively checking tails." ``P1166 ``p1166,
-  entry 1170 "_indicesmightoverlap(real,real)" "Scalar overlap compares values before recursively checking tails." ``P1170 ``p1170,
-  entry 1172 "_indicesmightoverlap(real,array)" "Scalar-array overlap checks membership before recursively checking tails." ``P1172 ``p1172,
-  entry 1174 "_indicesmightoverlap(array,real)" "Array-scalar overlap checks membership before recursively checking tails." ``P1174 ``p1174,
-  entry 1177 "_indicesmightoverlap(array,array)" "Small arrays check singleton membership and larger pairs conservatively overlap." ``P1177 ``p1177,
-  entry 1190 "copyto!(dest,Rdest,src,Rsrc)" "Block copy handles empty output, validates equal size, and copies each source coordinate to its translated destination." ``P1190 ``p1190,
-  entry 1246 "circshift!(dest,src,())" "Zero-dimensional circshift delegates to copyto!." ``P1246 ``p1246,
-  entry 1257 "circshift!(dest,src,shifts)" "Circshift rejects aliasing and mismatched axes, returns empty sources, then rotates every coordinate." ``P1257 ``p1257,
-  entry 1265 "circshift!(dest,src,shiftamt)" "The generic wrapper converts every shift to Integer before delegation." ``P1265 ``p1265,
-  entry 1284 "_circshift!(recursive)" "Recursive circular shift partitions each dimension and copies every resulting block." ``P1284 ``p1284,
-  entry 1297 "_circshift!(base)" "The base case constructs both Cartesian regions and delegates to block copy." ``P1297 ``p1297,
-  entry 1337 "circcopy!(dest,src)" "Circular copy rejects aliasing and size mismatch, computes offsets, uses direct copy for zero offset, and otherwise rotates." ``P1337 ``p1337,
-  entry 1349 "_circcopy!(recursive)" "Recursive circular copy partitions each destination and source dimension and copies every block." ``P1349 ``p1349,
-  entry 1364 "_circcopy!(base)" "The base case constructs both Cartesian regions and delegates to block copy." ``P1364 ``p1364
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.MultidimensionalArrayAlgorithmsFaithful

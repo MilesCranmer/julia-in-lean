@@ -21,6 +21,11 @@ axes_w = result(() -> axes(A, w))
 
 println("UInt64 size=", nameof(typeof(size_u)), " axes=", repr(axes_u))
 println("Int128 size=", nameof(typeof(size_w)), " axes=", repr(axes_w))
-if size_u isa InexactError && size_w isa InexactError && axes_u == Base.OneTo(1) && axes_w == Base.OneTo(1)
+cat_u = result(() -> Base.cat_size(A, u))
+cat_w = result(() -> Base.cat_size(A, w))
+println("UInt64 cat_size=", nameof(typeof(cat_u)))
+println("Int128 cat_size=", nameof(typeof(cat_w)))
+if size_u isa InexactError && size_w isa InexactError && axes_u == Base.OneTo(1) && axes_w == Base.OneTo(1) &&
+        cat_u isa InexactError && cat_w isa InexactError
     println("REPRODUCED abstractarrays-size-large-dim")
 end

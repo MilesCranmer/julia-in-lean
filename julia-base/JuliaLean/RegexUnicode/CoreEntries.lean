@@ -29,22 +29,6 @@ def coreEntries : List Entry := [
     status := .proven, prop := ``JuliaLean.RegexUnicode.Core.FindnextRange
     thm := some ``JuliaLean.RegexUnicode.Core.findnextRange_proven
     notes := "Hypothesis CharBoundaries matches PCRE2's UTF mode (pcre2unicode: characters are matched; pcre2api: with PCRE2_NO_UTF_CHECK the start offset must be at a character boundary). last(r) = prevind(s, ovector[2] + 1) after UnitRange normalisation (base/range.jl:439-441)." },
-  { id := "regexunicode-replace-empty-after-match", juliaFile := "base/strings/util.jl"
-    juliaFns := ["replace(::AbstractString, ::Pair{Regex,String})", "_replace_once", "_replace_finish"]
-    statement := "replace(s, r => t) equals the string assembled from the matches of eachmatch(r, s): the text between consecutive matches with t inserted for each match."
-    source := "replace docstring (base/strings/util.jl:1136): \"Search for the given pattern pat in s, and replace each occurrence with r\"; eachmatch docstring (base/regex.jl:779-784)"
-    status := .refuted, prop := ``JuliaLean.RegexUnicode.Core.ReplaceAssemblesEachmatch
-    thm := some ``JuliaLean.RegexUnicode.Core.replaceAssemblesEachmatch_refuted
-    issue := "none found (queries: replace regex empty match; replace empty matches; eachmatch empty; findall regex empty)"
-    notes := "r\"x*\", s = \"abxd\", t = \"-\": replace gives \"-a-b-d-\" while eachmatch yields matches at offsets 1, 2, 3 (\"x\"), 4, 5 and assembles \"-a-b--d-\" (1.13.2 and master). _replace_once (base/strings/util.jl:1075) writes only when i == start || i <= k, dropping the empty match at 4 right after the nonempty match. Checked against Julia in replaceXStar_agrees and eachXStar_agrees." },
-  { id := "regexunicode-findall-skips-nonempty", juliaFile := "base/strings/search.jl"
-    juliaFns := ["findall(::Regex, ::AbstractString)", "eachmatch(::Regex, ::AbstractString)"]
-    statement := "findall(r, s) returns the ranges m.offset:m.offset+ncodeunits(m.match)-1 of the matches m of eachmatch(r, s)."
-    source := "findall docstring (base/strings/search.jl:619-621): \"Return a Vector{UnitRange{Int}} of all the matches for pattern in string\"; eachmatch docstring (base/regex.jl:779-784): \"Search for all matches\""
-    status := .refuted, prop := ``JuliaLean.RegexUnicode.Core.FindallRangesOfEachmatch
-    thm := some ``JuliaLean.RegexUnicode.Core.findallRangesOfEachmatch_refuted
-    issue := "none found (queries: eachmatch empty; findall regex empty; count regex overlap empty; findall overlapping regex empty)"
-    notes := "r\"|b\" on \"b\": eachmatch yields (1, \"\"), (1, \"b\"), (2, \"\"); findall gives [1:0, 2:1] and count gives 2 (1.13.2 and master). After an empty match findall restarts at nextind(s, first(r)) while eachmatch retries at the same offset with ANCHORED | NOTEMPTY_ATSTART. Checked in eachEmptyOrB_agrees and findallEmptyOrB_agrees." },
   { id := "regexunicode-findnext-start-below", juliaFile := "base/regex.jl"
     juliaFns := ["findnext(::Regex, ::String, ::Integer)", "_findnext_re", "match(::Regex, ::String, ::Integer)"]
     statement := "findnext(r, s, i) throws BoundsError for every start i < 1, like findnext(::AbstractString, ::String, i)."

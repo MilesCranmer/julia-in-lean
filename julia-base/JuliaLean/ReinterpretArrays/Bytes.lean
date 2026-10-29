@@ -152,10 +152,15 @@ def rrSize (sS sT : Nat) (dims : List Nat) : Jl (List Nat) :=
       | [] => .error (.argumentError "zero-dimensional")
       | d1 :: rest => if d1 = sT / sS then .ok rest else .error (.argumentError "axes(a, 1)")
 
-/-- `reinterpret(reshape, T, b)` where `b = reinterpret(reshape, S, a)` and `a` has element type `U`,
-with `T`, `S`, `U` distinct: `base/reinterpretarray.jl:191` forwards to
-`reinterpret(reshape, T, a)`. Returns the resulting size. -/
+/-- Nested `reinterpret(reshape, ...)` dispatches to the original parent when
+two aligned element sizes coincide, and otherwise keeps the intermediate view. -/
 def rrNestedSize (sU sS sT : Nat) (dims : List Nat) : Jl (List Nat) := do
+  let intermediate ← rrSize sU sS dims
+  if sT = sS ∨ sT = sU ∨ sS = sU then rrSize sU sT dims
+  else rrSize sS sT intermediate
+
+/-- Historical nested dispatch on the previous source and release. -/
+def rrNestedSizeRelease (sU sS sT : Nat) (dims : List Nat) : Jl (List Nat) := do
   let _ ← rrSize sU sS dims
   rrSize sU sT dims
 

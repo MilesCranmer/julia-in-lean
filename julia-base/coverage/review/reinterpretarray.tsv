@@ -1,108 +1,47 @@
 line	name	verdict	mirror	property	settled	reason
-14	throwbits	FAITHFUL	yes	yes	yes	ra14 constructs the source ArgumentError text from every source, target, and culprit and its universal proposition is proven.
-18	throwsize0	FAITHFUL	yes	yes	yes	ra18 constructs the zero-dimensional size error in source order for every message and its universal proposition is proven.
-23	throwsingleton	FAITHFUL	yes	yes	yes	ra23 constructs the singleton-target error for every source and target and its universal proposition is proven.
-27	throwbitpadding	FAITHFUL	yes	yes	yes	ra27 constructs the non-byte-aligned-field error from every source, target, and culprit and its universal proposition is proven.
-73	reinterpret	FAITHFUL	yes	yes	yes	reinterpret73Construct mirrors every validation branch and constructs the view record over the original parent, and the all-input proposition is proven.
-74	thrownonint	FAITHFUL	yes	yes	yes	ra74 constructs the non-integral-first-dimension error from every source, target, and dimension and its universal proposition is proven.
-80	throwaxes1	FAITHFUL	yes	yes	yes	ra80 constructs the non-one-based-axis error from every source, target, and axis and its universal proposition is proven.
-104	reinterpret	FAITHFUL	yes	yes	yes	reinterpret104Identity mirrors the same-type identity method and the proven proposition covers every modeled array.
-107	reinterpret	FAITHFUL	yes	yes	yes	reinterpret107ConstructReshape mirrors the checks, size branches, rank changes, flags, and construction order, and the all-input proposition is proven.
-108	throwintmult	HOLLOW	no	yes	yes	ra108 proves that the helper always returns the incompatible-size error, but it replaces Julia's two Base.elsize expressions and exact diagnostic with abbreviated text.
-113	throwsize1	HOLLOW	no	no	yes	ra113 accepts the entire diagnostic as an unconstrained callback result, so neither the source message construction nor the required first-axis ArgumentError is established.
-119	throwfromsingleton	HOLLOW	no	no	yes	ra119 accepts the entire diagnostic as an unconstrained callback result, so neither the source message construction nor the required singleton-source ArgumentError is established.
-145	reinterpret	FAITHFUL	yes	yes	yes	reinterpret145ReshapeIdentity mirrors the same-type reshape identity method and the proven proposition covers every modeled array.
-190	reinterpret	FAITHFUL	yes	yes	yes	reinterpret190Nested delegates the target type and stored parent unchanged and the universal delegation proposition is proven.
-191	reinterpret	FAITHFUL	yes	yes	yes	reinterpret191NestedReshape delegates reshape mode, target type, and stored parent unchanged and the universal delegation proposition is proven.
-204	strides	FAITHFUL	yes	yes	yes	reinterpret204Strides calls the modeled size and size-to-strides operations in Julia's order and its universal equation is proven.
-205	stride	FAITHFUL	yes	yes	yes	reinterpret205Stride mirrors the dimension comparison and selected stride-or-length call for every modeled input.
-208	strides	FAITHFUL	yes	yes	yes	reinterpret208Strides mirrors the contiguous and equal-size returns, byte-stride calculation, reshape branch, first-stride check, checked division, and result construction.
-222	_checked_strides	HOLLOW	no	yes	yes	reinterpret222CheckedStrides checks each remainder before computing later divrem results, unlike Julia's map of every divrem followed by all, although its proposition states exact-division behavior for every modeled list.
-229	_checkcontiguous	FAITHFUL	yes	yes	yes	reinterpret229Contiguous models the exact delegation to the stored parent and its universal proposition is proven.
-231	similar	FAITHFUL	yes	yes	yes	reinterpret231Similar passes the parent, requested type, and dimensions unchanged to the universally quantified callback.
-232	similar	FAITHFUL	yes	yes	yes	reinterpret232SimilarType passes the represented parent type and dimensions unchanged to the universally quantified callback.
-234	check_readable	FAITHFUL	yes	yes	yes	reinterpret234CheckReadable mirrors the cached-readable short circuit and target-to-source padding check for every modeled input.
-241	check_writable	FAITHFUL	yes	yes	yes	reinterpret241CheckWritable mirrors the cached-writable short circuit and source-to-target padding check for every modeled input.
-260	IndexStyle	FAITHFUL	yes	yes	yes	reinterpret260IndexStyle preserves only a linear parent style and its universal proposition is proven.
-263	IndexStyle	FAITHFUL	yes	yes	yes	reinterpret263IndexStyleReshaped mirrors the element-size branch, parent-style test, ratio, and returned index style for every modeled input.
-270	IndexStyle	FAITHFUL	yes	yes	yes	reinterpret270CombineStyle returns the shared static parameter and its universal proposition is proven.
-276	to_index	FAITHFUL	yes	yes	yes	reinterpret276ToIndex is the exact identity on every modeled static Cartesian index.
-277	nextind	FAITHFUL	yes	yes	yes	reinterpret277NextIndex mirrors the inner-coordinate test and wrapping increments for every modeled index.
-279	prevind	FAITHFUL	yes	yes	yes	reinterpret279PrevIndex mirrors the inner-coordinate test and wrapping decrements for every modeled index.
-285	SCartesianIndices2{K}	FAITHFUL	yes	yes	yes	reinterpret285IndicesConstructor mirrors the K greater than one assertion and construction for every modeled K and range.
-287	eachindex	FAITHFUL	yes	yes	yes	reinterpret287EachIndex calls linear eachindex on the stored parent before constructing the static Cartesian iterator.
-288	eachindex	FAITHFUL	yes	yes	yes	reinterpret288EachIndex constructs every companion iterator, compares them all with the first, and passes the corresponding axes to the mismatch callback.
-295	size	FAITHFUL	yes	yes	yes	reinterpret295IndicesSize returns K and the represented second-range length for every iterator.
-296	axes	FAITHFUL	yes	yes	yes	reinterpret296IndicesAxes constructs OneTo of K followed by the stored second range for every iterator.
-298	first	FAITHFUL	yes	yes	yes	reinterpret298IndicesFirst constructs inner index one with the first outer index for every iterator.
-299	last	FAITHFUL	yes	yes	yes	reinterpret299IndicesLast constructs inner index K with the last outer index for every iterator.
-301	getindex	FAITHFUL	yes	yes	yes	reinterpret301GetIndex checks both bounds before reading the second range and constructing the result for every modeled input.
-306	iterate	FAITHFUL	yes	yes	yes	reinterpret306Iterate mirrors the empty result and initial item-state construction for every modeled iterator result.
-313	iterate	FAITHFUL	yes	yes	yes	reinterpret313IterateState advances the inner state first and otherwise advances the outer iterator with the source state tuple.
-324	SimdLoop.simd_outer_range	FAITHFUL	yes	yes	yes	reinterpret324SimdOuter returns the stored outer range for every modeled iterator.
-325	SimdLoop.simd_inner_length	FAITHFUL	yes	yes	yes	reinterpret325SimdLength returns K independently of the outer value for every modeled iterator.
-326	SimdLoop.simd_index	FAITHFUL	yes	yes	yes	reinterpret326SimdIndex performs the wrapping inner increment and retains the outer index for every modeled input.
-330	_maybe_reshape	FAITHFUL	yes	yes	yes	reinterpret330MaybeReshapeFallback delegates with the represented IndexCartesian style, array, and unchanged index tuple.
-331	_maybe_reshape	FAITHFUL	yes	yes	yes	reinterpret331MaybeReshapeIdentity returns the reshaped reinterpret array for every modeled index tuple.
-334	_getindex	FAITHFUL	yes	yes	yes	reinterpret334GetFallback delegates the array and full index list to the represented Cartesian getindex method.
-338	_setindex!	FAITHFUL	yes	yes	yes	reinterpret338SetFallback delegates the array, value, and full index list to the represented Cartesian setindex method.
-344	_getindex	FAITHFUL	yes	yes	yes	reinterpret344GetCartesian computes the first coordinate before the trailing coordinates and delegates the complete index list.
-349	_setindex!	FAITHFUL	yes	yes	yes	reinterpret349SetCartesian computes the first coordinate before the trailing coordinates and delegates the value and complete index list.
-356	_scartesian2_trailing	FAITHFUL	yes	yes	yes	reinterpret356Trailing mirrors the offset computation, trailing-axis branch, and one-based Cartesian conversion for every modeled input.
-362	eachindex	FAITHFUL	yes	yes	yes	reinterpret362EachIndex delegates the style to eachindex of the represented parent for every modeled array.
-366	parent	FAITHFUL	yes	yes	yes	reinterpret366Parent returns the stored parent for every modeled reinterpret array.
-367	dataids	FAITHFUL	yes	yes	yes	reinterpret367DataIds delegates to dataids of the stored parent for every modeled array.
-368	unaliascopy	FAITHFUL	yes	yes	yes	reinterpret368Unalias copies the parent before non-reshape reinterpretation with the original target type.
-369	unaliascopy	FAITHFUL	yes	yes	yes	reinterpret369UnaliasReshape copies the parent before reshape reinterpretation with the original target type.
-371	size	FAITHFUL	yes	yes	yes	reinterpret371Size mirrors the singleton branch, wrapping size multiplication, division, and trailing dimensions for every represented nonzero-rank view.
-376	size	FAITHFUL	yes	yes	yes	reinterpret376SizeReshaped mirrors both element-size comparisons and the added, removed, or unchanged dimensions.
-382	size	FAITHFUL	yes	yes	yes	reinterpret382SizeZero returns the empty dimension list for every modeled zero-dimensional non-reshaped view.
-384	axes	FAITHFUL	yes	yes	yes	reinterpret384Axes represents the source range by its first value and length and mirrors the singleton or scaled first-axis construction with unchanged trailing axes.
-390	axes	FAITHFUL	yes	yes	yes	reinterpret390AxesReshaped mirrors the added OneTo axis, removed first axis, and unchanged-axis branches.
-396	axes	FAITHFUL	yes	yes	yes	reinterpret396AxesZero returns the empty axis list for every modeled zero-dimensional non-reshaped view.
-398	has_offset_axes	FAITHFUL	yes	yes	yes	reinterpret398HasOffset delegates exactly to the stored parent's offset-axis query.
-400	elsize	FAITHFUL	yes	yes	yes	reinterpret400Elsize returns parent elsize for equal layouts and target aligned size otherwise for every modeled input.
-407	cconvert	FAITHFUL	yes	yes	yes	reinterpret407Cconvert delegates the represented source pointer type and stored parent in source order.
-408	unsafe_convert	FAITHFUL	yes	yes	yes	reinterpret408UnsafeConvert converts the parent pointer with the source type and wraps its address with the target pointer type.
-410	getindex	FAITHFUL	yes	yes	yes	reinterpret410GetZero mirrors the scalar reinterpret branch and the first-index fallback for every modeled zero-dimensional view.
-418	check_ptr_indexable	FAITHFUL	yes	yes	yes	reinterpret418CheckPtr returns false for equal element sizes and otherwise delegates to the represented parent check.
-422	check_ptr_indexable	FAITHFUL	yes	yes	yes	reinterpret422CheckPtrReshaped delegates to the represented parent check for every modeled reshaped array.
-423	check_ptr_indexable	FAITHFUL	yes	yes	yes	reinterpret423CheckPtrSubarray delegates to the represented parent check for every modeled fast contiguous subarray.
-424	check_ptr_indexable	FAITHFUL	yes	yes	yes	reinterpret424CheckPtrDense returns true for every modeled dense Array or Memory input.
-425	check_ptr_indexable	FAITHFUL	yes	yes	yes	reinterpret425CheckPtrAbstract returns false for every modeled abstract-array fallback input.
-427	getindex	FAITHFUL	yes	yes	yes	reinterpret427GetZero computes firstindex and delegates the zero-dimensional reshaped read for every modeled array.
-429	isassigned	FAITHFUL	yes	yes	yes	reinterpret429IsAssigned preserves the bounds-first and pointer-or-array short-circuit order for every modeled index list.
-430	isassigned	FAITHFUL	yes	yes	yes	reinterpret430IsAssignedCartesian delegates the stored parent and outer static Cartesian coordinate unchanged.
-431	_isassigned_ra	FAITHFUL	yes	yes	yes	reinterpret431AssignedRa returns true for every modeled reinterpret array and index list, exactly matching this fallback body.
-433	getindex	HOLLOW	yes	no	yes	reinterpret433Get mirrors the wrapper, but RAGetCorrect is not connected to its arbitrary pointer and array-read callbacks and therefore proves no all-route byte behavior.
-439	getindex	HOLLOW	yes	no	yes	reinterpret439GetLinear mirrors the wrapper, but RAGetCorrect is not connected to its arbitrary pointer, subscript, and array-read callbacks.
-451	getindex	HOLLOW	no	no	yes	reinterpret451GetCartesian replaces Ref construction, pointer conversion, GC preservation, and unsafe_load with an unconstrained extract callback, and no proposition proves its returned bytes.
-458	_getindex_ptr	HOLLOW	no	no	yes	reinterpret458GetPtr collapses cconvert, unsafe_convert, rooted pointer lifetime, and unsafe_load into address and load callbacks, and no proposition proves the loaded target value.
-466	_is_scalar_reinterpret_applicable	HOLLOW	no	no	yes	reinterpret466ScalarApplicable uses singleton(target) or primitive(target) and target equals source instead of testing both primitive types and equal Core.bitsizeof values.
-470	_getindex_ra	HOLLOW	yes	no	yes	raGet mirrors the non-reshaped byte assembly, but RaGetCorrect assumes positive target size and therefore omits the allowed singleton-target branch.
-524	_getindex_ra	HOLLOW	no	no	yes	reinterpret524GetRaReshaped replaces the larger, equal, and smaller element-size bodies, including their loops and pointer operations, with unconstrained result callbacks.
-569	setindex!	FAITHFUL	yes	yes	yes	reinterpret569SetZero mirrors conversion, scalar reinterpretation and parent assignment, or delegation through firstindex, for every modeled input.
-577	setindex!	HOLLOW	no	no	yes	RASetReviewProperty never mentions reinterpret577SetZero or any other model of this firstindex delegation, so the registered proposition covers a different set of methods.
-579	setindex!	HOLLOW	yes	no	yes	reinterpret579Set mirrors the wrapper, but RaSetCorrect is not connected to its arbitrary pointer and array-write callbacks and therefore proves no all-route mutation behavior.
-585	setindex!	HOLLOW	yes	no	yes	reinterpret585SetLinear mirrors the wrapper, but RaSetCorrect is not connected to its arbitrary pointer, subscript, and array-write callbacks.
-595	setindex!	HOLLOW	no	no	yes	reinterpret595SetCartesian replaces Ref creation, pointer conversion, unsafe_store, and parent write-back with unconstrained get, overwrite, and set callbacks.
-607	_setindex_ptr!	HOLLOW	no	no	yes	reinterpret607SetPtr collapses cconvert, unsafe_convert, rooted pointer lifetime, conversion, and unsafe_store into address and store callbacks, with no target-byte property.
-616	_setindex_ra!	HOLLOW	yes	no	yes	raSet mirrors the non-reshaped byte mutation, but RaSetCorrect assumes positive target size and therefore omits the allowed singleton-target no-op branch.
-685	_setindex_ra!	HOLLOW	no	no	yes	reinterpret685SetRaReshaped replaces every larger, equal, and smaller element-size mutation body, including loops and pointer writes, with unconstrained callbacks.
-738	showerror	FAITHFUL	yes	yes	yes	reinterpret738ShowError constructs the exact source and target diagnostic for every modeled PaddingError.
-747	non_padding_bytes	FAITHFUL	yes	yes	yes	reinterpret747Nonpadding checks bit padding, allocates the aligned false map, and invokes filling at offset zero in source order.
-756	fill_nonpadding_bytes!	FAITHFUL	yes	yes	yes	reinterpret756FillNonpadding and its field helper mirror the primitive byte range or ordered recursive field traversal for every modeled layout.
-772	array_subpadding	FAITHFUL	yes	yes	yes	reinterpret772ArraySubpadding mirrors both packed fast paths, map construction, empty guards, and the wrapping byte-cycle test.
-812	struct_subpadding	FAITHFUL	yes	yes	yes	reinterpret812StructSubpadding constructs both byte maps in order and compares them for every modeled layout pair.
-816	packedsize	FAITHFUL	yes	yes	yes	reinterpret816PackedSize returns aligned size without datatype padding and otherwise counts non-padding bytes for every modeled layout.
-824	ispacked	FAITHFUL	yes	yes	yes	reinterpret824IsPacked is exactly the negation of the represented datatype-padding flag for every layout.
-828	has_bit_padding	HOLLOW	no	no	yes	reinterpret828HasBitPadding replaces the union recursion and ordered field loop with unconstrained Boolean callbacks, so it proves no recursive bit-padding invariant.
-839	_copytopacked!	FAITHFUL	yes	yes	yes	reinterpret839CopyToPacked and its field helper mirror the primitive copy or ordered field traversal with exact offsets, sizes, recursion, and packed output.
-859	_copyfrompacked!	HOLLOW	no	no	yes	reinterpret859CopyFromPacked creates a zero-filled output value instead of mutating the supplied output pointer with undefined padding preserved, and its proposition only unfolds that replacement.
-879	_reinterpret	HOLLOW	no	no	yes	reinterpret879Scalar merges the ordered source and target bits and bit-padding checks, discards their distinct diagnostics, and leaves padding conversion as an unconstrained callback.
-910	_reinterpret_padding	HOLLOW	no	no	yes	reinterpret910Padding omits packed-size computation, Ref and pointer construction, GC preservation, temporary tuple storage, and the ordered copy calls' memory effects.
-934	String	FAITHFUL	yes	yes	yes	reinterpret934String returns empty before the readability check and otherwise checks then copies the represented bytes for every modeled input.
-943	_mapreduce	FAITHFUL	yes	yes	yes	ra943 computes the iterator and column count before selecting the documented empty or first-to-last reduction call for every callback outcome.
-953	mapreduce_impl	HOLLOW	no	yes	yes	ra953 replaces the sequential loops, f and op calls, midpoint arithmetic, and recursive self-calls with unconstrained callbacks, although ReinterpretMapreduceInBounds proves every modeled access stays within the K-by-n iterator.
-981	mapreduce_impl	FAITHFUL	yes	yes	yes	ra981 computes pairwise_blocksize and passes it with every original argument to the explicit-block implementation.
-987	_totuple	FAITHFUL	yes	yes	yes	ra987 mirrors the length check and fast or collecting branch, while ReinterpretTupleInBounds proves the fast branch's index-one access for every modeled length.
+14	throwbits	HOLLOW	no	yes	yes	The Lean model eagerly renders strings and returns Except String instead of constructing LazyString, ArgumentError, and throw in source order.
+18	throwsize0	HOLLOW	no	yes	yes	The Lean model eagerly renders strings and returns Except String instead of constructing LazyString, ArgumentError, and throw in source order.
+23	throwsingleton	HOLLOW	no	yes	yes	The Lean model eagerly renders strings and returns Except String instead of constructing LazyString, ArgumentError, and throw in source order.
+27	throwbitpadding	HOLLOW	no	yes	yes	The Lean model eagerly renders strings and returns Except String instead of constructing LazyString, ArgumentError, and throw in source order.
+73	reinterpret	HOLLOW	no	yes	yes	The Lean constructor reads precomputed layout fields and collapses Julia calls such as isbitstype, aligned_sizeof, axes, length, first, and array_subpadding.
+74	thrownonint	HOLLOW	no	yes	yes	The Lean model eagerly renders strings and returns Except String instead of constructing LazyString, ArgumentError, and throw in source order.
+80	throwaxes1	HOLLOW	no	yes	yes	The Lean model eagerly renders strings and returns Except String instead of constructing LazyString, ArgumentError, and throw in source order.
+113	throwsize1	HOLLOW	no	yes	yes	The model calls eltype and aligned_sizeof only once each, while Julia reevaluates eltype and aligned_sizeof in the LazyString arguments.
+211	strides	HOLLOW	no	yes	yes	The model supplies element sizes as values, calls parent-strides on the wrapper, and uses a checked-strides model with different evaluation order.
+225	_checked_strides	HOLLOW	no	yes	yes	The model evaluates effectful isZero callbacks for every remainder before all, while Julia all short-circuits its iszero scan.
+288	SCartesianIndices2{K}	HOLLOW	no	yes	yes	The model omits the K::Int type assertion and the assertion message from the constructor body.
+291	eachindex	HOLLOW	no	yes	yes	The mismatch callback omits Julia's leading axes description argument and the exact splatted call to throw_eachindex_mismatch_indices.
+347	_getindex	HOLLOW	no	yes	yes	The model replaces the ordered axes(A,1) and first calls with one opaque firstAxis callback.
+352	_setindex!	HOLLOW	no	yes	yes	The model replaces the ordered axes(A,1) and first calls with one opaque firstAxis callback.
+359	_scartesian2_trailing	HOLLOW	no	yes	yes	The model collapses eachindex field access, axes construction, CartesianIndices indexing, and Tuple conversion into opaque callbacks.
+374	size	HOLLOW	no	yes	yes	The model accepts singleton status and both aligned sizes as values, so the Julia issingletontype and aligned_sizeof calls are missing.
+379	size	HOLLOW	no	yes	yes	The model accepts both aligned sizes as values, so the repeated ordered aligned_sizeof calls are missing.
+387	axes	HOLLOW	no	yes	yes	The model omits the endpoint arithmetic, range construction, and oftype call used to preserve the first axis type.
+393	axes	HOLLOW	no	yes	yes	The model accepts aligned sizes as values and omits the repeated ordered aligned_sizeof calls.
+403	elsize	HOLLOW	no	yes	yes	The model accepts the parent element size as an eager value and omits the conditional elsize(A) call.
+421	check_ptr_indexable	HOLLOW	no	yes	yes	The model accepts aligned sizes as values and omits both ordered aligned_sizeof calls before parent recursion.
+454	getindex	HOLLOW	no	yes	yes	The model omits the GC.@preserve scope that keeps the Ref alive during unsafe_load.
+461	_getindex_ptr	HOLLOW	no	yes	yes	The model omits the GC.@preserve scope around the final unsafe_load.
+469	_is_scalar_reinterpret_applicable	HOLLOW	no	yes	yes	The model calls isPrimitive on target before source and evaluates both eagerly, unlike Julia's source-first short-circuit conjunction.
+473	_getindex_ra	HOLLOW	no	yes	yes	The model replaces all divrem arithmetic, size branches, pointer operations, and the byte-copy loop with one opaque assemble callback.
+527	_getindex_ra	HOLLOW	no	yes	yes	The model replaces every larger, equal, and smaller byte-assembly branch with opaque callbacks.
+572	setindex!	HOLLOW	no	yes	yes	The model constructs a new wrapper from a returned parent instead of mirroring mutation of a.parent followed by returning the original view.
+598	setindex!	HOLLOW	no	yes	yes	The model omits the GC.@preserve scope and replaces mutation of the rooted Ref with an opaque returned Ref.
+610	_setindex_ptr!	HOLLOW	no	yes	yes	The model omits the GC.@preserve scope around unsafe_store! and models value conversion as a separate callback.
+619	_setindex_ra!	HOLLOW	no	yes	yes	The model replaces the size branches, divrem arithmetic, pointer operations, loops, and partial-byte writes with one opaque callback.
+688	_setindex_ra!	HOLLOW	no	yes	yes	The model replaces the linear-offset branch, both loops, pointer operations, and size-specific writes with opaque callbacks.
+741	showerror	HOLLOW	no	yes	yes	The model returns a String and omits the observable print call on the supplied IO.
+750	non_padding_bytes	HOLLOW	no	yes	yes	The model reads cached layout fields and an opaque fill callback instead of calling has_bit_padding, allocating Memory, fill!, and fill_nonpadding_bytes!.
+759	fill_nonpadding_bytes!	HOLLOW	no	yes	yes	The model precomputes field layouts and replaces bitsize, fieldcount, fieldtype, fieldoffset, and indexed Memory writes with list operations.
+775	array_subpadding	HOLLOW	no	yes	yes	The model replaces the source while loop with a fuel-bounded list loop and collapses several ordered type and indexing calls.
+819	packedsize	HOLLOW	no	yes	yes	The model reads datatypePadding and alignedSize fields instead of calling datatype_haspadding, sizeof, and count in their branches.
+827	ispacked	HOLLOW	no	yes	yes	The model reads a cached datatypePadding field instead of calling datatype_haspadding.
+831	has_bit_padding	HOLLOW	no	yes	yes	The TypeTree model removes the ordered isprimitivetype, Union, uniontypes, fieldcount, and fieldtype calls from the Julia method.
+842	_copytopacked!	HOLLOW	no	yes	yes	The functional list model omits pointer mutation and advances output by callback byte lengths rather than the explicit sizeof and packedsize arithmetic.
+862	_copyfrompacked!	HOLLOW	no	yes	yes	The model has no packed-field versus recursive-field branch and replaces both memcpy and recursive calls with one opaque copy callback.
+882	_reinterpret	HOLLOW	no	yes	yes	The model calls struct_subpadding eagerly and omits Ref creation, pointer conversion, GC preservation, and the exact diagnostic construction.
+913	_reinterpret_padding	HOLLOW	no	yes	yes	The model evaluates both field counts and packing tests eagerly and omits the nested GC.@preserve scopes and Ref-based output read.
+937	String	HOLLOW	no	yes	yes	The model replaces length, the guarded check_readable call, and the jl_pchar_to_string ccall with list emptiness and one opaque copy callback.
+946	_mapreduce	HOLLOW	no	yes	yes	The model replaces size(inds)[2] with one opaque columnCount callback and therefore omits the ordered size and indexing calls.
+956	mapreduce_impl	HOLLOW	no	yes	yes	The model flattens whole rows and uses row count for the split test, missing Julia's initial two-item reduction, ifirst.i range, and exact column-distance branch.
+990	_totuple	HOLLOW	no	yes	yes	The model hides the 1:len view, index-one reinterpret load, Iterators.take, collect, and tuple splat inside opaque callbacks.

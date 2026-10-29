@@ -1,58 +1,58 @@
 line	name	verdict	mirror	property	settled	reason
-47	raw_substring	FAITHFUL	-	-	-	The generic declaration has no method body, so the no-behaviour exclusion applies.
-76	SubString{T}	HOLLOW	yes	no	yes	The body mirror is structurally complete, but the proposition only equates its alias with Strings.substring and covers String-backed values instead of every T<:AbstractString.
-86	raw_substring	HOLLOW	yes	no	yes	The body mirror follows the checks and construction, but the proposition only equates its alias with Strings.rawSubstring and covers String-backed values instead of every T<:AbstractString.
-93	raw_substring	HOLLOW	no	no	yes	The model checks the translated range against the parent String instead of checking it against the nested SubString's local code-unit count, and its proposition only restates that model.
-103	SubString{T}	HOLLOW	yes	no	yes	The model mirrors the stored fields, but its proposition covers only a JStr parent instead of every allowed AbstractString subtype.
-108	SubString	HOLLOW	yes	no	yes	The model mirrors forwarding to the typed constructor, but its proposition covers only a JStr parent instead of every T<:AbstractString.
-109	SubString	HOLLOW	no	no	yes	The model accepts only JInt64 endpoints and omits both Int conversions and their errors, so the proposition does not cover every Integer input.
-110	SubString	HOLLOW	no	no	yes	The transitive model omits the Integer-to-Int conversions and represents the range only as two JInt64 values, so it does not cover every AbstractUnitRange input.
-112	SubString	HOLLOW	yes	no	yes	The branch and offset translation mirror the body, but the proposition covers only String-backed JSub values instead of every SubString parent type.
-117	SubString	HOLLOW	no	no	yes	The model calls the checked rawCtor even though the Julia body disables that bounds check, and it covers only JStr instead of every AbstractString input.
-118	SubString	HOLLOW	yes	no	yes	The identity body is mirrored, but the proposition covers only String-backed JSub values instead of every SubString type.
-120	view	HOLLOW	no	no	yes	The transitive constructor model omits general range endpoint conversion and covers only JStr with JInt64 endpoints, so it does not model every allowed view call.
-121	maybeview	HOLLOW	no	no	yes	The delegated view path inherits the incomplete range and endpoint model, so the proposition does not cover every allowed AbstractString and AbstractUnitRange input.
-122	maybeview	HOLLOW	no	no	yes	The model applies getindex to one opaque argument instead of splatting an arbitrary argument sequence, and it covers only JStr inputs.
-124	convert	HOLLOW	no	no	yes	The model constructs a typed whole substring directly, omitting the unparameterized SubString call and result assertion, and its arbitrary callback does not cover the typed conversion behavior.
-126	convert	HOLLOW	yes	no	yes	The identity body is mirrored, but the proposition covers only String-backed JSub values instead of every T<:SubString.
-129	convert	FAITHFUL	yes	yes	yes	The Lean function mirrors the identity conversion and the proposition states it for every String input.
-130	convert	FAITHFUL	yes	yes	yes	The Lean function mirrors the identity conversion and the proposition states it for every SubString{String} input.
-131	convert	FAITHFUL	yes	yes	yes	The abstract conversion callback models convert(String, s), and the proposition states that every input is returned on the String side of the union.
-133	String	HOLLOW	no	no	yes	The model returns a sliced byte list and omits parent pointer arithmetic, GC preservation, unsafe_string allocation, and the copy operation.
-139	ncodeunits	HOLLOW	yes	no	yes	The stored-count access is mirrored, but the proposition covers only String-backed JSub values instead of every SubString type.
-140	codeunit	HOLLOW	yes	no	yes	The delegation shape is mirrored, but the proposition fixes the parent to JStr and the result to Nat instead of covering every parent CodeunitType.
-141	length	HOLLOW	yes	no	yes	The translated parent interval is mirrored, but the proposition covers only String-backed JSub values instead of every SubString parent type.
-144	length	FAITHFUL	yes	yes	yes	The model mirrors the String-specific parent length call over the translated interval and states that behavior for every SubString{String} input.
-146	codeunit	HOLLOW	yes	no	yes	The local check and translated lookup are mirrored, but the proposition fixes the parent to JStr and the result to UInt8 instead of covering every generic SubString code-unit type.
-151	iterate	FAITHFUL	yes	yes	yes	The entry mirrors the iteration branches, states the documented String-backed raw-substring behavior universally, and refutes it with the required reproducer.
-160	getindex	HOLLOW	yes	no	yes	The bounds check and translated lookup are mirrored, but the proposition fixes the parent to JStr and the result to UInt32 instead of covering every generic SubString parent.
-166	isascii	FAITHFUL	yes	yes	yes	The model mirrors the codeunits delegation and states that ASCII testing examines exactly the visible bytes of every SubString{String}.
-168	isvalid	HOLLOW	yes	no	yes	The local bounds and parent-validity conjunction are mirrored, but the proposition covers only String-backed JSub values instead of every SubString parent type.
-174	thisind	HOLLOW	no	no	yes	The model leaves _thisind_str as an unconstrained callback, so neither the helper implementation nor its promised index behavior is established.
-175	nextind	HOLLOW	no	no	yes	The model leaves _nextind_str as an unconstrained callback, so neither the helper implementation nor its promised index behavior is established.
-178	lastindex	HOLLOW	no	no	yes	The model leaves thisind as an unconstrained callback instead of using its implementation, so the proposition only restates an opaque call.
-180	parent	HOLLOW	yes	no	yes	The stored-parent access is mirrored, but the proposition covers only String-backed JSub values instead of every SubString type.
-181	parentindices	HOLLOW	no	no	yes	The model leaves the parent thisind call as an unconstrained callback and covers only String-backed JSub values.
-183	==	HOLLOW	no	no	yes	The model accepts only two SubStrings, so neither its mirror nor its proposition covers String and SubString in either operand as the Julia method allows.
-187	cmp	HOLLOW	no	yes	yes	The proposition states the comparison decision for all modeled inputs, but the mirror replaces cmp(sizeof(a), sizeof(b)) with subtraction followed by Int.sign.
-193	cconvert	FAITHFUL	yes	yes	yes	The Lean function mirrors the identity result and states it for every UInt8-pointer conversion of SubString{String}.
-194	cconvert	FAITHFUL	yes	yes	yes	The Lean function mirrors the identity result and states it for every Int8-pointer conversion of SubString{String}.
-196	unsafe_convert	FAITHFUL	yes	yes	yes	The abstract pointer conversion preserves the source call order, and the proposition states addition of the stored byte offset for both permitted pointer element types.
-200	pointer	FAITHFUL	yes	yes	yes	The model and proposition state that the parent pointer is advanced by the stored byte offset.
-201	pointer	HOLLOW	yes	no	yes	The pointer arithmetic is mirrored, but the proposition accepts only an Int index instead of every Integer accepted by the Julia method.
-203	hash	HOLLOW	no	no	yes	The model omits GC preservation and the final conversion modulo UInt, and its proposition specifies only the incomplete callback call.
-206	_isannotated	HOLLOW	no	no	yes	The model applies a predicate to the parent string value although Julia dispatches _isannotated on the parent string type.
-208	string	FAITHFUL	yes	yes	yes	The identity String conversion is mirrored and stated for every String input.
-209	string	FAITHFUL	yes	yes	yes	The String conversion call is mirrored and stated for every SubString{String} input.
-211	Symbol	FAITHFUL	yes	yes	yes	The ccall abstraction receives the translated substring pointer and byte count, and the proposition states that call for every SubString{String} input.
-215	__unsafe_string!	HOLLOW	yes	no	yes	The byte-store branches are mirrored, but the proposition restricts offsets to Nat and gives list replacement semantics without the method's required writable-buffer bounds.
-233	__unsafe_string!	HOLLOW	yes	no	yes	The copy and byte-count result are mirrored, but the proposition restricts offsets to Nat and gives list replacement semantics without the unsafe destination-buffer precondition.
-239	__unsafe_string!	HOLLOW	yes	no	yes	The visible-byte copy is mirrored, but the proposition restricts offsets to Nat and gives list replacement semantics without the unsafe destination-buffer precondition.
-245	__unsafe_string!	HOLLOW	yes	no	yes	The symbol-byte copy is mirrored, but the proposition restricts offsets to Nat and gives list replacement semantics without the unsafe destination-buffer precondition.
-252	string	HOLLOW	no	no	yes	The model's Value domain admits SubString values that this restricted overload excludes, so the proposition does not describe exactly this method's allowed inputs.
-254	string	FAITHFUL	yes	yes	yes	The four-type Value domain matches the overload and the proposition states forwarding of every argument sequence to the modeled builder.
-256	_string	HOLLOW	no	no	yes	The model replaces Julia's wrapping Int size accumulation and _string_n call with exact Nat summation and an invented 2^62 branch, so its equation does not state the Julia method's all-input behavior.
-287	repeat	HOLLOW	no	no	yes	The model accepts only JInt64 counts and directly calls the Int64 repeat model, omitting the full BitInteger domain and the source's @invoke dispatch.
-289	repeat	HOLLOW	no	no	yes	The model covers only String with an Int64 count and replaces the one-byte memset branch and multi-byte copy loop with list replication, omitting other allowed Integer and SubString inputs.
-309	filter	HOLLOW	no	no	yes	The model filters a collected JStr character list and rebuilds it, omitting the allocation, write loop, resize, size hint, and all SubString inputs.
-322	getindex	HOLLOW	no	no	yes	The model takes two JInt64 endpoints and calls substring directly, omitting the AbstractUnitRange object, first and last calls, and generic AbstractString inputs.
+47	raw_substring	FAITHFUL	-	-	-	The exclusion is accurate because this line only declares the generic function and has no method body or observable behaviour.
+76	SubString{T}	HOLLOW	yes	no	yes	The proposition assumes successful bounds, validity, and next-index calls and therefore omits the method's error behaviour for allowed inputs.
+86	raw_substring	HOLLOW	yes	no	yes	The proposition assumes that ncodeunits succeeds, so it does not cover every allowed AbstractString implementation and its propagated failure behaviour.
+93	raw_substring	FAITHFUL	yes	yes	yes	The model and proposition cover all three bounds conditions, the local offset translation, and both outcomes for every input.
+103	SubString{T}	HOLLOW	yes	no	yes	The proposition assumes that ncodeunits succeeds instead of covering the method's propagated failure for every allowed parent implementation.
+108	SubString	FAITHFUL	yes	yes	yes	The model universally states the exact delegation to the typed constructor with the same parent and Int endpoints.
+109	SubString	HOLLOW	yes	no	yes	The proposition assumes both Int conversions succeed and omits conversion failures that are possible for allowed Integer arguments.
+110	SubString	HOLLOW	yes	no	yes	The proposition assumes both first and last calls succeed and omits their failure behaviour for allowed AbstractUnitRange implementations.
+112	SubString	HOLLOW	yes	no	yes	The proposition covers only a nonempty range whose bounds check succeeds and omits empty ranges and bounds failures.
+117	SubString	HOLLOW	yes	no	yes	The proposition assumes that ncodeunits succeeds and therefore does not state the complete behaviour for every allowed AbstractString implementation.
+118	SubString	FAITHFUL	yes	yes	yes	The model states the identity result for every represented SubString value.
+120	view	FAITHFUL	yes	yes	yes	The model universally preserves both arguments in the single SubString delegation.
+121	maybeview	FAITHFUL	yes	yes	yes	The model universally preserves both arguments in the single view delegation.
+122	maybeview	FAITHFUL	yes	yes	yes	The model universally preserves the string and heterogeneous argument tuple in the getindex delegation.
+124	convert	HOLLOW	yes	no	yes	The proposition assumes that parent conversion and SubString construction succeed and omits their allowed failure paths.
+126	convert	FAITHFUL	yes	yes	yes	The model states same-type conversion as the identity for every represented SubString subtype.
+129	convert	FAITHFUL	yes	yes	yes	The tagged union model returns the identical String for every input.
+130	convert	FAITHFUL	yes	yes	yes	The tagged union model returns the identical SubString for every input.
+131	convert	HOLLOW	no	yes	yes	The model replaces the effectful convert call and the String type assertion with a total function, so it does not mirror the method body.
+133	String	FAITHFUL	yes	yes	yes	The model calls the parent pointer at offset plus one and passes that pointer with the stored count to unsafe_string.
+139	ncodeunits	FAITHFUL	yes	yes	yes	The model returns the stored code-unit count for every represented parent type.
+140	codeunit	HOLLOW	no	no	yes	The model delegates to an arbitrary callback but omits the CodeunitType assertion and its possible failure.
+141	length	FAITHFUL	yes	yes	yes	The model calls the parent length function with offset plus one and offset plus the stored count for every input.
+144	length	FAITHFUL	yes	yes	yes	The model calls the parent String length function with the same translated endpoints for every input.
+146	codeunit	HOLLOW	yes	no	yes	The proposition assumes successful bounds checking and index addition and therefore omits errors for allowed Integer indices.
+151	iterate	FAITHFUL	yes	yes	yes	The proposition uses the full raw_substring, SubString iteration, collection, and length models, is refuted, and has the required reproducer.
+160	getindex	HOLLOW	yes	no	yes	The proposition assumes successful bounds checking and index addition and therefore omits errors for allowed Integer indices.
+166	isascii	FAITHFUL	yes	yes	yes	The model applies ASCII classification to exactly the visible SubString code units for every input.
+168	isvalid	HOLLOW	yes	no	yes	The proposition assumes successful bounds and addition calls and omits their failure behaviour for allowed Integer implementations.
+174	thisind	FAITHFUL	yes	yes	yes	The model applies the complete UTF-8 thisind helper to the visible byte view and the same Int index.
+175	nextind	FAITHFUL	yes	yes	yes	The model applies the complete UTF-8 nextind helper to the visible byte view and the same Int index.
+178	lastindex	FAITHFUL	yes	yes	yes	The model calls the complete thisind model on the visible bytes at the stored code-unit count.
+180	parent	FAITHFUL	yes	yes	yes	The model returns the stored parent for every represented parent type.
+181	parentindices	HOLLOW	no	no	yes	The model returns an endpoint pair and omits construction of the UnitRange and enclosing one-tuple that the Julia method returns.
+183	==	FAITHFUL	yes	yes	yes	The model checks byte sizes before the short-circuited byte comparison for both String and SubString operands.
+187	cmp	FAITHFUL	yes	yes	yes	The model performs memcmp first and compares byte sizes only when the byte comparison is zero.
+193	cconvert	FAITHFUL	yes	yes	yes	The model returns the identical SubString for every UInt8 pointer conversion input.
+194	cconvert	FAITHFUL	yes	yes	yes	The model returns the identical SubString for every Int8 pointer conversion input.
+196	unsafe_convert	HOLLOW	no	no	yes	The model takes the parent pointer as an extra bare input and omits the pointer call, so the proposition is not about the Julia method on its actual inputs.
+200	pointer	HOLLOW	no	no	yes	The model takes the parent pointer as an extra bare input and therefore omits the pointer call and a property over the method's actual inputs.
+201	pointer	HOLLOW	no	no	yes	The model takes a bare parent pointer, converts the Integer delta through Int.toNat, and omits Julia's pointer and mixed-integer arithmetic behaviour.
+203	hash	FAITHFUL	yes	yes	yes	The model obtains pointer and size in order, calls hash_bytes with the seed and secret, and converts its result for every valid SubString.
+206	_isannotated	HOLLOW	no	no	yes	The model hard-codes three type categories instead of calling _isannotated on the arbitrary parent type, so it does not state the method's delegation property.
+208	string	HOLLOW	no	yes	yes	The proposition states the promised identity result, but its model returns the value directly and omits the String conversion call.
+209	string	FAITHFUL	yes	yes	yes	The model calls String conversion on the same SubString for every input.
+211	Symbol	HOLLOW	no	no	yes	The model takes a bare parent address and byte count expansion instead of mirroring the ccall with the SubString and sizeof call on the method's actual input.
+215	__unsafe_string!	HOLLOW	no	no	yes	The model replaces the method's early-return branch sequence with a generated-byte loop, and the proposition assumes that entire loop succeeds without stating the stores.
+233	__unsafe_string!	HOLLOW	yes	no	yes	The proposition assumes successful size, pointer, and copy calls rather than covering all outcomes under only the documented writable-buffer precondition.
+239	__unsafe_string!	HOLLOW	yes	no	yes	The proposition assumes successful size, pointer, and copy calls rather than covering all outcomes under only the documented writable-buffer precondition.
+245	__unsafe_string!	HOLLOW	yes	no	yes	The proposition assumes successful size, pointer, and copy calls rather than covering all outcomes under only the documented writable-buffer precondition.
+252	string	FAITHFUL	yes	yes	yes	The model universally forwards the restricted heterogeneous argument list to the _string implementation.
+254	string	FAITHFUL	yes	yes	yes	The model forwards every four-type argument list to the inspected two-pass _string model.
+256	_string	HOLLOW	no	no	yes	The second pass delegates all type dispatch to an unconstrained write callback, so neither the model nor proposition states the required per-type branches and calls.
+287	repeat	FAITHFUL	yes	yes	yes	The model universally invokes the general Integer repeat operation with the unchanged String and BitInteger value.
+289	repeat	HOLLOW	no	no	yes	The model replaces allocation and the one-byte and copy loops with a flattened list, while the proposition covers only the negative, zero, and one-count branches.
+309	filter	HOLLOW	no	no	yes	The model collects every character before running any predicate, so it changes the method's interleaved iteration, predicate, and write order, while the proposition also omits allocation and iteration failures.
+322	getindex	FAITHFUL	yes	yes	yes	The model universally delegates the unchanged AbstractString and range object to SubString construction.

@@ -289,35 +289,6 @@ private def pdEntry (line : Nat) (fn statement source : String)
     juliaFile := "base/permuteddimsarray.jl", juliaFns := [fn], statement, source,
     status := .proven, prop, thm := some thm }
 
-def permutedDimsReviewEntries : List Entry := [
-  pdEntry 48 "parent(::PermutedDimsArray)" "parent returns the stored parent field." "base/permuteddimsarray.jl:48" ``PD48Property ``pd48Property,
-  pdEntry 49 "size(::PermutedDimsArray)" "size reads the parent, calls size, then permutes the result." "base/permuteddimsarray.jl:49" ``PD49Property ``pd49Property,
-  pdEntry 50 "axes(::PermutedDimsArray)" "axes reads the parent, calls axes, then permutes the result." "base/permuteddimsarray.jl:50" ``PD50Property ``pd50Property,
-  pdEntry 51 "has_offset_axes(::PermutedDimsArray)" "Offset-axis detection calls the parent method on the stored parent." "base/permuteddimsarray.jl:51" ``PD51Property ``pd51Property,
-  pdEntry 52 "similar(::PermutedDimsArray,T,dims)" "similar delegates to the parent with the exact type and dimensions." "base/permuteddimsarray.jl:52" ``PD52Property ``pd52Property,
-  pdEntry 53 "dataids(::PermutedDimsArray)" "dataids delegates through parent(A)." "base/permuteddimsarray.jl:53" ``PD53Property ``pd53Property,
-  pdEntry 54 "unaliascopy(::PermutedDimsArray)" "unaliascopy copies the parent and reconstructs the view type." "base/permuteddimsarray.jl:54" ``PD54Property ``pd54Property,
-  pdEntry 55 "cconvert(::Ptr,::PermutedDimsArray)" "Pointer conversion delegates through parent(A)." "base/permuteddimsarray.jl:55" ``PD55Property ``pd55Property,
-  pdEntry 64 "strides(::PermutedDimsArray)" "strides reads parent strides and permutes them in tuple order." "base/permuteddimsarray.jl:64-67" ``PD64Property ``pd64Property,
-  pdEntry 68 "elsize(::Type{<:PermutedDimsArray})" "elsize delegates to the parent array type." "base/permuteddimsarray.jl:68" ``PD68Property ``pd68Property,
-  pdEntry 70 "getindex(::PermutedDimsArray,I...)" "getindex checks view bounds before permuting indices and reading the parent." "base/permuteddimsarray.jl:70-74" ``PD70Property ``pd70Property,
-  pdEntry 75 "setindex!(::PermutedDimsArray,val,I...)" "setindex! checks bounds, permutes indices, mutates the parent, and returns val." "base/permuteddimsarray.jl:75-79" ``PD75Property ``pd75Property,
-  pdEntry 81 "isassigned(::PermutedDimsArray,I...)" "isassigned returns false on failed bounds and otherwise queries the permuted parent index." "base/permuteddimsarray.jl:81-85" ``PD81Property ``pd81Property,
-  pdEntry 87 "genperm(::NTuple,::Dims)" "Tuple genperm constructs every result position from the indexed permutation." "base/permuteddimsarray.jl:87" ``PD87Property ``pd87Property,
-  pdEntry 88 "genperm(I,::AbstractVector{Int})" "Vector genperm converts the vector to a tuple before tuple dispatch." "base/permuteddimsarray.jl:88" ``PD88Property ``pd88Property,
-  pdEntry 198 "permutedims(::AbstractArray,perm)" "permutedims allocates with permuted axes then returns the permutedims! result." "base/permuteddimsarray.jl:198-201" ``PD198Property ``pd198Property,
-  pdEntry 203 "permutedims(::AbstractMatrix)" "Matrix permutedims delegates with permutation (2,1)." "base/permuteddimsarray.jl:203" ``PD203Property ``pd203Property,
-  pdEntry 273 "permutedims(::AbstractVector)" "Vector permutedims reshapes to one by length and preserves reshape aliasing." "base/permuteddimsarray.jl:273" ``PD273Property ``pd273Property,
-  pdEntry 286 "permutedims!" "permutedims! checks axes, constructs the inverse view, copies, and returns dest." "base/permuteddimsarray.jl:286-291" ``PD286Property ``pd286Property,
-  pdEntry 293 "copyto!(::PermutedDimsArray,::AbstractArray)" "copyto! handles empty source, checks bounds, unaliases, copies, and returns dest." "base/permuteddimsarray.jl:293-298" ``PD293Property ``pd293Property,
-  pdEntry 300 "_copy!(::PermutedDimsArray,src)" "_copy! finds the first moved dimension and performs direct or tiled copying before returning the view." "base/permuteddimsarray.jl:300-317" ``PD300Property ``pd300Property,
-  pdEntry 319 "_permutedims!(...,::CartesianIndices{0},...)" "The zero-prefix kernel performs every nested tiled assignment." "base/permuteddimsarray.jl:319-331" ``PD319Property ``pd319Property,
-  pdEntry 333 "_permutedims!(...,R1,...)" "The general kernel performs every prefix and nested tiled assignment." "base/permuteddimsarray.jl:333-347" ``PD333Property ``pd333Property,
-  pdEntry 351 "_mapreduce_dim(::CommutativeOps)" "Commutative reduction forwards every argument through parent(A)." "base/permuteddimsarray.jl:351-353" ``PD351Property ``pd351Property,
-  pdEntry 354 "_mapreduce_dim(identity,mul_prod)" "Product reduction forwards every argument through parent(A)." "base/permuteddimsarray.jl:354-356" ``PD354Property ``pd354Property,
-  pdEntry 358 "mapreducedim!(::CommutativeOps)" "Reduction constructs the inverse destination view, reduces against parent(A), and returns B." "base/permuteddimsarray.jl:358-361" ``PD358Property ``pd358Property,
-  pdEntry 363 "mapreducedim!(identity,mul_prod)" "Product reduction constructs the inverse destination view, reduces against parent(A), and returns B." "base/permuteddimsarray.jl:363-367" ``PD363Property ``pd363Property,
-  pdEntry 369 "showarg(::PermutedDimsArray)" "showarg emits the wrapper, parent, permutation, and conditional element type in source order." "base/permuteddimsarray.jl:369-375" ``PD369Property ``pd369Property
-]
+def permutedDimsReviewEntries : List Entry := []
 
 end JuliaLean.MultidimCov

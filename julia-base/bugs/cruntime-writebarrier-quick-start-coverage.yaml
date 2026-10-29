@@ -1,0 +1,47 @@
+id: cruntime-writebarrier-quick-start-coverage
+title: "Failed remset growth overwrites an existing remembered parent"
+priority: P2
+kind: model-counterexample
+area: GC
+files: [src/gc-stock.c, src/support/arraylist.c, src/support/dtypes.h]
+functions: ["jl_gc_queue_root", "arraylist_push", "arraylist_grow"]
+summary: |
+  If the inline TLS remset is full and its first heap allocation fails,
+  arraylist_grow leaves len, max and items unchanged. arraylist_push then
+  writes items[len - 1], replacing the last remembered parent after the new
+  parent's OLD bit has already been cleared.
+likelihood: |
+  Requires malloc failure while adding the thirtieth remembered parent. This
+  is an out-of-memory edge path; the resulting missing edge is not reproduced
+  on stock Julia.
+maybe_intended: ""
+reproducer: |
+  println("NOT REPRODUCED cruntime-writebarrier-quick-start-coverage")
+  println("Formal allocator-failure counterexample only; no deterministic Julia trigger is known.")
+output:
+  release: |
+    NOT RUN: formal allocator-failure counterexample only.
+  nightly: |
+    NOT RUN: formal allocator-failure counterexample only.
+reproduced: {release: false, nightly: false}
+expected: |
+  Allocation failure must leave every existing remembered parent recorded and
+  must not clear a new parent's OLD bit without recording that parent.
+promised_by: |
+  Invariant: at quick-collection start, each old owner with an unmarked young
+  child is covered by the TLS or image remembered set.
+cause: |
+  src/support/arraylist.c:40-65 returns from arraylist_grow when malloc or
+  realloc returns NULL. arraylist_push at lines 67-70 unconditionally writes
+  items[len - 1]. jl_gc_queue_root clears OLD before pushing at
+  src/gc-stock.c:1679-1682.
+possible_fix: |
+  Make arraylist growth report failure and propagate it before changing the
+  parent header, or make this GC path use an allocation routine that cannot
+  return NULL silently.
+duplicates:
+  issues: []
+  queries: ["arraylist_push malloc failure", "arraylist_grow NULL", "remset allocation failure GC", "arraylist OOM overwrite"]
+lean:
+  property: JuliaLean.CRuntime.WriteBarrier.QuickStartCoverage
+  theorem: JuliaLean.CRuntime.WriteBarrier.quickStartCoverage_refuted

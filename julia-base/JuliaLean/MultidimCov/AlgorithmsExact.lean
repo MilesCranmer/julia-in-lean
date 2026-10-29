@@ -280,15 +280,6 @@ theorem algorithmsExactRows : AlgorithmsExactRows := by
     showPairsCartesianExact, showPairsVectorExact, refCartesianSetExact,
     unionSplitExact, unionSplitEmptyExact, hashAbstractArrayExact]
 
-def algorithmsExactEntries : List Entry := [
-  { id := "multidimcov-algorithms-exact"
-    juliaFile := "base/multidimensional.jl"
-    juliaFns := ["diff, alias helpers, Cartesian copy/shift, BitArray get/set/fill, isassigned, permutedims!, unique, sortslices, Ref, hash, and union_split"]
-    statement := "Each remaining multidimensional algorithm follows its source-order validation, arithmetic, loop, branch, delegation, mutation, or return body."
-    source := "base/multidimensional.jl:1113-2123"
-    status := .proven
-    prop := ``AlgorithmsExactRows
-    thm := some ``algorithmsExactRows }
-]
+def algorithmsExactEntries : List Entry := []
 
 end JuliaLean.MultidimCov

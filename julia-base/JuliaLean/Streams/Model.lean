@@ -9,8 +9,7 @@ The byte buffer is the logical readable sequence: a `BufferStream`'s in-memory
 buffer, a receiving `PipeEndpoint`'s queue after its peer writes, or an
 `IOStream`'s file contents after the caller rewinds it. Blocking is abstracted
 by considering a state after the corresponding libuv or file operation has
-completed. The model retains the different closed-write behavior of `IOStream`
-and the libuv-backed stream types.
+completed.
 -/
 
 namespace JuliaLean.Streams
@@ -54,11 +53,11 @@ def freshStream (kind : StreamKind) : StreamM :=
 /-- `isopen`, `base/iostream.jl:88`, `base/stream.jl:377-382,2219`. -/
 def isOpen (s : StreamM) : Bool := s.status != .closed
 
-/-- `iswritable`. The IOStream method checks only the access mode
-(`base/iostream.jl:104`), while libuv streams also require a usable handle. -/
+/-- `iswritable` checks that an IOStream is open and has a writable access mode
+(`base/iostream.jl:104`). -/
 def isWritable (s : StreamM) : Bool :=
   match s.kind with
-  | .ioStream => s.writable
+  | .ioStream => isOpen s && s.writable
   | .libuvStream | .bufferStream => isOpen s && s.status != .closing && s.writable
 
 /-- `close`, `base/iostream.jl:90-93`, `base/stream.jl:770-783,2231-2236`. -/
@@ -71,17 +70,15 @@ def streamEof (s : StreamM) : Bool :=
 
 /-- `unsafe_write` and the byte `write` specialization. For a pipe this updates
 the connected reader's logical queue; for an `IOStream` it updates the logical
-file contents later exposed by rewinding. The `IOStream` C write returns zero
-after close because its `iswritable` guard still passes
-(`base/iostream.jl:411-425`). Libuv-backed methods call `check_open`
-(`base/stream.jl:384-388,1736-1739,2404-2413`). -/
+file contents later exposed by rewinding. Closed IOStreams fail the
+`iswritable` guard (`base/iostream.jl:411-425`). Libuv-backed methods call
+`check_open` (`base/stream.jl:384-388,1736-1739,2404-2413`). -/
 def unsafeWrite (s : StreamM) (memory : List UInt8) (n : Nat) : SR (Nat × StreamM) :=
   if n > memory.length then .error .invalidPointer
   else
     match s.kind with
     | .ioStream =>
         if !isWritable s then .error .argumentError
-        else if !isOpen s then .ok (0, s)
         else .ok (n, { s with buffer := s.buffer ++ memory.take n })
     | .libuvStream =>
         if !isWritable s then .error .ioError

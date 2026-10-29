@@ -44,17 +44,6 @@ line	name	verdict	mirror	property	settled	reason
 235	eq_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no complete method-specific Lean function for this body, so it states no promised all-input behavior for this method.
 237	eq_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no complete method-specific Lean function for this body, so it states no promised all-input behavior for this method.
 240	ne_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no complete method-specific Lean function for this body, so it states no promised all-input behavior for this method.
-250	$op_fast	HOLLOW	no	no	yes	The propositions have no model for this arbitrary-arity forwarding method, so they state no all-input forwarding property.
-258	$op_fast	HOLLOW	no	no	yes	The propositions have no model for this arbitrary-arity forwarding method, so they state no all-input forwarding property.
-260	$op_fast	HOLLOW	no	no	yes	promoteThen handles exactly two inputs and omits zs, variadic promotion, splatting, and redispatch, so it states no property for all allowed inputs.
-263	$op_fast	HOLLOW	no	no	yes	The propositions have no model for this arbitrary-arity forwarding method, so they state no all-input forwarding property.
-270	$op_fast	HOLLOW	no	no	yes	ScalarFastBehavior has a generic forwarding helper, but ComplexFastBehavior has no corresponding model even though both registry entries claim this method.
-272	$op_fast	HOLLOW	no	no	yes	ScalarFastBehavior has a generic forwarding helper, but ComplexFastBehavior has no corresponding model even though both registry entries claim this method.
-274	$op_fast	HOLLOW	no	no	yes	ScalarFastBehavior has a generic forwarding helper, but ComplexFastBehavior has no corresponding model even though both registry entries claim this method.
-277	$op_fast	HOLLOW	no	no	yes	ScalarFastBehavior has a generic forwarding helper, but ComplexFastBehavior has no corresponding model even though both registry entries claim this method.
-281	$op_fast	HOLLOW	no	no	yes	foldFast begins from an already supplied seed and omits the source calls op(op(a,b),c), so it neither mirrors nor states the full n-ary method behavior.
-286	$op_fast	HOLLOW	no	no	yes	The propositions omit variadic promotion, splatting, redispatch, and the subsequent left fold, so they state no property for all allowed inputs.
-289	$op_fast	HOLLOW	no	no	yes	foldFast begins from an already supplied seed and omits the source calls op(op(a,b),c), so it neither mirrors nor states the full n-ary method behavior.
 294	exp2_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
 295	exp_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
 296	exp10_fast	HOLLOW	no	no	yes	ScalarFastBehavior has no method-specific Lean function for this body; its opaque operation inputs do not identify the source call or establish the behavior of this method.
@@ -100,11 +89,6 @@ line	name	verdict	mirror	property	settled	reason
 364	sqrt_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
 365	tan_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
 366	tanh_fast	HOLLOW	no	no	yes	complexFormulaCode only assigns a numeric tag to this operation and contains none of the source arithmetic or calls, so it states no behavior of this method.
-377	$f_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no forwarding or promotion function for this generated method, so it states no all-input property of its body.
-385	$f_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no forwarding or promotion function for this generated method, so it states no all-input property of its body.
-387	$f_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no forwarding or promotion function for this generated method, so it states no all-input property of its body.
-389	$f_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no forwarding or promotion function for this generated method, so it states no all-input property of its body.
-393	$f_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no forwarding or promotion function for this generated method, so it states no all-input property of its body.
 399	maximum_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no function for this reduction method and reduceFast omits its delegation, arguments, keywords, and array behavior.
 400	minimum_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no function for this reduction method and reduceFast omits its delegation, arguments, keywords, and array behavior.
 402	maximum_fast	HOLLOW	no	no	yes	ComplexFastBehavior has no function for this reduction method and reduceFast omits its delegation, arguments, keywords, and array behavior.

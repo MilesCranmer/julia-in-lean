@@ -80,13 +80,15 @@ def m953 (toInt : IntegerValue → Outcome Int) (hasLength : S → Outcome Bool)
     (dest : D) (dstart : IntegerValue) (src : S) : Outcome D := do
   let index ← toInt dstart
   let sized ← hasLength src
-  let lengthDest ← destLength dest
-  if sized && 0 < lengthDest then
-    let count ← sourceLength src
-    if count = 0 then return dest
-    checkbounds dest index
-    let final ← lastindex dest
-    if ¬(count ≤ final - index + 1) then .thrown .bounds
+  if sized then
+    let lengthDest ← destLength dest
+    if 0 < lengthDest then
+      let count ← sourceLength src
+      if count = 0 then return dest
+      checkbounds dest index
+      let final ← lastindex dest
+      if ¬(count ≤ final - index + 1) then .thrown .bounds
+      else writeSequential set dest index (← iterate src)
     else writeSequential set dest index (← iterate src)
   else writeSequential set dest index (← iterate src)
 def P953 : Prop := ∀ {D S V : Type} (toInt : IntegerValue → Outcome Int)
@@ -97,36 +99,41 @@ def P953 : Prop := ∀ {D S V : Type} (toInt : IntegerValue → Outcome Int)
   m953 toInt hasLength destLength sourceLength lastindex checkbounds iterate set dest dstart src = do
     let index ← toInt dstart
     let sized ← hasLength src
-    let lengthDest ← destLength dest
-    if sized && 0 < lengthDest then
-      let count ← sourceLength src
-      if count = 0 then return dest
-      checkbounds dest index
-      let final ← lastindex dest
-      if ¬(count ≤ final - index + 1) then .thrown .bounds
+    if sized then
+      let lengthDest ← destLength dest
+      if 0 < lengthDest then
+        let count ← sourceLength src
+        if count = 0 then return dest
+        checkbounds dest index
+        let final ← lastindex dest
+        if ¬(count ≤ final - index + 1) then .thrown .bounds
+        else writeSequential set dest index (← iterate src)
       else writeSequential set dest index (← iterate src)
     else writeSequential set dest index (← iterate src)
 theorem p953 : P953 := by unfold P953; intros; rfl
 
-def skipValues : Nat → Iteration V → Outcome (Iteration V)
-  | 0, values => .returned values
-  | _ + 1, .done => .thrown (.argument (.literal "source has fewer elements than required"))
-  | _ + 1, .failed failure => .thrown failure
-  | _ + 1, .diverges => .diverged
-  | count + 1, .yielded _ rest => skipValues count rest
+def skipValues : Nat → Nat → Iteration V → Outcome (Nat × Iteration V)
+  | 0, skipped, values => .returned (skipped, values)
+  | _ + 1, _, .failed failure => .thrown failure
+  | _ + 1, _, .diverges => .diverged
+  | _ + 1, skipped, .done => .returned (skipped, .done)
+  | count + 1, skipped, .yielded _ rest => skipValues count (skipped + 1) rest
 
 /-- `copyto!(dest,dstart,src,sstart)`, lines 974-1000. -/
 def m974 (toInt : IntegerValue → Outcome Int) (iterate : S → Outcome (Iteration V))
     (set : D → Int → V → Outcome D) (dest : D) (dstart : IntegerValue)
     (src : S) (sstart : IntegerValue) : Outcome D :=
   if sstart.value < 1 then
-    .thrown (.argument (lazyAppend [.literal "source start offset (", .dynamic ⟨0, sstart.value.natAbs⟩,
+    .thrown (.argument (lazyAppend [.literal "source start offset (", .integer sstart.value,
       .literal ") is < 1"]))
   else do
     let values ← iterate src
-    let remaining ← skipValues (sstart.value - 1).toNat values
-    match remaining with
-    | .done => .thrown (.argument (.literal "source has fewer elements than required"))
+    let skipped ← skipValues (sstart.value - 1).toNat 0 values
+    match skipped.2 with
+    | .done =>
+        .thrown (.argument (lazyAppend [.literal "source has fewer elements than required, ",
+          .literal "expected at least ", .integer sstart.value, .literal ", got ",
+          .integer skipped.1]))
     | .failed failure => .thrown failure
     | .diverges => .diverged
     | .yielded value rest =>
@@ -137,13 +144,16 @@ def P974 : Prop := ∀ {D S V : Type} (toInt : IntegerValue → Outcome Int)
     (dest : D) dstart (src : S) sstart,
   m974 toInt iterate set dest dstart src sstart =
     if sstart.value < 1 then
-      .thrown (.argument (lazyAppend [.literal "source start offset (", .dynamic ⟨0, sstart.value.natAbs⟩,
+      .thrown (.argument (lazyAppend [.literal "source start offset (", .integer sstart.value,
         .literal ") is < 1"]))
     else do
       let values ← iterate src
-      let remaining ← skipValues (sstart.value - 1).toNat values
-      match remaining with
-      | .done => .thrown (.argument (.literal "source has fewer elements than required"))
+      let skipped ← skipValues (sstart.value - 1).toNat 0 values
+      match skipped.2 with
+      | .done =>
+          .thrown (.argument (lazyAppend [.literal "source has fewer elements than required, ",
+            .literal "expected at least ", .integer sstart.value, .literal ", got ",
+            .integer skipped.1]))
       | .failed failure => .thrown failure
       | .diverges => .diverged
       | .yielded value rest =>
@@ -151,47 +161,80 @@ def P974 : Prop := ∀ {D S V : Type} (toInt : IntegerValue → Outcome Int)
           writeSequential set dest index (.yielded value rest)
 theorem p974 : P974 := by unfold P974; intros; rfl
 
-def takeIteration : Nat → Iteration V → Iteration V
-  | 0, _ => .done
-  | _ + 1, .done => .done
-  | _ + 1, .failed failure => .failed failure
-  | _ + 1, .diverges => .diverges
-  | count + 1, .yielded value rest => .yielded value (takeIteration count rest)
+def writeBounded (set : D → Int → V → Outcome D) :
+    D → Int → Nat → Iteration V → Outcome (D × Nat)
+  | dest, _, 0, _ => .returned (dest, 0)
+  | dest, _, _, .done => .returned (dest, 0)
+  | _, _, _, .failed failure => .thrown failure
+  | _, _, _, .diverges => .diverged
+  | dest, index, count + 1, .yielded value rest => do
+      let next ← set dest index value
+      let result ← writeBounded set next (index + 1) count rest
+      .returned (result.1, result.2 + 1)
 
 /-- Counted iterable `copyto!`, lines 1003-1037. -/
 def m1003 (toInt : IntegerValue → Outcome Int) (linearIndices : D → Outcome (List Int))
     (iterate : S → Outcome (Iteration V)) (set : D → Int → V → Outcome D)
     (dest : D) (dstart : IntegerValue) (src : S) (sstart count : IntegerValue) : Outcome D :=
-  if count.value < 0 then .thrown (.argument (.literal "n should be non-negative"))
+  if count.value < 0 then
+    .thrown (.argument (lazyAppend [.literal "tried to copy n=", .integer count.value,
+      .literal ", elements, but n should be non-negative"]))
   else if count.value = 0 then .returned dest
   else do
     let indices ← linearIndices dest
-    if sstart.value < 1 then .thrown (.argument (.literal "source start offset is < 1"))
-    else if ¬(indices.contains dstart.value && count.value ≤ (indices.getLast?.getD 0) - dstart.value + 1)
-      then .thrown .bounds
+    if sstart.value < 1 then
+      .thrown (.argument (lazyAppend [.literal "source start offset (", .integer sstart.value,
+        .literal ") is < 1"]))
+    else if ¬(indices.contains dstart.value &&
+      count.value ≤ (indices.getLast?.getD 0) - dstart.value + 1) then .thrown .bounds
     else
       let destinationStart ← toInt dstart
       let n ← toInt count
       let values ← iterate src
-      let remaining ← skipValues (sstart.value - 1).toNat values
-      match remaining with
-      | .done => .thrown (.argument (.literal "source has fewer elements than required"))
+      let skipped ← skipValues (sstart.value - 1).toNat 0 values
+      match skipped.2 with
+      | .done =>
+          .thrown (.argument (lazyAppend [.literal "source has fewer elements than required, ",
+            .literal "expected at least ", .integer sstart.value, .literal ", got ",
+            .integer skipped.1]))
       | .failed failure => .thrown failure
       | .diverges => .diverged
       | .yielded value rest => do
           let firstWrite ← set dest destinationStart value
-          let copied ← writeSequential set firstWrite (destinationStart + 1)
-            (takeIteration (n - 1).toNat rest)
-          let available := match takeIteration (n - 1).toNat rest with
-            | .done => 0
-            | _ => n - 1
-          if available < n - 1 then .thrown .bounds else .returned copied
+          let copied ← writeBounded set firstWrite (destinationStart + 1) (n - 1).toNat rest
+          if copied.2 < (n - 1).toNat then .thrown .bounds else .returned copied.1
 def P1003 : Prop := ∀ {D S V : Type} (toInt : IntegerValue → Outcome Int)
     (linearIndices : D → Outcome (List Int)) (iterate : S → Outcome (Iteration V))
     (set : D → Int → V → Outcome D)
     (dest : D) dstart (src : S) sstart count,
   m1003 toInt linearIndices iterate set dest dstart src sstart count =
-    m1003 toInt linearIndices iterate set dest dstart src sstart count
+  if count.value < 0 then
+    .thrown (.argument (lazyAppend [.literal "tried to copy n=", .integer count.value,
+      .literal ", elements, but n should be non-negative"]))
+  else if count.value = 0 then .returned dest
+  else do
+    let indices ← linearIndices dest
+    if sstart.value < 1 then
+      .thrown (.argument (lazyAppend [.literal "source start offset (", .integer sstart.value,
+        .literal ") is < 1"]))
+    else if ¬(indices.contains dstart.value &&
+      count.value ≤ (indices.getLast?.getD 0) - dstart.value + 1) then .thrown .bounds
+    else
+      let destinationStart ← toInt dstart
+      let n ← toInt count
+      let values ← iterate src
+      let skipped ← skipValues (sstart.value - 1).toNat 0 values
+      match skipped.2 with
+      | .done =>
+          .thrown (.argument (lazyAppend [.literal "source has fewer elements than required, ",
+            .literal "expected at least ", .integer sstart.value, .literal ", got ",
+            .integer skipped.1]))
+      | .failed failure => .thrown failure
+      | .diverges => .diverged
+      | .yielded value rest => do
+          let firstWrite ← set dest destinationStart value
+          let copied ← writeBounded set firstWrite (destinationStart + 1) (n - 1).toNat rest
+          if copied.2 < (n - 1).toNat then .thrown .bounds else .returned copied.1
 theorem p1003 : P1003 := by unfold P1003; intros; rfl
 
 inductive IndexStyle where | linear | cartesian deriving Repr, DecidableEq
@@ -233,61 +276,77 @@ def P1082 : Prop := ∀ {D S : Type} isEmpty unalias copyUnaliased destStyle
     copyUnaliased destStyle dest srcStyle source
 theorem p1082 : P1082 := by unfold P1082; intros; rfl
 
-def copyLinear (read : S → Int → Outcome V) (write : D → Int → V → Outcome D)
-    (delta : Int) : D → S → List Int → Outcome D
-  | dest, _, [] => .returned dest
-  | dest, src, index :: rest => do
-      let value ← read src index
-      let next ← write dest (index + delta) value
-      copyLinear read write delta next src rest
+def copyLinear (iterateIndices : LS → D → (D → Int → Outcome D) → Outcome D)
+    (read : S → Int → Outcome V) (write : D → Int → V → Outcome D)
+    (add : Int → Int → Outcome Int) (delta : Int) (dest : D) (src : S)
+    (indices : LS) : Outcome D :=
+  iterateIndices indices dest fun current index => do
+    let value ← read src index
+    let destinationIndex ← add index delta
+    write current destinationIndex value
 
-def copyZipped (read : S → I → Outcome V) (write : D → I → V → Outcome D) :
-    D → S → List I → List I → Outcome D
-  | dest, _, [], _ => .returned dest
-  | dest, _, _, [] => .returned dest
-  | dest, src, di :: ds, si :: ss => do
-      let value ← read src si
-      let next ← write dest di value
-      copyZipped read write next src ds ss
-
-/-- `copyto_unaliased!`, lines 1088-1123. -/
-def m1088 (isEmpty : S → Outcome Bool) (linearIndicesDest : D → Outcome (List Int))
-    (linearIndicesSrc : S → Outcome (List Int)) (checkbounds : List Int → Int → Outcome Bool)
-    (iterateSrc : S → Outcome (Iteration V)) (eachDest : D → Outcome (List I))
-    (eachSrc : S → Outcome (List I)) (equalIndices : List I → List I → Outcome Bool)
+/-- `copyto_unaliased!`, lines 1088-1123. Linear-index iteration remains
+incremental, so index-iterator failures and divergence occur between reads and writes. -/
+def m1088 (isEmpty : S → Outcome Bool)
+    (linearIndicesDest : D → Outcome LD) (linearIndicesSrc : S → Outcome LS)
+    (firstDest : LD → Outcome Int) (firstSrc lastSrc : LS → Outcome Int)
+    (subtract add : Int → Int → Outcome Int) (checkbounds : LD → Int → Outcome Bool)
+    (iterateSrcValues : S → Outcome (Iteration V))
+    (iterateSrcIndices : LS → D → (D → Int → Outcome D) → Outcome D)
+    (iteratorsEqual : D → S → Outcome Bool)
+    (copyShared copyDual : D → S → Outcome D)
     (readLinear : S → Int → Outcome V) (writeLinear : D → Int → V → Outcome D)
-    (readCartesian : S → I → Outcome V) (writeCartesian : D → I → V → Outcome D)
     (destStyle srcStyle : IndexStyle) (dest : D) (src : S) : Outcome D := do
   if ← isEmpty src then return dest
   let destIndices ← linearIndicesDest dest
   let srcIndices ← linearIndicesSrc src
-  let firstDest := destIndices.head?.getD 0
-  let firstSrc := srcIndices.head?.getD 0
-  let delta := firstDest - firstSrc
-  let low ← checkbounds destIndices (firstSrc + delta)
-  let high ← checkbounds destIndices (srcIndices.getLast?.getD 0 + delta)
+  let destinationFirst ← firstDest destIndices
+  let sourceFirst ← firstSrc srcIndices
+  let delta ← subtract destinationFirst sourceFirst
+  let lowIndex ← add sourceFirst delta
+  let sourceLast ← lastSrc srcIndices
+  let highIndex ← add sourceLast delta
+  let low ← checkbounds destIndices lowIndex
+  let high ← checkbounds destIndices highIndex
   if ¬(low && high) then .thrown .bounds
   else match destStyle, srcStyle with
-    | .linear, .linear => copyLinear readLinear writeLinear delta dest src srcIndices
+    | .linear, .linear =>
+        copyLinear iterateSrcIndices readLinear writeLinear add delta dest src srcIndices
     | .linear, .cartesian =>
-        writeSequential writeLinear dest firstDest (← iterateSrc src)
-    | .cartesian, _ => do
-        let destination ← eachDest dest
-        let source ← eachSrc src
-        if ← equalIndices destination source then
-          copyZipped readCartesian writeCartesian dest src destination destination
-        else copyZipped readCartesian writeCartesian dest src destination source
-def P1088 : Prop := ∀ {D S I V : Type} (isEmpty : S → Outcome Bool)
-    (linearIndicesDest : D → Outcome (List Int)) (linearIndicesSrc : S → Outcome (List Int))
-    (checkbounds : List Int → Int → Outcome Bool) (iterateSrc : S → Outcome (Iteration V))
-    (eachDest : D → Outcome (List I)) (eachSrc : S → Outcome (List I))
-    (equalIndices : List I → List I → Outcome Bool) (readLinear : S → Int → Outcome V)
-    (writeLinear : D → Int → V → Outcome D) (readCartesian : S → I → Outcome V)
-    (writeCartesian : D → I → V → Outcome D) destStyle srcStyle (dest : D) (src : S),
-  m1088 isEmpty linearIndicesDest linearIndicesSrc checkbounds iterateSrc eachDest eachSrc
-    equalIndices readLinear writeLinear readCartesian writeCartesian destStyle srcStyle dest src =
-  m1088 isEmpty linearIndicesDest linearIndicesSrc checkbounds iterateSrc eachDest eachSrc
-    equalIndices readLinear writeLinear readCartesian writeCartesian destStyle srcStyle dest src
+        writeSequential writeLinear dest destinationFirst (← iterateSrcValues src)
+    | .cartesian, _ =>
+        if ← iteratorsEqual dest src then copyShared dest src else copyDual dest src
+def P1088 : Prop := ∀ {D S LD LS V : Type} (isEmpty : S → Outcome Bool)
+    (linearIndicesDest : D → Outcome LD) (linearIndicesSrc : S → Outcome LS)
+    (firstDest : LD → Outcome Int) (firstSrc lastSrc : LS → Outcome Int)
+    (subtract add : Int → Int → Outcome Int) (checkbounds : LD → Int → Outcome Bool)
+    (iterateSrcValues : S → Outcome (Iteration V))
+    (iterateSrcIndices : LS → D → (D → Int → Outcome D) → Outcome D)
+    (iteratorsEqual : D → S → Outcome Bool) (copyShared copyDual : D → S → Outcome D)
+    (readLinear : S → Int → Outcome V) (writeLinear : D → Int → V → Outcome D)
+    destStyle srcStyle (dest : D) (src : S),
+  m1088 isEmpty linearIndicesDest linearIndicesSrc firstDest firstSrc lastSrc subtract add
+    checkbounds iterateSrcValues iterateSrcIndices iteratorsEqual copyShared copyDual
+    readLinear writeLinear destStyle srcStyle dest src = do
+      if ← isEmpty src then return dest
+      let destIndices ← linearIndicesDest dest
+      let srcIndices ← linearIndicesSrc src
+      let destinationFirst ← firstDest destIndices
+      let sourceFirst ← firstSrc srcIndices
+      let delta ← subtract destinationFirst sourceFirst
+      let lowIndex ← add sourceFirst delta
+      let sourceLast ← lastSrc srcIndices
+      let highIndex ← add sourceLast delta
+      let low ← checkbounds destIndices lowIndex
+      let high ← checkbounds destIndices highIndex
+      if ¬(low && high) then .thrown .bounds
+      else match destStyle, srcStyle with
+        | .linear, .linear =>
+            copyLinear iterateSrcIndices readLinear writeLinear add delta dest src srcIndices
+        | .linear, .cartesian =>
+            writeSequential writeLinear dest destinationFirst (← iterateSrcValues src)
+        | .cartesian, _ =>
+            if ← iteratorsEqual dest src then copyShared dest src else copyDual dest src
 theorem p1088 : P1088 := by unfold P1088; intros; rfl
 
 /-- Three-argument array `copyto!`, lines 1125-1127. -/
@@ -296,12 +355,12 @@ def m1125 (linearIndices : S → Outcome (List Int)) (length : S → Outcome Int
     (dest : D) (dstart : IntegerValue) (src : S) : Outcome D := do
   let indices ← linearIndices src
   let count ← length src
-  copyFive dest dstart src ⟨indices.head?.getD 0⟩ count
+  copyFive dest dstart src ⟨indices.head?.getD 1⟩ count
 def P1125 : Prop := ∀ {D S : Type} linearIndices length copyFive
     (dest : D) dstart (src : S), m1125 linearIndices length copyFive dest dstart src = do
       let indices ← linearIndices src
       let count ← length src
-      copyFive dest dstart src ⟨indices.head?.getD 0⟩ count
+      copyFive dest dstart src ⟨indices.head?.getD 1⟩ count
 theorem p1125 : P1125 := by unfold P1125; intros; rfl
 
 /-- Four-argument array `copyto!`, lines 1129-1133. -/
@@ -354,7 +413,22 @@ def P1135 : Prop := ∀ {D S V : Type} (linearDest : D → Outcome (List Int))
     (read : S → Int → Outcome V) (write : D → Int → V → Outcome D)
     (dest : D) dstart (src : S) sstart count,
   m1135 linearDest linearSrc checkbounds toInt unalias read write dest dstart src sstart count =
-  m1135 linearDest linearSrc checkbounds toInt unalias read write dest dstart src sstart count
+  if count.value = 0 then .returned dest
+  else if count.value < 0 then .thrown (.argument (.literal "n should be non-negative"))
+  else do
+    let destIndices ← linearDest dest
+    let srcIndices ← linearSrc src
+    let destFirst ← checkbounds destIndices dstart
+    if ¬(destFirst && count.value ≤ destIndices.getLast?.getD 0 - dstart.value + 1) then
+      .thrown .bounds
+    let srcFirst ← checkbounds srcIndices sstart
+    if ¬(srcFirst && count.value ≤ srcIndices.getLast?.getD 0 - sstart.value + 1) then
+      .thrown .bounds
+    let di ← toInt dstart
+    let si ← toInt sstart
+    let n ← toInt count
+    let source ← unalias dest src
+    copyCount read write dest source di si n.toNat
 theorem p1135 : P1135 := by unfold P1135; intros; rfl
 
 structure RangeOps (R : Type) where
@@ -364,15 +438,18 @@ structure RangeOps (R : Type) where
   values : R → Outcome (List Int)
 
 def copyRegion (read : S → Int → Int → Outcome V)
-    (write : D → Int → Int → V → Outcome D) (rowStep colStep : Int) :
+    (write : D → Int → Int → V → Outcome D)
+    (rowStep colStep : Unit → Outcome Int) :
     D → S → Int → List Int → Int → List Int → Outcome D
   | dest, _, _, [], _, _ => .returned dest
   | dest, src, destColumn, sourceColumn :: sourceColumns, destRow, sourceRows => do
       let next ← sourceRows.foldlM (fun state sourceRow => do
         let value ← read src sourceRow sourceColumn
-        write state.1 state.2 destColumn value >>= fun out =>
-          .returned (out, state.2 + rowStep)) (dest, destRow)
-      copyRegion read write rowStep colStep next.1 src (destColumn + colStep)
+        let out ← write state.1 state.2 destColumn value
+        let step ← rowStep ()
+        .returned (out, state.2 + step)) (dest, destRow)
+      let step ← colStep ()
+      copyRegion read write rowStep colStep next.1 src (destColumn + step)
         sourceColumns destRow sourceRows
 
 /-- Matrix-region `copyto!`, lines 1159-1182. -/
@@ -383,23 +460,50 @@ def m1159 (destOps : RangeOps RD) (srcOps : RangeOps RS)
     (src : S) (srcRows srcCols : RS) : Outcome D := do
   let drLength ← destOps.length destRows
   let srLength ← srcOps.length srcRows
-  if drLength != srLength then .thrown (.argument (.literal "source and destination must have same size"))
+  if drLength != srLength then
+    let actualSource ← srcOps.length srcRows
+    let actualDest ← destOps.length destRows
+    .thrown (.argument (lazyAppend [.literal "source and destination must have same size (got ",
+      .integer actualSource, .literal " and ", .integer actualDest, .literal ")"]))
   let dcLength ← destOps.length destCols
   let scLength ← srcOps.length srcCols
-  if dcLength != scLength then .thrown (.argument (.literal "source and destination must have same size"))
+  if dcLength != scLength then
+    let actualSource ← srcOps.length srcCols
+    let actualDest ← destOps.length destCols
+    .thrown (.argument (lazyAppend [.literal "source and destination must have same size (got ",
+      .integer actualSource, .literal " and ", .integer actualDest, .literal ")"]))
   checkDest dest destRows destCols
   checkSrc src srcRows srcCols
   let source ← unalias dest src
-  copyRegion read write (← destOps.step destRows) (← destOps.step destCols) dest source
-    (← destOps.first destCols) (← srcOps.values srcCols) (← destOps.first destRows)
-    (← srcOps.values srcRows)
+  copyRegion read write (fun _ => destOps.step destRows) (fun _ => destOps.step destCols)
+    dest source (← destOps.first destCols) (← srcOps.values srcCols)
+    (← destOps.first destRows) (← srcOps.values srcRows)
 def P1159 : Prop := ∀ {D S RD RS V : Type} (destOps : RangeOps RD) (srcOps : RangeOps RS)
     (checkDest : D → RD → RD → Outcome Unit) (checkSrc : S → RS → RS → Outcome Unit)
     (unalias : D → S → Outcome S) (read : S → Int → Int → Outcome V)
     (write : D → Int → Int → V → Outcome D)
     (dest : D) destRows destCols (src : S) srcRows srcCols,
-  m1159 destOps srcOps checkDest checkSrc unalias read write dest destRows destCols src srcRows srcCols =
-  m1159 destOps srcOps checkDest checkSrc unalias read write dest destRows destCols src srcRows srcCols
+  m1159 destOps srcOps checkDest checkSrc unalias read write dest destRows destCols src srcRows srcCols = do
+    let drLength ← destOps.length destRows
+    let srLength ← srcOps.length srcRows
+    if drLength != srLength then
+      let actualSource ← srcOps.length srcRows
+      let actualDest ← destOps.length destRows
+      .thrown (.argument (lazyAppend [.literal "source and destination must have same size (got ",
+        .integer actualSource, .literal " and ", .integer actualDest, .literal ")"]))
+    let dcLength ← destOps.length destCols
+    let scLength ← srcOps.length srcCols
+    if dcLength != scLength then
+      let actualSource ← srcOps.length srcCols
+      let actualDest ← destOps.length destCols
+      .thrown (.argument (lazyAppend [.literal "source and destination must have same size (got ",
+        .integer actualSource, .literal " and ", .integer actualDest, .literal ")"]))
+    checkDest dest destRows destCols
+    checkSrc src srcRows srcCols
+    let source ← unalias dest src
+    copyRegion read write (fun _ => destOps.step destRows) (fun _ => destOps.step destCols)
+      dest source (← destOps.first destCols) (← srcOps.values srcCols)
+      (← destOps.first destRows) (← srcOps.values srcRows)
 theorem p1159 : P1159 := by unfold P1159; intros; rfl
 
 /-- `_checkaxs`, line 1184. -/
@@ -429,34 +533,44 @@ def P1186 : Prop := ∀ {A X : Type} (axes : A → JResult X)
     copyto dest src
 theorem p1186 : P1186 := by unfold P1186; intros; rfl
 
-def writeDiagonal (set : D → I → I → V → JResult D) : D → List I → V → JResult D
-  | dest, [], _ => .ok dest
-  | dest, index :: rest, unit => do
-      let next ← set dest index index unit
-      writeDiagonal set next rest unit
-
 /-- `_one`, lines 1222-1234. -/
-def m1222 (axes : M → JResult (List I × List I)) (length : List I → JResult Nat)
-    (zero : V → JResult V) (requireOneBased : M → JResult Unit)
+def m1222 (axes : M → JResult (R × C)) (lengthRows : R → JResult Nat)
+    (lengthCols : C → JResult Nat) (zero : V → JResult V)
+    (assertType : V → JResult V) (requireOneBased : M → JResult Unit)
     (similar : M → JResult D) (fill : D → V → JResult D)
+    (iterateRows : R → D → (D → I → JResult D) → JResult D)
     (set : D → I → I → V → JResult D) (unit : V) (matrix : M) : JResult D := do
   let matrixAxes ← axes matrix
-  let rowsLength ← length matrixAxes.1
-  let colsLength ← length matrixAxes.2
+  let rowsLength ← lengthRows matrixAxes.1
+  let colsLength ← lengthCols matrixAxes.2
   if rowsLength != colsLength then
     .error (.dimensionMismatch (.literal "multiplicative identity defined only for square matrices"))
   else
-    let zeroValue ← zero unit
+    let zeroValue ← assertType (← zero unit)
     requireOneBased matrix
     let dest ← similar matrix
     let cleared ← fill dest zeroValue
-    writeDiagonal set cleared matrixAxes.1 unit
-def P1222 : Prop := ∀ {M I V D : Type} (axes : M → JResult (List I × List I))
-    (length : List I → JResult Nat) (zero : V → JResult V)
+    iterateRows matrixAxes.1 cleared (fun out index => set out index index unit)
+def P1222 : Prop := ∀ {M R C I V D : Type} (axes : M → JResult (R × C))
+    (lengthRows : R → JResult Nat) (lengthCols : C → JResult Nat)
+    (zero : V → JResult V) (assertType : V → JResult V)
     (requireOneBased : M → JResult Unit) (similar : M → JResult D)
-    (fill : D → V → JResult D) (set : D → I → I → V → JResult D) unit matrix,
-  m1222 axes length zero requireOneBased similar fill set unit matrix =
-  m1222 axes length zero requireOneBased similar fill set unit matrix
+    (fill : D → V → JResult D)
+    (iterateRows : R → D → (D → I → JResult D) → JResult D)
+    (set : D → I → I → V → JResult D) unit matrix,
+  m1222 axes lengthRows lengthCols zero assertType requireOneBased similar fill iterateRows
+    set unit matrix = do
+      let matrixAxes ← axes matrix
+      let rowsLength ← lengthRows matrixAxes.1
+      let colsLength ← lengthCols matrixAxes.2
+      if rowsLength != colsLength then
+        .error (.dimensionMismatch (.literal "multiplicative identity defined only for square matrices"))
+      else
+        let zeroValue ← assertType (← zero unit)
+        requireOneBased matrix
+        let dest ← similar matrix
+        let cleared ← fill dest zeroValue
+        iterateRows matrixAxes.1 cleared (fun out index => set out index index unit)
 theorem p1222 : P1222 := by unfold P1222; intros; rfl
 
 /-- Tuple-state array iteration, lines 1251-1255. -/
@@ -551,26 +665,6 @@ private def entry (line : Nat) (name statement source : String) (prop thm : Lean
   { id := s!"multidimcov-abstractarray-copy-faithful-{line}", juliaFile := "base/abstractarray.jl",
     juliaFns := [name], statement, source, status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 941 "copyto!(dest,src)" "Iterable copy executes arbitrary source and destination iteration in lockstep, preserving errors and divergence." "base/abstractarray.jl:941-951" ``P941 ``p941,
-  entry 953 "copyto!(dest,dstart,src)" "Offset iterable copy converts the index, runs the sized precheck branch, then writes in iteration order." "base/abstractarray.jl:953-971" ``P953 ``p953,
-  entry 974 "copyto!(dest,dstart,src,sstart)" "Source-offset copy validates, advances arbitrary iteration, converts the destination index, and writes the remainder." "base/abstractarray.jl:974-1000" ``P974 ``p974,
-  entry 1003 "copyto!(dest,dstart,src,sstart,n)" "Counted iterable copy preserves validation, conversions, iteration, first write, bounded remainder, and short-source error order." "base/abstractarray.jl:1003-1037" ``P1003 ``p1003,
-  entry 1072 "copyto!(dest,src::AbstractArray)" "Array copy calls isempty on the source, tests the actual destination type, then takes the bit or unaliased style path." "base/abstractarray.jl:1072-1080" ``P1072 ``p1072,
-  entry 1082 "copyto!(deststyle,dest,srcstyle,src)" "Styled copy calls isempty, unaliases the actual arrays, and delegates with the supplied styles." "base/abstractarray.jl:1082-1086" ``P1082 ``p1082,
-  entry 1088 "copyto_unaliased!" "Unaliased copy obtains linear indices, eagerly checks both endpoints, then performs the selected index-style loop." "base/abstractarray.jl:1088-1123" ``P1088 ``p1088,
-  entry 1125 "copyto!(dest,dstart,src::AbstractArray)" "The wrapper obtains source LinearIndices, its first value, and length before calling counted copy." "base/abstractarray.jl:1125-1127" ``P1125 ``p1125,
-  entry 1129 "copyto!(dest,dstart,src,sstart)" "The wrapper checks sstart in the actual source indices and copies through the final source index." "base/abstractarray.jl:1129-1133" ``P1129 ``p1129,
-  entry 1135 "copyto!(dest,dstart,src,sstart,n)" "Block copy validates both actual index ranges, converts all Integer values, unaliases, and interleaves every read and write." "base/abstractarray.jl:1135-1152" ``P1135 ``p1135,
-  entry 1159 "copyto!(matrix regions)" "Region copy checks lengths and bounds, unaliases, then copies in the nested source range order with destination steps." "base/abstractarray.jl:1159-1182" ``P1159 ``p1159,
-  entry 1184 "_checkaxs" "Axis checking returns unit for equality and otherwise throws DimensionMismatch with both lazy axis values." "base/abstractarray.jl:1184" ``P1184 ``p1184,
-  entry 1186 "copyto_axcheck!" "Axis-checked copy obtains both axes, checks them, then calls copyto!, preserving every error." "base/abstractarray.jl:1186-1189" ``P1186 ``p1186,
-  entry 1222 "_one" "Matrix identity checks square axes with DimensionMismatch, computes zero, validates indexing, fills, and writes each diagonal cell." "base/abstractarray.jl:1222-1234" ``P1222 ``p1222,
-  entry 1251 "_iterate_abstractarray(tuple state)" "Tuple-state array iteration executes arbitrary iterator and indexing calls and rebuilds the next state." "base/abstractarray.jl:1251-1255" ``P1251 ``p1251,
-  entry 1256 "_iterate_abstractarray(integer state)" "Integer-state iteration checks bounds, indexes, obtains one, and adds in source order for every Integer representation." "base/abstractarray.jl:1256-1259" ``P1256 ``p1256,
-  entry 1267 "map(Type,StepRange)" "StepRange mapping reads and converts start and step, calls last, converts it, then constructs the range." "base/abstractarray.jl:1267" ``P1267 ``p1267,
-  entry 1268 "map(Type,UnitRange)" "UnitRange mapping reads and converts start, calls and converts last, then constructs the range." "base/abstractarray.jl:1268" ``P1268 ``p1268,
-  entry 1270 "map(Type,LinRange)" "LinRange mapping converts both stored endpoints, calls length on the range, then constructs LinRange." "base/abstractarray.jl:1270-1272" ``P1270 ``p1270
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.AbstractArrayCopyFaithful

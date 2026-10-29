@@ -133,11 +133,11 @@ base/special/trig.jl	1395	1397	_cosc	_cosc(x::ComplexF64)	modelled	mathcov-speci
 base/special/trig.jl	1398	1400	_cosc	_cosc(x::ComplexF32)	modelled	mathcov-special-trig-l1398	method-specific source model and quantified behavior property
 base/special/trig.jl	1401	1401	_cosc	_cosc(x::Float16)	modelled	mathcov-special-trig-l1401	method-specific source model and quantified behavior property
 base/special/trig.jl	1402	1402	_cosc	_cosc(x::ComplexF16)	modelled	mathcov-special-trig-l1402	method-specific source model and quantified behavior property
-base/special/trig.jl	1417	1417	$finv	($finv)(z::Number)	modelled	mathcov-special-trig-l1417	method-specific source model and quantified behavior property
-base/special/trig.jl	1424	1424	$finvh	($finvh)(z::Number)	modelled	mathcov-special-trig-l1424	method-specific source model and quantified behavior property
-base/special/trig.jl	1431	1431	$finvd	($finvd)(z::Number)	modelled	mathcov-special-trig-l1431	method-specific source model and quantified behavior property
-base/special/trig.jl	1445	1445	$tfa	($tfa)(y::Number)	modelled	mathcov-special-trig-l1445	method-specific source model and quantified behavior property
-base/special/trig.jl	1450	1450	$hfa	($hfa)(y::Number)	modelled	mathcov-special-trig-l1450	method-specific source model and quantified behavior property
+base/special/trig.jl	1417	1417	$finv	($finv)(z::Number)	todo		"generated-loop: (finv, f, finvh, fh, finvd, fd, fn) in ((:sec, :cos, :sech, :cosh, :secd, :cosd, ""secant""), (:csc, :sin, :csch, :sinh, :cscd, :sind, ""cosecant""), (:cot, :tan, :coth, :tanh, :cotd, :tand, ""cotangent""))"
+base/special/trig.jl	1424	1424	$finvh	($finvh)(z::Number)	todo		"generated-loop: (finv, f, finvh, fh, finvd, fd, fn) in ((:sec, :cos, :sech, :cosh, :secd, :cosd, ""secant""), (:csc, :sin, :csch, :sinh, :cscd, :sind, ""cosecant""), (:cot, :tan, :coth, :tanh, :cotd, :tand, ""cotangent""))"
+base/special/trig.jl	1431	1431	$finvd	($finvd)(z::Number)	todo		"generated-loop: (finv, f, finvh, fh, finvd, fd, fn) in ((:sec, :cos, :sech, :cosh, :secd, :cosd, ""secant""), (:csc, :sin, :csch, :sinh, :cscd, :sind, ""cosecant""), (:cot, :tan, :coth, :tanh, :cotd, :tand, ""cotangent""))"
+base/special/trig.jl	1445	1445	$tfa	($tfa)(y::Number)	todo		"generated-loop: (tfa, tfainv, hfa, hfainv, fn) in ((:asec, :acos, :asech, :acosh, ""secant""), (:acsc, :asin, :acsch, :asinh, ""cosecant""), (:acot, :atan, :acoth, :atanh, ""cotangent""))"
+base/special/trig.jl	1450	1450	$hfa	($hfa)(y::Number)	todo		"generated-loop: (tfa, tfainv, hfa, hfainv, fn) in ((:asec, :acos, :asech, :acosh, ""secant""), (:acsc, :asin, :acsch, :asinh, ""cosecant""), (:acot, :atan, :acoth, :atanh, ""cotangent""))"
 base/special/trig.jl	1456	1469	deg2rad_ext	deg2rad_ext(x::Float64)	modelled	mathcov-special-trig-l1456	method-specific source model and quantified behavior property
 base/special/trig.jl	1470	1470	deg2rad_ext	deg2rad_ext(x::Float32)	modelled	mathcov-special-trig-l1470	method-specific source model and quantified behavior property
 base/special/trig.jl	1471	1471	deg2rad_ext	deg2rad_ext(x::Real)	modelled	mathcov-special-trig-l1471	method-specific source model and quantified behavior property
@@ -146,10 +146,10 @@ base/special/trig.jl	1504	1528	cosd	cosd(x::Real)	modelled	mathcov-special-trig-
 base/special/trig.jl	1530	1530	tand	tand(x::Real)	modelled	mathcov-special-trig-l1530	method-specific source model and quantified behavior property
 base/special/trig.jl	1543	1543	sincosd	sincosd(x)	modelled	mathcov-special-trig-l1543	method-specific source model and quantified behavior property
 base/special/trig.jl	1547	1547	sincosd	sincosd(::Missing)	modelled	mathcov-special-trig-l1547	method-specific source model and quantified behavior property
-base/special/trig.jl	1563	1563	$fd	($fd)(x)	modelled	mathcov-special-trig-l1563	method-specific source model and quantified behavior property
-base/special/trig.jl	1582	1582	$fd	($fd)(x)	modelled	mathcov-special-trig-l1582	method-specific source model and quantified behavior property
+base/special/trig.jl	1563	1563	$fd	($fd)(x)	todo		"generated-loop: (fd, f, fn) in ((:sind, :sin, ""sine""), (:cosd, :cos, ""cosine""), (:tand, :tan, ""tangent"")); (fu, un) in ((:deg2rad, ""degrees""),)"
+base/special/trig.jl	1582	1582	$fd	($fd)(x)	todo		"generated-loop: (fd, f, fn) in ((:asind, :asin, ""sine""), (:acosd, :acos, ""cosine""), (:asecd, :asec, ""secant""), (:acscd, :acsc, ""cosecant""), (:acotd, :acot, ""cotangent"")); (fu, un) in ((:rad2deg, ""degrees""),)"
 base/special/trig.jl	1600	1600	atand	atand(y)	modelled	mathcov-special-trig-l1600	method-specific source model and quantified behavior property
 base/special/trig.jl	1601	1601	atand	atand(y, x)	modelled	mathcov-special-trig-l1601	method-specific source model and quantified behavior property
-base/special/trig.jl	1605	1605	$f	$f(x::Float16)	modelled	mathcov-special-trig-l1605	method-specific source model and quantified behavior property
-base/special/trig.jl	1608	1608	$f	$f(x::Float16)	modelled	mathcov-special-trig-l1608	method-specific source model and quantified behavior property
+base/special/trig.jl	1605	1605	$f	$f(x::Float16)	todo		generated-loop: f in (:sind, :cosd, :tand)
+base/special/trig.jl	1608	1608	$f	$f(x::Float16)	todo		generated-loop: f in (:asind, :acosd, :asecd, :acscd, :acotd, :atand)
 base/special/trig.jl	1610	1610	atand	atand(y::Float16, x::Float16)	modelled	mathcov-special-trig-l1610	method-specific source model and quantified behavior property

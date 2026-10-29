@@ -77,12 +77,6 @@ private def broadcastFixEntry (id fn statement source : String) (prop thm : Lean
   { id, juliaFile := "base/broadcast.jl", juliaFns := [fn], statement, source,
     status := .proven, prop, thm := some thm }
 
-def broadcastReviewFixEntries : List Entry := [
-  broadcastFixEntry "multidimcov-broadcast-eachindex-one" "_eachindex(::IndexLinear,::Tuple{Any})" "The sole-axis overload returns the tuple's first axis using one-based indexing." "base/broadcast.jl:259" ``BroadcastEachindexBehavior ``broadcastEachindexBehavior,
-  broadcastFixEntry "multidimcov-broadcast-bit-copy-full" "copyto!(::BitArray,::Broadcasted)" "BitArray broadcast copy writes every evaluated broadcast bit in logical order, independent of its chunk packing path." "base/broadcast.jl:1035-1091" ``BitBroadcastCopyBehavior ``bitBroadcastCopyBehavior,
-  broadcastFixEntry "multidimcov-broadcast-nonleaf-full" "copyto_nonleaf!" "Nonleaf broadcast copy increments count on every fitting write and carries the exact written count into widening restarts." "base/broadcast.jl:1145-1162" ``CopyNonleafBehavior ``copyNonleafBehavior,
-  broadcastFixEntry "multidimcov-broadcast-diffrange-full" "broadcasted(-,CartesianIndex,CartesianIndices)" "Reverse Cartesian subtraction computes each offset-minus-last range, preserves length and step, then reverses Cartesian iteration." "base/broadcast.jl:1251-1254" ``CartesianDifferenceBehavior ``cartesianDifferenceBehavior,
-  broadcastFixEntry "multidimcov-broadcast-dot-syntax-full" "__dot__(::Expr)" "Dot syntax rewriting recursively processes every argument and applies the exact source head branch, including elementwise comparison operators." "base/broadcast.jl:1319-1348" ``DotSyntaxBehavior ``dotSyntaxBehavior
-]
+def broadcastReviewFixEntries : List Entry := []
 
 end JuliaLean.MultidimCov

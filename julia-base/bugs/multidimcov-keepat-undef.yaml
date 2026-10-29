@@ -1,0 +1,76 @@
+id: multidimcov-keepat-undef
+title: "keepat! throws UndefRefError on a kept #undef element, while deleteat! of the complement succeeds"
+priority: P2
+kind: wrong-exception
+area: MultidimCov
+files: [base/abstractarray.jl, base/array.jl]
+functions: ["keepat!(::Vector, inds)", "keepat!(::Vector, ::AbstractVector{Bool})", "_keepat!(::AbstractVector, inds)", "_keepat!(::AbstractVector, ::AbstractVector{Bool})"]
+summary: |
+  For a Vector of a reference type (for example Vector{String}(undef, n)) that holds an
+  #undef slot, keepat!(a, inds) throws UndefRefError whenever inds keeps that slot, even
+  when the slot does not move. keepat!(a, mask) throws the same error whenever the kept
+  #undef slot has to move left. deleteat! with the complementary indices succeeds in
+  both cases and keeps the slot #undef, and so does keepat!(a, mask) when the slot does
+  not move. After the error, a is left partially compacted.
+likelihood: |
+  Needs a vector of non-isbits elements that still has unassigned slots, for example a
+  buffer allocated with Vector{T}(undef, n) and filled only partly. Uncommon, but
+  deleteat!, splice!, resize! and copyto! all handle such vectors.
+maybe_intended: |
+  Reading an #undef element is an error elsewhere in Base (a[i] throws UndefRefError),
+  and the docstring does not say what happens to unassigned slots. The comment at
+  base/abstractarray.jl:3706 says the read "must happen even when i==k for bounds
+  checking", so the read is deliberate, but its purpose is the bounds check, not the
+  value.
+reproducer: |
+  a = Vector{String}(undef, 3); a[1] = "x"; a[3] = "z"
+  keepat!(copy(a), [1, 2])               # UndefRefError
+  deleteat!(copy(a), [3])                # ["x", #undef]
+  keepat!(copy(a), [true, true, false])  # ["x", #undef]
+  keepat!(copy(a), [false, true, true])  # UndefRefError
+output:
+  release: |
+    deleteat!(a, [3]): ok, assigned = Bool[1, 0], values = ["x", "#undef"]
+    keepat!(a, [1, 2]): UndefRefError
+    keepat!(a, 1:2): UndefRefError
+    keepat!(a, [true, true, false]): ok, assigned = Bool[1, 0], values = ["x", "#undef"]
+    keepat!(a, [false, true, true]): UndefRefError
+    deleteat!(a, [1]): ok, assigned = Bool[0, 1], values = ["#undef", "z"]
+    REPRODUCED multidimcov-keepat-undef
+  nightly: |
+    deleteat!(a, [3]): ok, assigned = Bool[1, 0], values = ["x", "#undef"]
+    keepat!(a, [1, 2]): UndefRefError
+    keepat!(a, 1:2): UndefRefError
+    keepat!(a, [true, true, false]): ok, assigned = Bool[1, 0], values = ["x", "#undef"]
+    keepat!(a, [false, true, true]): UndefRefError
+    deleteat!(a, [1]): ok, assigned = Bool[0, 1], values = ["#undef", "z"]
+    REPRODUCED multidimcov-keepat-undef
+reproduced: {release: true, nightly: true}
+expected: |
+  keepat!(a, [1, 2]) returns a 2-element vector ["x", #undef], the same as
+  deleteat!(a, [3]), and keepat!(a, [false, true, true]) returns [#undef, "z"], the same
+  as deleteat!(a, [1]).
+promised_by: |
+  base/array.jl:3113: "Remove the items at all the indices which are not given by inds,
+  and return the modified a. Items which are kept are shifted to fill the resulting
+  gaps." base/array.jl:3140: "keepat!(a, m) on vectors of equal length a and m will
+  remove all elements from a for which m at the corresponding index is false." Nothing
+  requires the kept items to be assigned, and deleteat!, documented as its counterpart,
+  accepts them.
+cause: |
+  base/abstractarray.jl:3706: ak = a[k] reads every kept element, and reading an #undef
+  slot throws UndefRefError even under @inbounds. base/abstractarray.jl:3723:
+  (a[j] = a[i]) does the same read for every kept element that moves. deleteat! uses
+  _copy_item! (base/array.jl:1961), which checks isassigned and unsets the target slot
+  instead of reading.
+possible_fix: |
+  Check bounds with checkbounds(a, k) and move items with an isassigned test like
+  Base._copy_item!, for both _keepat! methods (at least for Vector).
+duplicates:
+  issues:
+    - {number: 54401, state: open, relation: related}
+    - {number: 42065, state: closed, relation: related}
+  queries: ["keepat! undef", "keepat! UndefRefError", "keepat undefined", "_keepat! #undef", "deleteat! keepat! undef", "keepat", "UndefRefError deleteat", "undef filter! UndefRefError"]
+lean:
+  property: JuliaLean.MultidimCov.ArrayV2.PKeepat
+  theorem: JuliaLean.MultidimCov.ArrayV2.pKeepat_refuted

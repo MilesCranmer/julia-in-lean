@@ -6,6 +6,49 @@ import JuliaLean.ConcurrencyCov.Locks
 namespace JuliaLean.ConcurrencyCov.FaithfulSmall
 
 open JuliaLean.ConcurrencyCov
+/-- The field produced by `new`, including conversion to the declared field
+type and propagation of conversion failure (`base/atomics.jl:68-69`). -/
+structure AtomicCell (α : Type) where
+  value : α
+
+def atomicValueCtor {α β : Type} (convert : β → R α) (value : β) : R (AtomicCell α) :=
+  match convert value with
+  | .ok converted => .ok ⟨converted⟩
+  | .error err => .error err
+
+def atomicZeroCtor {α β : Type} (zero : R β) (convert : β → R α) : R (AtomicCell α) :=
+  match zero with
+  | .ok value => atomicValueCtor convert value
+  | .error err => .error err
+
+def AtomicCtorContract : Prop :=
+  (∀ (α β : Type) (convert : β → R α) value converted,
+    convert value = .ok converted → atomicValueCtor convert value = .ok ⟨converted⟩) ∧
+  (∀ (α β : Type) (convert : β → R α) value err,
+    convert value = .error err → atomicValueCtor convert value = .error err) ∧
+  (∀ (α β : Type) (convert : β → R α) err,
+    atomicZeroCtor (.error err) convert = .error err) ∧
+  (∀ (α β : Type) (convert : β → R α) value converted,
+    convert value = .ok converted → atomicZeroCtor (.ok value) convert = .ok ⟨converted⟩)
+
+theorem atomicCtorContract_proven : AtomicCtorContract := by
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · intro α β convert value converted h
+    simp [atomicValueCtor, h]
+  · intro α β convert value err h
+    simp [atomicValueCtor, h]
+  · intro α β convert err
+    rfl
+  · intro α β convert value converted h
+    simp [atomicZeroCtor, atomicValueCtor, h]
+/-- The unparameterized constructor delegates to `Atomic{Int}()`;
+`base/atomics.jl:72`. -/
+def atomicDefaultCtor : R (AtomicCell Int) :=
+  atomicZeroCtor (.ok 0) (fun value => .ok value)
+
+def AtomicDefaultContract : Prop := ∀ _ : Unit, atomicDefaultCtor = .ok ⟨0⟩
+theorem atomicDefaultContract_proven : AtomicDefaultContract := by intro _; rfl
+
 
 /-! ## `base/locks-mt.jl` -/
 
@@ -199,6 +242,157 @@ def applyFair (f : Nat → Nat) (x : Nat) : Nat × List ApplyTrace := (f x, [.sp
 def ApplyFairProp : Prop := ∀ f x, applyFair f x = (f x, [.spawned, .called, .waited])
 theorem applyFair_proven : ApplyFairProp := by
   unfold ApplyFairProp
+  intros
+  rfl
+
+/-! ## `base/gcutils.jl` -/
+
+structure Weak (α : Type) where value : α
+def weakWeakEq (isequal : Nat → Nat → Bool) (a b : Weak Nat) := isequal a.value b.value
+def WeakWeakEqProp : Prop := ∀ eq a b, weakWeakEq eq a b = eq a.value b.value
+theorem weakWeakEq_proven : WeakWeakEqProp := by
+  unfold WeakWeakEqProp
+  intros
+  rfl
+
+def weakValueEq (isequal : Nat → Nat → Bool) (a : Weak Nat) (b : Nat) := isequal a.value b
+def WeakValueEqProp : Prop := ∀ eq a b, weakValueEq eq a b = eq a.value b
+theorem weakValueEq_proven : WeakValueEqProp := by
+  unfold WeakValueEqProp
+  intros
+  rfl
+
+def valueWeakEq (isequal : Nat → Nat → Bool) (a : Nat) (b : Weak Nat) := isequal a b.value
+def ValueWeakEqProp : Prop := ∀ eq a b, valueWeakEq eq a b = eq a b.value
+theorem valueWeakEq_proven : ValueWeakEqProp := by
+  unfold ValueWeakEqProp
+  intros
+  rfl
+
+def checkMutable (isMutable : Bool) (objectType : String) : R Unit :=
+  if !isMutable then .error (.errorException s!"objects of type {objectType} cannot be finalized because they are not mutable")
+  else .ok ()
+def CheckMutableProp : Prop := ∀ mutable ty, checkMutable mutable ty =
+  if !mutable then .error (.errorException s!"objects of type {ty} cannot be finalized because they are not mutable") else .ok ()
+theorem checkMutable_proven : CheckMutableProp := by
+  unfold CheckMutableProp
+  intros
+  rfl
+
+def finalizer (check : Nat → R Unit) (register : Nat → Nat → Unit) (f o : Nat) : R Nat := do
+  check o
+  let _ := register f o
+  return o
+def FinalizerProp : Prop := ∀ check register f o,
+  finalizer check register f o = do check o; let _ := register f o; return o
+theorem finalizer_proven : FinalizerProp := by
+  unfold FinalizerProp
+  intros
+  rfl
+
+def pointerFinalizer (check : Nat → R Unit) (register : Nat → Nat → Unit) (f o : Nat) : R Nat := do
+  check o
+  let _ := register f o
+  return o
+def PointerFinalizerProp : Prop := ∀ check register f o,
+  pointerFinalizer check register f o = do check o; let _ := register f o; return o
+theorem pointerFinalizer_proven : PointerFinalizerProp := by
+  unfold PointerFinalizerProp
+  intros
+  rfl
+
+def finalize (ccall : Nat → Unit) (task object : Nat) : Unit := ccall (task + object)
+def FinalizeProp : Prop := ∀ ccall task object, finalize ccall task object = ccall (task + object)
+theorem finalize_proven : FinalizeProp := by
+  unfold FinalizeProp
+  intros
+  rfl
+
+def gc (collect : Int → Unit) (full : Bool := true) : Unit := collect (if full then 1 else 2)
+def GcProp : Prop := ∀ collect full, gc collect full = collect (if full then 1 else 2)
+theorem gc_proven : GcProp := by
+  unfold GcProp
+  intros
+  rfl
+
+def gcEnable (enable : Bool → Bool) (on : Bool) : Bool := enable on
+def GcEnableProp : Prop := ∀ enable on, gcEnable enable on = enable on
+theorem gcEnable_proven : GcEnableProp := by
+  unfold GcEnableProp
+  intros
+  rfl
+
+def setFinalizers (enable disable : Unit → Unit) (on : Bool) : Unit :=
+  if on then enable () else disable ()
+def SetFinalizersProp : Prop := ∀ enable disable on,
+  setFinalizers enable disable on = if on then enable () else disable ()
+theorem setFinalizers_proven : SetFinalizersProp := by
+  unfold SetFinalizersProp
+  intros
+  rfl
+
+def enableFinalizers (enable : Unit → Unit) (pending : Bool) (runPending : Unit → Unit) : Unit :=
+  let _ := enable ()
+  if pending then runPending () else ()
+def EnableFinalizersProp : Prop := ∀ enable pending run,
+  enableFinalizers enable pending run = let _ := enable (); if pending then run () else ()
+theorem enableFinalizers_proven : EnableFinalizersProp := by
+  unfold EnableFinalizersProp
+  intros
+  rfl
+
+def disableFinalizers (disable : Unit → Unit) : Unit := disable ()
+def DisableFinalizersProp : Prop := ∀ disable, disableFinalizers disable = disable ()
+theorem disableFinalizers_proven : DisableFinalizersProp := by
+  unfold DisableFinalizersProp
+  intros
+  rfl
+
+def inFinalizer (ccall : Unit → Int) : Bool := ccall () > 0
+def InFinalizerProp : Prop := ∀ ccall, inFinalizer ccall = decide (ccall () > 0)
+theorem inFinalizer_proven : InFinalizerProp := by
+  unfold InFinalizerProp
+  intros
+  rfl
+
+inductive PreserveArg where | symbol (name : String) | other
+  deriving DecidableEq, Repr
+def preserve (args : List PreserveArg) (body : R Nat) : R Nat :=
+  if args.all (fun x => match x with | .symbol _ => true | .other => false)
+  then body else .error (.errorException "Preserved variable must be a symbol")
+def PreserveProp : Prop := ∀ args body, preserve args body =
+  if args.all (fun x => match x with | .symbol _ => true | .other => false)
+  then body else .error (.errorException "Preserved variable must be a symbol")
+theorem preserve_proven : PreserveProp := by
+  unfold PreserveProp
+  intros
+  rfl
+
+def safepoint (ccall : Unit → Unit) : Unit := ccall ()
+def SafepointProp : Prop := ∀ ccall, safepoint ccall = ccall ()
+theorem safepoint_proven : SafepointProp := by
+  unfold SafepointProp
+  intros
+  rfl
+
+def enableLogging (ccall : Bool → Unit) (on : Bool := true) : Unit := ccall on
+def EnableLoggingProp : Prop := ∀ ccall on, enableLogging ccall on = ccall on
+theorem enableLogging_proven : EnableLoggingProp := by
+  unfold EnableLoggingProp
+  intros
+  rfl
+
+def loggingEnabled (ccall : Unit → Int) : Bool := ccall () != 0
+def LoggingEnabledProp : Prop := ∀ ccall, loggingEnabled ccall = (ccall () != 0)
+theorem loggingEnabled_proven : LoggingEnabledProp := by
+  unfold LoggingEnabledProp
+  intros
+  rfl
+
+def gcActiveImpl (ccall : Unit → String) : String := ccall ()
+def GcActiveImplProp : Prop := ∀ ccall, gcActiveImpl ccall = ccall ()
+theorem gcActiveImpl_proven : GcActiveImplProp := by
+  unfold GcActiveImplProp
   intros
   rfl
 

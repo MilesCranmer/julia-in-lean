@@ -1,0 +1,42 @@
+line	name	verdict	mirror	property	settled	reason
+8	StringView	HOLLOW	no	yes	yes	The Lean View erases typeof(v) and the backing-vector type, so stringView does not mirror the parameterized constructor call.
+9	Vector{UInt8}	HOLLOW	no	yes	yes	vectorUInt8 directly returns visible bytes and omits both the codeunits call and the Vector copy construction.
+10	Array{UInt8}	HOLLOW	no	yes	yes	arrayUInt8 delegates to vectorUInt8, whose hand-written byte result omits the transitive Vector construction and copy.
+11	String	HOLLOW	yes	no	yes	StringCopyProperty assumes successful arbitrary allocation and copy callbacks, so it does not cover every allowed execution of the method.
+12	copy	HOLLOW	yes	no	yes	CopyViewProperty assumes that copyData preserves bytes and changes identity instead of establishing the copy contract for every method input.
+14	Symbol	HOLLOW	no	yes	yes	symbolView replaces pointer conversion and jl_symbol_n with an arbitrary byte-list interner, so it does not mirror the method's calls.
+18	pointer	FAITHFUL	yes	yes	yes	The Lean definition follows the complete method for every represented input, and the universal proposition is proven.
+19	pointer	FAITHFUL	yes	yes	yes	The Lean definition delegates to the backing-storage pointer operation with the unchanged index, and the universal proposition is proven.
+20	pointer	FAITHFUL	yes	yes	yes	The Lean definition adds the valid SubString offset to the parent pointer, and the universal proposition is proven.
+21	pointer	HOLLOW	no	no	yes	pointerSubAt accepts an already computed indexMinusOne value, and its proposition quantifies over that delta instead of every Integer index and its subtraction.
+23	unsafe_convert	FAITHFUL	yes	yes	yes	The Lean definition calls the modelled pointer operation and returns it for every view, and the universal proposition is proven.
+24	unsafe_convert	HOLLOW	no	no	yes	unsafeConvertInt8 takes an already computed pointer result and its proposition covers only the successful pointer case, leaving the method input and failure path unmodelled.
+26	String	HOLLOW	no	yes	yes	denseString constructs a byte-list JStr directly and omits GC preservation, pointer, ncodeunits, and unsafe_string calls.
+28	cconvert	FAITHFUL	yes	yes	yes	The Lean identity function exactly mirrors cconvert returning the supplied view, and the universal proposition is proven.
+29	cconvert	FAITHFUL	yes	yes	yes	The Lean identity function exactly mirrors cconvert returning the supplied view, and the universal proposition is proven.
+67	reverse	HOLLOW	no	no	yes	The rebuilt model omits the StringView offset-underflow check and both propositions quantify only over JStr, so they do not cover every UTF8String input and branch.
+85	sizeof	FAITHFUL	yes	yes	yes	The Lean definition returns the backing byte length for every view, and the universal proposition is proven.
+86	ncodeunits	FAITHFUL	yes	yes	yes	The Lean definition returns the backing byte length for every view, and the universal proposition is proven.
+87	codeunit	FAITHFUL	yes	yes	yes	The Lean definition returns the UInt8 code-unit type for every StringView, and the universal proposition is proven.
+88	codeunit	FAITHFUL	yes	yes	yes	The Lean definition performs the backing-storage indexed access with the unchanged index, and the universal proposition is proven.
+89	codeunits	HOLLOW	no	yes	yes	The Lean codeunits function returns a byte list and loses the backing array's identity, type, and aliasing that the Julia method returns directly.
+90	codeunits	HOLLOW	yes	no	yes	CodeunitsSubProperty checks storage identity but replaces the required output range and byte-window assertion with a list expression equal to itself.
+94	cmp	HOLLOW	no	yes	yes	cmpView substitutes a new lexBytes specification for the source's codeunits calls and AbstractVector cmp, including its first-index check.
+95	==	HOLLOW	no	yes	yes	eqView substitutes direct list equality for the source's two codeunits calls and the AbstractArray equality method with its axes check.
+98	typemin	HOLLOW	no	no	yes	The generic typeminView returns an arbitrary backing.empty value and neither constructs StringView nor states that the specialized CodeUnits backing is empty string code units.
+99	typemin	HOLLOW	no	no	yes	The rebuilt entry returns arbitrary backing.empty without constructing StringView, and its proposition merely restates that incomplete call despite the separate settled refutation.
+100	typemin	HOLLOW	no	yes	yes	typeminValue receives the result of typemin(T) as a bare variable, so it does not model the method's type lookup and call.
+101	one	HOLLOW	no	yes	yes	oneView receives the result of typemin(T) as a bare variable, so it does not model the method's type selection and call.
+102	oneunit	HOLLOW	no	yes	yes	oneunitView receives the result of typemin(T) as a bare variable, so it does not model the method's type selection and call.
+105	isascii	HOLLOW	no	yes	yes	isasciiView replaces the codeunits call and the vector method's chunked loops with a hand-written List.all specification.
+108	hash	HOLLOW	yes	no	yes	HashViewProperty assumes that the arbitrary hashBytes callback succeeds, which is not a documented precondition and leaves other allowed executions unstated.
+113	write	HOLLOW	no	yes	yes	writeView passes the original View directly to an arbitrary writer and never models the source's codeunits conversion or Int return assertion.
+114	print	HOLLOW	yes	no	yes	PrintViewProperty assumes write succeeds and states only the success result, so it omits allowed write failures and their propagation.
+116	thisind	HOLLOW	no	no	yes	IntegerInput stores an arbitrary conversion result unrelated to its value, and the proposition assumes conversion success instead of covering every Integer input.
+117	thisind	FAITHFUL	yes	yes	yes	The Lean definition invokes the concrete UTF-8 thisind helper on all representable visible bytes, and the universal proposition is proven.
+119	nextind	HOLLOW	no	no	yes	IntegerInput stores an arbitrary conversion result unrelated to its value, and the proposition assumes conversion success instead of covering every Integer input.
+120	nextind	FAITHFUL	yes	yes	yes	The Lean definition invokes the concrete UTF-8 nextind helper on all representable visible bytes, and the universal proposition is proven.
+122	isvalid	FAITHFUL	yes	yes	yes	The Lean definition checks bounds before comparing thisind with the input index, and the universal bounds invariant is proven.
+126	getindex	HOLLOW	no	no	yes	RangeInput has an unconstrained empty flag and the proposition proves only that branch, leaving every nonempty range and the model's extra terminal bounds check uncovered.
+139	chomp	HOLLOW	no	yes	yes	chompLength short-circuits its CR test and reads count minus two, while Julia uses eager Boolean operations and reads ncu minus two_bytes in source order.
+153	replace	HOLLOW	no	no	yes	IntegerInput supplies an arbitrary conversion result unrelated to count, and the proposition assumes conversion success instead of covering every count input.

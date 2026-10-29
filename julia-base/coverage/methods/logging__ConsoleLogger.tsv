@@ -1,12 +1,12 @@
 file	line	endline	name	signature	status	entry	note
-base/logging/ConsoleLogger.jl	37	42	ConsoleLogger	ConsoleLogger(stream::IO, min_level=Info; meta_formatter=default_metafmt, show_limited=true, right_justify=0)	modelled	concurrencycov-console-stream	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
-base/logging/ConsoleLogger.jl	43	48	ConsoleLogger	ConsoleLogger(min_level=Info; meta_formatter=default_metafmt, show_limited=true, right_justify=0)	modelled	concurrencycov-console-default	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
-base/logging/ConsoleLogger.jl	51	52	shouldlog	shouldlog(logger::ConsoleLogger, level, _module, group, id)	modelled	concurrencycov-console-should	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
-base/logging/ConsoleLogger.jl	54	54	min_enabled_level	min_enabled_level(logger::ConsoleLogger)	modelled	concurrencycov-console-min	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
-base/logging/ConsoleLogger.jl	57	57	showvalue	showvalue(io, msg)	modelled	concurrencycov-console-showvalue-plain	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
-base/logging/ConsoleLogger.jl	58	62	showvalue	showvalue(io, e::Tuple{Exception,Any})	modelled	concurrencycov-console-showvalue-tuple	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
-base/logging/ConsoleLogger.jl	63	63	showvalue	showvalue(io, ex::Exception)	modelled	concurrencycov-console-showvalue-exception	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
-base/logging/ConsoleLogger.jl	65	70	default_logcolor	default_logcolor(level::LogLevel)	modelled	concurrencycov-console-color	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
-base/logging/ConsoleLogger.jl	72	88	default_metafmt	default_metafmt(level::LogLevel, _module, group, id, file, line)	modelled	concurrencycov-console-metafmt	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
-base/logging/ConsoleLogger.jl	92	109	termlength	termlength(str)	modelled	concurrencycov-console-termlength	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
-base/logging/ConsoleLogger.jl	111	199	handle_message	handle_message(logger::ConsoleLogger, level::LogLevel, message, _module, group, id, filepath, line; kwargs...)	modelled	concurrencycov-console-handle	source-body: per-method Lean model mirrors this method's branches, checks, calls, and order.
+base/logging/ConsoleLogger.jl	37	42	ConsoleLogger	ConsoleLogger(stream::IO, min_level=Info; meta_formatter=default_metafmt, show_limited=true, right_justify=0)	todo		
+base/logging/ConsoleLogger.jl	43	48	ConsoleLogger	ConsoleLogger(min_level=Info; meta_formatter=default_metafmt, show_limited=true, right_justify=0)	todo		
+base/logging/ConsoleLogger.jl	51	52	shouldlog	shouldlog(logger::ConsoleLogger, level, _module, group, id)	todo		
+base/logging/ConsoleLogger.jl	54	54	min_enabled_level	min_enabled_level(logger::ConsoleLogger)	todo		
+base/logging/ConsoleLogger.jl	57	57	showvalue	showvalue(io, msg)	todo		
+base/logging/ConsoleLogger.jl	58	62	showvalue	showvalue(io, e::Tuple{Exception,Any})	todo		
+base/logging/ConsoleLogger.jl	63	63	showvalue	showvalue(io, ex::Exception)	todo		
+base/logging/ConsoleLogger.jl	65	70	default_logcolor	default_logcolor(level::LogLevel)	todo		
+base/logging/ConsoleLogger.jl	72	88	default_metafmt	default_metafmt(level::LogLevel, _module, group, id, file, line)	todo		
+base/logging/ConsoleLogger.jl	92	109	termlength	termlength(str)	todo		
+base/logging/ConsoleLogger.jl	111	199	handle_message	handle_message(logger::ConsoleLogger, level::LogLevel, message, _module, group, id, filepath, line; kwargs...)	todo		

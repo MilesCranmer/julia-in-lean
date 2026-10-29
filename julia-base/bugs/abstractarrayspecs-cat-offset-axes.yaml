@@ -1,0 +1,139 @@
+id: abstractarrayspecs-cat-offset-axes
+title: "cat silently misplaces arguments with offset axes, returning zeros or uninitialized memory"
+priority: P1
+kind: wrong-result
+area: AbstractArraySpecs
+files: [base/abstractarray.jl]
+functions: ["cat(A...; dims)", "_cat_t", "__cat_offset1!", "cat_indices(::AbstractArray, d)"]
+covers: [abstractarrayspecs-cat-row1905, abstractarrayspecs-cat-row1918, abstractarrayspecs-cat-row1921, abstractarrayspecs-cat-row2003, abstractarrayspecs-cat-row2053, abstractarrayspecs-cat-row2055, abstractarrayspecs-cat-row2056, abstractarrayspecs-cat-row2175, abstractarrayspecs-cat-row2176, abstractarrayspecs-cat-row2177, abstractarrayspecs-cat-row2178, abstractarrayspecs-cat-row2179, abstractarrayspecs-cat-row2180, abstractarrayspecs-cat-row2181, abstractarrayspecs-cat-row2182, abstractarrayspecs-cat-row2184, abstractarrayspecs-cat-row2185, abstractarrayspecs-cat-row2186, abstractarrayspecs-cat-row2187, abstractarrayspecs-cat-row2188, abstractarrayspecs-cat-row2189, abstractarrays-source-cat-public-contents, abstractarrays-source-cat-same-array-contents]
+summary: |
+  When an argument of cat has an axis along a concatenated dimension that does not
+  start at 1, cat writes that argument at its own axis values (shifted by the running
+  offset) instead of at the next free position of the 1-based output. If the shifted
+  range still fits, the argument overwrites the slot of a later argument and its own
+  slot keeps the initial contents: zeros for block-diagonal cat, uninitialized memory
+  for a single cat dimension. With an offset vector x with axes 3:4,
+  cat(x, [3, 4]; dims=(1, 2)) returns [0 0; 0 0; 1 3; 2 4] on both versions and
+  cat(x, [3, 4]; dims=1) returns two garbage values followed by 3, 4 on master.
+likelihood: |
+  Needs an AbstractArray with offset axes (OffsetArrays.jl, or views and custom types
+  with offset axes) passed to cat along a dimension where its axis is offset. Rare,
+  but the result is silently wrong and can expose uninitialized memory.
+maybe_intended: |
+  Upstream issue #37493 (open) reports the same root cause for 3-d hcat/vcat as a
+  BoundsError and treats it as a bug. Nothing documents that cat requires 1-based
+  arguments, and on 1.13.2 cat(x, [3, 4]; dims=1) throws "offset arrays are not
+  supported" instead.
+reproducer: |
+  struct OV <: AbstractVector{Int}; data::Vector{Int}; end
+  Base.size(v::OV) = size(v.data)
+  Base.axes(v::OV) = (Base.IdentityUnitRange(3:2+length(v.data)),)
+  Base.getindex(v::OV, i::Int) = v.data[i-2]
+  x = OV([1, 2])
+  cat(x, [3, 4]; dims=(1, 2))   # [0 0; 0 0; 1 3; 2 4]
+  cat(x, [3, 4]; dims=1)        # master: [garbage, garbage, 3, 4]
+  vcat(x, [3, 4])               # master: [1, 2, 3, 4]
+output:
+  release: |
+    block diagonal: [0 0; 0 0; 1 3; 2 4]
+    vcat-any abstractarray.jl:1969 => BoundsError
+    hcat-any abstractarray.jl:2019 => BoundsError
+    typed-vcat-any abstractarray.jl:2021 => BoundsError
+    typed-hcat-any abstractarray.jl:2022 => BoundsError
+    vcat-one abstractarray.jl:2141 => BoundsError
+    vcat-two abstractarray.jl:2142 => BoundsError
+    vcat-arrays abstractarray.jl:2143 => BoundsError
+    vcat-mixed abstractarray.jl:2144 => BoundsError
+    hcat-one abstractarray.jl:2145 => BoundsError
+    hcat-two abstractarray.jl:2146 => BoundsError
+    hcat-arrays abstractarray.jl:2147 => BoundsError
+    hcat-mixed abstractarray.jl:2148 => BoundsError
+    typed-vcat-one abstractarray.jl:2150 => BoundsError
+    typed-vcat-two abstractarray.jl:2151 => BoundsError
+    typed-vcat-arrays abstractarray.jl:2152 => BoundsError
+    typed-hcat-one abstractarray.jl:2153 => BoundsError
+    typed-hcat-two abstractarray.jl:2154 => BoundsError
+    typed-hcat-arrays abstractarray.jl:2155 => BoundsError
+    cat-promote abstractarray.jl:1871 => BoundsError
+    cat-inner abstractarray.jl:1887 => BoundsError
+    cat-t => BoundsError
+    REPRODUCED abstractarrayspecs-cat-offset-axes
+  nightly: |
+    block diagonal: [0 0; 0 0; 1 3; 2 4]
+    vcat-any abstractarray.jl:2003 => BoundsError
+    hcat-any abstractarray.jl:2053 => BoundsError
+    typed-vcat-any abstractarray.jl:2055 => BoundsError
+    typed-hcat-any abstractarray.jl:2056 => BoundsError
+    vcat-one abstractarray.jl:2175 => BoundsError
+    vcat-two abstractarray.jl:2176 => BoundsError
+    vcat-arrays abstractarray.jl:2177 => BoundsError
+    vcat-mixed abstractarray.jl:2178 => BoundsError
+    hcat-one abstractarray.jl:2179 => BoundsError
+    hcat-two abstractarray.jl:2180 => BoundsError
+    hcat-arrays abstractarray.jl:2181 => BoundsError
+    hcat-mixed abstractarray.jl:2182 => BoundsError
+    typed-vcat-one abstractarray.jl:2184 => BoundsError
+    typed-vcat-two abstractarray.jl:2185 => BoundsError
+    typed-vcat-arrays abstractarray.jl:2186 => BoundsError
+    typed-hcat-one abstractarray.jl:2187 => BoundsError
+    typed-hcat-two abstractarray.jl:2188 => BoundsError
+    typed-hcat-arrays abstractarray.jl:2189 => BoundsError
+    cat-promote abstractarray.jl:1905 => BoundsError
+    cat-inner abstractarray.jl:1921 => BoundsError
+    cat-t => BoundsError
+    REPRODUCED abstractarrayspecs-cat-offset-axes
+reproduced: {release: true, nightly: true}
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    block diagonal: [0 0; 0 0; 1 3; 2 4]
+    vcat-any abstractarray.jl:2003 => BoundsError
+    hcat-any abstractarray.jl:2053 => BoundsError
+    typed-vcat-any abstractarray.jl:2055 => BoundsError
+    typed-hcat-any abstractarray.jl:2056 => BoundsError
+    vcat-one abstractarray.jl:2175 => BoundsError
+    vcat-two abstractarray.jl:2176 => BoundsError
+    vcat-arrays abstractarray.jl:2177 => BoundsError
+    vcat-mixed abstractarray.jl:2178 => BoundsError
+    hcat-one abstractarray.jl:2179 => BoundsError
+    hcat-two abstractarray.jl:2180 => BoundsError
+    hcat-arrays abstractarray.jl:2181 => BoundsError
+    hcat-mixed abstractarray.jl:2182 => BoundsError
+    typed-vcat-one abstractarray.jl:2184 => BoundsError
+    typed-vcat-two abstractarray.jl:2185 => BoundsError
+    typed-vcat-arrays abstractarray.jl:2186 => BoundsError
+    typed-hcat-one abstractarray.jl:2187 => BoundsError
+    typed-hcat-two abstractarray.jl:2188 => BoundsError
+    typed-hcat-arrays abstractarray.jl:2189 => BoundsError
+    cat-promote abstractarray.jl:1905 => BoundsError
+    cat-inner abstractarray.jl:1921 => BoundsError
+    cat-t => BoundsError
+    REPRODUCED abstractarrayspecs-cat-offset-axes
+expected: |
+  [1 0; 2 0; 0 3; 0 4] and [1, 2, 3, 4] (the result of cat on the same data with
+  1-based axes), or an ArgumentError for offset arguments.
+promised_by: |
+  cat docstring, base/abstractarray.jl:2061-2066: "Concatenate the input arrays along
+  the dimensions specified in dims. Along a dimension d in dims, the size of the
+  output array is sum(size(a,d) for a in A)." The output is a 1-based Array of that
+  size, so each argument must occupy size(a,d) consecutive positions after the
+  previous ones.
+cause: |
+  base/abstractarray.jl:1932 in __cat_offset1! builds the destination range as
+  `offsets[i] .+ cat_indices(x, i)`, and cat_indices(A, d) = axes(A, d) (line 1848),
+  so an axis that starts at f > 1 lands f - 1 positions too far. The offset update
+  on line 1936 uses cat_size, so later arguments are placed correctly and overwrite
+  the misplaced one. For one cat dimension _cat_t does not fill! the output first
+  (line 1911), so the skipped positions are uninitialized.
+possible_fix: |
+  Use `offsets[i] .+ (1:cat_size(x, i))` (or OneTo) for cat dimensions in
+  __cat_offset1!, or reject offset arguments with require_one_based_indexing.
+duplicates:
+  issues:
+    - {number: 37493, state: open, relation: related}
+  queries: ["issues: cat offset arrays", "issues: cat OffsetArray wrong", "issues: cat offset axes", "issues: __cat_offset", "issues: cat_indices offset", "issues: vcat OffsetArray", "issues: OffsetArrays cat", "issues: hcat OffsetArrays", "prs: cat offset arrays", "prs: cat_indices", "prs: __cat_offset1!"]
+lean:
+  property: JuliaLean.AbstractArraySpecs.CatOffsetInvariant
+  theorem: JuliaLean.AbstractArraySpecs.catOffsetInvariant_refuted

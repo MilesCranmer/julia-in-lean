@@ -1,95 +1,95 @@
 file	line	endline	name	signature	status	entry	note
-base/promotion.jl	20	20	typejoin	typejoin()	modelled	numberscov-promotion-s20	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	21	21	typejoin	typejoin(@nospecialize(t))	modelled	numberscov-promotion-s21	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	22	22	typejoin	typejoin(@nospecialize(t), @nospecialize(s), @nospecialize(u))	modelled	numberscov-promotion-s22	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	23	23	typejoin	typejoin(@nospecialize(t), @nospecialize(s), @nospecialize(u), ts...)	modelled	numberscov-promotion-s23	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	25	35	_has_ancestor_typename	_has_ancestor_typename(@nospecialize(a), name::Core.TypeName)	modelled	numberscov-promotion-s25	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	37	160	typejoin	typejoin(@nospecialize(a), @nospecialize(b))	modelled	numberscov-promotion-s37	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	166	177	typesplit	typesplit(@nospecialize(a), @nospecialize(b))	modelled	numberscov-promotion-s166	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	198	201	promote_typejoin	promote_typejoin(@nospecialize(a), @nospecialize(b))	modelled	numberscov-promotion-s198	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	202	207	_promote_typesubtract	_promote_typesubtract(@nospecialize(a))	modelled	numberscov-promotion-s202	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	209	224	promote_typejoin_union	promote_typejoin_union(::Type{T}) where T	modelled	numberscov-promotion-s209	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	226	253	typejoin_union_tuple	typejoin_union_tuple(T::DataType)	modelled	numberscov-promotion-s226	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	256	267	full_va_len	full_va_len(p::Core.SimpleVector)	modelled	numberscov-promotion-s256	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	270	280	tailjoin	tailjoin(A::SimpleVector, i::Int)	modelled	numberscov-promotion-s270	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/promotion.jl	20	20	typejoin	typejoin()	todo		trivial: restates body
+base/promotion.jl	21	21	typejoin	typejoin(@nospecialize(t))	todo		trivial: restates body
+base/promotion.jl	22	22	typejoin	typejoin(@nospecialize(t), @nospecialize(s), @nospecialize(u))	todo		trivial: restates body
+base/promotion.jl	23	23	typejoin	typejoin(@nospecialize(t), @nospecialize(s), @nospecialize(u), ts...)	todo		trivial: restates body
+base/promotion.jl	25	35	_has_ancestor_typename	_has_ancestor_typename(@nospecialize(a), name::Core.TypeName)	todo		trivial: restates body
+base/promotion.jl	37	160	typejoin	typejoin(@nospecialize(a), @nospecialize(b))	todo		trivial: restates body
+base/promotion.jl	166	177	typesplit	typesplit(@nospecialize(a), @nospecialize(b))	todo		trivial: restates body
+base/promotion.jl	198	201	promote_typejoin	promote_typejoin(@nospecialize(a), @nospecialize(b))	todo		trivial: restates body
+base/promotion.jl	202	207	_promote_typesubtract	_promote_typesubtract(@nospecialize(a))	todo		trivial: restates body
+base/promotion.jl	209	224	promote_typejoin_union	promote_typejoin_union(::Type{T}) where T	todo		trivial: restates body
+base/promotion.jl	226	253	typejoin_union_tuple	typejoin_union_tuple(T::DataType)	todo		trivial: restates body
+base/promotion.jl	256	267	full_va_len	full_va_len(p::Core.SimpleVector)	todo		trivial: restates body
+base/promotion.jl	270	280	tailjoin	tailjoin(A::SimpleVector, i::Int)	todo		trivial: restates body
 base/promotion.jl	324	324	promote_type	promote_type	excluded		no-behaviour: generic function declaration at base/promotion.jl:324 has no method body
-base/promotion.jl	326	326	promote_type	promote_type()	modelled	numberscov-promotion-s326	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	327	327	promote_type	promote_type(T)	modelled	numberscov-promotion-s327	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	328	328	promote_type	promote_type(T, S, U)	modelled	numberscov-promotion-s328	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	329	329	promote_type	promote_type(T, S, U, V...)	modelled	numberscov-promotion-s329	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	331	331	promote_type	promote_type(::Type{Bottom}, ::Type{Bottom})	modelled	numberscov-promotion-s331	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	332	332	promote_type	promote_type(::Type{T}, ::Type{T}) where {T}	modelled	numberscov-promotion-s332	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	333	333	promote_type	promote_type(::Type{T}, ::Type{Bottom}) where {T}	modelled	numberscov-promotion-s333	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	334	334	promote_type	promote_type(::Type{Bottom}, ::Type{T}) where {T}	modelled	numberscov-promotion-s334	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	336	344	promote_type	promote_type(::Type{T}, ::Type{S}) where {T,S}	modelled	numberscov-promotion-s336	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/promotion.jl	326	326	promote_type	promote_type()	todo		trivial: restates body
+base/promotion.jl	327	327	promote_type	promote_type(T)	todo		trivial: restates body
+base/promotion.jl	328	328	promote_type	promote_type(T, S, U)	todo		trivial: restates body
+base/promotion.jl	329	329	promote_type	promote_type(T, S, U, V...)	todo		trivial: restates body
+base/promotion.jl	331	331	promote_type	promote_type(::Type{Bottom}, ::Type{Bottom})	todo		trivial: restates body
+base/promotion.jl	332	332	promote_type	promote_type(::Type{T}, ::Type{T}) where {T}	todo		trivial: restates body
+base/promotion.jl	333	333	promote_type	promote_type(::Type{T}, ::Type{Bottom}) where {T}	todo		trivial: restates body
+base/promotion.jl	334	334	promote_type	promote_type(::Type{Bottom}, ::Type{T}) where {T}	todo		trivial: restates body
+base/promotion.jl	336	344	promote_type	promote_type(::Type{T}, ::Type{S}) where {T,S}	todo		trivial: restates body
 base/promotion.jl	353	353	promote_rule	promote_rule	excluded		no-behaviour: generic function declaration at base/promotion.jl:353 has no method body
-base/promotion.jl	355	355	promote_rule	promote_rule(::Type, ::Type)	modelled	numberscov-promotion-s355	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	358	358	promote_rule	promote_rule(::Type{Bottom}, slurp...)	modelled	numberscov-promotion-s358	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	359	359	promote_rule	promote_rule(::Type{Bottom}, ::Type{Bottom}, slurp...)	modelled	numberscov-promotion-s359	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	360	360	promote_rule	promote_rule(::Type{Bottom}, ::Type{T}, slurp...) where {T}	modelled	numberscov-promotion-s360	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	361	361	promote_rule	promote_rule(::Type{T}, ::Type{Bottom}, slurp...) where {T}	modelled	numberscov-promotion-s361	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	363	363	promote_result	promote_result(::Type,::Type,::Type{T},::Type{S}) where {T,S}	modelled	numberscov-promotion-s363	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	366	366	promote_result	promote_result(::Type{T},::Type{S},::Type{Bottom},::Type{Bottom}) where {T,S}	modelled	numberscov-promotion-s366	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/promotion.jl	355	355	promote_rule	promote_rule(::Type, ::Type)	todo		trivial: restates body
+base/promotion.jl	358	358	promote_rule	promote_rule(::Type{Bottom}, slurp...)	todo		trivial: restates body
+base/promotion.jl	359	359	promote_rule	promote_rule(::Type{Bottom}, ::Type{Bottom}, slurp...)	todo		trivial: restates body
+base/promotion.jl	360	360	promote_rule	promote_rule(::Type{Bottom}, ::Type{T}, slurp...) where {T}	todo		trivial: restates body
+base/promotion.jl	361	361	promote_rule	promote_rule(::Type{T}, ::Type{Bottom}, slurp...) where {T}	todo		trivial: restates body
+base/promotion.jl	363	363	promote_result	promote_result(::Type,::Type,::Type{T},::Type{S}) where {T,S}	todo		trivial: restates body
+base/promotion.jl	366	366	promote_result	promote_result(::Type{T},::Type{S},::Type{Bottom},::Type{Bottom}) where {T,S}	todo		trivial: restates body
 base/promotion.jl	395	395	promote	promote	excluded		no-behaviour: generic function declaration at base/promotion.jl:395 has no method body
-base/promotion.jl	397	401	_promote	_promote(x::T, y::S) where {T,S}	modelled	numberscov-promotion-s397	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	402	402	promote_typeof	promote_typeof(x)	modelled	numberscov-promotion-s402	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	403	403	promote_typeof	promote_typeof(x, y)	modelled	numberscov-promotion-s403	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	404	404	promote_typeof	promote_typeof(x, y, z)	modelled	numberscov-promotion-s404	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	405	405	promote_typeof	promote_typeof(x, y, z, a...)	modelled	numberscov-promotion-s405	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	406	410	_promote	_promote(x, y, z)	modelled	numberscov-promotion-s406	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	411	415	_promote	_promote(x, y, zs...)	modelled	numberscov-promotion-s411	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	420	420	promote	promote()	modelled	numberscov-promotion-s420	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	421	421	promote	promote(x)	modelled	numberscov-promotion-s421	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	423	428	promote	promote(x, y)	modelled	numberscov-promotion-s423	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	429	434	promote	promote(x, y, z)	modelled	numberscov-promotion-s429	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	435	439	promote	promote(x, y, z, a...)	modelled	numberscov-promotion-s435	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	441	441	promote	promote(x::T, y::T, zs::T...) where {T}	modelled	numberscov-promotion-s441	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	443	443	not_sametype	not_sametype(x::T, y::T) where {T}	modelled	numberscov-promotion-s443	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	445	445	not_sametype	not_sametype(x, y)	modelled	numberscov-promotion-s445	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	447	452	sametype_error	sametype_error(input)	modelled	numberscov-promotion-s447	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	454	454	+	+(x::Number, y::Number)	modelled	numberscov-promotion-s454	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	455	455	*	*(x::Number, y::Number)	modelled	numberscov-promotion-s455	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	456	456	-	-(x::Number, y::Number)	modelled	numberscov-promotion-s456	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	457	457	/	/(x::Number, y::Number)	modelled	numberscov-promotion-s457	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	459	459	+%	+%(x::Number, y::Number)	modelled	numberscov-promotion-s459	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	460	460	*%	*%(x::Number, y::Number)	modelled	numberscov-promotion-s460	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	461	461	-%	-%(x::Number, y::Number)	modelled	numberscov-promotion-s461	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	507	507	^	^(x::Number, y::Number)	modelled	numberscov-promotion-s507	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	509	509	fma	fma(x::Number, y::Number, z::Number)	modelled	numberscov-promotion-s509	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	510	514	muladd	muladd(a::Number, b::Number, c::Number)	modelled	numberscov-promotion-s510	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	516	516	==	==(x::Number, y::Number)	modelled	numberscov-promotion-s516	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	517	517	<	<( x::Real, y::Real)	modelled	numberscov-promotion-s517	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	518	518	<=	<=(x::Real, y::Real)	modelled	numberscov-promotion-s518	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	520	520	rem	rem(x::Real, y::Real)	modelled	numberscov-promotion-s520	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	521	521	mod	mod(x::Real, y::Real)	modelled	numberscov-promotion-s521	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	522	522	mod1	mod1(x::Real, y::Real)	modelled	numberscov-promotion-s522	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	523	523	fld1	fld1(x::Real, y::Real)	modelled	numberscov-promotion-s523	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	525	525	max	max(x::Real, y::Real)	modelled	numberscov-promotion-s525	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	526	526	min	min(x::Real, y::Real)	modelled	numberscov-promotion-s526	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	527	527	minmax	minmax(x::Real, y::Real)	modelled	numberscov-promotion-s527	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	529	532	TupleOrBottom	TupleOrBottom(tt...)	modelled	numberscov-promotion-s529	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	641	645	promote_op	promote_op(f, S::Type...)	modelled	numberscov-promotion-s641	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	650	650	no_op_err	no_op_err(name, T)	modelled	numberscov-promotion-s650	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	651	651	+	(+)(x::T, y::T) where {T<:Number}	modelled	numberscov-promotion-s651	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	652	652	*	(*)(x::T, y::T) where {T<:Number}	modelled	numberscov-promotion-s652	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	653	653	-	(-)(x::T, y::T) where {T<:Number}	modelled	numberscov-promotion-s653	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	654	654	/	(/)(x::T, y::T) where {T<:Number}	modelled	numberscov-promotion-s654	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	655	655	^	(^)(x::T, y::T) where {T<:Number}	modelled	numberscov-promotion-s655	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	657	657	fma	fma(x::T, y::T, z::T) where {T<:Number}	modelled	numberscov-promotion-s657	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	658	658	fma	fma(x::Integer, y::Integer, z::Integer)	modelled	numberscov-promotion-s658	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	659	659	muladd	muladd(x::T, y::T, z::T) where {T<:Number}	modelled	numberscov-promotion-s659	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	661	661	&	(&)(x::T, y::T) where {T<:Integer}	modelled	numberscov-promotion-s661	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	662	662	|	(|)(x::T, y::T) where {T<:Integer}	modelled	numberscov-promotion-s662	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	663	663	xor	xor(x::T, y::T) where {T<:Integer}	modelled	numberscov-promotion-s663	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	665	665	==	(==)(x::T, y::T) where {T<:Number}	modelled	numberscov-promotion-s665	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	666	666	<	(< )(x::T, y::T) where {T<:Real}	modelled	numberscov-promotion-s666	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	667	667	<=	(<=)(x::T, y::T) where {T<:Real}	modelled	numberscov-promotion-s667	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	669	669	rem	rem(x::T, y::T) where {T<:Real}	modelled	numberscov-promotion-s669	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	670	670	mod	mod(x::T, y::T) where {T<:Real}	modelled	numberscov-promotion-s670	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	672	672	min	min(x::Real)	modelled	numberscov-promotion-s672	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	673	673	max	max(x::Real)	modelled	numberscov-promotion-s673	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	674	674	minmax	minmax(x::Real)	modelled	numberscov-promotion-s674	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	676	676	max	max(x::T, y::T) where {T<:Real}	modelled	numberscov-promotion-s676	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	677	677	min	min(x::T, y::T) where {T<:Real}	modelled	numberscov-promotion-s677	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	678	678	minmax	minmax(x::T, y::T) where {T<:Real}	modelled	numberscov-promotion-s678	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/promotion.jl	680	680	flipsign	flipsign(x::T, y::T) where {T<:Signed}	modelled	numberscov-promotion-s680	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
+base/promotion.jl	397	401	_promote	_promote(x::T, y::S) where {T,S}	todo		trivial: restates body
+base/promotion.jl	402	402	promote_typeof	promote_typeof(x)	todo		trivial: restates body
+base/promotion.jl	403	403	promote_typeof	promote_typeof(x, y)	todo		trivial: restates body
+base/promotion.jl	404	404	promote_typeof	promote_typeof(x, y, z)	todo		trivial: restates body
+base/promotion.jl	405	405	promote_typeof	promote_typeof(x, y, z, a...)	todo		trivial: restates body
+base/promotion.jl	406	410	_promote	_promote(x, y, z)	todo		trivial: restates body
+base/promotion.jl	411	415	_promote	_promote(x, y, zs...)	todo		trivial: restates body
+base/promotion.jl	420	420	promote	promote()	todo		trivial: restates body
+base/promotion.jl	421	421	promote	promote(x)	todo		trivial: restates body
+base/promotion.jl	423	428	promote	promote(x, y)	todo		trivial: restates body
+base/promotion.jl	429	434	promote	promote(x, y, z)	todo		trivial: restates body
+base/promotion.jl	435	439	promote	promote(x, y, z, a...)	todo		trivial: restates body
+base/promotion.jl	441	441	promote	promote(x::T, y::T, zs::T...) where {T}	todo		trivial: restates body
+base/promotion.jl	443	443	not_sametype	not_sametype(x::T, y::T) where {T}	todo		trivial: restates body
+base/promotion.jl	445	445	not_sametype	not_sametype(x, y)	todo		trivial: restates body
+base/promotion.jl	447	452	sametype_error	sametype_error(input)	todo		trivial: restates body
+base/promotion.jl	454	454	+	+(x::Number, y::Number)	todo		trivial: restates body
+base/promotion.jl	455	455	*	*(x::Number, y::Number)	todo		trivial: restates body
+base/promotion.jl	456	456	-	-(x::Number, y::Number)	todo		trivial: restates body
+base/promotion.jl	457	457	/	/(x::Number, y::Number)	todo		trivial: restates body
+base/promotion.jl	459	459	+%	+%(x::Number, y::Number)	todo		trivial: restates body
+base/promotion.jl	460	460	*%	*%(x::Number, y::Number)	todo		trivial: restates body
+base/promotion.jl	461	461	-%	-%(x::Number, y::Number)	todo		trivial: restates body
+base/promotion.jl	507	507	^	^(x::Number, y::Number)	todo		trivial: restates body
+base/promotion.jl	509	509	fma	fma(x::Number, y::Number, z::Number)	todo		trivial: restates body
+base/promotion.jl	510	514	muladd	muladd(a::Number, b::Number, c::Number)	todo		trivial: restates body
+base/promotion.jl	516	516	==	==(x::Number, y::Number)	todo		trivial: restates body
+base/promotion.jl	517	517	<	<( x::Real, y::Real)	todo		trivial: restates body
+base/promotion.jl	518	518	<=	<=(x::Real, y::Real)	todo		trivial: restates body
+base/promotion.jl	520	520	rem	rem(x::Real, y::Real)	todo		trivial: restates body
+base/promotion.jl	521	521	mod	mod(x::Real, y::Real)	todo		trivial: restates body
+base/promotion.jl	522	522	mod1	mod1(x::Real, y::Real)	todo		trivial: restates body
+base/promotion.jl	523	523	fld1	fld1(x::Real, y::Real)	todo		trivial: restates body
+base/promotion.jl	525	525	max	max(x::Real, y::Real)	todo		trivial: restates body
+base/promotion.jl	526	526	min	min(x::Real, y::Real)	todo		trivial: restates body
+base/promotion.jl	527	527	minmax	minmax(x::Real, y::Real)	todo		trivial: restates body
+base/promotion.jl	529	532	TupleOrBottom	TupleOrBottom(tt...)	todo		trivial: restates body
+base/promotion.jl	641	645	promote_op	promote_op(f, S::Type...)	todo		trivial: restates body
+base/promotion.jl	650	650	no_op_err	no_op_err(name, T)	todo		trivial: restates body
+base/promotion.jl	651	651	+	(+)(x::T, y::T) where {T<:Number}	todo		trivial: restates body
+base/promotion.jl	652	652	*	(*)(x::T, y::T) where {T<:Number}	todo		trivial: restates body
+base/promotion.jl	653	653	-	(-)(x::T, y::T) where {T<:Number}	todo		trivial: restates body
+base/promotion.jl	654	654	/	(/)(x::T, y::T) where {T<:Number}	todo		trivial: restates body
+base/promotion.jl	655	655	^	(^)(x::T, y::T) where {T<:Number}	todo		trivial: restates body
+base/promotion.jl	657	657	fma	fma(x::T, y::T, z::T) where {T<:Number}	todo		trivial: restates body
+base/promotion.jl	658	658	fma	fma(x::Integer, y::Integer, z::Integer)	todo		trivial: restates body
+base/promotion.jl	659	659	muladd	muladd(x::T, y::T, z::T) where {T<:Number}	todo		trivial: restates body
+base/promotion.jl	661	661	&	(&)(x::T, y::T) where {T<:Integer}	todo		trivial: restates body
+base/promotion.jl	662	662	|	(|)(x::T, y::T) where {T<:Integer}	todo		trivial: restates body
+base/promotion.jl	663	663	xor	xor(x::T, y::T) where {T<:Integer}	todo		trivial: restates body
+base/promotion.jl	665	665	==	(==)(x::T, y::T) where {T<:Number}	todo		trivial: restates body
+base/promotion.jl	666	666	<	(< )(x::T, y::T) where {T<:Real}	todo		trivial: restates body
+base/promotion.jl	667	667	<=	(<=)(x::T, y::T) where {T<:Real}	todo		trivial: restates body
+base/promotion.jl	669	669	rem	rem(x::T, y::T) where {T<:Real}	todo		trivial: restates body
+base/promotion.jl	670	670	mod	mod(x::T, y::T) where {T<:Real}	todo		trivial: restates body
+base/promotion.jl	672	672	min	min(x::Real)	todo		trivial: restates body
+base/promotion.jl	673	673	max	max(x::Real)	todo		trivial: restates body
+base/promotion.jl	674	674	minmax	minmax(x::Real)	todo		trivial: restates body
+base/promotion.jl	676	676	max	max(x::T, y::T) where {T<:Real}	todo		trivial: restates body
+base/promotion.jl	677	677	min	min(x::T, y::T) where {T<:Real}	todo		trivial: restates body
+base/promotion.jl	678	678	minmax	minmax(x::T, y::T) where {T<:Real}	todo		trivial: restates body
+base/promotion.jl	680	680	flipsign	flipsign(x::T, y::T) where {T<:Signed}	todo		trivial: restates body

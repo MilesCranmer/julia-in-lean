@@ -273,39 +273,6 @@ private def entry (line : Nat) (slug fn statement source : String)
   { id := s!"abstractarraycov-line{line}-{slug}", juliaFile := "base/abstractarray.jl",
     juliaFns := [fn], statement, source, status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 3307 "foreach" "foreach(f,itr)" "Unary foreach invokes f in iteration order and returns nothing." "base/abstractarray.jl:3307" ``Property3307 ``property3307,
-  entry 3308 "foreach" "foreach(f,itr,itrs...)" "Multi-input foreach invokes f on zipped tuples and returns nothing." "base/abstractarray.jl:3308" ``Property3308 ``property3308,
-  entry 3385 "mapslices" "mapslices(f,A;dims)" "mapslices validates dimensions, evaluates the first slice, prepares and allocates output, places it, then enters the remaining-slice loop." "base/abstractarray.jl:3385-3448" ``Property3385 ``property3385,
-  entry 3450 "inner-mapslices" "_inner_mapslices!" "The inner loop selects reuse or fresh-slice execution from safe_for_reuse." "base/abstractarray.jl:3450-3475" ``Property3450 ``property3450,
-  entry 3477 "concatenate-setindex" "concatenate_setindex!(R,v,I...)" "Scalar placement broadcasts the singleton tuple into the indexed region." "base/abstractarray.jl:3477" ``Property3477 ``property3477,
-  entry 3478 "concatenate-setindex" "concatenate_setindex!(R,X::AbstractArray,I...)" "Array placement assigns X into the indexed region." "base/abstractarray.jl:3478" ``Property3478 ``property3478,
-  entry 3482 "mapbang-unary" "map!(f,dest,A)" "Unary map! evaluates source elements and writes results in zipped index order." "base/abstractarray.jl:3482-3488" ``Property3482 ``property3482,
-  entry 3491 "map-array" "map(f,A::AbstractArray)" "Array map constructs a Generator before collect_similar." "base/abstractarray.jl:3491" ``Property3491 ``property3491,
-  entry 3493 "mapany-array" "mapany(f,A::AbstractArray)" "Array mapany allocates Any storage at source length then calls map!." "base/abstractarray.jl:3493" ``Property3493 ``property3493,
-  entry 3494 "mapany-iter" "mapany(f,itr)" "Generic mapany comprehends f results in iterator order." "base/abstractarray.jl:3494" ``Property3494 ``property3494,
-  entry 3521 "map-iter" "map(f,A)" "Generic map constructs a Generator before collect." "base/abstractarray.jl:3521" ``Property3521 ``property3521,
-  entry 3523 "map-dict-error" "map(f,::AbstractDict)" "Dictionary map throws the documented unsupported error." "base/abstractarray.jl:3523" ``Property3523 ``property3523,
-  entry 3524 "map-set-error" "map(f,::AbstractSet)" "Set map throws the documented unsupported error." "base/abstractarray.jl:3524" ``Property3524 ``property3524,
-  entry 3527 "mapbang-binary" "map!(f,dest,A,B)" "Binary map! reads paired source indices, applies f, and writes destination indices in zip order." "base/abstractarray.jl:3527-3534" ``Property3527 ``property3527,
-  entry 3538 "ith-all-empty" "ith_all(i,())" "The tuple gather base returns empty." "base/abstractarray.jl:3538" ``Property3538 ``property3538,
-  entry 3539 "ith-all" "ith_all(i,arrays)" "The tuple gather reads index i from every array in order." "base/abstractarray.jl:3539-3542" ``Property3539 ``property3539,
-  entry 3544 "map-n" "map_n!" "N-ary map selects the shared-linear or separate-iterator loop after comparing LinearIndices." "base/abstractarray.jl:3544-3560" ``Property3544 ``property3544,
-  entry 3593 "mapbang-vararg" "map!(f,dest,arrays...)" "The vararg wrapper rejects an empty source tuple before map_n!." "base/abstractarray.jl:3593-3596" ``Property3593 ``property3593,
-  entry 3618 "mapbang-inplace" "map!(f,inout)" "In-place unary map delegates with the same array as source and destination." "base/abstractarray.jl:3618" ``Property3618 ``property3618,
-  entry 3645 "map-multi" "map(f,it,iters...)" "Multi-input map constructs a Generator before collect." "base/abstractarray.jl:3645" ``Property3645 ``property3645,
-  entry 3649 "push-convert" "push!(::AbstractVector{T},item)" "Generic push converts before growing and appending." "base/abstractarray.jl:3649-3656" ``Property3649 ``property3649,
-  entry 3659 "push-any" "push!(::AbstractVector{Any},x)" "Any push grows by one and stores x at the end." "base/abstractarray.jl:3659-3664" ``Property3659 ``property3659,
-  entry 3665 "push-any-many" "push!(::AbstractVector{Any},xs...)" "Vararg Any push grows once and stores values in order." "base/abstractarray.jl:3665-3675" ``Property3665 ``property3665,
-  entry 3679 "push-two" "push!(A,a,b)" "Two-item push nests the one-item operation left to right." "base/abstractarray.jl:3679" ``Property3679 ``property3679,
-  entry 3680 "push-many" "push!(A,a,b,c...)" "Vararg push performs the first two before the remaining items." "base/abstractarray.jl:3680" ``Property3680 ``property3680,
-  entry 3681 "pushfirst-two" "pushfirst!(A,a,b)" "Two-item pushfirst inserts b then a to preserve argument order." "base/abstractarray.jl:3681" ``Property3681 ``property3681,
-  entry 3682 "pushfirst-many" "pushfirst!(A,a,b,c...)" "Vararg pushfirst inserts the tail before a and b." "base/abstractarray.jl:3682" ``Property3682 ``property3682,
-  entry 3685 "sizehint" "sizehint!(::AbstractVector,_)" "The generic sizehint returns the vector unchanged." "base/abstractarray.jl:3685" ``Property3685 ``property3685,
-  entry 3688 "rest" "rest(::AbstractArray,state...)" "rest allocates empty output, takes a length hint, then folds push! over Iterators.rest." "base/abstractarray.jl:3688-3693" ``Property3688 ``property3688,
-  entry 3699 "keepat-indices" "_keepat!(a,indices)" "The method requires strictly increasing in-bounds indices and retains exactly those values." "base/abstractarray.jl:3699-3715" ``Property3699 ``property3699,
-  entry 3717 "keepat-mask" "_keepat!(a,mask)" "The mask method checks equal length then retains true positions in order." "base/abstractarray.jl:3717-3729" ``Property3717 ``property3717,
-  entry 3756 "circshift" "circshift!(a,shift)" "The method handles empty and zero shifts, then performs the three source reversals." "base/abstractarray.jl:3756-3766" ``Property3756 ``property3756
-]
+def entries : List Entry := []
 
 end JuliaLean.AbstractArrayCov.Rows.MapMut

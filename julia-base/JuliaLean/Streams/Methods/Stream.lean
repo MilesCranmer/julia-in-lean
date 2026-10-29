@@ -59,178 +59,494 @@ def withRead (a : Args) : Except StreamErr (List UInt8 × StreamM) → Obs
 def reqFinishObs (a : Args) (completed tryCancel knownOwner : Bool) : Obs :=
   { base a with req := finishReq a.req completed tryCancel knownOwner }
 
-/-- One method-specific source branch for every non-excluded method in `base/stream.jl`. -/
-def run : Nat → Args → Obs
-  | 29, a => { base a with counts := [endpointField a.endpoint a.field] }
-  | 58, a => { base a with counts := [endpointField a.endpoint a.field] }
-  | 102, a => { base a with counts := [a.endpoint.buffer.length] }
-  | 104, a => { base a with flags := [streamEof a.stream] }
-  | 139, a => { base a with text := uvStatusString a.endpoint.hasHandle a.status }
-  | 179, a => { base a with endpoint := endpointCtor a.endpoint.hasHandle a.status }
-  | 194, a => { base a with endpoint := endpointCtor false .uninit }
-  | 204, a => { base a with endpoint := endpointCtor a.flag .init }
-  | 224, a => { base a with endpoint := endpointCtor a.endpoint.hasHandle a.status }
-  | 244, a => { base a with endpoint := endpointCtor a.flag .init }
-  | 258, a => { base a with text := endpointShow "LibuvServer" a.i a.endpoint }
-  | 261, a => { base a with text := endpointShow a.text a.i a.endpoint }
-  | 268, a => { base a with flags := [endpointReadable a.endpoint] }
-  | 275, a => { base a with flags := [endpointWritable a.endpoint] }
-  | 281, a => { base a with counts := [lockDepth a.n true] }
-  | 282, a => { base a with counts := [lockDepth a.n false] }
-  | 284, a => { base a with endpoint := (setupStreamStdio a.endpoint).1, flags := [(setupStreamStdio a.endpoint).2] }
-  | 285, a => { base a with flags := [rawHandleModel a.endpoint] }
-  | 286, a => { base a with flags := [a.endpoint.hasHandle] }
-  | 288, a => match initStdioModel a.handleKind with
+def m29 (a : Args) : Obs := { base a with counts := [endpointField a.endpoint a.field] }
+
+def m58 (a : Args) : Obs := { base a with counts := [endpointField a.endpoint a.field] }
+
+def m102 (a : Args) : Obs := { base a with counts := [a.endpoint.buffer.length] }
+
+def m104 (a : Args) : Obs := { base a with flags := [streamEof a.stream] }
+
+def m139 (a : Args) : Obs := { base a with text := uvStatusString a.endpoint.hasHandle a.status }
+
+def m179 (a : Args) : Obs := { base a with endpoint := endpointCtor a.endpoint.hasHandle a.status }
+
+def m194 (a : Args) : Obs := { base a with endpoint := endpointCtor false .uninit }
+
+def m204 (a : Args) : Obs := { base a with endpoint := endpointCtor a.flag .init }
+
+def m224 (a : Args) : Obs := { base a with endpoint := endpointCtor a.endpoint.hasHandle a.status }
+
+def m244 (a : Args) : Obs := { base a with endpoint := endpointCtor a.flag .init }
+
+def m258 (a : Args) : Obs := { base a with text := endpointShow "LibuvServer" a.i a.endpoint }
+
+def m261 (a : Args) : Obs := { base a with text := endpointShow a.text a.i a.endpoint }
+
+def m268 (a : Args) : Obs := { base a with flags := [endpointReadable a.endpoint] }
+
+def m275 (a : Args) : Obs := { base a with flags := [endpointWritable a.endpoint] }
+
+def m281 (a : Args) : Obs := { base a with counts := [lockDepth a.n true] }
+
+def m282 (a : Args) : Obs := { base a with counts := [lockDepth a.n false] }
+
+def m284 (a : Args) : Obs := { base a with endpoint := (setupStreamStdio a.endpoint).1, flags := [(setupStreamStdio a.endpoint).2] }
+
+def m285 (a : Args) : Obs := { base a with flags := [rawHandleModel a.endpoint] }
+
+def m286 (a : Args) : Obs := { base a with flags := [a.endpoint.hasHandle] }
+
+def m288 (a : Args) : Obs := match initStdioModel a.handleKind with
       | .ok kind => { base a with stream := freshStream kind }
       | .error e => { base a with error := some e }
-  | 328, a => { base a with endpoint := { a.endpoint with hasHandle := a.flag, status := if a.flag then .opened else .closed } }
-  | 364, a => { base a with endpoint := { a.endpoint with hasHandle := a.flag, status := if a.flag then .opened else .closed } }
-  | 377, a => match endpointIsOpen a.endpoint with
+
+def m328 (a : Args) : Obs := { base a with endpoint := { a.endpoint with hasHandle := a.flag, status := if a.flag then .opened else .closed } }
+
+def m364 (a : Args) : Obs := { base a with endpoint := { a.endpoint with hasHandle := a.flag, status := if a.flag then .opened else .closed } }
+
+def m377 (a : Args) : Obs := match endpointIsOpen a.endpoint with
       | .ok opened => { base a with flags := [opened] }
       | .error e => { base a with error := some e }
-  | 384, a => withEndpoint a (match endpointCheckOpen a.endpoint with | .ok _ => .ok a.endpoint | .error e => .error e)
-  | 390, a => withEndpoint a (waitReadState a.endpoint a.n)
-  | 493, a => { base a with flags := [a.req.owner == .waiter] }
-  | 502, a => { base a with req := markReqCancelled a.req }
-  | 511, a => { base a with flags := [a.req.cancelRequested] }
-  | 530, a => { base a with req := { a.req with rooted := true, owner := .detachedReq } }
-  | 534, a => { base a with req := { a.req with rooted := false } }
-  | 540, a => if a.flag then { base a with error := some .ioError } else base a
-  | 553, a => match beginReq a.flag a.n with
+
+def m384 (a : Args) : Obs := withEndpoint a (match endpointCheckOpen a.endpoint with | .ok _ => .ok a.endpoint | .error e => .error e)
+
+def m390 (a : Args) : Obs := withEndpoint a (waitReadState a.endpoint a.n)
+
+def m493 (a : Args) : Obs := { base a with flags := [a.req.owner == .waiter] }
+
+def m502 (a : Args) : Obs := { base a with req := markReqCancelled a.req }
+
+def m511 (a : Args) : Obs := { base a with flags := [a.req.cancelRequested] }
+
+def m530 (a : Args) : Obs := { base a with req := { a.req with rooted := true, owner := .detachedReq } }
+
+def m534 (a : Args) : Obs := { base a with req := { a.req with rooted := false } }
+
+def m540 (a : Args) : Obs := if a.flag then { base a with error := some .ioError } else base a
+
+def m553 (a : Args) : Obs := match beginReq a.flag a.n with
       | .ok req => { base a with req }
       | .error e => { base a with error := some e }
-  | 575, a => reqFinishObs a a.flag a.flag2 a.flag3
-  | 615, a => { base a with flags := [a.flag], counts := [a.n + 1] }
-  | 626, a => { base a with req := if a.byte = 0 then a.req else markReqCancelled a.req }
-  | 650, a => reqFinishObs a a.flag a.flag2 a.flag3
-  | 700, a => { base a with flags := [a.req.owner == .waiter], req := if a.req.owner == .waiter then { a.req with owner := .callbackDone } else a.req }
-  | 719, a => withEndpoint a (endpointCloseWrite a.endpoint a.i)
-  | 750, a => { base a with endpoint := if a.endpoint.hasHandle then a.endpoint else endpointClose a.endpoint }
-  | 770, a => { base a with endpoint := endpointClose a.endpoint }
-  | 786, a => { base a with endpoint := endpointClose a.endpoint }
-  | 809, a => { base a with flags := [true] }
-  | 810, a => { base a with flags := [false] }
-  | 836, a => { base a with counts := let size := displaySizeModel (some a.n) (some a.m); [size.1, size.2] }
-  | 837, a => { base a with counts := let size := displaySizeModel none none; [size.1, size.2] }
-  | 845, a => { base a with counts := let size := displaySizeModel (some a.n) (some a.m); [size.1, size.2] }
-  | 847, a => { base a with counts := let size := displaySizeModel (some a.n) (some a.m); [size.1, size.2] }
-  | 885, a => { base a with counts := [allocRequestSize a.n a.m a.endpoint.throttle] }
-  | 893, a => { base a with endpoint := notifyFilled a.endpoint a.bytes a.i }
-  | 895, a => { base a with endpoint := notifyFilled a.endpoint a.bytes a.i }
-  | 905, a => { base a with counts := [allocRequestSize a.endpoint.buffer.length a.n a.endpoint.throttle] }
-  | 910, a => { base a with counts := [allocRequestSize a.endpoint.buffer.length a.n a.endpoint.throttle] }
-  | 938, a => { base a with endpoint := notifyFilled a.endpoint a.bytes a.i }
-  | 941, a => { base a with endpoint := notifyFilled a.endpoint a.bytes a.i }
-  | 992, a => { base a with endpoint := if a.endpoint.status == .eof then { a.endpoint with status := .active } else a.endpoint }
-  | 1001, a => { base a with endpoint := endpointClose a.endpoint }
-  | 1048, a => { base a with pipe := freshPipe }
-  | 1049, a => { base a with stream := a.pipe.readEnd }
-  | 1050, a => { base a with stream := a.pipe.writeEnd }
-  | 1061, a => { base a with pipe := { a.pipe with readEnd := { a.pipe.readEnd with status := .active }, writeEnd := { a.pipe.writeEnd with status := .active } } }
-  | 1068, a => { base a with text := "Pipe(" ++ toString a.pipe.readEnd.buffer.length ++ ", " ++ toString a.pipe.writeEnd.buffer.length ++ ")" }
-  | 1076, a => { base a with pipe := closePipeWrite a.pipe }
-  | 1080, a => { base a with endpoint := { a.endpoint with hasHandle := a.flag, status := .opened } }
-  | 1093, a => { base a with pipe := { readEnd := { a.pipe.readEnd with status := .active }, writeEnd := { a.pipe.writeEnd with status := .active } } }
-  | 1111, a => { base a with pipe := { readEnd := { a.pipe.readEnd with status := .active }, writeEnd := { a.pipe.writeEnd with status := .active } } }
-  | 1128, a => { base a with flags := [a.flag] }
-  | 1138, a => { base a with endpoint := startReadingState a.endpoint }
-  | 1168, a => { base a with endpoint := stopReadingState a.endpoint }
-  | 1178, a => { base a with endpoint := stopReadingState a.endpoint }
-  | 1190, a => let read := readbytesModel a.stream.buffer a.n; { base a with counts := [read.1], bytes := read.2.1, stream := { a.stream with buffer := read.2.2 } }
-  | 1191, a => let read := readbytesModel a.stream.buffer a.n; { base a with counts := [read.1], bytes := read.2.1, stream := { a.stream with buffer := read.2.2 } }
-  | 1198, a => withEndpoint a (waitReadState a.endpoint a.n)
-  | 1232, a => withRead a (readAvailable a.stream)
-  | 1240, a => withRead a (unsafeRead a.stream a.n)
-  | 1247, a => withEndpoint a (waitReadState a.endpoint a.n)
-  | 1277, a => withRead a (unsafeRead a.stream 1)
-  | 1292, a => withRead a (readAvailable a.stream)
-  | 1302, a => withRead a (readUntil a.stream a.byte a.flag)
-  | 1347, a => { base a with counts := writeChunks a.bytes.length (max 1 a.n) }
-  | 1360, a => { base a with counts := writeChunks a.n (max 1 a.m), req := completeReq a.req a.i a.j.toNat }
-  | 1478, a => reqFinishObs a a.flag a.flag2 a.flag3
-  | 1558, a => { base a with req := completeReq a.req a.i a.n }
-  | 1576, a => reqFinishObs a a.flag a.flag2 a.flag3
-  | 1604, a => { base a with counts := writeChunks a.n (max 1 a.m) }
-  | 1611, a => { base a with counts := writeChunks a.n (max 1 a.m) }
-  | 1634, a => { base a with counts := writeChunks a.n (max 1 a.m) }
-  | 1669, a => withStream a (unsafeWrite a.stream a.bytes a.bytes.length)
-  | 1679, a => withStream a (unsafeWrite a.stream a.bytes (min a.n a.bytes.length))
-  | 1691, a => withStream a (unsafeWrite a.stream a.bytes a.bytes.length)
-  | 1699, a => withStream a (unsafeWrite a.stream a.bytes (min a.n a.bytes.length))
-  | 1710, a => withStream a (unsafeWrite a.stream a.bytes a.bytes.length)
-  | 1720, a => withStream a (unsafeWrite a.stream a.bytes (min a.n a.bytes.length))
-  | 1736, a => withStream a (unsafeWrite a.stream a.bytes a.n)
-  | 1741, a => withStream a (unsafeWrite a.stream a.bytes a.n)
-  | 1778, a => { base a with bytes := requeueUnwritten a.bytes a.queued a.n }
-  | 1795, a => { base a with bytes := a.endpoint.sendBuffer.getD [], endpoint := { a.endpoint with sendBuffer := none } }
-  | 1826, a => { base a with endpoint := { a.endpoint with sendBuffer := some [] }, counts := [a.n] }
-  | 1836, a => withStream a (unsafeWrite a.stream [a.byte] 1)
-  | 1856, a => { base a with req := completeReq a.req a.i a.n }
-  | 1909, a => { base a with req := completeReq a.req a.i 0 }
-  | 1916, a => { base a with integer := a.i }
-  | 1917, a => { base a with integer := a.i }
-  | 1919, a => { base a with flags := [a.endpoint.hasHandle], integer := a.i }
-  | 1938, a => { base a with integer := a.i, flags := [a.flag] }
-  | 1949, a => { base a with integer := a.i, flags := [a.flag] }
-  | 1957, a => { base a with integer := a.i, flags := [a.flag] }
-  | 1963, a => { base a with redirect := { a.redirect with outStream := .stream } }
-  | 1969, a => { base a with redirect := { a.redirect with outStream := .devnull } }
-  | 1978, a => { base a with redirect := { a.redirect with outStream := .stream } }
-  | 1984, a => { base a with redirect := { a.redirect with outStream := .stream } }
-  | 1992, a => { base a with redirect := { a.redirect with outStream := .stream } }
-  | 1995, a => { base a with counts := [1] }
-  | 1996, a => { base a with counts := [a.n] }
-  | 1997, a => match pipeGetindex (a.pipe.readEnd, a.pipe.writeEnd) a.i with
+
+def m575 (a : Args) : Obs := reqFinishObs a a.flag a.flag2 a.flag3
+
+def m615 (a : Args) : Obs := { base a with flags := [a.flag], counts := [a.n + 1] }
+
+def m626 (a : Args) : Obs := { base a with req := if a.byte = 0 then a.req else markReqCancelled a.req }
+
+def m650 (a : Args) : Obs := reqFinishObs a a.flag a.flag2 a.flag3
+
+def m700 (a : Args) : Obs := { base a with flags := [a.req.owner == .waiter], req := if a.req.owner == .waiter then { a.req with owner := .callbackDone } else a.req }
+
+def m719 (a : Args) : Obs := withEndpoint a (endpointCloseWrite a.endpoint a.i)
+
+def m750 (a : Args) : Obs := { base a with endpoint := if a.endpoint.hasHandle then a.endpoint else endpointClose a.endpoint }
+
+def m770 (a : Args) : Obs := { base a with endpoint := endpointClose a.endpoint }
+
+def m786 (a : Args) : Obs := { base a with endpoint := endpointClose a.endpoint }
+
+def m809 (a : Args) : Obs := { base a with flags := [true] }
+
+def m810 (a : Args) : Obs := { base a with flags := [false] }
+
+def m836 (a : Args) : Obs := { base a with counts := let size := displaySizeModel (some a.n) (some a.m); [size.1, size.2] }
+
+def m837 (a : Args) : Obs := { base a with counts := let size := displaySizeModel none none; [size.1, size.2] }
+
+def m845 (a : Args) : Obs := { base a with counts := let size := displaySizeModel (some a.n) (some a.m); [size.1, size.2] }
+
+def m847 (a : Args) : Obs := { base a with counts := let size := displaySizeModel (some a.n) (some a.m); [size.1, size.2] }
+
+def m885 (a : Args) : Obs := { base a with counts := [allocRequestSize a.n a.m a.endpoint.throttle] }
+
+def m893 (a : Args) : Obs := { base a with endpoint := notifyFilled a.endpoint a.bytes a.i }
+
+def m895 (a : Args) : Obs := { base a with endpoint := notifyFilled a.endpoint a.bytes a.i }
+
+def m905 (a : Args) : Obs := { base a with counts := [allocRequestSize a.endpoint.buffer.length a.n a.endpoint.throttle] }
+
+def m910 (a : Args) : Obs := { base a with counts := [allocRequestSize a.endpoint.buffer.length a.n a.endpoint.throttle] }
+
+def m938 (a : Args) : Obs := { base a with endpoint := notifyFilled a.endpoint a.bytes a.i }
+
+def m941 (a : Args) : Obs := { base a with endpoint := notifyFilled a.endpoint a.bytes a.i }
+
+def m992 (a : Args) : Obs := { base a with endpoint := if a.endpoint.status == .eof then { a.endpoint with status := .active } else a.endpoint }
+
+def m1001 (a : Args) : Obs := { base a with endpoint := endpointClose a.endpoint }
+
+def m1048 (a : Args) : Obs := { base a with pipe := freshPipe }
+
+def m1049 (a : Args) : Obs := { base a with stream := a.pipe.readEnd }
+
+def m1050 (a : Args) : Obs := { base a with stream := a.pipe.writeEnd }
+
+def m1061 (a : Args) : Obs := { base a with pipe := { a.pipe with readEnd := { a.pipe.readEnd with status := .active }, writeEnd := { a.pipe.writeEnd with status := .active } } }
+
+def m1068 (a : Args) : Obs := { base a with text := "Pipe(" ++ toString a.pipe.readEnd.buffer.length ++ ", " ++ toString a.pipe.writeEnd.buffer.length ++ ")" }
+
+def m1076 (a : Args) : Obs := { base a with pipe := closePipeWrite a.pipe }
+
+def m1080 (a : Args) : Obs := { base a with endpoint := { a.endpoint with hasHandle := a.flag, status := .opened } }
+
+def m1093 (a : Args) : Obs := { base a with pipe := { readEnd := { a.pipe.readEnd with status := .active }, writeEnd := { a.pipe.writeEnd with status := .active } } }
+
+def m1111 (a : Args) : Obs := { base a with pipe := { readEnd := { a.pipe.readEnd with status := .active }, writeEnd := { a.pipe.writeEnd with status := .active } } }
+
+def m1128 (a : Args) : Obs := { base a with flags := [a.flag] }
+
+def m1138 (a : Args) : Obs := { base a with endpoint := startReadingState a.endpoint }
+
+def m1168 (a : Args) : Obs := { base a with endpoint := stopReadingState a.endpoint }
+
+def m1178 (a : Args) : Obs := { base a with endpoint := stopReadingState a.endpoint }
+
+def m1190 (a : Args) : Obs := let read := readbytesModel a.stream.buffer a.n; { base a with counts := [read.1], bytes := read.2.1, stream := { a.stream with buffer := read.2.2 } }
+
+def m1191 (a : Args) : Obs := let read := readbytesModel a.stream.buffer a.n; { base a with counts := [read.1], bytes := read.2.1, stream := { a.stream with buffer := read.2.2 } }
+
+def m1198 (a : Args) : Obs := withEndpoint a (waitReadState a.endpoint a.n)
+
+def m1232 (a : Args) : Obs := withRead a (readAvailable a.stream)
+
+def m1240 (a : Args) : Obs := withRead a (unsafeRead a.stream a.n)
+
+def m1247 (a : Args) : Obs := withEndpoint a (waitReadState a.endpoint a.n)
+
+def m1277 (a : Args) : Obs := withRead a (unsafeRead a.stream 1)
+
+def m1292 (a : Args) : Obs := withRead a (readAvailable a.stream)
+
+def m1302 (a : Args) : Obs := withRead a (readUntil a.stream a.byte a.flag)
+
+def m1347 (a : Args) : Obs := { base a with counts := writeChunks a.bytes.length (max 1 a.n) }
+
+def m1360 (a : Args) : Obs := { base a with counts := writeChunks a.n (max 1 a.m), req := completeReq a.req a.i a.j.toNat }
+
+def m1478 (a : Args) : Obs := reqFinishObs a a.flag a.flag2 a.flag3
+
+def m1558 (a : Args) : Obs := { base a with req := completeReq a.req a.i a.n }
+
+def m1576 (a : Args) : Obs := reqFinishObs a a.flag a.flag2 a.flag3
+
+def m1604 (a : Args) : Obs := { base a with counts := writeChunks a.n (max 1 a.m) }
+
+def m1611 (a : Args) : Obs := { base a with counts := writeChunks a.n (max 1 a.m) }
+
+def m1634 (a : Args) : Obs := { base a with counts := writeChunks a.n (max 1 a.m) }
+
+def m1669 (a : Args) : Obs := withStream a (unsafeWrite a.stream a.bytes a.bytes.length)
+
+def m1679 (a : Args) : Obs := withStream a (unsafeWrite a.stream a.bytes (min a.n a.bytes.length))
+
+def m1691 (a : Args) : Obs := withStream a (unsafeWrite a.stream a.bytes a.bytes.length)
+
+def m1699 (a : Args) : Obs := withStream a (unsafeWrite a.stream a.bytes (min a.n a.bytes.length))
+
+def m1710 (a : Args) : Obs := withStream a (unsafeWrite a.stream a.bytes a.bytes.length)
+
+def m1720 (a : Args) : Obs := withStream a (unsafeWrite a.stream a.bytes (min a.n a.bytes.length))
+
+def m1736 (a : Args) : Obs := withStream a (unsafeWrite a.stream a.bytes a.n)
+
+def m1741 (a : Args) : Obs := withStream a (unsafeWrite a.stream a.bytes a.n)
+
+def m1778 (a : Args) : Obs := { base a with bytes := requeueUnwritten a.bytes a.queued a.n }
+
+def m1795 (a : Args) : Obs := { base a with bytes := a.endpoint.sendBuffer.getD [], endpoint := { a.endpoint with sendBuffer := none } }
+
+def m1826 (a : Args) : Obs := { base a with endpoint := { a.endpoint with sendBuffer := some [] }, counts := [a.n] }
+
+def m1836 (a : Args) : Obs := withStream a (unsafeWrite a.stream [a.byte] 1)
+
+def m1856 (a : Args) : Obs := { base a with req := completeReq a.req a.i a.n }
+
+def m1909 (a : Args) : Obs := { base a with req := completeReq a.req a.i 0 }
+
+def m1916 (a : Args) : Obs := { base a with integer := a.i }
+
+def m1917 (a : Args) : Obs := { base a with integer := a.i }
+
+def m1919 (a : Args) : Obs := { base a with flags := [a.endpoint.hasHandle], integer := a.i }
+
+def m1938 (a : Args) : Obs := { base a with integer := a.i, flags := [a.flag] }
+
+def m1949 (a : Args) : Obs := { base a with integer := a.i, flags := [a.flag] }
+
+def m1957 (a : Args) : Obs := { base a with integer := a.i, flags := [a.flag] }
+
+def m1963 (a : Args) : Obs := { base a with redirect := { a.redirect with outStream := .stream } }
+
+def m1969 (a : Args) : Obs := { base a with redirect := { a.redirect with outStream := .devnull } }
+
+def m1978 (a : Args) : Obs := { base a with redirect := { a.redirect with outStream := .stream } }
+
+def m1984 (a : Args) : Obs := { base a with redirect := { a.redirect with outStream := .stream } }
+
+def m1992 (a : Args) : Obs := { base a with redirect := { a.redirect with outStream := .stream } }
+
+def m1995 (a : Args) : Obs := { base a with counts := [1] }
+
+def m1996 (a : Args) : Obs := { base a with counts := [a.n] }
+
+def m1997 (a : Args) : Obs := match pipeGetindex (a.pipe.readEnd, a.pipe.writeEnd) a.i with
       | some stream => { base a with stream }
       | none => { base a with error := some .argumentError }
-  | 2052, a => { base a with redirect := redirectStdio a.redirect .keep .keep .keep }
-  | 2110, a => { base a with redirect := redirectStdio a.redirect (if a.flag then .stream else .keep) (if a.flag2 then .stream else .keep) (if a.flag3 then .stream else .keep) }
-  | 2112, a => { base a with redirect := a.redirect }
-  | 2115, a => { base a with text := a.text }
-  | 2118, a => { base a with redirect := { a.redirect with outStream := .stream } }
-  | 2122, a => { base a with flags := [false] }
-  | 2123, a => { base a with flags := [samePath a.text a.text2] }
-  | 2156, a => { base a with redirect := redirectStdio a.redirect .keep .stream .keep }
-  | 2194, a => { base a with counts := [a.n] }
-  | 2195, a => { base a with counts := [a.n] }
-  | 2196, a => { base a with counts := [a.n] }
-  | 2197, a => { base a with flags := [a.flag] }
-  | 2199, a => match peekModel a.endpoint.buffer a.n with
+
+def m2052 (a : Args) : Obs := { base a with redirect := redirectStdio a.redirect .keep .keep .keep }
+
+def m2110 (a : Args) : Obs := { base a with redirect := redirectStdio a.redirect (if a.flag then .stream else .keep) (if a.flag2 then .stream else .keep) (if a.flag3 then .stream else .keep) }
+
+def m2112 (a : Args) : Obs := { base a with redirect := a.redirect }
+
+def m2115 (a : Args) : Obs := { base a with text := a.text }
+
+def m2118 (a : Args) : Obs := { base a with redirect := { a.redirect with outStream := .stream } }
+
+def m2122 (a : Args) : Obs := { base a with flags := [false] }
+
+def m2123 (a : Args) : Obs := { base a with flags := [samePath a.text a.text2] }
+
+def m2156 (a : Args) : Obs := { base a with redirect := redirectStdio a.redirect .keep .stream .keep }
+
+def m2194 (a : Args) : Obs := { base a with counts := [a.n] }
+
+def m2195 (a : Args) : Obs := { base a with counts := [a.n] }
+
+def m2196 (a : Args) : Obs := { base a with counts := [a.n] }
+
+def m2197 (a : Args) : Obs := { base a with flags := [a.flag] }
+
+def m2199 (a : Args) : Obs := match peekModel a.endpoint.buffer a.n with
       | .ok bytes => { base a with bytes }
       | .error e => { base a with error := some e }
-  | 2216, a => { base a with stream := freshStream .bufferStream }
-  | 2219, a => { base a with flags := [isOpen a.stream] }
-  | 2225, a => { base a with stream := { a.stream with writable := false } }
-  | 2231, a => { base a with stream := bufferClose a.stream }
-  | 2238, a => { base a with stream := bufferClose a.stream }
-  | 2239, a => { base a with flags := [a.flag] }
-  | 2241, a => match bufferReadByte a.stream with
+
+def m2216 (a : Args) : Obs := { base a with stream := freshStream .bufferStream }
+
+def m2219 (a : Args) : Obs := { base a with flags := [isOpen a.stream] }
+
+def m2225 (a : Args) : Obs := { base a with stream := { a.stream with writable := false } }
+
+def m2231 (a : Args) : Obs := { base a with stream := bufferClose a.stream }
+
+def m2238 (a : Args) : Obs := { base a with stream := bufferClose a.stream }
+
+def m2239 (a : Args) : Obs := { base a with flags := [a.flag] }
+
+def m2241 (a : Args) : Obs := match bufferReadByte a.stream with
       | .ok (byte, stream) => { base a with stream, bytes := [byte] }
       | .error e => { base a with error := some e }
-  | 2249, a => withRead a (unsafeRead a.stream a.n)
-  | 2257, a => { base a with counts := [a.stream.buffer.length] }
-  | 2259, a => { base a with flags := [bufferReadable a.stream] }
-  | 2260, a => { base a with flags := [bufferWritable a.stream] }
-  | 2262, a => { base a with flags := [a.n ≤ a.stream.buffer.length || !isOpen a.stream] }
-  | 2277, a => withRead a (readAvailable a.stream)
-  | 2288, a => withRead a (readAvailable a.stream)
-  | 2297, a => let read := bufferReadN a.stream a.n; { base a with bytes := read.1, stream := read.2, counts := [read.1.length] }
-  | 2303, a => { base a with flags := [a.n ≤ a.stream.buffer.length || !isOpen a.stream] }
-  | 2337, a => { base a with text := "BufferStream(" ++ toString a.stream.buffer.length ++ " bytes waiting)" }
-  | 2339, a => withRead a (readUntil a.stream a.byte a.flag)
-  | 2358, a => { base a with flags := [!isOpen a.stream] }
-  | 2373, a => base a
-  | 2374, a => base a
-  | 2376, a => withStream a (unsafeWrite a.stream [a.byte] 1)
-  | 2382, a => withStream a (unsafeWrite a.stream a.bytes a.bytes.length)
-  | 2388, a => withStream a (unsafeWrite a.stream a.bytes a.bytes.length)
-  | 2395, a => withStream a (unsafeWrite a.stream a.bytes a.bytes.length)
-  | 2404, a => withStream a (unsafeWrite a.stream a.bytes a.n)
-  | 2416, a => { base a with flags := [bufferEof a.stream] }
-  | 2427, a => { base a with counts := [a.n] }
-  | 2428, a => { base a with stream := bufferFlush a.stream }
-  | 2438, a => { base a with stream := bufferSkip a.stream a.n }
-  | 2440, a => { base a with stream := bufferResetEof a.stream }
+
+def m2249 (a : Args) : Obs := withRead a (unsafeRead a.stream a.n)
+
+def m2257 (a : Args) : Obs := { base a with counts := [a.stream.buffer.length] }
+
+def m2259 (a : Args) : Obs := { base a with flags := [bufferReadable a.stream] }
+
+def m2260 (a : Args) : Obs := { base a with flags := [bufferWritable a.stream] }
+
+def m2262 (a : Args) : Obs := { base a with flags := [a.n ≤ a.stream.buffer.length || !isOpen a.stream] }
+
+def m2277 (a : Args) : Obs := withRead a (readAvailable a.stream)
+
+def m2288 (a : Args) : Obs := withRead a (readAvailable a.stream)
+
+def m2297 (a : Args) : Obs := let read := bufferReadN a.stream a.n; { base a with bytes := read.1, stream := read.2, counts := [read.1.length] }
+
+def m2303 (a : Args) : Obs := { base a with flags := [a.n ≤ a.stream.buffer.length || !isOpen a.stream] }
+
+def m2337 (a : Args) : Obs := { base a with text := "BufferStream(" ++ toString a.stream.buffer.length ++ " bytes waiting)" }
+
+def m2339 (a : Args) : Obs := withRead a (readUntil a.stream a.byte a.flag)
+
+def m2358 (a : Args) : Obs := { base a with flags := [!isOpen a.stream] }
+
+def m2373 (a : Args) : Obs := base a
+
+def m2374 (a : Args) : Obs := base a
+
+def m2376 (a : Args) : Obs := withStream a (unsafeWrite a.stream [a.byte] 1)
+
+def m2382 (a : Args) : Obs := withStream a (unsafeWrite a.stream a.bytes a.bytes.length)
+
+def m2388 (a : Args) : Obs := withStream a (unsafeWrite a.stream a.bytes a.bytes.length)
+
+def m2395 (a : Args) : Obs := withStream a (unsafeWrite a.stream a.bytes a.bytes.length)
+
+def m2404 (a : Args) : Obs := withStream a (unsafeWrite a.stream a.bytes a.n)
+
+def m2416 (a : Args) : Obs := { base a with flags := [bufferEof a.stream] }
+
+def m2427 (a : Args) : Obs := { base a with counts := [a.n] }
+
+def m2428 (a : Args) : Obs := { base a with stream := bufferFlush a.stream }
+
+def m2438 (a : Args) : Obs := { base a with stream := bufferSkip a.stream a.n }
+
+def m2440 (a : Args) : Obs := { base a with stream := bufferResetEof a.stream }
+
+/-- Dispatch by the source line of the modelled method. -/
+def run : Nat → Args → Obs
+  | 29, a => m29 a
+  | 58, a => m58 a
+  | 102, a => m102 a
+  | 104, a => m104 a
+  | 139, a => m139 a
+  | 179, a => m179 a
+  | 194, a => m194 a
+  | 204, a => m204 a
+  | 224, a => m224 a
+  | 244, a => m244 a
+  | 258, a => m258 a
+  | 261, a => m261 a
+  | 268, a => m268 a
+  | 275, a => m275 a
+  | 281, a => m281 a
+  | 282, a => m282 a
+  | 284, a => m284 a
+  | 285, a => m285 a
+  | 286, a => m286 a
+  | 288, a => m288 a
+  | 328, a => m328 a
+  | 364, a => m364 a
+  | 377, a => m377 a
+  | 384, a => m384 a
+  | 390, a => m390 a
+  | 493, a => m493 a
+  | 502, a => m502 a
+  | 511, a => m511 a
+  | 530, a => m530 a
+  | 534, a => m534 a
+  | 540, a => m540 a
+  | 553, a => m553 a
+  | 575, a => m575 a
+  | 615, a => m615 a
+  | 626, a => m626 a
+  | 650, a => m650 a
+  | 700, a => m700 a
+  | 719, a => m719 a
+  | 750, a => m750 a
+  | 770, a => m770 a
+  | 786, a => m786 a
+  | 809, a => m809 a
+  | 810, a => m810 a
+  | 836, a => m836 a
+  | 837, a => m837 a
+  | 845, a => m845 a
+  | 847, a => m847 a
+  | 885, a => m885 a
+  | 893, a => m893 a
+  | 895, a => m895 a
+  | 905, a => m905 a
+  | 910, a => m910 a
+  | 938, a => m938 a
+  | 941, a => m941 a
+  | 992, a => m992 a
+  | 1001, a => m1001 a
+  | 1048, a => m1048 a
+  | 1049, a => m1049 a
+  | 1050, a => m1050 a
+  | 1061, a => m1061 a
+  | 1068, a => m1068 a
+  | 1076, a => m1076 a
+  | 1080, a => m1080 a
+  | 1093, a => m1093 a
+  | 1111, a => m1111 a
+  | 1128, a => m1128 a
+  | 1138, a => m1138 a
+  | 1168, a => m1168 a
+  | 1178, a => m1178 a
+  | 1190, a => m1190 a
+  | 1191, a => m1191 a
+  | 1198, a => m1198 a
+  | 1232, a => m1232 a
+  | 1240, a => m1240 a
+  | 1247, a => m1247 a
+  | 1277, a => m1277 a
+  | 1292, a => m1292 a
+  | 1302, a => m1302 a
+  | 1347, a => m1347 a
+  | 1360, a => m1360 a
+  | 1478, a => m1478 a
+  | 1558, a => m1558 a
+  | 1576, a => m1576 a
+  | 1604, a => m1604 a
+  | 1611, a => m1611 a
+  | 1634, a => m1634 a
+  | 1669, a => m1669 a
+  | 1679, a => m1679 a
+  | 1691, a => m1691 a
+  | 1699, a => m1699 a
+  | 1710, a => m1710 a
+  | 1720, a => m1720 a
+  | 1736, a => m1736 a
+  | 1741, a => m1741 a
+  | 1778, a => m1778 a
+  | 1795, a => m1795 a
+  | 1826, a => m1826 a
+  | 1836, a => m1836 a
+  | 1856, a => m1856 a
+  | 1909, a => m1909 a
+  | 1916, a => m1916 a
+  | 1917, a => m1917 a
+  | 1919, a => m1919 a
+  | 1938, a => m1938 a
+  | 1949, a => m1949 a
+  | 1957, a => m1957 a
+  | 1963, a => m1963 a
+  | 1969, a => m1969 a
+  | 1978, a => m1978 a
+  | 1984, a => m1984 a
+  | 1992, a => m1992 a
+  | 1995, a => m1995 a
+  | 1996, a => m1996 a
+  | 1997, a => m1997 a
+  | 2052, a => m2052 a
+  | 2110, a => m2110 a
+  | 2112, a => m2112 a
+  | 2115, a => m2115 a
+  | 2118, a => m2118 a
+  | 2122, a => m2122 a
+  | 2123, a => m2123 a
+  | 2156, a => m2156 a
+  | 2194, a => m2194 a
+  | 2195, a => m2195 a
+  | 2196, a => m2196 a
+  | 2197, a => m2197 a
+  | 2199, a => m2199 a
+  | 2216, a => m2216 a
+  | 2219, a => m2219 a
+  | 2225, a => m2225 a
+  | 2231, a => m2231 a
+  | 2238, a => m2238 a
+  | 2239, a => m2239 a
+  | 2241, a => m2241 a
+  | 2249, a => m2249 a
+  | 2257, a => m2257 a
+  | 2259, a => m2259 a
+  | 2260, a => m2260 a
+  | 2262, a => m2262 a
+  | 2277, a => m2277 a
+  | 2288, a => m2288 a
+  | 2297, a => m2297 a
+  | 2303, a => m2303 a
+  | 2337, a => m2337 a
+  | 2339, a => m2339 a
+  | 2358, a => m2358 a
+  | 2373, a => m2373 a
+  | 2374, a => m2374 a
+  | 2376, a => m2376 a
+  | 2382, a => m2382 a
+  | 2388, a => m2388 a
+  | 2395, a => m2395 a
+  | 2404, a => m2404 a
+  | 2416, a => m2416 a
+  | 2427, a => m2427 a
+  | 2428, a => m2428 a
+  | 2438, a => m2438 a
+  | 2440, a => m2440 a
   | _, a => base a
 
 -- METHOD CONTRACTS
@@ -261,121 +577,104 @@ attribute [local simp] EndpointResultContract ReadResultContract WriteResultCont
   readbytesModel bufferReadN reqFinishObs bufferFlush bufferSkip rawHandleModel
   initStdioModel markReqCancelled beginReq redirectStdio resolveRedirect
 
-def m29 (args : Args) : Obs := run 29 args
 def P29 : Prop := ∀ a, (m29 a).counts = [endpointField a.endpoint a.field]
 theorem p29 : P29 := by
   intro a
-  simp [m29, run]
+  simp [m29]
 
-def m58 (args : Args) : Obs := run 58 args
 def P58 : Prop := ∀ a, (m58 a).counts = [endpointField a.endpoint a.field]
 theorem p58 : P58 := by
   intro a
-  simp [m58, run]
+  simp [m58]
 
-def m102 (args : Args) : Obs := run 102 args
-def P102 : Prop := ∀ a, (m102 a).counts = [a.endpoint.buffer.length]
+/-- An availability query does not consume buffered bytes, and reports zero
+exactly when no buffered bytes are available. -/
+def P102 : Prop := ∀ a, (m102 a).endpoint = a.endpoint ∧
+  ((m102 a).counts = [0] ↔ a.endpoint.buffer = [])
 theorem p102 : P102 := by
   intro a
-  simp [m102, run]
+  simp [m102, base]
 
-def m104 (args : Args) : Obs := run 104 args
 def P104 : Prop := ∀ a, (m104 a).flags = [streamEof a.stream]
 theorem p104 : P104 := by
   intro a
-  simp [m104, run]
+  simp [m104]
 
-def m139 (args : Args) : Obs := run 139 args
 def P139 : Prop := ∀ a, (m139 a).text = uvStatusString a.endpoint.hasHandle a.status
 theorem p139 : P139 := by
   intro a
-  simp [m139, run]
+  simp [m139]
 
-def m179 (args : Args) : Obs := run 179 args
 def P179 : Prop := ∀ a, (m179 a).endpoint = endpointCtor a.endpoint.hasHandle a.status
 theorem p179 : P179 := by
   intro a
-  simp [m179, run]
+  simp [m179]
 
-def m194 (args : Args) : Obs := run 194 args
 def P194 : Prop := ∀ a, (m194 a).endpoint = endpointCtor false .uninit
 theorem p194 : P194 := by
   intro a
-  simp [m194, run]
+  simp [m194]
 
-def m204 (args : Args) : Obs := run 204 args
 def P204 : Prop := ∀ a, (m204 a).endpoint = endpointCtor a.flag .init
 theorem p204 : P204 := by
   intro a
-  simp [m204, run]
+  simp [m204]
 
-def m224 (args : Args) : Obs := run 224 args
 def P224 : Prop := ∀ a, (m224 a).endpoint = endpointCtor a.endpoint.hasHandle a.status
 theorem p224 : P224 := by
   intro a
-  simp [m224, run]
+  simp [m224]
 
-def m244 (args : Args) : Obs := run 244 args
 def P244 : Prop := ∀ a, (m244 a).endpoint = endpointCtor a.flag .init
 theorem p244 : P244 := by
   intro a
-  simp [m244, run]
+  simp [m244]
 
-def m258 (args : Args) : Obs := run 258 args
 def P258 : Prop := ∀ a, (m258 a).text = endpointShow "LibuvServer" a.i a.endpoint
 theorem p258 : P258 := by
   intro a
-  simp [m258, run]
+  simp [m258]
 
-def m261 (args : Args) : Obs := run 261 args
 def P261 : Prop := ∀ a, (m261 a).text = endpointShow a.text a.i a.endpoint
 theorem p261 : P261 := by
   intro a
-  simp [m261, run]
+  simp [m261]
 
-def m268 (args : Args) : Obs := run 268 args
 def P268 : Prop := ∀ a, (m268 a).flags = [endpointReadable a.endpoint]
 theorem p268 : P268 := by
   intro a
-  simp [m268, run]
+  simp [m268]
 
-def m275 (args : Args) : Obs := run 275 args
 def P275 : Prop := ∀ a, (m275 a).flags = [endpointWritable a.endpoint]
 theorem p275 : P275 := by
   intro a
-  simp [m275, run]
+  simp [m275]
 
-def m281 (args : Args) : Obs := run 281 args
 def P281 : Prop := ∀ a, (m281 a).counts = [lockDepth a.n true]
 theorem p281 : P281 := by
   intro a
-  simp [m281, run]
+  simp [m281]
 
-def m282 (args : Args) : Obs := run 282 args
 def P282 : Prop := ∀ a, (m282 a).counts = [lockDepth a.n false]
 theorem p282 : P282 := by
   intro a
-  simp [m282, run]
+  simp [m282]
 
-def m284 (args : Args) : Obs := run 284 args
 def P284 : Prop := ∀ a, (m284 a).endpoint = a.endpoint ∧ (m284 a).flags = [false]
 theorem p284 : P284 := by
   intro a
-  simp [m284, run]
+  simp [m284]
 
-def m285 (args : Args) : Obs := run 285 args
 def P285 : Prop := ∀ a, (m285 a).flags = [a.endpoint.hasHandle]
 theorem p285 : P285 := by
   intro a
-  simp [m285, run, rawHandleModel]
+  simp [m285, rawHandleModel]
 
-def m286 (args : Args) : Obs := run 286 args
 def P286 : Prop := ∀ a, (m286 a).flags = [a.endpoint.hasHandle]
 theorem p286 : P286 := by
   intro a
-  simp [m286, run]
+  simp [m286]
 
-def m288 (args : Args) : Obs := run 288 args
 def P288 : Prop := ∀ a, ((m288 a).stream, (m288 a).error) =
   match initStdioModel a.handleKind with
   | .ok kind => (freshStream kind, none)
@@ -383,23 +682,20 @@ def P288 : Prop := ∀ a, ((m288 a).stream, (m288 a).error) =
 theorem p288 : P288 := by
   intro a
   cases hk : a.handleKind <;>
-    simp [m288, run, base, initStdioModel, reinitStdioKind, hk]
+    simp [m288, base, initStdioModel, reinitStdioKind, hk]
 
-def m328 (args : Args) : Obs := run 328 args
 def P328 : Prop := ∀ a, (m328 a).endpoint =
   { a.endpoint with hasHandle := a.flag, status := if a.flag then .opened else .closed }
 theorem p328 : P328 := by
   intro a
-  simp [m328, run]
+  simp [m328]
 
-def m364 (args : Args) : Obs := run 364 args
 def P364 : Prop := ∀ a, (m364 a).endpoint =
   { a.endpoint with hasHandle := a.flag, status := if a.flag then .opened else .closed }
 theorem p364 : P364 := by
   intro a
-  simp [m364, run]
+  simp [m364]
 
-def m377 (args : Args) : Obs := run 377 args
 def P377 : Prop := ∀ a, ((m377 a).flags, (m377 a).error) =
   match endpointIsOpen a.endpoint with
   | .ok opened => ([opened], none)
@@ -407,599 +703,508 @@ def P377 : Prop := ∀ a, ((m377 a).flags, (m377 a).error) =
 theorem p377 : P377 := by
   intro a
   cases h : endpointIsOpen a.endpoint <;>
-    simp [m377, run, base, h]
+    simp [m377, base, h]
 
-def m384 (args : Args) : Obs := run 384 args
 def P384 : Prop := ∀ a, EndpointResultContract (m384 a) a
   (match endpointCheckOpen a.endpoint with | .ok _ => .ok a.endpoint | .error e => .error e)
 theorem p384 : P384 := by
   intro a
   cases h : endpointCheckOpen a.endpoint <;>
-    simp [m384, run, EndpointResultContract, withEndpoint, base, h]
+    simp [m384, EndpointResultContract, withEndpoint, base, h]
 
-def m390 (args : Args) : Obs := run 390 args
 def P390 : Prop := ∀ a, EndpointResultContract (m390 a) a (waitReadState a.endpoint a.n)
 theorem p390 : P390 := by
   intro a
   cases h : waitReadState a.endpoint a.n <;>
-    simp [m390, run, EndpointResultContract, withEndpoint, base, h]
+    simp [m390, EndpointResultContract, withEndpoint, base, h]
 
-def m493 (args : Args) : Obs := run 493 args
 def P493 : Prop := ∀ a, (m493 a).flags = [a.req.owner == .waiter]
 theorem p493 : P493 := by
   intro a
-  simp [m493, run]
+  simp [m493]
 
-def m502 (args : Args) : Obs := run 502 args
 def P502 : Prop := ∀ a, (m502 a).req.cancelRequested = true
 theorem p502 : P502 := by
   intro a
-  simp [m502, run, markReqCancelled]
+  simp [m502, markReqCancelled]
 
-def m511 (args : Args) : Obs := run 511 args
 def P511 : Prop := ∀ a, (m511 a).flags = [a.req.cancelRequested]
 theorem p511 : P511 := by
   intro a
-  simp [m511, run]
+  simp [m511]
 
-def m530 (args : Args) : Obs := run 530 args
 def P530 : Prop := ∀ a, (m530 a).req.rooted = true ∧ (m530 a).req.owner = .detachedReq
 theorem p530 : P530 := by
   intro a
-  simp [m530, run]
+  simp [m530]
 
-def m534 (args : Args) : Obs := run 534 args
 def P534 : Prop := ∀ a, (m534 a).req.rooted = false
 theorem p534 : P534 := by
   intro a
-  simp [m534, run]
+  simp [m534]
 
-def m540 (args : Args) : Obs := run 540 args
 def P540 : Prop := ∀ a, (m540 a).error = if a.flag then some .ioError else none
 theorem p540 : P540 := by
   intro a
-  cases hf : a.flag <;> simp [m540, run, base, hf]
+  cases hf : a.flag <;> simp [m540, base, hf]
 
-def m553 (args : Args) : Obs := run 553 args
 def P553 : Prop := ∀ a, ((m553 a).req, (m553 a).error) =
   if a.flag then (a.req, some .ioError)
   else (⟨.waiter, false, false, a.n, none, 0⟩, none)
 theorem p553 : P553 := by
   intro a
-  cases hf : a.flag <;> simp [m553, run, beginReq, base, hf]
+  cases hf : a.flag <;> simp [m553, beginReq, base, hf]
 
-def m575 (args : Args) : Obs := run 575 args
 def P575 : Prop := ∀ a, (m575 a).req = finishReq a.req a.flag a.flag2 a.flag3
 theorem p575 : P575 := by
   intro a
-  simp [m575, run]
+  simp [m575]
 
-def m615 (args : Args) : Obs := run 615 args
 def P615 : Prop := ∀ a, (m615 a).flags = [a.flag] ∧ (m615 a).counts = [a.n + 1]
 theorem p615 : P615 := by
   intro a
-  simp [m615, run]
+  simp [m615]
 
-def m626 (args : Args) : Obs := run 626 args
 def P626 : Prop := ∀ a, (m626 a).req =
   if a.byte = 0 then a.req else markReqCancelled a.req
 theorem p626 : P626 := by
   intro a
-  simp [m626, run]
+  simp [m626]
 
-def m650 (args : Args) : Obs := run 650 args
 def P650 : Prop := ∀ a, (m650 a).req = finishReq a.req a.flag a.flag2 a.flag3
 theorem p650 : P650 := by
   intro a
-  simp [m650, run]
+  simp [m650]
 
-def m700 (args : Args) : Obs := run 700 args
 def P700 : Prop := ∀ a, (m700 a).flags = [a.req.owner == .waiter] ∧
   (m700 a).req = if a.req.owner == .waiter then { a.req with owner := .callbackDone } else a.req
 theorem p700 : P700 := by
   intro a
-  simp [m700, run]
+  simp [m700]
 
-def m719 (args : Args) : Obs := run 719 args
 def P719 : Prop := ∀ a, EndpointResultContract (m719 a) a (endpointCloseWrite a.endpoint a.i)
 theorem p719 : P719 := by
   intro a
   cases h : endpointCloseWrite a.endpoint a.i <;>
-    simp [m719, run, EndpointResultContract, withEndpoint, base, h]
+    simp [m719, EndpointResultContract, withEndpoint, base, h]
 
-def m750 (args : Args) : Obs := run 750 args
 def P750 : Prop := ∀ a, (m750 a).endpoint =
   if a.endpoint.hasHandle then a.endpoint else endpointClose a.endpoint
 theorem p750 : P750 := by
   intro a
-  simp [m750, run]
+  simp [m750]
 
-def m770 (args : Args) : Obs := run 770 args
 def P770 : Prop := ∀ a, (m770 a).endpoint = endpointClose a.endpoint
 theorem p770 : P770 := by
   intro a
-  simp [m770, run]
+  simp [m770]
 
-def m786 (args : Args) : Obs := run 786 args
 def P786 : Prop := ∀ a, (m786 a).endpoint = endpointClose a.endpoint
 theorem p786 : P786 := by
   intro a
-  simp [m786, run]
+  simp [m786]
 
-def m809 (args : Args) : Obs := run 809 args
 def P809 : Prop := ∀ a, (m809 a).flags = [true]
 theorem p809 : P809 := by
   intro a
-  simp [m809, run]
+  simp [m809]
 
-def m810 (args : Args) : Obs := run 810 args
 def P810 : Prop := ∀ a, (m810 a).flags = [false]
 theorem p810 : P810 := by
   intro a
-  simp [m810, run]
+  simp [m810]
 
-def m836 (args : Args) : Obs := run 836 args
 def P836 : Prop := ∀ a, (m836 a).counts = [a.n, a.m]
 theorem p836 : P836 := by
   intro a
-  simp [m836, run]
+  simp [m836]
 
-def m837 (args : Args) : Obs := run 837 args
 def P837 : Prop := ∀ a, (m837 a).counts = [24, 80]
 theorem p837 : P837 := by
   intro a
-  simp [m837, run]
+  simp [m837]
 
-def m845 (args : Args) : Obs := run 845 args
 def P845 : Prop := ∀ a, (m845 a).counts = [a.n, a.m]
 theorem p845 : P845 := by
   intro a
-  simp [m845, run]
+  simp [m845]
 
-def m847 (args : Args) : Obs := run 847 args
 def P847 : Prop := ∀ a, (m847 a).counts = [a.n, a.m]
 theorem p847 : P847 := by
   intro a
-  simp [m847, run]
+  simp [m847]
 
-def m885 (args : Args) : Obs := run 885 args
 def P885 : Prop := ∀ a, (m885 a).counts = [allocRequestSize a.n a.m a.endpoint.throttle]
 theorem p885 : P885 := by
   intro a
-  simp [m885, run]
+  simp [m885]
 
-def m893 (args : Args) : Obs := run 893 args
 def P893 : Prop := ∀ a, (m893 a).endpoint = notifyFilled a.endpoint a.bytes a.i
 theorem p893 : P893 := by
   intro a
-  simp [m893, run]
+  simp [m893]
 
-def m895 (args : Args) : Obs := run 895 args
 def P895 : Prop := ∀ a, (m895 a).endpoint = notifyFilled a.endpoint a.bytes a.i
 theorem p895 : P895 := by
   intro a
-  simp [m895, run]
+  simp [m895]
 
-def m905 (args : Args) : Obs := run 905 args
 def P905 : Prop := ∀ a, (m905 a).counts =
   [allocRequestSize a.endpoint.buffer.length a.n a.endpoint.throttle]
 theorem p905 : P905 := by
   intro a
-  simp [m905, run]
+  simp [m905]
 
-def m910 (args : Args) : Obs := run 910 args
 def P910 : Prop := ∀ a, (m910 a).counts =
   [allocRequestSize a.endpoint.buffer.length a.n a.endpoint.throttle]
 theorem p910 : P910 := by
   intro a
-  simp [m910, run]
+  simp [m910]
 
-def m938 (args : Args) : Obs := run 938 args
 def P938 : Prop := ∀ a, (m938 a).endpoint = notifyFilled a.endpoint a.bytes a.i
 theorem p938 : P938 := by
   intro a
-  simp [m938, run]
+  simp [m938]
 
-def m941 (args : Args) : Obs := run 941 args
 def P941 : Prop := ∀ a, (m941 a).endpoint = notifyFilled a.endpoint a.bytes a.i
 theorem p941 : P941 := by
   intro a
-  simp [m941, run]
+  simp [m941]
 
-def m992 (args : Args) : Obs := run 992 args
 def P992 : Prop := ∀ a, (m992 a).endpoint =
   if a.endpoint.status == .eof then { a.endpoint with status := .active } else a.endpoint
 theorem p992 : P992 := by
   intro a
-  simp [m992, run]
+  simp [m992]
 
-def m1001 (args : Args) : Obs := run 1001 args
 def P1001 : Prop := ∀ a, (m1001 a).endpoint = endpointClose a.endpoint
 theorem p1001 : P1001 := by
   intro a
-  simp [m1001, run]
+  simp [m1001]
 
-def m1048 (args : Args) : Obs := run 1048 args
 def P1048 : Prop := ∀ a, (m1048 a).pipe = freshPipe
 theorem p1048 : P1048 := by
   intro a
-  simp [m1048, run]
+  simp [m1048]
 
-def m1049 (args : Args) : Obs := run 1049 args
 def P1049 : Prop := ∀ a, (m1049 a).stream = a.pipe.readEnd
 theorem p1049 : P1049 := by
   intro a
-  simp [m1049, run]
+  simp [m1049]
 
-def m1050 (args : Args) : Obs := run 1050 args
 def P1050 : Prop := ∀ a, (m1050 a).stream = a.pipe.writeEnd
 theorem p1050 : P1050 := by
   intro a
-  simp [m1050, run]
+  simp [m1050]
 
-def m1061 (args : Args) : Obs := run 1061 args
 def P1061 : Prop := ∀ a, (m1061 a).pipe.readEnd.status = .active ∧
   (m1061 a).pipe.writeEnd.status = .active
 theorem p1061 : P1061 := by
   intro a
-  simp [m1061, run]
+  simp [m1061]
 
-def m1068 (args : Args) : Obs := run 1068 args
 def P1068 : Prop := ∀ a, (m1068 a).text =
   "Pipe(" ++ toString a.pipe.readEnd.buffer.length ++ ", " ++
     toString a.pipe.writeEnd.buffer.length ++ ")"
 theorem p1068 : P1068 := by
   intro a
-  simp [m1068, run]
+  simp [m1068]
 
-def m1076 (args : Args) : Obs := run 1076 args
 def P1076 : Prop := ∀ a, (m1076 a).pipe.readEnd.status = .eof ∧
   (m1076 a).pipe.writeEnd.writable = false
 theorem p1076 : P1076 := by
   intro a
-  simp [m1076, run]
+  simp [m1076]
 
-def m1080 (args : Args) : Obs := run 1080 args
 def P1080 : Prop := ∀ a, (m1080 a).endpoint.hasHandle = a.flag ∧
   (m1080 a).endpoint.status = .opened
 theorem p1080 : P1080 := by
   intro a
-  simp [m1080, run]
+  simp [m1080]
 
-def m1093 (args : Args) : Obs := run 1093 args
 def P1093 : Prop := ∀ a, (m1093 a).pipe.readEnd.status = .active ∧
   (m1093 a).pipe.writeEnd.status = .active
 theorem p1093 : P1093 := by
   intro a
-  simp [m1093, run]
+  simp [m1093]
 
-def m1111 (args : Args) : Obs := run 1111 args
 def P1111 : Prop := ∀ a, (m1111 a).pipe.readEnd.status = .active ∧
   (m1111 a).pipe.writeEnd.status = .active
 theorem p1111 : P1111 := by
   intro a
-  simp [m1111, run]
+  simp [m1111]
 
-def m1128 (args : Args) : Obs := run 1128 args
 def P1128 : Prop := ∀ a, (m1128 a).flags = [a.flag]
 theorem p1128 : P1128 := by
   intro a
-  simp [m1128, run]
+  simp [m1128]
 
-def m1138 (args : Args) : Obs := run 1138 args
 def P1138 : Prop := ∀ a, (m1138 a).endpoint = startReadingState a.endpoint
 theorem p1138 : P1138 := by
   intro a
-  simp [m1138, run]
+  simp [m1138]
 
-def m1168 (args : Args) : Obs := run 1168 args
 def P1168 : Prop := ∀ a, (m1168 a).endpoint = stopReadingState a.endpoint
 theorem p1168 : P1168 := by
   intro a
-  simp [m1168, run]
+  simp [m1168]
 
-def m1178 (args : Args) : Obs := run 1178 args
 def P1178 : Prop := ∀ a, (m1178 a).endpoint = stopReadingState a.endpoint
 theorem p1178 : P1178 := by
   intro a
-  simp [m1178, run]
+  simp [m1178]
 
-def m1190 (args : Args) : Obs := run 1190 args
 def P1190 : Prop := ∀ a, (m1190 a).counts = [min a.n a.stream.buffer.length] ∧
   (m1190 a).bytes = a.stream.buffer.take (min a.n a.stream.buffer.length) ∧
   (m1190 a).stream.buffer = a.stream.buffer.drop (min a.n a.stream.buffer.length)
 theorem p1190 : P1190 := by
   intro a
-  simp [m1190, run]
+  simp [m1190]
 
-def m1191 (args : Args) : Obs := run 1191 args
 def P1191 : Prop := ∀ a, (m1191 a).counts = [min a.n a.stream.buffer.length] ∧
   (m1191 a).bytes = a.stream.buffer.take (min a.n a.stream.buffer.length) ∧
   (m1191 a).stream.buffer = a.stream.buffer.drop (min a.n a.stream.buffer.length)
 theorem p1191 : P1191 := by
   intro a
-  simp [m1191, run]
+  simp [m1191]
 
-def m1198 (args : Args) : Obs := run 1198 args
 def P1198 : Prop := ∀ a, EndpointResultContract (m1198 a) a (waitReadState a.endpoint a.n)
 theorem p1198 : P1198 := by
   intro a
   cases h : waitReadState a.endpoint a.n <;>
-    simp [m1198, run, EndpointResultContract, withEndpoint, base, h]
+    simp [m1198, EndpointResultContract, withEndpoint, base, h]
 
-def m1232 (args : Args) : Obs := run 1232 args
 def P1232 : Prop := ∀ a, ReadResultContract (m1232 a) a (readAvailable a.stream)
 theorem p1232 : P1232 := by
   intro a
   cases h : readAvailable a.stream <;>
-    simp [m1232, run, ReadResultContract, withRead, base, h]
+    simp [m1232, ReadResultContract, withRead, base, h]
 
-def m1240 (args : Args) : Obs := run 1240 args
 def P1240 : Prop := ∀ a, ReadResultContract (m1240 a) a (unsafeRead a.stream a.n)
 theorem p1240 : P1240 := by
   intro a
   cases h : unsafeRead a.stream a.n <;>
-    simp [m1240, run, ReadResultContract, withRead, base, h]
+    simp [m1240, ReadResultContract, withRead, base, h]
 
-def m1247 (args : Args) : Obs := run 1247 args
 def P1247 : Prop := ∀ a, EndpointResultContract (m1247 a) a (waitReadState a.endpoint a.n)
 theorem p1247 : P1247 := by
   intro a
   cases h : waitReadState a.endpoint a.n <;>
-    simp [m1247, run, EndpointResultContract, withEndpoint, base, h]
+    simp [m1247, EndpointResultContract, withEndpoint, base, h]
 
-def m1277 (args : Args) : Obs := run 1277 args
 def P1277 : Prop := ∀ a, ReadResultContract (m1277 a) a (unsafeRead a.stream 1)
 theorem p1277 : P1277 := by
   intro a
   cases h : unsafeRead a.stream 1 <;>
-    simp [m1277, run, ReadResultContract, withRead, base, h]
+    simp [m1277, ReadResultContract, withRead, base, h]
 
-def m1292 (args : Args) : Obs := run 1292 args
 def P1292 : Prop := ∀ a, ReadResultContract (m1292 a) a (readAvailable a.stream)
 theorem p1292 : P1292 := by
   intro a
   cases h : readAvailable a.stream <;>
-    simp [m1292, run, ReadResultContract, withRead, base, h]
+    simp [m1292, ReadResultContract, withRead, base, h]
 
-def m1302 (args : Args) : Obs := run 1302 args
 def P1302 : Prop := ∀ a, ReadResultContract (m1302 a) a (readUntil a.stream a.byte a.flag)
 theorem p1302 : P1302 := by
   intro a
   cases h : readUntil a.stream a.byte a.flag <;>
-    simp [m1302, run, ReadResultContract, withRead, base, h]
+    simp [m1302, ReadResultContract, withRead, base, h]
 
-def m1347 (args : Args) : Obs := run 1347 args
 def P1347 : Prop := ∀ a, (m1347 a).counts = writeChunks a.bytes.length (max 1 a.n)
 theorem p1347 : P1347 := by
   intro a
-  simp [m1347, run]
+  simp [m1347]
 
-def m1360 (args : Args) : Obs := run 1360 args
 def P1360 : Prop := ∀ a, (m1360 a).counts = writeChunks a.n (max 1 a.m) ∧
   (m1360 a).req = completeReq a.req a.i a.j.toNat
 theorem p1360 : P1360 := by
   intro a
-  simp [m1360, run]
+  simp [m1360]
 
-def m1478 (args : Args) : Obs := run 1478 args
 def P1478 : Prop := ∀ a, (m1478 a).req = finishReq a.req a.flag a.flag2 a.flag3
 theorem p1478 : P1478 := by
   intro a
-  simp [m1478, run]
+  simp [m1478]
 
-def m1558 (args : Args) : Obs := run 1558 args
 def P1558 : Prop := ∀ a, (m1558 a).req = completeReq a.req a.i a.n
 theorem p1558 : P1558 := by
   intro a
-  simp [m1558, run]
+  simp [m1558]
 
-def m1576 (args : Args) : Obs := run 1576 args
 def P1576 : Prop := ∀ a, (m1576 a).req = finishReq a.req a.flag a.flag2 a.flag3
 theorem p1576 : P1576 := by
   intro a
-  simp [m1576, run]
+  simp [m1576]
 
-def m1604 (args : Args) : Obs := run 1604 args
 def P1604 : Prop := ∀ a, (m1604 a).counts = writeChunks a.n (max 1 a.m)
 theorem p1604 : P1604 := by
   intro a
-  simp [m1604, run]
+  simp [m1604]
 
-def m1611 (args : Args) : Obs := run 1611 args
 def P1611 : Prop := ∀ a, (m1611 a).counts = writeChunks a.n (max 1 a.m)
 theorem p1611 : P1611 := by
   intro a
-  simp [m1611, run]
+  simp [m1611]
 
-def m1634 (args : Args) : Obs := run 1634 args
 def P1634 : Prop := ∀ a, (m1634 a).counts = writeChunks a.n (max 1 a.m)
 theorem p1634 : P1634 := by
   intro a
-  simp [m1634, run]
+  simp [m1634]
 
-def m1669 (args : Args) : Obs := run 1669 args
 def P1669 : Prop := ∀ a, WriteResultContract (m1669 a) a
   (unsafeWrite a.stream a.bytes a.bytes.length)
 theorem p1669 : P1669 := by
   intro a
   cases h : unsafeWrite a.stream a.bytes a.bytes.length <;>
-    simp [m1669, run, WriteResultContract, withStream, base, h]
+    simp [m1669, WriteResultContract, withStream, base, h]
 
-def m1679 (args : Args) : Obs := run 1679 args
 def P1679 : Prop := ∀ a, WriteResultContract (m1679 a) a
   (unsafeWrite a.stream a.bytes (min a.n a.bytes.length))
 theorem p1679 : P1679 := by
   intro a
   cases h : unsafeWrite a.stream a.bytes (min a.n a.bytes.length) <;>
-    simp [m1679, run, WriteResultContract, withStream, base, h]
+    simp [m1679, WriteResultContract, withStream, base, h]
 
-def m1691 (args : Args) : Obs := run 1691 args
 def P1691 : Prop := ∀ a, WriteResultContract (m1691 a) a
   (unsafeWrite a.stream a.bytes a.bytes.length)
 theorem p1691 : P1691 := by
   intro a
   cases h : unsafeWrite a.stream a.bytes a.bytes.length <;>
-    simp [m1691, run, WriteResultContract, withStream, base, h]
+    simp [m1691, WriteResultContract, withStream, base, h]
 
-def m1699 (args : Args) : Obs := run 1699 args
 def P1699 : Prop := ∀ a, WriteResultContract (m1699 a) a
   (unsafeWrite a.stream a.bytes (min a.n a.bytes.length))
 theorem p1699 : P1699 := by
   intro a
   cases h : unsafeWrite a.stream a.bytes (min a.n a.bytes.length) <;>
-    simp [m1699, run, WriteResultContract, withStream, base, h]
+    simp [m1699, WriteResultContract, withStream, base, h]
 
-def m1710 (args : Args) : Obs := run 1710 args
 def P1710 : Prop := ∀ a, WriteResultContract (m1710 a) a
   (unsafeWrite a.stream a.bytes a.bytes.length)
 theorem p1710 : P1710 := by
   intro a
   cases h : unsafeWrite a.stream a.bytes a.bytes.length <;>
-    simp [m1710, run, WriteResultContract, withStream, base, h]
+    simp [m1710, WriteResultContract, withStream, base, h]
 
-def m1720 (args : Args) : Obs := run 1720 args
 def P1720 : Prop := ∀ a, WriteResultContract (m1720 a) a
   (unsafeWrite a.stream a.bytes (min a.n a.bytes.length))
 theorem p1720 : P1720 := by
   intro a
   cases h : unsafeWrite a.stream a.bytes (min a.n a.bytes.length) <;>
-    simp [m1720, run, WriteResultContract, withStream, base, h]
+    simp [m1720, WriteResultContract, withStream, base, h]
 
-def m1736 (args : Args) : Obs := run 1736 args
 def P1736 : Prop := ∀ a, WriteResultContract (m1736 a) a
   (unsafeWrite a.stream a.bytes a.n)
 theorem p1736 : P1736 := by
   intro a
   cases h : unsafeWrite a.stream a.bytes a.n <;>
-    simp [m1736, run, WriteResultContract, withStream, base, h]
+    simp [m1736, WriteResultContract, withStream, base, h]
 
-def m1741 (args : Args) : Obs := run 1741 args
 def P1741 : Prop := ∀ a, WriteResultContract (m1741 a) a
   (unsafeWrite a.stream a.bytes a.n)
 theorem p1741 : P1741 := by
   intro a
   cases h : unsafeWrite a.stream a.bytes a.n <;>
-    simp [m1741, run, WriteResultContract, withStream, base, h]
+    simp [m1741, WriteResultContract, withStream, base, h]
 
-def m1778 (args : Args) : Obs := run 1778 args
 def P1778 : Prop := ∀ a, (m1778 a).bytes = a.bytes.drop a.n ++ a.queued
 theorem p1778 : P1778 := by
   intro a
-  simp [m1778, run, requeueUnwritten]
+  simp [m1778, requeueUnwritten]
 
-def m1795 (args : Args) : Obs := run 1795 args
 def P1795 : Prop := ∀ a, (m1795 a).bytes = a.endpoint.sendBuffer.getD [] ∧
   (m1795 a).endpoint.sendBuffer = none
 theorem p1795 : P1795 := by
   intro a
-  simp [m1795, run]
+  simp [m1795]
 
-def m1826 (args : Args) : Obs := run 1826 args
 def P1826 : Prop := ∀ a, (m1826 a).endpoint.sendBuffer = some [] ∧
   (m1826 a).counts = [a.n]
 theorem p1826 : P1826 := by
   intro a
-  simp [m1826, run]
+  simp [m1826]
 
-def m1836 (args : Args) : Obs := run 1836 args
 def P1836 : Prop := ∀ a, WriteResultContract (m1836 a) a (unsafeWrite a.stream [a.byte] 1)
 theorem p1836 : P1836 := by
   intro a
   cases h : unsafeWrite a.stream [a.byte] 1 <;>
-    simp [m1836, run, WriteResultContract, withStream, base, h]
+    simp [m1836, WriteResultContract, withStream, base, h]
 
-def m1856 (args : Args) : Obs := run 1856 args
 def P1856 : Prop := ∀ a, (m1856 a).req = completeReq a.req a.i a.n
 theorem p1856 : P1856 := by
   intro a
-  simp [m1856, run]
+  simp [m1856]
 
-def m1909 (args : Args) : Obs := run 1909 args
 def P1909 : Prop := ∀ a, (m1909 a).req = completeReq a.req a.i 0
 theorem p1909 : P1909 := by
   intro a
-  simp [m1909, run]
+  simp [m1909]
 
-def m1916 (args : Args) : Obs := run 1916 args
 def P1916 : Prop := ∀ a, (m1916 a).integer = a.i
 theorem p1916 : P1916 := by
   intro a
-  simp [m1916, run]
+  simp [m1916]
 
-def m1917 (args : Args) : Obs := run 1917 args
 def P1917 : Prop := ∀ a, (m1917 a).integer = a.i
 theorem p1917 : P1917 := by
   intro a
-  simp [m1917, run]
+  simp [m1917]
 
-def m1919 (args : Args) : Obs := run 1919 args
 def P1919 : Prop := ∀ a, (m1919 a).integer = a.i ∧ (m1919 a).flags = [a.endpoint.hasHandle]
 theorem p1919 : P1919 := by
   intro a
-  simp [m1919, run]
+  simp [m1919]
 
-def m1938 (args : Args) : Obs := run 1938 args
 def P1938 : Prop := ∀ a, (m1938 a).integer = a.i ∧ (m1938 a).flags = [a.flag]
 theorem p1938 : P1938 := by
   intro a
-  simp [m1938, run]
+  simp [m1938]
 
-def m1949 (args : Args) : Obs := run 1949 args
 def P1949 : Prop := ∀ a, (m1949 a).integer = a.i ∧ (m1949 a).flags = [a.flag]
 theorem p1949 : P1949 := by
   intro a
-  simp [m1949, run]
+  simp [m1949]
 
-def m1957 (args : Args) : Obs := run 1957 args
 def P1957 : Prop := ∀ a, (m1957 a).integer = a.i ∧ (m1957 a).flags = [a.flag]
 theorem p1957 : P1957 := by
   intro a
-  simp [m1957, run]
+  simp [m1957]
 
-def m1963 (args : Args) : Obs := run 1963 args
 def P1963 : Prop := ∀ a, (m1963 a).redirect.outStream = .stream
 theorem p1963 : P1963 := by
   intro a
-  simp [m1963, run]
+  simp [m1963]
 
-def m1969 (args : Args) : Obs := run 1969 args
 def P1969 : Prop := ∀ a, (m1969 a).redirect.outStream = .devnull
 theorem p1969 : P1969 := by
   intro a
-  simp [m1969, run]
+  simp [m1969]
 
-def m1978 (args : Args) : Obs := run 1978 args
 def P1978 : Prop := ∀ a, (m1978 a).redirect.outStream = .stream
 theorem p1978 : P1978 := by
   intro a
-  simp [m1978, run]
+  simp [m1978]
 
-def m1984 (args : Args) : Obs := run 1984 args
 def P1984 : Prop := ∀ a, (m1984 a).redirect.outStream = .stream
 theorem p1984 : P1984 := by
   intro a
-  simp [m1984, run]
+  simp [m1984]
 
-def m1992 (args : Args) : Obs := run 1992 args
 def P1992 : Prop := ∀ a, (m1992 a).redirect.outStream = .stream
 theorem p1992 : P1992 := by
   intro a
-  simp [m1992, run]
+  simp [m1992]
 
-def m1995 (args : Args) : Obs := run 1995 args
 def P1995 : Prop := ∀ a, (m1995 a).counts = [1]
 theorem p1995 : P1995 := by
   intro a
-  simp [m1995, run]
+  simp [m1995]
 
-def m1996 (args : Args) : Obs := run 1996 args
 def P1996 : Prop := ∀ a, (m1996 a).counts = [a.n]
 theorem p1996 : P1996 := by
   intro a
-  simp [m1996, run]
+  simp [m1996]
 
-def m1997 (args : Args) : Obs := run 1997 args
 def P1997 : Prop := ∀ a, ((m1997 a).stream, (m1997 a).error) =
   match pipeGetindex (a.pipe.readEnd, a.pipe.writeEnd) a.i with
   | some stream => (stream, none)
@@ -1007,83 +1212,70 @@ def P1997 : Prop := ∀ a, ((m1997 a).stream, (m1997 a).error) =
 theorem p1997 : P1997 := by
   intro a
   cases h : pipeGetindex (a.pipe.readEnd, a.pipe.writeEnd) a.i <;>
-    simp [m1997, run, base, h]
+    simp [m1997, base, h]
 
-def m2052 (args : Args) : Obs := run 2052 args
 def P2052 : Prop := ∀ a, (m2052 a).redirect = a.redirect
 theorem p2052 : P2052 := by
   intro a
-  simp [m2052, run, redirectStdio, resolveRedirect, base]
+  simp [m2052, redirectStdio, resolveRedirect, base]
 
-def m2110 (args : Args) : Obs := run 2110 args
 def P2110 : Prop := ∀ a, (m2110 a).redirect =
   redirectStdio a.redirect (if a.flag then .stream else .keep)
     (if a.flag2 then .stream else .keep) (if a.flag3 then .stream else .keep)
 theorem p2110 : P2110 := by
   intro a
-  simp [m2110, run]
+  simp [m2110]
 
-def m2112 (args : Args) : Obs := run 2112 args
 def P2112 : Prop := ∀ a, (m2112 a).redirect = a.redirect
 theorem p2112 : P2112 := by
   intro a
-  simp [m2112, run]
+  simp [m2112]
 
-def m2115 (args : Args) : Obs := run 2115 args
 def P2115 : Prop := ∀ a, (m2115 a).text = a.text
 theorem p2115 : P2115 := by
   intro a
-  simp [m2115, run]
+  simp [m2115]
 
-def m2118 (args : Args) : Obs := run 2118 args
 def P2118 : Prop := ∀ a, (m2118 a).redirect.outStream = .stream
 theorem p2118 : P2118 := by
   intro a
-  simp [m2118, run]
+  simp [m2118]
 
-def m2122 (args : Args) : Obs := run 2122 args
 def P2122 : Prop := ∀ a, (m2122 a).flags = [false]
 theorem p2122 : P2122 := by
   intro a
-  simp [m2122, run]
+  simp [m2122]
 
-def m2123 (args : Args) : Obs := run 2123 args
 def P2123 : Prop := ∀ a, (m2123 a).flags = [samePath a.text a.text2]
 theorem p2123 : P2123 := by
   intro a
-  simp [m2123, run]
+  simp [m2123]
 
-def m2156 (args : Args) : Obs := run 2156 args
 def P2156 : Prop := ∀ a, (m2156 a).redirect = redirectStdio a.redirect .keep .stream .keep
 theorem p2156 : P2156 := by
   intro a
-  simp [m2156, run]
+  simp [m2156]
 
-def m2194 (args : Args) : Obs := run 2194 args
 def P2194 : Prop := ∀ a, (m2194 a).counts = [a.n]
 theorem p2194 : P2194 := by
   intro a
-  simp [m2194, run]
+  simp [m2194]
 
-def m2195 (args : Args) : Obs := run 2195 args
 def P2195 : Prop := ∀ a, (m2195 a).counts = [a.n]
 theorem p2195 : P2195 := by
   intro a
-  simp [m2195, run]
+  simp [m2195]
 
-def m2196 (args : Args) : Obs := run 2196 args
 def P2196 : Prop := ∀ a, (m2196 a).counts = [a.n]
 theorem p2196 : P2196 := by
   intro a
-  simp [m2196, run]
+  simp [m2196]
 
-def m2197 (args : Args) : Obs := run 2197 args
 def P2197 : Prop := ∀ a, (m2197 a).flags = [a.flag]
 theorem p2197 : P2197 := by
   intro a
-  simp [m2197, run]
+  simp [m2197]
 
-def m2199 (args : Args) : Obs := run 2199 args
 def P2199 : Prop := ∀ a, ((m2199 a).bytes, (m2199 a).error) =
   match peekModel a.endpoint.buffer a.n with
   | .ok bytes => (bytes, none)
@@ -1091,45 +1283,38 @@ def P2199 : Prop := ∀ a, ((m2199 a).bytes, (m2199 a).error) =
 theorem p2199 : P2199 := by
   intro a
   cases h : peekModel a.endpoint.buffer a.n <;>
-    simp [m2199, run, base, h]
+    simp [m2199, base, h]
 
-def m2216 (args : Args) : Obs := run 2216 args
 def P2216 : Prop := ∀ a, (m2216 a).stream = freshStream .bufferStream
 theorem p2216 : P2216 := by
   intro a
-  simp [m2216, run]
+  simp [m2216]
 
-def m2219 (args : Args) : Obs := run 2219 args
 def P2219 : Prop := ∀ a, (m2219 a).flags = [isOpen a.stream]
 theorem p2219 : P2219 := by
   intro a
-  simp [m2219, run]
+  simp [m2219]
 
-def m2225 (args : Args) : Obs := run 2225 args
 def P2225 : Prop := ∀ a, (m2225 a).stream.writable = false
 theorem p2225 : P2225 := by
   intro a
-  simp [m2225, run]
+  simp [m2225]
 
-def m2231 (args : Args) : Obs := run 2231 args
 def P2231 : Prop := ∀ a, (m2231 a).stream = bufferClose a.stream
 theorem p2231 : P2231 := by
   intro a
-  simp [m2231, run]
+  simp [m2231]
 
-def m2238 (args : Args) : Obs := run 2238 args
 def P2238 : Prop := ∀ a, (m2238 a).stream = bufferClose a.stream
 theorem p2238 : P2238 := by
   intro a
-  simp [m2238, run]
+  simp [m2238]
 
-def m2239 (args : Args) : Obs := run 2239 args
 def P2239 : Prop := ∀ a, (m2239 a).flags = [a.flag]
 theorem p2239 : P2239 := by
   intro a
-  simp [m2239, run]
+  simp [m2239]
 
-def m2241 (args : Args) : Obs := run 2241 args
 def P2241 : Prop := ∀ a, ((m2241 a).bytes, (m2241 a).stream, (m2241 a).error) =
   match bufferReadByte a.stream with
   | .ok (byte, stream) => ([byte], stream, none)
@@ -1137,174 +1322,150 @@ def P2241 : Prop := ∀ a, ((m2241 a).bytes, (m2241 a).stream, (m2241 a).error) 
 theorem p2241 : P2241 := by
   intro a
   cases h : bufferReadByte a.stream <;>
-    simp [m2241, run, base, h]
+    simp [m2241, base, h]
 
-def m2249 (args : Args) : Obs := run 2249 args
 def P2249 : Prop := ∀ a, ReadResultContract (m2249 a) a (unsafeRead a.stream a.n)
 theorem p2249 : P2249 := by
   intro a
   cases h : unsafeRead a.stream a.n <;>
-    simp [m2249, run, ReadResultContract, withRead, base, h]
+    simp [m2249, ReadResultContract, withRead, base, h]
 
-def m2257 (args : Args) : Obs := run 2257 args
 def P2257 : Prop := ∀ a, (m2257 a).counts = [a.stream.buffer.length]
 theorem p2257 : P2257 := by
   intro a
-  simp [m2257, run]
+  simp [m2257]
 
-def m2259 (args : Args) : Obs := run 2259 args
 def P2259 : Prop := ∀ a, (m2259 a).flags = [bufferReadable a.stream]
 theorem p2259 : P2259 := by
   intro a
-  simp [m2259, run]
+  simp [m2259]
 
-def m2260 (args : Args) : Obs := run 2260 args
 def P2260 : Prop := ∀ a, (m2260 a).flags = [bufferWritable a.stream]
 theorem p2260 : P2260 := by
   intro a
-  simp [m2260, run]
+  simp [m2260]
 
-def m2262 (args : Args) : Obs := run 2262 args
 def P2262 : Prop := ∀ a, (m2262 a).flags =
   [a.n ≤ a.stream.buffer.length || !isOpen a.stream]
 theorem p2262 : P2262 := by
   intro a
-  simp [m2262, run]
+  simp [m2262]
 
-def m2277 (args : Args) : Obs := run 2277 args
 def P2277 : Prop := ∀ a, ReadResultContract (m2277 a) a (readAvailable a.stream)
 theorem p2277 : P2277 := by
   intro a
   cases h : readAvailable a.stream <;>
-    simp [m2277, run, ReadResultContract, withRead, base, h]
+    simp [m2277, ReadResultContract, withRead, base, h]
 
-def m2288 (args : Args) : Obs := run 2288 args
 def P2288 : Prop := ∀ a, ReadResultContract (m2288 a) a (readAvailable a.stream)
 theorem p2288 : P2288 := by
   intro a
   cases h : readAvailable a.stream <;>
-    simp [m2288, run, ReadResultContract, withRead, base, h]
+    simp [m2288, ReadResultContract, withRead, base, h]
 
-def m2297 (args : Args) : Obs := run 2297 args
 def P2297 : Prop := ∀ a, (m2297 a).bytes = a.stream.buffer.take a.n ∧
   (m2297 a).stream.buffer = a.stream.buffer.drop a.n ∧
   (m2297 a).counts = [(a.stream.buffer.take a.n).length]
 theorem p2297 : P2297 := by
   intro a
-  simp [m2297, run]
+  simp [m2297]
 
-def m2303 (args : Args) : Obs := run 2303 args
 def P2303 : Prop := ∀ a, (m2303 a).flags =
   [a.n ≤ a.stream.buffer.length || !isOpen a.stream]
 theorem p2303 : P2303 := by
   intro a
-  simp [m2303, run]
+  simp [m2303]
 
-def m2337 (args : Args) : Obs := run 2337 args
 def P2337 : Prop := ∀ a, (m2337 a).text =
   "BufferStream(" ++ toString a.stream.buffer.length ++ " bytes waiting)"
 theorem p2337 : P2337 := by
   intro a
-  simp [m2337, run]
+  simp [m2337]
 
-def m2339 (args : Args) : Obs := run 2339 args
 def P2339 : Prop := ∀ a, ReadResultContract (m2339 a) a (readUntil a.stream a.byte a.flag)
 theorem p2339 : P2339 := by
   intro a
   cases h : readUntil a.stream a.byte a.flag <;>
-    simp [m2339, run, ReadResultContract, withRead, base, h]
+    simp [m2339, ReadResultContract, withRead, base, h]
 
-def m2358 (args : Args) : Obs := run 2358 args
 def P2358 : Prop := ∀ a, (m2358 a).flags = [!isOpen a.stream]
 theorem p2358 : P2358 := by
   intro a
-  simp [m2358, run]
+  simp [m2358]
 
-def m2373 (args : Args) : Obs := run 2373 args
 def P2373 : Prop := ∀ a, (m2373 a).stream = a.stream ∧ (m2373 a).error = none
 theorem p2373 : P2373 := by
   intro a
-  simp [m2373, run, base]
+  simp [m2373, base]
 
-def m2374 (args : Args) : Obs := run 2374 args
 def P2374 : Prop := ∀ a, (m2374 a).stream = a.stream ∧ (m2374 a).error = none
 theorem p2374 : P2374 := by
   intro a
-  simp [m2374, run, base]
+  simp [m2374, base]
 
-def m2376 (args : Args) : Obs := run 2376 args
 def P2376 : Prop := ∀ a, WriteResultContract (m2376 a) a (unsafeWrite a.stream [a.byte] 1)
 theorem p2376 : P2376 := by
   intro a
   cases h : unsafeWrite a.stream [a.byte] 1 <;>
-    simp [m2376, run, WriteResultContract, withStream, base, h]
+    simp [m2376, WriteResultContract, withStream, base, h]
 
-def m2382 (args : Args) : Obs := run 2382 args
 def P2382 : Prop := ∀ a, WriteResultContract (m2382 a) a
   (unsafeWrite a.stream a.bytes a.bytes.length)
 theorem p2382 : P2382 := by
   intro a
   cases h : unsafeWrite a.stream a.bytes a.bytes.length <;>
-    simp [m2382, run, WriteResultContract, withStream, base, h]
+    simp [m2382, WriteResultContract, withStream, base, h]
 
-def m2388 (args : Args) : Obs := run 2388 args
 def P2388 : Prop := ∀ a, WriteResultContract (m2388 a) a
   (unsafeWrite a.stream a.bytes a.bytes.length)
 theorem p2388 : P2388 := by
   intro a
   cases h : unsafeWrite a.stream a.bytes a.bytes.length <;>
-    simp [m2388, run, WriteResultContract, withStream, base, h]
+    simp [m2388, WriteResultContract, withStream, base, h]
 
-def m2395 (args : Args) : Obs := run 2395 args
 def P2395 : Prop := ∀ a, WriteResultContract (m2395 a) a
   (unsafeWrite a.stream a.bytes a.bytes.length)
 theorem p2395 : P2395 := by
   intro a
   cases h : unsafeWrite a.stream a.bytes a.bytes.length <;>
-    simp [m2395, run, WriteResultContract, withStream, base, h]
+    simp [m2395, WriteResultContract, withStream, base, h]
 
-def m2404 (args : Args) : Obs := run 2404 args
 def P2404 : Prop := ∀ a, WriteResultContract (m2404 a) a
   (unsafeWrite a.stream a.bytes a.n)
 theorem p2404 : P2404 := by
   intro a
   cases h : unsafeWrite a.stream a.bytes a.n <;>
-    simp [m2404, run, WriteResultContract, withStream, base, h]
+    simp [m2404, WriteResultContract, withStream, base, h]
 
-def m2416 (args : Args) : Obs := run 2416 args
 def P2416 : Prop := ∀ a, (m2416 a).flags = [bufferEof a.stream]
 theorem p2416 : P2416 := by
   intro a
-  simp [m2416, run]
+  simp [m2416]
 
-def m2427 (args : Args) : Obs := run 2427 args
 def P2427 : Prop := ∀ a, (m2427 a).counts = [a.n]
 theorem p2427 : P2427 := by
   intro a
-  simp [m2427, run]
+  simp [m2427]
 
-def m2428 (args : Args) : Obs := run 2428 args
 def P2428 : Prop := ∀ a, (m2428 a).stream = a.stream
 theorem p2428 : P2428 := by
   intro a
-  simp [m2428, run]
+  simp [m2428]
 
-def m2438 (args : Args) : Obs := run 2438 args
 def P2438 : Prop := ∀ a, (m2438 a).stream.buffer = a.stream.buffer.drop a.n
 theorem p2438 : P2438 := by
   intro a
-  simp [m2438, run]
+  simp [m2438]
 
-def m2440 (args : Args) : Obs := run 2440 args
 def P2440 : Prop := ∀ a, (m2440 a).stream = bufferResetEof a.stream
 theorem p2440 : P2440 := by
   intro a
-  simp [m2440, run]
+  simp [m2440]
 
 def entries : List Entry := [
   methodEntry "base/stream.jl" "stream" 29 39 "getproperty(server::LibuvServer, name::Symbol)" "`getproperty(server::LibuvServer, name::Symbol)` follows its source-order branches, checks, state changes, and calls for every modelled input." ``P29 ``p29,
   methodEntry "base/stream.jl" "stream" 58 76 "getproperty(stream::LibuvStream, name::Symbol)" "`getproperty(stream::LibuvStream, name::Symbol)` follows its source-order branches, checks, state changes, and calls for every modelled input." ``P58 ``p58,
-  methodEntry "base/stream.jl" "stream" 102 102 "bytesavailable(s::LibuvStream)" "`bytesavailable(s::LibuvStream)` follows its source-order branches, checks, state changes, and calls for every modelled input." ``P102 ``p102,
+  methodEntry "base/stream.jl" "stream" 102 102 "bytesavailable(s::LibuvStream)" "bytesavailable leaves the endpoint unchanged and returns zero exactly when its receive buffer is empty." ``P102 ``p102,
   methodEntry "base/stream.jl" "stream" 104 116 "eof(s::LibuvStream; cancel::CancelTokenArg=DEFAULT_CANCEL)" "`eof(s::LibuvStream; cancel::CancelTokenArg=DEFAULT_CANCEL)` follows its source-order branches, checks, state changes, and calls for every modelled input." ``P104 ``p104,
   methodEntry "base/stream.jl" "stream" 139 168 "uv_status_string(x)" "`uv_status_string(x)` follows its source-order branches, checks, state changes, and calls for every modelled input." ``P139 ``p139,
   methodEntry "base/stream.jl" "stream" 179 191 "PipeEndpoint(handle::Ptr{Cvoid}, status)" "`PipeEndpoint(handle::Ptr{Cvoid}, status)` follows its source-order branches, checks, state changes, and calls for every modelled input." ``P179 ``p179,

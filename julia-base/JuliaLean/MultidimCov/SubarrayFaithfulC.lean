@@ -369,29 +369,6 @@ private def entry (line : Nat) (name statement source : String) (prop thm : Lean
   { id := s!"multidimcov-subarray-faithful-{line}", juliaFile := "base/subarray.jl",
     juliaFns := [name], statement, source, status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 437 "strides(SubArray)" "Strides reads the actual parent, obtains its strides and combines them with the actual stored indices." "base/subarray.jl:437" ``P437 ``p437,
-  entry 441 "substrides(Slice)" "Slice substrides reads the first parent stride and recursively processes both actual tuple tails with complete failure propagation." "base/subarray.jl:441" ``P441 ``p441,
-  entry 442 "substrides(AbstractRange)" "Range substrides reads and converts the actual step, multiplies the first stride, and recursively processes both tails." "base/subarray.jl:442" ``P442 ``p442,
-  entry 446 "stride(SubArray,d)" "Stride handles every Integer dimension, including the documented beyond-rank product and every failing internal call." "base/subarray.jl:446" ``P446 ``p446,
-  entry 450 "compute_stride1(empty)" "The empty-index overload returns the arbitrary accumulator unchanged." "base/subarray.jl:450" ``P450 ``p450,
-  entry 451 "compute_stride1(all scalars)" "The all-scalar overload returns the arbitrary accumulator for every axis and Real scalar tuple." "base/subarray.jl:451" ``P451 ``p451,
-  entry 452 "compute_stride1(leading scalar)" "Leading-scalar stride computation gets and converts the first axis length, multiplies the arbitrary accumulator and recurses on both tails." "base/subarray.jl:452-453" ``P452 ``p452,
-  entry 454 "compute_stride1(AbstractRange)" "Range stride computation reads and converts the actual range step before multiplying the arbitrary accumulator." "base/subarray.jl:454" ``P454 ``p454,
-  entry 455 "compute_stride1(Slice)" "The Slice overload returns the arbitrary accumulator unchanged for every remaining tuple." "base/subarray.jl:455" ``P455 ``p455,
-  entry 456 "compute_stride1(invalid index)" "The fallback accepts every unsupported index type and throws ArgumentError containing its actual type." "base/subarray.jl:456" ``P456 ``p456,
-  entry 460 "iscontiguous(SubArray)" "Value contiguity calls typeof on the actual view and delegates to type contiguity." "base/subarray.jl:460" ``P460 ``p460,
-  entry 464 "first_index(FastSubArray)" "Fast first_index calls firstindex on the actual view before cached stride multiplication and offset addition." "base/subarray.jl:464" ``P464 ``p464,
-  entry 465 "first_index(SubArray)" "General first_index passes the actual parent and stored indices to compute_linindex." "base/subarray.jl:465" ``P465 ``p465,
-  entry 471 "compute_offset1(vector,range)" "Vector offset reads and converts first(range) and first(axes1(range)) before stride multiplication and subtraction." "base/subarray.jl:471-472" ``P471 ``p471,
-  entry 480 "compute_offset1(Slice)" "Slice offset computes the linear index, reads the requested parent axis origin, converts it and subtracts the scaled origin." "base/subarray.jl:480-481" ``P480 ``p480,
-  entry 482 "compute_offset1(AbstractRange)" "Range offset computes the linear index and uses first(axes1(actual range)) before scaled subtraction." "base/subarray.jl:482-483" ``P482 ``p482,
-  entry 484 "compute_offset1(fallback)" "Fallback offset computes the actual linear index before subtracting the supplied stride." "base/subarray.jl:484-485" ``P484 ``p484,
-  entry 513 "pointer(SubArray,CartesianIndex)" "Cartesian pointer calls first_index and strides, loops through every coordinate in order with Julia arithmetic operations, then calls pointer on the actual parent." "base/subarray.jl:513-519" ``P513 ``p513,
-  entry 528 "_indices_sub(AbstractArray)" "Array axis extraction calls axes on the actual array and concatenates the complete recursive result." "base/subarray.jl:528-530" ``P528 ``p528,
-  entry 538 "_axes1_sub(AbstractArray)" "First-axis extraction calls axes1 on the actual array and ignores the suffix exactly as the method does." "base/subarray.jl:538-540" ``P538 ``p538,
-  entry 543 "has_offset_axes(SubArray)" "Offset-axis detection delegates with the actual stored index tuple." "base/subarray.jl:543" ``P543 ``p543,
-  entry 545 "replace_in_print_matrix(matrix SubArray)" "Matrix printing reindexes, converts against the actual parent and delegates with only the converted parent indices and text." "base/subarray.jl:545-546" ``P545 ``p545
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.SubarrayFaithfulC

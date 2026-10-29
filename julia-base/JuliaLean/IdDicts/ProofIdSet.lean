@@ -342,7 +342,7 @@ theorem union_spec : ∀ (xs : List JVal) (s : IdSet), SInv s → s.T = .any →
       have := union_spec xs s h hT (by simp at hb; omega)
       have hu : s.union (x :: xs) = s.union xs := by
         conv => lhs; rw [IdSet.union]
-        simp only [hr, hs, IdSet.length, hne, Bool.false_eq_true, if_false]
+        simp only [hr, hs, IdSet.length, hne, Bool.and_false, Bool.false_eq_true, if_false]
       rw [hu]
       simp only [List.foldl_cons, rPush, hx, if_true]
       exact this
@@ -355,7 +355,7 @@ theorem union_spec : ∀ (xs : List JVal) (s : IdSet), SInv s → s.T = .any →
       have hu : s.union (x :: xs) = (s.push x).1.union xs := by
         conv => lhs; rw [IdSet.union]
         simp only [hr]
-        simp only [IdSet.length, hne, Bool.false_eq_true, if_false]
+        simp only [IdSet.length, hne, Bool.and_false, Bool.false_eq_true, if_false]
       rw [hu]
       simp only [List.foldl_cons, rPush, hx, if_false]
       rw [← ha, ← hT']

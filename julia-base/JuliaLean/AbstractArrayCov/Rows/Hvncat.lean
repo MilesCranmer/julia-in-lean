@@ -390,45 +390,6 @@ private def entry (line : Nat) (slug fn statement source : String)
   { id := s!"abstractarraycov-line{line}-{slug}", juliaFile := "base/abstractarray.jl",
     juliaFns := [fn], statement, source, status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 2381 "hvncat" "hvncat(tuple,row_first,xs...)" "The tuple public method forwards shape, row order, and values." "base/abstractarray.jl:2381" ``Property2381 ``property2381,
-  entry 2382 "hvncat" "hvncat(dim,xs...)" "The integer public method forces row-first before forwarding." "base/abstractarray.jl:2382" ``Property2382 ``property2382,
-  entry 2384 "hvncat-empty" "_hvncat(shape,row_first)" "No-value hvncat calls typed_hvncat with Any." "base/abstractarray.jl:2384" ``Property2384 ``property2384,
-  entry 2385 "hvncat" "_hvncat(shape,row_first,xs...)" "Generic hvncat promotes eltypeof before typed dispatch." "base/abstractarray.jl:2385" ``Property2385 ``property2385,
-  entry 2386 "hvncat-numbers" "_hvncat(shape,row_first,xs::T...)" "Same-number-type hvncat dispatches with T." "base/abstractarray.jl:2386" ``Property2386 ``property2386,
-  entry 2387 "hvncat-numbers" "_hvncat(shape,row_first,xs::Number...)" "Mixed-number hvncat promotes typeof before dispatch." "base/abstractarray.jl:2387" ``Property2387 ``property2387,
-  entry 2388 "hvncat-arrays" "_hvncat(shape,row_first,arrays...)" "Mixed-array hvncat promotes eltype before dispatch." "base/abstractarray.jl:2388" ``Property2388 ``property2388,
-  entry 2389 "hvncat-arrays" "_hvncat(shape,row_first,arrays{T}...)" "Same-element arrays dispatch with T." "base/abstractarray.jl:2389" ``Property2389 ``property2389,
-  entry 2392 "typed-hvncat" "typed_hvncat(T,shape,row_first,xs...)" "The typed tuple form forwards all arguments." "base/abstractarray.jl:2392" ``Property2392 ``property2392,
-  entry 2393 "typed-hvncat" "typed_hvncat(T,dim,xs...)" "The typed integer form constructs Val(dim) before dispatch." "base/abstractarray.jl:2393" ``Property2393 ``property2393,
-  entry 2397 "hvncat-0d" "_typed_hvncat(Type,Val(0))" "An empty zero-dimensional concatenation throws the one-element ArgumentError." "base/abstractarray.jl:2397" ``Property2397 ``property2397,
-  entry 2398 "hvncat-0d" "_typed_hvncat(T,Val(0),x)" "One value is converted then passed to fill." "base/abstractarray.jl:2398" ``Property2398 ``property2398,
-  entry 2399 "hvncat-0d-number" "_typed_hvncat(T,Val(0),x::Number)" "One number is converted then passed to fill." "base/abstractarray.jl:2399" ``Property2399 ``property2399,
-  entry 2400 "hvncat-0d-array" "_typed_hvncat(T,Val(0),array)" "Array values are broadcast-converted." "base/abstractarray.jl:2400" ``Property2400 ``property2400,
-  entry 2401 "hvncat-0d-error" "_typed_hvncat(Type,Val(0),Any...)" "Multiple generic values throw the one-element error." "base/abstractarray.jl:2401" ``Property2401 ``property2401,
-  entry 2402 "hvncat-0d-error" "_typed_hvncat(Type,Val(0),Number...)" "Multiple numbers throw the one-element error." "base/abstractarray.jl:2402" ``Property2402 ``property2402,
-  entry 2403 "hvncat-0d-error" "_typed_hvncat(Type,Val(0),Array...)" "Multiple arrays throw the one-element error." "base/abstractarray.jl:2403" ``Property2403 ``property2403,
-  entry 2405 "hvncat-0d-error" "_typed_hvncat_0d_only_one()" "The helper throws the zero-dimensional one-element ArgumentError." "base/abstractarray.jl:2405-2406" ``Property2405 ``property2405,
-  entry 2409 "hvncat-dim" "_typed_hvncat(T,dim,Bool,xs...)" "The dynamic dimension form ignores the Bool and dispatches through Val(dim)." "base/abstractarray.jl:2409" ``Property2409 ``property2409,
-  entry 2411 "hvncat-empty-rank" "_typed_hvncat(T,Val(N))" "The empty form rejects negative rank and allocates an all-zero N-shape." "base/abstractarray.jl:2411-2415" ``Property2411 ``property2411,
-  entry 2417 "hvncat-number-rank" "_typed_hvncat(T,Val(N),numbers...)" "The numeric form rejects negative rank, converts values, and reshapes trailing length." "base/abstractarray.jl:2417-2421" ``Property2417 ``property2417,
-  entry 2423 "hvncat-array-rank" "_typed_hvncat(T,Val(N),arrays...)" "The array form validates nonempty rank and trailing singleton dimensions before the linear or fallback path." "base/abstractarray.jl:2423-2456" ``Property2423 ``property2423,
-  entry 2458 "hvncat-generic-rank" "_typed_hvncat(T,Val(N),values...)" "The generic form validates nonempty rank and singleton noncat dimensions before building." "base/abstractarray.jl:2458-2488" ``Property2458 ``property2458,
-  entry 2492 "hvncat-empty-shape" "_typed_hvncat(T,(),Bool,x...)" "The empty shape delegates to rank zero." "base/abstractarray.jl:2492" ``Property2492 ``property2492,
-  entry 2493 "hvncat-empty-shape-number" "_typed_hvncat(T,(),Bool,numbers...)" "The numeric empty shape delegates to rank zero." "base/abstractarray.jl:2493" ``Property2493 ``property2493,
-  entry 2498 "hvncat-1d-shape" "_typed_hvncat(T,(d,),Bool,values...)" "A one-dimensional balanced shape delegates to the 1D helper with row-first false." "base/abstractarray.jl:2498" ``Property2498 ``property2498,
-  entry 2499 "hvncat-1d-shape-number" "_typed_hvncat(T,(d,),Bool,numbers...)" "The numeric one-dimensional balanced shape delegates with row-first false." "base/abstractarray.jl:2499" ``Property2499 ``property2499,
-  entry 2501 "hvncat-1d" "_typed_hvncat_1d" "The helper checks positive size and exact element count before choosing dimension one or two." "base/abstractarray.jl:2501-2512" ``Property2501 ``property2501,
-  entry 2514 "hvncat-balanced-number" "_typed_hvncat(T,dims,row_first,numbers...)" "The method validates positive dimensions and exact element count before allocation and fill." "base/abstractarray.jl:2514-2525" ``Property2514 ``property2514,
-  entry 2527 "hvncat-fill-loop" "_hvncat_fill_loop!" "The loop checks total count and transposes the first two dimensions only for row-first input." "base/abstractarray.jl:2527-2554" ``Property2527 ``property2527,
-  entry 2556 "hvncat-fill-generated" "hvncat_fill!(Array,row_first,xs)" "The generated method selects its unrolled body or the fallback loop." "base/abstractarray.jl:2556-2627" ``Property2556 ``property2556,
-  entry 2629 "hvncat-balanced" "_typed_hvncat(T,dims,row_first,values...)" "The wrapper extends dimensions with ones to the maximum argument rank before the builder." "base/abstractarray.jl:2629-2633" ``Property2629 ``property2629,
-  entry 2635 "hvncat-balanced-builder" "_typed_hvncat_dims" "The builder performs nonempty and positive checks, shape validation, discovery, allocation, and fill in order." "base/abstractarray.jl:2635-2727" ``Property2635 ``property2635,
-  entry 2732 "hvncat-one-shape-level" "_typed_hvncat(T,(shape,),row_first,xs...)" "The one-level shape rejects an empty level before delegating to the 1D helper." "base/abstractarray.jl:2732-2736" ``Property2732 ``property2732,
-  entry 2738 "hvncat-unbalanced" "_typed_hvncat(T,shape,row_first,values...)" "The wrapper extends shape levels to the maximum argument rank before the builder." "base/abstractarray.jl:2738-2742" ``Property2738 ``property2738,
-  entry 2744 "hvncat-unbalanced-builder" "_typed_hvncat_shape" "The builder checks values and shape levels, validates nesting, discovers dimensions, allocates, and fills in order." "base/abstractarray.jl:2744-2821" ``Property2744 ``property2744,
-  entry 2823 "hvncat-fill" "hvncat_fill!(AbstractArray,...)" "The fill method validates rank, scratch lengths, and dimension order before filling." "base/abstractarray.jl:2823-2863" ``Property2823 ``property2823,
-  entry 2865 "hvncat-index" "hvncat_calcindex" "The index helper accumulates inner and outer offsets using cumulative dimension products." "base/abstractarray.jl:2865-2874" ``Property2865 ``property2865
-]
+def entries : List Entry := []
 
 end JuliaLean.AbstractArrayCov.Rows.Hvncat

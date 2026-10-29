@@ -1,0 +1,49 @@
+id: range-bool-steprange-empty
+title: "StepRange(false, -1, true) contains false instead of being empty"
+priority: P2
+kind: wrong-result
+area: Ranges
+files: [base/range.jl]
+functions: ["steprange_last_empty(::Bool, step, stop)", "StepRange(::T, ::S, ::T)"]
+summary: |
+  StepRange(false, -1, true) moves away from its stop value, so it should be empty.
+  The Bool-specific empty-range normalization stores false as the last value, making
+  the range contain one element, false.
+likelihood: |
+  Very low: this requires an explicitly constructed StepRange with Boolean endpoints
+  and an incompatible step direction.
+maybe_intended: ""
+reproducer: |
+  r = StepRange(false, -1, true)
+  collect(r)  # Bool[0], but expected Bool[]
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    collect(StepRange(false, -1, true)) = Bool[0], length 1, expected Bool[]
+    REPRODUCED range-bool-steprange-empty
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    collect(StepRange(false, -1, true)) = Bool[0], length 1, expected Bool[]
+    REPRODUCED range-bool-steprange-empty
+reproduced: {release: true, nightly: true}
+expected: |
+  StepRange(false, -1, true) should be empty, so collect(r) should return Bool[].
+promised_by: |
+  StepRange docstring, base/range.jl:314-320, defines the range by a start, stop,
+  and constant step. The constructor at base/range.jl:363-367 handles a step that
+  points away from the stop as an empty-range case; this Boolean range should follow
+  that rule.
+cause: |
+  base/range.jl:399 computes start ⊻ (step > zero(step)). For start=false and
+  step=-1, that expression returns false. The constructor calls this helper when
+  the step direction disagrees with the endpoints (base/range.jl:366-367), so it
+  stores false as the last value and creates a one-element range.
+possible_fix: |
+  Return an empty-range sentinel distinct from start for the direction-mismatch
+  case, including the false-start, negative-step case.
+duplicates:
+  issues: []
+  queries: ["issues: StepRange Bool empty", "issues: StepRange Bool negative step", "prs: StepRange Bool empty", "prs: StepRange Bool negative step"]
+lean:
+  property: JuliaLean.Proofs.base.range.BoolStepRangeElements
+  theorem: JuliaLean.Proofs.base.range.boolStepRangeElements_refuted

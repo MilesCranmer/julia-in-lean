@@ -1,0 +1,70 @@
+id: abstractarrayspecs-linear-zero-unitrange
+title: "Zero-index access to an IndexLinear vector with a UnitRange axis uses index 1"
+priority: P2
+kind: wrong-exception
+area: AbstractArraySpecs
+files: [base/abstractarray.jl, base/indices.jl]
+functions: ["_to_linear_index(A::AbstractArray)", "first(::LinearIndices{1})", "getindex(A::AbstractArray, I...)", "setindex!(A::AbstractArray, v, I...)", "get(A::AbstractArray, I::Tuple{}, default)"]
+summary: |
+  A singleton IndexLinear vector whose axis is 3:3 accepts A[3], but A[],
+  get(A, (), default), and setindex!(A, value) call its canonical method at 1
+  and throw BoundsError. The documented custom-array interface permits axes
+  to return a UnitRange.
+likelihood: |
+  Custom vectors that return a plain offset UnitRange from axes can encounter
+  this when accessing their sole element without subscripts.
+maybe_intended: |
+  LinearIndices uses the indices of the range object, which for UnitRange are
+  1-based. The custom-indexing documentation nevertheless permits UnitRange axes.
+reproducer: |
+  Run repro/abstractarrayspecs-linear-zero-unitrange.jl. Its vector has axes
+  (3:3,), returns 7 at index 3, and provides a checked canonical setter.
+output:
+  release: |
+    axes = (3:3,)
+    A[3] = 7
+    first(LinearIndices(A)) = 1
+    A[] = (:error, BoundsError)
+    get(A, (), 0) = (:error, BoundsError)
+    setindex!(A, 8) = (:error, BoundsError)
+    REPRODUCED abstractarrayspecs-linear-zero-unitrange
+  nightly: |
+    axes = (3:3,)
+    A[3] = 7
+    first(LinearIndices(A)) = 1
+    A[] = (:error, BoundsError)
+    get(A, (), 0) = (:error, BoundsError)
+    setindex!(A, 8) = (:error, BoundsError)
+    REPRODUCED abstractarrayspecs-linear-zero-unitrange
+reproduced: {release: true, nightly: true}
+expected: |
+  A[] and get(A, (), 0) return 7 and setindex!(A, 8) stores 8.
+promised_by: |
+  doc/src/devdocs/offset-arrays.md, "Custom AbstractUnitRange types", says a
+  non-1-indexed array may specialize axes to return a UnitRange. The manual's
+  omitted-indices rule permits A[] for an array with one element.
+cause: |
+  base/abstractarray.jl:1400 calls first(LinearIndices(A)). The constructor at
+  base/indices.jl:482-487 converts axes to Int ranges and first at line 527
+  returns the first index of that range object, which is 1 for an ordinary UnitRange.
+possible_fix: |
+  Derive the first linear index for a vector from its array axis rather than
+  from the indexing axes of the axis range object.
+duplicates:
+  issues: []
+  queries: ['"LinearIndices" "UnitRange" offset', '"LinearIndices" "axes" offset', 'LinearIndices offset axes']
+lean:
+  property: JuliaLean.AbstractArraySpecs.GenericLinearZeroPromise
+  theorem: JuliaLean.AbstractArraySpecs.genericLinearZeroPromise_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    axes = (3:3,)
+    A[3] = 7
+    first(LinearIndices(A)) = 1
+    A[] = (:error, BoundsError)
+    get(A, (), 0) = (:error, BoundsError)
+    setindex!(A, 8) = (:error, BoundsError)
+    REPRODUCED abstractarrayspecs-linear-zero-unitrange
+covers: [abstractarrays-source-unitrange-zero-index]

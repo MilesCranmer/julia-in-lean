@@ -1,0 +1,61 @@
+id: multidimcov-hcat-vector-eltype
+title: "hcat of vectors with the same abstract eltype narrows it: hcat(Any[1], Any[2]) is a Matrix{Int}"
+priority: P2
+kind: wrong-result
+area: MultidimCov
+files: [base/array.jl]
+functions: ["hcat(V::Vector{T}...) where T"]
+summary: |
+  When every argument is a Vector{T} with the same T, hcat builds its result with
+  a comprehension, whose element type comes from the values rather than from T.
+  hcat(Any[1], Any[2]) is therefore a Matrix{Int64}, while cat(Any[1], Any[2];
+  dims=2) and vcat(Any[1], Any[2]) keep the element type Any. Storing a String
+  into the result then throws MethodError.
+likelihood: |
+  Plausible in code that collects heterogeneous data in Vector{Any} or
+  Vector{Union{...}} columns and concatenates them; the narrowed result breaks
+  later writes of other types.
+maybe_intended: |
+  The comprehension only asserts each element ::T; narrowing may have been
+  accepted for speed. The hcat docstring says hcat(A...) is equivalent to
+  cat(A...; dims=2), which keeps T.
+reproducer: |
+  hcat(Any[1], Any[2])                  # Matrix{Int64}
+  cat(Any[1], Any[2]; dims=2)           # Matrix{Any}
+  hcat(Union{Int,Float64}[1, 2], Union{Int,Float64}[3, 4])   # Matrix{Int64}
+output:
+  release: |
+    hcat(Any[1], Any[2]) isa Matrix{Int64}
+    cat(Any[1], Any[2]; dims=2) isa Matrix{Any}
+    vcat(Any[1], Any[2]) isa Vector{Any}
+    hcat of two Vector{Union{Int,Float64}} isa Matrix{Int64}
+    a[1] = "x": MethodError
+    REPRODUCED multidimcov-hcat-vector-eltype
+  nightly: |
+    hcat(Any[1], Any[2]) isa Matrix{Int64}
+    cat(Any[1], Any[2]; dims=2) isa Matrix{Any}
+    vcat(Any[1], Any[2]) isa Vector{Any}
+    hcat of two Vector{Union{Int,Float64}} isa Matrix{Int64}
+    a[1] = "x": MethodError
+    REPRODUCED multidimcov-hcat-vector-eltype
+reproduced: {release: true, nightly: true}
+expected: |
+  A 1x2 Matrix{Any} (eltype T), as cat(A...; dims=2) and vcat return.
+promised_by: |
+  hcat docstring (base/abstractarray.jl): "Concatenate arrays or numbers
+  horizontally. Equivalent to cat(A...; dims=2)".
+cause: |
+  base/array.jl:2347 returns [V[j][i]::T for i=1:length(V[1]), j=1:length(V)].
+  collect of a Generator (base/array.jl:833-852) allocates the destination with
+  typeof(first value) and widens only when a later value does not fit, so T is
+  never used as the element type.
+possible_fix: |
+  Write T[V[j][i] for i=1:length(V[1]), j=1:length(V)] (a typed comprehension),
+  or allocate Matrix{T}(undef, height, length(V)) and copy.
+duplicates:
+  issues:
+    - {number: 26004, state: open, relation: duplicate}
+  queries: ["hcat Vector{Any} eltype", "hcat Any element type narrow", "hcat vectors eltype comprehension", "hcat Any", "hcat abstract eltype", "issues: hcat (title scan)"]
+lean:
+  property: JuliaLean.MultidimCov.ArrayV2.P2340
+  theorem: JuliaLean.MultidimCov.ArrayV2.p2340_refuted

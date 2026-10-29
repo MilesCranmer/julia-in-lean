@@ -76,16 +76,8 @@ line	name	verdict	mirror	property	settled	reason
 1288	poshighword	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
 1289	poshighword	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
 1290	poshighword	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
-1309	$func	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
-1310	$func	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
-1315	$func	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
 1319	atan	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
 1320	sincos	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
-1326	$f	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
-1331	$(f)	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
-1335	$(f)	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
-1336	$(f)	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
-1337	$(f)	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
 1340	exp2	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
 1341	exp10	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.
 1342	fourthroot	FAITHFUL	yes	yes	yes	The cited entry contains the source-order model and a quantified behavior property.

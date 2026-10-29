@@ -302,24 +302,6 @@ private def entry (line : Nat) (slug fn statement source : String)
   { id := s!"abstractarraycov-line{line}-{slug}", juliaFile := "base/abstractarray.jl",
     juliaFns := [fn], statement, source, status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 1744 "typed-vcat-fill" "_typed_vcat!" "The fill loop concatenates vector values in argument and element order." "base/abstractarray.jl:1744-1753" ``Property1744 ``property1744,
-  entry 1768 "typed-hcat" "_typed_hcat" "The method checks row counts before computing columns and returning column blocks." "base/abstractarray.jl:1768-1800" ``Property1768 ``property1768,
-  entry 1805 "typed-vcat" "_typed_vcat" "The method checks column counts before stacking row blocks." "base/abstractarray.jl:1805-1823" ``Property1805 ``property1805,
-  entry 1859 "cat-shape" "cat_shape(dims,shapes)" "The method folds _cshp over shapes from an empty accumulated shape." "base/abstractarray.jl:1859-1865" ``Property1859 ``property1859,
-  entry 1868 "cat-size-shape" "cat_size_shape(dims,X,tail...)" "The method computes the first cshp then enters recursive shape accumulation." "base/abstractarray.jl:1868" ``Property1868 ``property1868,
-  entry 1870 "cat-size-shape" "_cat_size_shape(dims,shape,X,tail...)" "The recursive method combines one argument shape before recurring." "base/abstractarray.jl:1870" ``Property1870 ``property1870,
-  entry 1875 "cshp" "_cshp(ndim,dims,shape,())" "The branch adds one along a cat dimension before recurring." "base/abstractarray.jl:1875-1876" ``Property1875 ``property1875,
-  entry 1877 "cshp" "_cshp(ndim,dims,(),nshape)" "The branch takes the new dimension and recurs." "base/abstractarray.jl:1877-1878" ``Property1877 ``property1877,
-  entry 1879 "cshp" "_cshp(ndim,(),shape,())" "The branch checks the shape against singleton then recurs." "base/abstractarray.jl:1879-1882" ``Property1879 ``property1879,
-  entry 1883 "cshp" "_cshp(ndim,(),shape,nshape)" "The branch validates equal dimensions before recurring." "base/abstractarray.jl:1883-1886" ``Property1883 ``property1883,
-  entry 1887 "cshp" "_cshp(ndim,dims,shape,nshape)" "The general branch adds cat dimensions or validates fixed dimensions before recurring." "base/abstractarray.jl:1887-1892" ``Property1887 ``property1887,
-  entry 1898 "dims2cat" "dims2cat(dims)" "The method rejects nonpositive dimensions, takes the maximum, and builds membership flags." "base/abstractarray.jl:1898-1903" ``Property1898 ``property1898,
-  entry 1907 "cat-t" "_cat_t" "The method computes cat flags and shape, allocates, conditionally zero-fills, then fills arguments." "base/abstractarray.jl:1907-1915" ``Property1907 ``property1907,
-  entry 1923 "cat-offset" "__cat_offset!(...,x,X...)" "The recursive fill processes x before recurring on X with new offsets." "base/abstractarray.jl:1923-1927" ``Property1923 ``property1923,
-  entry 1930 "cat-offset-one" "__cat_offset1!" "The method computes indexed ranges, copies one argument, then advances only cat offsets." "base/abstractarray.jl:1930-1938" ``Property1930 ``property1930,
-  entry 2253 "hvcat-same-number" "hvcat(rows,xs::T...)" "The specialized numeric method checks total count before row widths and fills row-first." "base/abstractarray.jl:2253-2272" ``Property2253 ``property2253,
-  entry 2279 "typed-hvcat-number" "typed_hvcat(T,rows,xs::Number...)" "The typed method checks row widths before allocation and row-first fill." "base/abstractarray.jl:2279-2290" ``Property2279 ``property2279
-]
+def entries : List Entry := []
 
 end JuliaLean.AbstractArrayCov.Rows.ConcatComplex

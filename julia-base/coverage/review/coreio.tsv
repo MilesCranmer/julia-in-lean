@@ -2,11 +2,11 @@ line	name	verdict	mirror	property	settled	reason
 3	print	FAITHFUL	-	-	-	The no-behaviour exclusion applies because this is an empty generic-function declaration with no method body.
 6	print	HOLLOW	no	no	yes	The model replaces the dispatched print(stdout, x) call with one pre-rendered output event, while the proposition only asserts reflexive HasResult and states no forwarding or output behavior.
 7	print	HOLLOW	no	no	yes	The model replaces the dispatched print(stdout, x1, x2) call with pre-rendered output events, while the proposition only asserts reflexive HasResult and states no forwarding order or output behavior.
-8	println	HOLLOW	no	no	yes	The model replaces the dispatched print(stdout, x, "\\n") call with pre-rendered output events, while the proposition only asserts reflexive HasResult and states no newline behavior.
-9	println	HOLLOW	no	no	yes	The model replaces the dispatched print(stdout, x1, x2, "\\n") call with pre-rendered output events, while the proposition only asserts reflexive HasResult and states no argument-order or newline behavior.
+8	println	HOLLOW	no	no	yes	"The model replaces the dispatched print(stdout, x, ""\\n"") call with pre-rendered output events, while the proposition only asserts reflexive HasResult and states no newline behavior."
+9	println	HOLLOW	no	no	yes	"The model replaces the dispatched print(stdout, x1, x2, ""\\n"") call with pre-rendered output events, while the proposition only asserts reflexive HasResult and states no argument-order or newline behavior."
 11	print	HOLLOW	no	no	yes	The model maps a list of pre-rendered strings directly to output events instead of forwarding arbitrary xs to print(stdout, xs...), while the proposition only asserts reflexive HasResult.
-12	println	HOLLOW	no	no	yes	The model maps pre-rendered strings and a newline directly to output events instead of calling print(stdout, xs..., "\\n"), while the proposition only asserts reflexive HasResult.
-13	println	HOLLOW	no	no	yes	The model emits a newline event directly instead of calling print(io, "\\n"), while the proposition only asserts reflexive HasResult and states no write behavior.
+12	println	HOLLOW	no	no	yes	"The model maps pre-rendered strings and a newline directly to output events instead of calling print(stdout, xs..., ""\\n""), while the proposition only asserts reflexive HasResult."
+13	println	HOLLOW	no	no	yes	"The model emits a newline event directly instead of calling print(io, ""\\n""), while the proposition only asserts reflexive HasResult and states no write behavior."
 15	show	FAITHFUL	-	-	-	The no-behaviour exclusion applies because this is an empty generic-function declaration with no method body.
 16	repr	FAITHFUL	-	-	-	The no-behaviour exclusion applies because this is an empty generic-function declaration with no method body.
 19	DevNull	HOLLOW	yes	no	yes	The constructor model mirrors the zero-field new() body, but the proposition only asserts reflexive HasResult and does not state that a DevNull value is created.

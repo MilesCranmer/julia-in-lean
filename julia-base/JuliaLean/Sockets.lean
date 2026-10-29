@@ -1,6 +1,7 @@
 import JuliaLean.Registry.Types
 import JuliaLean.Sockets.Refutations
 import JuliaLean.Sockets.IPv4Proofs
+import JuliaLean.Sockets.IPv6Proofs
 import JuliaLean.Sockets.IPv6Print
 import JuliaLean.Sockets.Formatting
 import JuliaLean.Sockets.Interface
@@ -99,6 +100,21 @@ def entries : List Entry := [
     source := "print/parse roundtrip invariant; IPAddr.jl:66-69,196-219"
     status := .proven, prop := ``IPv4Roundtrip, thm := some ``ipv4Roundtrip_proven
     notes := "All 2^32 host values, symbolically. Model is master; release's extra shorthand forms do not change printed dotted-quad roundtrips." },
+  { id := "sockets-ipaddr-ipv4-roundtrip", juliaFile := "stdlib/Sockets/src/IPAddr.jl"
+    juliaFns := ["parse(::Type{IPAddr}, ::AbstractString)", "string(::IPv4)"]
+    statement := "Parsing a printed IPv4 address as IPAddr recovers the IPv4 type and host."
+    source := "IPAddr.jl:263-269; print/parse roundtrip invariant"
+    status := .proven, prop := ``IPv4IPAddrRoundtrip, thm := some ``ipv4IPAddrRoundtrip_proven },
+  { id := "sockets-ipv6-eight-groups", juliaFile := "stdlib/Sockets/src/IPAddr.jl"
+    juliaFns := ["parse(::Type{IPv6}, ::AbstractString)"]
+    statement := "Eight explicit hexadecimal groups parse to their field-wise value."
+    source := "IPv6(str) docstring; RFC 4291 section 2.2 form 1"
+    status := .proven, prop := ``IPv6EightGroups, thm := some ``ipv6EightGroups_proven },
+  { id := "sockets-ipv6-embedded-value", juliaFile := "stdlib/Sockets/src/IPAddr.jl"
+    juliaFns := ["parse(::Type{IPv6}, ::AbstractString)"]
+    statement := "An IPv6 address written as ::a.b.c.d embeds the four IPv4 bytes in its low 32 bits."
+    source := "IPv6(str) docstring; RFC 4291 section 2.2 form 3"
+    status := .proven, prop := ``IPv6EmbeddedValue, thm := some ``ipv6EmbeddedValue_proven },
   { id := "sockets-ipv6-rfc5952", juliaFile := "stdlib/Sockets/src/IPAddr.jl"
     juliaFns := ["print(::IO, ::IPv6)", "string(::IPv6)"]
     statement := "IPv6 printing equals the RFC 5952 section 4 reference form: compress the longest zero run, the leftmost on ties, and never a single zero."

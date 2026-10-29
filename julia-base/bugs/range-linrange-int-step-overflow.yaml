@@ -1,0 +1,54 @@
+id: range-linrange-int-step-overflow
+title: "LinRange rejects an integer step when endpoint subtraction wraps"
+priority: P2
+kind: wrong-exception
+area: Ranges
+files: [base/range.jl]
+functions: ["LinRange{T,L}(start::T, stop::T, len::L)", "_linspace(::Type{T}, start::Integer, stop::Integer, len::Integer)"]
+summary: |
+  LinRange{Int}(typemin(Int), typemax(Int), 4) throws that its step is not an
+  integer. The exact step is (2^64-1)/3, which is an integer that fits in Int; the
+  constructor rejects it because stop-start wraps before the divisibility check.
+likelihood: |
+  Very low: it requires integer endpoints near opposite Int bounds with a length
+  that makes their exact difference divisible by length-1.
+maybe_intended: ""
+reproducer: |
+  a, b, n = typemin(Int), typemax(Int), 4
+  step = (big(b) - big(a)) / (n - 1)
+  LinRange{Int}(a, b, n)  # throws despite step being an Int
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    exact step = 6.148914691236517205e18, isinteger = true, fits Int = true
+    LinRange{Int}(typemin(Int), typemax(Int), 4) = ArgumentError("LinRange{<:Integer} cannot have non-integer step")
+    Base._linspace(Int, typemin(Int), typemax(Int), 4) = ArgumentError("LinRange{<:Integer} cannot have non-integer step")
+    REPRODUCED range-linrange-int-step-overflow
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    exact step = 6.148914691236517205e18, isinteger = true, fits Int = true
+    LinRange{Int}(typemin(Int), typemax(Int), 4) = ArgumentError("LinRange{<:Integer} cannot have non-integer step")
+    Base._linspace(Int, typemin(Int), typemax(Int), 4) = ArgumentError("LinRange{<:Integer} cannot have non-integer step")
+    REPRODUCED range-linrange-int-step-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  The constructor should accept the range because its exact step is the representable
+  integer 6148914691236517205, and it should produce four linearly spaced elements.
+promised_by: |
+  LinRange's docstring, base/range.jl:556-560, defines a range with len linearly
+  spaced elements between start and stop. The exact spacing here is an integer that
+  fits the element type, so the integer LinRange constructor should accept it.
+cause: |
+  The inner constructor, base/range.jl:605-606, checks mod(stop-start, len-1) in
+  Int arithmetic. The exact difference is 2^64-1, but stop-start wraps to -1,
+  making the modulo nonzero and causing ArgumentError. _linspace delegates to this
+  constructor (base/range.jl:632).
+possible_fix: |
+  Compute the endpoint difference in a widened exact type before checking whether
+  it is divisible by len-1.
+duplicates:
+  issues: []
+  queries: ["issues: LinRange Int typemin typemax non-integer step", "issues: LinRange integer step endpoint overflow", "issues: linspace integer range overflow", "prs: LinRange Int typemin typemax non-integer step", "prs: LinRange integer step endpoint overflow", "prs: linspace integer range overflow"]
+lean:
+  property: JuliaLean.Proofs.base.range.LinspaceIntGeneric
+  theorem: JuliaLean.Proofs.base.range.linspaceIntGeneric_refuted

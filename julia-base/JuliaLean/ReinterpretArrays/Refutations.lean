@@ -41,12 +41,15 @@ theorem raSizeExact_refuted : ¬ RaSizeExact := by
   revert e
   decide
 
-/-- `reinterpret(reshape, UInt8, reinterpret(reshape, UInt16, a))` for `a::Vector{UInt32}` of length 3
-has size `(4, 3)`; applied to the `2×3` intermediate array it has size `(2, 2, 3)`. -/
-theorem rrNestedSize_refuted : ¬ RrNestedSize := by
+theorem rrNestedSize_correct : RrNestedSize := by
+  intro sU sS sT dims d1 _ _ _ hUS hST hUT h
+  simp [rrNestedSize, h, Ne.symm hST, Ne.symm hUT, Ne.symm hUS]
+  rfl
+
+theorem rrNestedSize_refuted : ¬ RrNestedSizeRelease := by
   intro h
   have e := h 4 2 1 [3] [2, 3] (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) rfl
-  have e1 : rrNestedSize 4 2 1 [3] = .ok [4, 3] := rfl
+  have e1 : rrNestedSizeRelease 4 2 1 [3] = .ok [4, 3] := rfl
   have e2 : rrSize 2 1 [2, 3] = .ok [2, 2, 3] := rfl
   rw [e1, e2] at e
   simp at e

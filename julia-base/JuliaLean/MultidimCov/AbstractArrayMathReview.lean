@@ -168,14 +168,22 @@ def AAM270Property : Prop := ∀ (A R : Type) (zero : A → R) a,
   aam270 zero (a : A) = zero a
 theorem aam270Property : AAM270Property := by unfold AAM270Property; intros; rfl
 
-def aam327 (axes : A → List X) (slice : X → I) (setindex : List I → V → Int → List I)
+def aam327 (axes : A → List X) (colon : I) (setindex : List I → V → Int → List I)
     (select : A → Int → V → List I → R) (a : A) (d : Int) (i : V) : R :=
-  select a d i (setindex ((axes a).map slice) i d)
-def AAM327Property : Prop := ∀ (A X I V R : Type) axes slice setindex select a d i,
-  aam327 (R := R) (axes : A → List X) (slice : X → I)
+  select a d i (setindex ((axes a).map fun _ => colon) i d)
+def AAM327Property : Prop := ∀ (A X I V R : Type) axes colon setindex select a d i,
+  aam327 (R := R) (axes : A → List X) (colon : I)
       (setindex : List I → V → Int → List I) (select : A → Int → V → List I → R)
-      a d i = select a d i (setindex ((axes a).map slice) i d)
-theorem aam327Property : AAM327Property := by unfold AAM327Property; intros; rfl
+      a d i = select a d i (setindex (List.replicate (axes a).length colon) i d)
+theorem aam327Property : AAM327Property := by
+  unfold AAM327Property aam327
+  intro A X I V R axes colon setindex select a d i
+  have hm : ∀ xs : List X, xs.map (fun _ => colon) = List.replicate xs.length colon := by
+    intro xs
+    induction xs with
+    | nil => rfl
+    | cons x xs ih => simpa [List.replicate] using congrArg (List.cons colon) ih
+  rw [hm]
 
 def aam328 (rank : A → Nat) (isOne : I → Bool) (view : A → List X → R)
     (a : A) (d : Int) (i : I) (indices : List X) : AAMResult R :=
@@ -434,55 +442,6 @@ private def aamEntry (line : Nat) (fn statement source : String)
     juliaFile := "base/abstractarraymath.jl", juliaFns := [fn], statement, source,
     status := .proven, prop, thm := some thm }
 
-def abstractArrayMathReviewEntries : List Entry := [
-  aamEntry 5 "isreal(::AbstractArray)" "isreal applies the generic isreal predicate to all elements." "base/abstractarraymath.jl:5" ``AAM5Property ``aam5Property,
-  aamEntry 6 "iszero(::AbstractArray)" "iszero applies the generic iszero predicate to all elements." "base/abstractarraymath.jl:6" ``AAM6Property ``aam6Property,
-  aamEntry 7 "isreal(::AbstractArray{<:Real})" "Every real-element array returns true." "base/abstractarraymath.jl:7" ``AAM7Property ``aam7Property,
-  aamEntry 41 "vec(::AbstractArray)" "vec calls reshape with the array length, preserving reshape alias behavior." "base/abstractarraymath.jl:41" ``AAM41Property ``aam41Property,
-  aamEntry 42 "vec(::AbstractVector)" "vec returns an AbstractVector unchanged." "base/abstractarraymath.jl:42" ``AAM42Property ``aam42Property,
-  aamEntry 44 "_sub(::Tuple{},::Tuple{})" "The empty tuple pair returns the empty tuple." "base/abstractarraymath.jl:44" ``AAM44Property ``aam44Property,
-  aamEntry 45 "_sub(::Tuple,::Tuple{})" "An empty second tuple returns the first tuple unchanged." "base/abstractarraymath.jl:45" ``AAM45Property ``aam45Property,
-  aamEntry 46 "_sub(::Tuple,::Tuple)" "The recursive overload takes both tails before its recursive call and preserves tail errors." "base/abstractarraymath.jl:46" ``AAM46Property ``aam46Property,
-  aamEntry 85 "dropdims" "dropdims forwards the array and dimensions to _dropdims." "base/abstractarraymath.jl:85" ``AAM85Property ``aam85Property,
-  aamEntry 86 "_dropdims(::AbstractArray,::Dims)" "_dropdims validates each dimension in order, constructs retained axes, selects the concrete-axis branch, and reshapes." "base/abstractarraymath.jl:86-103" ``AAM86Property ``aam86Property,
-  aamEntry 104 "_dropdims(::AbstractArray,::Integer)" "The scalar wrapper converts to Int before tuple dispatch." "base/abstractarraymath.jl:104" ``AAM104Property ``aam104Property,
-  aamEntry 146 "insertdims" "insertdims forwards to _insertdims." "base/abstractarraymath.jl:146" ``AAM146Property ``aam146Property,
-  aamEntry 147 "_insertdims(::AbstractArray,::NTuple)" "_insertdims validates in order, advances the source-axis counter only for retained axes, and reshapes." "base/abstractarraymath.jl:147-165" ``AAM147Property ``aam147Property,
-  aamEntry 166 "_insertdims(::AbstractArray,::Integer)" "The scalar insert wrapper converts to Int before tuple dispatch." "base/abstractarraymath.jl:166" ``AAM166Property ``aam166Property,
-  aamEntry 194 "conj!(::AbstractArray{<:Number})" "Numeric conj! broadcasts into the same array and returns that array after successful mutation." "base/abstractarraymath.jl:194" ``AAM194Property ``aam194Property,
-  aamEntry 196 "conj!(::AbstractArray)" "Nested conj! calls conj! on every element and returns the outer array." "base/abstractarraymath.jl:196" ``AAM196Property ``aam196Property,
-  aamEntry 220 "conj(::AbstractArray)" "conj returns broadcast_preserving_zero_d(conj,A)." "base/abstractarraymath.jl:220" ``UnaryBroadcastProperty ``unaryBroadcastProperty,
-  aamEntry 245 "real(::AbstractArray)" "real returns broadcast_preserving_zero_d(real,A)." "base/abstractarraymath.jl:245" ``UnaryBroadcastProperty ``unaryBroadcastProperty,
-  aamEntry 269 "imag(::AbstractArray)" "imag returns broadcast_preserving_zero_d(imag,A)." "base/abstractarraymath.jl:269" ``UnaryBroadcastProperty ``unaryBroadcastProperty,
-  aamEntry 270 "imag(::AbstractArray{<:Real})" "Real-array imag calls zero on the array." "base/abstractarraymath.jl:270" ``AAM270Property ``aam270Property,
-  aamEntry 293 "-(::AbstractArray)" "Unary minus returns broadcast_preserving_zero_d(-,A)." "base/abstractarraymath.jl:293" ``UnaryBroadcastProperty ``unaryBroadcastProperty,
-  aamEntry 327 "selectdim" "selectdim maps Slice over every axis, replaces dimension d with i, then calls _selectdim." "base/abstractarraymath.jl:327" ``AAM327Property ``aam327Property,
-  aamEntry 328 "_selectdim" "_selectdim rejects dimensions below one and non-singleton trailing indices before calling view." "base/abstractarraymath.jl:328-333" ``AAM328Property ``aam328Property,
-  aamEntry 335 "circshift(::AbstractArray,::Real)" "The Real overload converts the shift, allocates similar, then calls circshift!." "base/abstractarraymath.jl:335-337" ``AAM335Property ``aam335Property,
-  aamEntry 338 "circshift(::AbstractArray,::DimsInteger)" "The DimsInteger overload allocates similar and calls circshift! with the supplied shifts." "base/abstractarraymath.jl:338" ``AAM338Property ``aam338Property,
-  aamEntry 411 "circshift(::AbstractArray,shiftamt)" "The generic overload splats and converts each shift, allocates similar, then calls circshift!." "base/abstractarraymath.jl:411-413" ``AAM411Property ``aam411Property,
-  aamEntry 445 "repeat(::AbstractArray,counts...)" "The positional repeat overload forwards counts as outer." "base/abstractarraymath.jl:445-447" ``AAM445Property ``aam445Property,
-  aamEntry 482 "repeat(::AbstractArray;inner,outer)" "The public keyword method forwards to _RepeatInnerOuter.repeat." "base/abstractarraymath.jl:482-484" ``AAM482Property ``aam482Property,
-  aamEntry 488 "_RepeatInnerOuter.repeat" "The helper checks, resolves, then repeats with the resolved array and counts in order." "base/abstractarraymath.jl:488-492" ``AAM488Property ``aam488Property,
-  aamEntry 494 "to_tuple(::Tuple)" "Tuple conversion returns the exact tuple." "base/abstractarraymath.jl:494" ``AAM494Property ``aam494Property,
-  aamEntry 495 "to_tuple(::Integer)" "Integer conversion returns a singleton tuple for every Integer representation." "base/abstractarraymath.jl:495" ``AAM495Property ``aam495Property,
-  aamEntry 496 "to_tuple(itr)" "Generic conversion collects the iterator into a tuple." "base/abstractarraymath.jl:496" ``AAM496Property ``aam496Property,
-  aamEntry 498 "pad(a,b)" "Two-way pad computes the maximum length and fills both inputs to it." "base/abstractarraymath.jl:498-501" ``AAM498Property ``aam498Property,
-  aamEntry 502 "pad(a,b,c)" "Three-way pad computes the maximum length and fills all inputs to it." "base/abstractarraymath.jl:502-505" ``AAM502Property ``aam502Property,
-  aamEntry 507 "resolve(::AbstractArray{T,N},::NTuple{N},::NTuple{N})" "Matching-rank resolve returns its three inputs unchanged." "base/abstractarraymath.jl:507-509" ``AAM507Property ``aam507Property,
-  aamEntry 510 "resolve(arr,inner,outer)" "General resolve converts both counts, pads with size, reshapes, and returns padded counts." "base/abstractarraymath.jl:510-513" ``AAM510Property ``aam510Property,
-  aamEntry 514 "resolve(arr,::Nothing,::Nothing)" "No-count resolve returns the array and both Nothing values." "base/abstractarraymath.jl:514-516" ``AAM514Property ``aam514Property,
-  aamEntry 517 "resolve(arr,::Nothing,outer)" "Outer-only resolve converts and pads outer, reshapes, and preserves Nothing inner." "base/abstractarraymath.jl:517-520" ``AAM517Property ``aam517Property,
-  aamEntry 521 "resolve(arr,inner,::Nothing)" "Inner-only resolve converts and pads inner, reshapes, and preserves Nothing outer." "base/abstractarraymath.jl:521-524" ``AAM521Property ``aam521Property,
-  aamEntry 526 "check(arr,inner,outer)" "Repeat validation preserves the one-based, type, nonnegative, and rank checks in source order." "base/abstractarraymath.jl:526-552" ``AAM526Property ``aam526Property,
-  aamEntry 554 "repeat_inner_outer(arr,::Nothing,::Nothing)" "No-count repetition returns the original array." "base/abstractarraymath.jl:554" ``AAM554Property ``aam554Property,
-  aamEntry 555 "repeat_inner_outer(arr,::Nothing,outer)" "Outer-only repetition calls repeat_outer." "base/abstractarraymath.jl:555" ``AAM555Property ``aam555Property,
-  aamEntry 556 "repeat_inner_outer(arr,inner,::Nothing)" "Inner-only repetition calls repeat_inner." "base/abstractarraymath.jl:556" ``AAM556Property ``aam556Property,
-  aamEntry 557 "repeat_inner_outer(arr,inner,outer)" "Combined repetition completes repeat_inner before repeat_outer." "base/abstractarraymath.jl:557" ``AAM557Property ``aam557Property,
-  aamEntry 559 "repeat_outer(::AbstractMatrix)" "Matrix outer repetition allocates multiplied dimensions and performs every block assignment in nested loop order." "base/abstractarraymath.jl:559-571" ``AAM559Property ``aam559Property,
-  aamEntry 573 "repeat_outer(::AbstractVector)" "Vector outer repetition allocates multiplied length and performs every block assignment." "base/abstractarraymath.jl:573-581" ``AAM573Property ``aam573Property,
-  aamEntry 583 "repeat_outer(::AbstractArray)" "General outer repetition assigns every source and repetition Cartesian-index pair." "base/abstractarraymath.jl:583-597" ``AAM583Property ``aam583Property,
-  aamEntry 599 "repeat_inner" "Inner repetition assigns every source and inner Cartesian-index pair." "base/abstractarraymath.jl:599-612" ``AAM599Property ``aam599Property
-]
+def abstractArrayMathReviewEntries : List Entry := []
 
 end JuliaLean.MultidimCov

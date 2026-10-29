@@ -5,6 +5,7 @@ kind: missing-error
 area: ReinterpretArrays
 files: [base/multinverses.jl]
 functions: ["div(::T, ::SignedMultiplicativeInverse{T})", "divrem(::T, ::MultiplicativeInverse{T})"]
+covers: [intfuncscov-multiplicative-inverse-source, multinverses-zero-argumenterror, reinterpretarrays-smi-div]
 summary: |
   Division by a SignedMultiplicativeInverse agrees with div for every dividend and
   nonzero divisor except div(typemin(T), -1): the |divisor| == 1 branch returns

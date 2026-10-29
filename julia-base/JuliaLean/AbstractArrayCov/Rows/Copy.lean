@@ -490,43 +490,6 @@ private def entry (id fn statement source : String) (prop thm : Lean.Name) : Ent
   { id, juliaFile := "base/abstractarray.jl", juliaFns := [fn], statement, source,
     status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry "abstractarraycov-line920-copy" "copy!(::AbstractVector,::AbstractVector)" "The vector method checks offsets, resizes only on a length mismatch, then calls copyto!." "base/abstractarray.jl:920-927" ``Property920 ``property920,
-  entry "abstractarraycov-line929-copy" "copy!(::AbstractArray,::AbstractArray)" "The array method checks axes before copyto!." "base/abstractarray.jl:929-933" ``Property929 ``property929,
-  entry "abstractarraycov-line941-copyto" "copyto!(::AbstractArray,src)" "The iterable method walks destination indices and source values in lockstep and errors when destination ends first." "base/abstractarray.jl:941-951" ``Property941 ``property941,
-  entry "abstractarraycov-line953-copyto" "copyto!(dest,dstart,src)" "The method converts dstart first, takes the haslength precheck path when available, and writes source values sequentially." "base/abstractarray.jl:953-971" ``Property953 ``property953,
-  entry "abstractarraycov-line974-copyto" "copyto!(dest,dstart,src,sstart)" "The method validates and skips source elements before converting dstart and copying the remainder." "base/abstractarray.jl:974-1000" ``Property974 ``property974,
-  entry "abstractarraycov-line1003-copyto" "copyto!(dest,dstart,src,sstart,n)" "The counted method follows the negative, zero, bounds, conversion, source-skip, write, and short-source checks in order." "base/abstractarray.jl:1003-1037" ``Property1003 ``property1003,
-  entry "abstractarraycov-line1072-copyto" "copyto!(::AbstractArray,::AbstractArray)" "The method returns on empty source, takes the BitArray branch, or unaliases and dispatches by both index styles." "base/abstractarray.jl:1072-1080" ``Property1072 ``property1072,
-  entry "abstractarraycov-line1082-copyto" "copyto!(deststyle,dest,srcstyle,src)" "The styled method returns on empty source, unaliases, then calls copyto_unaliased!." "base/abstractarray.jl:1082-1086" ``Property1082 ``property1082,
-  entry "abstractarraycov-line1088-copyto-unalias" "copyto_unaliased!" "The method checks both endpoint bounds, selects the source and destination index-style branch, and performs writes in iterator order." "base/abstractarray.jl:1088-1123" ``Property1088 ``property1088,
-  entry "abstractarraycov-line1125-copyto" "copyto!(dest,dstart,src::AbstractArray)" "The wrapper uses the first linear source index and full source length." "base/abstractarray.jl:1125-1127" ``Property1125 ``property1125,
-  entry "abstractarraycov-line1129-copyto" "copyto!(dest,dstart,src::AbstractArray,sstart)" "The wrapper checks sstart before copying through the final source index." "base/abstractarray.jl:1129-1133" ``Property1129 ``property1129,
-  entry "abstractarraycov-line1135-copyto" "copyto!(dest,dstart,src,sstart,n)" "The block method handles zero and negative counts, checks both ranges, converts indices, unaliases, reads, and writes in order." "base/abstractarray.jl:1135-1152" ``Property1135 ``property1135,
-  entry "abstractarraycov-line1154-copy" "copy(::AbstractArray)" "copy delegates to copymutable." "base/abstractarray.jl:1154-1157" ``Property1154 ``property1154,
-  entry "abstractarraycov-line1159-copyto" "copyto!(B,rowrange,colrange,A,rowrange,colrange)" "The region method checks row and column lengths, bounds-checks both arrays, unaliases, and copies in nested column-major loops." "base/abstractarray.jl:1159-1182" ``Property1159 ``property1159,
-  entry "abstractarraycov-line1184-checkaxs" "_checkaxs" "The helper returns unit exactly for equal axes and otherwise throws DimensionMismatch." "base/abstractarray.jl:1184" ``Property1184 ``property1184,
-  entry "abstractarraycov-line1186-copyto-axcheck" "copyto_axcheck!" "The method obtains both axes, checks them, then calls copyto!." "base/abstractarray.jl:1186-1189" ``Property1186 ``property1186,
-  entry "abstractarraycov-line1211-copymutable" "copymutable(::AbstractArray)" "The method allocates similar(a) before copying a into it." "base/abstractarray.jl:1211-1214" ``Property1211 ``property1211,
-  entry "abstractarraycov-line1215-copymutable" "copymutable(itr)" "The generic iterable method delegates to collect." "base/abstractarray.jl:1215" ``Property1215 ``property1215,
-  entry "abstractarraycov-line1216-copymutable" "copymutable(::Array)" "The Array specialization delegates to copy." "base/abstractarray.jl:1216" ``Property1216 ``property1216,
-  entry "abstractarraycov-line1218-zero" "zero(::AbstractArray{<:Number})" "The numeric method computes zero, its type, similar storage, then fills." "base/abstractarray.jl:1218" ``Property1218 ``property1218,
-  entry "abstractarraycov-line1219-zero" "zero(::AbstractArray{<:Union{Missing,Number}})" "The union method computes zero, its type, similar storage, then fills." "base/abstractarray.jl:1219" ``Property1219 ``property1219,
-  entry "abstractarraycov-line1220-zero" "zero(::AbstractArray)" "The fallback maps zero over the array." "base/abstractarray.jl:1220" ``Property1220 ``property1220,
-  entry "abstractarraycov-line1222-one" "_one(unit,mat)" "The helper checks square axes, computes zero, requires one-based indexing, allocates and fills, then writes the diagonal." "base/abstractarray.jl:1222-1234" ``Property1222 ``property1222,
-  entry "abstractarraycov-line1236-one" "one(::AbstractMatrix)" "one computes one(T) before calling _one." "base/abstractarray.jl:1236" ``Property1236 ``property1236,
-  entry "abstractarraycov-line1237-oneunit" "oneunit(::AbstractMatrix)" "oneunit computes oneunit(T) before calling _one." "base/abstractarray.jl:1237" ``Property1237 ``property1237,
-  entry "abstractarraycov-line1245-iterate-start" "iterate_starting_state(A)" "The generic start method computes IndexStyle(A) before dispatching." "base/abstractarray.jl:1245" ``Property1245 ``property1245,
-  entry "abstractarraycov-line1246-iterate-start" "iterate_starting_state(A,::IndexLinear)" "Linear iteration starts at firstindex(A)." "base/abstractarray.jl:1246" ``Property1246 ``property1246,
-  entry "abstractarraycov-line1247-iterate-start" "iterate_starting_state(A,::IndexStyle)" "Cartesian iteration stores eachindex(A) in a one-tuple state." "base/abstractarray.jl:1247" ``Property1247 ``property1247,
-  entry "abstractarraycov-line1250-iterate" "iterate(::AbstractArray,state)" "Array iterate delegates to _iterate_abstractarray with the supplied state." "base/abstractarray.jl:1250" ``Property1250 ``property1250,
-  entry "abstractarraycov-line1251-iterate-array" "_iterate_abstractarray(A,state::Tuple)" "Tuple-state iteration advances the iterator, returns nothing at exhaustion, or indexes A and returns the next state." "base/abstractarray.jl:1251-1255" ``Property1251 ``property1251,
-  entry "abstractarraycov-line1256-iterate-array" "_iterate_abstractarray(A,state::Integer)" "Integer-state iteration checks bounds before indexing and increments with Julia integer arithmetic." "base/abstractarray.jl:1256-1259" ``Property1256 ``property1256,
-  entry "abstractarraycov-line1262-isempty" "isempty(::AbstractArray)" "An array is empty exactly when length is zero." "base/abstractarray.jl:1262" ``Property1262 ``property1262,
-  entry "abstractarraycov-line1267-map-range" "map(::Type,::StepRange)" "The method converts start, step, and last before constructing the range." "base/abstractarray.jl:1267" ``Property1267 ``property1267,
-  entry "abstractarraycov-line1268-map-range" "map(::Type,::UnitRange)" "The method converts start and last before constructing the unit range." "base/abstractarray.jl:1268" ``Property1268 ``property1268,
-  entry "abstractarraycov-line1269-map-range" "map(::Type,::StepRangeLen)" "The method delegates to convert(StepRangeLen{T},r)." "base/abstractarray.jl:1269" ``Property1269 ``property1269,
-  entry "abstractarraycov-line1270-map-range" "map(::Type,::LinRange)" "The method converts both endpoints, reads length, and constructs LinRange." "base/abstractarray.jl:1270-1272" ``Property1270 ``property1270
-]
+def entries : List Entry := []
 
 end JuliaLean.AbstractArrayCov.Rows.Copy

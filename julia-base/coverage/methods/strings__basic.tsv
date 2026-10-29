@@ -1,87 +1,87 @@
 file	line	endline	name	signature	status	entry	note
-base/strings/basic.jl	107	108	codeunit	codeunit(s::AbstractString, i::Integer)	modelled	stringscova-basic-codeunit-integer-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	143	144	isvalid	isvalid(s::AbstractString, i::Integer)	modelled	stringscova-basic-isvalid-integer-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	156	157	iterate	iterate(s::AbstractString, i::Integer)	modelled	stringscova-basic-iterate-integer-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	161	161	eltype	eltype(::Type{<:AbstractString})	modelled	stringscova-basic-eltype-faithful	
-base/strings/basic.jl	178	178	sizeof	sizeof(s::AbstractString)	modelled	stringscova-basic-sizeof-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	179	179	firstindex	firstindex(s::AbstractString)	modelled	stringscova-basic-firstindex-faithful	
-base/strings/basic.jl	180	180	lastindex	lastindex(s::AbstractString)	modelled	stringscova-basic-lastindex-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	181	181	isempty	isempty(s::AbstractString)	modelled	stringscova-basic-isempty-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	183	183	first	first(s::AbstractString)	modelled	stringscova-basic-first-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	185	188	getindex	getindex(s::AbstractString, i::Integer)	modelled	stringscova-basic-getindex-integer-rebuilt	rebuilt after fixed review
+base/strings/basic.jl	107	108	codeunit	codeunit(s::AbstractString, i::Integer)	modelled	strings-basic-index-model	rebuilt after fixed review
+base/strings/basic.jl	143	144	isvalid	isvalid(s::AbstractString, i::Integer)	modelled	strings-basic-index-model	rebuilt after fixed review
+base/strings/basic.jl	156	157	iterate	iterate(s::AbstractString, i::Integer)	modelled	strings-basic-index-model	rebuilt after fixed review
+base/strings/basic.jl	161	161	eltype	eltype(::Type{<:AbstractString})	modelled	strings-basic-index-model	
+base/strings/basic.jl	178	178	sizeof	sizeof(s::AbstractString)	modelled	strings-basic-index-model	rebuilt after fixed review
+base/strings/basic.jl	179	179	firstindex	firstindex(s::AbstractString)	modelled	strings-basic-index-model	
+base/strings/basic.jl	180	180	lastindex	lastindex(s::AbstractString)	modelled	strings-basic-thisind-reverseind	rebuilt after fixed review
+base/strings/basic.jl	181	181	isempty	isempty(s::AbstractString)	modelled	strings-basic-index-model	rebuilt after fixed review
+base/strings/basic.jl	183	183	first	first(s::AbstractString)	modelled	stringscova-basic-getindex-faithful	rebuilt after fixed review
+base/strings/basic.jl	185	188	getindex	getindex(s::AbstractString, i::Integer)	modelled	stringscova-basic-getindex-faithful	rebuilt after fixed review
 base/strings/basic.jl	190	190	getindex	getindex(s::AbstractString, i::Colon)	modelled	stringscova-basic-getindex-faithful	
-base/strings/basic.jl	193	194	getindex	getindex(s::AbstractString, v::AbstractVector{<:Integer})	modelled	stringscova-basic-getindex-vector-rebuilt	rebuilt after fixed review
+base/strings/basic.jl	193	194	getindex	getindex(s::AbstractString, v::AbstractVector{<:Integer})	modelled	stringscova-basic-getindex-faithful	rebuilt after fixed review
 base/strings/basic.jl	195	196	getindex	getindex(s::AbstractString, v::AbstractVector{Bool})	modelled	stringscova-basic-getindex-faithful	
-base/strings/basic.jl	198	200	get	get(s::AbstractString, i::Integer, default)	modelled	stringscova-basic-get-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	204	205	checkbounds	checkbounds(::Type{Bool}, s::AbstractString, i::Integer)	modelled	stringscova-basic-checkbounds-index-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	206	207	checkbounds	checkbounds(::Type{Bool}, s::AbstractString, r::AbstractRange{<:Integer})	modelled	stringscova-basic-checkbounds-range-rebuilt	rebuilt after fixed review
+base/strings/basic.jl	198	200	get	get(s::AbstractString, i::Integer, default)	modelled	stringscova-basic-getindex-faithful	rebuilt after fixed review
+base/strings/basic.jl	204	205	checkbounds	checkbounds(::Type{Bool}, s::AbstractString, i::Integer)	modelled	strings-basic-bounds-model	rebuilt after fixed review
+base/strings/basic.jl	206	207	checkbounds	checkbounds(::Type{Bool}, s::AbstractString, r::AbstractRange{<:Integer})	modelled	strings-basic-bounds-model	rebuilt after fixed review
 base/strings/basic.jl	208	209	checkbounds	checkbounds(::Type{Bool}, s::AbstractString, I::AbstractArray{<:Real})	modelled	stringscova-basic-checkbounds-real-array-rebuilt	rebuilt after fixed review
 base/strings/basic.jl	210	211	checkbounds	checkbounds(::Type{Bool}, s::AbstractString, I::AbstractArray{<:Integer})	modelled	stringscova-basic-checkbounds-integer-array-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	212	213	checkbounds	checkbounds(s::AbstractString, I::Union{Integer,AbstractArray})	modelled	stringscova-basic-checkbounds-throw-rebuilt	rebuilt after fixed review
+base/strings/basic.jl	212	213	checkbounds	checkbounds(s::AbstractString, I::Union{Integer,AbstractArray})	modelled	strings-basic-bounds-model	rebuilt after fixed review
 base/strings/basic.jl	217	217	string	string()	modelled	stringscova-basic-string-faithful	
 base/strings/basic.jl	218	218	string	string(s::AbstractString)	modelled	stringscova-basic-string-faithful	
-base/strings/basic.jl	220	220	Vector{UInt8}	Vector{UInt8}(s::AbstractString)	modelled	stringscova-basic-vector-u8-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	221	221	Array{UInt8}	Array{UInt8}(s::AbstractString)	modelled	stringscova-basic-array-u8-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	222	222	Vector{T}	Vector{T}(s::AbstractString) where {T<:AbstractChar}	modelled	stringscova-basic-vector-char-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	224	224	Symbol	Symbol(s::AbstractString)	modelled	stringscova-basic-symbol-string-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	225	225	Symbol	Symbol(x...)	modelled	stringscova-basic-symbol-args-rebuilt	rebuilt after fixed review
+base/strings/basic.jl	220	220	Vector{UInt8}	Vector{UInt8}(s::AbstractString)	todo		trivial: the old theorem restates byte wrapping
+base/strings/basic.jl	221	221	Array{UInt8}	Array{UInt8}(s::AbstractString)	todo		trivial: the old theorem restates byte wrapping
+base/strings/basic.jl	222	222	Vector{T}	Vector{T}(s::AbstractString) where {T<:AbstractChar}	todo		trivial: the old theorem restates typed collection callback
+base/strings/basic.jl	224	224	Symbol	Symbol(s::AbstractString)	todo		trivial: the old theorem restates symbol string callback
+base/strings/basic.jl	225	225	Symbol	Symbol(x...)	todo		trivial: the old theorem restates symbol argument rendering callback
 base/strings/basic.jl	227	227	convert	convert(::Type{T}, s::T) where {T<:AbstractString}	modelled	stringscova-basic-convert-faithful	
-base/strings/basic.jl	228	228	convert	convert(::Type{T}, s::AbstractString) where {T<:AbstractString}	modelled	stringscova-basic-convert-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	232	235	summary	summary(io::IO, s::AbstractString)	modelled	stringscova-basic-summary-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	257	263	*	(*)(s1::Union{AbstractChar, AbstractString}, ss::Union{AbstractChar, AbstractString}...)	modelled	stringscova-basic-concat-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	265	265	one	one(::Union{T,Type{T}}) where {T<:AbstractString}	modelled	stringscova-basic-one-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	270	270	_isannotated	_isannotated(S::Type)	modelled	stringscova-basic-isannotated-type-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	271	271	_isannotated	_isannotated(s)	modelled	stringscova-basic-isannotated-value-rebuilt	rebuilt after fixed review
+base/strings/basic.jl	228	228	convert	convert(::Type{T}, s::AbstractString) where {T<:AbstractString}	modelled	stringscova-basic-convert-faithful	rebuilt after fixed review
+base/strings/basic.jl	232	235	summary	summary(io::IO, s::AbstractString)	modelled	strings-basic-presentation	rebuilt after fixed review
+base/strings/basic.jl	257	263	*	(*)(s1::Union{AbstractChar, AbstractString}, ss::Union{AbstractChar, AbstractString}...)	modelled	strings-basic-presentation	rebuilt after fixed review
+base/strings/basic.jl	265	265	one	one(::Union{T,Type{T}}) where {T<:AbstractString}	modelled	stringscova-basic-convert-faithful	rebuilt after fixed review
+base/strings/basic.jl	270	270	_isannotated	_isannotated(S::Type)	modelled	strings-basic-presentation	rebuilt after fixed review
+base/strings/basic.jl	271	271	_isannotated	_isannotated(s)	modelled	strings-basic-presentation	rebuilt after fixed review
 base/strings/basic.jl	308	317	cmp	cmp(a::AbstractString, b::AbstractString)	modelled	stringscova-basic-cmp-string-rebuilt	rebuilt after fixed review
 base/strings/basic.jl	335	335	==	==(a::AbstractString, b::AbstractString)	modelled	stringscova-basic-eq-string-rebuilt	rebuilt after fixed review
 base/strings/basic.jl	355	355	isless	isless(a::AbstractString, b::AbstractString)	modelled	stringscova-basic-isless-string-rebuilt	rebuilt after fixed review
 base/strings/basic.jl	359	361	cmp	cmp(a::Symbol, b::Symbol)	modelled	stringscova-basic-cmp-symbol-rebuilt	rebuilt after fixed review
 base/strings/basic.jl	363	363	isless	isless(a::Symbol, b::Symbol)	modelled	stringscova-basic-isless-symbol-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	396	396	length	length(s::AbstractString)	modelled	stringscova-basic-length-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	398	408	length	length(s::AbstractString, i::Int, j::Int)	modelled	stringscova-basic-length-int-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	410	411	length	length(s::AbstractString, i::Integer, j::Integer)	modelled	stringscova-basic-length-integer-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	445	445	thisind	thisind(s::AbstractString, i::Integer)	modelled	stringscova-basic-thisind-integer-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	447	455	thisind	thisind(s::AbstractString, i::Int)	modelled	stringscova-basic-thisind-int-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	501	501	prevind	prevind(s::AbstractString, i::Integer, n::Integer)	modelled	stringscova-basic-prevind-integer-n-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	502	502	prevind	prevind(s::AbstractString, i::Integer)	modelled	stringscova-basic-prevind-integer-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	503	503	prevind	prevind(s::AbstractString, i::Int)	modelled	stringscova-basic-prevind-one-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	505	514	prevind	prevind(s::AbstractString, i::Int, n::Int)	modelled	stringscova-basic-prevind-core-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	560	560	nextind	nextind(s::AbstractString, i::Integer, n::Integer)	modelled	stringscova-basic-nextind-integer-n-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	561	561	nextind	nextind(s::AbstractString, i::Integer)	modelled	stringscova-basic-nextind-integer-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	562	562	nextind	nextind(s::AbstractString, i::Int)	modelled	stringscova-basic-nextind-one-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	564	573	nextind	nextind(s::AbstractString, i::Int, n::Int)	modelled	stringscova-basic-nextind-core-rebuilt,strings-first-n-overflow,strings-nextind-n-overflow	rebuilt after fixed review
-base/strings/basic.jl	580	580	keys	keys(s::AbstractString)	modelled	stringscova-basic-keys-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	582	582	length	length(e::EachStringIndex)	modelled	stringscova-basic-each-length-rebuilt	rebuilt after fixed review
+base/strings/basic.jl	396	396	length	length(s::AbstractString)	modelled	strings-basic-length	rebuilt after fixed review
+base/strings/basic.jl	398	408	length	length(s::AbstractString, i::Int, j::Int)	modelled	strings-basic-length	rebuilt after fixed review
+base/strings/basic.jl	410	411	length	length(s::AbstractString, i::Integer, j::Integer)	modelled	strings-basic-length	rebuilt after fixed review
+base/strings/basic.jl	445	445	thisind	thisind(s::AbstractString, i::Integer)	modelled	strings-basic-thisind-reverseind	rebuilt after fixed review
+base/strings/basic.jl	447	455	thisind	thisind(s::AbstractString, i::Int)	modelled	strings-basic-thisind-reverseind	rebuilt after fixed review
+base/strings/basic.jl	501	501	prevind	prevind(s::AbstractString, i::Integer, n::Integer)	modelled	strings-basic-prevind	rebuilt after fixed review
+base/strings/basic.jl	502	502	prevind	prevind(s::AbstractString, i::Integer)	modelled	strings-basic-prevind	rebuilt after fixed review
+base/strings/basic.jl	503	503	prevind	prevind(s::AbstractString, i::Int)	modelled	strings-basic-prevind	rebuilt after fixed review
+base/strings/basic.jl	505	514	prevind	prevind(s::AbstractString, i::Int, n::Int)	modelled	strings-basic-prevind	rebuilt after fixed review
+base/strings/basic.jl	560	560	nextind	nextind(s::AbstractString, i::Integer, n::Integer)	modelled	strings-basic-nextind-first	rebuilt after fixed review
+base/strings/basic.jl	561	561	nextind	nextind(s::AbstractString, i::Integer)	modelled	strings-basic-nextind-first	rebuilt after fixed review
+base/strings/basic.jl	562	562	nextind	nextind(s::AbstractString, i::Int)	modelled	strings-basic-nextind-first	rebuilt after fixed review
+base/strings/basic.jl	564	573	nextind	nextind(s::AbstractString, i::Int, n::Int)	modelled	strings-basic-nextind-first,strings-first-n-overflow,strings-nextind-n-overflow	rebuilt after fixed review
+base/strings/basic.jl	580	580	keys	keys(s::AbstractString)	modelled	stringscova-basic-eachindex-faithful	rebuilt after fixed review
+base/strings/basic.jl	582	582	length	length(e::EachStringIndex)	modelled	stringscova-basic-eachindex-faithful	rebuilt after fixed review
 base/strings/basic.jl	583	583	first	first(::EachStringIndex)	modelled	stringscova-basic-eachindex-faithful	
-base/strings/basic.jl	584	584	last	last(e::EachStringIndex)	modelled	stringscova-basic-each-last-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	585	585	iterate	iterate(e::EachStringIndex, state=firstindex(e.s))	modelled	stringscova-basic-each-iterate-rebuilt	rebuilt after fixed review
+base/strings/basic.jl	584	584	last	last(e::EachStringIndex)	modelled	stringscova-basic-eachindex-faithful	rebuilt after fixed review
+base/strings/basic.jl	585	585	iterate	iterate(e::EachStringIndex, state=firstindex(e.s))	modelled	stringscova-basic-eachindex-faithful	rebuilt after fixed review
 base/strings/basic.jl	586	586	eltype	eltype(::Type{<:EachStringIndex})	modelled	stringscova-basic-eachindex-faithful	
 base/strings/basic.jl	618	618	isascii	isascii(c::Char)	modelled	stringscova-basic-isascii-char-faithful	
 base/strings/basic.jl	619	619	isascii	isascii(s::AbstractString)	modelled	stringscova-basic-isascii-string-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	620	620	isascii	isascii(c::AbstractChar)	modelled	stringscova-basic-isascii-abstract-char-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	622	628	_isascii	_isascii(code_units::AbstractVector{CU}, first, last) where {CU}	modelled	stringscova-basic-isascii-range-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	631	638	_isascii_chunks	_isascii_chunks(chunk_size,cu::AbstractVector{CU}, first,last) where {CU}	modelled	stringscova-basic-isascii-chunks-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	645	653	isascii	isascii(cu::AbstractVector{CU}) where {CU <: Integer}	modelled	stringscova-basic-isascii-vector-rebuilt	rebuilt after fixed review
+base/strings/basic.jl	620	620	isascii	isascii(c::AbstractChar)	modelled	strings-basic-isascii-vector	rebuilt after fixed review
+base/strings/basic.jl	622	628	_isascii	_isascii(code_units::AbstractVector{CU}, first, last) where {CU}	modelled	strings-basic-isascii-vector	rebuilt after fixed review
+base/strings/basic.jl	631	638	_isascii_chunks	_isascii_chunks(chunk_size,cu::AbstractVector{CU}, first,last) where {CU}	modelled	strings-basic-isascii-vector	rebuilt after fixed review
+base/strings/basic.jl	645	653	isascii	isascii(cu::AbstractVector{CU}) where {CU <: Integer}	modelled	strings-basic-isascii-vector	rebuilt after fixed review
 base/strings/basic.jl	657	671	map	map(f, s::AbstractString)	modelled	stringscova-basic-map-rebuilt	rebuilt after fixed review
 base/strings/basic.jl	673	679	filter	filter(f, s::AbstractString)	modelled	stringscova-basic-filter-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	700	700	first	first(s::AbstractString, n::Integer)	modelled	stringscova-basic-first-n-rebuilt,strings-first-n-overflow	rebuilt after fixed review
+base/strings/basic.jl	700	700	first	first(s::AbstractString, n::Integer)	modelled	strings-basic-nextind-first,strings-first-n-overflow	rebuilt after fixed review
 base/strings/basic.jl	719	719	last	last(s::AbstractString, n::Integer)	modelled	stringscova-basic-last-n-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	742	742	reverseind	reverseind(s::AbstractString, i::Integer)	modelled	stringscova-basic-reverseind-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	757	757	repeat	repeat(s::AbstractString, r::Integer)	modelled	stringscova-basic-repeat-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	772	772	^	(^)(s::Union{AbstractString,AbstractChar}, r::Integer)	modelled	stringscova-basic-power-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	775	775	iterate	iterate(r::Iterators.Reverse{<:AbstractString}, i=lastindex(r.itr))	modelled	stringscova-basic-reverse-string-iterate-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	776	776	iterate	iterate(r::Iterators.Reverse{<:EachStringIndex}, i=lastindex(r.itr.s))	modelled	stringscova-basic-reverse-index-iterate-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	788	788	CodeUnits	CodeUnits(s::S) where {S<:AbstractString}	modelled	stringscova-basic-codeunits-ctor-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	791	791	sizeof	sizeof(s::CodeUnits{T}) where {T}	modelled	stringscova-basic-cu-sizeof-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	792	792	size	size(s::CodeUnits)	modelled	stringscova-basic-cu-size-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	793	793	elsize	elsize(s::Type{<:CodeUnits{T}}) where {T}	modelled	stringscova-basic-cu-elsize-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	794	794	getindex	getindex(s::CodeUnits, i::Int)	modelled	stringscova-basic-cu-getindex-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	795	795	IndexStyle	IndexStyle(::Type{<:CodeUnits})	modelled	stringscova-basic-cu-indexstyle-faithful	
-base/strings/basic.jl	796	796	checkbounds	checkbounds(::Type{Bool}, s::CodeUnits, i::Integer)	modelled	stringscova-basic-cu-checkbounds-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	798	798	dataids	dataids(s::CodeUnits)	modelled	stringscova-basic-cu-dataids-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	801	801	write	write(io::IO, s::CodeUnits)	modelled	stringscova-basic-cu-write-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	803	803	cconvert	cconvert(::Type{Ptr{T}}, s::CodeUnits{T}) where {T}	modelled	stringscova-basic-cu-cconvert-typed-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	804	804	cconvert	cconvert(::Type{Ptr{Int8}}, s::CodeUnits{UInt8})	modelled	stringscova-basic-cu-cconvert-int8-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	806	806	similar	similar(::Type{<:CodeUnits{T}}, dims::Dims) where {T}	modelled	stringscova-basic-cu-similar-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	827	827	codeunits	codeunits(s::AbstractString)	modelled	stringscova-basic-codeunits-rebuilt	rebuilt after fixed review
-base/strings/basic.jl	829	840	_split_rest	_split_rest(s::AbstractString, n::Int)	modelled	stringscova-basic-split-rest-rebuilt	rebuilt after fixed review
+base/strings/basic.jl	742	742	reverseind	reverseind(s::AbstractString, i::Integer)	modelled	strings-basic-thisind-reverseind	rebuilt after fixed review
+base/strings/basic.jl	757	757	repeat	repeat(s::AbstractString, r::Integer)	todo		trivial: the old theorem restates repeat forwarding
+base/strings/basic.jl	772	772	^	(^)(s::Union{AbstractString,AbstractChar}, r::Integer)	todo		trivial: the old theorem restates power forwarding
+base/strings/basic.jl	775	775	iterate	iterate(r::Iterators.Reverse{<:AbstractString}, i=lastindex(r.itr))	modelled	strings-basic-reverse-iterate	rebuilt after fixed review
+base/strings/basic.jl	776	776	iterate	iterate(r::Iterators.Reverse{<:EachStringIndex}, i=lastindex(r.itr.s))	modelled	strings-basic-reverse-iterate	rebuilt after fixed review
+base/strings/basic.jl	788	788	CodeUnits	CodeUnits(s::S) where {S<:AbstractString}	modelled	strings-basic-codeunits	rebuilt after fixed review
+base/strings/basic.jl	791	791	sizeof	sizeof(s::CodeUnits{T}) where {T}	modelled	strings-basic-codeunits	rebuilt after fixed review
+base/strings/basic.jl	792	792	size	size(s::CodeUnits)	modelled	strings-basic-codeunits	rebuilt after fixed review
+base/strings/basic.jl	793	793	elsize	elsize(s::Type{<:CodeUnits{T}}) where {T}	modelled	strings-basic-codeunits	rebuilt after fixed review
+base/strings/basic.jl	794	794	getindex	getindex(s::CodeUnits, i::Int)	modelled	strings-basic-codeunits	rebuilt after fixed review
+base/strings/basic.jl	795	795	IndexStyle	IndexStyle(::Type{<:CodeUnits})	modelled	strings-basic-codeunits	
+base/strings/basic.jl	796	796	checkbounds	checkbounds(::Type{Bool}, s::CodeUnits, i::Integer)	modelled	strings-basic-codeunits	rebuilt after fixed review
+base/strings/basic.jl	798	798	dataids	dataids(s::CodeUnits)	todo		trivial: the old theorem restates dataids forwarding
+base/strings/basic.jl	801	801	write	write(io::IO, s::CodeUnits)	todo		trivial: the old theorem restates write forwarding
+base/strings/basic.jl	803	803	cconvert	cconvert(::Type{Ptr{T}}, s::CodeUnits{T}) where {T}	todo		trivial: the old theorem restates cconvert forwarding
+base/strings/basic.jl	804	804	cconvert	cconvert(::Type{Ptr{Int8}}, s::CodeUnits{UInt8})	todo		trivial: the old theorem restates the UInt8 specialization
+base/strings/basic.jl	806	806	similar	similar(::Type{<:CodeUnits{T}}, dims::Dims) where {T}	todo		trivial: the old theorem restates similar forwarding
+base/strings/basic.jl	827	827	codeunits	codeunits(s::AbstractString)	modelled	strings-basic-codeunits	rebuilt after fixed review
+base/strings/basic.jl	829	840	_split_rest	_split_rest(s::AbstractString, n::Int)	modelled	strings-basic-split-rest	rebuilt after fixed review

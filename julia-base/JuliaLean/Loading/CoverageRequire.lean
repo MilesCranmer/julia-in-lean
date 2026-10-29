@@ -243,6 +243,85 @@ def Property3126 : Prop := ∀ origin path version generating,
   (method3126 origin path version generating).path = some path
 theorem property3126 : Property3126 := by simp [Property3126, method3126]
 
+/-- The result of selecting a cache returned by the precompilation driver.
+The non-string case represents the assertion at `base/loading.jl:3227`. -/
+inductive PrecompiledValue where
+  | string (path : String)
+  | other
+
+inductive PrecompiledSelection where
+  | serial
+  | precompilableError
+  | typeError
+  | objectPathError (message : String)
+  | selected (cachefile : String) (ocachefile : Option String)
+
+def selectPrecompiled (precompiled : Option (List PrecompiledValue))
+    (useImages : Bool) (objectPath : String → Except String String) : PrecompiledSelection :=
+  match precompiled with
+  | none => .serial
+  | some [] => .precompilableError
+  | some (.other :: _) => .typeError
+  | some (.string path :: _) =>
+      if useImages then
+        match objectPath path with
+        | .ok object => .selected path (some object)
+        | .error err => .objectPathError err
+      else .selected path none
+
+def PrecompiledSelectionContract : Prop :=
+  (∀ images objectPath, selectPrecompiled none images objectPath = .serial) ∧
+  (∀ images objectPath, selectPrecompiled (some []) images objectPath = .precompilableError) ∧
+  (∀ rest images objectPath, selectPrecompiled (some (.other :: rest)) images objectPath = .typeError) ∧
+  (∀ path rest objectPath,
+    selectPrecompiled (some (.string path :: rest)) false objectPath = .selected path none) ∧
+  (∀ path rest objectPath object, objectPath path = .ok object →
+    selectPrecompiled (some (.string path :: rest)) true objectPath = .selected path (some object)) ∧
+  (∀ path rest objectPath err, objectPath path = .error err →
+    selectPrecompiled (some (.string path :: rest)) true objectPath = .objectPathError err)
+
+theorem precompiledSelectionContract_proven : PrecompiledSelectionContract := by
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intros; rfl
+  · intros; rfl
+  · intros; rfl
+  · intros; rfl
+  · intro path rest objectPath object h
+    simp [selectPrecompiled, h]
+  · intro path rest objectPath err h
+    simp [selectPrecompiled, h]
+
+/-- State controlled by the source-loading cleanup at `base/loading.jl:3282-3299`.
+The included file may change its UUID or parser while the lock is released. -/
+structure RequireSourceState where
+  locked : Bool
+  uuid : Nat
+  parserEdition : Nat
+  deriving Repr, DecidableEq
+
+/-- Source inclusion returns either the included module or its exception, along
+with the state left by the included code. -/
+def requireSource (packageUuid edition defaultEdition : Nat)
+    (includeSource : RequireSourceState → Except String (Option Nat) × RequireSourceState)
+    (initial : RequireSourceState) : Except String (Option Nat) × RequireSourceState :=
+  let entered := { initial with locked := false, uuid := packageUuid, parserEdition := edition }
+  let (result, afterInclude) := includeSource entered
+  (result, ⟨true, if packageUuid = initial.uuid then afterInclude.uuid else initial.uuid,
+    defaultEdition⟩)
+
+/-- The `finally` block reacquires the lock and resets the parser even when
+the included code throws. The old UUID is restored when the loader changed it. -/
+theorem requireSource_cleanup (packageUuid edition defaultEdition : Nat)
+    (includeSource : RequireSourceState → Except String (Option Nat) × RequireSourceState)
+    (initial : RequireSourceState) :
+    (requireSource packageUuid edition defaultEdition includeSource initial).2.locked = true ∧
+    (requireSource packageUuid edition defaultEdition includeSource initial).2.parserEdition = defaultEdition ∧
+    (packageUuid ≠ initial.uuid →
+      (requireSource packageUuid edition defaultEdition includeSource initial).2.uuid = initial.uuid) := by
+  simp [requireSource]
+  intros h h'
+  exact False.elim (h h')
+
 def method3140 (located : Option LoadSpec) (cacheLoaded sourceLoaded : Option Nat) : RequireResult :=
   match located with
   | none => .missing

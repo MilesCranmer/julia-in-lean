@@ -1,0 +1,44 @@
+id: c-runtime-page-neighbor-map-data-race
+title: "GC page decommit scan races with reuse of a physical-page neighbor"
+priority: P2
+kind: model-counterexample
+area: GC
+files: [src/gc-pages.c, src/gc-stock.h]
+functions: ["jl_gc_free_page", "jl_gc_alloc_page", "gc_alloc_map_is_set", "gc_alloc_map_set"]
+summary: |
+  When GC_PAGE_SZ is smaller than the OS page size, jl_gc_free_page scans the
+  allocation-map bytes of physical-page neighbors. A mutator can concurrently
+  reuse a checked neighbor and write the same ordinary map byte, producing a
+  C11 data race.
+likelihood: |
+  Requires a platform where multiple GC pages share one OS page and concurrent
+  page reuse during decommit. No later madvise effect is claimed or reproduced.
+maybe_intended: ""
+reproducer: |
+  println("NOT REPRODUCED c-runtime-page-neighbor-map-data-race")
+  println("Formal C11 data-race counterexample only; no deterministic Julia trigger is known.")
+output:
+  release: |
+    NOT RUN: formal C11 counterexample only.
+  nightly: |
+    NOT RUN: formal C11 counterexample only.
+reproduced: {release: false, nightly: false}
+expected: |
+  Allocation-map checks used to authorize physical-page decommit must be
+  synchronized with concurrent allocation-map writes.
+promised_by: |
+  Invariant: the C runtime must not race while deciding whether a physical page
+  is safe to decommit.
+cause: |
+  src/gc-pages.c:192-203 reads neighboring allocation-map bytes as ordinary
+  memory. Concurrent reuse writes the same byte through gc_alloc_map_set at
+  src/gc-pages.c:130 and src/gc-stock.h:355-366.
+possible_fix: |
+  Synchronize the physical-neighbor scan with page reuse, or use atomic map
+  bytes with an ordering protocol that prevents decommit after reuse.
+duplicates:
+  issues: []
+  queries: ["gc_alloc_map jl_gc_free_page race"]
+lean:
+  property: JuliaLean.CRuntime.PagePool.NeighborMapDataRaceFreedom
+  theorem: JuliaLean.CRuntime.PagePool.NeighborMapDataRaceFreedom_refuted

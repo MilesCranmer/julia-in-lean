@@ -2,7 +2,8 @@
 
 This procedure checks Lean proofs that claim unchecked array and pointer accesses
 in Julia Base are in bounds. Work from the package root and read the pinned
-master source with `git -C <julia-source-root> show bbfa0ce4150:<path>`.
+master source with
+`git -C <julia-source-root> show f755f49a9e41380d7da126b3c1db9fe7f83dd027:<path>`.
 Review the source and proofs without executing Lean or Julia.
 
 For every registry entry with id `memsafety-*` and status `proven` in

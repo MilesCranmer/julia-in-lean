@@ -332,39 +332,6 @@ private def entry (id fn statement source : String) (prop thm : Lean.Name) : Ent
   { id, juliaFile := "base/abstractarray.jl", juliaFns := [fn], statement, source,
     status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry "abstractarraycov-line322-eachindex" "eachindex(itrs...)" "The generic method delegates its complete argument tuple to keys." "base/abstractarray.jl:322" ``Property322 ``property322,
-  entry "abstractarraycov-line325-eachindex" "eachindex(::AbstractVector)" "The vector method returns axes1(A)." "base/abstractarray.jl:325" ``Property325 ``property325,
-  entry "abstractarraycov-line329-join" "_join_comma_and(a,b)" "The two-value formatter places and between its inputs." "base/abstractarray.jl:329" ``Property329 ``property329,
-  entry "abstractarraycov-line330-join" "_join_comma_and(a,b,rest...)" "The vararg formatter emits the first comma before recursively formatting the tail." "base/abstractarray.jl:330" ``Property330 ``property330,
-  entry "abstractarraycov-line331-mismatch" "throw_eachindex_mismatch_indices" "The helper constructs and throws the dimension-mismatch text from the supplied indices in order." "base/abstractarray.jl:331-335" ``Property331 ``property331,
-  entry "abstractarraycov-line384-eachindex" "eachindex(::AbstractArray)" "The method computes IndexStyle(A) before delegating to styled eachindex." "base/abstractarray.jl:384" ``Property384 ``property384,
-  entry "abstractarraycov-line386-eachindex" "eachindex(::AbstractArray,::AbstractArray)" "The method computes the joint style before delegating with both arrays." "base/abstractarray.jl:386-389" ``Property386 ``property386,
-  entry "abstractarraycov-line390-eachindex" "eachindex(::AbstractArray,::AbstractArray...)" "The vararg method computes the joint style before delegating all arrays." "base/abstractarray.jl:390-393" ``Property390 ``property390,
-  entry "abstractarraycov-line394-eachindex" "eachindex(::IndexLinear,::Union{Array,Memory})" "The Array and Memory fast path applies unchecked_oneto to length." "base/abstractarray.jl:394" ``Property394 ``property394,
-  entry "abstractarraycov-line395-eachindex" "eachindex(::IndexLinear,::AbstractArray)" "The generic linear path applies oneto to length." "base/abstractarray.jl:395" ``Property395 ``property395,
-  entry "abstractarraycov-line396-eachindex" "eachindex(::IndexLinear,::AbstractVector)" "The vector linear path returns axes1." "base/abstractarray.jl:396" ``Property396 ``property396,
-  entry "abstractarraycov-line397-eachindex" "eachindex(::IndexLinear,A,B...)" "The method computes every linear index domain, checks all against the first, throws on mismatch, and returns the first." "base/abstractarray.jl:397-404" ``Property397 ``property397,
-  entry "abstractarraycov-line407-keys" "keys(::IndexStyle,A,B...)" "Styled keys delegates to styled eachindex with the same argument order." "base/abstractarray.jl:407" ``Property407 ``property407,
-  entry "abstractarraycov-line429-lastindex" "lastindex(::AbstractArray)" "The method takes the last linear eachindex value." "base/abstractarray.jl:429" ``Property429 ``property429,
-  entry "abstractarraycov-line430-lastindex" "lastindex(a,d)" "The method takes the last value of axes(a,d)." "base/abstractarray.jl:430" ``Property430 ``property430,
-  entry "abstractarraycov-line452-firstindex" "firstindex(::AbstractArray)" "The method takes the first linear eachindex value." "base/abstractarray.jl:452" ``Property452 ``property452,
-  entry "abstractarraycov-line453-firstindex" "firstindex(a,d)" "The method takes the first value of axes(a,d)." "base/abstractarray.jl:453" ``Property453 ``property453,
-  entry "abstractarraycov-line455-first" "first(::AbstractArray)" "The method gets the element at the first efficient index." "base/abstractarray.jl:455" ``Property455 ``property455,
-  entry "abstractarraycov-line474-first" "first(itr)" "The method calls iterate once, throws on nothing, and returns the yielded value." "base/abstractarray.jl:474-478" ``Property474 ``property474,
-  entry "abstractarraycov-line505-first" "first(itr,n)" "The method collects Iterators.take(itr,n) in source call order." "base/abstractarray.jl:505" ``Property505 ``property505,
-  entry "abstractarraycov-line507-first" "first(::AbstractVector,n)" "The vector method rejects negative n, computes checked_length, constructs the range, and indexes in order." "base/abstractarray.jl:507-510" ``Property507 ``property507,
-  entry "abstractarraycov-line530-last" "last(a)" "The method indexes a at lastindex(a)." "base/abstractarray.jl:530" ``Property530 ``property530,
-  entry "abstractarraycov-line555-last" "last(itr,n)" "The method reverses, takes, collects, then reverses the result in that order." "base/abstractarray.jl:555" ``Property555 ``property555,
-  entry "abstractarraycov-line557-last" "last(::AbstractVector,n)" "The vector method rejects negative n, computes checked_length and lastindex, constructs the range, and indexes." "base/abstractarray.jl:557-560" ``Property557 ``property557,
-  entry "abstractarraycov-line597-stride" "stride(::AbstractArray,k)" "The method checks the requested dimension, handles rank zero, and otherwise accumulates stride-size products in source order." "base/abstractarray.jl:597-607" ``Property597 ``property597,
-  entry "abstractarraycov-line609-size-to-strides" "size_to_strides(s,d,sz...)" "The variadic method emits s before recursively multiplying by d." "base/abstractarray.jl:609" ``Property609 ``property609,
-  entry "abstractarraycov-line610-size-to-strides" "size_to_strides(s,d)" "The two-argument base case returns the singleton s tuple." "base/abstractarray.jl:610" ``Property610 ``property610,
-  entry "abstractarraycov-line611-size-to-strides" "size_to_strides(s)" "The one-argument base case returns the empty tuple." "base/abstractarray.jl:611" ``Property611 ``property611,
-  entry "abstractarraycov-line613-isstored" "isstored(A,I...)" "The method performs checkbounds before returning true." "base/abstractarray.jl:613-616" ``Property613 ``property613,
-  entry "abstractarraycov-line619-trailingsize" "trailingsize(A,n)" "The method multiplies size(A,i) for i=n:ndims(A) using Julia Int arithmetic." "base/abstractarray.jl:619-625" ``Property619 ``property619,
-  entry "abstractarraycov-line626-trailingsize" "trailingsize(inds,n)" "The tuple method indexes each trailing axis and multiplies its length in order." "base/abstractarray.jl:626-632" ``Property626 ``property626,
-  entry "abstractarraycov-line634-trailingsize" "trailingsize(inds)" "The type-stable method maps length then takes the product." "base/abstractarray.jl:634-637" ``Property634 ``property634
-]
+def entries : List Entry := []
 
 end JuliaLean.AbstractArrayCov.Rows.Iteration

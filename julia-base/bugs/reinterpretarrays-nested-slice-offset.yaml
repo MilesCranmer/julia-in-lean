@@ -25,7 +25,16 @@ reproducer: |
   view(V, :)[2]                # 7, expected 6
 output:
   release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
     V[2], V[3] = 6, 7;  view(V, :)[2], [3] = 7, 8
+    unsafe_view(V, Slice(...))[2] = 7; _maybe_reindex(V, (Slice(...),))[2] = 7
+    compute_offset1 for nested Slice = 5; parent linear index at 2 = 7
+    linear SubArray constructor reads 7 instead of 6
+    generic fast getindex reads 7
+    pointer on the nested view targets parent index 7: true
+    pointer on the strided nested view targets parent index 9: true
+    setindex! on the nested view writes the shifted element: true
+    isassigned on the nested view reports the shifted element: true
     fill!(view(view(M, IUR(2:3), 2), :), 0) zeroed [(3, 2), (4, 2)]
     copyto!(V, V) changed column 2 from [5, 6, 7, 8] to [5, 7, 8, 8]
     view(view(M, IUR(3:4), 5), :) reads parent linear index 22 for index 4; length(M) = 20
@@ -59,3 +68,22 @@ duplicates:
 lean:
   property: JuliaLean.ReinterpretArrays.NestedColonViewCorrect
   theorem: JuliaLean.ReinterpretArrays.nestedColonViewCorrect_refuted
+covers: [multidimcov-subarray-v2-view-of-view, multidimcov-subarray-v2-maybe-reindex, multidimcov-subarray-v2-offset1, multidimcov-subarray-v2-construct-linear, multidimcov-subarray-v2-getindex-fast, multidimcov-subarray-v2-getindex-fast-vector, multidimcov-subarray-v2-setindex-fast-vector, multidimcov-subarray-v2-pointer-contiguous, multidimcov-subarray-v2-isassigned-fast-vector, multidimcov-subarray-v2-pointer-fast]
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    V[2], V[3] = 6, 7;  view(V, :)[2], [3] = 7, 8
+    unsafe_view(V, Slice(...))[2] = 7; _maybe_reindex(V, (Slice(...),))[2] = 7
+    compute_offset1 for nested Slice = 5; parent linear index at 2 = 7
+    linear SubArray constructor reads 7 instead of 6
+    generic fast getindex reads 7
+    pointer on the nested view targets parent index 7: true
+    pointer on the strided nested view targets parent index 9: true
+    setindex! on the nested view writes the shifted element: true
+    isassigned on the nested view reports the shifted element: true
+    fill!(view(view(M, IUR(2:3), 2), :), 0) zeroed [(3, 2), (4, 2)]
+    copyto!(V, V) changed column 2 from [5, 6, 7, 8] to [5, 7, 8, 8]
+    view(view(M, IUR(3:4), 5), :) reads parent linear index 22 for index 4; length(M) = 20
+    REPRODUCED reinterpretarrays-nested-slice-offset

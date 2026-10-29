@@ -20,7 +20,9 @@ inductive AxisKind where
 
 structure Axis where
   kind : AxisKind
-  values : List Int
+  first : Int
+  last : Int
+  length : Nat
   deriving Repr, DecidableEq
 
 inductive Dim where
@@ -28,19 +30,19 @@ inductive Dim where
   | axis (value : Axis)
   deriving Repr, DecidableEq
 
-def axisFirst (axis : Axis) : Option Int := axis.values.head?
-def axisLast (axis : Axis) : Option Int := axis.values.getLast?
+def axisFirst (axis : Axis) : Int := axis.first
+def axisLast (axis : Axis) : Int := axis.last
 def dimLength : Dim → Nat
   | .integer value => if value.value < 0 then 0 else value.value.toNat
-  | .axis axis => axis.values.length
+  | .axis axis => axis.length
 
 def compatible (a b : Dim) : Bool := a = b || dimLength b = 1
 
 def axisType (a b : Axis) : Axis :=
   if a.kind = b.kind then a
   else match a.kind, b.kind with
-    | .oneTo _, .oneTo _ => { kind := .oneTo "Int", values := a.values }
-    | _, _ => { kind := .unitRange "Int", values := a.values }
+    | .oneTo _, .oneTo _ => { a with kind := .oneTo "Int" }
+    | _, _ => { a with kind := .unitRange "Int" }
 
 def bcs1 : Dim → Dim → Result Dim
   | .integer a, .integer b =>
@@ -50,11 +52,11 @@ def bcs1 : Dim → Dim → Result Dim
       else .error .dimensionMismatch
   | .integer a, .axis b =>
       if a.value = 1 then .ok (.axis b)
-      else if axisFirst b = some 1 && axisLast b = some a.value then .ok (.axis b)
+      else if axisFirst b = 1 && axisLast b = a.value then .ok (.axis b)
       else .error .dimensionMismatch
   | .axis a, .integer b =>
       if b.value = 1 then .ok (.axis a)
-      else if axisFirst a = some 1 && axisLast a = some b.value then .ok (.axis a)
+      else if axisFirst a = 1 && axisLast a = b.value then .ok (.axis a)
       else .error .dimensionMismatch
   | .axis a, .axis b =>
       if compatible (.axis b) (.axis a) then .ok (.axis (axisType b a))
@@ -73,11 +75,24 @@ def broadcastShape : List Dim → List (List Dim) → Result (List Dim)
   | shape, [] => .ok shape
   | shape, next :: rest => do broadcastShape (← bcs shape next) rest
 
-def m502 {A : Type} (axes : A → List Dim) (first : A) (rest : List A) : Result (List Dim) :=
-  broadcastShape (axes first) (rest.map axes)
-def P502 : Prop := ∀ {A : Type} (axes : A → List Dim) first rest,
-  m502 axes first rest = broadcastShape (axes first) (rest.map axes)
-theorem p502 : P502 := by simp [P502, m502]
+def combineAxes (axes : A → Result (List Dim))
+    (combine : List Dim → List Dim → Result (List Dim)) : A → List A → Result (List Dim)
+  | first, [] => axes first
+  | first, next :: rest => do
+      let firstAxes ← axes first
+      let tailAxes ← combineAxes axes combine next rest
+      combine firstAxes tailAxes
+
+def m502 {A : Type} (axes : A → Result (List Dim))
+    (combine : List Dim → List Dim → Result (List Dim))
+    (first next : A) (rest : List A) : Result (List Dim) :=
+  combineAxes axes combine first (next :: rest)
+def P502 : Prop := ∀ {A : Type} (axes : A → Result (List Dim)) combine first next rest,
+  m502 axes combine first next rest = do
+    let firstAxes ← axes first
+    let tailAxes ← combineAxes axes combine next rest
+    combine firstAxes tailAxes
+theorem p502 : P502 := by simp [P502, m502, combineAxes]
 
 def m503 {A : Type} (axes : A → List Dim) (left right : A) : Result (List Dim) :=
   broadcastShape (axes left) [axes right]
@@ -150,21 +165,21 @@ theorem p531 : P531 := by
     · by_cases heq : a.value = b.value <;> simp [m531, bcs1, ha, hb, heq]
 
 def m532 (a : Integer) (b : Axis) : Result Axis :=
-  match bcs1 (.integer a) (.axis b) with
-  | .ok (.axis axis) => .ok axis
-  | _ => .error .dimensionMismatch
+  if a.value = 1 then .ok b
+  else if axisFirst b = 1 && axisLast b = a.value then .ok b
+  else .error .dimensionMismatch
 def P532 : Prop := ∀ a b,
   m532 a b =
     if a.value = 1 then .ok b
-    else if axisFirst b = some 1 && axisLast b = some a.value then .ok b
+    else if axisFirst b = 1 && axisLast b = a.value then .ok b
     else .error .dimensionMismatch
 theorem p532 : P532 := by
   intro a b
   by_cases ha : a.value = 1
-  · simp [m532, bcs1, ha]
-  · by_cases haxis : axisFirst b = some 1 && axisLast b = some a.value
-    · simp [m532, bcs1, ha, haxis]
-    · simp [m532, bcs1, ha, haxis]
+  · simp [m532, ha]
+  · by_cases haxis : axisFirst b = 1 && axisLast b = a.value
+    · simp [m532, ha, haxis]
+    · simp [m532, ha, haxis]
 
 def m533 (a : Axis) (b : Integer) : Result Axis := m532 b a
 def P533 : Prop := ∀ a b, m533 a b = m532 b a
@@ -181,8 +196,8 @@ def P534 : Prop := ∀ a b,
     else .error .dimensionMismatch
 theorem p534 : P534 := by simp [P534, m534]
 
-def m536 (a b : Axis) : Bool := a = b || b.values.length = 1
-def P536 : Prop := ∀ a b, m536 a b = (a = b || b.values.length = 1)
+def m536 (a b : Axis) : Bool := a = b || b.length = 1
+def P536 : Prop := ∀ a b, m536 a b = (a = b || b.length = 1)
 theorem p536 : P536 := by simp [P536, m536]
 
 def m537 {A : Type} (_a : A) (b : Integer) : Bool := b.value = 1
@@ -197,12 +212,14 @@ def m542 (a : Axis) (_b : Axis) : Axis := a
 def P542 : Prop := ∀ a b, m542 a b = a
 theorem p542 : P542 := by simp [P542, m542]
 
-def m543 (a : Axis) (_b : Axis) : Axis := { kind := .oneTo "Int", values := a.values }
-def P543 : Prop := ∀ a b, m543 a b = { kind := .oneTo "Int", values := a.values }
+def m543 (oneToInt : Axis → Result Axis) (a : Axis) (_b : Axis) : Result Axis :=
+  oneToInt a
+def P543 : Prop := ∀ oneToInt a b, m543 oneToInt a b = oneToInt a
 theorem p543 : P543 := by simp [P543, m543]
 
-def m544 (a : Axis) (_b : Axis) : Axis := { kind := .unitRange "Int", values := a.values }
-def P544 : Prop := ∀ a b, m544 a b = { kind := .unitRange "Int", values := a.values }
+def m544 (unitRangeInt : Axis → Result Axis) (a : Axis) (_b : Axis) : Result Axis :=
+  unitRangeInt a
+def P544 : Prop := ∀ unitRangeInt a b, m544 unitRangeInt a b = unitRangeInt a
 theorem p544 : P544 := by simp [P544, m544]
 
 def m548 {S : Type} (_shape : S) : Result Unit := .ok ()
@@ -218,9 +235,9 @@ def P550 : Prop := ∀ _ : Unit, m550 = .ok ()
 theorem p550 : P550 := by simp [P550, m550]
 
 def m551 (axes : List Axis) : Result Unit :=
-  if axes.any (fun axis => axis.values.length ≠ 1) then .error .dimensionMismatch else .ok ()
+  if axes.any (fun axis => axis.length ≠ 1) then .error .dimensionMismatch else .ok ()
 def P551 : Prop := ∀ axes,
-  m551 axes = if axes.any (fun axis => axis.values.length ≠ 1)
+  m551 axes = if axes.any (fun axis => axis.length ≠ 1)
     then .error .dimensionMismatch else .ok ()
 theorem p551 : P551 := by simp [P551, m551]
 
@@ -271,33 +288,6 @@ private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) 
     prop
     thm := some thm }
 
-def entries : List Entry := [
-  entry 502 "combine_axes(A,B...)" "The vararg overload reads the first axes before every remaining axes and combines them in source order." ``P502 ``p502,
-  entry 503 "combine_axes(A,B)" "The binary overload reads left axes before right axes and combines both shapes." ``P503 ``p503,
-  entry 504 "combine_axes(A)" "The unary overload returns axes(A)." ``P504 ``p504,
-  entry 521 "broadcast_shape(shape)" "Every single shape is returned unchanged." ``P521 ``p521,
-  entry 522 "broadcast_shape(shape,shape1,shapes...)" "Multiple shapes combine the first pair before recursively combining the remainder." ``P522 ``p522,
-  entry 524 "_bcs((),())" "Two empty shapes combine to empty." ``P524 ``p524,
-  entry 525 "_bcs((),newshape)" "An empty left shape copies the right head before recursively copying its tail." ``P525 ``p525,
-  entry 526 "_bcs(shape,())" "An empty right shape copies the left head before recursively copying its tail." ``P526 ``p526,
-  entry 527 "_bcs(shape,newshape)" "The general case combines heads before recursively combining tails." ``P527 ``p527,
-  entry 531 "_bcs1(::Integer,::Integer)" "Heterogeneous integer extents apply both singleton branches before equality and DimensionMismatch." ``P531 ``p531,
-  entry 532 "_bcs1(::Integer,axis)" "An integer extent accepts one or an axis whose first and last indices are one and that extent." ``P532 ``p532,
-  entry 533 "_bcs1(axis,::Integer)" "The reversed mixed overload swaps its complete arguments." ``P533 ``p533,
-  entry 534 "_bcs1(axis,axis)" "The general method tests reverse compatibility before forward compatibility and converts the chosen axis type." ``P534 ``p534,
-  entry 536 "_bcsm(a,b)" "Axis compatibility accepts structural equality or any singleton second axis." ``P536 ``p536,
-  entry 537 "_bcsm(a,::Number)" "A numeric second dimension matches exactly one." ``P537 ``p537,
-  entry 538 "_bcsm(::Number,::Number)" "Two numeric dimensions match equality or a singleton second value." ``P538 ``p538,
-  entry 542 "axistype(a::T,b::T)" "Equal axis types preserve the first axis object." ``P542 ``p542,
-  entry 543 "axistype(::OneTo,::OneTo)" "Different OneTo element types convert the first axis to OneTo{Int}." ``P543 ``p543,
-  entry 544 "axistype(a,b)" "The fallback converts the first axis values to UnitRange{Int}." ``P544 ``p544,
-  entry 548 "check_broadcast_shape(shape)" "A destination shape alone succeeds." ``P548 ``p548,
-  entry 549 "check_broadcast_shape(shape,())" "Every destination shape accepts an empty source shape." ``P549 ``p549,
-  entry 550 "check_broadcast_shape((),())" "Two empty shapes succeed." ``P550 ``p550,
-  entry 551 "check_broadcast_shape((),axes)" "Extra source axes succeed exactly when every remaining axis is singleton." ``P551 ``p551,
-  entry 557 "check_broadcast_shape(shape,axes)" "The general check validates the heads before recursively validating both tails." ``P557 ``p557,
-  entry 561 "check_broadcast_axes(shape,A)" "The array overload computes axes(A) before checking the shape." ``P561 ``p561,
-  entry 563 "check_broadcast_axes(shape,A,As...)" "The vararg overload checks A before recursively checking every remaining input." ``P563 ``p563
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.BroadcastShapeFaithful

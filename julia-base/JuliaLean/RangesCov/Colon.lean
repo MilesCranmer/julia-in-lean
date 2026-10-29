@@ -456,48 +456,7 @@ theorem oneToConstruction_proven : OneToConstruction := by
     exact ⟨"step must be 1", by
       simp [oneToOfRange, h1, h2, throw, throwThe, MonadExceptOf.throw, bind, Except.bind]⟩
 
-def entries : List Entry := [
-  { id := "rangescov-wrapping-arith", juliaFile := "base/range.jl"
-    juliaFns := ["_range_wrapping_add", "_range_wrapping_sub", "_range_wrapping_mul"]
-    statement := "The _range_wrapping_* helpers never throw and agree with +, -, * on all built-in integers, wrapping modulo 2^bits for same-type BitIntegers; on Float64 they are the IEEE operations."
-    source := "base/range.jl:31-39 (overflow in recomputing length from stop is okay, lines 202,213,224,235)"
-    status := .proven, prop := ``RangeWrappingArith, thm := some ``rangeWrappingArith_proven },
-  { id := "rangescov-unitrange-construction", juliaFile := "base/range.jl"
-    juliaFns := ["(:)(::Real, ::Real)", "(:)(::T, ::T) where T<:Real", "UnitRange{T}(::T, ::T)",
-      "UnitRange{T}(start, stop)", "UnitRange(::T, ::T)", "UnitRange(start, stop)",
-      "unitrange_last(::Integer, ::Integer)", "unitrange", "UnitRange(::AbstractUnitRange)"]
-    statement := "Integer a:b keeps b when b >= a and otherwise normalizes the stop to a-1 (empty); mixed-type a:b is UnitRange of the promoted endpoints; unitrange(r) is UnitRange(first(r), last(r))."
-    source := "(:) docstring, base/range.jl:44-55; UnitRange docstring base/range.jl:406-424"
-    status := .proven, prop := ``UnitRangeConstruction, thm := some ``unitRangeConstruction_proven },
-  { id := "rangescov-steprange-construction", juliaFile := "base/range.jl"
-    juliaFns := ["StepRange{T,S}(start, step, stop)", "StepRange{T}(start, step, stop)",
-      "StepRange(::T, ::S, ::T)", "(:)(::T, ::T, ::T) where T<:Real",
-      "_colon(::Ordered, ::Any, start, step, stop)", "(:)(::T, step, ::T) where T<:Real",
-      "_colon(start, step, stop)", "(:)(::A, step, ::C)", "steprange_last_empty",
-      "overflow_case"]
-    statement := "StepRange with a zero step throws ArgumentError; a:s:a is the one-element range at a with step s; StepRange{T} uses typeof(step); different endpoint types are a MethodError; same-type integer a:s:b is StepRange(a, s, b)."
-    source := "StepRange docstring base/range.jl:313-338 (a:b:c with b != 0); base/range.jl:361"
-    status := .proven, prop := ``StepRangeConstruction, thm := some ``stepRangeConstruction_proven },
-  { id := "rangescov-steprange-unsigned-step-empty", juliaFile := "base/range.jl"
-    juliaFns := ["steprange_last_empty(::Integer, step, stop)", "StepRange(::T, ::S, ::T)"]
-    statement := "A same-type-endpoint StepRange whose step points away from its stop is constructed and empty."
-    source := "(:) docstring base/range.jl:54-55; StepRange docstring base/range.jl:313-338 (mixed step type)"
-    status := .refuted, prop := ``StepRangeEmptyMixed, thm := some ``stepRangeEmptyMixed_refuted
-    issue := "none found; related #63679 (queries: issues StepRange unsigned step empty; issues StepRange UInt step InexactError; prs StepRange unsigned step empty)"
-    notes := "Lean witness StepRange(Int8(-5), UInt8(1), Int8(-10)); reproducer StepRange(-5, UInt(1), -10): base/range.jl:393 computes -5 -% UInt(1) in UInt64 and the ::typeof(stop) conversion throws InexactError." },
-  { id := "rangescov-char-colon", juliaFile := "base/range.jl"
-    juliaFns := ["(:)(::T, ::T) where T", "(:)(::T, step, ::T) where T", "_colon(start, step, stop)",
-      "steprange_last_empty(start, step, stop)"]
-    statement := "For Char endpoints a:b is a:1:b, a zero step throws ArgumentError, a:s:a has the single element a, and an empty Char range keeps the given stop."
-    source := "(:) docstring base/range.jl:44-52 (a StepRange when a and b are characters); base/range.jl:400-401"
-    status := .proven, prop := ``CharColon, thm := some ``charColon_proven },
-  { id := "rangescov-oneto-construction", juliaFile := "base/range.jl"
-    juliaFns := ["OneTo{T}(stop)", "OneTo{T}(::AbstractRange)", "throwbool", "throwstart",
-      "throwstep", "unchecked_oneto", "OneTo(::T)", "OneTo(::AbstractRange)", "oneto"]
-    statement := "OneTo(n) for a non-Bool integer n stores max(0, n) (the invariant stop >= 0); Bool stops throw ArgumentError; OneTo{T}(r) rejects ranges whose first element or step is not 1; oneto(r) is OneTo(r); unchecked_oneto stores its argument."
-    source := "OneTo docstring base/range.jl:478-484; invariant comment base/range.jl:486"
-    status := .proven, prop := ``OneToConstruction, thm := some ``oneToConstruction_proven }
-]
+def entries : List Entry := []
 
 end Colon
 

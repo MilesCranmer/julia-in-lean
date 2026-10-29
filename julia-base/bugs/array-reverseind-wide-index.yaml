@@ -1,0 +1,59 @@
+id: array-reverseind-wide-index
+title: "reverseind wraps when vector endpoint is typemax(Int)"
+priority: P2
+kind: wrong-result
+area: Array
+files: [base/array.jl]
+functions: ["reverseind(a::AbstractVector, i::Integer)"]
+summary: |
+  reverseind computes first(li) + last(li) before subtracting i. For an AbstractVector
+  with size typemax(Int), this Int addition wraps; even with i = Int128(1), the result
+  is -9223372036854775809 instead of typemax(Int).
+likelihood: |
+  Very low: requires a custom AbstractVector with typemax(Int) elements and a wide
+  integer index. Ordinary arrays cannot practically have this length.
+maybe_intended: ""
+reproducer: |
+  struct HugeReverseVector <: AbstractVector{Int}
+  end
+  Base.size(::HugeReverseVector) = (typemax(Int),)
+  Base.getindex(::HugeReverseVector, i::Int) = i
+
+  v = HugeReverseVector()
+  i = Int128(1)
+  expected = Int128(typemax(Int))
+  actual = reverseind(v, i)
+  println("reverseind result=", actual, " expected=", expected)
+  @assert actual != expected
+  println("REPRODUCED array-reverseind-wide-index")
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    reverseind result=-9223372036854775809 expected=9223372036854775807
+    REPRODUCED array-reverseind-wide-index
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    reverseind result=-9223372036854775809 expected=9223372036854775807
+    REPRODUCED array-reverseind-wide-index
+reproduced: {release: true, nightly: true}
+expected: |
+  reverseind(v, Int128(1)) returns typemax(Int), the index in v corresponding to
+  index 1 in reverse(v).
+promised_by: |
+  The reverseind docstring in base/strings/basic.jl:721-725 says it returns the
+  corresponding index in v so that v[reverseind(v,i)] == reverse(v)[i].
+  The affected AbstractVector method is base/array.jl:2281-2284.
+cause: |
+  base/array.jl:2283 evaluates first(li) + last(li) using machine-sized Int arithmetic
+  before subtracting i. With last(li) == typemax(Int), the sum wraps to typemin(Int) + 1.
+  Subtracting Int128(1) then gives -9223372036854775809.
+possible_fix: |
+  Reorder the calculation to subtract i before adding first(li), for example
+  first(li) + (last(li) - i), so valid vector indices do not overflow in the
+  intermediate endpoint sum.
+duplicates:
+  issues: []
+  queries: ["reverseind", "reverseind overflow", "reverseind Int128", "reverseind typemax"]
+lean:
+  property: JuliaLean.Proofs.base.array.ReverseIndexReflectionSpec
+  theorem: JuliaLean.Proofs.base.array.reverseIndexReflectionSpec_refuted

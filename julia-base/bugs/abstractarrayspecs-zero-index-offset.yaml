@@ -1,0 +1,73 @@
+id: abstractarrayspecs-zero-index-offset
+title: "A[] on an IndexCartesian array with length-1 offset axes indexes at (1, ..., 1) and throws BoundsError"
+priority: P2
+kind: wrong-exception
+area: AbstractArraySpecs
+files: [base/abstractarray.jl]
+functions: ["getindex(A::AbstractArray, I...)", "setindex!(A::AbstractArray, v, I...)", "_to_subscript_indices(A::AbstractArray{T,N}) where {T,N}", "get(A::AbstractArray, I::Tuple{}, default)"]
+summary: |
+  Indexing with no indices, A[] or A[] = v, is valid when every axis of A has length 1,
+  and checkbounds(Bool, A) returns true. For an IndexCartesian array whose length-1
+  axes do not start at 1, the fallback converts the empty index list to (1, ..., 1)
+  instead of the first index of each axis, so the canonical getindex/setindex! is
+  called out of bounds. A[] and A[] = v throw BoundsError, and get(A, (), default)
+  throws instead of returning the element. A linear-style array with the same axes
+  works.
+likelihood: |
+  Needs a Cartesian-style array with all axes of length 1 and an offset, for example
+  a one-element view or custom array with offset axes, indexed with A[]. Rare.
+maybe_intended: ""
+reproducer: |
+  struct C2 <: AbstractMatrix{Int}; x::Base.RefValue{Int}; end
+  Base.size(::C2) = (1, 1)
+  Base.axes(::C2) = (Base.IdentityUnitRange(5:5), Base.IdentityUnitRange(5:5))
+  Base.getindex(A::C2, i::Int, j::Int) = (checkbounds(A, i, j); A.x[])
+  A = C2(Ref(7))
+  checkbounds(Bool, A)   # true
+  A[]                    # BoundsError, expected 7
+  get(A, (), 0)          # BoundsError, expected 7
+output:
+  release: |
+    true
+    7
+    7
+    THROWS BoundsError
+    THROWS BoundsError
+    THROWS BoundsError
+    REPRODUCED abstractarrayspecs-zero-index-offset
+  nightly: |
+    true
+    7
+    7
+    THROWS BoundsError
+    THROWS BoundsError
+    THROWS BoundsError
+    REPRODUCED abstractarrayspecs-zero-index-offset
+reproduced: {release: true, nightly: true}
+expected: |
+  A[] == 7, get(A, (), 0) == 7 and A[] = 8 stores 8, as for A[5, 5] and for a
+  linear-style array with the same axes.
+promised_by: |
+  Manual, doc/src/manual/arrays.md "Omitted and extra indices": "Indices may be
+  omitted if the trailing dimensions that are not indexed into are all length one
+  ... When omitting _all_ indices with `A[]`, this semantic provides a simple idiom to
+  retrieve the only element in an array." checkbounds(Bool, A) is true here
+  (base/abstractarray.jl:728), and get(A, I::Tuple{}, default) at line 1638 returns
+  A[] exactly when that check passes. The same file pads omitted trailing indices with
+  first(axes) (line 1429) and converts the empty index list of a linear-style array
+  to first(LinearIndices(A)) (line 1400).
+cause: |
+  base/abstractarray.jl:1415 `_to_subscript_indices(A::AbstractArray{T,N}) =
+  fill_to_length((), 1, Val(N))` uses the literal 1 for every dimension instead of
+  first(axes(A, d)); _getindex(::IndexCartesian, ...) (line 1407) and
+  _setindex!(::IndexCartesian, ...) (line 1502) pass those indices to the canonical
+  method after the bounds check has already passed.
+possible_fix: |
+  Return map(first, axes(A)) for the empty index list.
+duplicates:
+  issues:
+    - {number: 58814, state: merged, relation: related}
+  queries: ["issues: _to_subscript_indices", "issues: fill_to_length", "issues: zero indices offset", "issues: A[] offset", "issues: IndexCartesian no indices", "issues: getindex no indices offset axes", "prs: _to_subscript_indices", "prs: fill_to_length"]
+lean:
+  property: JuliaLean.AbstractArraySpecs.IndexingAgreesWithReference
+  theorem: JuliaLean.AbstractArraySpecs.indexingAgreesWithReference_refuted

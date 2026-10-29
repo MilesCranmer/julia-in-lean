@@ -1,0 +1,46 @@
+id: c-runtime-page-no-aba-contract
+title: "Windows page commit failure violates the GC page stack no-ABA contract"
+priority: P2
+kind: model-counterexample
+area: GC
+files: [src/gc-pages.c, src/gc-stock.h]
+functions: ["jl_gc_alloc_page", "push_lf_back", "pop_lf_back"]
+summary: |
+  On Windows, jl_gc_alloc_page can pop a page from global_page_pool_freed,
+  fail MEM_COMMIT, and push the same page back onto that stack in the same GC
+  epoch. This directly violates the lock-free stack's documented no-ABA rule.
+likelihood: |
+  Requires VirtualAlloc MEM_COMMIT failure while reusing a freed GC page. The
+  condition is rare and the later concurrent consequence is not reproduced.
+maybe_intended: ""
+reproducer: |
+  println("NOT REPRODUCED c-runtime-page-no-aba-contract")
+  println("Formal source counterexample only; no deterministic Julia trigger is known.")
+output:
+  release: |
+    NOT RUN: formal source counterexample only.
+  nightly: |
+    NOT RUN: formal source counterexample only.
+reproduced: {release: false, nightly: false}
+expected: |
+  A page popped by a mutator must not be pushed back onto the same lock-free
+  stack before the next GC epoch.
+promised_by: |
+  The safety contract at src/gc-stock.h:159-169 explicitly forbids same-epoch
+  reinsertion of a node popped by a mutator.
+cause: |
+  src/gc-pages.c:127 pops global_page_pool_freed. On commit failure,
+  src/gc-pages.c:171-174 marks the page freed and pushes it back onto that same
+  stack without advancing the GC epoch.
+possible_fix: |
+  Keep failed-commit pages out of the originating lock-free stack until an
+  epoch boundary, or use a stack with ABA protection.
+duplicates:
+  issues:
+    - {number: 64149, state: open, relation: duplicate}
+    - {number: 62162, state: merged, relation: related}
+    - {number: 62274, state: merged, relation: related}
+  queries: ["MEM_COMMIT global_page_pool_freed", "gc page pool ABA commit failure"]
+lean:
+  property: JuliaLean.CRuntime.PagePool.NoABAContract
+  theorem: JuliaLean.CRuntime.PagePool.NoABAContract_refuted

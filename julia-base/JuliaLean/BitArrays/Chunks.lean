@@ -31,6 +31,25 @@ namespace JuliaLean.BitArrays
 
 abbrev U64 := BitVec 64
 
+/-- Chunk loop of `cmp(::BitVector, ::BitVector)`, `base/bitarray.jl:1211-1218`.
+The low set bit of the xor identifies the first differing element. -/
+def cmpChunks : List U64 → List U64 → Nat → Nat → Int
+  | a :: as, b :: bs, na, nb =>
+    let d := a ^^^ b
+    if d = 0 then cmpChunks as bs na nb
+    else if (b &&& d &&& -d) = 0 then 1 else -1
+  | _, _, na, nb => if na < nb then -1 else if nb < na then 1 else 0
+
+/-- A difference in the first element takes precedence over all later chunks and lengths. -/
+def BitVectorCmpFirstBit : Prop :=
+  ∀ (as bs : List U64) (na nb : Nat),
+    cmpChunks (0 :: as) (1 :: bs) na nb = -1 ∧
+    cmpChunks (1 :: as) (0 :: bs) na nb = 1
+
+theorem bitVectorCmpFirstBit : BitVectorCmpFirstBit := by
+  intro as bs na nb
+  constructor <;> rfl
+
 /-- `_msk64 = ~UInt64(0)`, `base/bitarray.jl:114`. -/
 def msk64 : U64 := BitVec.allOnes 64
 

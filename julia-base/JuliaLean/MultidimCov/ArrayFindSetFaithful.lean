@@ -251,10 +251,6 @@ def m3020 := @filterArray
 def P3020 : Prop := ∀ {α : Type} (predicate : α → Result Bool) (array : ArrayState α),
   m3020 predicate array = filterArray predicate array
 theorem p3020 : P3020 := by simp [P3020, m3020]
-def m3032 := @filterArray
-def P3032 : Prop := ∀ {α : Type} (predicate : α → Result Bool) (array : ArrayState α),
-  m3032 predicate array = filterArray predicate array
-theorem p3032 : P3032 := by simp [P3032, m3032]
 def m3066 (predicate : α → Result Bool) (array : ArrayState α) : Result (ArrayState α) := do
   let filtered ← filterArray predicate array
   pure { array with axes := filtered.axes, values := filtered.values }
@@ -445,83 +441,11 @@ def P3275 : Prop := ∀ {α : Type} (memory : MemoryState α),
   m3275 memory = m3241 { memory with offset := 0 } [Int.ofNat memory.values.length]
 theorem p3275 : P3275 := by simp [P3275, m3275]
 
-private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) : Entry :=
-  { id := s!"multidimcov-array-faithful-{line}", juliaFile := "base/array.jl", juliaFns := [name],
+private def entry (id : String) (line : Nat) (name statement : String) (prop thm : Lean.Name) : Entry :=
+  { id, juliaFile := "base/array.jl", juliaFns := [name],
     statement, source := s!"base/array.jl:{line}; search, filtering, set, and wrapping source equation",
     status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 2337 "vcat()" "Empty vcat returns a zero-length Vector{Any}." ``P2337 ``p2337,
-  entry 2338 "hcat()" "Empty hcat returns a zero-length Vector{Any}." ``P2338 ``p2338,
-  entry 2340 "hcat(Vector{T}...)" "Typed hcat preserves every vector value in column order." ``P2340 ``p2340,
-  entry 2349 "hcat(Vector...)" "Untyped hcat preserves arbitrary element values in column order." ``P2349 ``p2349,
-  entry 2351 "vcat(Vector{T}...)" "Typed vcat concatenates every vector in argument order." ``P2351 ``p2351,
-  entry 2366 "vcat(Vector...)" "Untyped vcat concatenates arbitrary element values in argument order." ``P2366 ``p2366,
-  entry 2368 "_cat(Integer,Integer...)" "Integer cat accepts dimension one and returns the values in order." ``P2368 ``p2368,
-  entry 2404 "findnext(A,start)" "Predicate-free findnext applies identity with predicate errors over arbitrary keys and values." ``P2404 ``p2404,
-  entry 2441 "findfirst(A)" "Predicate-free findfirst applies identity over arbitrary iterable elements." ``P2441 ``p2441,
-  entry 2444 "findfirst(AbstractArray)" "Array findfirst preserves custom keys and predicate errors." ``P2444 ``p2444,
-  entry 2475 "findnext(predicate,A,start)" "Findnext scans allowed keys in order and stops at the first true predicate or error." ``P2475 ``p2475,
-  entry 2523 "findfirst(predicate,A)" "Generic findfirst scans from the first key and preserves predicate errors." ``P2523 ``p2523,
-  entry 2531 "findfirst(predicate,array or string)" "Indexed findfirst preserves arbitrary keys and element types." ``P2531 ``p2531,
-  entry 2534 "findfirst(equality,OneTo)" "OneTo equality search returns the exact one-based key for every Integer target." ``P2534 ``p2534,
-  entry 2538 "findfirst(isone,OneTo)" "isone search returns the first key whose value is one." ``P2538 ``p2538,
-  entry 2540 "findfirst(equality,unit range)" "Unit-range equality search preserves arbitrary integer endpoints and key conversion." ``P2540 ``p2540,
-  entry 2546 "findfirst(equality,StepRange)" "StepRange search evaluates arbitrary element equality in order and preserves errors." ``P2546 ``p2546,
-  entry 2554 "findfirst(iszero,range)" "Zero search evaluates the range's actual elements and keys." ``P2554 ``p2554,
-  entry 2555 "findfirst(isone,range)" "One search evaluates the range's actual elements and keys." ``P2555 ``p2555,
-  entry 2591 "findprev(A,start)" "Predicate-free reverse search applies identity over arbitrary keys and values." ``P2591 ``p2591,
-  entry 2629 "findlast(A)" "Predicate-free findlast preserves arbitrary iterable elements and predicate errors." ``P2629 ``p2629,
-  entry 2632 "findlast(AbstractArray)" "Array findlast preserves custom keys and axes." ``P2632 ``p2632,
-  entry 2671 "findprev(predicate,A,start)" "Findprev scans allowed keys and retains the last true predicate before start." ``P2671 ``p2671,
-  entry 2716 "findlast(predicate,A)" "Generic findlast scans every key and preserves predicate errors." ``P2716 ``p2716,
-  entry 2724 "findlast(predicate,array or string)" "Indexed findlast preserves arbitrary keys and element types." ``P2724 ``p2724,
-  entry 2728 "findlast(special predicate,unit range)" "Special range findlast evaluates the actual predicate over every range value." ``P2728 ``p2728,
-  entry 2733 "findlast(special predicate,StepRange)" "StepRange findlast evaluates arbitrary equality and zero/one predicates." ``P2733 ``p2733,
-  entry 2789 "findall(predicate,A)" "Findall returns every arbitrary collection key whose predicate is true, in key order." ``P2789 ``p2789,
-  entry 2796 "findall(predicate,AbstractArray)" "Array findall preserves custom axes, keys, element types, and predicate errors." ``P2796 ``p2796,
-  entry 2838 "findall(A)" "Predicate-free findall applies identity and returns every true key." ``P2838 ``p2838,
-  entry 2843 "findall(Bool array)" "Boolean findall counts, allocates, and writes every true custom key in order." ``P2843 ``p2843,
-  entry 2856 "findall(Bool scalar)" "Scalar Boolean findall returns the zero-dimensional key exactly when true." ``P2856 ``p2856,
-  entry 2857 "findall(predicate,Number)" "Scalar predicate findall preserves predicate errors and zero-dimensional keys." ``P2857 ``p2857,
-  entry 2858 "findall(in predicate,Number)" "Scalar membership findall delegates through the same predicate semantics." ``P2858 ``p2858,
-  entry 2892 "indexin" "Indexin builds membership by isequal and returns the first one-based match for every query." ``P2892 ``p2892,
-  entry 2903 "_findin(set)" "Set membership traverses arbitrary key-value pairs and pushes matching keys in order." ``P2903 ``p2903,
-  entry 2910 "_findin(iterable)" "Generic findin constructs membership then preserves arbitrary source keys." ``P2910 ``p2910,
-  entry 2915 "_sortedfindin" "Sorted findin returns first isequal matches for arbitrary element types." ``P2915 ``p2915,
-  entry 2957 "findall(in,Real arrays)" "Real-array membership findall preserves arbitrary keys and exact membership." ``P2957 ``p2957,
-  entry 2966 "findall(in,AbstractArray)" "General array membership uses isequal semantics over arbitrary keys and elements." ``P2966 ``p2966,
-  entry 2967 "findall(in,Tuple)" "Tuple membership uses isequal semantics over every tuple position." ``P2967 ``p2967,
-  entry 2970 "indcopy(vector ranges)" "Indcopy performs both endpoint searches independently and derives every output dimension." ``P2970 ``p2970,
-  entry 2981 "indcopy(tuple ranges)" "Tuple indcopy constructs typed tuples after independent endpoint searches." ``P2981 ``p2981,
-  entry 3020 "filter(Array)" "Array filter evaluates the predicate in storage order and returns a typed vector of passing values." ``P3020 ``p3020,
-  entry 3032 "filter(AbstractArray)" "General array filter preserves iteration order, arbitrary axes, and predicate errors." ``P3032 ``p3032,
-  entry 3066 "filter!" "In-place filter compacts passing assigned values and updates logical length after ordered predicate evaluation." ``P3066 ``p3066,
-  entry 3105 "filter(f)" "The curried form constructs a callable applying filter to every accepted input type." ``P3105 ``p3105,
-  entry 3134 "keepat!(indices)" "Keepat validates arbitrary index iterators and retains selected optional slots in order." ``P3134 ``p3134,
-  entry 3159 "keepat!(Bool mask)" "Mask keepat validates equal length and preserves selected assigned and unassigned slots." ``P3159 ``p3159,
-  entry 3164 "_unique_filter!" "Unique filtering threads predicate-updated state across every input value." ``P3164 ``p3164,
-  entry 3174 "_grow_filter!" "Growth filtering accepts exactly values absent from current seen state." ``P3174 ``p3174,
-  entry 3175 "_shrink_filter!" "Shrink filtering delegates the keep predicate for every value." ``P3175 ``p3175,
-  entry 3177 "_grow!" "Growth threads mutated set state across the vector and every iterable in order." ``P3177 ``p3177,
-  entry 3185 "union!" "Union growth preserves first occurrence order across every iterable." ``P3185 ``p3185,
-  entry 3188 "symdiff!" "Symmetric-difference growth threads toggled membership across every occurrence." ``P3188 ``p3188,
-  entry 3191 "_shrink!" "Shrink delegates its predicate across the complete vector." ``P3191 ``p3191,
-  entry 3198 "intersect!" "Intersection retains values present in every supplied iterable." ``P3198 ``p3198,
-  entry 3199 "setdiff!" "Set difference retains values absent from every supplied iterable." ``P3199 ``p3199,
-  entry 3201 "vectorfilter" "Typed vector filtering converts every passing value and preserves conversion failures." ``P3201 ``p3201,
-  entry 3203 "intersect" "Intersection promotes element types, filters membership, and preserves first unique order." ``P3203 ``p3203,
-  entry 3209 "setdiff" "Set difference uses the source eltype and typed sets for every remaining iterable." ``P3209 ``p3209,
-  entry 3215 "intersect(vector,range)" "Vector-range intersection filters by actual range membership and applies stable uniqueness." ``P3215 ``p3215,
-  entry 3221 "intersect(range,vector)" "The reversed overload delegates with the original vector and range." ``P3221 ``p3221,
-  entry 3224 "getindex(range,Integer)" "Range indexing converts every Integer type before checked element lookup." ``P3224 ``p3224,
-  entry 3241 "_wrap(MemoryRef,dims)" "Wrapping reads memory, length and offset, checks product bounds, and retains the referenced segment." ``P3241 ``p3241,
-  entry 3249 "invalid_wrap_err" "Invalid wrapping constructs the diagnostic from length, dimensions, and product." ``P3249 ``p3249,
-  entry 3254 "wrap(Array,MemoryRef,dims)" "MemoryRef wrapping converts every dimension before bounds-checked construction." ``P3254 ``p3254,
-  entry 3260 "wrap(Array,Memory,dims)" "Memory wrapping creates the initial reference before dimension conversion and construction." ``P3260 ``p3260,
-  entry 3265 "wrap(Array,MemoryRef,length)" "Length wrapping performs checked Int conversion before construction." ``P3265 ``p3265,
-  entry 3270 "wrap(Array,Memory,length)" "Memory length dispatch retains its all-Integer method behavior, including unsupported unsigned dispatch." ``P3270 ``p3270,
-  entry 3275 "wrap(Array,Memory)" "Default memory wrapping uses the complete memory length." ``P3275 ``p3275
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.ArrayFindSetFaithful

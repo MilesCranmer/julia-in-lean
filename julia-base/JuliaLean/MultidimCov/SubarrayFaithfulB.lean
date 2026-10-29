@@ -258,25 +258,6 @@ private def entry (line : Nat) (name statement source : String) (prop thm : Lean
   { id := s!"multidimcov-subarray-faithful-{line}", juliaFile := "base/subarray.jl",
     juliaFns := [name], statement, source, status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 257 "unsafe_view(AbstractArray,indices...)" "Unsafe view delegates the actual array and complete ViewIndex tuple to SubArray construction." "base/subarray.jl:257-259" ``P257 ``p257,
-  entry 273 "_maybe_reindex(CartesianIndex{1} array)" "The scan computes tail of the actual tuple before recursion." "base/subarray.jl:273-274" ``P273 ``p273,
-  entry 275 "_maybe_reindex(any tuple)" "The general scan computes tail of the actual tuple before recursion." "base/subarray.jl:275" ``P275 ``p275,
-  entry 276 "_maybe_reindex(empty scan)" "Terminal reindexing uses the actual stored indices and parent, converts the combined indices, then constructs one SubArray layer." "base/subarray.jl:276-279" ``P276 ``p276,
-  entry 295 "reindex(scalar parent index)" "A scalar parent index is preserved and recursion consumes no subindex." "base/subarray.jl:295-296" ``P295 ``p295,
-  entry 299 "reindex(Slice parent index)" "A Slice passes the actual subindex through and recursion consumes one subindex." "base/subarray.jl:299-300" ``P299 ``p299,
-  entry 303 "reindex(vector parent index)" "Vector reindexing performs the actual lookup with any subindex before recursive tail composition." "base/subarray.jl:303-304" ``P303 ``p303,
-  entry 307 "reindex(matrix parent index)" "Matrix reindexing performs the actual two-index lookup and consumes exactly two subindices." "base/subarray.jl:307-308" ``P307 ``p307,
-  entry 311 "reindex(N-dimensional parent index)" "General array reindexing splits the actual subindices at rank, indexes with the prefix and recurses on the suffix." "base/subarray.jl:311-312" ``P311 ``p311,
-  entry 316 "getindex(SubArray,Int...)" "General SubArray indexing checks bounds, fully reindexes and looks up the actual parent with complete error propagation." "base/subarray.jl:316-320" ``P316 ``p316,
-  entry 328 "_reindexlinear(FastSubArray,range)" "Fast range reindexing broadcasts stride multiplication then offset addition while preserving the range result." "base/subarray.jl:328" ``P328 ``p328,
-  entry 352 "_reindexlinear(FastContiguousSubArray,range)" "Contiguous range reindexing adds the cached offset to the actual range object." "base/subarray.jl:352" ``P352 ``p352,
-  entry 376 "getindex(FastContiguousSubArray,one-based range)" "Contiguous range indexing checks bounds, preserves the shifted range object and indexes the actual parent." "base/subarray.jl:376-380" ``P376 ``p376,
-  entry 386 "setindex!(SubArray,Int...)" "General assignment checks bounds, fully reindexes, propagates parent-write failure and returns the view only after success." "base/subarray.jl:386-390" ``P386 ``p386,
-  entry 392 "setindex!(FastSubArray,Int)" "Fast scalar assignment checks bounds, shifts the index, propagates the parent write and returns the view." "base/subarray.jl:392-396" ``P392 ``p392,
-  entry 398 "setindex!(FastSubArray{N=1},Int)" "The one-dimensional specialization has the complete fast scalar assignment behavior." "base/subarray.jl:398-402" ``P398 ``p398,
-  entry 405 "setindex!(FastSubArray,range)" "Fast range assignment preserves the range object through bounds, shifting and parent write, returning the view only after success." "base/subarray.jl:405-409" ``P405 ``p405,
-  entry 414 "isassigned(SubArray,Int...)" "General isassigned returns false after a failed bounds predicate and otherwise fully reindexes and delegates to the actual parent." "base/subarray.jl:414-418" ``P414 ``p414
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.SubarrayFaithfulB

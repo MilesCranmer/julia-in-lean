@@ -1,1 +1,19 @@
 line	name	verdict	mirror	property	settled	reason
+37	==	HOLLOW	no	no	yes	The model replaces Julia's isequal semantics with equality on a reduced Option Nat type and the proposition only restates that replacement.
+38	==	HOLLOW	no	no	yes	The model uses a reduced Option Nat value and does not establish the generic Julia value comparison promised by this overload.
+39	==	HOLLOW	no	no	yes	The model uses a reduced Option Nat value and does not establish the generic Julia comparison or dispatch behavior.
+42	_check_mutable	HOLLOW	no	no	yes	The model omits typeof(o) and the source error construction, while the proposition only restates its invented error string.
+87	finalizer	HOLLOW	no	no	yes	The model replaces Core.finalizer and its runtime registration semantics with a counter increment and proves only that abstraction.
+93	finalizer	HOLLOW	no	no	yes	The pointer overload is aliased to the ordinary counter model and omits getptls, ccall, and pointer-finalizer behavior.
+105	finalize	HOLLOW	no	no	yes	The model returns its input, while Julia calls jl_finalize_th and has observable finalization effects.
+136	gc	HOLLOW	yes	no	yes	The branch model matches full versus incremental selection, but the proposition is only a case restatement and omits the ccall and documented GC effects.
+149	enable	HOLLOW	no	no	yes	The model invents a pure Runtime state transition and does not mirror jl_gc_enable's runtime state or implementation-defined result.
+159	enable_finalizers	HOLLOW	no	no	yes	The model only decrements an invented counter and clears pending state, omitting the source conditional dispatch and ccall behavior.
+161	enable_finalizers	HOLLOW	no	no	yes	The model decrements a counter and unconditionally clears pending finalizers, omitting the pending check and run-pending-finalizers call.
+168	disable_finalizers	HOLLOW	no	no	yes	The model increments an invented counter and does not mirror the source ccall or task-local runtime state.
+185	in_finalizer	HOLLOW	no	no	yes	The model returns a stored field and does not model the jl_gc_is_in_finalizer call or documented eager-finalization caveat.
+237	preserve	HOLLOW	no	no	yes	The model validates nonempty strings and returns Nat, while Julia validates Symbols and expands an Expr(:gc_preserve) around an arbitrary expression.
+267	safepoint	HOLLOW	no	no	yes	The model increments a counter and does not mirror jl_gc_safepoint or the documented blocking behavior.
+274	enable_logging	HOLLOW	no	no	yes	The model mutates a pure Boolean field and omits the ccall and observable stderr logging behavior.
+283	logging_enabled	HOLLOW	no	no	yes	The model reads an invented Boolean field and omits the runtime query performed by jl_is_gc_logging_enabled.
+293	gc_active_impl	HOLLOW	no	no	yes	The model returns a supplied String field and omits the ccall and unsafe_string conversion of the active implementation.

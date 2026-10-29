@@ -244,34 +244,6 @@ private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) 
     prop
     thm := some thm }
 
-def entries : List Entry := [
-  entry 77 "CartesianIndex{N}(::NTuple{N,Integer})" "Every integer coordinate is converted to Int in order before the CartesianIndex is stored." ``P77 ``p77,
-  entry 84 "CartesianIndex{N}(::Tuple)" "Short tuples are padded with ones, overlong tuples throw, and every coordinate is converted to Int." ``P84 ``p84,
-  entry 85 "CartesianIndex{N}(::Integer...)" "Typed integer varargs delegate through the padded tuple constructor." ``P85 ``p85,
-  entry 89 "CartesianIndex(IntegerOrCartesian...)" "Mixed arguments are flattened in order before every integer coordinate is converted." ``P89 ``p89,
-  entry 91 "flatten(::Tuple{Any})" "Singleton flatten calls Tuple on its sole integer or CartesianIndex argument." ``P91 ``p91,
-  entry 92 "flatten(::Tuple)" "Recursive flatten expands the head before flattening the tail." ``P92 ``p92,
-  entry 93 "CartesianIndex(::Tuple{Vararg{IntegerOrCartesian}})" "The tuple overload splats every argument into the mixed constructor." ``P93 ``p93,
-  entry 94 "show(::IO,::CartesianIndex)" "Printing appends the opening text, joined coordinates, and closing parenthesis in order." ``P94 ``p94,
-  entry 105 "getindex(::CartesianIndex,::Integer)" "Indexing converts the arbitrary Integer to Int before tuple bounds checking and lookup." ``P105 ``p105,
-  entry 106 "firstindex(::CartesianIndex)" "Every CartesianIndex has first index one." ``P106 ``p106,
-  entry 107 "lastindex(::CartesianIndex)" "The last index is the fixed-width Int tuple length." ``P107 ``p107,
-  entry 108 "get(A,::CartesianIndex,default)" "Array get forwards the stored coordinate tuple and default unchanged." ``P108 ``p108,
-  entry 109 "eltype(::Type{<:CartesianIndex})" "Element type reads the I field type before delegating to tuple eltype." ``P109 ``p109,
-  entry 114 "setindex(::CartesianIndex,i,j)" "Setindex updates the coordinate tuple through Base.setindex before constructing the result." ``P114 ``p114,
-  entry 120 "zero(::CartesianIndex)" "Value zero delegates to the type method and creates exactly N zero coordinates." ``P120 ``p120,
-  entry 121 "zero(::Type{CartesianIndex})" "Type zero creates exactly N Int zero coordinates." ``P121 ``p121,
-  entry 122 "oneunit(::CartesianIndex)" "Value oneunit delegates to the type method and creates exactly N one coordinates." ``P122 ``p122,
-  entry 123 "oneunit(::Type{CartesianIndex})" "Type oneunit creates exactly N Int one coordinates." ``P123 ``p123,
-  entry 139 "*(::CartesianIndex,::Integer)" "Right scalar multiplication delegates with swapped operands and scales every coordinate." ``P139 ``p139,
-  entry 145 "convert(::Type{<:Number},::CartesianIndex{1})" "Numeric conversion reads the sole coordinate before applying the requested conversion." ``P145 ``p145,
-  entry 146 "convert(::Type{<:Tuple},::CartesianIndex)" "Tuple conversion applies the requested conversion to the stored coordinate tuple." ``P146 ``p146,
-  entry 150 "hash(::CartesianIndex,::UInt)" "Hash xors the fixed seed then hashes every coordinate in order." ``P150 ``p150,
-  entry 159 "nextind(::AbstractArray,::CartesianIndex)" "nextind reads array axes, constructs their Cartesian iteration, and performs carry increment." ``P159 ``p159,
-  entry 165 "prevind(::AbstractArray,::CartesianIndex)" "prevind reads array axes, constructs their Cartesian iteration, and performs carry decrement." ``P165 ``p165,
-  entry 172 "_ind2sub(::Tuple,::CartesianIndex)" "The method returns the complete stored coordinate tuple." ``P172 ``p172,
-  entry 187 "show(::IO,::StepRangeLen{CartesianIndex})" "Printing obtains first, step, and length in source order and emits the special constructor form." ``P187 ``p187,
-  entry 193 "in(::CartesianIndex,::AbstractRange{CartesianIndex})" "Membership checks emptiness, then the first changing dimension, candidate position, and full Cartesian value in source order." ``P193 ``p193
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.MultidimensionalCartesianFaithful

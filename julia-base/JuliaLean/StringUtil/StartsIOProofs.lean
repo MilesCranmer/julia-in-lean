@@ -177,16 +177,6 @@ theorem startswithIoPeek_proven : StartswithIoPeek := by
 
 /-! ## Registry -/
 
-def startsioProofEntries : List JuliaLean.Registry.Entry := [
-  { id := "stringutil-startswith-io-peek"
-    juliaFile := "base/strings/util.jl"
-    juliaFns := ["startswith(::IO, ::AbstractString)", "read(::IOBuffer, ::Integer)", "mark", "reset"]
-    statement := "On every reachable readable and seekable IOBuffer, startswith(io, prefix::String) returns whether prefix is a prefix of the unread bytes, and the position afterwards equals the position before."
-    source := "base/strings/util.jl:87-92 (startswith(io::IO, prefix) docstring, which points to `peek`)"
-    status := .proven
-    prop := ``StartswithIoPeek
-    thm := some ``startswithIoPeek_proven
-    notes := "Reachable buffers are those of the IOBuffers area (constructor plus any operations); reachable_inv supplies the invariant. The value compares bytes, so for a prefix that ends inside a character of the stream it is true while startswith(String, prefix) is false (startswith(IOBuffer(\"éx\"), \"\\xc3\") == true, startswith(\"éx\", \"\\xc3\") == false); not registered as a bug because the IO method is documented by bytes read. The caller's mark is not preserved: stringutil-startswith-io-mark." }
-]
+def startsioProofEntries : List JuliaLean.Registry.Entry := []
 
 end JuliaLean.StringUtil

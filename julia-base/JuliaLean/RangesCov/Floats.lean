@@ -281,61 +281,7 @@ theorem startStopLengthDispatch_proven : StartStopLengthDispatch :=
     fun _ _ _ _ h => ⟨(Ops.linMk_fields h).2.2, (Ops.linMk_fields h).1, (Ops.linMk_fields h).2.1⟩,
     fun _ _ _ _ h => (Ops.linMk_fields h).2.2⟩
 
-def entries : List Entry := [
-  { id := "rangescov-bigfloat-colon-empty", juliaFile := "base/range.jl"
-    juliaFns := ["(:)(::T, ::T) where T<:AbstractFloat", "(:)(::T, ::T, ::T) where T<:AbstractFloat",
-      "_colon(::Ordered, ::ArithmeticRounds, start, step, stop)"]
-    statement := "a:b with b < a is an empty range for a non-IEEE float type."
-    source := "docstring of (:), base/range.jl:54-55"
-    status := .refuted, prop := ``RoundsColonEmpty, thm := some ``roundsColonEmpty_refuted
-    issue := "none found (queries: issues BigFloat range empty; issues BigFloat colon; prs BigFloat range)"
-    notes := "big(3.0):big(1.0) computes length fld(-2, 1) + 1 = -1 and throws ArgumentError(\"length cannot be negative\")." },
-  { id := "rangescov-colon-any-invariant", juliaFile := "base/range.jl"
-    juliaFns := ["_colon(::Any, ::Any, start, step, stop)"]
-    statement := "The fallback colon returns a StepRangeLen starting at start with step step, offset 1 and nonnegative length."
-    source := "StepRangeLen invariant; base/range.jl:28-29"
-    status := .proven, prop := ``ColonAnyInvariant, thm := some ``colonAnyInvariant_proven },
-  { id := "rangescov-unitrange-float-last", juliaFile := "base/range.jl"
-    juliaFns := ["unitrange_last(start, stop)", "UnitRange{T}(::T, ::T) where T<:Real", "UnitRange(::T, ::T) where T<:Real"]
-    statement := "A floating-point UnitRange(a, b) with a <= b has last element at most b."
-    source := "UnitRange docstring (elements start, start+1, ... up to stop)"
-    status := .refuted, prop := ``UnitRangeFloatStop, thm := some ``unitRangeFloatStop_refuted
-    issue := "none found; related #60261 (queries: issues UnitRange Float64 stop; issues UnitRange float last)"
-    notes := "UnitRange(0.7, 3.6999999999999997) stores stop 0.7 + floor(2.9999999999999996) = 3.7 > 3.6999999999999997." },
-  { id := "rangescov-unitrange-float-empty", juliaFile := "base/range.jl"
-    juliaFns := ["unitrange_last(start, stop)"]
-    statement := "A floating-point UnitRange(a, b) with b < a is normalized to a:a-1."
-    source := "docstring of (:), base/range.jl:54-55"
-    status := .proven, prop := ``UnitRangeFloatEmpty, thm := some ``unitRangeFloatEmpty_proven },
-  { id := "rangescov-linrange-integer-elements", juliaFile := "base/range.jl"
-    juliaFns := ["LinRange{T,L}(::T, ::T, ::L) where {T,L<:Integer}", "unsafe_getindex(::LinRange, ::Integer)"]
-    statement := "Every in-bounds element of a constructed integer LinRange can be read."
-    source := "AbstractArray indexing invariant; LinRange docstring"
-    status := .refuted, prop := ``LinIntElements, thm := some ``linIntElements_refuted
-    issue := "none found (queries: issues LinRange integer InexactError; prs LinRange integer step)"
-    notes := "LinRange{Int}(-90, 90, 4) passes the integer-step check, but lerpi computes (1-1/3)*-90 + (1/3)*90 = -30.000000000000007 in Float64 and Int(...) throws InexactError." },
-  { id := "rangescov-linrange-constructor", juliaFile := "base/range.jl"
-    juliaFns := ["LinRange{T,L}(::T, ::T, ::L) where {T,L<:Integer}"]
-    statement := "The inner LinRange{Float64} constructor stores its endpoints and length, and rejects negative lengths and differing endpoints for length 1."
-    source := "LinRange docstring; base/range.jl:597-609"
-    status := .proven, prop := ``LinConstructor, thm := some ``linConstructor_proven },
-  { id := "rangescov-linrange-outer-constructors", juliaFile := "base/range.jl"
-    juliaFns := ["LinRange{T,L}(start, stop, ::Integer)", "LinRange{T}(start, stop, ::Integer)", "LinRange(start, stop, ::Integer)"]
-    statement := "LinRange(a, b, n) with Int arguments has first Float64(a), last Float64(b) and length n through each outer constructor."
-    source := "LinRange docstring (first and last are exactly those provided); base/range.jl:612-623"
-    status := .proven, prop := ``LinOuterConstructors, thm := some ``linOuterConstructors_proven },
-  { id := "rangescov-linrange-negation", juliaFile := "base/range.jl"
-    juliaFns := ["-(::LinRange)"]
-    statement := "-r for a LinRange has the negated endpoints and the same length."
-    source := "unary minus on arrays is elementwise; base/range.jl:1315-1318"
-    status := .proven, prop := ``LinNegation, thm := some ``linNegation_proven },
-  { id := "rangescov-start-stop-length-dispatch", juliaFile := "base/range.jl"
-    juliaFns := ["range_start_stop_length(start, stop, ::Integer)", "range_start_stop_length(::T, ::T, ::Integer) where T",
-      "range_start_stop_length(::T, ::T, ::Integer) where T<:Integer", "_linspace(::Type{T}, ::Integer, ::Integer, ::Integer) where T"]
-    statement := "range(a, b; length=n) has n elements whenever it returns, for integer, promoted, generic float endpoints and the generic integer _linspace."
-    source := "range docstring; base/range.jl:625-632"
-    status := .proven, prop := ``StartStopLengthDispatch, thm := some ``startStopLengthDispatch_proven }
-]
+def entries : List Entry := []
 
 end Floats
 

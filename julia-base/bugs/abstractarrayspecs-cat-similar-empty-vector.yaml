@@ -1,0 +1,64 @@
+id: abstractarrayspecs-cat-similar-empty-vector
+title: "cat_similar(a::AbstractArray, T, Int[]) allocates size(a), while shape () allocates a zero-dimensional array"
+priority: P2
+kind: wrong-result
+area: AbstractArraySpecs
+files: [base/abstractarray.jl]
+functions: ["cat_similar(A::AbstractArray, T::Type, shape::Vector)"]
+summary: |
+  Base.cat_similar(1:3, Float64, Int[]) allocates a length-three vector, whereas
+  Base.cat_similar(1:3, Float64, ()) allocates a zero-dimensional array. The
+  corresponding Array methods allocate a zero-dimensional array for both shape forms.
+  The AbstractArray vector-shape overload drops the empty shape through splatting
+  and reaches similar(a, T), which uses the input's axes.
+likelihood: |
+  Low. cat_similar is an internal helper; the ordinary cat path supplies a tuple
+  shape. Code calling this compatibility helper with a computed empty shape vector
+  can encounter the inconsistency.
+maybe_intended: |
+  This is an internal function with no user-facing docstring. Splatting an empty
+  shape into similar(a, T, shape...) naturally selects the default-dimensions method.
+  The separate Vector-shape overload otherwise treats a shape vector as the same
+  dimensions as its tuple form, and the Array-specific Vector overload preserves
+  that equivalence for the empty vector too.
+reproducer: |
+  size(Base.cat_similar(1:3, Float64, ()))       # ()
+  size(Base.cat_similar(1:3, Float64, Int[]))    # (3,)
+  size(Base.cat_similar([1,2,3], Float64, ()))   # ()
+  size(Base.cat_similar([1,2,3], Float64, Int[])) # ()
+output:
+  release: |
+    AbstractArray tuple shape => ()
+    AbstractArray vector shape => (3,)
+    Array tuple shape => ()
+    Array vector shape => ()
+    REPRODUCED abstractarrayspecs-cat-similar-empty-vector
+  nightly: |
+    AbstractArray tuple shape => ()
+    AbstractArray vector shape => (3,)
+    Array tuple shape => ()
+    Array vector shape => ()
+    REPRODUCED abstractarrayspecs-cat-similar-empty-vector
+reproduced: {release: true, nightly: true}
+expected: |
+  All four allocations have size (). A shape vector and its tuple form describe
+  the same requested dimensions, regardless of the exemplar's array type.
+promised_by: |
+  Internal allocation invariant: cat_similar's shape argument specifies the result's
+  shape. The shape::Tuple and shape::Vector overloads (base/abstractarray.jl:1850-1855)
+  differ only in the shape container. The scalar and Array methods preserve this
+  equivalence for an empty shape too.
+cause: |
+  base/abstractarray.jl:1855 calls similar(A, T, shape...). An empty vector leaves
+  similar(A, T), whose definition on line 820 passes axes(A). The tuple overload on
+  line 1854 instead passes the empty tuple to similar(A, T, shape), reaching the
+  zero-dimensional Array constructor through line 834.
+possible_fix: |
+  Pass Tuple(shape) as the third argument, as the tuple overload does, so an empty
+  vector remains an explicit zero-dimensional shape.
+duplicates:
+  issues: []
+  queries: ["issues: cat_similar", "prs: cat_similar", "issues: cat_similar empty", "prs: cat_similar shape Vector"]
+lean:
+  property: JuliaLean.AbstractArraySpecs.CatSimilarAbsVectorSpec
+  theorem: JuliaLean.AbstractArraySpecs.catSimilarAbsVectorSpec_refuted

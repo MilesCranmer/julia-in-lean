@@ -581,30 +581,6 @@ private def entry (line : Nat) (name statement source : String) (prop thm : Lean
   { id := s!"multidimcov-reinterpretarray-faithful-{line}", juliaFile := "base/reinterpretarray.jl",
     juliaFns := [name], statement, source, status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 108 "throwintmult" "The helper evaluates both aligned element sizes and constructs the complete LazyString integer-multiple ArgumentError." "base/reinterpretarray.jl:108-112" ``P108 ``p108,
-  entry 113 "throwsize1" "The helper evaluates eltype, first axis, both aligned sizes, and constructs the complete first-axis ArgumentError." "base/reinterpretarray.jl:113-118" ``P113 ``p113,
-  entry 119 "throwfromsingleton" "The helper constructs the complete input-dependent singleton-source ArgumentError." "base/reinterpretarray.jl:119-123" ``P119 ``p119,
-  entry 222 "_checked_strides" "The method maps divrem over every byte stride before testing all remainders, throws on any nonzero remainder, and returns all quotients." "base/reinterpretarray.jl:222-227" ``P222 ``p222,
-  entry 433 "getindex(cartesian Ints)" "The wrapper checks readability, selects pointer or array access, and returns the exact bytes supplied by that route." "base/reinterpretarray.jl:433-437" ``P433 ``p433,
-  entry 439 "getindex(linear Int)" "The linear wrapper checks readability, selects pointer, IndexLinear, or subscript routing, and returns the chosen route's bytes." "base/reinterpretarray.jl:439-449" ``P439 ``p439,
-  entry 451 "getindex(reshaped SCartesianIndex2)" "The method reads the parent, creates and roots a Ref, converts its pointer, and unsafe-loads the indexed target bytes." "base/reinterpretarray.jl:451-456" ``P451 ``p451,
-  entry 458 "_getindex_ptr" "Pointer access checks bounds, computes the linear byte offset, roots cconvert, converts the pointer, and loads from the exact address." "base/reinterpretarray.jl:458-464" ``P458 ``p458,
-  entry 466 "_is_scalar_reinterpret_applicable" "Scalar applicability requires both primitive types and equal Core.bitsizeof results." "base/reinterpretarray.jl:466-468" ``P466 ``p466,
-  entry 470 "_getindex_ra(non-reshaped)" "The read handles singleton targets through bounds-only empty bytes, scalar reinterpretation, or checked byte assembly." "base/reinterpretarray.jl:470-522" ``P470 ``p470,
-  entry 524 "_getindex_ra(reshaped)" "The reshaped read includes singleton and scalar routes, then branches after bounds checking into larger, equal, or smaller size byte assembly." "base/reinterpretarray.jl:524-567" ``P524 ``p524,
-  entry 577 "setindex!(reshaped zero-dimensional)" "The zero-dimensional wrapper obtains firstindex and delegates the actual array and value to setindex!." "base/reinterpretarray.jl:577" ``P577 ``p577,
-  entry 579 "setindex!(cartesian Ints)" "The wrapper checks writability, selects pointer or array mutation, and returns the exact array state from that route." "base/reinterpretarray.jl:579-583" ``P579 ``p579,
-  entry 585 "setindex!(linear Int)" "The linear wrapper checks writability and selects pointer, IndexLinear, or subscript mutation in source order." "base/reinterpretarray.jl:585-593" ``P585 ``p585,
-  entry 595 "setindex!(reshaped SCartesianIndex2)" "The method converts the value, reads and roots the parent element Ref, pointer-stores at the static index, and writes the changed Ref back." "base/reinterpretarray.jl:595-605" ``P595 ``p595,
-  entry 607 "_setindex_ptr!" "Pointer mutation checks bounds, computes and roots the exact address, converts the value, stores it, and returns the original view." "base/reinterpretarray.jl:607-614" ``P607 ``p607,
-  entry 616 "_setindex_ra!(non-reshaped)" "The mutation converts first, includes the singleton bounds-only no-op, scalar route, and checked byte-assembly route." "base/reinterpretarray.jl:616-683" ``P616 ``p616,
-  entry 685 "_setindex_ra!(reshaped)" "The mutation converts first, handles singleton and scalar routes, then selects larger, equal, or smaller checked size-specific writes." "base/reinterpretarray.jl:685-731" ``P685 ``p685,
-  entry 828 "has_bit_padding" "Primitive types test bitsize modulo eight, unions recurse over every member, and composites scan fields in order." "base/reinterpretarray.jl:828-837" ``P828 ``p828,
-  entry 859 "_copyfrompacked!" "The copy mutates the supplied output memory, preserves untouched padding, scans fields in order, and advances the packed read offset exactly." "base/reinterpretarray.jl:859-877" ``P859 ``p859,
-  entry 879 "_reinterpret" "The scalar method performs distinct ordered bits and padding checks, compares packed sizes, and selects direct or padding-aware copying." "base/reinterpretarray.jl:879-906" ``P879 ``p879,
-  entry 910 "_reinterpret_padding" "Padding reinterpret computes packed size, creates and roots both Refs and pointers, selects direct packed direction or temporary storage, and reads the mutated output." "base/reinterpretarray.jl:910-932" ``P910 ``p910,
-  entry 953 "mapreduce_impl" "The reduction maps and combines every sequential element in order or splits columns recursively at the midpoint and combines both recursive results." "base/reinterpretarray.jl:953-979" ``P953 ``p953
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.ReinterpretFaithful

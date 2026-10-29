@@ -43,57 +43,7 @@ def unicodeEntries : List Entry := [
     status := .proven
     prop := ``Uni.GraphemesRangeProp
     thm := some ``Uni.graphemesRange_proven
-    notes := "Covers malformed and overlong encodings on master: isgraphemebreak! never throws there because UInt32(c) succeeds on every well-formed character. The hypothesis GbInit (a precondition of the property, not an axiom) is the documented GB4 rule (break after a control character) plus utf8proc's state encoding (state after a break from 0 at c equals the state initialized from c). 1.13.2 differs only for overlong encodings: its UInt32(::Char) throws InvalidCharError for them, and collect(graphemes(\"\\xc0\\x80\")), length(graphemes(\"\\xc0\\x80\")) and graphemes(\"\\xc0\\x80\", 1:1) all throw InvalidCharError on 1.13.2 while master returns the one grapheme \"\\xc0\\x80\"." },
-  { id := "regexunicode-titlecase-nonstrict"
-    juliaFile := "base/strings/unicode.jl"
-    juliaFns := ["titlecase(::AbstractString)", "titlecase(::AbstractChar)",
-      "isgraphemebreak!(::Ref{Int32}, ::AbstractChar, ::AbstractChar)"]
-    statement := "For every String s, every pure wordsep predicate and every utf8proc table, titlecase(s; wordsep, strict=false) is s with exactly the word-initial characters (not a separator, and first or following a separator; a separator begins a new grapheme and satisfies wordsep) replaced by titlecase(c), including any exception titlecase(c) throws."
-    source := "base/strings/unicode.jl:697-722 (titlecase docstring: capitalize the first character of each word; with strict=false the other characters are left unchanged)"
-    status := .proven
-    prop := ``Uni.TitlecaseNonstrict
-    thm := some ``Uni.titlecaseNonstrict_proven
-    notes := "With the default wordsep = !isletter a malformed character is a separator (category_code returns 31), so titlecase never converts it: theorem titlecase_affb shows titlecase(\"a\\xffb\") == \"A\\xffB\". A custom wordsep that rejects a malformed word-initial character makes titlecase(c) throw InvalidCharError, as the specification states." },
-  { id := "regexunicode-normalize-options"
-    juliaFile := "base/strings/unicode.jl"
-    juliaFns := ["normalize(::AbstractString; kwargs...)"]
-    statement := "normalize(s; kw...) throws ArgumentError before calling utf8proc exactly when (compat || stripmark) && !compose && !decompose, or more than one of newline2ls/newline2ps/newline2lf is true; otherwise the flags passed to utf8proc_map are the OR of the documented option bits (decompose selects DECOMPOSE and ignores compose)."
-    source := "stdlib/Unicode/src/Unicode.jl:60-118 (Unicode.normalize docstring); base/strings/unicode.jl:202-241"
-    status := .proven
-    prop := ``Uni.NormalizeOptions
-    thm := some ``Uni.normalizeOptions_proven
-    notes := "Checked over all 8192 combinations of the 13 Boolean keywords by kernel evaluation. compose=true together with decompose=true is accepted and decomposes (the source's TODO at unicode.jl:220), matching the docstring." },
-  { id := "regexunicode-uppercase-malformed"
-    juliaFile := "base/strings/unicode.jl"
-    juliaFns := ["uppercase(::AbstractString)", "lowercase(::AbstractString)",
-      "uppercase(::AbstractChar)", "lowercase(::AbstractChar)"]
-    statement := "uppercase(s) and lowercase(s) return for every String s (for every utf8proc table mapping code points to code points)."
-    source := "base/strings/unicode.jl:663-692 (uppercase/lowercase docstrings: return s with all characters converted)"
-    status := .refuted
-    prop := ``Uni.CaseMapNoThrow
-    thm := some ``Uni.caseMapNoThrow_refuted
-    issue := "none found; related #54343 (queries: uppercase invalid UTF-8; uppercase malformed; lowercase InvalidCharError)"
-    notes := "Counterexample uppercase(\"a\\xffb\"): '\\xff' is not ASCII, so uppercase(c) calls utf8proc_toupper(c::UInt32) and the argument conversion UInt32(c) throws InvalidCharError (unicode.jl:339-340); lowercase likewise (theorem lowercase_affb_throws). titlecase(\"a\\xffb\") succeeds and returns \"A\\xffB\" (theorem titlecase_affb) because the default wordsep treats the malformed character as a separator. uppercasefirst(\"\\xffab\") also throws (observed). Identical in 1.13.2; on 1.13.2 overlong encodings throw too." },
-  { id := "regexunicode-iscntrl-malformed"
-    juliaFile := "base/strings/unicode.jl"
-    juliaFns := ["iscntrl(::AbstractChar)"]
-    statement := "iscntrl(c) implies that c is a valid character."
-    source := "base/strings/unicode.jl:553-567 (iscntrl docstring: control characters are the non-printing characters of the Latin-1 subset of Unicode)"
-    status := .refuted
-    prop := ``Uni.IscntrlValid
-    thm := some ``Uni.iscntrlValid_refuted
-    issue := "none found (queries: iscntrl; iscntrl malformed)"
-    notes := "Counterexample '\\x80' (bit pattern 0x80000000): iscntrl compares Char bit patterns, and '\\x7f' (0x7f000000) <= '\\x80' <= '\\u9f' (0xc29f0000), so every malformed character with a lead byte in 0x80:0xc2 (for example '\\xbf', '\\xc0', '\\xc2') is reported as a control character." },
-  { id := "regexunicode-isvalid-char-negative"
-    juliaFile := "base/strings/unicode.jl"
-    juliaFns := ["isvalid(::Type{Char}, ::Integer)"]
-    statement := "isvalid(Char, x) returns a Bool for every x::Int."
-    source := "base/strings/unicode.jl:33-55 (isvalid(T, value) docstring: return true if the given value is valid for that type)"
-    status := .refuted
-    prop := ``Uni.IsvalidCharIntTotal
-    thm := some ``Uni.isvalidCharIntTotal_refuted
-    issue := "none found (queries: isvalid Char InexactError; isvalid Char negative)"
-    notes := "Counterexample isvalid(Char, -1): isvalid(::Type{T}, c::Integer) = isvalid(T, Unsigned(c)) (unicode.jl:60) and Unsigned(-1) = UInt64(-1) throws InexactError. isvalid(Char, typemax(Int)) is false." }
+    notes := "Covers malformed and overlong encodings on master: isgraphemebreak! never throws there because UInt32(c) succeeds on every well-formed character. The hypothesis GbInit (a precondition of the property, not an axiom) is the documented GB4 rule (break after a control character) plus utf8proc's state encoding (state after a break from 0 at c equals the state initialized from c). 1.13.2 differs only for overlong encodings: its UInt32(::Char) throws InvalidCharError for them, and collect(graphemes(\"\\xc0\\x80\")), length(graphemes(\"\\xc0\\x80\")) and graphemes(\"\\xc0\\x80\", 1:1) all throw InvalidCharError on 1.13.2 while master returns the one grapheme \"\\xc0\\x80\"." }
 ]
 
 end JuliaLean.RegexUnicode

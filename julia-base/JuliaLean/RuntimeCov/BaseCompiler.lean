@@ -62,6 +62,208 @@ def getproperty {V : Type} (r : Rt' V) (x : Obj) (f : Sym) : Rt V :=
   | .module m => r.getglobal m f
   | _ => r.getfield x f
 
+/-- Ordered module property access delegates to `getglobal` with its original
+module, symbol, and memory order (`base/Base_compiler.jl:71`). -/
+def orderedModuleGet {M V : Type} (getglobal : M → Sym → Sym → Rt V)
+    (m : M) (field order : Sym) : Rt V := getglobal m field order
+
+/-- Ordered type and fallback property access delegate to `getfield`
+(`base/Base_compiler.jl:78,83`). -/
+def orderedFieldGet {O V : Type} (getfield : O → Sym → Sym → Rt V)
+    (x : O) (field order : Sym) : Rt V := getfield x field order
+
+/-- Tuple property access uses an integer field index
+(`base/Base_compiler.jl:80`). -/
+def orderedTupleGet {T V : Type} (getfield : T → Int → Sym → Rt V)
+    (tuple : T) (index : Int) (order : Sym) : Rt V := getfield tuple index order
+
+def OrderedGetContract : Prop :=
+  (∀ (M V : Type) (getglobal : M → Sym → Sym → Rt V) m f order,
+    orderedModuleGet getglobal m f order = getglobal m f order) ∧
+  (∀ (O V : Type) (getfield : O → Sym → Sym → Rt V) x f order,
+    orderedFieldGet getfield x f order = getfield x f order) ∧
+  (∀ (T V : Type) (getfield : T → Int → Sym → Rt V) tuple index order,
+    orderedTupleGet getfield tuple index order = getfield tuple index order)
+
+theorem orderedGetContract_proven : OrderedGetContract := by
+  simp [OrderedGetContract, orderedModuleGet, orderedFieldGet, orderedTupleGet]
+
+/-- Ordered writes obtain the declared type, convert only if necessary, and
+pass the converted value and order to the relevant runtime operation. -/
+structure OrderedSetRuntime (V : Type) where
+  fieldType : Obj → Sym → Rt String
+  bindingType : String → Sym → Rt String
+  isa : V → String → Bool
+  convert : String → V → Rt V
+  setfield : Obj → Sym → V → Sym → Rt V
+  setglobal : String → Sym → V → Sym → Rt V
+
+def orderedSetField {V : Type} (r : OrderedSetRuntime V) (x : Obj)
+    (field : Sym) (value : V) (order : Sym) : Rt V := do
+  let ty ← r.fieldType x field
+  let converted ← if r.isa value ty then .ok value else r.convert ty value
+  r.setfield x field converted order
+
+def orderedSetModule {V : Type} (r : OrderedSetRuntime V) (m : String)
+    (field : Sym) (value : V) (order : Sym) : Rt V := do
+  let ty ← r.bindingType m field
+  let converted ← if r.isa value ty then .ok value else r.convert ty value
+  r.setglobal m field converted order
+
+def orderedSetModuleDefault {V : Type} (r : OrderedSetRuntime V) (m : String)
+    (field : Sym) (value : V) : Rt V :=
+  orderedSetModule r m field value "monotonic"
+
+/-- `swapproperty!` uses the same type lookup and conversion as a write,
+then invokes the swap primitive and returns its old value
+(`base/Base_compiler.jl:91-96,114-119`). -/
+def swapFieldProperty {V : Type} (r : OrderedSetRuntime V)
+    (swapfield : Obj → Sym → V → Sym → Rt V) (x : Obj)
+    (field : Sym) (value : V) (order : Sym) : Rt V :=
+  orderedSetField { r with setfield := swapfield } x field value order
+
+def swapGlobalProperty {V : Type} (r : OrderedSetRuntime V)
+    (swapglobal : String → Sym → V → Sym → Rt V) (m : String)
+    (field : Sym) (value : V) (order : Sym) : Rt V :=
+  orderedSetModule { r with setglobal := swapglobal } m field value order
+
+def swapFieldPropertyDefault {V : Type} (r : OrderedSetRuntime V)
+    (swapfield : Obj → Sym → V → Sym → Rt V) (x : Obj)
+    (field : Sym) (value : V) : Rt V :=
+  swapFieldProperty r swapfield x field value "not_atomic"
+
+def swapGlobalPropertyDefault {V : Type} (r : OrderedSetRuntime V)
+    (swapglobal : String → Sym → V → Sym → Rt V) (m : String)
+    (field : Sym) (value : V) : Rt V :=
+  swapGlobalProperty r swapglobal m field value "not_atomic"
+
+def SwapPropertyContract : Prop :=
+  (∀ (V : Type) (r : OrderedSetRuntime V) swap x f value order ty,
+    r.fieldType x f = .ok ty → r.isa value ty = true →
+    swapFieldProperty r swap x f value order = swap x f value order) ∧
+  (∀ (V : Type) (r : OrderedSetRuntime V) swap m f value order ty,
+    r.bindingType m f = .ok ty → r.isa value ty = true →
+    swapGlobalProperty r swap m f value order = swap m f value order) ∧
+  (∀ (V : Type) (r : OrderedSetRuntime V) swap x f value order ty converted,
+    r.fieldType x f = .ok ty → r.isa value ty = false → r.convert ty value = .ok converted →
+    swapFieldProperty r swap x f value order = swap x f converted order) ∧
+  (∀ (V : Type) (r : OrderedSetRuntime V) swap m f value order ty converted,
+    r.bindingType m f = .ok ty → r.isa value ty = false → r.convert ty value = .ok converted →
+    swapGlobalProperty r swap m f value order = swap m f converted order) ∧
+  (∀ (V : Type) (r : OrderedSetRuntime V) swap x f value,
+    swapFieldPropertyDefault r swap x f value = swapFieldProperty r swap x f value "not_atomic") ∧
+  (∀ (V : Type) (r : OrderedSetRuntime V) swap m f value,
+    swapGlobalPropertyDefault r swap m f value = swapGlobalProperty r swap m f value "not_atomic")
+
+theorem swapPropertyContract_proven : SwapPropertyContract := by
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro V r swap x f value order ty ht hi
+    simp [swapFieldProperty, orderedSetField, ht, hi, bind, Except.bind]
+  · intro V r swap m f value order ty ht hi
+    simp [swapGlobalProperty, orderedSetModule, ht, hi, bind, Except.bind]
+  · intro V r swap x f value order ty converted ht hi hc
+    simp [swapFieldProperty, orderedSetField, ht, hi, hc, bind, Except.bind]
+  · intro V r swap m f value order ty converted ht hi hc
+    simp [swapGlobalProperty, orderedSetModule, ht, hi, hc, bind, Except.bind]
+  · intros; rfl
+  · intros; rfl
+
+def orderedSetType {V : Type} : Rt V :=
+  .error (.errorException "setfield! fields of Types should not be changed")
+
+def orderedSetTuple {T V : Type} (setfield : T → Int → V → Sym → Rt V)
+    (tuple : T) (index : Int) (value : V) (order : Sym) : Rt V :=
+  setfield tuple index value order
+
+def OrderedSetContract : Prop :=
+  (∀ (V : Type) (r : OrderedSetRuntime V) m field value,
+    orderedSetModuleDefault r m field value = orderedSetModule r m field value "monotonic") ∧
+  (∀ (V : Type), @orderedSetType V =
+    .error (.errorException "setfield! fields of Types should not be changed")) ∧
+  (∀ (T V : Type) (setfield : T → Int → V → Sym → Rt V) t index value order,
+    orderedSetTuple setfield t index value order = setfield t index value order) ∧
+  (∀ (V : Type) (r : OrderedSetRuntime V) x f value order err,
+    r.fieldType x f = .error err → orderedSetField r x f value order = .error err) ∧
+  (∀ (V : Type) (r : OrderedSetRuntime V) m f value order err,
+    r.bindingType m f = .error err → orderedSetModule r m f value order = .error err) ∧
+  (∀ (V : Type) (r : OrderedSetRuntime V) x f value order ty,
+    r.fieldType x f = .ok ty → r.isa value ty = true →
+    orderedSetField r x f value order = r.setfield x f value order) ∧
+  (∀ (V : Type) (r : OrderedSetRuntime V) m f value order ty,
+    r.bindingType m f = .ok ty → r.isa value ty = true →
+    orderedSetModule r m f value order = r.setglobal m f value order) ∧
+  (∀ (V : Type) (r : OrderedSetRuntime V) x f value order ty converted,
+    r.fieldType x f = .ok ty → r.isa value ty = false → r.convert ty value = .ok converted →
+    orderedSetField r x f value order = r.setfield x f converted order) ∧
+  (∀ (V : Type) (r : OrderedSetRuntime V) m f value order ty converted,
+    r.bindingType m f = .ok ty → r.isa value ty = false → r.convert ty value = .ok converted →
+    orderedSetModule r m f value order = r.setglobal m f converted order) ∧
+  (∀ (V : Type) (r : OrderedSetRuntime V) x f value order ty err,
+    r.fieldType x f = .ok ty → r.isa value ty = false → r.convert ty value = .error err →
+    orderedSetField r x f value order = .error err) ∧
+  (∀ (V : Type) (r : OrderedSetRuntime V) m f value order ty err,
+    r.bindingType m f = .ok ty → r.isa value ty = false → r.convert ty value = .error err →
+    orderedSetModule r m f value order = .error err)
+
+theorem orderedSetContract_proven : OrderedSetContract := by
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intros; rfl
+  · intro V; rfl
+  · intro T V setfield t index value order; rfl
+  · intro V r x f value order err h
+    simp [orderedSetField, h, bind, Except.bind]
+  · intro V r m f value order err h
+    simp [orderedSetModule, h, bind, Except.bind]
+  · intro V r x f value order ty ht hi
+    simp [orderedSetField, ht, hi, bind, Except.bind, pure, Except.pure]
+  · intro V r m f value order ty ht hi
+    simp [orderedSetModule, ht, hi, bind, Except.bind, pure, Except.pure]
+  · intro V r x f value order ty converted ht hi hc
+    simp [orderedSetField, ht, hi, hc, bind, Except.bind, pure, Except.pure]
+  · intro V r m f value order ty converted ht hi hc
+    simp [orderedSetModule, ht, hi, hc, bind, Except.bind, pure, Except.pure]
+  · intro V r x f value order ty err ht hi hc
+    simp [orderedSetField, ht, hi, hc, bind, Except.bind]
+  · intro V r m f value order ty err ht hi hc
+    simp [orderedSetModule, ht, hi, hc, bind, Except.bind]
+
+/-- `modifyproperty!` forwards the object, field, operator, value, and order
+without conversion to the matching Core operation
+(`base/Base_compiler.jl:97-100,120-123`). -/
+def modifyFieldProperty {O V F R : Type}
+    (modify : O → Sym → F → V → Sym → R) (object : O) (field : Sym)
+    (op : F) (value : V) (order : Sym) : R :=
+  modify object field op value order
+
+def modifyGlobalProperty {O V F R : Type}
+    (modify : O → Sym → F → V → Sym → R) (moduleObj : O) (field : Sym)
+    (op : F) (value : V) (order : Sym) : R :=
+  modify moduleObj field op value order
+
+def modifyFieldPropertyDefault {O V F R : Type}
+    (modify : O → Sym → F → V → Sym → R) (object : O) (field : Sym)
+    (op : F) (value : V) : R :=
+  modifyFieldProperty modify object field op value "not_atomic"
+
+def modifyGlobalPropertyDefault {O V F R : Type}
+    (modify : O → Sym → F → V → Sym → R) (object : O) (field : Sym)
+    (op : F) (value : V) : R :=
+  modifyGlobalProperty modify object field op value "not_atomic"
+
+def ModifyPropertyContract : Prop :=
+  (∀ (O V F R : Type) (modify : O → Sym → F → V → Sym → R) object field op value order,
+    modifyFieldProperty modify object field op value order = modify object field op value order) ∧
+  (∀ (O V F R : Type) (modify : O → Sym → F → V → Sym → R) object field op value order,
+    modifyGlobalProperty modify object field op value order = modify object field op value order) ∧
+  (∀ (O V F R : Type) (modify : O → Sym → F → V → Sym → R) object field op value,
+    modifyFieldPropertyDefault modify object field op value = modify object field op value "not_atomic") ∧
+  (∀ (O V F R : Type) (modify : O → Sym → F → V → Sym → R) object field op value,
+    modifyGlobalPropertyDefault modify object field op value = modify object field op value "not_atomic")
+
+theorem modifyPropertyContract_proven : ModifyPropertyContract := by
+  simp [ModifyPropertyContract, modifyFieldProperty, modifyGlobalProperty,
+    modifyFieldPropertyDefault, modifyGlobalPropertyDefault]
+
 /-- Convert `v` to `ty` unless it already is one (`v isa ty ? v : convert(ty, v)`). -/
 def convertTo {V : Type} (r : Rt' V) (ty : String) (v : V) : Rt V :=
   if r.isa v ty then .ok v else r.convert ty v

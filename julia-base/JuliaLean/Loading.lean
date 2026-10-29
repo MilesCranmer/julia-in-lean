@@ -43,6 +43,12 @@ def coreEntries : List Entry := [
     issue := "none found (queries: base_project home prefix, workspace home directory prefix, workspace sibling homedir, base_project startswith)"
     notes := "A project below sibling home2 is treated as below home and cannot find a workspace root above home2. Same on 1.13.2." },
   -- proven
+  { id := "loading-precompiled-selection", juliaFile := loadingFile
+    juliaFns := ["__require_prelocked"]
+    statement := "Precompilation falls back on nothing, rejects an empty result or a non-string cache path, and derives an object path only when package images are enabled."
+    source := "base/loading.jl:3220-3233", status := .proven
+    prop := ``Coverage.Require.PrecompiledSelectionContract
+    thm := some ``Coverage.Require.precompiledSelectionContract_proven },
   { id := "loading-identify-precedence", juliaFile := loadingFile
     juliaFns := ["identify_package_env", "identify_package", "environment_deps_get"]
     statement := "Package identification returns the first environment match and stops at a found-context missing-dependency sentinel."

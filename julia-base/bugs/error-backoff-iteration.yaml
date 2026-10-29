@@ -1,0 +1,52 @@
+id: error-backoff-iteration
+title: "ExponentialBackOff with infinite jitter yields NaN delays"
+priority: P2
+kind: wrong-result
+area: Error
+files: [base/error.jl]
+functions: ["ExponentialBackOff(; n, first_delay, max_delay, factor, jitter)", "iterate(::ExponentialBackOff, state)"]
+summary: |
+  ExponentialBackOff accepts jitter=Inf as non-negative, but the jitter expression
+  `1.0 - jitter + rand(Float64) * 2.0 * jitter` evaluates to NaN. With finite
+  max_delay, the next iterator state stores NaN and the second call yields NaN
+  instead of a finite delay clamped to max_delay.
+likelihood: |
+  Low: callers must explicitly pass an infinite jitter value. The constructor
+  accepts it, so the failure is reachable through the public API.
+maybe_intended: ""
+reproducer: |
+  backoff = Base.ExponentialBackOff(2, 1.0, 10.0, 5.0, Inf)
+  first = iterate(backoff)
+  second = iterate(backoff, first[2])
+  @assert isnan(second[1])
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    REPRODUCED error-backoff-iteration
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    REPRODUCED error-backoff-iteration
+reproduced: {release: true, nightly: true}
+expected: |
+  With finite max_delay, every yielded delay is finite and no greater than
+  max_delay. The second delay must not be NaN.
+promised_by: |
+  ExponentialBackOff docstring, base/error.jl:283-291: it is a Float64 iterator
+  whose delays increase by factor * (1 ± jitter), and "all elements are clamped
+  to max_delay." The iterator implementation, base/error.jl:292-298, computes
+  each next delay using that jitter interval and clamps it to max_delay.
+cause: |
+  The constructor validates jitter by checking only that it is non-negative, so
+  Inf passes. In base/error.jl:296, `1.0 - jitter + rand(Float64) * 2.0 * jitter`
+  combines negative and positive infinity, producing NaN. The following `min`
+  with finite max_delay preserves NaN, which becomes the state returned by the
+  first iteration and the value yielded by the second.
+possible_fix: |
+  Reject non-finite jitter values in the constructor, or define an explicit
+  finite delay for infinite jitter before evaluating the interval expression.
+duplicates:
+  issues: []
+  queries: ["ExponentialBackOff Inf jitter NaN", "ExponentialBackOff in:title", "jitter backoff in:title"]
+lean:
+  property: JuliaLean.Proofs.base.error.backoffIterationSpec
+  theorem: JuliaLean.Proofs.base.error.backoffIteration_refuted

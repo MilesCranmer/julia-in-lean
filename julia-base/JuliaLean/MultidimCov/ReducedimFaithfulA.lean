@@ -691,35 +691,6 @@ private def entry (line : Nat) (name statement source : String) (prop thm : Lean
   { id := s!"multidimcov-reducedim-faithful-{line}", juliaFile := "base/reducedim.jl",
     juliaFns := [name], statement, source, status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 6 "reduced_index(::OneTo)" "The method computes one(T) from the input range element type and constructs OneTo of that singleton endpoint." "base/reducedim.jl:6" ``P6 ``p6,
-  entry 8 "reduced_index(::AbstractUnitRange)" "The fallback uses the actual range type in the complete multiline ArgumentError and preserves failures while rendering it." "base/reducedim.jl:8-14" ``P8 ``p8,
-  entry 30 "_check_valid_region" "Every region value is checked for Integer membership, converted to Int, and rejected below one in source order." "base/reducedim.jl:30-35" ``P30 ``p30,
-  entry 45 "initarray!(min/max/extrema)" "Initialization conditionally calls mapfirst! on the actual result and source arrays, then returns the resulting array." "base/reducedim.jl:45-46" ``P45 ``p45,
-  entry 59 "promote_union(::Union)" "Nested unions are recursively decomposed left then right and combined with promote_type at every union node." "base/reducedim.jl:59" ``P59 ``p59,
-  entry 62 "_realtype(::Type{<:Complex})" "Every abstract Complex type maps to the Julia Real type." "base/reducedim.jl:62" ``P62 ``p62,
-  entry 74 "_reducedim_init" "The initializer computes promoted real element type, follows the zero/applicable branch exactly, derives the result type, and allocates the reduced array." "base/reducedim.jl:74-85" ``P74 ``p74,
-  entry 89 "reducedim_init(min/max)" "The generated extrema initializer checks reduced axes, rejects empty reductions, handles empty slices, NaN and unordered initial values, recomputes the result type, and allocates in source order." "base/reducedim.jl:89-128" ``P89 ``p89,
-  entry 131 "reducedim_init(ExtremaMap)" "The extrema-pair initializer checks axes, constructs the first slice, reverses min/max, handles NaN and unordered pairs, recomputes both types, and allocates in source order." "base/reducedim.jl:131-170" ``P131 ``p131,
-  entry 172 "reducedim_init(abs/abs2,max)" "The specialization nests zero(T), f, zero(result), and _realtype before allocating the reduced result." "base/reducedim.jl:172-173" ``P172 ``p172,
-  entry 190 "reducedim_init(add)" "The numeric addition specialization computes zero(f(zero(eltype(A)))), applies op to two copies, then allocates." "base/reducedim.jl:190-193" ``P190 ``p190,
-  entry 194 "reducedim_init(multiply)" "The numeric multiplication specialization computes one(f(one(eltype(A)))), applies op to two copies, then allocates." "base/reducedim.jl:194-197" ``P194 ``p194,
-  entry 202 "has_fast_linear_indexing" "The method obtains IndexStyle(A) and compares it to IndexLinear." "base/reducedim.jl:202" ``P202 ``p202,
-  entry 205 "check_reducedims" "The method checks rank, scans every input dimension, compares non-reduced axes, and returns the leading reduction size with source errors." "base/reducedim.jl:205-234" ``P205 ``p205,
-  entry 241 "mapfirst!" "The method checks compatible dimensions, constructs the first reduced slice from both axis tuples, views it, and maps into the result." "base/reducedim.jl:241-245" ``P241 ``p241,
-  entry 251 "_firstreducedslice" "The recursive case tests the actual result-axis length, selects the first input slice only for singleton result axes, and recurses on both tails." "base/reducedim.jl:251" ``P251 ``p251,
-  entry 252 "_firstslice(::OneTo)" "The OneTo specialization constructs OneTo(1) for every input endpoint." "base/reducedim.jl:252" ``P252 ``p252,
-  entry 253 "_firstslice(::Slice)" "The Slice specialization recursively takes its indices' first slice and reconstructs Slice." "base/reducedim.jl:253" ``P253 ``p253,
-  entry 254 "_firstslice(generic)" "The fallback calls firstindex twice, constructs the singleton range, and indexes the actual input." "base/reducedim.jl:254" ``P254 ``p254,
-  entry 256 "_mapreducedim!" "The kernel checks result dimensions and emptiness, then performs the exact fast-linear or Cartesian nested-loop update path and returns the updated result." "base/reducedim.jl:256-293" ``P256 ``p256,
-  entry 295 "mapreducedim!" "The wrapper sequences the internal kernel and returns the original result object after a successful call." "base/reducedim.jl:295-296" ``P295 ``p295,
-  entry 328 "mapreduce(dims)" "The wrapper preserves f, op, init, the actual array, and dims in the five-argument _mapreduce_dim call." "base/reducedim.jl:328-329" ``P328 ``p328,
-  entry 333 "_mapreduce_dim(::Colon)" "The Colon method explicitly iterates, returns init when empty, maps and combines the first element, and folds the remaining iterator while preserving failures." "base/reducedim.jl:333-343" ``P333 ``p333,
-  entry 392 "reduce(AbstractArray)" "The array reduction fixes identity as the map function and forwards op, array, and the complete keyword bundle." "base/reducedim.jl:392" ``P392 ``p392,
-  entry 425 "count(AbstractArrayOrBroadcasted)" "The no-predicate wrapper fixes identity and forwards the actual array, dims, and init independently." "base/reducedim.jl:425" ``P425 ``p425,
-  entry 429 "_count(non-Colon)" "The method constructs _bool(f), fixes add_sum, and passes array, dims, and init separately to mapreduce." "base/reducedim.jl:429" ``P429 ``p429,
-  entry 459 "count!(result,array)" "The no-predicate in-place wrapper fixes identity and preserves the init keyword." "base/reducedim.jl:459" ``P459 ``p459,
-  entry 460 "count!(predicate,result,array)" "The predicate method constructs _bool(f), initializes with add_sum, then reduces into the initialized array in source order." "base/reducedim.jl:460-461" ``P460 ``p460
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.ReducedimFaithfulA

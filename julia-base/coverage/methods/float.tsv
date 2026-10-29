@@ -1,206 +1,206 @@
 file	line	endline	name	signature	status	entry	note
-base/float.jl	100	100	reinterpret	reinterpret(::Type{Unsigned}, x::Float64)	modelled	floatintcov-float-l100	
-base/float.jl	101	101	reinterpret	reinterpret(::Type{Unsigned}, x::Float32)	modelled	floatintcov-float-l101	
-base/float.jl	102	102	reinterpret	reinterpret(::Type{Unsigned}, x::Float16)	modelled	floatintcov-float-l102	
-base/float.jl	103	103	reinterpret	reinterpret(::Type{Signed}, x::Float64)	modelled	floatintcov-float-l103	
-base/float.jl	104	104	reinterpret	reinterpret(::Type{Signed}, x::Float32)	modelled	floatintcov-float-l104	
-base/float.jl	105	105	reinterpret	reinterpret(::Type{Signed}, x::Float16)	modelled	floatintcov-float-l105	
-base/float.jl	107	107	sign_mask	sign_mask(::Type{Float64})	modelled	floatintcov-float-l107	
-base/float.jl	108	108	exponent_mask	exponent_mask(::Type{Float64})	modelled	floatintcov-float-l108	
-base/float.jl	109	109	exponent_one	exponent_one(::Type{Float64})	modelled	floatintcov-float-l109	
-base/float.jl	110	110	exponent_half	exponent_half(::Type{Float64})	modelled	floatintcov-float-l110	
-base/float.jl	111	111	significand_mask	significand_mask(::Type{Float64})	modelled	floatintcov-float-l111	
-base/float.jl	113	113	sign_mask	sign_mask(::Type{Float32})	modelled	floatintcov-float-l113	
-base/float.jl	114	114	exponent_mask	exponent_mask(::Type{Float32})	modelled	floatintcov-float-l114	
-base/float.jl	115	115	exponent_one	exponent_one(::Type{Float32})	modelled	floatintcov-float-l115	
-base/float.jl	116	116	exponent_half	exponent_half(::Type{Float32})	modelled	floatintcov-float-l116	
-base/float.jl	117	117	significand_mask	significand_mask(::Type{Float32})	modelled	floatintcov-float-l117	
-base/float.jl	119	119	sign_mask	sign_mask(::Type{Float16})	modelled	floatintcov-float-l119	
-base/float.jl	120	120	exponent_mask	exponent_mask(::Type{Float16})	modelled	floatintcov-float-l120	
-base/float.jl	121	121	exponent_one	exponent_one(::Type{Float16})	modelled	floatintcov-float-l121	
-base/float.jl	122	122	exponent_half	exponent_half(::Type{Float16})	modelled	floatintcov-float-l122	
-base/float.jl	123	123	significand_mask	significand_mask(::Type{Float16})	modelled	floatintcov-float-l123	
-base/float.jl	125	125	mantissa	mantissa(x::T) where {T}	modelled	floatintcov-float-l125	
-base/float.jl	131	131	significand_bits	significand_bits(::Type{$T})	modelled	floatintcov-float-l131	
-base/float.jl	132	132	exponent_bits	exponent_bits(::Type{$T})	modelled	floatintcov-float-l132	
-base/float.jl	133	133	exponent_bias	exponent_bias(::Type{$T})	modelled	floatintcov-float-l133	
-base/float.jl	135	135	exponent_max	exponent_max(::Type{$T})	modelled	floatintcov-float-l135	
-base/float.jl	137	137	exponent_raw_max	exponent_raw_max(::Type{$T})	modelled	floatintcov-float-l137	
+base/float.jl	100	100	reinterpret	reinterpret(::Type{Unsigned}, x::Float64)	modelled	float-bit-layout-invariants	
+base/float.jl	101	101	reinterpret	reinterpret(::Type{Unsigned}, x::Float32)	modelled	float-bit-layout-invariants	
+base/float.jl	102	102	reinterpret	reinterpret(::Type{Unsigned}, x::Float16)	modelled	float-bit-layout-invariants	
+base/float.jl	103	103	reinterpret	reinterpret(::Type{Signed}, x::Float64)	modelled	float-bit-layout-invariants	
+base/float.jl	104	104	reinterpret	reinterpret(::Type{Signed}, x::Float32)	modelled	float-bit-layout-invariants	
+base/float.jl	105	105	reinterpret	reinterpret(::Type{Signed}, x::Float16)	modelled	float-bit-layout-invariants	
+base/float.jl	107	107	sign_mask	sign_mask(::Type{Float64})	modelled	float-bit-layout-invariants	
+base/float.jl	108	108	exponent_mask	exponent_mask(::Type{Float64})	modelled	float-bit-layout-invariants	
+base/float.jl	109	109	exponent_one	exponent_one(::Type{Float64})	modelled	float-bit-layout-invariants	
+base/float.jl	110	110	exponent_half	exponent_half(::Type{Float64})	modelled	float-bit-layout-invariants	
+base/float.jl	111	111	significand_mask	significand_mask(::Type{Float64})	modelled	float-bit-layout-invariants	
+base/float.jl	113	113	sign_mask	sign_mask(::Type{Float32})	modelled	float-bit-layout-invariants	
+base/float.jl	114	114	exponent_mask	exponent_mask(::Type{Float32})	modelled	float-bit-layout-invariants	
+base/float.jl	115	115	exponent_one	exponent_one(::Type{Float32})	modelled	float-bit-layout-invariants	
+base/float.jl	116	116	exponent_half	exponent_half(::Type{Float32})	modelled	float-bit-layout-invariants	
+base/float.jl	117	117	significand_mask	significand_mask(::Type{Float32})	modelled	float-bit-layout-invariants	
+base/float.jl	119	119	sign_mask	sign_mask(::Type{Float16})	modelled	float-bit-layout-invariants	
+base/float.jl	120	120	exponent_mask	exponent_mask(::Type{Float16})	modelled	float-bit-layout-invariants	
+base/float.jl	121	121	exponent_one	exponent_one(::Type{Float16})	modelled	float-bit-layout-invariants	
+base/float.jl	122	122	exponent_half	exponent_half(::Type{Float16})	modelled	float-bit-layout-invariants	
+base/float.jl	123	123	significand_mask	significand_mask(::Type{Float16})	modelled	float-bit-layout-invariants	
+base/float.jl	125	125	mantissa	mantissa(x::T) where {T}	modelled	float-bit-layout-invariants	
+base/float.jl	131	131	significand_bits	significand_bits(::Type{$T})	todo		generated-loop: T in (Float16, Float32, Float64)
+base/float.jl	132	132	exponent_bits	exponent_bits(::Type{$T})	todo		generated-loop: T in (Float16, Float32, Float64)
+base/float.jl	133	133	exponent_bias	exponent_bias(::Type{$T})	todo		generated-loop: T in (Float16, Float32, Float64)
+base/float.jl	135	135	exponent_max	exponent_max(::Type{$T})	todo		generated-loop: T in (Float16, Float32, Float64)
+base/float.jl	137	137	exponent_raw_max	exponent_raw_max(::Type{$T})	todo		generated-loop: T in (Float16, Float32, Float64)
 base/float.jl	154	154	exponent_max	exponent_max	excluded		no-behaviour: declares the generic function without a method body.
 base/float.jl	162	162	exponent_raw_max	exponent_raw_max	excluded		no-behaviour: declares the generic function without a method body.
-base/float.jl	167	167	ieee754_exponent_min	ieee754_exponent_min(::Type{T}) where {T<:IEEEFloat}	modelled	floatintcov-float-l167	
-base/float.jl	169	169	exponent_min	exponent_min(T::Union{Type{Float16},Type{Float32},Type{Float64}})	modelled	floatintcov-float-l169	
-base/float.jl	171	181	ieee754_representation	ieee754_representation( ::Type{F}, sign_bit::Bool, exponent_field::Integer, significand_field::Integer ) where {F<:IEEEFloat}	modelled	floatintcov-float-l171	
-base/float.jl	184	188	ieee754_representation	ieee754_representation( ::Type{F}, sign_bit::Bool, ::Val{:omega} ) where {F<:IEEEFloat}	modelled	floatintcov-float-l184	
-base/float.jl	191	195	ieee754_representation	ieee754_representation( ::Type{F}, sign_bit::Bool, significand_field::Integer, ::Val{:nan} ) where {F<:IEEEFloat}	modelled	floatintcov-float-l191	
-base/float.jl	198	202	ieee754_representation	ieee754_representation( ::Type{F}, sign_bit::Bool, ::Val{:nan} ) where {F<:IEEEFloat}	modelled	floatintcov-float-l198	
-base/float.jl	205	209	ieee754_representation	ieee754_representation( ::Type{F}, sign_bit::Bool, ::Val{:inf} ) where {F<:IEEEFloat}	modelled	floatintcov-float-l205	
-base/float.jl	212	216	ieee754_representation	ieee754_representation( ::Type{F}, sign_bit::Bool, significand_field::Integer, ::Val{:subnormal} ) where {F<:IEEEFloat}	modelled	floatintcov-float-l212	
-base/float.jl	219	223	ieee754_representation	ieee754_representation( ::Type{F}, sign_bit::Bool, ::Val{:zero} ) where {F<:IEEEFloat}	modelled	floatintcov-float-l219	
-base/float.jl	235	235	uabs	uabs(x::Integer)	modelled	floatintcov-float-l235	
-base/float.jl	236	236	uabs	uabs(x::BitSigned)	modelled	floatintcov-float-l236	
-base/float.jl	241	241	Float16	Float16(x::Integer)	modelled	floatintcov-float-l241	
-base/float.jl	246	246	(::Type{$t1})	(::Type{$t1})(x::($st))	modelled	floatintcov-float-l246	
-base/float.jl	247	247	promote_rule	promote_rule(::Type{$t1}, ::Type{$st})	modelled	floatintcov-float-l247	
-base/float.jl	252	252	(::Type{$t1})	(::Type{$t1})(x::($ut))	modelled	floatintcov-float-l252	
-base/float.jl	253	253	promote_rule	promote_rule(::Type{$t1}, ::Type{$ut})	modelled	floatintcov-float-l253	
-base/float.jl	258	258	promote_rule	promote_rule(::Type{Float64}, ::Type{UInt128})	modelled	floatintcov-float-l258	
-base/float.jl	259	259	promote_rule	promote_rule(::Type{Float64}, ::Type{Int128})	modelled	floatintcov-float-l259	
-base/float.jl	260	260	promote_rule	promote_rule(::Type{Float32}, ::Type{UInt128})	modelled	floatintcov-float-l260	
-base/float.jl	261	261	promote_rule	promote_rule(::Type{Float32}, ::Type{Int128})	modelled	floatintcov-float-l261	
-base/float.jl	262	262	promote_rule	promote_rule(::Type{Float16}, ::Type{UInt128})	modelled	floatintcov-float-l262	
-base/float.jl	263	263	promote_rule	promote_rule(::Type{Float16}, ::Type{Int128})	modelled	floatintcov-float-l263	
-base/float.jl	265	283	Float64	Float64(x::UInt128)	modelled	floatintcov-float-l265	
-base/float.jl	285	305	Float64	Float64(x::Int128)	modelled	floatintcov-float-l285	
-base/float.jl	307	319	Float32	Float32(x::UInt128)	modelled	floatintcov-float-l307	
-base/float.jl	321	335	Float32	Float32(x::Int128)	modelled	floatintcov-float-l321	
-base/float.jl	338	338	Float16	Float16(x::UInt128)	modelled	floatintcov-float-l338	
-base/float.jl	339	339	Float16	Float16(x::Int128)	modelled	floatintcov-float-l339	
-base/float.jl	341	341	Float16	Float16(x::Float32)	modelled	floatintcov-float-l341	
-base/float.jl	342	342	Float16	Float16(x::Float64)	modelled	floatintcov-float-l342	
-base/float.jl	343	343	Float32	Float32(x::Float64)	modelled	floatintcov-float-l343	
-base/float.jl	345	345	Float32	Float32(x::Float16)	modelled	floatintcov-float-l345	
-base/float.jl	346	346	Float64	Float64(x::Float32)	modelled	floatintcov-float-l346	
-base/float.jl	347	347	Float64	Float64(x::Float16)	modelled	floatintcov-float-l347	
-base/float.jl	350	350	AbstractFloat	AbstractFloat(x::Union{Bool, BitInteger})	modelled	floatintcov-float-l350	
-base/float.jl	352	352	Bool	Bool(x::Float16)	modelled	floatintcov-float-l352	
-base/float.jl	367	367	float	float(x)	modelled	floatintcov-float-l367	
-base/float.jl	384	384	float	float(::Type{T}) where {T<:Number}	modelled	floatintcov-float-l384	
-base/float.jl	385	385	float	float(::Type{T}) where {T<:AbstractFloat}	modelled	floatintcov-float-l385	
-base/float.jl	386	386	float	float(::Type{Union{}})	modelled	floatintcov-float-l386	
-base/float.jl	387	387	float	float(::Type{Union{}}, slurp...)	modelled	floatintcov-float-l387	
+base/float.jl	167	167	ieee754_exponent_min	ieee754_exponent_min(::Type{T}) where {T<:IEEEFloat}	modelled	float-bit-layout-invariants	
+base/float.jl	169	169	exponent_min	exponent_min(T::Union{Type{Float16},Type{Float32},Type{Float64}})	modelled	float-bit-layout-invariants	
+base/float.jl	171	181	ieee754_representation	ieee754_representation( ::Type{F}, sign_bit::Bool, exponent_field::Integer, significand_field::Integer ) where {F<:IEEEFloat}	modelled	float-ieee754-representation-spec	
+base/float.jl	184	188	ieee754_representation	ieee754_representation( ::Type{F}, sign_bit::Bool, ::Val{:omega} ) where {F<:IEEEFloat}	modelled	float-ieee754-representation-spec	
+base/float.jl	191	195	ieee754_representation	ieee754_representation( ::Type{F}, sign_bit::Bool, significand_field::Integer, ::Val{:nan} ) where {F<:IEEEFloat}	modelled	float-ieee754-representation-spec	
+base/float.jl	198	202	ieee754_representation	ieee754_representation( ::Type{F}, sign_bit::Bool, ::Val{:nan} ) where {F<:IEEEFloat}	modelled	float-ieee754-representation-spec	
+base/float.jl	205	209	ieee754_representation	ieee754_representation( ::Type{F}, sign_bit::Bool, ::Val{:inf} ) where {F<:IEEEFloat}	modelled	float-ieee754-representation-spec	
+base/float.jl	212	216	ieee754_representation	ieee754_representation( ::Type{F}, sign_bit::Bool, significand_field::Integer, ::Val{:subnormal} ) where {F<:IEEEFloat}	modelled	float-ieee754-representation-spec	
+base/float.jl	219	223	ieee754_representation	ieee754_representation( ::Type{F}, sign_bit::Bool, ::Val{:zero} ) where {F<:IEEEFloat}	modelled	float-ieee754-representation-spec	
+base/float.jl	235	235	uabs	uabs(x::Integer)	modelled	intarith-division-uabs-typemin	
+base/float.jl	236	236	uabs	uabs(x::BitSigned)	modelled	intarith-division-uabs-typemin	
+base/float.jl	241	241	Float16	Float16(x::Integer)	modelled	float-small-integer-exact	
+base/float.jl	246	246	(::Type{$t1})	(::Type{$t1})(x::($st))	todo		generated-loop: t1 in (Float16, Float32, Float64); st in (Int8, Int16, Int32, Int64)
+base/float.jl	247	247	promote_rule	promote_rule(::Type{$t1}, ::Type{$st})	todo		generated-loop: t1 in (Float16, Float32, Float64); st in (Int8, Int16, Int32, Int64)
+base/float.jl	252	252	(::Type{$t1})	(::Type{$t1})(x::($ut))	todo		generated-loop: t1 in (Float16, Float32, Float64); ut in (Bool, UInt8, UInt16, UInt32, UInt64)
+base/float.jl	253	253	promote_rule	promote_rule(::Type{$t1}, ::Type{$ut})	todo		generated-loop: t1 in (Float16, Float32, Float64); ut in (Bool, UInt8, UInt16, UInt32, UInt64)
+base/float.jl	258	258	promote_rule	promote_rule(::Type{Float64}, ::Type{UInt128})	modelled	float-widen-convert-roundtrip	
+base/float.jl	259	259	promote_rule	promote_rule(::Type{Float64}, ::Type{Int128})	modelled	float-widen-convert-roundtrip	
+base/float.jl	260	260	promote_rule	promote_rule(::Type{Float32}, ::Type{UInt128})	modelled	float-widen-convert-roundtrip	
+base/float.jl	261	261	promote_rule	promote_rule(::Type{Float32}, ::Type{Int128})	modelled	float-widen-convert-roundtrip	
+base/float.jl	262	262	promote_rule	promote_rule(::Type{Float16}, ::Type{UInt128})	modelled	float-widen-convert-roundtrip	
+base/float.jl	263	263	promote_rule	promote_rule(::Type{Float16}, ::Type{Int128})	modelled	float-widen-convert-roundtrip	
+base/float.jl	265	283	Float64	Float64(x::UInt128)	modelled	float-widen-convert-roundtrip	
+base/float.jl	285	305	Float64	Float64(x::Int128)	modelled	float-widen-convert-roundtrip	
+base/float.jl	307	319	Float32	Float32(x::UInt128)	modelled	float-widen-convert-roundtrip	
+base/float.jl	321	335	Float32	Float32(x::Int128)	modelled	float-widen-convert-roundtrip	
+base/float.jl	338	338	Float16	Float16(x::UInt128)	modelled	float-widen-convert-roundtrip	
+base/float.jl	339	339	Float16	Float16(x::Int128)	modelled	float-widen-convert-roundtrip	
+base/float.jl	341	341	Float16	Float16(x::Float32)	modelled	float-widen-convert-roundtrip	
+base/float.jl	342	342	Float16	Float16(x::Float64)	modelled	float-widen-convert-roundtrip	
+base/float.jl	343	343	Float32	Float32(x::Float64)	modelled	float-widen-convert-roundtrip	
+base/float.jl	345	345	Float32	Float32(x::Float16)	modelled	float-widen-convert-roundtrip	
+base/float.jl	346	346	Float64	Float64(x::Float32)	modelled	float-widen-convert-roundtrip	
+base/float.jl	347	347	Float64	Float64(x::Float16)	modelled	float-widen-convert-roundtrip	
+base/float.jl	350	350	AbstractFloat	AbstractFloat(x::Union{Bool, BitInteger})	modelled	float-small-integer-exact	
+base/float.jl	352	352	Bool	Bool(x::Float16)	modelled	float-widen-convert-roundtrip	
+base/float.jl	367	367	float	float(x)	modelled	float-widen-convert-roundtrip	
+base/float.jl	384	384	float	float(::Type{T}) where {T<:Number}	modelled	float-widen-convert-roundtrip	
+base/float.jl	385	385	float	float(::Type{T}) where {T<:AbstractFloat}	modelled	float-widen-convert-roundtrip	
+base/float.jl	386	386	float	float(::Type{Union{}})	modelled	float-widen-convert-roundtrip	
+base/float.jl	387	387	float	float(::Type{Union{}}, slurp...)	modelled	float-widen-convert-roundtrip	
 base/float.jl	406	406	unsafe_trunc	unsafe_trunc	excluded		no-behaviour: declares the generic function without a method body.
-base/float.jl	410	410	unsafe_trunc	unsafe_trunc(::Type{$Ti}, x::IEEEFloat)	modelled	floatintcov-float-l410	
-base/float.jl	415	415	unsafe_trunc	unsafe_trunc(::Type{$Ti}, x::IEEEFloat)	modelled	floatintcov-float-l415	
-base/float.jl	419	430	unsafe_trunc	unsafe_trunc(::Type{UInt128}, x::Float64)	modelled	floatintcov-float-l419	
-base/float.jl	431	433	unsafe_trunc	unsafe_trunc(::Type{Int128}, x::Float64)	modelled	floatintcov-float-l431	
-base/float.jl	435	444	unsafe_trunc	unsafe_trunc(::Type{UInt128}, x::Float32)	modelled	floatintcov-float-l435	
-base/float.jl	445	447	unsafe_trunc	unsafe_trunc(::Type{Int128}, x::Float32)	modelled	floatintcov-float-l445	
-base/float.jl	449	449	unsafe_trunc	unsafe_trunc(::Type{UInt128}, x::Float16)	modelled	floatintcov-float-l449	
-base/float.jl	450	450	unsafe_trunc	unsafe_trunc(::Type{Int128}, x::Float16)	modelled	floatintcov-float-l450	
-base/float.jl	454	454	round	round(::Type{Signed}, x::IEEEFloat, r::RoundingMode)	modelled	floatintcov-float-l454	
-base/float.jl	455	455	round	round(::Type{Unsigned}, x::IEEEFloat, r::RoundingMode)	modelled	floatintcov-float-l455	
-base/float.jl	456	456	round	round(::Type{Integer}, x::IEEEFloat, r::RoundingMode)	modelled	floatintcov-float-l456	
-base/float.jl	458	458	round	round(x::IEEEFloat, ::RoundingMode{:ToZero})	modelled	floatintcov-float-l458	
-base/float.jl	459	459	round	round(x::IEEEFloat, ::RoundingMode{:Down})	modelled	floatintcov-float-l459	
-base/float.jl	460	460	round	round(x::IEEEFloat, ::RoundingMode{:Up})	modelled	floatintcov-float-l460	
-base/float.jl	461	461	round	round(x::IEEEFloat, ::RoundingMode{:Nearest})	modelled	floatintcov-float-l461	
-base/float.jl	463	463	rounds_up	rounds_up(x, ::RoundingMode{:Down})	modelled	floatintcov-float-l463	
-base/float.jl	464	464	rounds_up	rounds_up(x, ::RoundingMode{:Up})	modelled	floatintcov-float-l464	
-base/float.jl	465	465	rounds_up	rounds_up(x, ::RoundingMode{:ToZero})	modelled	floatintcov-float-l465	
-base/float.jl	466	466	rounds_up	rounds_up(x, ::RoundingMode{:FromZero})	modelled	floatintcov-float-l466	
-base/float.jl	467	474	_round_convert	_round_convert(::Type{T}, x_integer, x, r::Union{RoundingMode{:ToZero}, RoundingMode{:FromZero}, RoundingMode{:Up}, RoundingMode{:Down}}) where {T<:AbstractFloat}	modelled	floatintcov-float-l467	
-base/float.jl	477	477	promote_rule	promote_rule(::Type{Float32}, ::Type{Float16})	modelled	floatintcov-float-l477	
-base/float.jl	478	478	promote_rule	promote_rule(::Type{Float64}, ::Type{Float16})	modelled	floatintcov-float-l478	
-base/float.jl	479	479	promote_rule	promote_rule(::Type{Float64}, ::Type{Float32})	modelled	floatintcov-float-l479	
-base/float.jl	481	481	widen	widen(::Type{Float16})	modelled	floatintcov-float-l481	
-base/float.jl	482	482	widen	widen(::Type{Float32})	modelled	floatintcov-float-l482	
-base/float.jl	485	485	-	-(x::IEEEFloat)	modelled	floatintcov-float-l485	
-base/float.jl	487	487	+	+(x::T, y::T) where {T<:IEEEFloat}	modelled	floatintcov-float-l487	
-base/float.jl	488	488	-	-(x::T, y::T) where {T<:IEEEFloat}	modelled	floatintcov-float-l488	
-base/float.jl	489	489	*	*(x::T, y::T) where {T<:IEEEFloat}	modelled	floatintcov-float-l489	
-base/float.jl	490	490	/	/(x::T, y::T) where {T<:IEEEFloat}	modelled	floatintcov-float-l490	
-base/float.jl	492	492	muladd	muladd(x::T, y::T, z::T) where {T<:IEEEFloat}	modelled	floatintcov-float-l492	
-base/float.jl	498	500	unbiased_exponent	unbiased_exponent(x::T) where {T<:IEEEFloat}	modelled	floatintcov-float-l498	
-base/float.jl	502	506	explicit_mantissa_noinfnan	explicit_mantissa_noinfnan(x::T) where {T<:IEEEFloat}	modelled	floatintcov-float-l502	
-base/float.jl	508	522	_to_float	_to_float(number::U, ep) where {U<:Unsigned}	modelled	floatintcov-float-l508	
-base/float.jl	524	588	rem_internal	rem_internal(x::T, y::T) where {T<:IEEEFloat}	modelled	floatintcov-float-l524	
-base/float.jl	590	598	rem	rem(x::T, y::T) where {T<:IEEEFloat}	modelled	floatintcov-float-l590	
-base/float.jl	600	612	mod	mod(x::T, y::T) where T<:AbstractFloat	modelled	floatintcov-float-l600	
-base/float.jl	615	615	==	==(x::T, y::T) where {T<:IEEEFloat}	modelled	floatintcov-float-l615	
-base/float.jl	616	616	<	<( x::T, y::T) where {T<:IEEEFloat}	modelled	floatintcov-float-l616	
-base/float.jl	617	617	<=	<=(x::T, y::T) where {T<:IEEEFloat}	modelled	floatintcov-float-l617	
-base/float.jl	619	619	isequal	isequal(x::T, y::T) where {T<:IEEEFloat}	modelled	floatintcov-float-l619	
-base/float.jl	622	627	_fpint	_fpint(x)	modelled	floatintcov-float-l622	
-base/float.jl	629	634	isless	isless(a::T, b::T) where T<:IEEEFloat	modelled	floatintcov-float-l629	
-base/float.jl	652	655	==	==(x::$Tf, y::$Ti)	modelled	floatintcov-float-l652	
-base/float.jl	656	656	==	==(y::$Ti, x::$Tf)	modelled	floatintcov-float-l656	
-base/float.jl	658	661	<	<(x::$Ti, y::$Tf)	modelled	floatintcov-float-l658	
-base/float.jl	662	665	<=	<=(x::$Ti, y::$Tf)	modelled	floatintcov-float-l662	
-base/float.jl	667	670	<	<(x::$Tf, y::$Ti)	modelled	floatintcov-float-l667	
-base/float.jl	671	674	<=	<=(x::$Tf, y::$Ti)	modelled	floatintcov-float-l671	
-base/float.jl	680	680	$op	($op)(x::Float16, y::Union{Int128,UInt128,Int64,UInt64})	modelled	floatintcov-float-l680	
-base/float.jl	681	681	$op	($op)(x::Union{Int128,UInt128,Int64,UInt64}, y::Float16)	modelled	floatintcov-float-l681	
-base/float.jl	683	683	$op	($op)(x::Union{Float16,Float32}, y::Union{Int32,UInt32})	modelled	floatintcov-float-l683	
-base/float.jl	684	684	$op	($op)(x::Union{Int32,UInt32}, y::Union{Float16,Float32})	modelled	floatintcov-float-l684	
-base/float.jl	686	686	$op	($op)(x::Float16, y::Union{Int16,UInt16})	modelled	floatintcov-float-l686	
-base/float.jl	687	687	$op	($op)(x::Union{Int16,UInt16}, y::Float16)	modelled	floatintcov-float-l687	
-base/float.jl	692	692	abs	abs(x::IEEEFloat)	modelled	floatintcov-float-l692	
-base/float.jl	702	702	isnan	isnan(x::AbstractFloat)	modelled	floatintcov-float-l702	
-base/float.jl	703	703	isnan	isnan(x::Number)	modelled	floatintcov-float-l703	
-base/float.jl	705	705	isfinite	isfinite(x::AbstractFloat)	modelled	floatintcov-float-l705	
-base/float.jl	706	706	isfinite	isfinite(x::Real)	modelled	floatintcov-float-l706	
-base/float.jl	707	707	isfinite	isfinite(x::Integer)	modelled	floatintcov-float-l707	
-base/float.jl	716	716	isinf	isinf(x::Real)	modelled	floatintcov-float-l716	
-base/float.jl	717	717	isinf	isinf(x::IEEEFloat)	modelled	floatintcov-float-l717	
-base/float.jl	745	745	decompose	decompose(x::Integer)	modelled	floatintcov-float-l745	
-base/float.jl	747	756	decompose	decompose(x::Float16)::NTuple{3,Int}	modelled	floatintcov-float-l747	
-base/float.jl	758	767	decompose	decompose(x::Float32)::NTuple{3,Int}	modelled	floatintcov-float-l758	
-base/float.jl	769	778	decompose	decompose(x::Float64)::Tuple{Int64, Int, Int}	modelled	floatintcov-float-l769	
+base/float.jl	410	410	unsafe_trunc	unsafe_trunc(::Type{$Ti}, x::IEEEFloat)	todo		generated-loop: Ti in (Int8, Int16, Int32, Int64)
+base/float.jl	415	415	unsafe_trunc	unsafe_trunc(::Type{$Ti}, x::IEEEFloat)	todo		generated-loop: Ti in (UInt8, UInt16, UInt32, UInt64)
+base/float.jl	419	430	unsafe_trunc	unsafe_trunc(::Type{UInt128}, x::Float64)	modelled	floatfuncs-trunc-int-exact	
+base/float.jl	431	433	unsafe_trunc	unsafe_trunc(::Type{Int128}, x::Float64)	modelled	floatfuncs-trunc-int-exact	
+base/float.jl	435	444	unsafe_trunc	unsafe_trunc(::Type{UInt128}, x::Float32)	modelled	floatfuncs-trunc-int-exact	
+base/float.jl	445	447	unsafe_trunc	unsafe_trunc(::Type{Int128}, x::Float32)	modelled	floatfuncs-trunc-int-exact	
+base/float.jl	449	449	unsafe_trunc	unsafe_trunc(::Type{UInt128}, x::Float16)	modelled	floatfuncs-trunc-int-exact	
+base/float.jl	450	450	unsafe_trunc	unsafe_trunc(::Type{Int128}, x::Float16)	modelled	floatfuncs-trunc-int-exact	
+base/float.jl	454	454	round	round(::Type{Signed}, x::IEEEFloat, r::RoundingMode)	modelled	floatfuncs-trunc-int-exact	
+base/float.jl	455	455	round	round(::Type{Unsigned}, x::IEEEFloat, r::RoundingMode)	modelled	floatfuncs-trunc-int-exact	
+base/float.jl	456	456	round	round(::Type{Integer}, x::IEEEFloat, r::RoundingMode)	modelled	floatfuncs-trunc-int-exact	
+base/float.jl	458	458	round	round(x::IEEEFloat, ::RoundingMode{:ToZero})	modelled	float-round-llvm-and-convert	
+base/float.jl	459	459	round	round(x::IEEEFloat, ::RoundingMode{:Down})	modelled	float-round-llvm-and-convert	
+base/float.jl	460	460	round	round(x::IEEEFloat, ::RoundingMode{:Up})	modelled	float-round-llvm-and-convert	
+base/float.jl	461	461	round	round(x::IEEEFloat, ::RoundingMode{:Nearest})	modelled	float-round-llvm-and-convert	
+base/float.jl	463	463	rounds_up	rounds_up(x, ::RoundingMode{:Down})	modelled	float-round-llvm-and-convert	
+base/float.jl	464	464	rounds_up	rounds_up(x, ::RoundingMode{:Up})	modelled	float-round-llvm-and-convert	
+base/float.jl	465	465	rounds_up	rounds_up(x, ::RoundingMode{:ToZero})	modelled	float-round-llvm-and-convert	
+base/float.jl	466	466	rounds_up	rounds_up(x, ::RoundingMode{:FromZero})	modelled	float-round-llvm-and-convert	
+base/float.jl	467	474	_round_convert	_round_convert(::Type{T}, x_integer, x, r::Union{RoundingMode{:ToZero}, RoundingMode{:FromZero}, RoundingMode{:Up}, RoundingMode{:Down}}) where {T<:AbstractFloat}	modelled	float-round-llvm-and-convert	
+base/float.jl	477	477	promote_rule	promote_rule(::Type{Float32}, ::Type{Float16})	modelled	float-widen-convert-roundtrip	
+base/float.jl	478	478	promote_rule	promote_rule(::Type{Float64}, ::Type{Float16})	modelled	float-widen-convert-roundtrip	
+base/float.jl	479	479	promote_rule	promote_rule(::Type{Float64}, ::Type{Float32})	modelled	float-widen-convert-roundtrip	
+base/float.jl	481	481	widen	widen(::Type{Float16})	modelled	float-widen-convert-roundtrip	
+base/float.jl	482	482	widen	widen(::Type{Float32})	modelled	float-widen-convert-roundtrip	
+base/float.jl	485	485	-	-(x::IEEEFloat)	modelled	float-widen-convert-roundtrip	
+base/float.jl	487	487	+	+(x::T, y::T) where {T<:IEEEFloat}	modelled	float-arithmetic-and-nan-propagation	
+base/float.jl	488	488	-	-(x::T, y::T) where {T<:IEEEFloat}	modelled	float-arithmetic-and-nan-propagation	
+base/float.jl	489	489	*	*(x::T, y::T) where {T<:IEEEFloat}	modelled	float-arithmetic-and-nan-propagation	
+base/float.jl	490	490	/	/(x::T, y::T) where {T<:IEEEFloat}	modelled	float-arithmetic-and-nan-propagation	
+base/float.jl	492	492	muladd	muladd(x::T, y::T, z::T) where {T<:IEEEFloat}	modelled	float-arithmetic-and-nan-propagation	
+base/float.jl	498	500	unbiased_exponent	unbiased_exponent(x::T) where {T<:IEEEFloat}	modelled	float-fields-and-rem-mod-spec	
+base/float.jl	502	506	explicit_mantissa_noinfnan	explicit_mantissa_noinfnan(x::T) where {T<:IEEEFloat}	modelled	float-fields-and-rem-mod-spec	
+base/float.jl	508	522	_to_float	_to_float(number::U, ep) where {U<:Unsigned}	modelled	float-fields-and-rem-mod-spec	
+base/float.jl	524	588	rem_internal	rem_internal(x::T, y::T) where {T<:IEEEFloat}	modelled	float-fields-and-rem-mod-spec	
+base/float.jl	590	598	rem	rem(x::T, y::T) where {T<:IEEEFloat}	modelled	float-fields-and-rem-mod-spec	
+base/float.jl	600	612	mod	mod(x::T, y::T) where T<:AbstractFloat	modelled	float-fields-and-rem-mod-spec	
+base/float.jl	615	615	==	==(x::T, y::T) where {T<:IEEEFloat}	modelled	float-ieee-eq-lt-le	
+base/float.jl	616	616	<	<( x::T, y::T) where {T<:IEEEFloat}	modelled	float-ieee-eq-lt-le	
+base/float.jl	617	617	<=	<=(x::T, y::T) where {T<:IEEEFloat}	modelled	float-ieee-eq-lt-le	
+base/float.jl	619	619	isequal	isequal(x::T, y::T) where {T<:IEEEFloat}	modelled	float-isless-partition	
+base/float.jl	622	627	_fpint	_fpint(x)	modelled	float-isless-partition	
+base/float.jl	629	634	isless	isless(a::T, b::T) where T<:IEEEFloat	modelled	float-isless-partition	
+base/float.jl	652	655	==	==(x::$Tf, y::$Ti)	todo		generated-loop: Ti in (Int64,UInt64,Int128,UInt128); Tf in (Float32,Float64)
+base/float.jl	656	656	==	==(y::$Ti, x::$Tf)	todo		generated-loop: Ti in (Int64,UInt64,Int128,UInt128); Tf in (Float32,Float64)
+base/float.jl	658	661	<	<(x::$Ti, y::$Tf)	todo		generated-loop: Ti in (Int64,UInt64,Int128,UInt128); Tf in (Float32,Float64)
+base/float.jl	662	665	<=	<=(x::$Ti, y::$Tf)	todo		generated-loop: Ti in (Int64,UInt64,Int128,UInt128); Tf in (Float32,Float64)
+base/float.jl	667	670	<	<(x::$Tf, y::$Ti)	todo		generated-loop: Ti in (Int64,UInt64,Int128,UInt128); Tf in (Float32,Float64)
+base/float.jl	671	674	<=	<=(x::$Tf, y::$Ti)	todo		generated-loop: Ti in (Int64,UInt64,Int128,UInt128); Tf in (Float32,Float64)
+base/float.jl	680	680	$op	($op)(x::Float16, y::Union{Int128,UInt128,Int64,UInt64})	todo		generated-loop: op in (:(==), :<, :<=)
+base/float.jl	681	681	$op	($op)(x::Union{Int128,UInt128,Int64,UInt64}, y::Float16)	todo		generated-loop: op in (:(==), :<, :<=)
+base/float.jl	683	683	$op	($op)(x::Union{Float16,Float32}, y::Union{Int32,UInt32})	todo		generated-loop: op in (:(==), :<, :<=)
+base/float.jl	684	684	$op	($op)(x::Union{Int32,UInt32}, y::Union{Float16,Float32})	todo		generated-loop: op in (:(==), :<, :<=)
+base/float.jl	686	686	$op	($op)(x::Float16, y::Union{Int16,UInt16})	todo		generated-loop: op in (:(==), :<, :<=)
+base/float.jl	687	687	$op	($op)(x::Union{Int16,UInt16}, y::Float16)	todo		generated-loop: op in (:(==), :<, :<=)
+base/float.jl	692	692	abs	abs(x::IEEEFloat)	modelled	float-ieee-eq-lt-le	
+base/float.jl	702	702	isnan	isnan(x::AbstractFloat)	modelled	float-classification-and-decompose	
+base/float.jl	703	703	isnan	isnan(x::Number)	modelled	float-classification-and-decompose	
+base/float.jl	705	705	isfinite	isfinite(x::AbstractFloat)	modelled	float-classification-and-decompose	
+base/float.jl	706	706	isfinite	isfinite(x::Real)	modelled	float-classification-and-decompose	
+base/float.jl	707	707	isfinite	isfinite(x::Integer)	modelled	float-classification-and-decompose	
+base/float.jl	716	716	isinf	isinf(x::Real)	modelled	float-classification-and-decompose	
+base/float.jl	717	717	isinf	isinf(x::IEEEFloat)	modelled	float-classification-and-decompose	
+base/float.jl	745	745	decompose	decompose(x::Integer)	modelled	float-classification-and-decompose	
+base/float.jl	747	756	decompose	decompose(x::Float16)::NTuple{3,Int}	modelled	float-classification-and-decompose	
+base/float.jl	758	767	decompose	decompose(x::Float32)::NTuple{3,Int}	modelled	float-classification-and-decompose	
+base/float.jl	769	778	decompose	decompose(x::Float64)::Tuple{Int64, Int, Int}	modelled	float-classification-and-decompose	
 base/float.jl	795	795	precision	precision	excluded		no-behaviour: declares the generic function without a method body.
-base/float.jl	797	797	_precision_with_base_2	_precision_with_base_2(::Type{Float16})	modelled	floatintcov-float-l797	
-base/float.jl	798	798	_precision_with_base_2	_precision_with_base_2(::Type{Float32})	modelled	floatintcov-float-l798	
-base/float.jl	799	799	_precision_with_base_2	_precision_with_base_2(::Type{Float64})	modelled	floatintcov-float-l799	
-base/float.jl	800	804	_precision	_precision(x, base::Integer)	modelled	floatintcov-float-l800	
-base/float.jl	805	805	precision	precision(::Type{T}; base::Integer=2) where {T<:AbstractFloat}	modelled	floatintcov-float-l805	
-base/float.jl	806	806	precision	precision(::T; base::Integer=2) where {T<:AbstractFloat}	modelled	floatintcov-float-l806	
-base/float.jl	807	807	precision	precision(::Type{Union{}}, slurp...; kwargs...)	modelled	floatintcov-float-l807	
-base/float.jl	810	845	_nextfloat	_nextfloat(f::IEEEFloat, dneg::Bool, da::Integer)	modelled	floatintcov-float-l810	
-base/float.jl	853	853	nextfloat	nextfloat(f::AbstractFloat, d::Integer)	modelled	floatintcov-float-l853	
-base/float.jl	863	863	nextfloat	nextfloat(x::AbstractFloat)	modelled	floatintcov-float-l863	
-base/float.jl	871	871	prevfloat	prevfloat(x::AbstractFloat, d::Integer)	modelled	floatintcov-float-l871	
-base/float.jl	879	879	prevfloat	prevfloat(x::AbstractFloat)	modelled	floatintcov-float-l879	
-base/float.jl	888	894	round	round(::Type{$Ti},x::$Tf,::RoundingMode{:ToZero})	modelled	floatintcov-float-l888	
-base/float.jl	895	904	(::Type{$Ti})	(::Type{$Ti})(x::$Tf)	modelled	floatintcov-float-l895	
-base/float.jl	914	920	round	round(::Type{$Ti},x::$Tf,::RoundingMode{:ToZero})	modelled	floatintcov-float-l914	
-base/float.jl	921	927	(::Type{$Ti})	(::Type{$Ti})(x::$Tf)	modelled	floatintcov-float-l921	
-base/float.jl	953	956	issubnormal	issubnormal(x::T) where {T<:IEEEFloat}	modelled	floatintcov-float-l953	
-base/float.jl	958	958	ispow2	ispow2(x::AbstractFloat)	modelled	floatintcov-float-l958	
-base/float.jl	959	959	iseven	iseven(x::AbstractFloat)	modelled	floatintcov-float-l959	
-base/float.jl	960	960	isodd	isodd(x::AbstractFloat)	modelled	floatintcov-float-l960	
-base/float.jl	963	963	typemin	typemin(::Type{Float16})	modelled	floatintcov-float-l963	
-base/float.jl	964	964	typemax	typemax(::Type{Float16})	modelled	floatintcov-float-l964	
-base/float.jl	965	965	typemin	typemin(::Type{Float32})	modelled	floatintcov-float-l965	
-base/float.jl	966	966	typemax	typemax(::Type{Float32})	modelled	floatintcov-float-l966	
-base/float.jl	967	967	typemin	typemin(::Type{Float64})	modelled	floatintcov-float-l967	
-base/float.jl	968	968	typemax	typemax(::Type{Float64})	modelled	floatintcov-float-l968	
-base/float.jl	969	969	typemin	typemin(x::T) where {T<:Real}	modelled	floatintcov-float-l969	
-base/float.jl	970	970	typemax	typemax(x::T) where {T<:Real}	modelled	floatintcov-float-l970	
-base/float.jl	972	972	floatmin	floatmin(::Type{Float16})	modelled	floatintcov-float-l972	
-base/float.jl	973	973	floatmin	floatmin(::Type{Float32})	modelled	floatintcov-float-l973	
-base/float.jl	974	974	floatmin	floatmin(::Type{Float64})	modelled	floatintcov-float-l974	
-base/float.jl	975	975	floatmax	floatmax(::Type{Float16})	modelled	floatintcov-float-l975	
-base/float.jl	976	976	floatmax	floatmax(::Type{Float32})	modelled	floatintcov-float-l976	
-base/float.jl	977	977	floatmax	floatmax(::Type{Float64})	modelled	floatintcov-float-l977	
-base/float.jl	979	979	eps	eps(::Type{Float16})	modelled	floatintcov-float-l979	
-base/float.jl	980	980	eps	eps(::Type{Float32})	modelled	floatintcov-float-l980	
-base/float.jl	981	981	eps	eps(::Type{Float64})	modelled	floatintcov-float-l981	
-base/float.jl	982	982	eps	eps()	modelled	floatintcov-float-l982	
-base/float.jl	985	985	eps	eps(x::AbstractFloat)	modelled	floatintcov-float-l985	
-base/float.jl	987	995	eps	eps(x::T) where T<:IEEEFloat	modelled	floatintcov-float-l987	
-base/float.jl	996	996	eps	eps(::Type{Union{}}, slurp...)	modelled	floatintcov-float-l996	
-base/float.jl	1019	1019	floatmin	floatmin(x::T) where {T<:AbstractFloat}	modelled	floatintcov-float-l1019	
-base/float.jl	1045	1045	floatmax	floatmax(x::T) where {T<:AbstractFloat}	modelled	floatintcov-float-l1045	
-base/float.jl	1047	1047	floatmin	floatmin()	modelled	floatintcov-float-l1047	
-base/float.jl	1048	1048	floatmax	floatmax()	modelled	floatintcov-float-l1048	
-base/float.jl	1049	1049	floatmin	floatmin(::Type{Union{}}, slurp...)	modelled	floatintcov-float-l1049	
-base/float.jl	1050	1050	floatmax	floatmax(::Type{Union{}}, slurp...)	modelled	floatintcov-float-l1050	
-base/float.jl	1133	1133	bswap	bswap(x::IEEEFloat)	modelled	floatintcov-float-l1133	
-base/float.jl	1136	1136	uinttype	uinttype(::Type{Float64})	modelled	floatintcov-float-l1136	
-base/float.jl	1137	1137	uinttype	uinttype(::Type{Float32})	modelled	floatintcov-float-l1137	
-base/float.jl	1138	1138	uinttype	uinttype(::Type{Float16})	modelled	floatintcov-float-l1138	
-base/float.jl	1139	1139	inttype	inttype(::Type{Float64})	modelled	floatintcov-float-l1139	
-base/float.jl	1140	1140	inttype	inttype(::Type{Float32})	modelled	floatintcov-float-l1140	
-base/float.jl	1141	1141	inttype	inttype(::Type{Float16})	modelled	floatintcov-float-l1141	
-base/float.jl	1143	1143	floattype	floattype(::Type{UInt64})	modelled	floatintcov-float-l1143	
-base/float.jl	1144	1144	floattype	floattype(::Type{UInt32})	modelled	floatintcov-float-l1144	
-base/float.jl	1145	1145	floattype	floattype(::Type{UInt16})	modelled	floatintcov-float-l1145	
-base/float.jl	1146	1146	floattype	floattype(::Type{Int64})	modelled	floatintcov-float-l1146	
-base/float.jl	1147	1147	floattype	floattype(::Type{Int32})	modelled	floatintcov-float-l1147	
-base/float.jl	1148	1148	floattype	floattype(::Type{Int16})	modelled	floatintcov-float-l1148	
-base/float.jl	1166	1166	float	float(A::AbstractArray{<:AbstractFloat})	modelled	floatintcov-float-l1166	
-base/float.jl	1168	1173	float	float(A::AbstractArray{T}) where T	modelled	floatintcov-float-l1168	
-base/float.jl	1175	1175	float	float(r::StepRange)	modelled	floatintcov-float-l1175	
-base/float.jl	1176	1176	float	float(r::UnitRange)	modelled	floatintcov-float-l1176	
-base/float.jl	1177	1178	float	float(r::StepRangeLen{T}) where {T}	modelled	floatintcov-float-l1177	
-base/float.jl	1179	1181	float	float(r::LinRange)	modelled	floatintcov-float-l1179	
+base/float.jl	797	797	_precision_with_base_2	_precision_with_base_2(::Type{Float16})	modelled	float-bounds-and-eps	
+base/float.jl	798	798	_precision_with_base_2	_precision_with_base_2(::Type{Float32})	modelled	float-bounds-and-eps	
+base/float.jl	799	799	_precision_with_base_2	_precision_with_base_2(::Type{Float64})	modelled	float-bounds-and-eps	
+base/float.jl	800	804	_precision	_precision(x, base::Integer)	modelled	float-bounds-and-eps	
+base/float.jl	805	805	precision	precision(::Type{T}; base::Integer=2) where {T<:AbstractFloat}	modelled	float-bounds-and-eps	
+base/float.jl	806	806	precision	precision(::T; base::Integer=2) where {T<:AbstractFloat}	modelled	float-bounds-and-eps	
+base/float.jl	807	807	precision	precision(::Type{Union{}}, slurp...; kwargs...)	modelled	float-bounds-and-eps	
+base/float.jl	810	845	_nextfloat	_nextfloat(f::IEEEFloat, dneg::Bool, da::Integer)	modelled	floatfuncs-nextfloat-iterate	
+base/float.jl	853	853	nextfloat	nextfloat(f::AbstractFloat, d::Integer)	modelled	floatfuncs-nextfloat-iterate	
+base/float.jl	863	863	nextfloat	nextfloat(x::AbstractFloat)	modelled	floatfuncs-nextfloat-iterate	
+base/float.jl	871	871	prevfloat	prevfloat(x::AbstractFloat, d::Integer)	modelled	floatfuncs-nextfloat-iterate	
+base/float.jl	879	879	prevfloat	prevfloat(x::AbstractFloat)	modelled	floatfuncs-nextfloat-iterate	
+base/float.jl	888	894	round	round(::Type{$Ti},x::$Tf,::RoundingMode{:ToZero})	todo		generated-loop: Ti in (Int8, Int16, Int32, Int64, Int128, UInt8, UInt16, UInt32, UInt64, UInt128); Tf in (Float16, Float32, Float64)
+base/float.jl	895	904	(::Type{$Ti})	(::Type{$Ti})(x::$Tf)	todo		generated-loop: Ti in (Int8, Int16, Int32, Int64, Int128, UInt8, UInt16, UInt32, UInt64, UInt128); Tf in (Float16, Float32, Float64)
+base/float.jl	914	920	round	round(::Type{$Ti},x::$Tf,::RoundingMode{:ToZero})	todo		generated-loop: Ti in (Int8, Int16, Int32, Int64, Int128, UInt8, UInt16, UInt32, UInt64, UInt128); Tf in (Float16, Float32, Float64)
+base/float.jl	921	927	(::Type{$Ti})	(::Type{$Ti})(x::$Tf)	todo		generated-loop: Ti in (Int8, Int16, Int32, Int64, Int128, UInt8, UInt16, UInt32, UInt64, UInt128); Tf in (Float16, Float32, Float64)
+base/float.jl	953	956	issubnormal	issubnormal(x::T) where {T<:IEEEFloat}	modelled	float-bounds-and-eps	
+base/float.jl	958	958	ispow2	ispow2(x::AbstractFloat)	modelled	float-bounds-and-eps	
+base/float.jl	959	959	iseven	iseven(x::AbstractFloat)	modelled	float-bounds-and-eps	
+base/float.jl	960	960	isodd	isodd(x::AbstractFloat)	modelled	float-bounds-and-eps	
+base/float.jl	963	963	typemin	typemin(::Type{Float16})	modelled	float-bounds-and-eps	
+base/float.jl	964	964	typemax	typemax(::Type{Float16})	modelled	float-bounds-and-eps	
+base/float.jl	965	965	typemin	typemin(::Type{Float32})	modelled	float-bounds-and-eps	
+base/float.jl	966	966	typemax	typemax(::Type{Float32})	modelled	float-bounds-and-eps	
+base/float.jl	967	967	typemin	typemin(::Type{Float64})	modelled	float-bounds-and-eps	
+base/float.jl	968	968	typemax	typemax(::Type{Float64})	modelled	float-bounds-and-eps	
+base/float.jl	969	969	typemin	typemin(x::T) where {T<:Real}	modelled	float-bounds-and-eps	
+base/float.jl	970	970	typemax	typemax(x::T) where {T<:Real}	modelled	float-bounds-and-eps	
+base/float.jl	972	972	floatmin	floatmin(::Type{Float16})	modelled	float-bounds-and-eps	
+base/float.jl	973	973	floatmin	floatmin(::Type{Float32})	modelled	float-bounds-and-eps	
+base/float.jl	974	974	floatmin	floatmin(::Type{Float64})	modelled	float-bounds-and-eps	
+base/float.jl	975	975	floatmax	floatmax(::Type{Float16})	modelled	float-bounds-and-eps	
+base/float.jl	976	976	floatmax	floatmax(::Type{Float32})	modelled	float-bounds-and-eps	
+base/float.jl	977	977	floatmax	floatmax(::Type{Float64})	modelled	float-bounds-and-eps	
+base/float.jl	979	979	eps	eps(::Type{Float16})	modelled	float-bounds-and-eps	
+base/float.jl	980	980	eps	eps(::Type{Float32})	modelled	float-bounds-and-eps	
+base/float.jl	981	981	eps	eps(::Type{Float64})	modelled	float-bounds-and-eps	
+base/float.jl	982	982	eps	eps()	modelled	float-bounds-and-eps	
+base/float.jl	985	985	eps	eps(x::AbstractFloat)	modelled	float-bounds-and-eps	
+base/float.jl	987	995	eps	eps(x::T) where T<:IEEEFloat	modelled	float-bounds-and-eps	
+base/float.jl	996	996	eps	eps(::Type{Union{}}, slurp...)	modelled	float-bounds-and-eps	
+base/float.jl	1019	1019	floatmin	floatmin(x::T) where {T<:AbstractFloat}	modelled	float-bounds-and-eps	
+base/float.jl	1045	1045	floatmax	floatmax(x::T) where {T<:AbstractFloat}	modelled	float-bounds-and-eps	
+base/float.jl	1047	1047	floatmin	floatmin()	modelled	float-bounds-and-eps	
+base/float.jl	1048	1048	floatmax	floatmax()	modelled	float-bounds-and-eps	
+base/float.jl	1049	1049	floatmin	floatmin(::Type{Union{}}, slurp...)	modelled	float-bounds-and-eps	
+base/float.jl	1050	1050	floatmax	floatmax(::Type{Union{}}, slurp...)	modelled	float-bounds-and-eps	
+base/float.jl	1133	1133	bswap	bswap(x::IEEEFloat)	modelled	float-bswap-and-collections	
+base/float.jl	1136	1136	uinttype	uinttype(::Type{Float64})	modelled	float-bit-layout-invariants	
+base/float.jl	1137	1137	uinttype	uinttype(::Type{Float32})	modelled	float-bit-layout-invariants	
+base/float.jl	1138	1138	uinttype	uinttype(::Type{Float16})	modelled	float-bit-layout-invariants	
+base/float.jl	1139	1139	inttype	inttype(::Type{Float64})	modelled	float-bit-layout-invariants	
+base/float.jl	1140	1140	inttype	inttype(::Type{Float32})	modelled	float-bit-layout-invariants	
+base/float.jl	1141	1141	inttype	inttype(::Type{Float16})	modelled	float-bit-layout-invariants	
+base/float.jl	1143	1143	floattype	floattype(::Type{UInt64})	modelled	float-bit-layout-invariants	
+base/float.jl	1144	1144	floattype	floattype(::Type{UInt32})	modelled	float-bit-layout-invariants	
+base/float.jl	1145	1145	floattype	floattype(::Type{UInt16})	modelled	float-bit-layout-invariants	
+base/float.jl	1146	1146	floattype	floattype(::Type{Int64})	modelled	float-bit-layout-invariants	
+base/float.jl	1147	1147	floattype	floattype(::Type{Int32})	modelled	float-bit-layout-invariants	
+base/float.jl	1148	1148	floattype	floattype(::Type{Int16})	modelled	float-bit-layout-invariants	
+base/float.jl	1166	1166	float	float(A::AbstractArray{<:AbstractFloat})	modelled	float-bswap-and-collections	
+base/float.jl	1168	1173	float	float(A::AbstractArray{T}) where T	modelled	float-bswap-and-collections	
+base/float.jl	1175	1175	float	float(r::StepRange)	modelled	float-bswap-and-collections	
+base/float.jl	1176	1176	float	float(r::UnitRange)	modelled	float-bswap-and-collections	
+base/float.jl	1177	1178	float	float(r::StepRangeLen{T}) where {T}	modelled	float-bswap-and-collections	
+base/float.jl	1179	1181	float	float(r::LinRange)	modelled	float-bswap-and-collections	

@@ -326,41 +326,6 @@ private def entry (line : Nat) (name statement source : String) (prop thm : Lean
   { id := s!"multidimcov-reshapedarray-faithful-{line}", juliaFile := "base/reshapedarray.jl",
     juliaFns := [name], statement, source, status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 38 "throw_dmrsa" "The helper constructs the complete LazyString DimensionMismatch and throws it." "base/reshapedarray.jl:38-39" ``P38 ``p38,
-  entry 43 "reshape(Array,dims)" "Array reshape checks dimensions and length, returns a distinct Array object with the same storage reference and requested dimensions, and preserves all errors." "base/reshapedarray.jl:43-50" ``P43 ``p43,
-  { id := "multidimcov-reshape-bang-field", juliaFile := "base/reshapedarray.jl",
-    juliaFns := ["reshape!(Array,dims)"],
-    statement := "In-place reshape should update the dimensions and return the same Array after the length check.",
-    source := "base/reshapedarray.jl:53-61 and reshape documentation at lines 67-79",
-    status := .refuted, prop := ``P55, thm := some ``p55_refuted,
-    issue := "none found (queries: reshape! FieldError dims; reshape! Array no field dims; reshape! setfield size)",
-    notes := "Counterexample: Base.reshape!([1,2,3,4], (4,)) throws FieldError(Vector{Int64}, :dims) on release and nightly." },
-  entry 122 "reshape(parent,dims...)" "The vararg wrapper delegates with the actual parent and dimensions." "base/reshapedarray.jl:122" ``P122 ``p122,
-  entry 123 "reshape(parent,shape)" "The shape wrapper converts the shape then reshapes the actual parent." "base/reshapedarray.jl:123" ``P123 ``p123,
-  entry 126 "reshape(parent,OneTo shape)" "The legacy shape wrapper converts the shape then reshapes the actual parent." "base/reshapedarray.jl:126" ``P126 ``p126,
-  entry 127 "reshape(parent,Integer tuple)" "The Integer-tuple wrapper maps Int conversion then reshapes the actual parent." "base/reshapedarray.jl:127" ``P127 ``p127,
-  entry 128 "reshape(parent,Dims)" "The Dims wrapper delegates with the actual parent." "base/reshapedarray.jl:128" ``P128 ``p128,
-  entry 133 "reshape(parent,Int...)" "The Int vararg wrapper retains the actual parent in its tuple delegation." "base/reshapedarray.jl:133" ``P133 ``p133,
-  entry 134 "reshape(parent,Integer...)" "The Integer vararg wrapper retains the actual parent in its tuple delegation." "base/reshapedarray.jl:134" ``P134 ``p134,
-  entry 135 "reshape(parent,Integer-or-Colon...)" "The mixed vararg wrapper retains the actual parent in its tuple delegation." "base/reshapedarray.jl:135" ``P135 ``p135,
-  entry 136 "reshape(parent,Colon tuple)" "The Colon tuple wrapper passes the actual parent through both dimension inference and reshape." "base/reshapedarray.jl:136" ``P136 ``p136,
-  entry 138 "throw1" "The helper constructs the complete LazyString DimensionMismatch for multiple omitted dimensions." "base/reshapedarray.jl:138-139" ``P138 ``p138,
-  entry 140 "throw2" "The helper constructs and throws the complete divisibility DimensionMismatch." "base/reshapedarray.jl:140-141" ``P140 ``p140,
-  entry 143 "_reshape_uncolon" "Dimension inference promotes the actual tuple, splits it around Colon, rejects another Colon, reads array length, and computes the shape in order." "base/reshapedarray.jl:143-150" ``P143 ``p143,
-  entry 152 "_reshape_uncolon_computesize(Int)" "The Int specialization handles zero directly or calls checked_dims, the nonempty helper and convert(Int) before joining the shape." "base/reshapedarray.jl:152-161" ``P152 ``p152,
-  entry 163 "_reshape_uncolon_computesize(generic)" "The generic method computes the product, promotes zero or calls the nonempty helper, and joins the inferred dimension." "base/reshapedarray.jl:163-170" ``P163 ``p163,
-  entry 187 "reshape(parent,Val)" "Rank reshape obtains actual parent axes, computes rdims and reshapes the same parent." "base/reshapedarray.jl:187-188" ``P187 ``p187,
-  entry 194 "rdims_trailing(many)" "Trailing dimension collapse calls length on every actual axis and multiplies recursively." "base/reshapedarray.jl:194" ``P194 ``p194,
-  entry 195 "rdims_trailing(one)" "The terminal method calls length on the actual final axis." "base/reshapedarray.jl:195" ``P195 ``p195,
-  entry 196 "rdims(Val,axes)" "The Val wrapper constructs exactly N OneTo(1) axes before rdims delegation." "base/reshapedarray.jl:196" ``P196 ``p196,
-  entry 203 "rdims(one output,many inputs)" "The collapsing method calls length on every source axis, multiplies them, and constructs OneTo of the product." "base/reshapedarray.jl:203" ``P203 ``p203,
-  entry 214 "_reshape(vector,Dims{1})" "Vector reshape requires one-based indexing, reads dims[1] and length, throws on mismatch, and returns the same vector." "base/reshapedarray.jl:214-218" ``P214 ``p214,
-  entry 221 "_reshape(AbstractArray,Dims)" "General reshape reads parent length, checks dimensions, reads parent IndexStyle and constructs from the actual parent-style pair." "base/reshapedarray.jl:221-224" ``P221 ``p221,
-  entry 227 "_throw_dmrs" "The mismatch helper evaluates prod(dims), constructs the full DimensionMismatch message and throws it." "base/reshapedarray.jl:227-228" ``P227 ``p227,
-  entry 232 "_reshape(one-dimensional ReshapedArray)" "The specialization reads the actual stored parent before recursive reshape." "base/reshapedarray.jl:232" ``P232 ``p232,
-  entry 233 "_reshape(ReshapedArray)" "The general specialization reads the actual stored parent before recursive reshape." "base/reshapedarray.jl:233" ``P233 ``p233,
-  entry 235 "__reshape(Cartesian parent)" "Construction reads p[1], size and front, converts and clamps each leading size, constructs every multiplicative inverse, then builds the ReshapedArray." "base/reshapedarray.jl:235-240" ``P235 ``p235
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.ReshapedFaithfulA

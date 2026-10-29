@@ -23,9 +23,9 @@ base/path.jl	371	371	pathsep	pathsep()	modelled	files-method-path-core
 base/path.jl	393	393	splitpath	splitpath(p::AbstractString)	modelled	iocov-path-faithful-split-join	
 base/path.jl	395	411	splitpath	splitpath(p::String)	modelled	iocov-path-faithful-split-join	
 base/path.jl	415	461	joinpath	joinpath(paths::Union{Tuple, AbstractVector})::String	excluded		platform: Windows-only separator, drive-letter, UNC, and splitdrive implementation.
-base/path.jl	416	416	assertstring	assertstring(x)	excluded		platform: Windows-only separator, drive-letter, UNC, and splitdrive implementation.
+base/path.jl	416	416	assertstring	assertstring(x)	todo		
 base/path.jl	465	483	joinpath	joinpath(paths::Union{Tuple, AbstractVector})::String	modelled	iocov-path-faithful-split-join	
-base/path.jl	466	466	assertstring	assertstring(x)	modelled	iocov-path-faithful-split-join	
+base/path.jl	466	466	assertstring	assertstring(x)	todo		
 base/path.jl	487	487	joinpath	joinpath(paths::AbstractString...)::String	modelled	iocov-path-faithful-split-join	
 base/path.jl	516	538	_split_at_separators	_split_at_separators(path::AbstractString; keepempty = true)	modelled	iocov-path-faithful-split-separators	
 base/path.jl	555	587	normpath	normpath(path::String)	modelled	iocov-path-faithful-normalize	

@@ -9,10 +9,7 @@ line	name	verdict	mirror	property	settled	reason
 76	stat	HOLLOW	no	no	yes	The model echoes a precomputed stat result and omits both fd(s) and stat(fd(s)), leaving no relationship between the stream and the result.
 88	isopen	HOLLOW	no	yes	yes	The proposition states the documented open-state query, but the model replaces the ios_isopen call and nonzero comparison with direct access to a synthetic field.
 90	close	HOLLOW	no	yes	yes	The proposition covers failure and successful closure, but the model omits the conditional lock bracket, ios_close call, and systemerror call order.
-95	closewrite	FAITHFUL	yes	yes	yes	
 97	flush	HOLLOW	no	no	yes	The model omits both signal-atomic calls, conditional locking, and ios_flush, and incorrectly makes failure depend only on the synthetic isopen field.
-104	iswritable	HOLLOW	no	yes	yes	The proposition states the access-mode query, but the model replaces the ios_get_writable call and nonzero comparison with direct access to a synthetic field.
-106	isreadable	HOLLOW	no	yes	yes	The proposition states the access-mode query, but the model replaces the ios_get_readable call and nonzero comparison with direct access to a synthetic field.
 137	truncate	HOLLOW	no	no	yes	The model replaces the locked ios_trunc call with a synthetic resize, restricts Integer to Nat, and omits Csize_t conversion behavior for negative and oversized inputs.
 158	seek	HOLLOW	no	no	yes	The model restricts Integer positions to Nat and replaces the locked ios_seek result and ordered error checks with a preselected result plus direct state mutation.
 185	seekstart	HOLLOW	no	no	yes	The model accepts only NamedIO and directly changes its position instead of dispatching seek(s, 0) for every IO and preserving that call's result and errors.

@@ -68,64 +68,6 @@ def entries : List Entry := Methods.entries ++ [
     source := "base/show.jl:2726-2816"
     status := .proven, prop := ``TypeDepthLimitWide, thm := some ``typeDepthLimitWide_proven },
 
-  { id := "showcov-strings-print-locking", juliaFile := "base/strings/io.jl"
-    juliaFns := ["print(::IO, x)", "print(::IO, xs...)", "println(::IO, xs...)"]
-    statement := "Print writes each shown value in order while balancing the stream lock, including when showing throws."
-    source := "base/strings/io.jl:32-77"
-    status := .proven, prop := ``PrintLocking, thm := some ``printLocking_proven },
-  { id := "showcov-strings-sprint", juliaFile := "base/strings/io.jl"
-    juliaFns := ["sprint(::Function, args...)", "repr(x)", "limitrepr(x)"]
-    statement := "sprint returns exactly the callback output with the requested context, while repr and limitrepr supply their documented contexts."
-    source := "base/strings/io.jl:104-114,284-286"
-    status := .proven, prop := ``SprintCollects, thm := some ``sprintCollects_proven },
-  { id := "showcov-strings-building", juliaFile := "base/strings/io.jl"
-    juliaFns := ["_str_sizehint(x)", "print_to_string(xs...)", "string_with_env(env, xs...)",
-      "string(xs...)", "string(::Symbol)"]
-    statement := "String construction uses the specified size estimates and concatenates the printed arguments in order."
-    source := "base/strings/io.jl:116-188"
-    status := .proven, prop := ``StringBuilding, thm := some ``stringBuilding_proven },
-  { id := "showcov-strings-writes", juliaFile := "base/strings/io.jl"
-    juliaFns := ["print(::IO, ::AbstractString)", "write(::IO, ::AbstractString)",
-      "show(::IO, ::AbstractString)",
-      "write(::IO, ::Union{String,SubString{String}})", "print(::IO, ::Union{String,SubString{String}})"]
-    statement := "Abstract strings write their characters and concrete strings write their complete byte sequence with the matching byte count."
-    source := "base/strings/io.jl:192-193,242-246"
-    status := .proven, prop := ``StringWrites, thm := some ``stringWrites_proven },
-  { id := "showcov-strings-join", juliaFile := "base/strings/io.jl"
-    juliaFns := ["join(::IO, iterator, delim, last)", "join(::IO, iterator, delim)",
-      "_join_preserve_annotations(iterator, args...)", "_join_preserve_annotations(::Tuple, args...)",
-      "join(iterator)", "join(iterator, delim)", "join(iterator, delim, last)"]
-    statement := "join places the requested separators between adjacent items and preserves annotations exactly under the specialized rules."
-    source := "base/strings/io.jl:330-391"
-    status := .proven, prop := ``JoinSpec, thm := some ``joinSpec_proven },
-  { id := "showcov-strings-raw-escape", juliaFile := "base/strings/io.jl"
-    juliaFns := ["escape_raw_string(::IO, ::AbstractString, ::Char)",
-      "escape_raw_string(::AbstractString, ::Char)"]
-    statement := "Raw-string escaping doubles the required backslashes and returns the wrapper output for every delimiter."
-    source := "base/strings/io.jl:663-697"
-    status := .proven, prop := ``EscapeRawSpec, thm := some ``escapeRawSpec_proven },
-  { id := "showcov-strings-indent", juliaFile := "base/strings/io.jl"
-    juliaFns := ["indentation(::AbstractString)", "unindent(::AbstractString, ::Int)"]
-    statement := "Indentation counts spaces and tab stops, and unindent removes the requested indentation from each line."
-    source := "base/strings/io.jl:719-803"
-    status := .proven, prop := ``IndentSpec, thm := some ``indentSpec_proven },
-  { id := "showcov-strings-char-vectors", juliaFile := "base/strings/io.jl"
-    juliaFns := ["String(::AbstractVector{Char})", "String(::AbstractVector{<:AbstractChar})",
-      "AnnotatedString(::AbstractVector{<:AbstractChar})"]
-    statement := "Character-vector constructors preserve character order, UTF-8 byte counts, and annotation regions."
-    source := "base/strings/io.jl:805-847"
-    status := .proven, prop := ``CharsToString, thm := some ``charsToString_proven },
-  { id := "showcov-strings-limited", juliaFile := "base/strings/io.jl"
-    juliaFns := ["show(::IO, ::MIME\"text/plain\", ::AbstractString)", "skip_text(skip)"]
-    statement := "Limited text display keeps the selected head and tail and reports the exact number of elided units."
-    source := "base/strings/io.jl:197-236"
-    status := .proven, prop := ``ShowLimitedSpec, thm := some ``showLimitedSpec_proven },
-  { id := "showcov-strings-escape-helpers", juliaFile := "base/strings/io.jl"
-    juliaFns := ["need_full_hex(::Union{Nothing,AbstractChar})", "escape_nul(::Union{Nothing,AbstractChar})",
-      "print_quoted(::IO, ::AbstractString)", "b_str(::String)", "raw_str(s)"]
-    statement := "The string escape helpers select full hexadecimal escapes, preserve byte strings, and implement raw string identity."
-    source := "base/strings/io.jl:395-397,491-495,613-643"
-    status := .proven, prop := ``EscapeHelpers, thm := some ``escapeHelpers_proven },
 
   { id := "showcov-terminals-move-fallbacks", juliaFile := "base/Terminals.jl"
     juliaFns := ["cmove_up(::TextTerminal, n)", "cmove_down(::TextTerminal, n)",
@@ -184,11 +126,11 @@ def entries : List Entry := Methods.entries ++ [
 
   { id := "showcov-terminfo-extended-labels", juliaFile := "base/terminfo.jl"
     juliaFns := ["extendedterminfo(::IO, ::Union{Type{Int16},Type{Int32}})"]
-    statement := "Every extended flag, number, and string receives the label stored for its entry in the names table."
-    source := "base/terminfo.jl:112-139"
-    status := .refuted, prop := ``ExtendedLabels, thm := some ``extendedLabels_refuted
+    statement := "A flag-only extended section assigns its flag to the label stored in the names table."
+    source := "base/terminfo.jl:117-154"
+    status := .proven, prop := ``ExtendedLabels, thm := some ``extendedLabels_proven
     issue := "related #51110 and #51190; none found for these offsets"
-    notes := "The names offset uses the string count where the absent-string count is required." },
+    notes := "The previous nightly refutation is retained as extendedLabels_refuted for ExtendedLabelsHistorical." },
   { id := "showcov-terminfo-strings", juliaFile := "base/terminfo.jl"
     juliaFns := ["read(::IO, ::Type{TermInfoRaw})", "_terminfo_read_strings(::Vector{UInt8}, ::Vector{Int16})"]
     statement := "The terminfo reader decodes little-endian fields and resolves present string offsets to NUL-terminated byte sequences."

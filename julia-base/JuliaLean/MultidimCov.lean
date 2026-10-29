@@ -10,6 +10,9 @@ import JuliaLean.MultidimCov.SubarrayReviewFix
 import JuliaLean.MultidimCov.SubarrayFaithfulA
 import JuliaLean.MultidimCov.SubarrayFaithfulB
 import JuliaLean.MultidimCov.SubarrayFaithfulC
+import JuliaLean.MultidimCov.SubarrayRepairConstruct
+import JuliaLean.MultidimCov.SubarrayRepairAccess
+import JuliaLean.MultidimCov.SubarrayRepairLayout
 import JuliaLean.MultidimCov.ReshapedFaithfulA
 import JuliaLean.MultidimCov.ReshapedFaithfulB
 import JuliaLean.MultidimCov.AbstractArrayTodo
@@ -44,6 +47,14 @@ import JuliaLean.MultidimCov.MultidimensionalUnsafeFaithful
 import JuliaLean.MultidimCov.MultidimensionalArrayAlgorithmsFaithful
 import JuliaLean.MultidimCov.MultidimensionalBitsFaithful
 import JuliaLean.MultidimCov.MultidimensionalFinalFaithful
+import JuliaLean.MultidimCov.MultidimensionalRepairA
+import JuliaLean.MultidimCov.MultidimensionalRepairB
+import JuliaLean.MultidimCov.MultidimensionalRepairC1
+import JuliaLean.MultidimCov.MultidimensionalRepairC2
+import JuliaLean.MultidimCov.MultidimensionalRepairD1
+import JuliaLean.MultidimCov.MultidimensionalRepairD2a
+import JuliaLean.MultidimCov.MultidimensionalRepairD2b
+import JuliaLean.MultidimCov.MultidimensionalRepairE
 import JuliaLean.MultidimCov.ArrayBasicsFaithful
 import JuliaLean.MultidimCov.ArrayCollectIndexFaithful
 import JuliaLean.MultidimCov.ArrayVectorFaithful
@@ -70,10 +81,24 @@ import JuliaLean.MultidimCov.ViewsReview
 import JuliaLean.MultidimCov.ViewsFaithfulFinal
 import JuliaLean.MultidimCov.ReducedimFaithfulA
 import JuliaLean.MultidimCov.ReducedimFaithfulB
+import JuliaLean.MultidimCov.ReducedimRepairShapes
+import JuliaLean.MultidimCov.ReducedimRepairInitA
+import JuliaLean.MultidimCov.ReducedimRepairInitB
+import JuliaLean.MultidimCov.ReducedimRepairKernels
+import JuliaLean.MultidimCov.ReducedimRepairCount
+import JuliaLean.MultidimCov.ReducedimRepairGenerated
+import JuliaLean.MultidimCov.ReducedimRepairFind
 import JuliaLean.MultidimCov.IndicesFaithful
+import JuliaLean.MultidimCov.IndicesRepair
 import JuliaLean.MultidimCov.AbstractArrayMathFaithful
 import JuliaLean.MultidimCov.ReinterpretFaithful
 import JuliaLean.MultidimCov.SlicesFaithfulFinal
+import JuliaLean.MultidimCov.ArrayV2Entries
+import JuliaLean.MultidimCov.ArrayV2Entries2
+import JuliaLean.MultidimCov.ArrayV2Entries3
+import JuliaLean.MultidimCov.ArrayV2Entries4
+import JuliaLean.MultidimCov.ArrayV2Entries5
+import JuliaLean.MultidimCov.SubarrayV2Entries
 import JuliaLean.Registry.Types
 
 namespace JuliaLean.MultidimCov
@@ -91,6 +116,9 @@ def entries : List Entry := reviewedEntries ++ exactBugEntries ++ sliceExactEntr
   ++ SubarrayFaithfulA.entries
   ++ SubarrayFaithfulB.entries
   ++ SubarrayFaithfulC.entries
+  ++ SubarrayRepairConstruct.entries
+  ++ SubarrayRepairAccess.entries
+  ++ SubarrayRepairLayout.entries
   ++ ReshapedFaithfulA.entries
   ++ ReshapedFaithfulB.entries
   ++ abstractArrayTodoEntries
@@ -125,6 +153,14 @@ def entries : List Entry := reviewedEntries ++ exactBugEntries ++ sliceExactEntr
   ++ MultidimensionalArrayAlgorithmsFaithful.entries
   ++ MultidimensionalBitsFaithful.entries
   ++ MultidimensionalFinalFaithful.entries
+  ++ MultidimensionalRepairA.entries
+  ++ MultidimensionalRepairB.entries
+  ++ MultidimensionalRepairC1.entries
+  ++ MultidimensionalRepairC2.entries
+  ++ MultidimensionalRepairD1.entries
+  ++ MultidimensionalRepairD2a.entries
+  ++ MultidimensionalRepairD2b.entries
+  ++ MultidimensionalRepairE.entries
   ++ ArrayBasicsFaithful.entries
   ++ ArrayCollectIndexFaithful.entries
   ++ ArrayVectorFaithful.entries
@@ -151,9 +187,23 @@ def entries : List Entry := reviewedEntries ++ exactBugEntries ++ sliceExactEntr
   ++ ViewsFaithfulFinal.entries
   ++ ReducedimFaithfulA.entries
   ++ ReducedimFaithfulB.entries
+  ++ ReducedimRepairShapes.entries
+  ++ ReducedimRepairInitA.entries
+  ++ ReducedimRepairInitB.entries
+  ++ ReducedimRepairKernels.entries
+  ++ ReducedimRepairCount.entries
+  ++ ReducedimRepairGenerated.entries
+  ++ ReducedimRepairFind.entries
   ++ IndicesFaithful.entries
+  ++ IndicesRepair.entries
   ++ AbstractArrayMathFaithful.entries
   ++ ReinterpretFaithful.entries
   ++ SlicesFaithfulFinal.entries
+  ++ ArrayV2.entries
+  ++ ArrayV2.entries2
+  ++ ArrayV2.entries3
+  ++ ArrayV2.entries4
+  ++ ArrayV2.entries5
+  ++ SubarrayV2.entries
 
 end JuliaLean.MultidimCov

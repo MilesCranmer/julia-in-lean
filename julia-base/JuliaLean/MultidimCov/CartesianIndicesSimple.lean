@@ -204,15 +204,6 @@ theorem cartesianIndicesSimpleRows : CartesianIndicesSimpleRows := by
     cartesianViewRangesExact, cartesianViewCartesianExact, cartesianEachindexExact,
     cartesianEachindexManyExact]
 
-def cartesianIndicesSimpleEntries : List Entry := [
-  { id := "multidimcov-cartesianindices-simple-exact"
-    juliaFile := "base/multidimensional.jl"
-    juliaFns := ["remaining CartesianIndices constructors, display, conversions, indexing, views, and eachindex"]
-    statement := "Each remaining basic CartesianIndices overload follows its constructor, conversion, bounds, delegation, or axes-check body for every input."
-    source := "CartesianIndices method bodies, base/multidimensional.jl:299-443"
-    status := .proven
-    prop := ``CartesianIndicesSimpleRows
-    thm := some ``cartesianIndicesSimpleRows }
-]
+def cartesianIndicesSimpleEntries : List Entry := []
 
 end JuliaLean.MultidimCov

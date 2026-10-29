@@ -285,47 +285,11 @@ def P1088 : Prop := ∀ {α : Type} (array source : ArrayState α),
   m1088 array source = m1078 array source ((List.range source.values.length).map fun n => Int.ofNat n + 1)
 theorem p1088 : P1088 := by simp [P1088, m1088]
 
-private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) : Entry :=
-  { id := s!"multidimcov-array-faithful-{line}", juliaFile := "base/array.jl", juliaFns := [name],
+private def entry (id : String) (line : Nat) (name statement : String) (prop thm : Lean.Name) : Entry :=
+  { id, juliaFile := "base/array.jl", juliaFns := [name],
     statement, source := s!"base/array.jl:{line}; collection and dense indexing source equation",
     status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 771 "collect(itr)" "Collection obtains iterator eltype and size before typed collection." ``P771 ``p771,
-  entry 773 "collect(AbstractArray)" "Array collection returns a distinct copy with identical axes and values." ``P773 ``p773,
-  entry 775 "collect_similar" "Similar collection preserves container, iterator, inferred type, and iterator size." ``P775 ``p775,
-  entry 777 "_collect(HasEltype,sized)" "Sized collection allocates requested type and shape then converts every iterator value." ``P777 ``p777,
-  entry 780 "_collect(HasEltype,unknown)" "Unknown-size collection grows a typed vector and preserves iteration order." ``P780 ``p780,
-  entry 788 "_collect_indices(())" "Zero-dimensional index collection copies every assigned value." ``P788 ``p788,
-  entry 793 "_collect_indices(OneTo axes)" "OneTo collection allocates matching axes and copies every source value." ``P793 ``p793,
-  entry 798 "_collect_indices(offset axes)" "General-axis collection allocates exact axes and copies by Cartesian iteration." ``P798 ``p798,
-  entry 805 "_iterator_upper_bound" "Upper-bound probing performs iteration and barrier checks on the actual iterator outcome." ``P805 ``p805,
-  entry 821 "default_eltype" "Default eltype folds every inferred iterator type with bottom and unknown handling." ``P821 ``p821,
-  entry 833 "collect(::Generator)" "Generator collection handles empty input or maps the first value before all remaining values." ``P833 ``p833,
-  entry 855 "_collect(EltypeUnknown,unknown)" "Unknown generator collection maps and grows every value in order." ``P855 ``p855,
-  entry 858 "_collect(EltypeUnknown,sized)" "Sized unknown-eltype collection seeds from the first mapped value and widens as needed." ``P858 ``p858,
-  entry 875 "collect_to_with_first!(AbstractArray)" "The first mapped value and every remaining value fill the destination in iterator order." ``P875 ``p875,
-  entry 881 "collect_to_with_first!(generic)" "The generic route preserves the first value and every iterator value in order." ``P881 ``p881,
-  entry 886 "setindex_widen_up_to" "Widening converts the element and writes it at the requested destination index." ``P886 ``p886,
-  entry 895 "collect_to!" "Collection threads iterator order, destination offset, conversion failures, and each write." ``P895 ``p895,
-  entry 914 "grow_to!(dest,itr)" "Growth appends every iterator value and updates the vector length." ``P914 ``p914,
-  entry 922 "push_widen" "Widening allocates the promoted element type, copies existing values, and appends the new value." ``P922 ``p922,
-  entry 935 "grow_to!(dest,itr,state)" "Stateful growth appends every remaining value in order." ``P935 ``p935,
-  entry 974 "getindex(Array,Int...)" "Cartesian dense indexing checks and linearizes every coordinate before reading storage." ``P974 ``p974,
-  entry 981 "getindex(Array,unit range)" "Range indexing checks every requested index and returns a typed vector in range order." ``P981 ``p981,
-  entry 993 "getindex(Array,Bool range)" "Logical range indexing validates mask length and returns selected values." ``P993 ``p993,
-  entry 995 "getindex(Array,Colon)" "Colon indexing returns a distinct typed copy of all assigned values." ``P995 ``p995,
-  entry 1005 "getindex(Array,AbstractRange{Int})" "Integer range indexing preserves the requested range order and source element type." ``P1005 ``p1005,
-  entry 1031 "setindex!(Array,x,Int)" "Scalar assignment converts before checked storage mutation." ``P1031 ``p1031,
-  entry 1036 "_setindex!(Array,x,Int)" "Typed scalar assignment performs checked storage mutation and returns the array." ``P1036 ``p1036,
-  entry 1042 "setindex!(Array,x,Int...)" "Cartesian assignment converts, checks and linearizes coordinates, then mutates storage." ``P1042 ``p1042,
-  entry 1047 "_setindex!(Array,x,Int...)" "Typed Cartesian assignment linearizes checked coordinates and writes storage." ``P1047 ``p1047,
-  entry 1055 "__safe_setindex!(Vector{Any})" "The Any specialization writes the exact polymorphic value at the requested slot." ``P1055 ``p1055,
-  entry 1057 "__safe_setindex!(Vector{T},x::T)" "The typed specialization writes the value without conversion." ``P1057 ``p1057,
-  entry 1059 "__safe_setindex!(Vector{T},x)" "The fallback converts before delegating to typed storage." ``P1059 ``p1059,
-  entry 1063 "setindex!(Array,X,index vector)" "Indexed assignment checks equal lengths then converts and writes each value in order." ``P1063 ``p1063,
-  entry 1078 "setindex!(Array,Array,unit range)" "Same-type range assignment copies every assigned source value to its selected destination." ``P1078 ``p1078,
-  entry 1088 "setindex!(Array,Array,Colon)" "Colon assignment copies every assigned source value across the full destination." ``P1088 ``p1088
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.ArrayCollectIndexFaithful

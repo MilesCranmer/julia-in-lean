@@ -38,6 +38,25 @@ def readN (r : Rd) (nb : Int) : R (List UInt8 × Rd) :=
   if k < 0 then .error (.inexactError "convert")
   else .ok (r.rest.take k.toNat, { r with pos := r.pos + k.toNat })
 
+/-- `_terminfo_read_bytes`, `base/terminfo.jl:72`: a short read throws EOF. -/
+def readExact (r : Rd) (nb : Nat) : R (List UInt8 × Rd) :=
+  if nb ≤ r.rest.length then
+    .ok (r.rest.take nb, { r with pos := r.pos + nb })
+  else .error .eofError
+
+/-- Negative vector dimensions fail before reading. -/
+def terminfoReadBytes (r : Rd) (nb : Int) : R (List UInt8 × Rd) :=
+  if nb < 0 then .error (.argumentError "invalid Array dimensions")
+  else readExact r nb.toNat
+
+theorem readExact_short (r : Rd) (nb : Nat) (h : r.rest.length < nb) :
+    readExact r nb = .error .eofError := by
+  simp [readExact, Nat.not_le_of_gt h]
+
+theorem readExact_length (r : Rd) (nb : Nat) (h : nb ≤ r.rest.length) :
+    (readExact r nb).map (fun result => result.1.length) = .ok nb := by
+  simp [readExact, h, Except.map, List.length_take, Nat.min_eq_left h]
+
 /-- `read(data, UInt8)`. -/
 def readU8 (r : Rd) : R (UInt8 × Rd) :=
   match r.rest with
@@ -105,6 +124,18 @@ def readString (table : List UInt8) (idx : Int) : R (Option (List UInt8)) :=
 def readStrings (table : List UInt8) (indices : List Int) : R (List (Option (List UInt8))) :=
   indices.mapM (readString table)
 
+/-- Extended capability names start after the furthest present value,
+`base/terminfo.jl:142-148`. Indices paired with absent strings are ignored. -/
+def extendedNamesOffset (indices : List Int) (strings : List (Option (List UInt8))) : Int :=
+  (indices.zip strings).foldl (fun offset (idx, str) =>
+    match str with
+    | none => offset
+    | some bytes => max offset (idx + bytes.length + 1)) 0
+
+theorem extendedNamesOffset_no_values (indices : List Int) :
+    extendedNamesOffset indices [] = 0 := by
+  simp [extendedNamesOffset]
+
 /-- Values of an extended capability. -/
 inductive Val where
   | bool (b : Bool)
@@ -132,10 +163,9 @@ def alignEven (r : Rd) (msg : String) : R Rd :=
 /-- `Dict(zip(labels, values))`: later duplicates overwrite earlier ones. -/
 def dictOfPairs (ps : List (List UInt8 × Val)) : List (List UInt8 × Val) :=
   ps.foldl (fun d (k, v) => if d.any (·.1 == k) then d.map (fun e => if e.1 == k then (k, v) else e) else d ++ [(k, v)]) []
-
-/-- `extendedterminfo(data, NumInt)`, `base/terminfo.jl:112-139`; `w` is
-`sizeof(NumInt)`. -/
-def extendedterminfo (r : Rd) (w : Nat) : R (List (List UInt8 × Val) × Rd) := do
+/-- Extended-section parser from the previous nightly, retained for its
+historical counterexample. -/
+def extendedterminfoHistorical (r : Rd) (w : Nat) : R (List (List UInt8 × Val) × Rd) := do
   let r ← (if r.pos % 2 ≠ 0 then do
       let (b, r) ← readU8 r
       if b = 0 then pure r else .error (.argumentError "Terminfo did not contain a null byte before the extended section")
@@ -158,22 +188,19 @@ def extendedterminfo (r : Rd) (w : Nat) : R (List (List UInt8 × Val) × Rd) := 
   let (tableData, r) ← readN r tableBytes
   if stringCount < 0 ∨ tableIndices.length < stringCount.toNat then .error .boundsError else
   let strings ← readStrings tableData (tableIndices.take stringCount.toNat)
-  -- `get(table_indices, string_count, 0)`: index out of `1:length` gives 0
   let lastIdx : Int := if 1 ≤ stringCount then tableIndices.getD (stringCount.toNat - 1) 0 else 0
   let lastLen : Nat := match strings.getLast? with
     | some (some s) => s.length
     | _ => 0
-  let halfoffset : Int := lastIdx + lastLen + 1
-  let labelIdx := (tableIndices.drop stringCount.toNat).map (· + halfoffset)
+  let labelIdx := (tableIndices.drop stringCount.toNat).map (· + (lastIdx + lastLen + 1))
   let labels ← readStrings tableData labelIdx
   let values : List Val := flags.map Val.bool ++ numbers.map Val.int ++
     strings.map (fun s => match s with | some s => Val.str s | none => Val.nothing)
-  -- `map(Symbol, ...)` of a `nothing` label is a `MethodError`
   let labels ← labels.mapM (fun l => match l with | some l => .ok l | none => .error (.methodError "Symbol"))
   pure (dictOfPairs (labels.zip values), r)
 
-/-- `read(data::IO, ::Type{TermInfoRaw})`, `base/terminfo.jl:71-101`. -/
-def readRaw (data : List UInt8) : R Raw := do
+/-- Raw parser from the previous nightly. -/
+def readRawHistorical (data : List UInt8) : R Raw := do
   let r : Rd := ⟨data, 0⟩
   let (magic, r) ← readU16 r
   let w : Nat ← (if magic = 0o432 then pure 2 else if magic = 0o1036 then pure 4 else
@@ -196,8 +223,80 @@ def readRaw (data : List UInt8) : R Raw := do
   let stringIndices ← reinterpretInts 2 sb
   let (table, r) ← readN r tableBytes
   let strings ← readStrings table stringIndices
+  let ext ← (if !r.eof then do let (e, _) ← extendedterminfoHistorical r w; pure (some e) else pure none)
+  pure ⟨termNames, flags, numbers, strings, ext⟩
+
+
+/-- `extendedterminfo(data, NumInt)`, `base/terminfo.jl:112-139`; `w` is
+`sizeof(NumInt)`. -/
+def extendedterminfo (r : Rd) (w : Nat) : R (List (List UInt8 × Val) × Rd) := do
+  let r ← (if r.pos % 2 ≠ 0 then do
+      let (b, r) ← readU8 r
+      if b = 0 then pure r else .error (.argumentError "Terminfo did not contain a null byte before the extended section")
+    else pure r)
+  let (flagBytes, r) ← readI16 r
+  let (numbersCount, r) ← readI16 r
+  let (stringCount, r) ← readI16 r
+  let (tableCount, r) ← readI16 r
+  let (tableBytes, r) ← readI16 r
+  if flagBytes < 0 ∨ numbersCount < 0 ∨ stringCount < 0 ∨ tableCount < 0 ∨
+      tableBytes < 0 ∨ stringCount > tableCount then
+    .error (.argumentError "Terminfo extended header contains an invalid section size") else
+  let (fb, r) ← readExact r flagBytes.toNat
+  let flags := fb.map (· == 1)
+  let r ← (if flagBytes % 2 ≠ 0 then do
+      let (b, r) ← readU8 r
+      if b = 0 then pure r else .error (.argumentError "Terminfo did not contain a null byte after the extended flag section")
+    else pure r)
+  let (nb, r) ← readExact r (numbersCount.toNat * w)
+  let numbers ← reinterpretInts w nb
+  let (ib, r) ← readExact r (tableCount.toNat * 2)
+  let tableIndices ← reinterpretInts 2 ib
+  let (tableData, r) ← readExact r tableBytes.toNat
+  let strings ← readStrings tableData (tableIndices.take stringCount.toNat)
+  let namesOffset := extendedNamesOffset tableIndices strings
+  let nameIndices := tableIndices.drop stringCount.toNat
+  if nameIndices.any (fun idx => idx < 0 ∨ idx > 32767 - namesOffset) then
+    .error (.argumentError "Terminfo extended capability name index is invalid") else
+  let labelIdx := nameIndices.map (· + namesOffset)
+  let labels ← readStrings tableData labelIdx
+  let values : List Val := flags.map Val.bool ++ numbers.map Val.int ++
+    strings.map (fun s => match s with | some s => Val.str s | none => Val.nothing)
+  -- `map(Symbol, ...)` of a `nothing` label is a `MethodError`
+  let labels ← labels.mapM (fun l => match l with | some l => .ok l | none => .error (.methodError "Symbol"))
+  pure (dictOfPairs (labels.zip values), r)
+
+/-- `read(data::IO, ::Type{TermInfoRaw})`, `base/terminfo.jl:74-106`,
+starting at the stream's current position. -/
+def readRawAt (r : Rd) : R Raw := do
+  let (magic, r) ← readU16 r
+  let w : Nat ← (if magic = 0o432 then pure 2 else if magic = 0o1036 then pure 4 else
+    .error (.argumentError "Terminfo data did not start with the magic number 0o0432 or 0o01036"))
+  let (nameBytes, r) ← readI16 r
+  let (flagBytes, r) ← readI16 r
+  let (numbersCount, r) ← readI16 r
+  let (stringCount, r) ← readI16 r
+  let (tableBytes, r) ← readI16 r
+  if nameBytes < 1 ∨ flagBytes < 0 ∨ numbersCount < 0 ∨ stringCount < 0 ∨ tableBytes < 0 then
+    .error (.argumentError "Terminfo header contains an invalid section size") else
+  let (nm, r) ← readExact r (nameBytes - 1).toNat
+  let termNames := splitBar nm
+  let (z, r) ← readU8 r
+  if z ≠ 0 then .error (.argumentError "Terminfo data did not contain a null byte after the terminal names section") else
+  let (fb, r) ← readExact r flagBytes.toNat
+  let flags := fb.map (· == 1)
+  let r ← alignEven r "Terminfo did not contain a null byte after the flag section"
+  let (nb, r) ← readExact r (numbersCount.toNat * w)
+  let numbers ← reinterpretInts w nb
+  let (sb, r) ← readExact r (stringCount.toNat * 2)
+  let stringIndices ← reinterpretInts 2 sb
+  let (table, r) ← readExact r tableBytes.toNat
+  let strings ← readStrings table stringIndices
   let ext ← (if !r.eof then do let (e, _) ← extendedterminfo r w; pure (some e) else pure none)
   pure ⟨termNames, flags, numbers, strings, ext⟩
+
+/-- Reader convenience for a stream positioned at the beginning. -/
+def readRaw (data : List UInt8) : R Raw := readRawAt ⟨data, 0⟩
 
 /-! ## `TermInfo` -/
 
@@ -329,12 +428,27 @@ def showTI (namesRepr : String) (ti : TI) : Out :=
 
 /-! ## Locating and loading -/
 
+inductive StatError where
+  | io
+  | argument
+  | eof
+  | system
+  | other
+  deriving DecidableEq, Repr
+
+/-- `_terminfo_stat_check` suppresses IO errors and propagates other exceptions. -/
+def statCheck (check : String → Except StatError Bool) (path : String) : Except StatError Bool :=
+  match check path with
+  | .ok value => .ok value
+  | .error .io => .ok false
+  | .error err => .error err
+
 /-- The environment and file system `find_terminfo_file` consults. -/
 structure Env where
   env : String → Option String
   homedir : String
-  isdir : String → Bool
-  isfile : String → Bool
+  isdir : String → Except StatError Bool
+  isfile : String → Except StatError Bool
   /-- `normpath(Sys.BINDIR, DATAROOTDIR, "julia", "terminfo")`. -/
   bundled : String
   isunix : Bool
@@ -347,15 +461,17 @@ def terminfoDirsList (s : String) : List String :=
   (s.splitOn ":").map (fun d => if d = "" then "/usr/share/terminfo" else d)
 
 /-- The directories `find_terminfo_file` searches, in order, `base/terminfo.jl:251-264`. -/
-def searchDirs (e : Env) : List String :=
-  let first := match e.env "TERMINFO" with
-    | some d => [d]
-    | none => if e.isdir (joinpath [e.homedir, ".terminfo"]) then [joinpath [e.homedir, ".terminfo"]] else []
+def searchDirs (e : Env) : Except StatError (List String) := do
+  let first ← match e.env "TERMINFO" with
+    | some d => pure [d]
+    | none => do
+      let path := joinpath [e.homedir, ".terminfo"]
+      if ← statCheck e.isdir path then pure [path] else pure []
   let fromDirs := match e.env "TERMINFO_DIRS" with
     | some s => terminfoDirsList s
     | none => []
-  first ++ fromDirs ++ [e.bundled] ++
-    (if e.isunix then ["/etc/terminfo", "/lib/terminfo", "/usr/share/terminfo"] else [])
+  pure (first ++ fromDirs ++ [e.bundled] ++
+    (if e.isunix then ["/etc/terminfo", "/lib/terminfo", "/usr/share/terminfo"] else []))
 
 /-- The three candidates tried in one directory: first character, its hex
 code, and the lowercased forms, `base/terminfo.jl:266-276`. -/
@@ -365,26 +481,34 @@ def candidates (dir chr chrcode lchr lterm term : String) : List String :=
 /-- `find_terminfo_file(term)`, `base/terminfo.jl:248-279`. `chr`, `chrcode`,
 `lower` are `string(first(term))`, `string(Int(first(term)), base=16)` and
 `lowercase`. -/
-def findTerminfoFile (e : Env) (lower : String → String) (term : String) : Option String :=
+def findTerminfoFile (e : Env) (lower : String → String) (term : String) : Except StatError (Option String) := do
   match term.toList with
-  | [] => none
+  | [] => pure none
   | c :: _ =>
+    if term.toList.any (fun ch => ch = '/' ∨ (!e.isunix ∧ ch = '\\')) then pure none else
     let chr := String.singleton c
-    let chrcode := String.ofList (Nat.toDigits 16 c.toNat)
-    let rec go : List String → Option String
-      | [] => none
-      | dir :: dirs =>
-        if e.isfile (joinpath [dir, chr, term]) then some (joinpath [dir, chr, term])
-        else if e.isfile (joinpath [dir, chrcode, term]) then some (joinpath [dir, chrcode, term])
-        else if e.isfile (joinpath [dir, lower chr, lower term]) then some (joinpath [dir, lower chr, lower term])
+    let byte := (term.toUTF8.toList.headD 0).toNat
+    let digits := Nat.toDigits 16 byte
+    let chrcode := String.ofList (if digits.length < 2 then '0' :: digits else digits)
+    let rec go : List String → Except StatError (Option String)
+      | [] => pure none
+      | dir :: dirs => do
+        let p1 := joinpath [dir, chr, term]
+        let p2 := joinpath [dir, chrcode, term]
+        let p3 := joinpath [dir, lower chr, lower term]
+        if ← statCheck e.isfile p1 then pure (some p1)
+        else if ← statCheck e.isfile p2 then pure (some p2)
+        else if ← statCheck e.isfile p3 then pure (some p3)
         else go dirs
-    go (searchDirs e)
+    go (← searchDirs e)
 
 /-- How reading a terminfo file can end: parsed, or an exception of a kind. -/
 inductive ReadResult where
   | ok (raw : Raw)
   | argumentError
   | ioError
+  | eofError
+  | systemError
   | otherError
   deriving DecidableEq, Repr
 
@@ -399,12 +523,16 @@ inductive Loaded where
 def loadTerminfo (e : Env) (lower : String → String) (readFile : String → ReadResult)
     (conv : Raw → TI) (term : String) : Loaded :=
   match findTerminfoFile e lower term with
-  | none => .info blank
-  | some file =>
+  | .error .io | .error .argument | .error .eof | .error .system => .info blank
+  | .error .other => .rethrown
+  | .ok none => .info blank
+  | .ok (some file) =>
     match readFile file with
     | .ok raw => .info (conv raw)
     | .argumentError => .info blank
     | .ioError => .info blank
+    | .eofError => .info blank
+    | .systemError => .info blank
     | .otherError => .rethrown
 
 /-! ## Colour detection -/

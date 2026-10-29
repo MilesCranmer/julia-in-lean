@@ -425,31 +425,6 @@ private def arrayMathEntry (line : Nat) (fn statement source : String)
   { id := s!"multidimcov-arraymath-line{line}", juliaFile := "base/arraymath.jl",
     juliaFns := [fn], statement, source, status := .proven, prop, thm := some thm }
 
-def arrayMathReviewEntries : List Entry := [
-  arrayMathEntry 5 "_broadcast_preserving_zero_d(f,A,B)" "The fallback returns the exact broadcast_preserving_zero_d call result." "base/arraymath.jl:5-7" ``Arraymath5Property ``arraymath5Property,
-  arrayMathEntry 12 "_broadcast_preserving_zero_d(f,::Array{T,N},...)" "The equal-rank Array overload returns map over every array argument in source order." "base/arraymath.jl:12-14" ``Arraymath12Property ``arraymath12Property,
-  arrayMathEntry 16 "_broadcast_preserving_zero_d(f,::Array,...)" "The mixed-rank Array overload selects the mapreduce size, reshapes only rank mismatches, then maps." "base/arraymath.jl:16-25" ``Arraymath16Property ``arraymath16Property,
-  arrayMathEntry 27 "_broadcast_preserving_zero_d(f,::Array,::Number)" "The array-scalar overload maps Fix2(f,B) over A." "base/arraymath.jl:27-29" ``Arraymath27Property ``arraymath27Property,
-  arrayMathEntry 31 "_broadcast_preserving_zero_d(f,::Number,::Array)" "The scalar-array overload maps Fix1(f,A) over B." "base/arraymath.jl:31-33" ``Arraymath31Property ``arraymath31Property,
-  arrayMathEntry 36 "+/-(::AbstractArray,::AbstractArray)" "Binary array addition and subtraction check promote_shape before broadcasting and preserve errors." "base/arraymath.jl:36-41" ``Arraymath36Property ``arraymath36Property,
-  arrayMathEntry 42 "+(::Array)" "Unary array plus returns the map(+,A) result." "base/arraymath.jl:42" ``Arraymath42Property ``arraymath42Property,
-  arrayMathEntry 44 "+(::Array,::Array,::Array...)" "Variadic array addition checks B and each remaining array against A in order before broadcasting." "base/arraymath.jl:44-50" ``Arraymath44Property ``arraymath44Property,
-  arrayMathEntry 54 "\\/*(::Number,::AbstractArray)" "The scalar-array arithmetic methods return their zero-dimensional-preserving broadcast result." "base/arraymath.jl:54" ``Arraymath54Property ``arraymath54Property,
-  arrayMathEntry 57 "/\\*(::AbstractArray,::Number)" "The array-scalar arithmetic methods return their zero-dimensional-preserving broadcast result." "base/arraymath.jl:57" ``Arraymath57Property ``arraymath57Property,
-  arrayMathEntry 92 "reverse(::AbstractArray;dims)" "reverse forwards its array and dimensions to _reverse." "base/arraymath.jl:92" ``Arraymath92Property ``arraymath92Property,
-  arrayMathEntry 93 "_reverse(A,dims)" "_reverse copies the array first, then calls reverse! on that copy." "base/arraymath.jl:93" ``Arraymath93Property ``arraymath93Property,
-  arrayMathEntry 103 "reverse!(::AbstractArray;dims)" "reverse! forwards its array and dimensions to _reverse!." "base/arraymath.jl:103" ``Arraymath103Property ``arraymath103Property,
-  arrayMathEntry 104 "_reverse!(::AbstractArray,::Colon)" "Colon reversal constructs every one-based dimension in rank order before dispatch." "base/arraymath.jl:104" ``Arraymath104Property ``arraymath104Property,
-  arrayMathEntry 105 "_reverse!(A,dim::Integer)" "Single-dimension reversal converts dim to Int before tuple dispatch and preserves conversion errors." "base/arraymath.jl:105" ``Arraymath105Property ``arraymath105Property,
-  arrayMathEntry 106 "_reverse!(A,dims::NTuple{M,Integer})" "Tuple reversal converts every dimension to Int in order before dispatch." "base/arraymath.jl:106" ``Arraymath106Property ``arraymath106Property,
-  arrayMathEntry 107 "_reverse!(::AbstractArray,::NTuple{M,Int})" "The reversal core checks dimensions, computes half sizes and reflected offsets, swaps, and recurses on the odd middle slice." "base/arraymath.jl:107-130" ``Arraymath107Property ``arraymath107Property,
-  arrayMathEntry 133 "_reverse!(::AbstractVector,::Tuple{Int})" "The vector ambiguity method dispatches on the tuple's first dimension." "base/arraymath.jl:133" ``Arraymath133Property ``arraymath133Property,
-  arrayMathEntry 154 "rotl90(::AbstractMatrix)" "Left rotation allocates swapped axes and performs every source indexed assignment in loop order." "base/arraymath.jl:154-163" ``Arraymath154Property ``arraymath154Property,
-  arrayMathEntry 182 "rotr90(::AbstractMatrix)" "Right rotation allocates swapped axes and performs every reflected indexed assignment in loop order." "base/arraymath.jl:182-191" ``Arraymath182Property ``arraymath182Property,
-  arrayMathEntry 209 "rot180(::AbstractMatrix)" "Half rotation allocates a similar matrix and performs every doubly reflected assignment in loop order." "base/arraymath.jl:209-218" ``Arraymath209Property ``arraymath209Property,
-  arrayMathEntry 252 "rotl90(::AbstractMatrix,::Integer)" "Counted left rotation reduces the count modulo four and selects left, half, right, or copy." "base/arraymath.jl:252-258" ``Arraymath252Property ``arraymath252Property,
-  arrayMathEntry 292 "rotr90(::AbstractMatrix,::Integer)" "Counted right rotation delegates to counted left rotation with the negated count." "base/arraymath.jl:292" ``Arraymath292Property ``arraymath292Property,
-  arrayMathEntry 317 "rot180(::AbstractMatrix,::Integer)" "Counted half rotation calls rot180 for odd counts and copy for even counts." "base/arraymath.jl:317" ``Arraymath317Property ``arraymath317Property
-]
+def arrayMathReviewEntries : List Entry := []
 
 end JuliaLean.MultidimCov

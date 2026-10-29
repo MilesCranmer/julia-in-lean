@@ -1,0 +1,54 @@
+id: stringscova-substring-empty-offset
+title: "Empty SubString discards the requested offset"
+priority: P2
+kind: wrong-result
+area: StringsCovA
+files: [base/strings/substring.jl]
+functions: ["SubString{T}(::T, ::Int, ::Int)"]
+summary: |
+  SubString("12345", 4, 3) is correctly empty but stores offset 0 instead of 3.
+  The constructor therefore discards the requested insertion position for every
+  empty range even though nonempty ranges store first - 1.
+likelihood: |
+  Empty ranges occur naturally when slicing around insertion points, but most
+  callers observe only the empty value and do not inspect its offset.
+maybe_intended: |
+  The empty value is correct, but the stored offset is observable and the
+  nonempty branch establishes the natural first - 1 invariant.
+reproducer: |
+  empty = @views "12345"[4:3]
+  println("value = ", repr(empty))
+  println("stored offset = ", empty.offset)
+  println("expected offset = 3")
+  empty.offset == 0 && println("REPRODUCED stringscova-substring-empty-offset")
+output:
+  release: |
+    value = ""
+    stored offset = 0
+    expected offset = 3
+    REPRODUCED stringscova-substring-empty-offset
+  nightly: |
+    value = ""
+    stored offset = 0
+    expected offset = 3
+    REPRODUCED stringscova-substring-empty-offset
+reproduced: {release: true, nightly: true}
+expected: |
+  An empty SubString requested at first index i stores offset i - 1, just as a
+  nonempty SubString does.
+promised_by: |
+  SubString's offset represents the parent code-unit position immediately
+  before its first index; the constructor's nonempty branch stores i - 1.
+cause: |
+  base/strings/substring.jl:77 returns SubString(s, 0, 0) for every empty range,
+  bypassing the offset computation used by the nonempty branch.
+possible_fix: |
+  Preserve first_index - 1 in the empty-range branch after applying the same
+  representability requirements as the stored offset field.
+duplicates:
+  issues:
+    - {number: 52877, state: open, relation: duplicate}
+  queries: ["Empty SubString correct offset", "SubString empty range offset"]
+lean:
+  property: JuliaLean.StringsCovA.SubstringRebuilt.EmptyOffsetProperty
+  theorem: JuliaLean.StringsCovA.SubstringRebuilt.emptyOffset_refuted

@@ -183,7 +183,7 @@ def reflectionRowEntries : List Entry := [
     prop := ``ReflectionRow966Property, thm := some ``reflectionRow966_proven },
   { id := "exprreflect-reflection-row-968", juliaFile := "base/reflection.jl"
     juliaFns := ["_which(@nospecialize(tt::Type); method_table #=::Union{Nothing,Core.MethodTable,Compiler.MethodTableView}=# =nothing, world::UInt=get_world_counter(), raise::Bool=true)"]
-    statement := "For every allowed input, `_which(@nospecialize(tt::Type); method_table #=::Union{Nothing,Core.MethodTable,Compiler.MethodTableView}=# =nothing, world::UInt=get_world_counter(), raise::Bool=true)` follows its own lookup, validation, compiler-dispatch, result-shaping, or macro body."
+    statement := "Generated-function reflection fails; a missing lookup reports failure or nothing, a MethodMatch is returned, and a wrongly typed compiler result raises TypeError."
     source := "source-body invariant; base/reflection.jl:968-979", status := .proven
     prop := ``ReflectionRow968Property, thm := some ``reflectionRow968_proven },
   { id := "exprreflect-reflection-row-990", juliaFile := "base/reflection.jl"
@@ -202,8 +202,8 @@ def reflectionRowEntries : List Entry := [
     source := "source-body invariant; base/reflection.jl:1013-1013", status := .proven
     prop := ``ReflectionRow1013Property, thm := some ``reflectionRow1013_proven },
   { id := "exprreflect-reflection-row-1020", juliaFile := "base/reflection.jl"
-    juliaFns := ["which(m::Module, s::Symbol)"]
-    statement := "For every allowed input, `which(m::Module, s::Symbol)` follows its own lookup, validation, compiler-dispatch, result-shaping, or macro body."
+    juliaFns := ["which(mdl::Module, symbol::Symbol)"]
+    statement := "A defined global binding returns its owner; an undefined global binding raises an error."
     source := "source-body invariant; base/reflection.jl:1020-1025", status := .proven
     prop := ``ReflectionRow1020Property, thm := some ``reflectionRow1020_proven },
   { id := "exprreflect-reflection-row-1036", juliaFile := "base/reflection.jl"

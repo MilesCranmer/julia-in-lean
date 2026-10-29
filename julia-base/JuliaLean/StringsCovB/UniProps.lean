@@ -71,15 +71,6 @@ theorem utf8procMapInBounds_refuted : ¬ Utf8procMapInBounds := by
   intro h
   exact h Nat tblFDFA ext0 jAb 0 (fun n c => (if n < 2 then (c.toNat : Int) else 0xfdfa, n + 1)) 0 rfl
 
-def categoryTable : Utf8proc where
-  toupper := id
-  tolower := id
-  totitle := id
-  category := fun _ => 0
-  gbStateful := fun _ _ _ => (true, 0)
-  decomposeChar := fun c _ => .ok [c]
-  combiningClass := fun _ => 0
-
 /-- `normalize(s, :NFC)` etc. pass the flags of the corresponding keyword calls
 (`normalize(s; stable=true)` with `compose`, `decompose=true`, `compat=true`), and any
 other symbol throws `ArgumentError`. -/
@@ -222,7 +213,7 @@ def IsassignedTotal : Prop := ∀ (P : Utf8proc) (x : Int), ∃ b, isassignedInt
 /-- `isassigned(-1)` throws `InexactError` from `UInt32(-1)` in `category_code`. -/
 theorem isassignedTotal_refuted : ¬ IsassignedTotal := by
   intro h
-  obtain ⟨b, hb⟩ := h categoryTable (-1)
+  obtain ⟨b, hb⟩ := h tblFDFA (-1)
   simp [isassignedInt, categoryCodeInt, bind, Except.bind] at hb
 
 /-! ## Character predicates -/

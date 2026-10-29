@@ -1,0 +1,58 @@
+id: abstractarrays-get-scattered-default
+title: "Base.get!(X, A, I::AbstractVector{Int}, default) leaves interior out-of-bounds positions unfilled"
+priority: P2
+kind: wrong-result
+area: AbstractArrays
+files: [base/abstractarray.jl]
+functions: ["get!(::AbstractArray, ::AbstractArray, ::Union{AbstractRange,AbstractVector{Int}}, default)"]
+summary: |
+  The linear-indexing get! copies A[I[k]] for the in-bounds positions k of I and
+  writes default only before the first and after the last in-bounds position.
+  An out-of-bounds index between two in-bounds ones is left with X's old value:
+  get!(fill(-1, 3), reshape([10, 20], 1, 2), [1, 5, 2], 99) returns [10, -1, 20]
+  instead of [10, 99, 20].
+likelihood: |
+  Low. Base.get! is internal and unexported. The public get(A, I::AbstractRange,
+  default) cannot hit it, because the in-bounds positions of a range are always
+  contiguous. Only direct callers of get! with an unsorted index vector are affected.
+maybe_intended: |
+  get! is an undocumented helper written for ranges. Its signature still accepts
+  any AbstractVector{Int}, and it then returns a silently wrong result.
+reproducer: |
+  Base.get!(fill(-1, 3), reshape([10, 20], 1, 2), [1, 5, 2], 99)   # [10, -1, 20]; expected [10, 99, 20]
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    A = [10 20], I = [1, 5, 2], default = 99
+    expected = [10, 99, 20]
+    actual = [10, -1, 20]
+    REPRODUCED abstractarrays-get-scattered-default
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    A = [10 20], I = [1, 5, 2], default = 99
+    expected = [10, 99, 20]
+    actual = [10, -1, 20]
+    REPRODUCED abstractarrays-get-scattered-default
+reproduced: {release: true, nightly: true}
+expected: |
+  [10, 99, 20]: every position of X whose index is out of bounds holds default.
+promised_by: |
+  get docstring, base/dict.jl:486-489: "Return the value stored for the given key,
+  or the given default value if no mapping for the key is present." The get!
+  helpers (base/abstractarray.jl:1644-1660) implement this elementwise for index
+  collections, and the RangeVecIntList method (1664-1669) fills all of X with
+  default first.
+cause: |
+  base/abstractarray.jl:1653-1660: ind = findall(in(1:length(A)), I) can be
+  non-contiguous for an unsorted I. Lines 1657-1658 fill only 1:first(ind)-1 and
+  last(ind)+1:length(X), so out-of-bounds positions between first(ind) and
+  last(ind) keep their old contents.
+possible_fix: |
+  Fill X with default before copying the in-bounds values (as the RangeVecIntList
+  method does), or fill the complement of ind.
+duplicates:
+  issues: []
+  queries: ["get! default scattered", "get! linear indexing default", "get! out of bounds default not filled", "get vector indices default", "get AbstractArray range default"]
+lean:
+  property: JuliaLean.Proofs.base.abstractarray.ScatteredDefaultValues
+  theorem: JuliaLean.Proofs.base.abstractarray.scatteredDefaultValues_refuted

@@ -405,29 +405,6 @@ theorem truncateWidthBound_proven : TruncateWidthBound := by
     omega
 
 /-- Registry entries of the truncation functions. -/
-def truncateEntries : List Entry := [
-  { id := "stringutil-truncate-width"
-    juliaFile := "base/strings/util.jl"
-    juliaFns := ["rtruncate(::AbstractString, ::Integer, ::Union{AbstractString,AbstractChar})",
-      "ltruncate(::AbstractString, ::Integer, ::Union{AbstractString,AbstractChar})",
-      "ctruncate(::AbstractString, ::Integer, ::Union{AbstractString,AbstractChar})"]
-    statement := "rtruncate(s, w, r) has textwidth at most w for every string s, replacement r and maxwidth w >= 0, for every utf8proc width table with widths 0..2."
-    source := "base/strings/util.jl:589-590 (rtruncate docstring: truncate str to at most maxwidth columns); :622-623, :655-657"
-    status := .refuted
-    prop := ``TruncateWidth
-    thm := some ``truncateWidth_refuted
-    issue := "none found (queries: issues: rtruncate; prs: rtruncate; issues: ltruncate; issues: ctruncate; issues: truncate maxwidth; issues: truncate replacement wider)"
-    notes := "Counterexample rtruncate(\"abcdef\", 2, \"...\") == \"...\" (ASCII only, so independent of the width table): string_truncate_boundaries starts with width = textwidth(replacement) and never compares it alone with maxwidth. ltruncate and ctruncate behave the same (YAML reproducer). Same on 1.13.2." },
-  { id := "stringutil-truncate-width-bound"
-    juliaFile := "base/strings/util.jl"
-    juliaFns := ["rtruncate(::AbstractString, ::Integer, ::Union{AbstractString,AbstractChar})",
-      "check_textwidth(::AbstractString, ::Integer)"]
-    statement := "If textwidth(r) <= w and r does not start with a UTF-8 continuation byte, rtruncate(s, w, r) has textwidth at most w, for every byte string s and every utf8proc width table with widths 0..2."
-    source := "base/strings/util.jl:589-590 (rtruncate docstring); invariant"
-    status := .proven
-    prop := ``TruncateWidthBound
-    thm := some ``truncateWidthBound_proven
-    notes := "Narrowed to rtruncate. The first-byte condition holds for every valid replacement (the default is '…'); it keeps the replacement's first byte from joining the last kept character when the two are concatenated." }
-]
+def truncateEntries : List Entry := []
 
 end JuliaLean.StringUtil

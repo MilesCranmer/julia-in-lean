@@ -1,14 +1,14 @@
 line	name	verdict	mirror	property	settled	reason
-17	replace_ref_begin_end!	FAITHFUL	yes	yes	yes	The Lean wrapper matches the Julia call arguments and result projection, states that invariant for all typed inputs, and is proven.
-19	replace_ref_begin_end_!	HOLLOW	no	no	yes	The nonrecursive boundaryReplace abstraction omits macro expansion, ref handling, recursive traversal, quote and escape state changes, errors, and accumulated use, while Views19Property checks only four cases.
-22	escapes	HOLLOW	no	no	yes	The registered proposition never uses viewsEscapes and instead checks four boundaryReplace cases, so it neither mirrors the escape loop nor states its quantified behavior.
-28	handle_refexpr!	HOLLOW	no	no	yes	viewsHandleRef collapses the one-index and multi-index branches, dimension arithmetic, splat scans, temporaries, escape handling, and mutation into callback variables, and its proposition only restates that abstraction.
-210	view	HOLLOW	no	no	yes	views210 replaces the AST construction, exception paths, block-tail check, view call, and final escape with opaque callbacks and output tags, and its proposition only restates that abstraction.
-235	maybeview	FAITHFUL	yes	yes	yes	The Lean function mirrors the one-line getindex delegation for all inputs and the bundled proposition is proven.
-236	maybeview	FAITHFUL	yes	yes	yes	The Lean function mirrors the one-line view delegation for all inputs and the bundled proposition is proven.
-237	maybeview	FAITHFUL	yes	yes	yes	The Lean function mirrors the scalar-index getindex delegation for all inputs and the bundled proposition is proven.
-238	maybeview	FAITHFUL	yes	yes	yes	The Lean function mirrors the zero-index getindex delegation for all inputs and the bundled proposition is proven.
-239	maybeview	FAITHFUL	yes	yes	yes	The Lean function mirrors the AbstractArray zero-index getindex delegation for all inputs and the bundled proposition is proven.
-247	_views	HOLLOW	no	no	yes	Views247Property is a tautology about rewriteViews over a custom ViewExpr type and does not model the generic identity method _views(x)=x or state that it returns its input.
-248	_views	HOLLOW	no	no	yes	rewriteViews omits the operator-assignment branch, temporary and splat logic, hygienic-scope construction, and arbitrary Expr heads, so ViewsDocumentedRewrite covers only a restricted subset of allowed expressions.
-332	views	FAITHFUL	yes	yes	yes	The Lean wrapper mirrors boundary replacement, view rewriting, and escaping in Julia source order for all typed inputs, and its proposition is proven.
+17	replace_ref_begin_end!	FAITHFUL	yes	yes	yes	The method-specific wrapper model preserves the worker call, argument order, defaults, and first-component return for all inputs.
+19	replace_ref_begin_end_!	HOLLOW	no	no	yes	The model sends the one-index reference branch through dimensioned firstindex and lastindex calls, and P19 merely restates m19's definition instead of asserting promised behavior over all Julia inputs.
+22	escapes	HOLLOW	no	no	yes	The Julia helper accepts Int and treats negative depths as an empty loop, while the Lean model and property cover Nat depths only.
+28	handle_refexpr!	HOLLOW	no	no	yes	The model omits the distinct one-index branch and treats Symbol as not being an AST node, while P28 merely restates m28's definition instead of a promised behavior.
+210	view	HOLLOW	no	no	yes	The macro model omits the module-dependent replacement semantics and inherits the incorrect reference handler, while P210 is a definitional equation over a restricted AST rather than all allowed macro inputs.
+235	maybeview	HOLLOW	yes	no	yes	The Lean body mirrors this overload, but the single proposition is an umbrella over five methods rather than a row-specific behavioral claim.
+236	maybeview	HOLLOW	yes	no	yes	The Lean body mirrors this overload, but the single proposition is an umbrella over five methods rather than a row-specific behavioral claim.
+237	maybeview	HOLLOW	yes	no	yes	The Lean body mirrors this overload, but the single proposition is an umbrella over five methods rather than a row-specific behavioral claim.
+238	maybeview	HOLLOW	yes	no	yes	The Lean body mirrors this overload, but the single proposition is an umbrella over five methods rather than a row-specific behavioral claim.
+239	maybeview	HOLLOW	yes	no	yes	The Lean body mirrors this overload, but the single proposition is an umbrella over five methods rather than a row-specific behavioral claim.
+247	_views	FAITHFUL	yes	yes	yes	The method-specific identity model and universally quantified identity property exactly state the generic leaf method's behavior.
+248	_views	HOLLOW	no	no	yes	The restricted AST model omits legal Expr argument values and differs on malformed Expr shapes, while P248 merely restates m248's definition instead of a promised all-input behavior.
+332	views	FAITHFUL	yes	yes	yes	The method-specific model and property preserve boundary replacement, view rewriting, and escaping in the source order for all inputs.

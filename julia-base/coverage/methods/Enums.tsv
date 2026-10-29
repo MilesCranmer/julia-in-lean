@@ -18,9 +18,9 @@ base/Enums.jl	79	88	membershiptest	membershiptest(expr, values)	modelled	exprref
 base/Enums.jl	91	91	Base.broadcastable	Base.broadcastable(x::Enum)	modelled	exprreflect-enums-row-91	method-specific mirror and property: exprreflect-enums-row-91
 base/Enums.jl	93	93	enum_argument_error	enum_argument_error(typename, x)	modelled	exprreflect-enums-row-93	method-specific mirror and property: exprreflect-enums-row-93
 base/Enums.jl	144	252	enum	enum(T::Union{Symbol,Expr}, syms...)	modelled	exprreflect-enums-row-144	method-specific mirror and property: exprreflect-enums-row-144
-base/Enums.jl	221	224	$(esc(typename))	$(esc(typename))(x::Integer)	modelled	exprreflect-enums-row-221	method-specific mirror and property: exprreflect-enums-row-221
-base/Enums.jl	225	225	Enums.namemap	Enums.namemap(::Type{$(esc(typename))})	modelled	exprreflect-enums-row-225	method-specific mirror and property: exprreflect-enums-row-225
-base/Enums.jl	226	226	Base.typemin	Base.typemin(x::Type{$(esc(typename))})	modelled	exprreflect-enums-row-226	method-specific mirror and property: exprreflect-enums-row-226
-base/Enums.jl	227	227	Base.typemax	Base.typemax(x::Type{$(esc(typename))})	modelled	exprreflect-enums-row-227	method-specific mirror and property: exprreflect-enums-row-227
-base/Enums.jl	233	233	Enums._enum_hash	Enums._enum_hash(x::$(esc(typename)), h::UInt)	modelled	exprreflect-enums-row-233	method-specific mirror and property: exprreflect-enums-row-233
-base/Enums.jl	236	236	Base.instances	Base.instances(::Type{$(esc(typename))})	modelled	exprreflect-enums-row-236	method-specific mirror and property: exprreflect-enums-row-236
+base/Enums.jl	221	224	$(esc(typename))	$(esc(typename))(x::Integer)	todo		generated-macro: enum
+base/Enums.jl	225	225	Enums.namemap	Enums.namemap(::Type{$(esc(typename))})	todo		generated-macro: enum
+base/Enums.jl	226	226	Base.typemin	Base.typemin(x::Type{$(esc(typename))})	todo		generated-macro: enum
+base/Enums.jl	227	227	Base.typemax	Base.typemax(x::Type{$(esc(typename))})	todo		generated-macro: enum
+base/Enums.jl	233	233	Enums._enum_hash	Enums._enum_hash(x::$(esc(typename)), h::UInt)	todo		generated-macro: enum
+base/Enums.jl	236	236	Base.instances	Base.instances(::Type{$(esc(typename))})	todo		generated-macro: enum

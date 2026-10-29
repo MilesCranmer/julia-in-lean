@@ -1,150 +1,150 @@
 file	line	endline	name	signature	status	entry	note
-base/subarray.jl	19	23	SubArray{T,N,P,I,L}	SubArray{T,N,P,I,L}(parent, indices, offset1, stride1) where {T,N,P,I,L}	modelled	multidimcov-sub-l19-inner	row-specific check-then-store model and quantified behavior; awaiting fixed-prompt review
-base/subarray.jl	26	29	SubArray	SubArray(parent::AbstractArray, indices::Tuple)	modelled	multidimcov-subarray-faithful-26	row-specific faithful source-order replacement
-base/subarray.jl	30	33	SubArray	SubArray(::IndexCartesian, parent::P, indices::I, ::NTuple{N,Any}) where {P,I,N}	modelled	multidimcov-subarray-faithful-30	row-specific faithful source-order replacement
-base/subarray.jl	34	38	SubArray	SubArray(::IndexLinear, parent::P, indices::I, ::NTuple{N,Any}) where {P,I,N}	modelled	multidimcov-subarray-faithful-34	row-specific faithful source-order replacement
-base/subarray.jl	40	44	_compute_linear_layout	_compute_linear_layout(parent, indices)	modelled	multidimcov-subarray-faithful-40	row-specific faithful source-order replacement
-base/subarray.jl	46	46	check_parent_index_match	check_parent_index_match(parent, indices)	modelled	multidimcov-sub-l46-check-wrapper	row-specific dimension-count delegation model; awaiting fixed-prompt review
-base/subarray.jl	47	47	check_parent_index_match	check_parent_index_match(parent::AbstractArray{T,N}, ::NTuple{N, Bool}) where {T,N}	modelled	multidimcov-sub-l47-check-match	row-specific successful-rank model; awaiting fixed-prompt review
-base/subarray.jl	48	49	check_parent_index_match	check_parent_index_match(parent, ::NTuple{N, Bool}) where {N}	modelled	multidimcov-sub-l48-check-mismatch	row-specific ArgumentError model; awaiting fixed-prompt review
+base/subarray.jl	19	23	SubArray{T,N,P,I,L}	SubArray{T,N,P,I,L}(parent, indices, offset1, stride1) where {T,N,P,I,L}	todo		trivial: old statement restates the method implementation
+base/subarray.jl	26	29	SubArray	SubArray(parent::AbstractArray, indices::Tuple)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	30	33	SubArray	SubArray(::IndexCartesian, parent::P, indices::I, ::NTuple{N,Any}) where {P,I,N}	todo		trivial: old statement restates the method implementation
+base/subarray.jl	34	38	SubArray	SubArray(::IndexLinear, parent::P, indices::I, ::NTuple{N,Any}) where {P,I,N}	todo		trivial: old statement restates the method implementation
+base/subarray.jl	40	44	_compute_linear_layout	_compute_linear_layout(parent, indices)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	46	46	check_parent_index_match	check_parent_index_match(parent, indices)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	47	47	check_parent_index_match	check_parent_index_match(parent::AbstractArray{T,N}, ::NTuple{N, Bool}) where {T,N}	todo		trivial: old statement restates the method implementation
+base/subarray.jl	48	49	check_parent_index_match	check_parent_index_match(parent, ::NTuple{N, Bool}) where {N}	todo		trivial: old statement restates the method implementation
 base/subarray.jl	52	52	viewindexing	viewindexing(I::Tuple{})	modelled	broadcastviews-fast-linear-view	method body covered by cited registry model
-base/subarray.jl	54	54	viewindexing	viewindexing(I::Tuple{ScalarIndex, Vararg{Any}})	modelled	multidimcov-subarray-faithful-54	row-specific faithful source-order replacement
-base/subarray.jl	56	56	viewindexing	viewindexing(I::Tuple{Slice, Slice, Vararg{Any}})	modelled	multidimcov-subarray-faithful-56	row-specific faithful source-order replacement
-base/subarray.jl	58	58	viewindexing	viewindexing(I::Tuple{Slice, AbstractUnitRange, Vararg{ScalarIndex}})	modelled	multidimcov-subarray-faithful-58	row-specific faithful source-order replacement
-base/subarray.jl	59	59	viewindexing	viewindexing(I::Tuple{Slice, Slice, Vararg{ScalarIndex}})	modelled	multidimcov-subarray-faithful-59	row-specific faithful source-order replacement
-base/subarray.jl	63	63	viewindexing	viewindexing(I::Tuple{AbstractRange{<:ScalarIndex}, Vararg{ScalarIndex}})	modelled	multidimcov-subarray-faithful-63	row-specific faithful source-order replacement
-base/subarray.jl	65	65	viewindexing	viewindexing(I::Tuple{Vararg{Any}})	modelled	multidimcov-subarray-faithful-65	row-specific faithful source-order replacement
-base/subarray.jl	67	67	viewindexing	viewindexing(I::Tuple{AbstractArray, Vararg{Any}})	modelled	multidimcov-subarray-faithful-67	row-specific faithful source-order replacement
-base/subarray.jl	70	70	size	size(V::SubArray)	modelled	multidimcov-sub-l70-size	row-specific axes then map-length model; awaiting fixed-prompt review
-base/subarray.jl	72	72	similar	similar(V::SubArray, T::Type, dims::Dims)	modelled	multidimcov-sub-l72-similar-value	row-specific parent delegation model; awaiting fixed-prompt review
-base/subarray.jl	73	73	similar	similar(::Type{TA}, dims::Dims) where {T,N,P,TA<:SubArray{T,N,P}}	modelled	multidimcov-sub-l73-similar-type	row-specific parent-type delegation model; awaiting fixed-prompt review
-base/subarray.jl	75	75	sizeof	sizeof(V::SubArray)	modelled	multidimcov-subarray-faithful-75	row-specific faithful source-order replacement
-base/subarray.jl	76	76	sizeof	sizeof(V::SubArray{<:Any,<:Any,<:Array})	modelled	multidimcov-subarray-faithful-76	row-specific faithful source-order replacement
-base/subarray.jl	78	84	Base.copy	Base.copy(V::SubArray)	modelled	multidimcov-subarray-faithful-78	row-specific faithful source-order replacement
-base/subarray.jl	86	86	parent	parent(V::SubArray)	modelled	multidimcov-subarray-faithful-86	row-specific faithful source-order replacement
-base/subarray.jl	87	87	parentindices	parentindices(V::SubArray)	modelled	multidimcov-sub-l87-parentindices	row-specific stored-indices property; awaiting fixed-prompt review
+base/subarray.jl	54	54	viewindexing	viewindexing(I::Tuple{ScalarIndex, Vararg{Any}})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	56	56	viewindexing	viewindexing(I::Tuple{Slice, Slice, Vararg{Any}})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	58	58	viewindexing	viewindexing(I::Tuple{Slice, AbstractUnitRange, Vararg{ScalarIndex}})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	59	59	viewindexing	viewindexing(I::Tuple{Slice, Slice, Vararg{ScalarIndex}})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	63	63	viewindexing	viewindexing(I::Tuple{AbstractRange{<:ScalarIndex}, Vararg{ScalarIndex}})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	65	65	viewindexing	viewindexing(I::Tuple{Vararg{Any}})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	67	67	viewindexing	viewindexing(I::Tuple{AbstractArray, Vararg{Any}})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	70	70	size	size(V::SubArray)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	72	72	similar	similar(V::SubArray, T::Type, dims::Dims)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	73	73	similar	similar(::Type{TA}, dims::Dims) where {T,N,P,TA<:SubArray{T,N,P}}	todo		trivial: old statement restates the method implementation
+base/subarray.jl	75	75	sizeof	sizeof(V::SubArray)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	76	76	sizeof	sizeof(V::SubArray{<:Any,<:Any,<:Array})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	78	84	Base.copy	Base.copy(V::SubArray)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	86	86	parent	parent(V::SubArray)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	87	87	parentindices	parentindices(V::SubArray)	todo		trivial: old statement restates the method implementation
 base/subarray.jl	107	107	parentindices	parentindices	excluded		no-behaviour: generic function declaration; it installs no method body
-base/subarray.jl	109	109	parentindices	parentindices(a::AbstractArray)	modelled	multidimcov-subarray-faithful-109	row-specific faithful source-order replacement
-base/subarray.jl	112	112	dataids	dataids(A::SubArray)	modelled	multidimcov-subarray-faithful-112	row-specific faithful source-order replacement
-base/subarray.jl	113	113	_splatmap	_splatmap(f, ::Tuple{})	modelled	multidimcov-sub-l113-splat-empty	row-specific empty result property; awaiting fixed-prompt review
-base/subarray.jl	114	114	_splatmap	_splatmap(f, t::Tuple)	modelled	multidimcov-sub-l114-splat	row-specific recursive concatenation model; awaiting fixed-prompt review
-base/subarray.jl	115	115	unaliascopy	unaliascopy(A::SubArray)	modelled	multidimcov-subarray-faithful-115	row-specific faithful source-order replacement
-base/subarray.jl	119	131	unaliascopy	unaliascopy(V::SubArray{T,N,A,I,LD}) where {T,N,A<:Array,I<:Tuple{Vararg{Union{ScalarIndex,AbstractRange{<:ScalarIndex},Array{<:Union{ScalarIndex,AbstractCartesianIndex}}}}},LD}	modelled	multidimcov-subarray-faithful-119	row-specific faithful source-order replacement
-base/subarray.jl	133	133	_trimmedshape	_trimmedshape(::ScalarIndex, rest...)	modelled	multidimcov-subarray-faithful-133	row-specific faithful source-order replacement
-base/subarray.jl	134	134	_trimmedshape	_trimmedshape(i::AbstractRange, rest...)	modelled	multidimcov-subarray-faithful-134	row-specific faithful source-order replacement
-base/subarray.jl	135	135	_trimmedshape	_trimmedshape(i::Union{UnitRange,StepRange,OneTo}, rest...)	modelled	multidimcov-s135-trimmed-range	row-specific exact mirror and quantified behavior; awaiting fixed-prompt re-review
-base/subarray.jl	136	136	_trimmedshape	_trimmedshape(i::AbstractArray{<:ScalarIndex}, rest...)	modelled	multidimcov-s136-trimmed-array	row-specific exact mirror and quantified behavior; awaiting fixed-prompt re-review
-base/subarray.jl	137	137	_trimmedshape	_trimmedshape(i::AbstractArray{<:AbstractCartesianIndex{0}}, rest...)	modelled	multidimcov-sub-l137-trim-ci0	row-specific rank-zero recursion model; awaiting fixed-prompt review
-base/subarray.jl	138	138	_trimmedshape	_trimmedshape(i::AbstractArray{<:AbstractCartesianIndex{N}}, rest...) where {N}	modelled	multidimcov-subarray-faithful-138	row-specific faithful source-order replacement
-base/subarray.jl	139	139	_trimmedshape	_trimmedshape()	modelled	multidimcov-s139-trimmed-empty	row-specific exact mirror and quantified behavior; awaiting fixed-prompt re-review
-base/subarray.jl	141	141	_trimmedpind	_trimmedpind(i, rest...)	modelled	multidimcov-subarray-faithful-141	row-specific faithful source-order replacement
-base/subarray.jl	142	142	_trimmedpind	_trimmedpind(i::AbstractRange, rest...)	modelled	multidimcov-subarray-faithful-142	row-specific faithful source-order replacement
-base/subarray.jl	143	143	_trimmedpind	_trimmedpind(i::Union{UnitRange,StepRange,OneTo}, rest...)	modelled	multidimcov-sub-l143-parent-dense	row-specific range-to-colon recursion model; awaiting fixed-prompt review
-base/subarray.jl	144	144	_trimmedpind	_trimmedpind(i::AbstractArray{<:AbstractCartesianIndex{0}}, rest...)	modelled	multidimcov-sub-l144-parent-ci0	row-specific rank-zero skip model; awaiting fixed-prompt review
-base/subarray.jl	145	145	_trimmedpind	_trimmedpind()	modelled	multidimcov-sub-l145-parent-empty	row-specific empty result property; awaiting fixed-prompt review
-base/subarray.jl	146	146	_trimmedvind	_trimmedvind(i, rest...)	modelled	multidimcov-subarray-faithful-146	row-specific faithful source-order replacement
-base/subarray.jl	147	147	_trimmedvind	_trimmedvind(i::AbstractArray{<:AbstractCartesianIndex{0}}, rest...)	modelled	multidimcov-subarray-faithful-147	row-specific faithful source-order replacement
-base/subarray.jl	148	148	_trimmedvind	_trimmedvind()	modelled	multidimcov-sub-l148-view-empty	row-specific empty result property; awaiting fixed-prompt review
-base/subarray.jl	150	150	_trimmedindex	_trimmedindex(i::ScalarIndex)	modelled	multidimcov-subarray-faithful-150	row-specific faithful source-order replacement
-base/subarray.jl	151	151	_trimmedindex	_trimmedindex(i::AbstractRange)	modelled	multidimcov-subarray-faithful-151	row-specific faithful source-order replacement
-base/subarray.jl	152	152	_trimmedindex	_trimmedindex(i::Union{UnitRange,StepRange,OneTo})	modelled	multidimcov-subarray-faithful-152	row-specific faithful source-order replacement
-base/subarray.jl	153	153	_trimmedindex	_trimmedindex(i::AbstractArray{<:ScalarIndex})	modelled	multidimcov-subarray-faithful-153	row-specific faithful source-order replacement
-base/subarray.jl	154	154	_trimmedindex	_trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{0}})	modelled	multidimcov-subarray-faithful-154	row-specific faithful source-order replacement
-base/subarray.jl	155	159	_trimmedindex	_trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{N}}) where {N}	modelled	multidimcov-subarray-faithful-155	row-specific faithful source-order replacement
-base/subarray.jl	165	165	_maybe_reshape_parent	_maybe_reshape_parent(A::AbstractArray, ::NTuple{1, Bool})	modelled	multidimcov-subarray-faithful-165	row-specific faithful source-order replacement
-base/subarray.jl	166	166	_maybe_reshape_parent	_maybe_reshape_parent(A::AbstractArray{<:Any,1}, ::NTuple{1, Bool})	modelled	multidimcov-subarray-faithful-166	row-specific faithful source-order replacement
-base/subarray.jl	167	167	_maybe_reshape_parent	_maybe_reshape_parent(A::AbstractArray{<:Any,N}, ::NTuple{N, Bool}) where {N}	modelled	multidimcov-sub-l167-reshape-identity	row-specific identity overload; awaiting fixed-prompt review
-base/subarray.jl	168	168	_maybe_reshape_parent	_maybe_reshape_parent(A::AbstractArray, ::NTuple{N, Bool}) where {N}	modelled	multidimcov-subarray-faithful-168	row-specific faithful source-order replacement
-base/subarray.jl	170	170	rm_singleton_indices	rm_singleton_indices(ndims::Tuple, J1, Js...)	modelled	multidimcov-sub-l170-remove-general	row-specific index-rank split and tuple recursion model; awaiting fixed-prompt review
-base/subarray.jl	171	171	rm_singleton_indices	rm_singleton_indices(::Tuple{}, ::ScalarIndex, Js...)	modelled	multidimcov-sub-l171-remove-scalar	row-specific trailing scalar recursion model; awaiting fixed-prompt review
-base/subarray.jl	172	172	rm_singleton_indices	rm_singleton_indices(::Tuple)	modelled	multidimcov-sub-l172-remove-empty	row-specific empty result property; awaiting fixed-prompt review
-base/subarray.jl	221	227	view	view(A::AbstractArray, I::Vararg{Any,M}) where {M}	modelled	multidimcov-subarray-faithful-221	row-specific faithful source-order replacement
-base/subarray.jl	230	233	view	view(r1::AbstractUnitRange, r2::AbstractUnitRange{<:Integer})	modelled	multidimcov-sub-l230-view-unit	row-specific getindex delegation model; awaiting fixed-prompt review
-base/subarray.jl	234	237	view	view(r1::AbstractUnitRange, r2::StepRange{<:Integer})	modelled	multidimcov-sub-l234-view-step	row-specific getindex delegation model; awaiting fixed-prompt review
-base/subarray.jl	238	241	view	view(r1::StepRange, r2::AbstractRange{<:Integer})	modelled	multidimcov-sub-l238-view-steprange	row-specific getindex delegation model; awaiting fixed-prompt review
-base/subarray.jl	242	245	view	view(r1::StepRangeLen, r2::OrdinalRange{<:Integer})	modelled	multidimcov-sub-l242-view-steprangelen	row-specific getindex delegation model; awaiting fixed-prompt review
-base/subarray.jl	246	249	view	view(r1::LinRange, r2::OrdinalRange{<:Integer})	modelled	multidimcov-sub-l246-view-linrange	row-specific getindex delegation model; awaiting fixed-prompt review
-base/subarray.jl	252	255	view	view(r1::AbstractRange, c::Colon)	modelled	multidimcov-sub-l252-view-colon	row-specific getindex delegation model; awaiting fixed-prompt review
-base/subarray.jl	257	260	unsafe_view	unsafe_view(A::AbstractArray, I::Vararg{ViewIndex,N}) where {N}	modelled	multidimcov-subarray-faithful-257	row-specific faithful source-order replacement
-base/subarray.jl	267	268	unsafe_view	unsafe_view(V::SubArray, I::Vararg{ViewIndex,N}) where {N}	modelled	multidimcov-sub-l267-unsafe-subarray	row-specific reindex-dispatch delegation model; awaiting fixed-prompt review
-base/subarray.jl	269	269	_maybe_reindex	_maybe_reindex(V, I)	modelled	multidimcov-sub-l269-maybe-wrapper	row-specific three-argument dispatch model; awaiting fixed-prompt review
-base/subarray.jl	270	271	_maybe_reindex	_maybe_reindex(V, I, ::Tuple{AbstractArray{<:AbstractCartesianIndex}, Vararg{Any}})	modelled	multidimcov-sub-l270-maybe-cartesian	row-specific nested-view fallback model; awaiting fixed-prompt review
-base/subarray.jl	273	274	_maybe_reindex	_maybe_reindex(V, I, A::Tuple{AbstractArray{<:AbstractCartesianIndex{1}}, Vararg{Any}})	modelled	multidimcov-subarray-faithful-273	row-specific faithful source-order replacement
-base/subarray.jl	275	275	_maybe_reindex	_maybe_reindex(V, I, A::Tuple{Any, Vararg{Any}})	modelled	multidimcov-subarray-faithful-275	row-specific faithful source-order replacement
-base/subarray.jl	276	280	_maybe_reindex	_maybe_reindex(V, I, ::Tuple{})	modelled	multidimcov-subarray-faithful-276	row-specific faithful source-order replacement
-base/subarray.jl	292	292	reindex	reindex(::Tuple{}, ::Tuple{})	modelled	broadcastviews-nested-view-compose	method body covered by cited registry model
-base/subarray.jl	295	296	reindex	reindex(idxs::Tuple{ScalarIndex, Vararg{Any}}, subidxs::Tuple{Vararg{Any}})	modelled	multidimcov-subarray-faithful-295	row-specific faithful source-order replacement
-base/subarray.jl	299	300	reindex	reindex(idxs::Tuple{Slice, Vararg{Any}}, subidxs::Tuple{Any, Vararg{Any}})	modelled	multidimcov-subarray-faithful-299	row-specific faithful source-order replacement
-base/subarray.jl	303	304	reindex	reindex(idxs::Tuple{AbstractVector, Vararg{Any}}, subidxs::Tuple{Any, Vararg{Any}})	modelled	multidimcov-subarray-faithful-303	row-specific faithful source-order replacement
-base/subarray.jl	307	308	reindex	reindex(idxs::Tuple{AbstractMatrix, Vararg{Any}}, subidxs::Tuple{Any, Any, Vararg{Any}})	modelled	multidimcov-subarray-faithful-307	row-specific faithful source-order replacement
-base/subarray.jl	311	312	reindex	reindex(idxs::Tuple{AbstractArray{<:Any,N}, Vararg{Any}}, subidxs::Tuple{Vararg{Any}}) where {N}	modelled	multidimcov-subarray-faithful-311	row-specific faithful source-order replacement
-base/subarray.jl	316	321	getindex	getindex(V::SubArray{T,N}, I::Vararg{Int,N}) where {T,N}	modelled	multidimcov-subarray-faithful-316	row-specific faithful source-order replacement
-base/subarray.jl	327	327	_reindexlinear	_reindexlinear(V::FastSubArray, i::Int)	modelled	multidimcov-s327-reindexlinear	row-specific exact mirror and quantified behavior; awaiting fixed-prompt re-review
-base/subarray.jl	328	328	_reindexlinear	_reindexlinear(V::FastSubArray, i::AbstractUnitRange{Int})	modelled	multidimcov-subarray-faithful-328	row-specific faithful source-order replacement
-base/subarray.jl	330	335	getindex	getindex(V::FastSubArray, i::Int)	modelled	multidimcov-sub-l330-fast-get	row-specific bounds and cached parent lookup model; awaiting fixed-prompt review
-base/subarray.jl	339	344	getindex	getindex(V::FastSubArray{<:Any, 1}, i::Int)	modelled	multidimcov-sub-l339-fast-vector-get	row-specific vector specialization model; awaiting fixed-prompt review
-base/subarray.jl	351	351	_reindexlinear	_reindexlinear(V::FastContiguousSubArray, i::Int)	modelled	multidimcov-sub-l351-contiguous-reindex	row-specific offset-plus-index model; awaiting fixed-prompt review
-base/subarray.jl	352	352	_reindexlinear	_reindexlinear(V::FastContiguousSubArray, i::AbstractUnitRange{Int})	modelled	multidimcov-subarray-faithful-352	row-specific faithful source-order replacement
-base/subarray.jl	376	381	getindex	getindex(V::FastContiguousSubArray, i::_OneBasedRanges)	modelled	multidimcov-subarray-faithful-376	row-specific faithful source-order replacement
-base/subarray.jl	383	383	getindex	getindex(V::FastContiguousSubArray, i::Colon)	modelled	multidimcov-sub-l383-colon-get	row-specific Colon conversion and delegation model; awaiting fixed-prompt review
-base/subarray.jl	386	391	setindex!	setindex!(V::SubArray{T,N}, x, I::Vararg{Int,N}) where {T,N}	modelled	multidimcov-subarray-faithful-386	row-specific faithful source-order replacement
-base/subarray.jl	392	397	setindex!	setindex!(V::FastSubArray, x, i::Int)	modelled	multidimcov-subarray-faithful-392	row-specific faithful source-order replacement
-base/subarray.jl	398	403	setindex!	setindex!(V::FastSubArray{<:Any, 1}, x, i::Int)	modelled	multidimcov-subarray-faithful-398	row-specific faithful source-order replacement
-base/subarray.jl	405	410	setindex!	setindex!(V::FastSubArray, x, i::AbstractUnitRange{Int})	modelled	multidimcov-subarray-faithful-405	row-specific faithful source-order replacement
-base/subarray.jl	412	412	setindex!	setindex!(V::FastSubArray, x, i::Colon)	modelled	multidimcov-sub-l412-colon-set	row-specific Colon conversion and delegation model; awaiting fixed-prompt review
-base/subarray.jl	414	419	isassigned	isassigned(V::SubArray{T,N}, I::Vararg{Int,N}) where {T,N}	modelled	multidimcov-subarray-faithful-414	row-specific faithful source-order replacement
-base/subarray.jl	420	425	isassigned	isassigned(V::FastSubArray, i::Int)	modelled	multidimcov-sub-fast-isassigned-full	full method-body model and successful/error behavioral property; awaiting fixed-prompt re-review
-base/subarray.jl	426	431	isassigned	isassigned(V::FastSubArray{<:Any, 1}, i::Int)	modelled	multidimcov-sub-fast-isassigned-full	full method-body model and successful/error behavioral property; awaiting fixed-prompt re-review
-base/subarray.jl	433	433	IndexStyle	IndexStyle(::Type{<:FastSubArray})	modelled	multidimcov-sub-l433-indexstyle	row-specific unconditional IndexLinear model; awaiting fixed-prompt review
-base/subarray.jl	437	437	strides	strides(V::SubArray)	modelled	multidimcov-subarray-faithful-437	row-specific faithful source-order replacement
-base/subarray.jl	439	439	substrides	substrides(strds::Tuple{}, ::Tuple{})	modelled	multidimcov-s439-substrides-empty	row-specific exact mirror and quantified behavior; awaiting fixed-prompt re-review
-base/subarray.jl	440	440	substrides	substrides(strds::NTuple{N,Int}, I::Tuple{ScalarIndex, Vararg{Any}}) where N	modelled	multidimcov-sub-l440-substrides-scalar	row-specific drop-stride recursion model; awaiting fixed-prompt review
-base/subarray.jl	441	441	substrides	substrides(strds::NTuple{N,Int}, I::Tuple{Slice, Vararg{Any}}) where N	modelled	multidimcov-subarray-faithful-441	row-specific faithful source-order replacement
-base/subarray.jl	442	442	substrides	substrides(strds::NTuple{N,Int}, I::Tuple{AbstractRange, Vararg{Any}}) where N	modelled	multidimcov-subarray-faithful-442	row-specific faithful source-order replacement
-base/subarray.jl	443	444	substrides	substrides(strds, I::Tuple{Any, Vararg{Any}})	modelled	multidimcov-sub-l443-substrides-invalid	row-specific ArgumentError fallback model; awaiting fixed-prompt review
-base/subarray.jl	446	446	stride	stride(V::SubArray, d::Integer)	modelled	multidimcov-subarray-faithful-446	row-specific faithful source-order replacement
-base/subarray.jl	448	449	compute_stride1	compute_stride1(parent::AbstractArray, I::NTuple{N,Any}) where {N}	modelled	multidimcov-sub-l448-stride-wrapper	row-specific axes fill and delegation model; awaiting fixed-prompt review
-base/subarray.jl	450	450	compute_stride1	compute_stride1(s, inds, I::Tuple{})	modelled	multidimcov-subarray-faithful-450	row-specific faithful source-order replacement
-base/subarray.jl	451	451	compute_stride1	compute_stride1(s, inds, I::Tuple{Vararg{ScalarIndex}})	modelled	multidimcov-subarray-faithful-451	row-specific faithful source-order replacement
-base/subarray.jl	452	453	compute_stride1	compute_stride1(s, inds, I::Tuple{ScalarIndex, Vararg{Any}})	modelled	multidimcov-subarray-faithful-452	row-specific faithful source-order replacement
-base/subarray.jl	454	454	compute_stride1	compute_stride1(s, inds, I::Tuple{AbstractRange, Vararg{Any}})	modelled	multidimcov-subarray-faithful-454	row-specific faithful source-order replacement
-base/subarray.jl	455	455	compute_stride1	compute_stride1(s, inds, I::Tuple{Slice, Vararg{Any}})	modelled	multidimcov-subarray-faithful-455	row-specific faithful source-order replacement
-base/subarray.jl	456	456	compute_stride1	compute_stride1(s, inds, I::Tuple{Any, Vararg{Any}})	modelled	multidimcov-subarray-faithful-456	row-specific faithful source-order replacement
-base/subarray.jl	458	458	elsize	elsize(::Type{<:SubArray{<:Any,<:Any,P}}) where {P}	modelled	multidimcov-sub-l458-elsize	row-specific parent-type delegation model; awaiting fixed-prompt review
-base/subarray.jl	460	460	iscontiguous	iscontiguous(A::SubArray)	modelled	multidimcov-subarray-faithful-460	row-specific faithful source-order replacement
-base/subarray.jl	461	461	iscontiguous	iscontiguous(::Type{<:SubArray})	modelled	multidimcov-sub-l461-contiguous-false	row-specific false result; awaiting fixed-prompt review
-base/subarray.jl	462	462	iscontiguous	iscontiguous(::Type{<:FastContiguousSubArray})	modelled	multidimcov-sub-l462-contiguous-true	row-specific true result; awaiting fixed-prompt review
-base/subarray.jl	464	464	first_index	first_index(V::FastSubArray)	modelled	multidimcov-subarray-faithful-464	row-specific faithful source-order replacement
-base/subarray.jl	465	465	first_index	first_index(V::SubArray)	modelled	multidimcov-subarray-faithful-465	row-specific faithful source-order replacement
-base/subarray.jl	471	472	compute_offset1	compute_offset1(parent::AbstractVector, stride1::Integer, I::Tuple{AbstractRange})	modelled	multidimcov-subarray-faithful-471	row-specific faithful source-order replacement
-base/subarray.jl	478	479	compute_offset1	compute_offset1(parent, stride1::Integer, I::Tuple)	modelled	multidimcov-sub-l478-offset-wrapper	row-specific extended dims/indices dispatch model; awaiting fixed-prompt review
-base/subarray.jl	480	481	compute_offset1	compute_offset1(parent, stride1::Integer, dims::Tuple{Int}, inds::Tuple{Slice}, I::Tuple)	modelled	multidimcov-subarray-faithful-480	row-specific faithful source-order replacement
-base/subarray.jl	482	483	compute_offset1	compute_offset1(parent, stride1::Integer, dims, inds::Tuple{AbstractRange}, I::Tuple)	modelled	multidimcov-subarray-faithful-482	row-specific faithful source-order replacement
-base/subarray.jl	484	485	compute_offset1	compute_offset1(parent, stride1::Integer, dims, inds, I::Tuple)	modelled	multidimcov-subarray-faithful-484	row-specific faithful source-order replacement
-base/subarray.jl	486	490	compute_linindex	compute_linindex(parent, I::NTuple{N,Any}) where N	modelled	multidimcov-sub-l486-lin-wrapper	row-specific axes fill, LinearIndices first, and recursion model; awaiting fixed-prompt review
-base/subarray.jl	491	495	compute_linindex	compute_linindex(f, s, IP::Tuple, I::Tuple{Any, Any, Vararg{Any}})	modelled	multidimcov-sub-l491-lin-many	row-specific delta and cumulative-stride recurrence; awaiting fixed-prompt review
-base/subarray.jl	496	500	compute_linindex	compute_linindex(f, s, IP::Tuple, I::Tuple{Any})	modelled	multidimcov-sub-l496-lin-one	row-specific singleton delta formula; awaiting fixed-prompt review
-base/subarray.jl	501	501	compute_linindex	compute_linindex(f, s, IP::Tuple, I::Tuple{})	modelled	multidimcov-sub-l501-lin-empty	row-specific accumulator base case; awaiting fixed-prompt review
-base/subarray.jl	503	503	find_extended_dims	find_extended_dims(dim, ::ScalarIndex, I...)	modelled	multidimcov-sub-l503-dims-scalar	row-specific dimension increment and scalar omission; awaiting fixed-prompt review
-base/subarray.jl	504	504	find_extended_dims	find_extended_dims(dim, i1, I...)	modelled	multidimcov-sub-l504-dims-value	row-specific tuple construction and recursion; awaiting fixed-prompt review
-base/subarray.jl	505	505	find_extended_dims	find_extended_dims(dim)	modelled	multidimcov-sub-l505-dims-empty	row-specific empty result property; awaiting fixed-prompt review
-base/subarray.jl	506	506	find_extended_inds	find_extended_inds(::ScalarIndex, I...)	modelled	multidimcov-sub-l506-inds-scalar	row-specific scalar omission recursion; awaiting fixed-prompt review
-base/subarray.jl	507	507	find_extended_inds	find_extended_inds(i1, I...)	modelled	multidimcov-sub-l507-inds-value	row-specific head preservation recursion; awaiting fixed-prompt review
-base/subarray.jl	508	508	find_extended_inds	find_extended_inds()	modelled	multidimcov-sub-l508-inds-empty	row-specific empty result property; awaiting fixed-prompt review
-base/subarray.jl	510	510	pointer	pointer(V::FastSubArray, i::Int)	modelled	multidimcov-sub-l510-pointer-fast	row-specific cached offset-stride pointer delegation; awaiting fixed-prompt review
-base/subarray.jl	511	511	pointer	pointer(V::FastContiguousSubArray, i::Int)	modelled	multidimcov-sub-l511-pointer-contiguous	row-specific offset-plus-index pointer delegation; awaiting fixed-prompt review
-base/subarray.jl	513	520	pointer	pointer(V::SubArray{<:Any,<:Any,<:Array,<:Tuple{Vararg{RangeIndex}}}, is::AbstractCartesianIndex{N}) where {N}	modelled	multidimcov-subarray-faithful-513	row-specific faithful source-order replacement
-base/subarray.jl	525	525	axes	axes(S::SubArray)	modelled	multidimcov-sub-l525-axes	row-specific recursive stored-index axes model; awaiting fixed-prompt review
-base/subarray.jl	526	526	_indices_sub	_indices_sub(::Real, I...)	modelled	multidimcov-sub-l526-indices-real	row-specific scalar-skip recursion model; awaiting fixed-prompt review
-base/subarray.jl	527	527	_indices_sub	_indices_sub()	modelled	multidimcov-sub-l527-indices-empty	row-specific empty result property; awaiting fixed-prompt review
-base/subarray.jl	528	531	_indices_sub	_indices_sub(i1::AbstractArray, I...)	modelled	multidimcov-subarray-faithful-528	row-specific faithful source-order replacement
-base/subarray.jl	533	533	axes1	axes1(::SubArray{<:Any,0})	modelled	multidimcov-sub-l533-axes1-zero	row-specific OneTo(1) result; awaiting fixed-prompt review
-base/subarray.jl	534	534	axes1	axes1(S::SubArray)	modelled	multidimcov-sub-l534-axes1	row-specific recursive delegation model; awaiting fixed-prompt review
-base/subarray.jl	535	535	_axes1_sub	_axes1_sub()	modelled	multidimcov-sub-l535-axes1-empty	row-specific empty result property; awaiting fixed-prompt review
-base/subarray.jl	536	536	_axes1_sub	_axes1_sub(::Real, I...)	modelled	multidimcov-sub-l536-axes1-real	row-specific scalar-skip recursion model; awaiting fixed-prompt review
-base/subarray.jl	537	537	_axes1_sub	_axes1_sub(::AbstractArray{<:Any,0}, I...)	modelled	multidimcov-sub-l537-axes1-zero-array	row-specific zero-rank array skip recursion; awaiting fixed-prompt review
-base/subarray.jl	538	541	_axes1_sub	_axes1_sub(i1::AbstractArray, I...)	modelled	multidimcov-subarray-faithful-538	row-specific faithful source-order replacement
-base/subarray.jl	543	543	has_offset_axes	has_offset_axes(S::SubArray)	modelled	multidimcov-subarray-faithful-543	row-specific faithful source-order replacement
-base/subarray.jl	545	547	replace_in_print_matrix	replace_in_print_matrix(S::SubArray{<:Any,2,<:AbstractMatrix}, i::Integer, j::Integer, s::AbstractString)	modelled	multidimcov-subarray-faithful-545	row-specific faithful source-order replacement
-base/subarray.jl	548	550	replace_in_print_matrix	replace_in_print_matrix(S::SubArray{<:Any,1,<:AbstractVector}, i::Integer, j::Integer, s::AbstractString)	modelled	multidimcov-sub-l548-replace-vector	row-specific reindex, conversion, column, and parent replacement model; awaiting fixed-prompt review
-base/subarray.jl	553	553	unsafe_wrap	unsafe_wrap(::Type{Vector{UInt8}}, s::FastContiguousSubArray{UInt8,1,Vector{UInt8}})	modelled	multidimcov-sub-l553-unsafe-wrap	row-specific pointer, size, and unsafe_wrap delegation model; awaiting fixed-prompt review
+base/subarray.jl	109	109	parentindices	parentindices(a::AbstractArray)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	112	112	dataids	dataids(A::SubArray)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	113	113	_splatmap	_splatmap(f, ::Tuple{})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	114	114	_splatmap	_splatmap(f, t::Tuple)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	115	115	unaliascopy	unaliascopy(A::SubArray)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	119	131	unaliascopy	unaliascopy(V::SubArray{T,N,A,I,LD}) where {T,N,A<:Array,I<:Tuple{Vararg{Union{ScalarIndex,AbstractRange{<:ScalarIndex},Array{<:Union{ScalarIndex,AbstractCartesianIndex}}}}},LD}	todo		trivial: old statement restates the method implementation
+base/subarray.jl	133	133	_trimmedshape	_trimmedshape(::ScalarIndex, rest...)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	134	134	_trimmedshape	_trimmedshape(i::AbstractRange, rest...)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	135	135	_trimmedshape	_trimmedshape(i::Union{UnitRange,StepRange,OneTo}, rest...)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	136	136	_trimmedshape	_trimmedshape(i::AbstractArray{<:ScalarIndex}, rest...)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	137	137	_trimmedshape	_trimmedshape(i::AbstractArray{<:AbstractCartesianIndex{0}}, rest...)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	138	138	_trimmedshape	_trimmedshape(i::AbstractArray{<:AbstractCartesianIndex{N}}, rest...) where {N}	todo		trivial: old statement restates the method implementation
+base/subarray.jl	139	139	_trimmedshape	_trimmedshape()	todo		trivial: old statement restates the method implementation
+base/subarray.jl	141	141	_trimmedpind	_trimmedpind(i, rest...)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	142	142	_trimmedpind	_trimmedpind(i::AbstractRange, rest...)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	143	143	_trimmedpind	_trimmedpind(i::Union{UnitRange,StepRange,OneTo}, rest...)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	144	144	_trimmedpind	_trimmedpind(i::AbstractArray{<:AbstractCartesianIndex{0}}, rest...)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	145	145	_trimmedpind	_trimmedpind()	todo		trivial: old statement restates the method implementation
+base/subarray.jl	146	146	_trimmedvind	_trimmedvind(i, rest...)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	147	147	_trimmedvind	_trimmedvind(i::AbstractArray{<:AbstractCartesianIndex{0}}, rest...)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	148	148	_trimmedvind	_trimmedvind()	todo		trivial: old statement restates the method implementation
+base/subarray.jl	150	150	_trimmedindex	_trimmedindex(i::ScalarIndex)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	151	151	_trimmedindex	_trimmedindex(i::AbstractRange)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	152	152	_trimmedindex	_trimmedindex(i::Union{UnitRange,StepRange,OneTo})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	153	153	_trimmedindex	_trimmedindex(i::AbstractArray{<:ScalarIndex})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	154	154	_trimmedindex	_trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{0}})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	155	159	_trimmedindex	_trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{N}}) where {N}	todo		trivial: old statement restates the method implementation
+base/subarray.jl	165	165	_maybe_reshape_parent	_maybe_reshape_parent(A::AbstractArray, ::NTuple{1, Bool})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	166	166	_maybe_reshape_parent	_maybe_reshape_parent(A::AbstractArray{<:Any,1}, ::NTuple{1, Bool})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	167	167	_maybe_reshape_parent	_maybe_reshape_parent(A::AbstractArray{<:Any,N}, ::NTuple{N, Bool}) where {N}	todo		trivial: old statement restates the method implementation
+base/subarray.jl	168	168	_maybe_reshape_parent	_maybe_reshape_parent(A::AbstractArray, ::NTuple{N, Bool}) where {N}	todo		trivial: old statement restates the method implementation
+base/subarray.jl	170	170	rm_singleton_indices	rm_singleton_indices(ndims::Tuple, J1, Js...)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	171	171	rm_singleton_indices	rm_singleton_indices(::Tuple{}, ::ScalarIndex, Js...)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	172	172	rm_singleton_indices	rm_singleton_indices(::Tuple)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	221	227	view	view(A::AbstractArray, I::Vararg{Any,M}) where {M}	todo		trivial: old statement restates the method implementation
+base/subarray.jl	230	233	view	view(r1::AbstractUnitRange, r2::AbstractUnitRange{<:Integer})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	234	237	view	view(r1::AbstractUnitRange, r2::StepRange{<:Integer})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	238	241	view	view(r1::StepRange, r2::AbstractRange{<:Integer})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	242	245	view	view(r1::StepRangeLen, r2::OrdinalRange{<:Integer})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	246	249	view	view(r1::LinRange, r2::OrdinalRange{<:Integer})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	252	255	view	view(r1::AbstractRange, c::Colon)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	257	260	unsafe_view	unsafe_view(A::AbstractArray, I::Vararg{ViewIndex,N}) where {N}	todo		trivial: old statement restates the method implementation
+base/subarray.jl	267	268	unsafe_view	unsafe_view(V::SubArray, I::Vararg{ViewIndex,N}) where {N}	todo		trivial: old statement restates the method implementation
+base/subarray.jl	269	269	_maybe_reindex	_maybe_reindex(V, I)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	270	271	_maybe_reindex	_maybe_reindex(V, I, ::Tuple{AbstractArray{<:AbstractCartesianIndex}, Vararg{Any}})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	273	274	_maybe_reindex	_maybe_reindex(V, I, A::Tuple{AbstractArray{<:AbstractCartesianIndex{1}}, Vararg{Any}})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	275	275	_maybe_reindex	_maybe_reindex(V, I, A::Tuple{Any, Vararg{Any}})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	276	280	_maybe_reindex	_maybe_reindex(V, I, ::Tuple{})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	292	292	reindex	reindex(::Tuple{}, ::Tuple{})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	295	296	reindex	reindex(idxs::Tuple{ScalarIndex, Vararg{Any}}, subidxs::Tuple{Vararg{Any}})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	299	300	reindex	reindex(idxs::Tuple{Slice, Vararg{Any}}, subidxs::Tuple{Any, Vararg{Any}})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	303	304	reindex	reindex(idxs::Tuple{AbstractVector, Vararg{Any}}, subidxs::Tuple{Any, Vararg{Any}})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	307	308	reindex	reindex(idxs::Tuple{AbstractMatrix, Vararg{Any}}, subidxs::Tuple{Any, Any, Vararg{Any}})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	311	312	reindex	reindex(idxs::Tuple{AbstractArray{<:Any,N}, Vararg{Any}}, subidxs::Tuple{Vararg{Any}}) where {N}	todo		trivial: old statement restates the method implementation
+base/subarray.jl	316	321	getindex	getindex(V::SubArray{T,N}, I::Vararg{Int,N}) where {T,N}	todo		trivial: old statement restates the method implementation
+base/subarray.jl	327	327	_reindexlinear	_reindexlinear(V::FastSubArray, i::Int)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	328	328	_reindexlinear	_reindexlinear(V::FastSubArray, i::AbstractUnitRange{Int})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	330	335	getindex	getindex(V::FastSubArray, i::Int)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	339	344	getindex	getindex(V::FastSubArray{<:Any, 1}, i::Int)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	351	351	_reindexlinear	_reindexlinear(V::FastContiguousSubArray, i::Int)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	352	352	_reindexlinear	_reindexlinear(V::FastContiguousSubArray, i::AbstractUnitRange{Int})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	376	381	getindex	getindex(V::FastContiguousSubArray, i::_OneBasedRanges)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	383	383	getindex	getindex(V::FastContiguousSubArray, i::Colon)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	386	391	setindex!	setindex!(V::SubArray{T,N}, x, I::Vararg{Int,N}) where {T,N}	todo		trivial: old statement restates the method implementation
+base/subarray.jl	392	397	setindex!	setindex!(V::FastSubArray, x, i::Int)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	398	403	setindex!	setindex!(V::FastSubArray{<:Any, 1}, x, i::Int)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	405	410	setindex!	setindex!(V::FastSubArray, x, i::AbstractUnitRange{Int})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	412	412	setindex!	setindex!(V::FastSubArray, x, i::Colon)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	414	419	isassigned	isassigned(V::SubArray{T,N}, I::Vararg{Int,N}) where {T,N}	todo		trivial: old statement restates the method implementation
+base/subarray.jl	420	425	isassigned	isassigned(V::FastSubArray, i::Int)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	426	431	isassigned	isassigned(V::FastSubArray{<:Any, 1}, i::Int)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	433	433	IndexStyle	IndexStyle(::Type{<:FastSubArray})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	437	437	strides	strides(V::SubArray)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	439	439	substrides	substrides(strds::Tuple{}, ::Tuple{})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	440	440	substrides	substrides(strds::NTuple{N,Int}, I::Tuple{ScalarIndex, Vararg{Any}}) where N	todo		trivial: old statement restates the method implementation
+base/subarray.jl	441	441	substrides	substrides(strds::NTuple{N,Int}, I::Tuple{Slice, Vararg{Any}}) where N	todo		trivial: old statement restates the method implementation
+base/subarray.jl	442	442	substrides	substrides(strds::NTuple{N,Int}, I::Tuple{AbstractRange, Vararg{Any}}) where N	todo		trivial: old statement restates the method implementation
+base/subarray.jl	443	444	substrides	substrides(strds, I::Tuple{Any, Vararg{Any}})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	446	446	stride	stride(V::SubArray, d::Integer)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	448	449	compute_stride1	compute_stride1(parent::AbstractArray, I::NTuple{N,Any}) where {N}	todo		trivial: old statement restates the method implementation
+base/subarray.jl	450	450	compute_stride1	compute_stride1(s, inds, I::Tuple{})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	451	451	compute_stride1	compute_stride1(s, inds, I::Tuple{Vararg{ScalarIndex}})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	452	453	compute_stride1	compute_stride1(s, inds, I::Tuple{ScalarIndex, Vararg{Any}})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	454	454	compute_stride1	compute_stride1(s, inds, I::Tuple{AbstractRange, Vararg{Any}})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	455	455	compute_stride1	compute_stride1(s, inds, I::Tuple{Slice, Vararg{Any}})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	456	456	compute_stride1	compute_stride1(s, inds, I::Tuple{Any, Vararg{Any}})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	458	458	elsize	elsize(::Type{<:SubArray{<:Any,<:Any,P}}) where {P}	todo		trivial: old statement restates the method implementation
+base/subarray.jl	460	460	iscontiguous	iscontiguous(A::SubArray)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	461	461	iscontiguous	iscontiguous(::Type{<:SubArray})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	462	462	iscontiguous	iscontiguous(::Type{<:FastContiguousSubArray})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	464	464	first_index	first_index(V::FastSubArray)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	465	465	first_index	first_index(V::SubArray)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	471	472	compute_offset1	compute_offset1(parent::AbstractVector, stride1::Integer, I::Tuple{AbstractRange})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	478	479	compute_offset1	compute_offset1(parent, stride1::Integer, I::Tuple)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	480	481	compute_offset1	compute_offset1(parent, stride1::Integer, dims::Tuple{Int}, inds::Tuple{Slice}, I::Tuple)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	482	483	compute_offset1	compute_offset1(parent, stride1::Integer, dims, inds::Tuple{AbstractRange}, I::Tuple)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	484	485	compute_offset1	compute_offset1(parent, stride1::Integer, dims, inds, I::Tuple)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	486	490	compute_linindex	compute_linindex(parent, I::NTuple{N,Any}) where N	todo		trivial: old statement restates the method implementation
+base/subarray.jl	491	495	compute_linindex	compute_linindex(f, s, IP::Tuple, I::Tuple{Any, Any, Vararg{Any}})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	496	500	compute_linindex	compute_linindex(f, s, IP::Tuple, I::Tuple{Any})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	501	501	compute_linindex	compute_linindex(f, s, IP::Tuple, I::Tuple{})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	503	503	find_extended_dims	find_extended_dims(dim, ::ScalarIndex, I...)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	504	504	find_extended_dims	find_extended_dims(dim, i1, I...)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	505	505	find_extended_dims	find_extended_dims(dim)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	506	506	find_extended_inds	find_extended_inds(::ScalarIndex, I...)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	507	507	find_extended_inds	find_extended_inds(i1, I...)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	508	508	find_extended_inds	find_extended_inds()	todo		trivial: old statement restates the method implementation
+base/subarray.jl	510	510	pointer	pointer(V::FastSubArray, i::Int)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	511	511	pointer	pointer(V::FastContiguousSubArray, i::Int)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	513	520	pointer	pointer(V::SubArray{<:Any,<:Any,<:Array,<:Tuple{Vararg{RangeIndex}}}, is::AbstractCartesianIndex{N}) where {N}	todo		trivial: old statement restates the method implementation
+base/subarray.jl	525	525	axes	axes(S::SubArray)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	526	526	_indices_sub	_indices_sub(::Real, I...)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	527	527	_indices_sub	_indices_sub()	todo		trivial: old statement restates the method implementation
+base/subarray.jl	528	531	_indices_sub	_indices_sub(i1::AbstractArray, I...)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	533	533	axes1	axes1(::SubArray{<:Any,0})	todo		trivial: old statement restates the method implementation
+base/subarray.jl	534	534	axes1	axes1(S::SubArray)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	535	535	_axes1_sub	_axes1_sub()	todo		trivial: old statement restates the method implementation
+base/subarray.jl	536	536	_axes1_sub	_axes1_sub(::Real, I...)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	537	537	_axes1_sub	_axes1_sub(::AbstractArray{<:Any,0}, I...)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	538	541	_axes1_sub	_axes1_sub(i1::AbstractArray, I...)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	543	543	has_offset_axes	has_offset_axes(S::SubArray)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	545	547	replace_in_print_matrix	replace_in_print_matrix(S::SubArray{<:Any,2,<:AbstractMatrix}, i::Integer, j::Integer, s::AbstractString)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	548	550	replace_in_print_matrix	replace_in_print_matrix(S::SubArray{<:Any,1,<:AbstractVector}, i::Integer, j::Integer, s::AbstractString)	todo		trivial: old statement restates the method implementation
+base/subarray.jl	553	553	unsafe_wrap	unsafe_wrap(::Type{Vector{UInt8}}, s::FastContiguousSubArray{UInt8,1,Vector{UInt8}})	todo		trivial: old statement restates the method implementation

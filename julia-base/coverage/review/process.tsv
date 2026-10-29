@@ -68,7 +68,5 @@ line	name	verdict	mirror	property	settled	reason
 739	wait	HOLLOW	no	no	yes	The model replaces blocking, double-checked exit state, locking, handle preservation, notification wait, and per-task waits with a cancellation flag and a zeroed count.
 767	wait	HOLLOW	no	no	yes	The model performs one upfront cancellation branch and maps zeroed counts instead of calling wait on each process in order with the same arguments and partial-error behavior.
 770	show	HOLLOW	no	no	yes	The model returns only a ProcessStatus and omits IO output, the command, literal punctuation, status formatting, and print.
-774	$f	HOLLOW	no	no	yes	One list-returning model cannot mirror length, firstindex, lastindex, keys, first, last, and iterate, whose result types and error or iteration behavior differ.
 776	Iterators.reverse	HOLLOW	no	yes	yes	The model materializes an immutable reversed list instead of returning the reverse iterator over the mutable exec vector, although it preserves the iteration order invariant.
 777	eltype	HOLLOW	no	yes	yes	The model hard-codes the string name String and omits fieldtype and eltype, although the proposition states the correct element type for Cmd.
-779	$f	HOLLOW	no	no	yes	One zero-based optional lookup cannot mirror both iterate and one-based getindex, including iterate state, return pairs, bounds errors, and their distinct result types.

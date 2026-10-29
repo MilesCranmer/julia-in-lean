@@ -80,7 +80,7 @@ base/set.jl	762	763	replace!	replace!(A, old_new::Pair...; count::Integer=typema
 base/set.jl	765	773	replace_pairs!	replace_pairs!(res, A, count::Int, old_new::Tuple{Vararg{Pair}})	modelled	bitsetscov-set-replace	
 base/set.jl	766	771	new	new(x)	modelled	bitsetscov-set-replace	
 base/set.jl	804	805	replace!	replace!(new::Callable, A; count::Integer=typemax(Int))	modelled	bitsetscov-set-replace	
-base/set.jl	842	851	replace	replace(A, old_new::Pair...; count::Union{Integer,Nothing}=nothing)	modelled	bitsetscov-replace-set-singleton	
+base/set.jl	842	851	replace	replace(A, old_new::Pair...; count::Union{Integer,Nothing}=nothing)	modelled	bitsetscov-replace-generic-set	
 base/set.jl	853	853	promote_valuetype	promote_valuetype(x::Pair{K, V}) where {K, V}	modelled	bitsetscov-set-replace	
 base/set.jl	854	855	promote_valuetype	promote_valuetype(x::Pair{K, V}, y::Pair...) where {K, V}	modelled	bitsetscov-set-replace	
 base/set.jl	858	864	subtract_singletontype	subtract_singletontype(::Type{T}, x::Pair{K}) where {T, K}	modelled	bitsetscov-set-replace	

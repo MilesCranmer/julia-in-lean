@@ -266,15 +266,6 @@ private def entry (line : Nat) (fn statement : String) (prop proof : Lean.Name) 
     prop
     thm := some proof }
 
-def entries : List Entry := [
-  entry 16 "_broadcast_preserving_zero_d(f,::Array,...)" "The mixed-rank overload maps size, selects the first longest shape, checks ndims separately, reshapes only rank mismatches, and maps in source order." ``P16 ``p16,
-  entry 107 "_reverse!(::AbstractArray,::NTuple{M,Int})" "The reversal core covers every signed dimension tuple, validates it, builds half and reflected indices, swaps the Cartesian half, and recursively reverses the odd middle slice." ``P107 ``p107,
-  entry 154 "rotl90(::AbstractMatrix)" "Left rotation reads axes, allocates swapped axes, calls axes(A,1), and performs every reflected assignment in loop order." ``P154 ``p154,
-  entry 182 "rotr90(::AbstractMatrix)" "Right rotation reads axes, allocates swapped axes, and evaluates axes(A,2) for each outer iteration before reflected assignment." ``P182 ``p182,
-  entry 209 "rot180(::AbstractMatrix)" "Half rotation allocates first, reads both axes separately, and performs the j then i reflected assignment loop." ``P209 ``p209,
-  entry 252 "rotl90(::AbstractMatrix,::Integer)" "Counted left rotation preserves generic Integer modulo and equality dispatch before selecting left, half, right, or copy." ``P252 ``p252,
-  entry 292 "rotr90(::AbstractMatrix,::Integer)" "Counted right rotation preserves generic unary negation and passes its exact result to counted left rotation." ``P292 ``p292,
-  entry 317 "rot180(::AbstractMatrix,::Integer)" "Counted half rotation preserves generic modulo and equality dispatch before selecting rotation or copy." ``P317 ``p317
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.ArrayMathFaithfulFinal

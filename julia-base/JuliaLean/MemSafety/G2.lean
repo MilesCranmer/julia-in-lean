@@ -8,11 +8,6 @@ open JuliaLean.Registry
 
 /-- Registry entries for the sites in `memsafety/sites-2.tsv`. -/
 def entries : List Entry := [
-  { id := "memsafety-arraymath-reverse", juliaFile := "base/arraymath.jl"
-    juliaFns := ["_reverse!(::AbstractArray, ::NTuple)"]
-    statement := "Every swap coordinate computed by reverse!, including recursive odd middle slices, is inside the selected array view."
-    source := "memory-safety invariant; base/arraymath.jl:107-130"
-    status := .proven, prop := ``ReverseInBounds, thm := some ``reverseInBounds },
   { id := "memsafety-experimental-const-getindex", juliaFile := "base/experimental.jl"
     juliaFns := ["getindex(::Experimental.Const, ::Int)", "getindex(::Experimental.Const, ::Int...)"]
     statement := "Const's completed scalar or Cartesian bounds check makes its computed memory or linear index valid for the wrapped Array."
@@ -50,11 +45,6 @@ def entries : List Entry := [
     statement := "The BigInt hash branches and each byte index requested from their computed UnsafeLimbViews select an allocated limb."
     source := "GMP normalized-limb representation; base/gmp.jl:873-955"
     status := .proven, prop := ``GmpHashInBounds, thm := some ``gmpHashInBounds },
-  { id := "memsafety-hashing-hash-bytes", juliaFile := "base/hashing.jl"
-    juliaFns := ["load_le_array", "hash_bytes(::AbstractArray{UInt8}, ...)"]
-    statement := "Every byte offset computed by the small, 48-byte-loop, remaining, and final hash branches is below length(arr)."
-    source := "base/hashing.jl:378-466"
-    status := .proven, prop := ``HashArrayInBounds, thm := some ``hashArrayInBounds },
   { id := "memsafety-loading-isfile-casesensitive", juliaFile := "base/loading.jl"
     juliaFns := ["isfile_casesensitive"]
     statement := "Every loop iteration reads the four-byte filename-length field from a buffer allocated or resized to include its 12-byte header."
@@ -75,47 +65,6 @@ def entries : List Entry := [
     statement := "Both preliminary scans and every sequential or pairwise mapreduce block compute indices within LinearIndices(A), including typemax guards."
     source := "base/missing.jl:269-351"
     status := .proven, prop := ``MissingMapreduceInBounds, thm := some ``missingMapreduceInBounds },
-  { id := "memsafety-multidimensional-cartesian-collect", juliaFile := "base/multidimensional.jl"
-    juliaFns := ["collect(::CartesianIndices)"]
-    statement := "CartesianIndices iteration performs exactly product(size(inds)) writes into a destination of that length."
-    source := "CartesianIndices iteration invariant; base/multidimensional.jl:631-640"
-    status := .proven, prop := ``CartesianCollectInBounds, thm := some ``cartesianCollectInBounds },
-  { id := "memsafety-multidimensional-logicalindex", juliaFile := "base/multidimensional.jl"
-    juliaFns := ["iterate(::LogicalIndex{<:Any,<:BitArray})"]
-    statement := "The nonzero-sum guard supplies the first BitArray chunk, and the zero-chunk loop checks the chunk count before each incremented read."
-    source := "BitArray storage invariant; base/multidimensional.jl:834-895"
-    status := .proven, prop := ``LogicalIndexInBounds, thm := some ``logicalIndexInBounds },
-  { id := "memsafety-multidimensional-unsafe-indexing", juliaFile := "base/multidimensional.jl"
-    juliaFns := ["_unsafe_getindex!", "_unsafe_setindex!"]
-    statement := "After public bounds and shape checks, the Cartesian index product computes valid source/destination coordinates and exact destination/source iteration counts."
-    source := "base/multidimensional.jl:995-1079"
-    status := .proven, prop := ``GenericIndexingInBounds, thm := some ``genericIndexingInBounds },
-  { id := "memsafety-multidimensional-cartesian-copyto", juliaFile := "base/multidimensional.jl"
-    juliaFns := ["copyto!(::AbstractArray, ::CartesianIndices, ::AbstractArray, ::CartesianIndices)"]
-    statement := "Equal-size source and destination regions whose endpoints pass checkbounds map every computed Cartesian coordinate inside both parents."
-    source := "copyto! region contract; base/multidimensional.jl:1190-1222"
-    status := .proven, prop := ``CartesianCopyInBounds, thm := some ``cartesianCopyInBounds },
-  { id := "memsafety-multidimensional-bitarray-source-scan", juliaFile := "base/multidimensional.jl"
-    juliaFns := ["copy_to_bitarray_chunks!(::Vector{UInt64}, ::Int, ::StridedArray{<:Real}, ::Int, ::Int)"]
-    statement := "The Real-source conversion pre-scan reads exactly the shape-checked source interval."
-    source := "base/multidimensional.jl:1459-1462,1516-1562"
-    status := .proven, prop := ``BitSourceScanInBounds, thm := some ``bitSourceScanInBounds },
-  { id := "memsafety-multidimensional-isassigned", juliaFile := "base/multidimensional.jl"
-    juliaFns := ["isassigned(::AbstractArray, ::Integer...)"]
-    statement := "After to_indices and checkbounds, both IndexLinear and IndexCartesian conversion branches address the same array."
-    source := "base/multidimensional.jl:1637-1660"
-    status := .proven, prop := ``IsassignedInBounds, thm := some ``isassignedInBounds },
-  { id := "memsafety-reshapedarray-ind2sub", juliaFile := "base/reshapedarray.jl"
-    juliaFns := ["isassigned(::ReshapedArray, ::Int...)", "_unsafe_getindex(::ReshapedArray, ::Int...)", "_unsafe_setindex!(::ReshapedArray, ..., ::Int...)"]
-    statement := "The checked Cartesian path computes its linear index, uses the constructor-supplied multiplicative inverses, and produces in-bounds parent subscripts."
-    source := "reshape length and SignedMultiplicativeInverse representation invariants; base/reshapedarray.jl:235-241,270-276,285-291,308-317,324-338"
-    status := .proven, prop := ``JuliaLean.ReinterpretArrays.Ind2subCorrect
-    thm := some ``JuliaLean.ReinterpretArrays.ind2subCorrect },
-  { id := "memsafety-reshapedarray-indexing", juliaFile := "base/reshapedarray.jl"
-    juliaFns := ["isassigned(::ReshapedArrayLF, ::Int)", "getindex(::ReshapedArrayLF, ::Int)", "setindex!(::ReshapedArrayLF, ..., ::Int)", "getindex(::ReshapedArray, ::ReshapedIndex)", "setindex!(::ReshapedArray, ..., ::ReshapedIndex)"]
-    statement := "The checked linear fast path translates through the equal-length offset parent axis, and ReshapedIndex forwards only a parent index already checked against that parent."
-    source := "reshape length invariant and explicit parent check; base/reshapedarray.jl:278-306,320-331"
-    status := .proven, prop := ``ReshapedIndexingInBounds, thm := some ``reshapedIndexingInBounds },
   { id := "memsafety-ryu-exponent-table", juliaFile := "base/ryu/shortest.jl"
     juliaFns := ["Ryu.writeshortest(::Float16)", "Ryu.writeshortest(::Float32)", "Ryu.writeshortest(::Float64)"]
     statement := "For every IEEE input type accepted by writeshortest, the exponent computed by reduce_shortest selects one of the 100 DIGIT_TABLE16 entries."

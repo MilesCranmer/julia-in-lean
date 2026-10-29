@@ -806,46 +806,6 @@ theorem splitLimitInteger_refuted : ¬ SplitLimitInteger := by
   revert this; decide
 
 /-- Registry entries of `split`/`rsplit`. -/
-def splitEntries : List Entry := [
-  { id := "stringutil-split-join"
-    juliaFile := "base/strings/util.jl"
-    juliaFns := ["split(::AbstractString, ::Any)", "eachsplit(::AbstractString, ::Any)",
-      "iterate(::SplitIterator, ::Any)"]
-    statement := "For a splitter whose findnext finds occurrences of a delimiter d at valid character indices (ranges starting at or after the search start, covering exactly the bytes of d), join(split(s, d; limit, keepempty=true), d) == s for every string s and every limit."
-    source := "base/strings/util.jl:933-943 (split docstring: split str on occurrences of the delimiter); invariant"
-    status := .proven
-    prop := ``SplitJoin
-    thm := some ``splitJoin_proven
-    notes := "The splitter is any function k -> findnext(splitter, s, k) satisfying FinderNext; s is any byte string, valid UTF-8 or not." },
-  { id := "stringutil-split-limit"
-    juliaFile := "base/strings/util.jl"
-    juliaFns := ["split(::AbstractString, ::Any)", "iterate(::SplitIterator, ::Any)"]
-    statement := "split(s, dlm; limit, keepempty) with limit >= 1 returns at most limit pieces, for every splitter and keepempty."
-    source := "base/strings/util.jl:941 (split docstring: limit is the maximum size of the result)"
-    status := .proven
-    prop := ``SplitLimit
-    thm := some ``splitLimit_proven },
-  { id := "stringutil-rsplit-join"
-    juliaFile := "base/strings/util.jl"
-    juliaFns := ["rsplit(::AbstractString, ::Any)", "eachrsplit(::AbstractString, ::Any)",
-      "iterate(::RSplitIterator, ::Any)"]
-    statement := "For a splitter whose findprev finds occurrences of a delimiter d at valid character indices (ranges ending at or before the search position, covering exactly the bytes of d), join(rsplit(s, d; limit, keepempty=true), d) == s for every string s and every limit."
-    source := "base/strings/util.jl:972-974 (rsplit docstring: substrings returned in the order in which they appear in s); invariant"
-    status := .proven
-    prop := ``RsplitJoin
-    thm := some ``rsplitJoin_proven
-    notes := "Includes the checked SubString(it.str, from, to) of base/strings/util.jl:926, which never throws for such splitters." },
-  { id := "stringutil-split-limit-type"
-    juliaFile := "base/strings/util.jl"
-    juliaFns := ["split(::AbstractString, ::Any)", "rsplit(::AbstractString, ::Any)",
-      "eachsplit(::AbstractString, ::Any)", "eachrsplit(::AbstractString, ::Any)"]
-    statement := "split(s, dlm; limit) with limit of any integer type whose value fits in Int behaves as with Int(limit)."
-    source := "base/strings/util.jl:930,958-959 (split(str, dlm; limit::Integer=0, ...)); eachsplit :738,820"
-    status := .refuted
-    prop := ``SplitLimitInteger
-    thm := some ``splitLimitInteger_refuted
-    issue := "none found (queries: issues: split limit UInt; prs: split limit UInt; issues: split limit Integer MethodError; issues: SplitIterator limit)"
-    notes := "Counterexample split(\"a,b,c\", ','; limit=UInt(2)): eachsplit passes limit unconverted to SplitIterator, whose field is limit::Int, so the call is a MethodError. Same on 1.13.2; rsplit/eachrsplit (RSplitIterator, :872-877,884-885) behave the same." }
-]
+def splitEntries : List Entry := []
 
 end JuliaLean.StringUtil

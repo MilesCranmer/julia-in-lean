@@ -300,44 +300,6 @@ private def entry (id fn statement source : String) (prop thm : Lean.Name) : Ent
   { id, juliaFile := "base/abstractarray.jl", juliaFns := [fn], statement, source,
     status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry "abstractarraycov-line682-checkbounds" "checkbounds(Bool,A,I...)" "The method calls axes before checkbounds_indices with the original index tuple." "base/abstractarray.jl:682-685" ``Property682 ``property682,
-  entry "abstractarraycov-line690-checkbounds" "checkbounds(Bool,A,i)" "The single-index method constructs linear eachindex before calling checkindex." "base/abstractarray.jl:690-693" ``Property690 ``property690,
-  entry "abstractarraycov-line722-checkbounds-indices" "checkbounds_indices(Bool,inds,I::nonempty)" "The recursion checks the first index against the first or singleton default axis and short-circuits before the tails." "base/abstractarray.jl:722-726" ``Property722 ``property722,
-  entry "abstractarraycov-line728-checkbounds-indices" "checkbounds_indices(Bool,inds,())" "The empty requested-index case accepts exactly when every remaining axis has length one." "base/abstractarray.jl:728" ``Property728 ``property728,
-  entry "abstractarraycov-line750-checkindex" "checkindex(Bool,inds,i)" "The fallback reports the runtime index type in ArgumentError." "base/abstractarray.jl:750" ``Property750 ``property750,
-  entry "abstractarraycov-line751-checkindex" "checkindex(Bool,::AbstractUnitRange,::Real)" "The method evaluates both endpoint comparisons and combines them with bitwise and." "base/abstractarray.jl:751" ``Property751 ``property751,
-  entry "abstractarraycov-line752-checkindex" "checkindex(Bool,::IdentityUnitRange,::Real)" "The method unwraps indices before delegating." "base/abstractarray.jl:752" ``Property752 ``property752,
-  entry "abstractarraycov-line753-checkindex" "checkindex(Bool,::OneTo{T},::T)" "The optimized check wraps i-1 in T and compares the unsigned representations." "base/abstractarray.jl:753" ``Property753 ``property753,
-  entry "abstractarraycov-line754-checkindex" "checkindex(Bool,::AbstractUnitRange,::Colon)" "Colon is always accepted." "base/abstractarray.jl:754" ``Property754 ``property754,
-  entry "abstractarraycov-line755-checkindex" "checkindex(Bool,::AbstractUnitRange,::Slice)" "Slice is always accepted." "base/abstractarray.jl:755" ``Property755 ``property755,
-  entry "abstractarraycov-line756-checkindex" "checkindex(Bool,::AbstractUnitRange,::AbstractRange)" "The method evaluates emptiness and both endpoint checks, then combines them with bitwise operators." "base/abstractarray.jl:756-757" ``Property756 ``property756,
-  entry "abstractarraycov-line759-checkindex" "checkindex(Bool,::AbstractUnitRange,::LinearIndices)" "The method evaluates emptiness and both endpoint checks for LinearIndices." "base/abstractarray.jl:759-760" ``Property759 ``property759,
-  entry "abstractarraycov-line762-checkindex" "checkindex(Bool,inds,::AbstractArray)" "The loop checks every supplied index in iteration order without short-circuiting false values." "base/abstractarray.jl:762-769" ``Property762 ``property762,
-  entry "abstractarraycov-line819-similar" "similar(a::AbstractArray{T})" "The default forwards a and its element type." "base/abstractarray.jl:819" ``Property819 ``property819,
-  entry "abstractarraycov-line820-similar" "similar(a::AbstractArray,::Type{T})" "The method obtains axes before forwarding a, T, and those axes." "base/abstractarray.jl:820" ``Property820 ``property820,
-  entry "abstractarraycov-line821-similar" "similar(a::AbstractArray{T},dims::Tuple)" "The tuple overload forwards a, T, and dims." "base/abstractarray.jl:821" ``Property821 ``property821,
-  entry "abstractarraycov-line822-similar" "similar(a::AbstractArray{T},dims...)" "The vararg overload packs and forwards dimensions with T." "base/abstractarray.jl:822" ``Property822 ``property822,
-  entry "abstractarraycov-line823-similar" "similar(a::AbstractArray,::Type{T},dims...)" "The typed vararg overload packs and forwards dimensions." "base/abstractarray.jl:823" ``Property823 ``property823,
-  entry "abstractarraycov-line829-similar" "similar(a,T,mixed-dims-tuple)" "The mixed-axis overload applies to_shape before forwarding." "base/abstractarray.jl:829" ``Property829 ``property829,
-  entry "abstractarraycov-line832-similar" "similar(a,T,legacy-dims-tuple)" "The legacy mixed-axis overload applies to_shape before forwarding." "base/abstractarray.jl:832" ``Property832 ``property832,
-  entry "abstractarraycov-line834-similar" "similar(a,T,dims::Dims{N})" "The fallback invokes the N-dimensional Array constructor with undef dimensions." "base/abstractarray.jl:834" ``Property834 ``property834,
-  entry "abstractarraycov-line836-to-shape" "to_shape(())" "The empty shape remains empty." "base/abstractarray.jl:836" ``Property836 ``property836,
-  entry "abstractarraycov-line837-to-shape" "to_shape(::Dims)" "A Dims tuple is returned unchanged." "base/abstractarray.jl:837" ``Property837 ``property837,
-  entry "abstractarraycov-line838-to-shape" "to_shape(::DimsOrInds)" "The method maps scalar to_shape over dimensions in order." "base/abstractarray.jl:838" ``Property838 ``property838,
-  entry "abstractarraycov-line840-to-shape" "to_shape(::Int)" "An Int dimension is returned unchanged." "base/abstractarray.jl:840" ``Property840 ``property840,
-  entry "abstractarraycov-line841-to-shape" "to_shape(::Integer)" "A general Integer dimension is converted to Int." "base/abstractarray.jl:841" ``Property841 ``property841,
-  entry "abstractarraycov-line842-to-shape" "to_shape(::AbstractOneTo)" "The method takes the range last value before private shape conversion." "base/abstractarray.jl:842" ``Property842 ``property842,
-  entry "abstractarraycov-line843-private-to-shape" "_to_shape(::Integer)" "The integer private method delegates to public to_shape." "base/abstractarray.jl:843" ``Property843 ``property843,
-  entry "abstractarraycov-line844-private-to-shape" "_to_shape(x)" "The fallback converts x to Int." "base/abstractarray.jl:844" ``Property844 ``property844,
-  entry "abstractarraycov-line845-to-shape" "to_shape(::AbstractUnitRange)" "A general unit range is preserved as an axis." "base/abstractarray.jl:845" ``Property845 ``property845,
-  entry "abstractarraycov-line869-similar" "similar(::Type{T},dims...)" "The storage-type vararg overload forwards the packed dimensions." "base/abstractarray.jl:869" ``Property869 ``property869,
-  entry "abstractarraycov-line870-similar" "similar(::Type{T},mixed-shape)" "The storage-type mixed shape is converted before forwarding." "base/abstractarray.jl:870" ``Property870 ``property870,
-  entry "abstractarraycov-line872-similar" "similar(::Type{T},legacy-shape)" "The storage-type legacy shape is converted before forwarding." "base/abstractarray.jl:872" ``Property872 ``property872,
-  entry "abstractarraycov-line873-similar" "similar(::Type{T},dims::Dims)" "The Dims fallback invokes T(undef,dims)." "base/abstractarray.jl:873" ``Property873 ``property873,
-  entry "abstractarraycov-line892-empty" "empty(::AbstractVector,U)" "empty calls similar with length zero." "base/abstractarray.jl:892" ``Property892 ``property892,
-  entry "abstractarraycov-line895-emptymutable" "emptymutable(::AbstractVector,U)" "The vector method returns a new empty Vector{U}." "base/abstractarray.jl:895" ``Property895 ``property895,
-  entry "abstractarraycov-line896-emptymutable" "emptymutable(itr,U)" "The generic iterable method returns a new empty Vector{U}." "base/abstractarray.jl:896" ``Property896 ``property896
-]
+def entries : List Entry := []
 
 end JuliaLean.AbstractArrayCov.Rows.BoundsShape

@@ -150,15 +150,6 @@ private def viewsEntry (id fn statement source : String) (prop thm : Lean.Name) 
   { id, juliaFile := "base/views.jl", juliaFns := [fn], statement, source,
     status := .proven, prop, thm := some thm }
 
-def viewsReviewEntries : List Entry := [
-  viewsEntry "multidimcov-views-wrapper" "replace_ref_begin_end!" "The wrapper calls the recursive transformer with no enclosing reference, outside quote context, zero escapes, and returns the expression component." "base/views.jl:17" ``Views17Property ``views17Property,
-  viewsEntry "multidimcov-views-boundary-recursion" "replace_ref_begin_end_!, escapes" "Boundary replacement tracks quote and escape depth, substitutes begin and end only in executable reference context, and recursively preserves all other expression heads." "base/views.jl:19-27,103-160" ``Views19Property ``views19Property,
-  viewsEntry "multidimcov-views-ref-handler" "handle_refexpr!" "Reference handling processes the array first, handles empty and indexed references, and caches array and index expressions exactly when a boundary replacement uses them." "base/views.jl:28-102" ``Views28Property ``views28Property,
-  viewsEntry "multidimcov-view-macro" "@view" "The view macro validates a reference, replaces begin and end, handles direct or binding-block results, calls view, and escapes the result." "base/views.jl:210-228" ``Views210Property ``views210Property,
-  viewsEntry "multidimcov-maybeview-overloads" "maybeview" "Each maybeview overload delegates to getindex or view according to array and scalar-index dispatch, including zero-index calls." "base/views.jl:235-239" ``ViewsMaybeProperty ``viewsMaybeProperty,
-  viewsEntry "multidimcov-views-leaf" "_views(x)" "The leaf _views overload returns its input unchanged." "base/views.jl:247" ``Views247Property ``views247Property,
-  viewsEntry "multidimcov-views-rewrite" "_views(::Expr)" "Expression rewriting converts reference reads to maybeview, preserves assignment targets, and recursively rewrites calls, blocks, and operands." "base/views.jl:248-294" ``Views248Property ``views248Property,
-  viewsEntry "multidimcov-views-macro" "@views" "The views macro performs boundary replacement, then view rewriting, then escapes the result in that order." "base/views.jl:332-334" ``Views332Property ``views332Property
-]
+def viewsReviewEntries : List Entry := []
 
 end JuliaLean.MultidimCov

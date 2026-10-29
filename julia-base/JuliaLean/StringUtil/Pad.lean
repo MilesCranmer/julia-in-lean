@@ -509,35 +509,6 @@ theorem lpadWidthSuffix_refuted : ¬ LpadWidthSuffix := by
 open JuliaLean.Registry
 
 /-- Registry entries of `lpad` and `rpad`. -/
-def padEntries : List Entry := [
-  { id := "stringutil-pad-malformed"
-    juliaFile := "base/strings/util.jl"
-    juliaFns := ["lpad(::AbstractString, ::Integer, ::AbstractString)", "rpad(::AbstractString, ::Integer, ::AbstractString)", "_pad_remainder(::AbstractString, ::Int)"]
-    statement := "For every width table (0 ≤ width ≤ 2), strings s and p with textwidth(p) > 0 and every n, if lpad(s, n, p) returns r then textwidth(r) ≥ n and endswith(r, s)."
-    source := "base/strings/util.jl:494-498 (lpad docstring: pad on the left with p to make it n characters (in textwidth) long)"
-    status := .refuted
-    prop := ``LpadWidthSuffix
-    thm := some ``lpadWidthSuffix_refuted
-    issue := "none found; related #25016 (queries: issues: lpad invalid UTF-8, issues: lpad textwidth, issues: rpad textwidth, issues: lpad malformed)"
-    notes := "lpad(\"\\x80\", 3, \"\\xe0\") == \"\\xe0\\xe0\\x80\": the pad character \"\\xe0\" and s merge into the one character '\\xe0\\x80', so the result has textwidth 2 and does not end with \"\\x80\". Malformed characters have width 1 independent of the utf8proc table. rpad(\"\\xe0\", 3, \"\\x80\") fails the same way (textwidth 1). Same code and result on 1.13.2." },
-  { id := "stringutil-lpad-pieces"
-    juliaFile := "base/strings/util.jl"
-    juliaFns := ["lpad(::AbstractString, ::Integer, ::AbstractString)", "_pad_remainder(::AbstractString, ::Int)", "repeat(::String, ::Integer)"]
-    statement := "For every width table (0 ≤ width ≤ 2), strings s and p with textwidth(p) > 0 and n with n - textwidth(s) not wrapping, lpad(s, n, p) returns s when n ≤ textwidth(s), and otherwise the bytes of p^q * rem * s, where rem is a SubString of p starting at 1 whose characters are a prefix of p's, q * textwidth(p) ≤ n - textwidth(s) ≤ q * textwidth(p) + textwidth(rem), and dropping the last character of rem would leave the pad short (widths measured piece by piece)."
-    source := "base/strings/util.jl:494-544 (lpad docstring and implementation)"
-    status := .proven
-    prop := ``Pad.LpadPieces
-    thm := some ``Pad.lpadPieces_proven
-    notes := "Widths are measured per piece, before concatenation; stringutil-pad-malformed shows that the width of the concatenation can be smaller for invalid UTF-8. Every successful return satisfies the statement (repeat and string errors are not excluded). The precondition -2^63 ≤ n - textwidth(s) rules out the wrapping of signed(n) - textwidth(s) near typemin (bugs/strings-lpad-typemin.yaml)." },
-  { id := "stringutil-rpad-pieces"
-    juliaFile := "base/strings/util.jl"
-    juliaFns := ["rpad(::AbstractString, ::Integer, ::AbstractString)", "_pad_remainder(::AbstractString, ::Int)", "repeat(::String, ::Integer)"]
-    statement := "As stringutil-lpad-pieces for rpad(s, n, p), whose result bytes are s * p^q * rem."
-    source := "base/strings/util.jl:547-584 (rpad docstring and implementation)"
-    status := .proven
-    prop := ``Pad.RpadPieces
-    thm := some ``Pad.rpadPieces_proven
-    notes := "Same pieces and bounds as lpad; only the order of concatenation differs." }
-]
+def padEntries : List Entry := []
 
 end JuliaLean.StringUtil

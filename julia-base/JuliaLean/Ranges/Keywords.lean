@@ -276,57 +276,6 @@ theorem stopLengthGivesUnitRange_refuted : ¬ StopLengthGivesUnitRange := by
 
 open JuliaLean.Registry
 
-def keywordEntries : List Entry := [
-  { id := "ranges-keyword-length", juliaFile := "base/range.jl"
-    juliaFns := ["range(start; length)", "range(stop; length)", "range(start; step, length)",
-      "range(; step, stop, length)"]
-    statement := "A successful length-taking range constructor returns a range of the requested nonnegative length."
-    source := "base/range.jl:80 range docstring: a range is uniquely determined by any three of start, step, stop and length"
-    status := .refuted, prop := ``KeywordLengthPreserved, thm := some ``keywordLength_refuted
-    issue := "none found; related #59032 (open, StepRangeLen integer overflow) (queries: range length overflow, range start length overflow, range .* overflow, StepRangeLen InexactError)"
-    notes := "range(typemax(Int)-1; length=5) and range(0; step=2^62, length=3) silently return empty ranges on 1.13.2 and master: the stop is computed with wrapping +% (base/range.jl:222,233) and the signed branch (base/range.jl:223-226,234-237) builds a UnitRange/StepRange from the wrapped stop. The comment 'overflow in recomputing length from stop is okay' accepts length overflow, not a wrong stop." },
-  { id := "ranges-broadcast-add-length", juliaFile := "base/broadcast.jl"
-    juliaFns := ["broadcasted(+, ::AbstractUnitRange, ::Integer)", "broadcasted(-, ::AbstractUnitRange, ::Integer)"]
-    statement := "r .+ x on an integer unit range has the same length as r (as the elementwise broadcast does)."
-    source := "base/broadcast.jl:783 broadcast docstring: broadcast applies f elementwise"
-    status := .refuted, prop := ``BroadcastAddLengthPreserved, thm := some ``broadcastAddLength_refuted
-    issue := "none found; related #45389 (open, OneTo(0) .+ typemax(Int) gives a full range) (queries: broadcast range overflow, Int8 range broadcast, range .* overflow, unsigned range broadcast subtraction)"
-    notes := "(Int8(126):Int8(127)) .+ Int8(1) is 127:126 (empty) while collect(r) .+ Int8(1) == Int8[127,-128]; (UInt8(1):UInt8(3)) .- UInt8(2) is 0xff:0xfe (empty) while the elementwise result is UInt8[0xff,0x00,0x01]. Both versions." },
-  { id := "ranges-broadcast-mul-elementwise", juliaFile := "base/broadcast.jl"
-    juliaFns := ["broadcasted(*, ::AbstractRange, ::Number)"]
-    statement := "(r .* x)[i] equals r[i] * x for every valid index i of an integer range."
-    source := "base/broadcast.jl:783 broadcast docstring: broadcast applies f elementwise"
-    status := .refuted, prop := ``BroadcastMulElementwise, thm := some ``broadcastMulElementwise_refuted
-    issue := "none found (queries: broadcast multiply range InexactError, StepRangeLen InexactError, Int8 range broadcast)"
-    notes := "(Int8(1):Int8(3)) .* Int8(64) is a StepRangeLen{Int8} whose r[2] throws InexactError(trunc(Int8,128)) because unsafe_getindex (base/range.jl:986-989) computes ref + u*step in Int and converts exactly; collect(r) .* Int8(64) == Int8[64,-128,-64]. Int64 ranges wrap consistently. Both versions." },
-  { id := "ranges-keyword-negative-length", juliaFile := "base/range.jl"
-    juliaFns := ["range(start; length)"]
-    statement := "A negative requested element count is rejected with an error."
-    source := "base/range.jl:538 StepRangeLen: length cannot be negative; consistency between signed and unsigned start"
-    status := .refuted, prop := ``NegativeKeywordLengthRejected, thm := some ``negativeKeywordLength_refuted
-    issue := "none found (queries: range negative length, range length overflow)"
-    notes := "range(1; length=-1) returns 1:0, but range(UInt(1); length=-1) throws ArgumentError(\"length cannot be negative, got -1\"). Reading 1: negative lengths should always throw (StepRangeLen check). Reading 2: clipping to empty like OneTo(-1) is intended for signed starts; then the unsigned path is the inconsistent one. Flagged as questionable semantics." },
-  { id := "ranges-mod-congruence", juliaFile := "base/range.jl"
-    juliaFns := ["mod(::Integer, ::AbstractUnitRange)"]
-    statement := "mod(x, r) returns y in r with x ≡ y (mod length(r))."
-    source := "base/range.jl:1529-1532 mod(x::Integer, r::AbstractUnitRange) docstring"
-    status := .refuted, prop := ``ModRangeCongruence, thm := some ``modRangeCongruence_refuted
-    issue := "#62286 (open, duplicate)"
-    notes := "mod(typemin(Int), 1:3) returns 2 instead of 1 on 1.13.2 and master because i-first(r) wraps (base/range.jl:1549)." },
-  { id := "ranges-range-error-hint", juliaFile := "base/range.jl"
-    juliaFns := ["range_error"]
-    statement := "The range_error hint never says that an argument the caller supplied is missing."
-    source := "invariant: the hint lists arguments that must be specified"
-    status := .refuted, prop := ``RangeErrorHintAccurate, thm := some ``rangeErrorHintAccurate_refuted
-    issue := "#50492 (open, duplicate symptom; cause base/range.jl:247 not identified there)"
-    notes := "range(step=1, length=3) says 'At least one of `length` or `stop` must be specified.' although length=3 was given: base/range.jl:247 sets haslength = start !== nothing." },
-  { id := "ranges-keyword-stop-length-unitrange", juliaFile := "base/range.jl"
-    juliaFns := ["range(; stop, length)"]
-    statement := "range(; stop, length) with integer arguments returns a UnitRange."
-    source := "base/range.jl:159-161 range docstring: `range` will produce a `UnitRange` when the arguments are Integers and only `length` and `stop` are provided"
-    status := .refuted, prop := ``StopLengthGivesUnitRange, thm := some ``stopLengthGivesUnitRange_refuted
-    issue := "none found (queries: range stop length UnitRange unsigned, range docstring UnitRange StepRangeLen)"
-    notes := "range(stop=UInt(10), length=5) is a StepRangeLen{UInt64}: range_stop_length returns UnitRange only when the computed start isa Signed (base/range.jl:212-215). Documentation-level mismatch; the unsigned StepRangeLen is likely deliberate." }
-]
+def keywordEntries : List Entry := []
 
 end JuliaLean.Ranges

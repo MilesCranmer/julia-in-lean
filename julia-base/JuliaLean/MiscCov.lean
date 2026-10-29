@@ -6,7 +6,7 @@ import JuliaLean.MiscCov.Shell
 import JuliaLean.MiscCov.CInterface
 import JuliaLean.MiscCov.Module
 import JuliaLean.MiscCov.RefScope
-import JuliaLean.MiscCov.CMem
+import JuliaLean.MiscCov.CRuntime
 import JuliaLean.MiscCov.BaseJl
 import JuliaLean.MiscCov.ParserInts
 import JuliaLean.MiscCov.RyuProofs
@@ -95,6 +95,9 @@ def entries : List Entry := [
   proven "misccov-experimental-syntax" "base/experimental.jl" ["set_syntax_version", "@VERSION", "reexport"]
     "Syntax-version and reexport helpers validate and emit the documented module operations." "base/experimental.jl:533-598"
     ``Experimental.SyntaxContract ``Experimental.syntaxContract_proven,
+  proven "misccov-experimental-prune-objcache" "base/experimental.jl" ["prune_objcache"]
+    "A disabled cache is neither pruned nor copied, a failed prune skips compaction, and successful compaction returns the number removed."
+    "base/experimental.jl:853-861" ``Experimental.PruneObjcacheContract ``Experimental.pruneObjcacheContract_proven,
 
   refuted "misccov-shell-fd-overflow" "base/shell.jl" ["__repl_entry_shell_parse", "shell_parse"]
     "Every unsupported redirect descriptor produces the parser's unsupported-fd error." "base/shell.jl:195-201"
@@ -124,9 +127,6 @@ def entries : List Entry := [
   proven "misccov-baseext" "base/baseext.jl" ["VecElement", "convert", "Array", "Vector", "Matrix"]
     "VecElement and Array convenience methods preserve conversions, rank, dimensions and fill values." "base/baseext.jl:17-45"
     ``BaseExtContractClosed ``baseExtContractClosed_proven,
-  proven "misccov-refvalue" "base/refvalue.jl" ["RefValue", "isassigned", "unsafe_convert", "getindex", "setindex!"]
-    "RefValue methods obey the one-field reference and pointer contract." "base/refvalue.jl:7-60"
-    ``RefValueContractClosed ``refValueContractClosed_proven,
   proven "misccov-scope" "base/scope.jl" ["Scope"]
     "Scope constructors preserve existing scopes and extend a parent once per pair." "base/scope.jl:24-47"
     ``ScopeContractClosed ``scopeContractClosed_proven,
@@ -162,13 +162,6 @@ def entries : List Entry := [
     "_eval_import processes paths in order and propagates the first error." "base/module.jl:156-236"
     ``Module.ImportContract ``Module.importContract_proven,
 
-  proven "misccov-memcpy-contract" "base/cmem.jl" ["memcpy", "memmove", "memset", "memcmp"]
-    "C memory wrappers convert arguments and perform the requested byte operation." "base/cmem.jl:12-57"
-    ``CMem.Contract ``CMem.contract_proven,
-  refuted "misccov-memcmp-negative-length" "base/cmem.jl" ["memcpy", "memmove", "memset", "memcmp"]
-    "All four C memory wrappers reject negative byte counts consistently." "base/cmem.jl:12-57"
-    "none found (queries: memcmp negative length, Csize_t negative memcmp)"
-    ``CMem.NegativeLengthConsistent ``CMem.negativeLengthConsistent_refuted,
   proven "misccov-osutils-static" "base/osutils.jl" ["@static"]
     "@static evaluates conditional syntax recursively and preserves other expressions." "base/osutils.jl:24-48"
     ``Static.Contract ``Static.contract_proven,

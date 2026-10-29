@@ -69,23 +69,6 @@ theorem cartesianPartitionFirstRow : CartesianPartitionFirstRow := by
   intro points
   cases points <;> rfl
 
-def cartesianIterMoreEntries : List Entry := [
-  { id := "multidimcov-cartesian-iter-more-exact"
-    juliaFile := "base/multidimensional.jl"
-    juliaFns := ["remaining CartesianIndices first/reverse/to_indices/linear/subset and partition helpers"]
-    statement := "The remaining iterator helpers expose their exact first-state, validation, axis transformation, containment, and partition results."
-    source := "base/multidimensional.jl:445-715"
-    status := .proven
-    prop := ``CartesianIterMoreRows
-    thm := some ``cartesianIterMoreRows },
-  { id := "multidimcov-cartesian-partition-first-exact"
-    juliaFile := "base/multidimensional.jl"
-    juliaFns := ["iterate(::CartesianPartition)"]
-    statement := "Partition iteration stops on empty input and otherwise returns the first point with count one."
-    source := "base/multidimensional.jl:659-663"
-    status := .proven
-    prop := ``CartesianPartitionFirstRow
-    thm := some ``cartesianPartitionFirstRow }
-]
+def cartesianIterMoreEntries : List Entry := []
 
 end JuliaLean.MultidimCov

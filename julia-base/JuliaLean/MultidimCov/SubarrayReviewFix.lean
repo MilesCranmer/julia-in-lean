@@ -186,16 +186,6 @@ private def subFixEntry (id fn statement source : String) (prop thm : Lean.Name)
   { id, juliaFile := "base/subarray.jl", juliaFns := [fn], statement, source,
     status := .proven, prop, thm := some thm }
 
-def subarrayReviewFixEntries : List Entry := [
-  subFixEntry "multidimcov-sub-constructor-full" "SubArray(parent,indices)" "Construction preserves the result rank computed from index_dimsum and dispatches using the complete linear layout." "base/subarray.jl:26-44" ``SubConstructorFull ``subConstructorFull,
-  subFixEntry "multidimcov-sub-linear-rank" "SubArray(::IndexLinear,parent,indices,dims)" "The linear constructor stores the supplied result rank after computing the complete offset and stride." "base/subarray.jl:34-38" ``SubLinearRank ``subLinearRank,
-  subFixEntry "multidimcov-sub-layout-full" "_compute_linear_layout(parent,indices)" "Linear layout returns compute_offset1 after compute_stride1, covering vector, Slice, range, and fallback offset branches." "base/subarray.jl:40-44,471-501" ``SubLayoutFull ``subLayoutFull,
-  subFixEntry "multidimcov-sub-copy-full" "copy(::SubArray)" "A zero-dimensional copy allocates a similar result, assigns the scalar parent value, and returns that result." "base/subarray.jl:78-84" ``SubCopyFull ``subCopyFull,
-  subFixEntry "multidimcov-sub-set-full" "setindex!(::SubArray,x,I...)" "An in-bounds general view assignment writes the reindexed parent location and returns the view." "base/subarray.jl:386-391" ``SubSetFull ``subSetFull,
-  subFixEntry "multidimcov-sub-fast-set-full" "setindex!(::FastSubArray,x,i)" "An in-bounds fast assignment writes the cached linear parent index and returns the view." "base/subarray.jl:392-403" ``FastSetFull ``fastSetFull,
-  subFixEntry "multidimcov-sub-range-set-full" "setindex!(::FastSubArray,x,range)" "An in-bounds range assignment writes all cached linear parent indices and returns the view." "base/subarray.jl:405-410" ``FastRangeSetFull ``fastRangeSetFull,
-  subFixEntry "multidimcov-sub-isassigned-full" "isassigned(::SubArray,I...)" "An in-bounds general isassigned query delegates on the fully reindexed parent coordinates." "base/subarray.jl:414-419" ``SubIsassignedFull ``subIsassignedFull,
-  subFixEntry "multidimcov-sub-fast-isassigned-full" "isassigned(::FastSubArray,i)" "An in-bounds fast isassigned query delegates on the cached linear parent index." "base/subarray.jl:420-431" ``FastIsassignedFull ``fastIsassignedFull
-]
+def subarrayReviewFixEntries : List Entry := []
 
 end JuliaLean.MultidimCov

@@ -1,41 +1,42 @@
 file	line	endline	name	signature	status	entry	note
-base/experimental.jl	29	29	Base.IndexStyle	Base.IndexStyle(::Type{<:Const})	modelled	misccov-experimental-const	
-base/experimental.jl	30	30	Base.size	Base.size(C::Const)	modelled	misccov-experimental-const	
-base/experimental.jl	31	31	Base.axes	Base.axes(C::Const)	modelled	misccov-experimental-const	
-base/experimental.jl	32	36	Base.getindex	Base.getindex(A::Const, i::Int)	modelled	misccov-experimental-const	
-base/experimental.jl	37	41	Base.getindex	Base.getindex(A::Const, i1::Int, i2::Int, I::Int...)	modelled	misccov-experimental-const	
-base/experimental.jl	52	60	aliasscope	aliasscope(body)	modelled	misccov-experimental-options	
-base/experimental.jl	63	107	sync_end	sync_end(c::Channel{Any}, src::Union{Nothing, Base.CancellationTokenSource}=nothing)	modelled	misccov-experimental-sync	
-base/experimental.jl	126	143	sync	sync(block)	modelled	misccov-experimental-sync-macro	
-base/experimental.jl	158	160	optlevel	optlevel(n::Int)	modelled	misccov-experimental-options	
-base/experimental.jl	180	183	max_methods	max_methods(n::Int)	modelled	misccov-max-methods-default,misccov-experimental-options	
-base/experimental.jl	193	197	max_methods	max_methods(n::Int, fdef::Expr)	modelled	misccov-max-methods-default,misccov-experimental-options	
-base/experimental.jl	212	244	compiler_options	compiler_options(args...)	modelled	misccov-experimental-options	
-base/experimental.jl	268	268	force_compile	force_compile()	modelled	misccov-experimental-options	
-base/experimental.jl	331	335	register_error_hint	register_error_hint(@nospecialize(handler), @nospecialize(exct::Type))	modelled	misccov-experimental-hints	
-base/experimental.jl	354	374	show_error_hints	show_error_hints(io, ex, args...)	modelled	misccov-experimental-hints	
-base/experimental.jl	410	425	overlay	overlay(mt, def)	modelled	misccov-experimental-overlay	
-base/experimental.jl	478	485	consistent_overlay	consistent_overlay(mt, def)	modelled	misccov-experimental-overlay	
-base/experimental.jl	487	499	overlay_def!	overlay_def!(mt, @nospecialize ex)	modelled	misccov-experimental-overlay	
-base/experimental.jl	501	504	new_mt	new_mt(name::Symbol, mod::Module)	modelled	misccov-experimental-methodtable	
-base/experimental.jl	505	507	MethodTable	MethodTable(name::Symbol)	modelled	misccov-experimental-methodtable	
-base/experimental.jl	530	539	make_all_arithmetic_checked	make_all_arithmetic_checked()	modelled	misccov-experimental-checked	
-base/experimental.jl	532	532	Base.:(-)	Base.:(-)(x::Base.BitInteger)	modelled	misccov-experimental-checked	generated-macro: make_all_arithmetic_checked
-base/experimental.jl	533	533	Base.:(-)	Base.:(-)(x::Base.Int, y::Base.Int)	modelled	misccov-experimental-checked	generated-macro: make_all_arithmetic_checked
-base/experimental.jl	534	534	Base.:(-)	Base.:(-)(x::T, y::T) where {T<:Base.BitInteger}	modelled	misccov-experimental-checked	generated-macro: make_all_arithmetic_checked
-base/experimental.jl	535	535	Base.:(+)	Base.:(+)(x::Base.Int, y::Base.Int)	modelled	misccov-experimental-checked	generated-macro: make_all_arithmetic_checked
-base/experimental.jl	536	536	Base.:(+)	Base.:(+)(x::T, y::T) where {T<:Base.BitInteger}	modelled	misccov-experimental-checked	generated-macro: make_all_arithmetic_checked
-base/experimental.jl	537	537	Base.:(*)	Base.:(*)(x::T, y::T) where {T<:Base.BitInteger}	modelled	misccov-experimental-checked	generated-macro: make_all_arithmetic_checked
-base/experimental.jl	548	562	make_io_thread	make_io_thread()	modelled	misccov-experimental-runtime	
-base/experimental.jl	569	571	entrypoint	entrypoint(@nospecialize(f), @nospecialize(argtypes::Tuple))	modelled	misccov-experimental-runtime	
-base/experimental.jl	573	579	entrypoint	entrypoint(@nospecialize(argt::Type))	modelled	misccov-experimental-runtime	
-base/experimental.jl	588	588	disable_new_worlds	disable_new_worlds()	modelled	misccov-experimental-runtime	
-base/experimental.jl	603	610	task_metrics	task_metrics(b::Bool)	modelled	misccov-experimental-runtime	
-base/experimental.jl	630	639	task_running_time_ns	task_running_time_ns(t::Task=current_task())	modelled	misccov-experimental-runtime	
-base/experimental.jl	655	662	task_wall_time_ns	task_wall_time_ns(t::Task=current_task())	modelled	misccov-experimental-runtime	
-base/experimental.jl	690	719	wait_with_timeout	wait_with_timeout(c::GenericCondition; first::Bool=false, timeout::Real=0.0, cancel::Base.CancelTokenArg=Base.DEFAULT_CANCEL)	modelled	misccov-experimental-wait	
-base/experimental.jl	751	770	reexport	reexport(ex)	modelled	misccov-experimental-syntax	
-base/experimental.jl	772	776	Base.set_syntax_version	Base.set_syntax_version(m::Module, edition::Tuple{Int, Int})	modelled	misccov-experimental-syntax	
-base/experimental.jl	777	778	Base.set_syntax_version	Base.set_syntax_version(mod, e::VersionNumber)	modelled	misccov-experimental-syntax	
-base/experimental.jl	811	813	set_syntax_version	set_syntax_version(ver)	modelled	misccov-experimental-syntax	
-base/experimental.jl	828	836	"var""@VERSION"""	"var""@VERSION""(__source__::Union{LineNumberNode, Core.MacroSource}, __module__::Module)"	modelled	misccov-experimental-syntax	
+base/experimental.jl	29	29	Base.IndexStyle	Base.IndexStyle(::Type{<:Const})	todo		
+base/experimental.jl	30	30	Base.size	Base.size(C::Const)	todo		
+base/experimental.jl	31	31	Base.axes	Base.axes(C::Const)	todo		
+base/experimental.jl	32	36	Base.getindex	Base.getindex(A::Const, i::Int)	todo		
+base/experimental.jl	37	41	Base.getindex	Base.getindex(A::Const, i1::Int, i2::Int, I::Int...)	todo		
+base/experimental.jl	52	60	aliasscope	aliasscope(body)	todo		
+base/experimental.jl	63	107	sync_end	sync_end(c::Channel{Any}, src::Union{Nothing, Base.CancellationTokenSource}=nothing)	todo		
+base/experimental.jl	126	143	sync	sync(block)	todo		
+base/experimental.jl	158	160	optlevel	optlevel(n::Int)	todo		
+base/experimental.jl	180	183	max_methods	max_methods(n::Int)	todo		
+base/experimental.jl	193	197	max_methods	max_methods(n::Int, fdef::Expr)	todo		
+base/experimental.jl	212	244	compiler_options	compiler_options(args...)	todo		
+base/experimental.jl	268	268	force_compile	force_compile()	todo		
+base/experimental.jl	331	335	register_error_hint	register_error_hint(@nospecialize(handler), @nospecialize(exct::Type))	todo		
+base/experimental.jl	354	374	show_error_hints	show_error_hints(io, ex, args...)	todo		
+base/experimental.jl	410	425	overlay	overlay(mt, def)	todo		
+base/experimental.jl	478	485	consistent_overlay	consistent_overlay(mt, def)	todo		
+base/experimental.jl	487	499	overlay_def!	overlay_def!(mt, @nospecialize ex)	todo		
+base/experimental.jl	501	504	new_mt	new_mt(name::Symbol, mod::Module)	todo		
+base/experimental.jl	505	507	MethodTable	MethodTable(name::Symbol)	todo		
+base/experimental.jl	530	539	make_all_arithmetic_checked	make_all_arithmetic_checked()	todo		
+base/experimental.jl	532	532	Base.:(-)	Base.:(-)(x::Base.BitInteger)	todo		generated-macro: make_all_arithmetic_checked
+base/experimental.jl	533	533	Base.:(-)	Base.:(-)(x::Base.Int, y::Base.Int)	todo		generated-macro: make_all_arithmetic_checked
+base/experimental.jl	534	534	Base.:(-)	Base.:(-)(x::T, y::T) where {T<:Base.BitInteger}	todo		generated-macro: make_all_arithmetic_checked
+base/experimental.jl	535	535	Base.:(+)	Base.:(+)(x::Base.Int, y::Base.Int)	todo		generated-macro: make_all_arithmetic_checked
+base/experimental.jl	536	536	Base.:(+)	Base.:(+)(x::T, y::T) where {T<:Base.BitInteger}	todo		generated-macro: make_all_arithmetic_checked
+base/experimental.jl	537	537	Base.:(*)	Base.:(*)(x::T, y::T) where {T<:Base.BitInteger}	todo		generated-macro: make_all_arithmetic_checked
+base/experimental.jl	548	562	make_io_thread	make_io_thread()	todo		
+base/experimental.jl	569	571	entrypoint	entrypoint(@nospecialize(f), @nospecialize(argtypes::Tuple))	todo		
+base/experimental.jl	573	579	entrypoint	entrypoint(@nospecialize(argt::Type))	todo		
+base/experimental.jl	588	588	disable_new_worlds	disable_new_worlds()	todo		
+base/experimental.jl	603	610	task_metrics	task_metrics(b::Bool)	todo		
+base/experimental.jl	630	639	task_running_time_ns	task_running_time_ns(t::Task=current_task())	todo		
+base/experimental.jl	655	662	task_wall_time_ns	task_wall_time_ns(t::Task=current_task())	todo		
+base/experimental.jl	690	719	wait_with_timeout	wait_with_timeout(c::GenericCondition; first::Bool=false, timeout::Real=0.0, cancel::Base.CancelTokenArg=Base.DEFAULT_CANCEL)	todo		
+base/experimental.jl	751	770	reexport	reexport(ex)	todo		
+base/experimental.jl	772	776	Base.set_syntax_version	Base.set_syntax_version(m::Module, edition::Tuple{Int, Int})	todo		
+base/experimental.jl	777	778	Base.set_syntax_version	Base.set_syntax_version(mod, e::VersionNumber)	todo		
+base/experimental.jl	811	813	set_syntax_version	set_syntax_version(ver)	todo		
+base/experimental.jl	828	836	"var""@VERSION"""	"var""@VERSION""(__source__::Union{LineNumberNode, Core.MacroSource}, __module__::Module)"	todo		
+base/experimental.jl	853	861	prune_objcache	prune_objcache(dir::AbstractString; age::Real=7*24*60*60)	modelled	misccov-experimental-prune-objcache	External cutoff and cache calls represented as explicit inputs; awaiting review and exact-target runtime checks.

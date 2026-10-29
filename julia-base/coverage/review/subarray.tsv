@@ -1,150 +1,35 @@
 line	name	verdict	mirror	property	settled	reason
-19	SubArray{T,N,P,I,L}	FAITHFUL	yes	yes	yes	The model checks the effective index rank before storing every constructor field, and the named theorem proves that behavior for all modeled inputs.
-26	SubArray	FAITHFUL	yes	yes	yes	The error-aware model preserves every constructor call and its source order, and the named theorem is proven.
 30	SubArray	HOLLOW	no	yes	yes	The model calls eltype on the parent value, whereas this method calls eltype on the parent type P.
 34	SubArray	HOLLOW	no	yes	yes	The model calls eltype on the parent value after layout, whereas this method calls eltype on the parent type P.
-40	_compute_linear_layout	FAITHFUL	yes	yes	yes	The model performs stride computation and conversion before offset computation and conversion, and the named theorem is proven.
-46	check_parent_index_match	FAITHFUL	yes	yes	yes	The model computes consumed index rank and delegates to the matching-rank check, and the named theorem is proven.
 47	check_parent_index_match	HOLLOW	no	yes	yes	The proposition uses the branching wrapper model rather than a Lean function mirroring this unconditional nothing-returning overload.
 48	check_parent_index_match	HOLLOW	no	yes	yes	The shared rank-check model omits this overload's ndims call and constructed ArgumentError message.
-52	viewindexing	FAITHFUL	yes	yes	yes	The fast-linear theorem uses an empty-index base case returning linear style and proves the documented linear-indexing invariant.
 54	viewindexing	HOLLOW	no	no	yes	The callback may depend on the removed scalar, so the model neither mirrors viewindexing(tail(I)) nor states scalar-independent behavior.
-56	viewindexing	FAITHFUL	yes	yes	yes	The model drops the first Slice and classifies the tuple beginning with the second Slice, and the named theorem is proven.
-58	viewindexing	FAITHFUL	yes	yes	yes	The model returns linear style for every Slice, unit-range, scalar-suffix input, and the named theorem is proven.
-59	viewindexing	FAITHFUL	yes	yes	yes	The model returns linear style for every two-Slice scalar suffix, and the named theorem is proven.
-63	viewindexing	FAITHFUL	yes	yes	yes	The model returns linear style for every scalar range followed by scalar indices, and the named theorem is proven.
-65	viewindexing	FAITHFUL	yes	yes	yes	The fallback model returns Cartesian style for its full fallback domain, and the named theorem is proven.
-67	viewindexing	FAITHFUL	yes	yes	yes	The array-leading fallback model returns Cartesian style for every suffix, and the named theorem is proven.
-70	size	FAITHFUL	yes	yes	yes	The model derives view axes from stored indices and maps their lengths, and the named theorem is proven.
 72	similar	HOLLOW	no	no	yes	The model has no view or parent projection, so its closed-over callback does not establish delegation to V.parent for every SubArray.
 73	similar	HOLLOW	no	no	yes	The model has no parent type P input, so its closed-over callback does not establish delegation to similar(P,dims).
-75	sizeof	FAITHFUL	yes	yes	yes	The model calls length, eltype, sizeof, and multiplication in source order with failure propagation, and the named theorem is proven.
-76	sizeof	FAITHFUL	yes	yes	yes	The model reads the parent element size after the view length and multiplies them with failure propagation, and the named theorem is proven.
 78	Base.copy	HOLLOW	no	no	yes	The zero-rank branch returns the assignment callback's result instead of ignoring that result and returning the allocated x.
-86	parent	FAITHFUL	yes	yes	yes	The model returns the actual stored parent projection for every view, and the named theorem is proven.
-87	parentindices	FAITHFUL	yes	yes	yes	The model returns the actual stored index tuple for every view, and the named theorem is proven.
-107	parentindices	FAITHFUL	-	-	-	The exclusion is valid because this line only declares a generic function and installs no method body or observable behavior.
-109	parentindices	FAITHFUL	yes	yes	yes	The model calls size and maps oneto over every dimension with failure propagation, and the named theorem is proven.
-112	dataids	FAITHFUL	yes	yes	yes	The model obtains parent identifiers, maps dataids over every stored index, and concatenates the results in source order.
-113	_splatmap	FAITHFUL	yes	yes	yes	The empty-tuple model returns the empty tuple representation for every call, and the named theorem is proven.
 114	_splatmap	HOLLOW	no	no	yes	The model makes f a total pure function, so it omits exceptions from f(t[1]) and does not cover every allowed function input.
-115	unaliascopy	FAITHFUL	yes	yes	yes	The model copies the actual parent and every stored index before reconstructing the same concrete layout, and the named theorem is proven.
 119	unaliascopy	HOLLOW	no	no	yes	The model feeds copyto!'s return value into layout and construction, whereas Julia ignores that value and continues with dest.
-133	_trimmedshape	FAITHFUL	yes	yes	yes	The model prepends one and then preserves the complete recursive shape with failure propagation, and the named theorem is proven.
-134	_trimmedshape	FAITHFUL	yes	yes	yes	The model follows the empty-range branch and maximum branch in source order over the full abstract range domain.
-135	_trimmedshape	FAITHFUL	yes	yes	yes	The dense-range model prepends its length to the recursive result, and the named theorem is proven.
-136	_trimmedshape	FAITHFUL	yes	yes	yes	The scalar-index-array model prepends its length to the recursive result, and the named theorem is proven.
-137	_trimmedshape	FAITHFUL	yes	yes	yes	The rank-zero Cartesian-index-array model contributes no dimension and recurses, and the named theorem is proven.
-138	_trimmedshape	FAITHFUL	yes	yes	yes	For the positive-rank dispatch domain, the model prepends length and rank-minus-one singleton dimensions before the recursive shape.
-139	_trimmedshape	FAITHFUL	yes	yes	yes	The zero-argument model returns the empty shape, and the named theorem is proven.
-141	_trimmedpind	FAITHFUL	yes	yes	yes	The model reads all axes, emits one Colon per axis, and appends the recursive result with failure propagation.
-142	_trimmedpind	FAITHFUL	yes	yes	yes	The model preserves the actual AbstractRange before the recursive result, and the named theorem is proven.
-143	_trimmedpind	FAITHFUL	yes	yes	yes	The dense-range model emits one Colon and then the recursive result, and the named theorem is proven.
-144	_trimmedpind	FAITHFUL	yes	yes	yes	The rank-zero Cartesian-index-array model skips the index and recurses, and the named theorem is proven.
-145	_trimmedpind	FAITHFUL	yes	yes	yes	The zero-argument model returns the empty parent-index tuple representation, and the named theorem is proven.
-146	_trimmedvind	FAITHFUL	yes	yes	yes	The model reads all axes, emits one Colon per axis, and appends the recursive result with failure propagation.
-147	_trimmedvind	FAITHFUL	yes	yes	yes	The rank-zero Cartesian-index-array model maps first over every axis before appending the recursive result.
-148	_trimmedvind	FAITHFUL	yes	yes	yes	The zero-argument model returns the empty view-index tuple representation, and the named theorem is proven.
-150	_trimmedindex	FAITHFUL	yes	yes	yes	The model calls oftype on the actual scalar and one, and the named theorem is proven.
-151	_trimmedindex	FAITHFUL	yes	yes	yes	The identity model returns the actual AbstractRange unchanged for every range value, and the named theorem is proven.
-152	_trimmedindex	FAITHFUL	yes	yes	yes	The model computes length, oneto, and same-type conversion in source order with failure propagation.
-153	_trimmedindex	FAITHFUL	yes	yes	yes	The model computes linear eachindex, axes, reshape, and same-type conversion in source order.
-154	_trimmedindex	FAITHFUL	yes	yes	yes	The model copies the rank-zero Cartesian-index array and converts the copy back to its concrete type.
-155	_trimmedindex	FAITHFUL	yes	yes	yes	For the positive-rank dispatch domain, the model builds Cartesian linear indices, reshapes them to the original axes, and converts the result type.
-165	_maybe_reshape_parent	FAITHFUL	yes	yes	yes	The model delegates the actual array to reshape with rank one, and the named theorem is proven.
-166	_maybe_reshape_parent	FAITHFUL	yes	yes	yes	The vector-specialized model delegates the actual vector to reshape with rank one, and the named theorem is proven.
 167	_maybe_reshape_parent	HOLLOW	no	no	yes	The model returns a new axes-only ReshapedParent record, so it does not express that Julia returns the identical array object A.
-168	_maybe_reshape_parent	FAITHFUL	yes	yes	yes	The model delegates the actual array to reshape with the supplied rank, and the named theorem is proven.
-170	rm_singleton_indices	FAITHFUL	yes	yes	yes	The model retains the head and drops its effective rank from the remaining dimension tuple before recursion.
-171	rm_singleton_indices	FAITHFUL	yes	yes	yes	The empty-dimensions scalar overload drops the scalar and recurses over the remaining indices.
-172	rm_singleton_indices	FAITHFUL	yes	yes	yes	The no-index overload returns the empty tuple representation for every dimension tuple.
-221	view	FAITHFUL	yes	yes	yes	The model preserves conversion, unaliasing, bounds checking, singleton removal, reshaping, and construction order with all callback failures.
 230	view	HOLLOW	yes	no	yes	The delegation mirror fixes both ranges and results to Int64 lists, so the proposition does not cover every allowed AbstractUnitRange element type.
 234	view	HOLLOW	yes	no	yes	The delegation mirror fixes both ranges and results to Int64 lists, so the proposition does not cover every allowed stepped-range element type.
 238	view	HOLLOW	yes	no	yes	The delegation mirror fixes both ranges and results to Int64 lists, so the proposition does not cover every allowed StepRange and integer-range type.
 242	view	HOLLOW	yes	no	yes	The delegation mirror fixes both ranges and results to Int64 lists, so the proposition does not cover every allowed StepRangeLen and OrdinalRange type.
 246	view	HOLLOW	yes	no	yes	The delegation mirror fixes both ranges and results to Int64 lists, so the proposition does not cover every allowed LinRange and OrdinalRange type.
 252	view	HOLLOW	yes	no	yes	The delegation mirror fixes the range and result to Int64 lists, so the proposition does not cover every allowed AbstractRange element type.
-257	unsafe_view	FAITHFUL	yes	yes	yes	The polymorphic model delegates the actual array and complete index list to construction with failure propagation.
 267	unsafe_view	HOLLOW	yes	no	yes	The delegation model fixes the result to Nat and cannot represent errors, so the proposition does not cover every allowed SubArray outcome.
 269	_maybe_reindex	HOLLOW	yes	no	yes	The wrapper model fixes the dispatch result to Nat and cannot represent errors, so the proposition does not cover every allowed outcome.
 270	_maybe_reindex	HOLLOW	yes	no	yes	The nested-construction model fixes the result to Nat and cannot represent constructor errors, so the proposition does not cover every allowed outcome.
-273	_maybe_reindex	FAITHFUL	yes	yes	yes	The model computes the actual tuple tail before recurring with the original view and indices, and the named theorem is proven.
-275	_maybe_reindex	FAITHFUL	yes	yes	yes	The model computes the actual tuple tail before recurring with the original view and indices, and the named theorem is proven.
-276	_maybe_reindex	FAITHFUL	yes	yes	yes	The model reindexes stored indices, converts them against the actual parent, and constructs one view with full failure propagation.
 292	reindex	HOLLOW	no	no	yes	The Lean base case accepts any second index list and KInBounds permits extra subscripts, whereas this Julia method applies only to two empty tuples.
-295	reindex	FAITHFUL	yes	yes	yes	The model preserves the scalar parent index and recurses without consuming a subindex, with failure propagation.
-299	reindex	FAITHFUL	yes	yes	yes	The model passes through the first subindex and consumes one parent and one subindex before recursion.
-303	reindex	FAITHFUL	yes	yes	yes	The model performs the vector lookup before recursively composing both tails, with failure propagation.
-307	reindex	FAITHFUL	yes	yes	yes	The model performs the two-index matrix lookup before consuming two subindices and recurring.
-311	reindex	FAITHFUL	yes	yes	yes	The model splits at the array rank, indexes with the prefix, and recurses on the suffix with failure propagation.
-316	getindex	FAITHFUL	yes	yes	yes	The model bounds-checks before complete reindexing and parent lookup, and propagates every represented failure.
-327	_reindexlinear	FAITHFUL	yes	yes	yes	Under the FastSubArray linearity type invariant, the model computes wrapping offset plus stride times index for every Int64 index.
-328	_reindexlinear	FAITHFUL	yes	yes	yes	The model performs broadcast multiplication before broadcast addition on the actual range, with failure propagation.
 330	getindex	HOLLOW	yes	no	yes	The proposition fixes parent values to Nat and proves only that restricted successful lookup, so it does not cover every allowed element type and outcome.
 339	getindex	HOLLOW	no	no	yes	The proposition reuses the general FastSubArray proposition and fixes results to Nat instead of modeling this vector specialization over every element type and outcome.
-351	_reindexlinear	FAITHFUL	yes	yes	yes	The contiguous model adds the cached offset directly to every Int64 scalar index, and the named theorem is proven.
-352	_reindexlinear	FAITHFUL	yes	yes	yes	The model broadcasts cached-offset addition over the actual range object, with failure propagation.
-376	getindex	FAITHFUL	yes	yes	yes	The model checks the actual range, shifts it, and indexes the actual parent in source order with failure propagation.
-383	getindex	FAITHFUL	yes	yes	yes	The model converts Colon for the actual view before delegating to getindex, and the named theorem is proven.
-386	setindex!	FAITHFUL	yes	yes	yes	The model checks bounds, reindexes, performs the parent write, and returns the view only after success.
-392	setindex!	FAITHFUL	yes	yes	yes	The model checks bounds, shifts the scalar index, performs the parent write, and returns the view only after success.
 398	setindex!	HOLLOW	no	yes	yes	The Lean function is only an alias of the line-392 model rather than a separate mirror of this vector-specialized method.
-405	setindex!	FAITHFUL	yes	yes	yes	The model preserves the range through bounds checking, shifting, and the parent write, then returns the view after success.
-412	setindex!	FAITHFUL	yes	yes	yes	The model converts Colon for the actual view before delegating to setindex!, and the named theorem is proven.
-414	isassigned	FAITHFUL	yes	yes	yes	The model returns false after a failed bounds predicate and otherwise reindexes fully before querying the actual parent.
-420	isassigned	FAITHFUL	yes	yes	yes	The model contains the bounds-failure branch and proves in-bounds delegation through the cached linear parent index.
 426	isassigned	HOLLOW	no	yes	yes	The row reuses the same generic fast-isassigned function and proposition as line 420 rather than mirroring this vector-specialized method separately.
-433	IndexStyle	FAITHFUL	yes	yes	yes	The model returns linear style unconditionally for every represented FastSubArray, and the named theorem is proven.
-437	strides	FAITHFUL	yes	yes	yes	The model reads the actual parent, obtains its strides, and combines them with the actual stored indices with failure propagation.
-439	substrides	FAITHFUL	yes	yes	yes	The empty-strides and empty-indices model returns the empty tuple representation, and the named theorem is proven.
-440	substrides	FAITHFUL	yes	yes	yes	The scalar model drops the first parent stride and recurses without emitting an output stride.
-441	substrides	FAITHFUL	yes	yes	yes	The model reads the first stride, both tuple tails, and the recursive result in source order with failure propagation.
-442	substrides	FAITHFUL	yes	yes	yes	The model computes the converted range step and multiplied head before processing both tails recursively.
 443	substrides	HOLLOW	no	yes	yes	The model returns only an ArgumentError tag and omits I[1], typeof, and LazyString construction from this method body.
-446	stride	FAITHFUL	yes	yes	yes	The model preserves the dimension branch and every call in each branch over the full Integer input abstraction.
-448	compute_stride1	FAITHFUL	yes	yes	yes	The model pads parent axes with one-based singleton axes and delegates from stride one for the index-tuple length.
-450	compute_stride1	FAITHFUL	yes	yes	yes	The empty-index model returns the arbitrary accumulator unchanged for every axes value.
-451	compute_stride1	FAITHFUL	yes	yes	yes	The all-scalar model returns the arbitrary accumulator unchanged for every scalar suffix.
-452	compute_stride1	FAITHFUL	yes	yes	yes	The model reads and converts the first axis length, multiplies the accumulator, obtains both tails, and recurses in source order.
-454	compute_stride1	FAITHFUL	yes	yes	yes	The model reads and converts the actual range step before multiplying the arbitrary accumulator.
-455	compute_stride1	FAITHFUL	yes	yes	yes	The Slice model returns the arbitrary accumulator unchanged for every remaining axes and index tuple.
-456	compute_stride1	FAITHFUL	yes	yes	yes	The model reads the unsupported head and its type before constructing the documented ArgumentError message.
-458	elsize	FAITHFUL	yes	yes	yes	The model delegates the represented parent type to its element-size operation, and the named theorem is proven.
-460	iscontiguous	FAITHFUL	yes	yes	yes	The model obtains typeof on the actual value and delegates to type contiguity for every represented SubArray.
-461	iscontiguous	FAITHFUL	yes	yes	yes	The general SubArray type model returns false unconditionally, and the named theorem is proven.
-462	iscontiguous	FAITHFUL	yes	yes	yes	The FastContiguousSubArray type model returns true unconditionally, and the named theorem is proven.
-464	first_index	FAITHFUL	yes	yes	yes	The model calls firstindex before cached-stride multiplication and cached-offset addition with failure propagation.
-465	first_index	FAITHFUL	yes	yes	yes	The model passes the actual parent and stored indices to compute_linindex, and the named theorem is proven.
-471	compute_offset1	FAITHFUL	yes	yes	yes	The model reads and converts both first values before multiplication and subtraction in source order.
 478	compute_offset1	HOLLOW	no	no	yes	The model makes the final dispatch a pure Int64 callback, so it omits every exception that the selected compute_offset1 overload may produce.
-480	compute_offset1	FAITHFUL	yes	yes	yes	The model computes the linear index, parent-axis origin, conversion, multiplication, and subtraction in source order.
-482	compute_offset1	FAITHFUL	yes	yes	yes	The model computes the linear index and actual range-axis origin before scaled subtraction in source order.
-484	compute_offset1	FAITHFUL	yes	yes	yes	The fallback model computes the actual linear index before subtracting the supplied stride.
 486	compute_linindex	HOLLOW	no	no	yes	The model collapses LinearIndices, first, and Int conversion into a total callback, omitting their source calls and possible failures.
 491	compute_linindex	HOLLOW	no	no	yes	The model replaces Int(first(I[1])) with a fixed ViewIndex extractor, omitting conversion failures and valid Any index types.
 496	compute_linindex	HOLLOW	no	no	yes	The model replaces Int(first(I[1])) with a fixed ViewIndex extractor, omitting conversion failures and valid Any index types.
-501	compute_linindex	FAITHFUL	yes	yes	yes	The empty-index model returns the arbitrary accumulated first index unchanged, and the named theorem is proven.
-503	find_extended_dims	FAITHFUL	yes	yes	yes	The scalar model increments the current dimension, omits the scalar, and recurses over the full represented suffix.
-504	find_extended_dims	FAITHFUL	yes	yes	yes	The non-scalar model retains the current dimension, increments it, and recurses over the full represented suffix.
-505	find_extended_dims	FAITHFUL	yes	yes	yes	The zero-index model returns the empty dimension tuple representation, and the named theorem is proven.
-506	find_extended_inds	FAITHFUL	yes	yes	yes	The scalar model omits the head and recurses over the complete represented suffix.
-507	find_extended_inds	FAITHFUL	yes	yes	yes	The non-scalar model retains the actual head before the complete recursive result.
-508	find_extended_inds	FAITHFUL	yes	yes	yes	The zero-index model returns the empty index tuple representation, and the named theorem is proven.
 510	pointer	HOLLOW	yes	no	yes	The delegation mirror fixes pointers and callback results to Int64 and cannot represent failures, so it does not cover every allowed pointer result.
 511	pointer	HOLLOW	yes	no	yes	The delegation mirror fixes pointers and callback results to Int64 and cannot represent failures, so it does not cover every allowed pointer result.
-513	pointer	FAITHFUL	yes	yes	yes	The model calls first_index and strides, performs every coordinate update in loop order, and delegates to the actual parent pointer operation.
 525	axes	HOLLOW	no	no	yes	The model returns the stored range Axis itself, whereas Julia axes(range) is the range object's index axis, usually OneTo(length(range)).
-526	_indices_sub	FAITHFUL	yes	yes	yes	The Real-index model skips the scalar and recurses over the complete suffix.
-527	_indices_sub	FAITHFUL	yes	yes	yes	The zero-index model returns the empty axes tuple representation, and the named theorem is proven.
-528	_indices_sub	FAITHFUL	yes	yes	yes	The model calls axes on the actual array and concatenates every returned axis before the recursive result.
-533	axes1	FAITHFUL	yes	yes	yes	The zero-dimensional SubArray model returns OneTo(1), and the named theorem is proven.
 534	axes1	HOLLOW	no	no	yes	The recursive model returns a stored range Axis rather than calling axes1 on the range object to obtain its index axis.
-535	_axes1_sub	FAITHFUL	yes	yes	yes	The zero-index model represents the absence of a first axis as none, and the named theorem is proven.
-536	_axes1_sub	FAITHFUL	yes	yes	yes	The Real-index model skips the scalar and recurses over the complete suffix.
-537	_axes1_sub	FAITHFUL	yes	yes	yes	The zero-dimensional array-index model skips that array and recurses over the complete suffix.
-538	_axes1_sub	FAITHFUL	yes	yes	yes	The polymorphic model calls axes1 on the actual array and ignores the suffix exactly as the method does.
-543	has_offset_axes	FAITHFUL	yes	yes	yes	The polymorphic model delegates the actual stored index tuple to has_offset_axes with failure propagation.
-545	replace_in_print_matrix	FAITHFUL	yes	yes	yes	The model reindexes two coordinates, converts them against the actual parent, and delegates the text replacement in source order.
-548	replace_in_print_matrix	FAITHFUL	yes	yes	yes	The vector model reindexes the row, converts it against the parent, retains the display column, and delegates replacement.
-553	unsafe_wrap	FAITHFUL	yes	yes	yes	The model evaluates the view pointer and size before passing both to the vector wrapper, and the named theorem is proven.

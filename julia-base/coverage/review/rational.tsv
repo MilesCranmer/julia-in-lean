@@ -81,10 +81,6 @@ line	name	verdict	mirror	property	settled	reason
 424	+%	HOLLOW	no	no	yes	The model covers only equal component types although the method accepts mixed Rational types, and its proposition only asserts HasResult.
 433	-	HOLLOW	no	no	yes	The infinity property uses a same-type model and the conversion-order property assumes a helper error, so the entries do not cover all allowed inputs under documented preconditions.
 442	-%	HOLLOW	no	no	yes	The model covers only equal component types although the method accepts mixed Rational types, and its proposition only asserts HasResult.
-453	$op	HOLLOW	no	no	yes	The model omits mixed-type denominator promotion for the generated rem and mod methods, and its proposition only asserts HasResult.
-462	$op	HOLLOW	no	no	yes	The model requires the Rational and Integer operands to share one component type, and its proposition only asserts HasResult.
-469	$op	HOLLOW	no	no	yes	The model requires the Integer and Rational operands to share one component type, and its proposition only asserts HasResult.
-476	$op	HOLLOW	no	no	yes	The model requires the Integer and Rational operands to share one component type, and its proposition only asserts HasResult.
 482	*	HOLLOW	no	no	yes	The model covers only equal component types although the method accepts mixed Rational types, and its proposition only asserts HasResult.
 487	*	HOLLOW	no	no	yes	The model requires the integer multiplier to match the Rational component type, and its proposition only asserts HasResult.
 491	*	HOLLOW	no	no	yes	The model requires the integer multiplier to match the Rational component type, and its proposition only asserts HasResult.
@@ -105,16 +101,12 @@ line	name	verdict	mirror	property	settled	reason
 519	<=	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states no widened cross-product comparison result.
 521	==	HOLLOW	no	no	yes	The model receives decomposed components and a top-bit callback instead of subtracting one and calling top_set_bit, while its proposition only asserts HasResult.
 529	==	FAITHFUL	yes	yes	yes	-
-533	$rel	HOLLOW	no	no	yes	The model is a bare relation callback and omits every NaN, decomposition, sign, scaling, and comparison branch in the generated methods.
 583	==	HOLLOW	yes	no	yes	The proposition only asserts HasResult and states no isreal and real-component equality result.
 584	==	HOLLOW	yes	no	yes	The proposition reuses the same vacuous HasResult claim and states no equality behavior for this argument order.
 586	div	HOLLOW	no	no	yes	The model requires the Rational and Integer operands to share one component type, and its proposition only asserts HasResult.
 590	div	HOLLOW	no	no	yes	The model requires the Integer and Rational operands to share one component type, and its proposition only asserts HasResult.
 594	div	HOLLOW	no	no	yes	The model covers only equal Rational component types, and its proposition only asserts HasResult.
 602	div	HOLLOW	no	no	yes	The model expands the invoked generic implementation instead of mirroring this method's invoke call, and its proposition only asserts HasResult.
-606	div	HOLLOW	no	no	yes	The model covers only Rational-by-Rational inputs from the generated three-pair family, and its proposition only asserts HasResult.
-607	fld	HOLLOW	no	no	yes	The model covers only Rational-by-Rational inputs from the generated three-pair family, and its proposition only asserts HasResult.
-608	cld	HOLLOW	no	no	yes	The model covers only Rational-by-Rational inputs from the generated three-pair family, and its proposition only asserts HasResult.
 612	round	HOLLOW	no	no	yes	The model rounds to the component integer type instead of forwarding to round(typeof(x), x, r), and its proposition only asserts HasResult.
 614	round	HOLLOW	no	no	yes	The model restricts targets to integer types and omits the zero-denominator noninteger branch, while its proposition only asserts HasResult.
 621	round	HOLLOW	no	no	yes	The model takes both source checks as supplied booleans instead of evaluating denominator(x) and the target type, while its proposition only asserts HasResult.

@@ -765,65 +765,6 @@ set_option maxRecDepth 16384 in
 set_option maxHeartbeats 0 in
 theorem powermodInt128Typemin : PowermodInt128Typemin := by unfold PowermodInt128Typemin; decide +kernel
 
-def entries : List JuliaLean.Registry.Entry := [
-  { id := "intarith-number-gcd-typemin-overflow", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["gcd"], statement := "Every signed width rejects the unrepresentable gcd(typemin,typemin)."
-    source := "base/intfuncs.jl:53-66", status := .proven
-    prop := ``GcdTypeminOverflow, thm := some ``gcdTypeminOverflow },
-  { id := "intarith-number-lcm-mixed-typemin", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["lcm(::Unsigned,::Signed)"]
-    statement := "A representable mixed UInt16/Int8 lcm returns its mathematical result."
-    source := "base/intfuncs.jl:100-104,146-160", status := .refuted
-    prop := ``MixedLcmRepresentable, thm := some ``mixedLcmRepresentable_refuted
-    issue := "related: open #59660; merged #59628 and #59678 (issues/PR queries: lcm typemin unsigned; lcm InexactError; lcm signed unsigned; lcm; gcdx)"
-    notes := "lcm(UInt16(1),Int8(-128)) throws InexactError; reversed arguments return UInt16(128). The methods are unchanged in 1.13.2." },
-  { id := "intarith-number-gcdx-strict-bounds", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["gcdx"]
-    statement := "Signed nonzero inputs satisfy the documented exact Bezout identity and strict coefficient bounds."
-    source := "base/intfuncs.jl:196-198,228-230", status := .refuted
-    prop := ``GcdxStrictBounds, thm := some ``gcdxStrictBounds_refuted
-    issue := "none found (issues and PRs: gcdx coefficients minimal; gcdx bounds)"
-    notes := "gcdx(Int8(2),Int8(2)) = (2,0,1), so |v| < |a/d| reads 1 < 1. Documentation-only exception, also present in 1.13.2; master makes unsigned updates explicitly wrapping." },
-  { id := "intarith-number-invmod-ring-uint8", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["invmod(::UInt8)", "invmod(n,UInt8)"]
-    statement := "All UInt8 odd inputs have a multiplicative inverse; all even inputs throw DomainError."
-    source := "base/intfuncs.jl:347-357,370-382", status := .proven
-    prop := ``RingInverseUInt8, thm := some ``ringInverseUInt8
-    notes := "All 256 UInt8 bit patterns. Master uses explicit wrapping operators; 1.13.2 uses ordinary wrapping integer operators." },
-  { id := "intarith-number-invmod-ring-int8", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["invmod(::Int8)", "invmod(n,Int8)"]
-    statement := "All Int8 odd inputs have a multiplicative inverse; all even inputs throw DomainError."
-    source := "base/intfuncs.jl:347-357,370-382", status := .proven
-    prop := ``RingInverseInt8, thm := some ``ringInverseInt8 },
-  { id := "intarith-number-invmod-byte-range", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["invmod"]
-    statement := "A signed/unsigned byte edge grid satisfies modular congruence and div(y,m)=0; errors occur only for zero or non-coprime modulus."
-    source := "base/intfuncs.jl:292-294,309", status := .proven
-    prop := ``InvmodByteRange, thm := some ``invmodByteRange
-    notes := "All four signedness combinations on 16 by 16 inputs, including zero, signed typemin and unsigned typemax." },
-  { id := "intarith-number-invmod-uint128-range", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["invmod"]
-    statement := "UInt128 values typemax-2n, for n in 0:7, have correct inverse congruence and range modulo typemax whenever coprime."
-    source := "base/intfuncs.jl:292-294,328-332; base/gmp.jl:676-687", status := .proven
-    prop := ``InvmodUInt128Range, thm := some ``invmodUInt128Range
-    notes := "Exercises the explicitly documented GMP gcdext semantic primitive, including centered coefficients." },
-  { id := "intarith-number-powermod-int128-typemin", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["powermod"]
-    statement := "Odd Int128 residues 1:2:15 raised to typemin(Int128), modulo typemin(Int128), return typemin+1."
-    source := "base/intfuncs.jl:504,587; base/gmp.jl:669-674", status := .proven
-    prop := ``PowermodInt128Typemin, thm := some ``powermodInt128Typemin
-    notes := "Exercises the documented GMP powm semantic primitive and Julia's negative-modulus normalization and checked return conversion." },
-  { id := "intarith-number-powermod-typemin-negative", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["powermod"]
-    statement := "Every odd nonnegative Int8 residue raised to typemin(Int8), modulo typemin(Int8), returns -127."
-    source := "base/intfuncs.jl:504,530-537", status := .proven
-    prop := ``PowermodTypeminNegative, thm := some ``powermodTypeminNegative },
-  { id := "intarith-number-powermod-negative-modulus", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["powermod", "multiplicativeinverse"]
-    statement := "For x,p in 0:7 and modulus in -7:-1, powermod equals exact exponentiation followed by floored mod."
-    source := "base/intfuncs.jl:504,542-578", status := .proven
-    prop := ``PowermodNegativeModulus, thm := some ``powermodNegativeModulus
-    notes := "Includes both widened multiplication and the unsigned magic-number optimization; these algorithms are unchanged from 1.13.2." }
-]
+def entries : List JuliaLean.Registry.Entry := []
 
 end JuliaLean.IntArith.NumberTheory

@@ -1,68 +1,68 @@
 file	line	endline	name	signature	status	entry	note
 base/abstractdict.jl	15	15	KeyTypeError	KeyTypeError(K, key)	modelled	dictscov-abstractdict-l15	
-base/abstractdict.jl	19	19	haskey	haskey(d::AbstractDict, k)	modelled	dictscov-abstractdict-l19	
-base/abstractdict.jl	21	27	in	in(p::Pair, a::AbstractDict, valcmp=(==))	modelled	dictscov-abstractdict-l21	
-base/abstractdict.jl	29	33	in	in(p, a::AbstractDict)	modelled	dictscov-abstractdict-l29	
-base/abstractdict.jl	35	43	summary	summary(io::IO, t::AbstractDict)	modelled	dictscov-abstractdict-l35	
-base/abstractdict.jl	53	56	summary	summary(io::IO, iter::T) where {T<:Union{KeySet,ValueIterator}}	modelled	dictscov-abstractdict-l53	
-base/abstractdict.jl	58	58	show	show(io::IO, iter::Union{KeySet,ValueIterator})	modelled	dictscov-abstractdict-l58	
-base/abstractdict.jl	60	60	length	length(v::Union{KeySet,ValueIterator})	modelled	dictscov-abstractdict-l60	
-base/abstractdict.jl	61	61	isempty	isempty(v::Union{KeySet,ValueIterator})	modelled	dictscov-abstractdict-l61	
-base/abstractdict.jl	62	62	_tt2	_tt2(::Type{Pair{A,B}}) where {A,B}	modelled	dictscov-abstractdict-l62	
-base/abstractdict.jl	63	63	eltype	eltype(::Type{ValueIterator{D}}) where {D}	modelled	dictscov-abstractdict-l63	
-base/abstractdict.jl	65	69	iterate	iterate(v::Union{KeySet,ValueIterator}, state...)	modelled	dictscov-abstractdict-l65	
-base/abstractdict.jl	71	71	copy	copy(v::KeySet)	modelled	dictscov-abstractdict-l71	
-base/abstractdict.jl	73	73	in	in(k, v::KeySet)	modelled	dictscov-abstractdict-l73	
+base/abstractdict.jl	19	19	haskey	haskey(d::AbstractDict, k)	modelled	abstractdict-membership	
+base/abstractdict.jl	21	27	in	in(p::Pair, a::AbstractDict, valcmp=(==))	modelled	abstractdict-membership	
+base/abstractdict.jl	29	33	in	in(p, a::AbstractDict)	modelled	abstractdict-membership	
+base/abstractdict.jl	35	43	summary	summary(io::IO, t::AbstractDict)	modelled	abstractdict-iterator-semantics	
+base/abstractdict.jl	53	56	summary	summary(io::IO, iter::T) where {T<:Union{KeySet,ValueIterator}}	modelled	abstractdict-iterator-semantics	
+base/abstractdict.jl	58	58	show	show(io::IO, iter::Union{KeySet,ValueIterator})	todo		trivial: directly forwards display to show_vector
+base/abstractdict.jl	60	60	length	length(v::Union{KeySet,ValueIterator})	modelled	abstractdict-iterator-semantics	
+base/abstractdict.jl	61	61	isempty	isempty(v::Union{KeySet,ValueIterator})	modelled	abstractdict-iterator-semantics	
+base/abstractdict.jl	62	62	_tt2	_tt2(::Type{Pair{A,B}}) where {A,B}	modelled	abstractdict-type-queries	
+base/abstractdict.jl	63	63	eltype	eltype(::Type{ValueIterator{D}}) where {D}	modelled	abstractdict-type-queries	
+base/abstractdict.jl	65	69	iterate	iterate(v::Union{KeySet,ValueIterator}, state...)	modelled	abstractdict-iterator-semantics	
+base/abstractdict.jl	71	71	copy	copy(v::KeySet)	todo		trivial: directly forwards copying to copymutable
+base/abstractdict.jl	73	73	in	in(k, v::KeySet)	modelled	abstractdict-membership	
 base/abstractdict.jl	81	81	keys	keys	excluded		no-behaviour: generic function declaration has no observable method body.
-base/abstractdict.jl	107	107	keys	keys(a::AbstractDict)	modelled	dictscov-abstractdict-l107	
-base/abstractdict.jl	133	133	values	values(a::AbstractDict)	modelled	dictscov-abstractdict-l133	
-base/abstractdict.jl	178	178	pairs	pairs(collection)	modelled	dictscov-abstractdict-l178	
-base/abstractdict.jl	180	180	pairs	pairs(a::AbstractDict)	modelled	dictscov-abstractdict-l180	
-base/abstractdict.jl	194	194	empty	empty(a::AbstractDict)	modelled	dictscov-abstractdict-l194	
-base/abstractdict.jl	195	195	empty	empty(a::AbstractDict, ::Type{V}) where {V}	modelled	dictscov-abstractdict-l195	
+base/abstractdict.jl	107	107	keys	keys(a::AbstractDict)	modelled	abstractdict-iterator-semantics	
+base/abstractdict.jl	133	133	values	values(a::AbstractDict)	modelled	abstractdict-iterator-semantics	
+base/abstractdict.jl	178	178	pairs	pairs(collection)	modelled	abstractdict-iterator-semantics	
+base/abstractdict.jl	180	180	pairs	pairs(a::AbstractDict)	modelled	abstractdict-iterator-semantics	
+base/abstractdict.jl	194	194	empty	empty(a::AbstractDict)	modelled	abstractdict-empty-copy	
+base/abstractdict.jl	195	195	empty	empty(a::AbstractDict, ::Type{V}) where {V}	modelled	abstractdict-empty-copy	
 base/abstractdict.jl	197	197	copy	copy(a::AbstractDict)	modelled	dictscov-immutable-filter-copy	
-base/abstractdict.jl	198	201	copy!	copy!(dst::AbstractDict, src::AbstractDict)	modelled	dictscov-abstractdict-l198	
-base/abstractdict.jl	224	234	merge!	merge!(d::AbstractDict, others::AbstractDict...)	modelled	dictscov-abstractdict-l224	
-base/abstractdict.jl	283	285	mergewith!	mergewith!(combine, d::AbstractDict, others::AbstractDict...)	modelled	dictscov-abstractdict-l283	
+base/abstractdict.jl	198	201	copy!	copy!(dst::AbstractDict, src::AbstractDict)	modelled	abstractdict-empty-copy	
+base/abstractdict.jl	224	234	merge!	merge!(d::AbstractDict, others::AbstractDict...)	modelled	dicts-merge	
+base/abstractdict.jl	283	285	mergewith!	mergewith!(combine, d::AbstractDict, others::AbstractDict...)	modelled	dicts-merge	
 base/abstractdict.jl	288	293	mergewith!	mergewith!(combine, d1::AbstractDict, d2::AbstractDict)	modelled	dictscov-iddict-map-rehash	
-base/abstractdict.jl	295	295	mergewith!	mergewith!(combine)	modelled	dictscov-abstractdict-l295	
-base/abstractdict.jl	297	297	merge!	merge!(combine::Callable, args...)	modelled	dictscov-abstractdict-l297	
-base/abstractdict.jl	310	310	keytype	keytype(::Type{<:AbstractDict{K}}) where {K}	modelled	dictscov-abstractdict-l310	
-base/abstractdict.jl	311	311	keytype	keytype(a::AbstractDict)	modelled	dictscov-abstractdict-l311	
-base/abstractdict.jl	324	324	valtype	valtype(::Type{<:AbstractDict{<:Any,V}}) where {V}	modelled	dictscov-abstractdict-l324	
-base/abstractdict.jl	325	325	valtype	valtype(a::AbstractDict)	modelled	dictscov-abstractdict-l325	
+base/abstractdict.jl	295	295	mergewith!	mergewith!(combine)	modelled	abstractdict-merge-overloads	
+base/abstractdict.jl	297	297	merge!	merge!(combine::Callable, args...)	modelled	abstractdict-merge-overloads	
+base/abstractdict.jl	310	310	keytype	keytype(::Type{<:AbstractDict{K}}) where {K}	modelled	abstractdict-type-queries	
+base/abstractdict.jl	311	311	keytype	keytype(a::AbstractDict)	modelled	abstractdict-type-queries	
+base/abstractdict.jl	324	324	valtype	valtype(::Type{<:AbstractDict{<:Any,V}}) where {V}	modelled	abstractdict-type-queries	
+base/abstractdict.jl	325	325	valtype	valtype(a::AbstractDict)	modelled	abstractdict-type-queries	
 base/abstractdict.jl	361	362	merge	merge(d::AbstractDict, others::AbstractDict...)	modelled	dictscov-merge-iddict	
 base/abstractdict.jl	404	405	mergewith	mergewith(combine, d::AbstractDict, others::AbstractDict...)	modelled	dictscov-merge-iddict	
-base/abstractdict.jl	406	406	mergewith	mergewith(combine)	modelled	dictscov-abstractdict-l406	
-base/abstractdict.jl	409	409	promoteK	promoteK(K)	modelled	dictscov-abstractdict-l409	
-base/abstractdict.jl	410	410	promoteV	promoteV(V)	modelled	dictscov-abstractdict-l410	
-base/abstractdict.jl	411	411	promoteK	promoteK(K, d, ds...)	modelled	dictscov-abstractdict-l411	
-base/abstractdict.jl	412	412	promoteV	promoteV(V, d, ds...)	modelled	dictscov-abstractdict-l412	
+base/abstractdict.jl	406	406	mergewith	mergewith(combine)	modelled	abstractdict-merge-overloads	
+base/abstractdict.jl	409	409	promoteK	promoteK(K)	modelled	abstractdict-promotion	
+base/abstractdict.jl	410	410	promoteV	promoteV(V)	modelled	abstractdict-promotion	
+base/abstractdict.jl	411	411	promoteK	promoteK(K, d, ds...)	modelled	abstractdict-promotion	
+base/abstractdict.jl	412	412	promoteV	promoteV(V, d, ds...)	modelled	abstractdict-promotion	
 base/abstractdict.jl	413	417	_typeddict	_typeddict(d::AbstractDict, others::AbstractDict...)	modelled	dictscov-merge-iddict	
-base/abstractdict.jl	439	450	filter!	filter!(f, d::AbstractDict)	modelled	dictscov-abstractdict-l439	
-base/abstractdict.jl	452	459	filter_in_one_pass!	filter_in_one_pass!(f, d::AbstractDict)	modelled	dictscov-abstractdict-l452	
+base/abstractdict.jl	439	450	filter!	filter!(f, d::AbstractDict)	modelled	abstractdict-filter-semantics	
+base/abstractdict.jl	452	459	filter_in_one_pass!	filter_in_one_pass!(f, d::AbstractDict)	modelled	abstractdict-filter-semantics	
 base/abstractdict.jl	479	488	filter	filter(f, d::AbstractDict)	modelled	dictscov-immutable-filter-copy	
-base/abstractdict.jl	490	502	eltype	eltype(::Type{<:AbstractDict{K,V}}) where {K,V}	modelled	dictscov-abstractdict-l490	
+base/abstractdict.jl	490	502	eltype	eltype(::Type{<:AbstractDict{K,V}}) where {K,V}	modelled	abstractdict-type-queries	
 base/abstractdict.jl	504	516	isequal	isequal(l::AbstractDict, r::AbstractDict)	modelled	dicts-immutabledict-isequal,dicts-persistentdict-eq-asymmetric	
 base/abstractdict.jl	518	533	==	==(l::AbstractDict, r::AbstractDict)	modelled	dicts-immutabledict-isequal,dicts-persistentdict-eq-asymmetric	
-base/abstractdict.jl	536	536	sizehint!	sizehint!(d::AbstractDict, n)	modelled	dictscov-abstractdict-l536	
+base/abstractdict.jl	536	536	sizehint!	sizehint!(d::AbstractDict, n)	modelled	abstractdict-sizehint	
 base/abstractdict.jl	539	545	hash	hash(a::AbstractDict, h::UInt)	modelled	dicts-immutabledict-isequal,hashops-unordered-hash	
-base/abstractdict.jl	547	553	getindex	getindex(t::AbstractDict{<:Any,V}, key) where V	modelled	dictscov-abstractdict-l547	
-base/abstractdict.jl	557	557	getindex	getindex(t::AbstractDict, k1, k2, ks...)	modelled	dictscov-abstractdict-l557	
-base/abstractdict.jl	558	558	setindex!	setindex!(t::AbstractDict, v, k1, k2, ks...)	modelled	dictscov-abstractdict-l558	
-base/abstractdict.jl	560	560	get!	get!(t::AbstractDict, key, default)	modelled	dictscov-abstractdict-l560	
-base/abstractdict.jl	561	568	get!	get!(default::Callable, t::AbstractDict{K,V}, key) where K where V	modelled	dictscov-abstractdict-l561	
-base/abstractdict.jl	570	570	push!	push!(t::AbstractDict, p::Pair)	modelled	dictscov-abstractdict-l570	
-base/abstractdict.jl	573	573	convert	convert(::Type{T}, x::T) where {T<:AbstractDict}	modelled	dictscov-abstractdict-l573	
-base/abstractdict.jl	575	581	convert	convert(::Type{T}, x::AbstractDict) where T<:AbstractDict	modelled	dictscov-abstractdict-l575	
-base/abstractdict.jl	584	584	_tablesz	_tablesz(x::T) where T <: Integer	modelled	dictscov-abstractdict-l584	
-base/abstractdict.jl	589	589	_throw_dict_kv_error	_throw_dict_kv_error()	modelled	dictscov-abstractdict-l589	
-base/abstractdict.jl	591	609	grow_to!	grow_to!(dest::AbstractDict, itr)	modelled	dictscov-abstractdict-l591	
-base/abstractdict.jl	611	634	grow_to!	grow_to!(dest::AbstractDict{K,V}, itr, st) where {K, V}	modelled	dictscov-abstractdict-l611	
-base/abstractdict.jl	637	637	dict_with_eltype	dict_with_eltype(DT_apply, kv, ::TP{K,V}) where {K,V}	modelled	dictscov-abstractdict-l637	
-base/abstractdict.jl	638	638	dict_with_eltype	dict_with_eltype(DT_apply, kv::Generator, ::TP{K,V}) where {K,V}	modelled	dictscov-abstractdict-l638	
-base/abstractdict.jl	639	639	dict_with_eltype	dict_with_eltype(DT_apply, ::Type{Pair{K,V}}) where {K,V}	modelled	dictscov-abstractdict-l639	
-base/abstractdict.jl	640	640	dict_with_eltype	dict_with_eltype(DT_apply, ::Type)	modelled	dictscov-abstractdict-l640	
-base/abstractdict.jl	641	641	dict_with_eltype	dict_with_eltype(DT_apply::F, kv, t) where {F}	modelled	dictscov-abstractdict-l641	
-base/abstractdict.jl	642	648	dict_with_eltype	dict_with_eltype(DT_apply::F, kv::Generator, t) where F	modelled	dictscov-abstractdict-l642	
+base/abstractdict.jl	547	553	getindex	getindex(t::AbstractDict{<:Any,V}, key) where V	modelled	abstractdict-indexing	
+base/abstractdict.jl	557	557	getindex	getindex(t::AbstractDict, k1, k2, ks...)	modelled	abstractdict-indexing	
+base/abstractdict.jl	558	558	setindex!	setindex!(t::AbstractDict, v, k1, k2, ks...)	modelled	abstractdict-indexing	
+base/abstractdict.jl	560	560	get!	get!(t::AbstractDict, key, default)	modelled	dicts-getbang-value	
+base/abstractdict.jl	561	568	get!	get!(default::Callable, t::AbstractDict{K,V}, key) where K where V	modelled	dicts-getbang-value	
+base/abstractdict.jl	570	570	push!	push!(t::AbstractDict, p::Pair)	modelled	abstractdict-indexing	
+base/abstractdict.jl	573	573	convert	convert(::Type{T}, x::T) where {T<:AbstractDict}	modelled	abstractdict-conversion	
+base/abstractdict.jl	575	581	convert	convert(::Type{T}, x::AbstractDict) where T<:AbstractDict	modelled	abstractdict-conversion	
+base/abstractdict.jl	584	584	_tablesz	_tablesz(x::T) where T <: Integer	modelled	abstractdict-table-size	
+base/abstractdict.jl	589	589	_throw_dict_kv_error	_throw_dict_kv_error()	modelled	abstractdict-grow-to	
+base/abstractdict.jl	591	609	grow_to!	grow_to!(dest::AbstractDict, itr)	modelled	abstractdict-grow-to	
+base/abstractdict.jl	611	634	grow_to!	grow_to!(dest::AbstractDict{K,V}, itr, st) where {K, V}	modelled	abstractdict-grow-to	
+base/abstractdict.jl	637	637	dict_with_eltype	dict_with_eltype(DT_apply, kv, ::TP{K,V}) where {K,V}	todo		trivial: internal constructor dispatch; Dict construction owns the public promise
+base/abstractdict.jl	638	638	dict_with_eltype	dict_with_eltype(DT_apply, kv::Generator, ::TP{K,V}) where {K,V}	todo		trivial: internal generator constructor dispatch
+base/abstractdict.jl	639	639	dict_with_eltype	dict_with_eltype(DT_apply, ::Type{Pair{K,V}}) where {K,V}	todo		trivial: internal empty typed-pair constructor dispatch
+base/abstractdict.jl	640	640	dict_with_eltype	dict_with_eltype(DT_apply, ::Type)	todo		trivial: internal Any constructor dispatch
+base/abstractdict.jl	641	641	dict_with_eltype	dict_with_eltype(DT_apply::F, kv, t) where {F}	todo		trivial: internal eltype constructor dispatch
+base/abstractdict.jl	642	648	dict_with_eltype	dict_with_eltype(DT_apply::F, kv::Generator, t) where F	todo		trivial: internal generator eltype constructor dispatch
 base/abstractdict.jl	673	681	map!	map!(f, iter::ValueIterator)	modelled	dictscov-iddict-map-rehash	

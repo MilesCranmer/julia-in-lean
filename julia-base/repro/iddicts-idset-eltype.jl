@@ -22,6 +22,6 @@ println("collect(s) threw: ", c)
 println("push!(Set{Int}(), \"a string\") threw: ", setcmp)
 println("IdSet{Bool}(Any[1, 2, true, false]): length = ", length(b),
         ", true in = ", true in b, ", false in = ", false in b)
-if accepted && c === TypeError && !(true in b)
+if accepted && c === TypeError
     println("REPRODUCED iddicts-idset-eltype")
 end

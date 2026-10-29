@@ -63,7 +63,7 @@ base/toml/parser.jl	1016	1112	parse_number_or_date_start	parse_number_or_date_st
 base/toml/parser.jl	1115	1120	take_string_or_substring	take_string_or_substring(l, contains_underscore)::SubString	modelled	docssyntaxcov-toml-value-methods,toml-small-integer-literals	
 base/toml/parser.jl	1122	1127	parse_float	parse_float(l::Parser, contains_underscore)::Err{Float64}	modelled	docssyntaxcov-toml-value-methods,toml-small-integer-literals	
 base/toml/parser.jl	1129	1138	parse_int	parse_int(l::Parser, contains_underscore, base=nothing)::Err{Int64}	modelled	docssyntaxcov-toml-value-methods,toml-small-integer-literals	
-base/toml/parser.jl	1145	1161	"$(Symbol(""parse_"", name))"	"$(Symbol(""parse_"", name))(l::Parser, contains_underscore, base=nothing)::Err{Union{$(T1), $(T2), BigInt}}"	modelled	docssyntaxcov-toml-value-methods,toml-small-integer-literals	
+base/toml/parser.jl	1145	1161	"$(Symbol(""parse_"", name))"	"$(Symbol(""parse_"", name))(l::Parser, contains_underscore, base=nothing)::Err{Union{$(T1), $(T2), BigInt}}"	todo		"generated-loop: (name, T1, T2, n1, n2) in ((""integer"", Int64, Int128, 17, 33), (""hex"", UInt64, UInt128, 18, 34), (""oct"", UInt64, UInt128, 24, 45), (""bin"", UInt64, UInt128, 66, 130), )"
 base/toml/parser.jl	1169	1170	ok_end_value	ok_end_value(c::Char)	modelled	docssyntaxcov-toml-value-methods,toml-small-integer-literals	
 base/toml/parser.jl	1197	1197	accept_two	accept_two(l, f::F) where {F}	modelled	docssyntaxcov-toml-date-methods,toml-local-date-valid	
 base/toml/parser.jl	1198	1250	parse_datetime	parse_datetime(l)	modelled	docssyntaxcov-toml-date-methods,toml-local-date-valid	

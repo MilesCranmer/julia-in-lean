@@ -77,6 +77,7 @@ theorem roundConv_lawful : ConvLawful natOps roundConv where
   hash_eq := by intro q k h; simp [roundConv] at h; simp [roundConv, natOps, h]
   iseq_eq := by intro q k k' h1 h2; simp [roundConv, natOps] at h1 h2 ⊢; exact h1.trans h2
   isa_convert := by intro q k h; simp [roundConv] at h
+  subtype_isa := by intro h; simp [roundConv] at h
 
 theorem SameOutcome.okB_eq {α β : Type} {A : DR α} {B : DR β} {R : α → β → Prop}
     (h : SameOutcome A B R) : okB A = okB B := by
@@ -130,14 +131,24 @@ theorem intToBool_lawful : ConvLawful boolOps intToBool where
     cases k <;> simp [intToBool] at h <;> simp [intToBool, boolOps, h]
   iseq_eq := by intro q k k' h1 h2; simp [boolOps] at h2; subst h2; exact h1
   isa_convert := by intro q k h; simp [intToBool] at h
+  subtype_isa := by intro h; simp [intToBool] at h
 
-theorem unionPushEquiv_refuted : ¬ UnionPushEquiv := by
+def HistoricalUnionPushEquiv : Prop :=
+  ∀ (K Q : Type) (o : KeyOps K) (c : Conv Q K), o.Lawful → ConvLawful o c → MaxValuesOK o →
+  ∀ (s : SetT K) ms, Reach o s ms → ∀ itr : List Q, itr.length ≤ 2 ^ 30 →
+    SameOutcome (do
+      let s ← sizehint o s (JInt.lit .i64 (s.count + itr.length)) false
+      unionLoopHistorical o c s itr) (itr.foldlM (pushConv o c) s)
+      (fun s₁ s₂ => ∀ y, setIn o s₁ y = setIn o s₂ y)
+
+theorem unionPushEquiv_refuted : ¬ HistoricalUnionPushEquiv := by
   intro h
   have hp := h Bool Nat boolOps intToBool boolOps_lawful intToBool_lawful boolOps_maxValues
     Table.empty [] (reach_empty boolOps) [1, 0, 2] (by decide)
   have h1 := hp.okB_eq
   revert h1
   decide +kernel
+
 
 /-! ## `issubset` of vectors switches from `==` to `isequal` above 70 elements -/
 

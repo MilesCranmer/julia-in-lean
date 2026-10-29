@@ -1,0 +1,6 @@
+line	name	verdict	mirror	property	settled	reason
+85	JLOptions	HOLLOW	no	yes	yes	jlOptions is the identity on a supplied result, so it omits cglobal(:jl_options, JLOptions) and unsafe_load and uses a bare variable for the method's result.
+93	colored_text	HOLLOW	yes	no	yes	OptionsBodies omits the color=0, FORCE_COLOR empty, NO_COLOR nonempty branch and conditions its other claims on internal branch outcomes rather than documented preconditions.
+105	show	HOLLOW	no	yes	yes	showOptions takes already normalized arbitrary fields and simplified pointer text, so it omits the fixed JLOptions field enumeration, getfield calls, pointer type branches, and unsafe_load_commands call.
+121	unsafe_load_commands	HOLLOW	no	yes	yes	The Lean model receives decoded Char and String pairs, so it omits pointer indexing, the first-byte load, s + 1 arithmetic, unsafe_string, push!, and the loop counter.
+135	is_file_tracked	FAITHFUL	yes	yes	yes	isFileTracked mirrors the runtime query followed by comparison with 1, states the corresponding universal invariant, and is proven.

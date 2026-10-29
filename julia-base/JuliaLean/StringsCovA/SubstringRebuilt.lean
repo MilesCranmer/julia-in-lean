@@ -54,6 +54,34 @@ theorem typedCtor_proven : TypedCtorProperty := by
   constructor <;> intros <;>
     simp_all [typedCtor, bind, Except.bind, pure, Except.pure]
 
+def EmptyOffsetProperty : Prop := ∀ (S : Type) (input : TypedCtorInput S),
+  input.last < input.first ->
+  input.first = input.last + ix 1 ->
+  input.checkbounds input.string input.first input.last = .ok () ->
+    ∃ output, typedCtor input = .ok output ∧ output.offset = input.first - ix 1
+
+def emptyOffsetInput : TypedCtorInput Unit where
+  string := ()
+  first := ix 4
+  last := ix 3
+  checkbounds := fun _ _ _ => .ok ()
+  isvalid := fun _ _ => .error .assertion
+  stringIndexError := fun _ _ => .error .assertion
+  nextind := fun _ _ => .error .assertion
+
+theorem emptyOffset_refuted : ¬ EmptyOffsetProperty := by
+  intro property
+  obtain ⟨output, hrun, hoffset⟩ :=
+    property Unit emptyOffsetInput (by decide) (by decide) rfl
+  simp [typedCtor, emptyOffsetInput] at hrun
+  cases hrun
+  have hval := congrArg Subtype.val hoffset
+  change (ix 0).val = (ix 4 - ix 1).val at hval
+  have hzero : (ix 0).val = 0 := by decide
+  have hthree : (ix 4 - ix 1).val = 3 := by decide
+  rw [hzero, hthree] at hval
+  omega
+
 structure RawCtorInput (S : Type) where
   string : S
   first : JInt64

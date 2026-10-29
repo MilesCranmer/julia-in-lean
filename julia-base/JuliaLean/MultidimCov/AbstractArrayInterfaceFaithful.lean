@@ -24,6 +24,7 @@ structure AnyValue where
 
 inductive LazyString where
   | literal (value : String)
+  | integer (value : Int)
   | dynamic (value : AnyValue)
   | append (left right : LazyString)
   deriving Repr, DecidableEq
@@ -32,6 +33,7 @@ inductive Failure where
   | argument (message : LazyString)
   | bounds
   | dimensionMismatch (message : LazyString)
+  | methodError (name : String)
   | typeError
   | callback (id : Nat)
   deriving Repr, DecidableEq
@@ -114,31 +116,38 @@ def P329 : Prop := ∀ left right,
   m329 left right = lazyAppend [.dynamic left, .literal " and ", .dynamic right]
 theorem p329 : P329 := by unfold P329; intros; rfl
 
-/-- Vararg `_join_comma_and`, line 330, preserving nested lazy construction. -/
-def joinCommaAnd : AnyValue → AnyValue → List AnyValue → LazyString
-  | left, right, [] => m329 left right
-  | left, right, head :: tail =>
-      lazyAppend [.dynamic left, .literal ", ", joinCommaAnd right head tail]
+/-- Vararg `_join_comma_and`, line 330. A call with no trailing values reaches
+the undefined one-argument method and therefore raises `MethodError`. -/
+def joinCommaAnd : AnyValue → List AnyValue → JResult LazyString
+  | _, [] => .error (.methodError "_join_comma_and")
+  | left, [right] => .ok (m329 left right)
+  | left, right :: rest => do
+      let suffix ← joinCommaAnd right rest
+      .ok (lazyAppend [.dynamic left, .literal ", ", suffix])
 
-def m330 (left right : AnyValue) (rest : List AnyValue) : LazyString :=
-  lazyAppend [.dynamic left, .literal ", ", joinCommaAnd right ((rest.head?).getD right) rest.tail]
+def m330 (left right : AnyValue) (rest : List AnyValue) : JResult LazyString := do
+  let suffix ← joinCommaAnd right rest
+  .ok (lazyAppend [.dynamic left, .literal ", ", suffix])
 def P330 : Prop := ∀ left right rest,
-  m330 left right rest =
-    lazyAppend [.dynamic left, .literal ", ", joinCommaAnd right ((rest.head?).getD right) rest.tail]
+  m330 left right rest = do
+    let suffix ← joinCommaAnd right rest
+    .ok (lazyAppend [.dynamic left, .literal ", ", suffix])
 theorem p330 : P330 := by unfold P330; intros; rfl
 
 /-- `throw_eachindex_mismatch_indices`, lines 331-336. -/
 def mismatchMessage (indicesDescription firstIndex : AnyValue)
-    (otherIndices : List AnyValue) : LazyString :=
-  lazyAppend [.literal "all inputs to eachindex must have the same ",
-    .dynamic indicesDescription, .literal ", got ",
-    joinCommaAnd firstIndex ((otherIndices.head?).getD firstIndex) otherIndices.tail]
+    (otherIndices : List AnyValue) : JResult LazyString := do
+  let joined ← joinCommaAnd firstIndex otherIndices
+  .ok (lazyAppend [.literal "all inputs to eachindex must have the same ",
+    .dynamic indicesDescription, .literal ", got ", joined])
 
-def m331 (indicesDescription firstIndex : AnyValue) (otherIndices : List AnyValue) : JResult α :=
-  .error (.dimensionMismatch (mismatchMessage indicesDescription firstIndex otherIndices))
+def m331 (indicesDescription firstIndex : AnyValue) (otherIndices : List AnyValue) : JResult α := do
+  let message ← mismatchMessage indicesDescription firstIndex otherIndices
+  .error (.dimensionMismatch message)
 def P331 : Prop := ∀ {α : Type} indicesDescription firstIndex otherIndices,
-  m331 (α := α) indicesDescription firstIndex otherIndices =
-    .error (.dimensionMismatch (mismatchMessage indicesDescription firstIndex otherIndices))
+  m331 (α := α) indicesDescription firstIndex otherIndices = do
+    let message ← mismatchMessage indicesDescription firstIndex otherIndices
+    .error (.dimensionMismatch message)
 theorem p331 : P331 := by unfold P331; intros; rfl
 
 def checkAllEqual (equal : I → I → JResult Bool) (first : I) : List I → JResult Bool
@@ -150,19 +159,21 @@ def checkAllEqual (equal : I → I → JResult Bool) (first : I) : List I → JR
 `map`, compare left-to-right with `all`, construct the lazy error only on
 mismatch, and return the first index object. -/
 def m397 (eachIndex : A → JResult I) (equal : I → I → JResult Bool)
-    (asAny : I → AnyValue) (first : A) (rest : List A) : JResult I := do
+    (indicesDescription : AnyValue) (asAny : I → AnyValue)
+    (first : A) (rest : List A) : JResult I := do
   let base ← eachIndex first
   let others ← rest.mapM eachIndex
   if ← checkAllEqual equal base others then .ok base
-  else m331 (α := I) ⟨0, 0⟩ (asAny base) (others.map asAny)
+  else m331 (α := I) indicesDescription (asAny base) (others.map asAny)
 
 def P397 : Prop := ∀ {A I : Type} (eachIndex : A → JResult I)
-    (equal : I → I → JResult Bool) (asAny : I → AnyValue) first rest,
-  m397 eachIndex equal asAny first rest = do
+    (equal : I → I → JResult Bool) indicesDescription
+    (asAny : I → AnyValue) first rest,
+  m397 eachIndex equal indicesDescription asAny first rest = do
     let base ← eachIndex first
     let others ← rest.mapM eachIndex
     if ← checkAllEqual equal base others then .ok base
-    else m331 (α := I) ⟨0, 0⟩ (asAny base) (others.map asAny)
+    else m331 (α := I) indicesDescription (asAny base) (others.map asAny)
 theorem p397 : P397 := by unfold P397; intros; rfl
 
 /-- `lastindex(a::AbstractArray)`, line 429. -/
@@ -306,38 +317,38 @@ def P557 : Prop := ∀ {A K R V : Type} (lastIndex : A → JResult K)
       getindex array range
 theorem p557 : P557 := by unfold P557; intros; rfl
 
-def strideSum (getStride getSize : Nat → JResult Int) : Nat → Nat → Int → JResult Int
+def strideSum (getStride getSize : Nat → JResult I64) : Nat → Nat → I64 → JResult I64
   | _, 0, total => .ok total
   | dimension, remaining + 1, total => do
       let stride ← getStride dimension
       let size ← getSize dimension
       strideSum getStride getSize (dimension + 1) remaining (total + stride * size)
 
-/-- `stride(A,k)`, lines 597-607, including both calls to `ndims(A)` and the
-source summation order beyond the array rank. -/
-def m597 (strides : A → JResult (List Int)) (ndims : A → JResult Nat)
-    (size : A → JResult (List Int)) (array : A) (dimension : IntegerValue) : JResult Int := do
+/-- `stride(A,k)`, lines 597-607, including both calls to `ndims(A)`, the
+source summation order, and wrapping machine-`Int` arithmetic. -/
+def m597 (strides : A → JResult (List I64)) (ndims : A → JResult Nat)
+    (size : A → JResult (List I64)) (array : A) (dimension : IntegerValue) : JResult I64 := do
   let values ← strides array
   let rank ← ndims array
   if dimension.value ≤ (rank : Int) then getOneBased values dimension.value
   else
     let rankAgain ← ndims array
-    if rankAgain = 0 then .ok 1
+    if rankAgain = 0 then .ok (JInt.lit .i64 1)
     else do
       let shape ← size array
       let firstStride ← getOneBased values 1
       let firstSize ← getOneBased shape 1
       strideSum (getOneBased values ∘ Int.ofNat) (getOneBased shape ∘ Int.ofNat)
         2 (rankAgain - 1) (firstStride * firstSize)
-def P597 : Prop := ∀ {A : Type} (strides : A → JResult (List Int))
-    (ndims : A → JResult Nat) (size : A → JResult (List Int)) array dimension,
+def P597 : Prop := ∀ {A : Type} (strides : A → JResult (List I64))
+    (ndims : A → JResult Nat) (size : A → JResult (List I64)) array dimension,
   m597 strides ndims size array dimension = do
     let values ← strides array
     let rank ← ndims array
     if dimension.value ≤ (rank : Int) then getOneBased values dimension.value
     else
       let rankAgain ← ndims array
-      if rankAgain = 0 then .ok 1
+      if rankAgain = 0 then .ok (JInt.lit .i64 1)
       else do
         let shape ← size array
         let firstStride ← getOneBased values 1
@@ -386,39 +397,48 @@ def P613 : Prop := ∀ {A : Type} (checkbounds : A → List IntegerValue → JRe
       .ok true
 theorem p613 : P613 := by unfold P613; intros; rfl
 
-def trailingLoop (size : IntegerValue → JResult Int) : Int → Nat → Int → JResult Int
+def trailingLoop (multiply : N → N → JResult N) (size : IntegerValue → JResult N) :
+    Int → Nat → N → JResult N
   | _, 0, product => .ok product
   | dimension, remaining + 1, product => do
       let value ← size ⟨dimension⟩
-      trailingLoop size (dimension + 1) remaining (product * value)
+      let next ← multiply product value
+      trailingLoop multiply size (dimension + 1) remaining next
 
 /-- `trailingsize(A,n)`, lines 619-625. -/
-def m619 (ndims : A → JResult Nat) (size : A → IntegerValue → JResult Int)
-    (array : A) (start : IntegerValue) : JResult Int := do
+def m619 (ndims : A → JResult Nat) (size : A → IntegerValue → JResult N)
+    (multiply : N → N → JResult N) (one : N)
+    (array : A) (start : IntegerValue) : JResult N := do
   let rank ← ndims array
-  let count := if start.value ≤ (rank : Int) then rank - start.value.toNat + 1 else 0
-  trailingLoop (size array) start.value count 1
-def P619 : Prop := ∀ {A : Type} (ndims : A → JResult Nat)
-    (size : A → IntegerValue → JResult Int) array start,
-  m619 ndims size array start = do
+  let count := if start.value ≤ (rank : Int)
+    then ((rank : Int) - start.value + 1).toNat else 0
+  trailingLoop multiply (size array) start.value count one
+def P619 : Prop := ∀ {A N : Type} (ndims : A → JResult Nat)
+    (size : A → IntegerValue → JResult N) (multiply : N → N → JResult N)
+    one array start,
+  m619 ndims size multiply one array start = do
     let rank ← ndims array
-    let count := if start.value ≤ (rank : Int) then rank - start.value.toNat + 1 else 0
-    trailingLoop (size array) start.value count 1
+    let count := if start.value ≤ (rank : Int)
+      then ((rank : Int) - start.value + 1).toNat else 0
+    trailingLoop multiply (size array) start.value count one
 theorem p619 : P619 := by unfold P619; intros; rfl
 
 /-- `trailingsize(inds,n)`, lines 626-632. -/
-def m626 (axisLength : Axis → JResult Int) (axes : List Axis)
-    (start : IntegerValue) : JResult Int :=
-  let count := if start.value ≤ (axes.length : Int) then axes.length - start.value.toNat + 1 else 0
-  trailingLoop (fun dimension => do
+def m626 (axisLength : Axis → JResult N) (multiply : N → N → JResult N)
+    (one : N) (axes : List Axis) (start : IntegerValue) : JResult N :=
+  let count := if start.value ≤ (axes.length : Int)
+    then ((axes.length : Int) - start.value + 1).toNat else 0
+  trailingLoop multiply (fun dimension => do
     let axis ← getOneBased axes dimension.value
-    axisLength axis) start.value count 1
-def P626 : Prop := ∀ (axisLength : Axis → JResult Int) axes start,
-  m626 axisLength axes start =
-    let count := if start.value ≤ (axes.length : Int) then axes.length - start.value.toNat + 1 else 0
-    trailingLoop (fun dimension => do
+    axisLength axis) start.value count one
+def P626 : Prop := ∀ {N : Type} (axisLength : Axis → JResult N)
+    (multiply : N → N → JResult N) one axes start,
+  m626 axisLength multiply one axes start =
+    let count := if start.value ≤ (axes.length : Int)
+      then ((axes.length : Int) - start.value + 1).toNat else 0
+    trailingLoop multiply (fun dimension => do
       let axis ← getOneBased axes dimension.value
-      axisLength axis) start.value count 1
+      axisLength axis) start.value count one
 theorem p626 : P626 := by unfold P626; intros; rfl
 
 /-- Recursive `checkbounds_indices`, lines 722-727. -/
@@ -480,60 +500,46 @@ def P759 : Prop := ∀ {I V : Type} (isEmpty : I → JResult Bool)
   m759 isEmpty first last checkindex indices = m756 isEmpty first last checkindex indices
 theorem p759 : P759 := by unfold P759; intros; rfl
 
-def checkEvery (check : I → JResult Bool) : List I → Bool → JResult Bool
-  | [], result => .ok result
-  | head :: tail, result => do
-      let current ← check head
-      checkEvery check tail (result && current)
+def checkEvery (iterate : A → (Bool → I → JResult Bool) → Bool → JResult Bool)
+    (check : I → JResult Bool) (array : A) : JResult Bool :=
+  iterate array (fun accumulated value => do
+    let current ← check value
+    .ok (accumulated && current)) true
 
-/-- Array-valued `checkindex`, lines 762-769. Every element is checked because
-`b &= ...` uses eager bitwise conjunction. -/
-def m762 (iterate : A → JResult (List I)) (checkindex : I → JResult Bool)
-    (array : A) : JResult Bool := do
-  let values ← iterate array
-  checkEvery checkindex values true
-def P762 : Prop := ∀ {A I : Type} (iterate : A → JResult (List I))
+/-- Array-valued `checkindex`, lines 762-769. The iterator invokes each
+`checkindex` call before requesting the next element. -/
+def m762 (iterate : A → (Bool → I → JResult Bool) → Bool → JResult Bool)
+    (checkindex : I → JResult Bool) (array : A) : JResult Bool :=
+  checkEvery iterate checkindex array
+def P762 : Prop := ∀ {A I : Type}
+    (iterate : A → (Bool → I → JResult Bool) → Bool → JResult Bool)
     (checkindex : I → JResult Bool) array,
-  m762 iterate checkindex array = do
-    let values ← iterate array
-    checkEvery checkindex values true
-theorem p762 : P762 := by unfold P762; intros; rfl
+  m762 iterate checkindex array =
+    iterate array (fun accumulated value => do
+      let current ← checkindex value
+      .ok (accumulated && current)) true
+theorem p762 : P762 := by unfold P762 m762 checkEvery; intros; rfl
+
+structure EmptyVector where
+  elementType : AnyValue
+  deriving Repr, DecidableEq
+
+/-- `emptymutable(::AbstractVector, ::Type{U})`, line 895. -/
+def m895 (_array : A) (elementType : AnyValue) : EmptyVector := ⟨elementType⟩
+def P895 : Prop := ∀ {A : Type} (array : A) elementType,
+  (m895 array elementType).elementType = elementType
+theorem p895 : P895 := by unfold P895 m895; intros; rfl
+
+/-- `emptymutable(itr, ::Type{U})`, line 896. -/
+def m896 (_iterator : I) (elementType : AnyValue) : EmptyVector := ⟨elementType⟩
+def P896 : Prop := ∀ {I : Type} (iterator : I) elementType,
+  (m896 iterator elementType).elementType = elementType
+theorem p896 : P896 := by unfold P896 m896; intros; rfl
 
 private def entry (line : Nat) (name statement source : String) (prop thm : Lean.Name) : Entry :=
   { id := s!"multidimcov-abstractarray-faithful-{line}", juliaFile := "base/abstractarray.jl",
     juliaFns := [name], statement, source, status := .proven, prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 17 "convert(AbstractArray{T},a)" "Conversion constructs once and enforces the requested array element type." "base/abstractarray.jl:17" ``P17 ``p17,
-  entry 18 "convert(AbstractArray{T,N},a)" "Rank conversion constructs once and enforces both requested element type and rank." "base/abstractarray.jl:18" ``P18 ``p18,
-  entry 42 "size(A,dim)" "Size converts every accepted dimension value before reading shape and returns one past rank." "base/abstractarray.jl:42-46" ``P42 ``p42,
-  entry 79 "axes(A,d)" "Axes handles every Integer value, indexes within rank, and returns OneTo(1) past rank." "base/abstractarray.jl:79-82" ``P79 ``p79,
-  entry 329 "_join_comma_and(pair)" "Two arbitrary printable values form the exact lazy diagnostic tree." "base/abstractarray.jl:329" ``P329 ``p329,
-  entry 330 "_join_comma_and(varargs)" "Vararg diagnostics recursively preserve heterogeneous values and lazy conversion." "base/abstractarray.jl:330" ``P330 ``p330,
-  entry 331 "throw_eachindex_mismatch_indices" "Mismatch construction throws DimensionMismatch with the nested LazyString payload." "base/abstractarray.jl:331-336" ``P331 ``p331,
-  entry 397 "eachindex(IndexLinear,arrays...)" "Linear eachindex constructs all index objects, compares in order, and throws the exact mismatch." "base/abstractarray.jl:397-405" ``P397 ``p397,
-  entry 429 "lastindex(AbstractArray)" "Lastindex obtains linear eachindex and applies last, preserving either error." "base/abstractarray.jl:429" ``P429 ``p429,
-  entry 430 "lastindex(a,d)" "Dimensional lastindex obtains the requested axis and applies last." "base/abstractarray.jl:430" ``P430 ``p430,
-  entry 452 "firstindex(AbstractArray)" "Firstindex obtains linear eachindex and applies first, preserving either error." "base/abstractarray.jl:452" ``P452 ``p452,
-  entry 453 "firstindex(a,d)" "Dimensional firstindex obtains the requested axis and applies first." "base/abstractarray.jl:453" ``P453 ``p453,
-  entry 455 "first(AbstractArray)" "Array first gets eachindex, then its first index, then indexes the array." "base/abstractarray.jl:455" ``P455 ``p455,
-  entry 474 "first(iterator)" "Generic first iterates once and rejects exhaustion with ArgumentError." "base/abstractarray.jl:474-478" ``P474 ``p474,
-  entry 505 "first(iterator,n)" "Counted first takes with the original arbitrary Integer and collects the result." "base/abstractarray.jl:505" ``P505 ``p505,
-  entry 507 "first(vector,n)" "Vector first validates the arbitrary Integer count before length, range, and indexing calls." "base/abstractarray.jl:507-510" ``P507 ``p507,
-  entry 555 "last(iterator,n)" "Counted last reverses, takes, collects, then reverses in place in source order." "base/abstractarray.jl:555" ``P555 ``p555,
-  entry 557 "last(vector,n)" "Vector last validates the arbitrary Integer count before lastindex, length, range, and indexing." "base/abstractarray.jl:557-560" ``P557 ``p557,
-  entry 597 "stride(A,k)" "Stride executes the rank branches and the complete source summation for every Integer k." "base/abstractarray.jl:597-607" ``P597 ``p597,
-  entry 609 "size_to_strides(s,d,sz...)" "Vararg stride construction multiplies recursively and propagates arithmetic errors in order." "base/abstractarray.jl:609" ``P609 ``p609,
-  entry 610 "size_to_strides(s,d)" "The two-argument base case returns only the initial stride." "base/abstractarray.jl:610" ``P610 ``p610,
-  entry 611 "size_to_strides(s)" "The one-argument base case returns the empty tuple." "base/abstractarray.jl:611" ``P611 ``p611,
-  entry 613 "isstored" "Storage checking runs bounds validation on every Integer coordinate before returning true." "base/abstractarray.jl:613-616" ``P613 ``p613,
-  entry 619 "trailingsize(A,n)" "Array trailing size gets rank, calls each dimension size, and multiplies in range order." "base/abstractarray.jl:619-625" ``P619 ``p619,
-  entry 626 "trailingsize(axes,n)" "Axis trailing size indexes and measures each remaining axis in range order." "base/abstractarray.jl:626-632" ``P626 ``p626,
-  entry 722 "checkbounds_indices" "Recursive bounds checking uses the default singleton axis and short-circuits only after the head check." "base/abstractarray.jl:722-727" ``P722 ``p722,
-  entry 751 "checkindex(real)" "Scalar range checking evaluates both endpoint comparisons and propagates either error." "base/abstractarray.jl:751" ``P751 ``p751,
-  entry 756 "checkindex(range)" "Range bounds eagerly evaluate emptiness and both endpoint checks." "base/abstractarray.jl:756-757" ``P756 ``p756,
-  entry 759 "checkindex(LinearIndices)" "LinearIndices bounds eagerly evaluate emptiness and both endpoint checks." "base/abstractarray.jl:759-760" ``P759 ``p759,
-  entry 762 "checkindex(index array)" "Array index checking iterates and checks every element with eager accumulated conjunction." "base/abstractarray.jl:762-769" ``P762 ``p762
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.AbstractArrayInterfaceFaithful

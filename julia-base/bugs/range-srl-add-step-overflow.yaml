@@ -1,0 +1,49 @@
+id: range-srl-add-step-overflow
+title: "+(::StepRangeLen) throws when the step sum overflows but element sums fit"
+priority: P2
+kind: wrong-exception
+area: Ranges
+files: [base/range.jl, base/arraymath.jl]
+functions: ["+(r1::StepRangeLen{T,S}, r2::StepRangeLen{T,S})"]
+summary: |
+  Adding two equal-length StepRangeLen values throws when their step sum overflows
+  the element type, even if each pair of corresponding elements has a representable
+  sum. The range-level operation should preserve the elementwise sum sequence.
+likelihood: |
+  Low: this requires equal-type StepRangeLen values whose steps overflow when added,
+  while all elementwise sums remain representable.
+maybe_intended: ""
+reproducer: |
+  r = StepRangeLen(Int8(-60), Int8(100), 2)
+  collect(r + r)  # expected Int8[-120, 80]
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    collect(r) = Int8[-60, 40], collect(r) .+ collect(r) = Int8[-120, 80], collect(r + r) = InexactError(:trunc, (Int8, -176))
+    REPRODUCED range-srl-add-step-overflow
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    collect(r) = Int8[-60, 40], collect(r) .+ collect(r) = Int8[-120, 80], collect(r + r) = InexactError(:trunc, (Int8, -176))
+    REPRODUCED range-srl-add-step-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  collect(r + r) should equal the elementwise sum Int8[-120, 80].
+promised_by: |
+  StepRangeLen docstring, base/range.jl:516-522, defines each range by its indexed
+  values and length. Base array addition, base/arraymath.jl:35-39, applies + to
+  corresponding elements of equal-shaped arrays, so adding equal-length ranges
+  should represent the same elementwise sums.
+cause: |
+  base/range.jl:1527-1532 reconstructs the result using step(r1) + step(r2) in the
+  original step type. For Int8 steps of 100, the sum wraps to -56; the second result
+  is then computed as -176 and conversion to Int8 throws, even though the elementwise
+  sums -120 and 80 both fit in Int8.
+possible_fix: |
+  Widen the step operands before adding them and construct the result with a step
+  type that can represent their sum while preserving the element type and length.
+duplicates:
+  issues: []
+  queries: ["issues: StepRangeLen addition overflow step", "issues: StepRangeLen add overflow", "prs: StepRangeLen addition overflow step", "prs: StepRangeLen add overflow"]
+lean:
+  property: JuliaLean.Proofs.base.range.SRLAddElements
+  theorem: JuliaLean.Proofs.base.range.sRLAddElements_refuted

@@ -74,18 +74,6 @@ def entries : List Entry := [
     statement := "BigInt factorial returns the exact mathematical factorial throughout GMP's Culong argument range and DomainError for every negative input."
     source := "base/intfuncs.jl:1305-1324 (factorial docstring); base/gmp.jl:717", status := .proven
     prop := ``FactorialBigWithinCulong, thm := some ``factorialBigWithinCulong_proven },
-  { id := "combinatorics-binomial-typemin", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["binomial(::T, ::T) where T<:Integer"]
-    statement := "For every fixed-width integer type, binomial returns the exact generalized coefficient when representable and OverflowError exactly otherwise."
-    source := "base/intfuncs.jl:1339-1402 (binomial docstring and implementation)", status := .refuted
-    prop := ``BinomialContract, thm := some ``binomialContract_refuted
-    issue := "none found (queries: binomial typemin, binomial -9223372036854775808, binomial negative overflow)"
-    notes := "binomial(typemin(T), one(T)) returns zero for all five signed widths instead of typemin(T)." },
-  { id := "combinatorics-binomial-nonnegative-edges", juliaFile := "base/intfuncs.jl"
-    juliaFns := ["binomial(::T, ::T) where T<:Integer"]
-    statement := "For every nonnegative fixed-width n, binomial(n,k) is zero for k<0 or k>n and one for k=0."
-    source := "base/intfuncs.jl:1342-1349,1377,1385-1386", status := .proven
-    prop := ``BinomialNonnegativeEdges, thm := some ``binomialNonnegativeEdges_proven },
   { id := "combinatorics-binomial-bigint", juliaFile := "base/gmp.jl"
     juliaFns := ["binomial(::BigInt, ::Integer)"]
     statement := "BigInt binomial is exact when k fits Culong, returns zero for k<0 or nonnegative n<k, and uses an explicit resource OverflowError beyond the GMP exponent range."

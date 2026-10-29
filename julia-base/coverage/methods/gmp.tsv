@@ -1,232 +1,232 @@
 file	line	endline	name	signature	status	entry	note
-base/gmp.jl	39	39	_version	_version()	modelled	bignumscov-gmp-bootstrap	source-model: bignumscov-gmp-bootstrap
-base/gmp.jl	40	40	version	version()	modelled	bignumscov-gmp-bootstrap	source-model: bignumscov-gmp-bootstrap
-base/gmp.jl	41	41	major_version	major_version()	modelled	bignumscov-gmp-bootstrap	source-model: bignumscov-gmp-bootstrap
-base/gmp.jl	42	42	bits_per_limb	bits_per_limb()	modelled	bignumscov-gmp-bootstrap	source-model: bignumscov-gmp-bootstrap
-base/gmp.jl	73	77	BigInt	BigInt(; nbits::Integer=0)	modelled	bignumscov-gmp-bootstrap	source-model: bignumscov-gmp-bootstrap
-base/gmp.jl	112	146	__init__	__init__()	modelled	bignumscov-gmp-bootstrap	source-model: bignumscov-gmp-bootstrap
-base/gmp.jl	161	161	gmpz	gmpz(op::Symbol)	modelled	bignumscov-gmp-bootstrap	source-model: bignumscov-gmp-bootstrap
-base/gmp.jl	163	163	init!	init!(x::BigInt)	modelled	bignumscov-gmp-mpz-mutation	source-model: bignumscov-gmp-mpz-mutation
-base/gmp.jl	164	164	init2!	init2!(x::BigInt, a)	modelled	bignumscov-gmp-mpz-mutation	source-model: bignumscov-gmp-mpz-mutation
-base/gmp.jl	166	166	realloc2!	realloc2!(x, a)	modelled	bignumscov-gmp-mpz-mutation	source-model: bignumscov-gmp-mpz-mutation
-base/gmp.jl	167	167	realloc2	realloc2(a)	modelled	bignumscov-gmp-mpz-mutation	source-model: bignumscov-gmp-mpz-mutation
-base/gmp.jl	169	169	sizeinbase	sizeinbase(a::BigInt, b)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	179	180	$op!	$op!(x::BigInt, a::BigInt, b::BigInt)	modelled	bignumscov-gmp-mpz-mutation	generated-loop: (op, nbits) in (:add => :(BITS_PER_LIMB*(1 + max(abs(a.size), abs(b.size)))), :sub => :(BITS_PER_LIMB*(1 + max(abs(a.size), abs(b.size)))), :mul => 0, :fdiv_q => 0, :tdiv_q => 0, :cdiv_q => 0, :fdiv_r => 0, :tdiv_r => 0, :cdiv_r => 0, :gcd => 0, :lcm => 0, :and => 0, :ior => 0, :xor => 0); source-model: bignumscov-gmp-mpz-mutation
-base/gmp.jl	181	181	$op	$op(a::BigInt, b::BigInt)	modelled	bignumscov-gmp-mpz-mutation	generated-loop: (op, nbits) in (:add => :(BITS_PER_LIMB*(1 + max(abs(a.size), abs(b.size)))), :sub => :(BITS_PER_LIMB*(1 + max(abs(a.size), abs(b.size)))), :mul => 0, :fdiv_q => 0, :tdiv_q => 0, :cdiv_q => 0, :fdiv_r => 0, :tdiv_r => 0, :cdiv_r => 0, :gcd => 0, :lcm => 0, :and => 0, :ior => 0, :xor => 0); source-model: bignumscov-gmp-mpz-mutation
-base/gmp.jl	182	182	$op!	$op!(x::BigInt, b::BigInt)	modelled	bignumscov-gmp-mpz-mutation	generated-loop: (op, nbits) in (:add => :(BITS_PER_LIMB*(1 + max(abs(a.size), abs(b.size)))), :sub => :(BITS_PER_LIMB*(1 + max(abs(a.size), abs(b.size)))), :mul => 0, :fdiv_q => 0, :tdiv_q => 0, :cdiv_q => 0, :fdiv_r => 0, :tdiv_r => 0, :cdiv_r => 0, :gcd => 0, :lcm => 0, :and => 0, :ior => 0, :xor => 0); source-model: bignumscov-gmp-mpz-mutation
-base/gmp.jl	186	187	invert!	invert!(x::BigInt, a::BigInt, b::BigInt)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	188	188	invert!	invert!(x::BigInt, b::BigInt)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	189	189	invert	invert(a::BigInt, b::BigInt)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	195	196	$op!	$op!(x::BigInt, a::BigInt, b)	modelled	bignumscov-gmp-mpz-mutation	generated-loop: op in (:add_ui, :sub_ui, :mul_ui, :mul_2exp, :fdiv_q_2exp, :pow_ui, :bin_ui); source-model: bignumscov-gmp-mpz-mutation
-base/gmp.jl	197	197	$op	$op(a::BigInt, b)	modelled	bignumscov-gmp-mpz-mutation	generated-loop: op in (:add_ui, :sub_ui, :mul_ui, :mul_2exp, :fdiv_q_2exp, :pow_ui, :bin_ui); source-model: bignumscov-gmp-mpz-mutation
-base/gmp.jl	198	198	$op!	$op!(x::BigInt, b)	modelled	bignumscov-gmp-mpz-mutation	generated-loop: op in (:add_ui, :sub_ui, :mul_ui, :mul_2exp, :fdiv_q_2exp, :pow_ui, :bin_ui); source-model: bignumscov-gmp-mpz-mutation
-base/gmp.jl	202	202	ui_sub!	ui_sub!(x::BigInt, a, b::BigInt)	modelled	bignumscov-gmp-mpz-mutation	source-model: bignumscov-gmp-mpz-mutation
-base/gmp.jl	203	203	ui_sub	ui_sub(a, b::BigInt)	modelled	bignumscov-gmp-mpz-mutation	source-model: bignumscov-gmp-mpz-mutation
-base/gmp.jl	208	208	$op	$op(a::BigInt, b)	modelled	bignumscov-gmp-mpz-observers	generated-loop: op in (:scan1, :scan0); source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	211	211	mul_si!	mul_si!(x::BigInt, a::BigInt, b)	modelled	bignumscov-gmp-mpz-mutation	source-model: bignumscov-gmp-mpz-mutation
-base/gmp.jl	212	212	mul_si	mul_si(a::BigInt, b)	modelled	bignumscov-gmp-mpz-mutation	source-model: bignumscov-gmp-mpz-mutation
-base/gmp.jl	213	213	mul_si!	mul_si!(x::BigInt, b)	modelled	bignumscov-gmp-mpz-mutation	source-model: bignumscov-gmp-mpz-mutation
-base/gmp.jl	219	220	$op!	$op!(x::BigInt, a::BigInt)	modelled	bignumscov-gmp-mpz-mutation	generated-loop: op in (:neg, :com, :sqrt, :set); source-model: bignumscov-gmp-mpz-mutation
-base/gmp.jl	221	221	$op	$op(a::BigInt)	modelled	bignumscov-gmp-mpz-mutation	generated-loop: op in (:neg, :com, :sqrt, :set); source-model: bignumscov-gmp-mpz-mutation
-base/gmp.jl	224	224	$op!	$op!(x::BigInt)	modelled	bignumscov-gmp-mpz-mutation	generated-loop: op in (:neg, :com, :sqrt, :set); source-model: bignumscov-gmp-mpz-mutation
-base/gmp.jl	227	227	fac_ui!	fac_ui!(x::BigInt, a)	modelled	bignumscov-gmp-mpz-mutation	source-model: bignumscov-gmp-mpz-mutation
-base/gmp.jl	228	228	fac_ui	fac_ui(a)	modelled	bignumscov-gmp-mpz-mutation	source-model: bignumscov-gmp-mpz-mutation
-base/gmp.jl	233	233	$op!	$op!(x::BigInt, a)	modelled	bignumscov-gmp-mpz-mutation	generated-loop: (op, T) in ((:set_ui, Culong), (:set_si, Clong), (:set_d, Cdouble)); source-model: bignumscov-gmp-mpz-mutation
-base/gmp.jl	234	234	$op	$op(a)	modelled	bignumscov-gmp-mpz-mutation	generated-loop: (op, T) in ((:set_ui, Culong), (:set_si, Clong), (:set_d, Cdouble)); source-model: bignumscov-gmp-mpz-mutation
-base/gmp.jl	238	238	popcount	popcount(a::BigInt)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	240	240	mpn_popcount	mpn_popcount(d::Ptr{Limb}, s::Integer)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	241	241	mpn_popcount	mpn_popcount(a::BigInt)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	243	247	tdiv_qr!	tdiv_qr!(x::BigInt, y::BigInt, a::BigInt, b::BigInt)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	248	248	tdiv_qr	tdiv_qr(a::BigInt, b::BigInt)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	250	251	powm!	powm!(x::BigInt, a::BigInt, b::BigInt, c::BigInt)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	252	252	powm	powm(a::BigInt, b::BigInt, c::BigInt)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	253	253	powm!	powm!(x::BigInt, b::BigInt, c::BigInt)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	255	259	gcdext!	gcdext!(x::BigInt, y::BigInt, z::BigInt, a::BigInt, b::BigInt)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	260	260	gcdext	gcdext(a::BigInt, b::BigInt)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	262	262	cmp	cmp(a::BigInt, b::BigInt)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	263	263	cmp_si	cmp_si(a::BigInt, b)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	264	264	cmp_ui	cmp_ui(a::BigInt, b)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	265	265	cmp_d	cmp_d(a::BigInt, b)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	267	267	mpn_cmp	mpn_cmp(a::Ptr{Limb}, b::Ptr{Limb}, c)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	268	268	mpn_cmp	mpn_cmp(a::BigInt, b::BigInt, c)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	270	270	get_str!	get_str!(x, a, b::BigInt)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	271	271	set_str!	set_str!(x::BigInt, a, b)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	272	272	get_d	get_d(a::BigInt)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	274	284	export!	export!(a::AbstractVector{T}, n::BigInt; order::Integer=-1, nails::Integer=0, endian::Integer=0) where {T<:Base.BitInteger}	modelled	bignums-digits-view-pow2-base	
-base/gmp.jl	286	286	limbs_write!	limbs_write!(x::BigInt, a)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	287	287	limbs_finish!	limbs_finish!(x::BigInt, a)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	289	289	setbit!	setbit!(x, a)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	290	290	tstbit	tstbit(a::BigInt, b)	modelled	bignumscov-gmp-mpz-observers	source-model: bignumscov-gmp-mpz-observers
-base/gmp.jl	298	298	widen	widen(::Type{Int128})	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	299	299	widen	widen(::Type{UInt128})	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	300	300	widen	widen(::Type{BigInt})	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	302	302	signed	signed(x::BigInt)	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	304	304	BigInt	BigInt(x::BigInt)	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	305	305	Signed	Signed(x::BigInt)	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	307	331	tryparse_internal	tryparse_internal(::Type{BigInt}, s::AbstractString, startpos::Int, endpos::Int, base_::Integer, raise::Bool)	modelled	bignums-parse-bigint-sign,bignums-parse-bigint-whitespace	
-base/gmp.jl	333	333	BigInt	BigInt(x::Union{Clong,Int32})	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	334	334	BigInt	BigInt(x::Union{Culong,UInt32})	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	335	335	BigInt	BigInt(x::Bool)	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	337	337	unsafe_trunc	unsafe_trunc(::Type{BigInt}, x::Union{Float16,Float32,Float64})	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	339	342	BigInt	BigInt(x::Float64)	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	344	344	BigInt	BigInt(x::Float16)	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	345	345	BigInt	BigInt(x::Float32)	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	347	364	BigInt	BigInt(x::Integer)	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	367	367	rem	rem(x::BigInt, ::Type{Bool})	modelled	bignums-to-int-exact,bignumscov-gmp-conversion-routing	source-model: bignums-to-int-exact,bignumscov-gmp-conversion-routing
-base/gmp.jl	369	370	rem	rem(x::BigInt, ::Type{T}) where T<:Union{SLimbMax,ULimbMax}	modelled	bignums-to-int-exact,bignumscov-gmp-conversion-routing	source-model: bignums-to-int-exact,bignumscov-gmp-conversion-routing
-base/gmp.jl	372	378	rem	rem(x::BigInt, ::Type{T}) where T<:Union{Base.BitUnsigned,Base.BitSigned}	modelled	bignums-to-int-exact,bignumscov-gmp-conversion-routing	source-model: bignums-to-int-exact,bignumscov-gmp-conversion-routing
-base/gmp.jl	380	380	rem	rem(x::Integer, ::Type{BigInt})	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	382	382	clamp	clamp(x, ::Type{BigInt})	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	384	384	isodd	isodd(x::BigInt)	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	385	385	iseven	iseven(x::BigInt)	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	387	394	(::Type{T})	(::Type{T})(x::BigInt) where T<:Base.BitUnsigned	modelled	bignums-to-int-exact,bignumscov-gmp-conversion-routing	source-model: bignums-to-int-exact,bignumscov-gmp-conversion-routing
-base/gmp.jl	396	407	(::Type{T})	(::Type{T})(x::BigInt) where T<:Base.BitSigned	modelled	bignums-to-int-exact,bignumscov-gmp-conversion-routing	source-model: bignums-to-int-exact,bignumscov-gmp-conversion-routing
-base/gmp.jl	411	466	(::Type{T})	(::Type{T})(x::BigInt, r::RoundingMode) where T<:IEEEFloat	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	468	468	Float64	Float64(n::BigInt)	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	469	469	Float32	Float32(n::BigInt)	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	470	470	Float16	Float16(n::BigInt)	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	472	472	promote_rule	promote_rule(::Type{BigInt}, ::Type{<:Integer})	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	487	487	big	big	excluded		no-behaviour: generic function declaration with no method body
-base/gmp.jl	489	489	big	big(::Type{<:Integer})	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	490	490	big	big(::Type{<:Rational})	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	492	492	big	big(n::Integer)	modelled	bignumscov-gmp-conversion-routing	source-model: bignumscov-gmp-conversion-routing
-base/gmp.jl	501	501	$fJ	($fJ)(x::BigInt, y::BigInt)	modelled	bignumscov-gmp-arithmetic-routing	generated-loop: (fJ, fC) in ((:+, :add), (:-,:sub), (:*, :mul), (:+%, :add), (:-%,:sub), (:*%, :mul), (:mod, :fdiv_r), (:rem, :tdiv_r), (:gcd, :gcd), (:lcm, :lcm), (:&, :and), (:|, :ior), (:xor, :xor)); source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	508	508	div	div(x::BigInt, y::BigInt, ::typeof($r))	modelled	bignumscov-gmp-arithmetic-routing	generated-loop: (r, f) in ((RoundToZero, :tdiv_q), (RoundDown, :fdiv_q), (RoundUp, :cdiv_q)); source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	512	512	div	div(x::BigInt, y::BigInt)	modelled	bignums-division-matches-int	
-base/gmp.jl	513	513	fld	fld(x::BigInt, y::BigInt)	modelled	bignums-division-matches-int	
-base/gmp.jl	514	514	cld	cld(x::BigInt, y::BigInt)	modelled	bignums-division-matches-int	
-base/gmp.jl	516	516	/	/(x::BigInt, y::BigInt)	modelled	bignumscov-gmp-arithmetic-routing	source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	518	535	invmod	invmod(x::BigInt, y::BigInt)	modelled	bignums-invmod-postcondition	
-base/gmp.jl	541	541	$fJ	($fJ)(a::BigInt, b::BigInt, c::BigInt)	modelled	bignumscov-gmp-arithmetic-routing	generated-loop: (fJ, fC) in ((:+, :add), (:*, :mul), (:&, :and), (:|, :ior), (:xor, :xor)); source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	542	542	$fJ	($fJ)(a::BigInt, b::BigInt, c::BigInt, d::BigInt)	modelled	bignumscov-gmp-arithmetic-routing	generated-loop: (fJ, fC) in ((:+, :add), (:*, :mul), (:&, :and), (:|, :ior), (:xor, :xor)); source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	543	544	$fJ	($fJ)(a::BigInt, b::BigInt, c::BigInt, d::BigInt, e::BigInt)	modelled	bignumscov-gmp-arithmetic-routing	generated-loop: (fJ, fC) in ((:+, :add), (:*, :mul), (:&, :and), (:|, :ior), (:xor, :xor)); source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	549	549	+	+(x::BigInt, c::CulongMax)	modelled	bignumscov-gmp-arithmetic-routing	source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	550	550	+	+(c::CulongMax, x::BigInt)	modelled	bignumscov-gmp-arithmetic-routing	source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	552	552	-	-(x::BigInt, c::CulongMax)	modelled	bignumscov-gmp-arithmetic-routing	source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	553	553	-	-(c::CulongMax, x::BigInt)	modelled	bignumscov-gmp-arithmetic-routing	source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	555	555	+	+(x::BigInt, c::ClongMax)	modelled	bignumscov-gmp-arithmetic-routing	source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	556	556	+	+(c::ClongMax, x::BigInt)	modelled	bignumscov-gmp-arithmetic-routing	source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	557	557	-	-(x::BigInt, c::ClongMax)	modelled	bignumscov-gmp-arithmetic-routing	source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	558	558	-	-(c::ClongMax, x::BigInt)	modelled	bignumscov-gmp-arithmetic-routing	source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	560	560	*	*(x::BigInt, c::CulongMax)	modelled	bignumscov-gmp-arithmetic-routing	source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	561	561	*	*(c::CulongMax, x::BigInt)	modelled	bignumscov-gmp-arithmetic-routing	source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	562	562	*	*(x::BigInt, c::ClongMax)	modelled	bignumscov-gmp-arithmetic-routing	source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	563	563	*	*(c::ClongMax, x::BigInt)	modelled	bignumscov-gmp-arithmetic-routing	source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	565	565	/	/(x::BigInt, y::Union{ClongMax,CulongMax})	modelled	bignumscov-gmp-arithmetic-routing	source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	566	566	/	/(x::Union{ClongMax,CulongMax}, y::BigInt)	modelled	bignumscov-gmp-arithmetic-routing	source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	569	569	-	(-)(x::BigInt)	modelled	bignumscov-gmp-arithmetic-routing	source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	570	570	~	(~)(x::BigInt)	modelled	bignumscov-gmp-arithmetic-routing	source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	572	572	<<	<<(x::BigInt, c::UInt)	modelled	bignumscov-gmp-arithmetic-routing	source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	573	573	>>	>>(x::BigInt, c::UInt)	modelled	bignumscov-gmp-arithmetic-routing	source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	574	574	>>>	>>>(x::BigInt, c::UInt)	modelled	bignumscov-gmp-arithmetic-routing	source-model: bignumscov-gmp-arithmetic-routing
-base/gmp.jl	576	580	trailing_zeros	trailing_zeros(x::BigInt)	modelled	bignumscov-gmp-bit-query	source-model: bignumscov-gmp-bit-query
-base/gmp.jl	582	586	trailing_ones	trailing_ones(x::BigInt)	modelled	bignumscov-gmp-bit-query	source-model: bignumscov-gmp-bit-query
-base/gmp.jl	588	592	count_ones	count_ones(x::BigInt)	modelled	bignumscov-gmp-bit-query	source-model: bignumscov-gmp-bit-query
-base/gmp.jl	595	599	count_zeros	count_zeros(x::BigInt)	modelled	bignumscov-gmp-bit-query	source-model: bignumscov-gmp-bit-query
-base/gmp.jl	606	606	count_ones_abs	count_ones_abs(x::BigInt)	modelled	bignumscov-gmp-bit-query	source-model: bignumscov-gmp-bit-query
-base/gmp.jl	609	612	_bit_magnitude	_bit_magnitude(x::BigInt)	modelled	bignumscov-gmp-bit-query	source-model: bignumscov-gmp-bit-query
-base/gmp.jl	614	617	exponent	exponent(x::BigInt)	modelled	bignumscov-gmp-bit-query	source-model: bignumscov-gmp-bit-query
-base/gmp.jl	619	623	top_set_bit	top_set_bit(x::BigInt)	modelled	bignumscov-gmp-bit-query	source-model: bignumscov-gmp-bit-query
-base/gmp.jl	625	625	divrem	divrem(x::BigInt, y::BigInt, ::typeof(RoundToZero) = RoundToZero)	modelled	bignumscov-gmp-number-theory-routing	source-model: bignumscov-gmp-number-theory-routing
-base/gmp.jl	625	625	typeof	::typeof(RoundToZero)	excluded		no-behaviour: parser row for a default argument's type annotation; it defines no callable body
-base/gmp.jl	626	626	divrem	divrem(x::BigInt, y::Integer, ::typeof(RoundToZero) = RoundToZero)	modelled	bignumscov-gmp-number-theory-routing	source-model: bignumscov-gmp-number-theory-routing
-base/gmp.jl	626	626	typeof	::typeof(RoundToZero)	excluded		no-behaviour: parser row for a default argument's type annotation; it defines no callable body
-base/gmp.jl	628	628	cmp	cmp(x::BigInt, y::BigInt)	modelled	bignumscov-gmp-bit-query	source-model: bignumscov-gmp-bit-query
-base/gmp.jl	629	629	cmp	cmp(x::BigInt, y::ClongMax)	modelled	bignumscov-gmp-bit-query	source-model: bignumscov-gmp-bit-query
-base/gmp.jl	630	630	cmp	cmp(x::BigInt, y::CulongMax)	modelled	bignumscov-gmp-bit-query	source-model: bignumscov-gmp-bit-query
-base/gmp.jl	631	631	cmp	cmp(x::BigInt, y::Integer)	modelled	bignumscov-gmp-bit-query	source-model: bignumscov-gmp-bit-query
-base/gmp.jl	632	632	cmp	cmp(x::Integer, y::BigInt)	modelled	bignumscov-gmp-bit-query	source-model: bignumscov-gmp-bit-query
-base/gmp.jl	634	634	cmp	cmp(x::BigInt, y::CdoubleMax)	modelled	bignumscov-gmp-bit-query	source-model: bignumscov-gmp-bit-query
-base/gmp.jl	635	635	cmp	cmp(x::CdoubleMax, y::BigInt)	modelled	bignumscov-gmp-bit-query	source-model: bignumscov-gmp-bit-query
-base/gmp.jl	637	637	isqrt	isqrt(x::BigInt)	modelled	bignums-isqrt-negative	
-base/gmp.jl	639	639	^	^(x::BigInt, y::Culong)	modelled	bignumscov-gmp-number-theory-routing	source-model: bignumscov-gmp-number-theory-routing
-base/gmp.jl	641	661	bigint_pow	bigint_pow(x::BigInt, y::Integer)	modelled	bignums-pow-negative-exponent	
-base/gmp.jl	645	646	throw1	throw1(y)	modelled	bignumscov-gmp-number-theory-routing	source-model: bignumscov-gmp-number-theory-routing
-base/gmp.jl	663	663	^	^(x::BigInt , y::BigInt )	modelled	bignumscov-gmp-number-theory-routing	source-model: bignumscov-gmp-number-theory-routing
-base/gmp.jl	664	664	^	^(x::BigInt , y::Bool )	modelled	bignumscov-gmp-number-theory-routing	source-model: bignumscov-gmp-number-theory-routing
-base/gmp.jl	665	665	^	^(x::BigInt , y::Integer)	modelled	bignums-pow-negative-exponent	
-base/gmp.jl	666	666	^	^(x::Integer, y::BigInt )	modelled	bignumscov-gmp-number-theory-routing	source-model: bignumscov-gmp-number-theory-routing
-base/gmp.jl	667	667	^	^(x::Bool , y::BigInt )	modelled	bignumscov-gmp-number-theory-routing	source-model: bignumscov-gmp-number-theory-routing
-base/gmp.jl	669	672	powermod	powermod(x::BigInt, p::BigInt, m::BigInt)	modelled	bignums-powermod-floored-mod,bignums-powermod-noninvertible	
-base/gmp.jl	674	674	powermod	powermod(x::Integer, p::Integer, m::BigInt)	modelled	bignums-powermod-noninvertible	
-base/gmp.jl	676	687	gcdx	gcdx(a::BigInt, b::BigInt)	modelled	bignumscov-gmp-number-theory-routing	source-model: bignumscov-gmp-number-theory-routing
-base/gmp.jl	689	689	+	+(x::BigInt, y::BigInt, rest::BigInt...)	modelled	bignumscov-gmp-number-theory-routing	source-model: bignumscov-gmp-number-theory-routing
-base/gmp.jl	690	691	sum	sum(arr::Union{AbstractArray{BigInt}, Tuple{BigInt, Vararg{BigInt}}})	modelled	bignumscov-gmp-number-theory-routing	source-model: bignumscov-gmp-number-theory-routing
-base/gmp.jl	693	696	prod	prod(arr::AbstractArray{BigInt})	modelled	bignumscov-gmp-number-theory-routing	source-model: bignumscov-gmp-number-theory-routing
-base/gmp.jl	697	715	_prod	_prod(arr::AbstractArray{BigInt}, lo, hi)	modelled	bignumscov-gmp-number-theory-routing	source-model: bignumscov-gmp-number-theory-routing
-base/gmp.jl	717	717	factorial	factorial(n::BigInt)	modelled	combinatorics-factorial-bigint	
-base/gmp.jl	719	727	binomial	binomial(n::BigInt, k::Integer)	modelled	combinatorics-binomial-bigint	
-base/gmp.jl	728	728	binomial	binomial(n::BigInt, k::Culong)	modelled	bignumscov-gmp-number-theory-routing	source-model: bignumscov-gmp-number-theory-routing
-base/gmp.jl	730	730	==	==(x::BigInt, y::BigInt)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	731	731	==	==(x::BigInt, i::Integer)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	732	732	==	==(i::Integer, x::BigInt)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	733	733	==	==(x::BigInt, f::CdoubleMax)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	734	734	==	==(f::CdoubleMax, x::BigInt)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	735	735	iszero	iszero(x::BigInt)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	736	736	isone	isone(x::BigInt)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	738	738	<=	<=(x::BigInt, y::BigInt)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	739	739	<=	<=(x::BigInt, i::Integer)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	740	740	<=	<=(i::Integer, x::BigInt)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	741	741	<=	<=(x::BigInt, f::CdoubleMax)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	742	742	<=	<=(f::CdoubleMax, x::BigInt)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	744	744	<	<(x::BigInt, y::BigInt)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	745	745	<	<(x::BigInt, i::Integer)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	746	746	<	<(i::Integer, x::BigInt)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	747	747	<	<(x::BigInt, f::CdoubleMax)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	748	748	<	<(f::CdoubleMax, x::BigInt)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	749	749	isnegative	isnegative(x::BigInt)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	750	750	ispositive	ispositive(x::BigInt)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	752	752	signbit	signbit(x::BigInt)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	753	753	flipsign!	flipsign!(x::BigInt, y::Integer)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	754	754	flipsign	flipsign( x::BigInt, y::Integer)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	755	755	flipsign	flipsign( x::BigInt, y::BigInt)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	757	761	sign	sign(x::BigInt)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	763	763	show	show(io::IO, x::BigInt)	modelled	bignumscov-gmp-comparison-sign	source-model: bignumscov-gmp-comparison-sign
-base/gmp.jl	765	782	string	string(n::BigInt; base::Integer = 10, pad::Integer = 1)	modelled	bignums-string-base-error,bignums-string-parse-roundtrip	
-base/gmp.jl	784	810	digits!	digits!(a::AbstractVector{T}, n::BigInt; base::Integer = 10) where {T<:Integer}	modelled	bignums-digits-unsigned-negative,bignums-digits-view-pow2-base	
-base/gmp.jl	812	833	ndigits0zpb	ndigits0zpb(x::BigInt, b::Integer)	modelled	bignumscov-gmp-checked-alias	source-model: bignumscov-gmp-checked-alias
-base/gmp.jl	838	838	_prevpow2	_prevpow2(x::BigInt)	modelled	bignumscov-gmp-checked-alias	source-model: bignumscov-gmp-checked-alias
-base/gmp.jl	839	839	_nextpow2	_nextpow2(x::BigInt)	modelled	bignumscov-gmp-checked-alias	source-model: bignumscov-gmp-checked-alias
-base/gmp.jl	841	841	Base.checked_abs	Base.checked_abs(x::BigInt)	modelled	bignumscov-gmp-checked-alias	source-model: bignumscov-gmp-checked-alias
-base/gmp.jl	842	842	Base.checked_neg	Base.checked_neg(x::BigInt)	modelled	bignumscov-gmp-checked-alias	source-model: bignumscov-gmp-checked-alias
-base/gmp.jl	843	843	Base.checked_add	Base.checked_add(a::BigInt, b::BigInt)	modelled	bignumscov-gmp-checked-alias	source-model: bignumscov-gmp-checked-alias
-base/gmp.jl	844	844	Base.checked_sub	Base.checked_sub(a::BigInt, b::BigInt)	modelled	bignumscov-gmp-checked-alias	source-model: bignumscov-gmp-checked-alias
-base/gmp.jl	845	845	Base.checked_mul	Base.checked_mul(a::BigInt, b::BigInt)	modelled	bignumscov-gmp-checked-alias	source-model: bignumscov-gmp-checked-alias
-base/gmp.jl	846	846	Base.checked_div	Base.checked_div(a::BigInt, b::BigInt)	modelled	bignumscov-gmp-checked-alias	source-model: bignumscov-gmp-checked-alias
-base/gmp.jl	847	847	Base.checked_rem	Base.checked_rem(a::BigInt, b::BigInt)	modelled	bignumscov-gmp-checked-alias	source-model: bignumscov-gmp-checked-alias
-base/gmp.jl	848	848	Base.checked_fld	Base.checked_fld(a::BigInt, b::BigInt)	modelled	bignumscov-gmp-checked-alias	source-model: bignumscov-gmp-checked-alias
-base/gmp.jl	849	849	Base.checked_mod	Base.checked_mod(a::BigInt, b::BigInt)	modelled	bignumscov-gmp-checked-alias	source-model: bignumscov-gmp-checked-alias
-base/gmp.jl	850	850	Base.checked_cld	Base.checked_cld(a::BigInt, b::BigInt)	modelled	bignumscov-gmp-checked-alias	source-model: bignumscov-gmp-checked-alias
-base/gmp.jl	851	851	Base.add_with_overflow	Base.add_with_overflow(a::BigInt, b::BigInt)	modelled	bignumscov-gmp-checked-alias	source-model: bignumscov-gmp-checked-alias
-base/gmp.jl	852	852	Base.sub_with_overflow	Base.sub_with_overflow(a::BigInt, b::BigInt)	modelled	bignumscov-gmp-checked-alias	source-model: bignumscov-gmp-checked-alias
-base/gmp.jl	853	853	Base.mul_with_overflow	Base.mul_with_overflow(a::BigInt, b::BigInt)	modelled	bignumscov-gmp-checked-alias	source-model: bignumscov-gmp-checked-alias
-base/gmp.jl	856	856	Base.checked_pow	Base.checked_pow(x::BigInt, p::Integer)	modelled	bignumscov-gmp-checked-alias	source-model: bignumscov-gmp-checked-alias
-base/gmp.jl	857	857	Base.checked_pow	Base.checked_pow(x::Integer, p::BigInt)	modelled	bignumscov-gmp-checked-alias	source-model: bignumscov-gmp-checked-alias
-base/gmp.jl	858	858	Base.checked_pow	Base.checked_pow(x::BigInt, p::BigInt)	modelled	bignumscov-gmp-checked-alias	source-model: bignumscov-gmp-checked-alias
-base/gmp.jl	860	860	Base.deepcopy_internal	Base.deepcopy_internal(x::BigInt, stackdict::IdDict)	modelled	bignumscov-gmp-checked-alias	source-model: bignumscov-gmp-checked-alias
-base/gmp.jl	864	864	Base._hash_shl!	Base._hash_shl!(x::BigInt, n)	modelled	bignumscov-gmp-checked-alias	source-model: bignumscov-gmp-checked-alias
-base/gmp.jl	880	882	Base.size	Base.size(view::UnsafeLimbView)	modelled	bignumscov-gmp-limb-view	source-model: bignumscov-gmp-limb-view
-base/gmp.jl	884	892	Base.getindex	Base.getindex(view::UnsafeLimbView, i::Int)	modelled	bignumscov-gmp-limb-view	source-model: bignumscov-gmp-limb-view
-base/gmp.jl	894	897	Base.iterate	Base.iterate(view::UnsafeLimbView, state::Int = 1)	modelled	bignumscov-gmp-limb-view	source-model: bignumscov-gmp-limb-view
-base/gmp.jl	899	901	Base.length	Base.length(view::UnsafeLimbView)	modelled	bignumscov-gmp-limb-view	source-model: bignumscov-gmp-limb-view
-base/gmp.jl	903	915	hash_integer	hash_integer(n::BigInt, h::UInt)	modelled	bignumscov-gmp-limb-view	source-model: bignumscov-gmp-limb-view
-base/gmp.jl	917	955	hash	hash(x::BigInt, h::UInt)	modelled	bignums-hash-128,bignums-hash-small	
-base/gmp.jl	964	964	gmpq	gmpq(op::Symbol)	modelled	bignumscov-gmp-bootstrap	source-model: bignumscov-gmp-bootstrap
-base/gmp.jl	979	981	_MPQ	_MPQ(x::BigInt,y::BigInt)	modelled	bignumscov-gmp-rational-special	source-model: bignumscov-gmp-rational-special
-base/gmp.jl	982	982	_MPQ	_MPQ()	modelled	bignumscov-gmp-rational-special	source-model: bignumscov-gmp-rational-special
-base/gmp.jl	983	983	_MPQ	_MPQ(x::Rational{BigInt})	modelled	bignumscov-gmp-rational-special	source-model: bignumscov-gmp-rational-special
-base/gmp.jl	986	992	_MPQ	_MPQ(zq::_MPQ, x::Rational{BigInt})	modelled	bignumscov-gmp-rational-special	source-model: bignumscov-gmp-rational-special
-base/gmp.jl	994	1002	sync_rational!	sync_rational!(xq::_MPQ)	modelled	bignumscov-gmp-rational-special	source-model: bignumscov-gmp-rational-special
-base/gmp.jl	1004	1012	Rational{BigInt}	Rational{BigInt}(num::BigInt, den::BigInt)	modelled	bignumscov-gmp-rational-special	source-model: bignumscov-gmp-rational-special
-base/gmp.jl	1015	1019	set!	set!(z::Rational{BigInt}, x::Rational{BigInt})	modelled	bignumscov-gmp-rational-special	source-model: bignumscov-gmp-rational-special
-base/gmp.jl	1021	1025	set_z!	set_z!(z::Rational{BigInt}, x::BigInt)	modelled	bignumscov-gmp-rational-special	source-model: bignumscov-gmp-rational-special
-base/gmp.jl	1029	1029	$op	$op(a::$T)	modelled	bignumscov-gmp-rational-special	generated-loop: (op, T) in ((:set, Rational{BigInt}), (:set_z, BigInt)); source-model: bignumscov-gmp-rational-special
-base/gmp.jl	1037	1041	$op!	$op!(z::Rational{BigInt}, a, b)	modelled	bignumscov-gmp-rational-special	generated-loop: (op, T1, T2) in ((:set_ui, Culong, Culong), (:set_si, Clong, Culong)); source-model: bignumscov-gmp-rational-special
-base/gmp.jl	1042	1042	$op	$op(a, b)	modelled	bignumscov-gmp-rational-special	generated-loop: (op, T1, T2) in ((:set_ui, Culong, Culong), (:set_si, Clong, Culong)); source-model: bignumscov-gmp-rational-special
-base/gmp.jl	1047	1058	add!	add!(z::Rational{BigInt}, x::Rational{BigInt}, y::Rational{BigInt})	modelled	bignumscov-gmp-rational-special	source-model: bignumscov-gmp-rational-special
-base/gmp.jl	1060	1072	sub!	sub!(z::Rational{BigInt}, x::Rational{BigInt}, y::Rational{BigInt})	modelled	bignumscov-gmp-rational-special	source-model: bignumscov-gmp-rational-special
-base/gmp.jl	1074	1085	mul!	mul!(z::Rational{BigInt}, x::Rational{BigInt}, y::Rational{BigInt})	modelled	bignumscov-gmp-rational-special	source-model: bignumscov-gmp-rational-special
-base/gmp.jl	1087	1106	div!	div!(z::Rational{BigInt}, x::Rational{BigInt}, y::Rational{BigInt})	modelled	bignumscov-gmp-rational-special	source-model: bignumscov-gmp-rational-special
-base/gmp.jl	1111	1111	$fC!	($fC!)(x::Rational{BigInt}, y::Rational{BigInt})	modelled	bignumscov-gmp-rational-special	generated-loop: (fJ, fC) in ((:+, :add), (:-, :sub), (:*, :mul), (://, :div)); source-model: bignumscov-gmp-rational-special
-base/gmp.jl	1112	1112	Base.$fJ	(Base.$fJ)(x::Rational{BigInt}, y::Rational{BigInt})	modelled	bignumscov-gmp-rational-special	generated-loop: (fJ, fC) in ((:+, :add), (:-, :sub), (:*, :mul), (://, :div)); source-model: bignumscov-gmp-rational-special
-base/gmp.jl	1116	1118	Base.cmp	Base.cmp(x::Rational{BigInt}, y::Rational{BigInt})	modelled	bignums-rational-cmp-infinite,bignums-rational-cmp-range	
+base/gmp.jl	39	39	_version	_version()	todo		
+base/gmp.jl	40	40	version	version()	todo		
+base/gmp.jl	41	41	major_version	major_version()	todo		
+base/gmp.jl	42	42	bits_per_limb	bits_per_limb()	todo		
+base/gmp.jl	73	77	BigInt	BigInt(; nbits::Integer=0)	todo		
+base/gmp.jl	112	146	__init__	__init__()	todo		
+base/gmp.jl	161	161	gmpz	gmpz(op::Symbol)	todo		
+base/gmp.jl	163	163	init!	init!(x::BigInt)	todo		
+base/gmp.jl	164	164	init2!	init2!(x::BigInt, a)	todo		
+base/gmp.jl	166	166	realloc2!	realloc2!(x, a)	todo		
+base/gmp.jl	167	167	realloc2	realloc2(a)	todo		
+base/gmp.jl	169	169	sizeinbase	sizeinbase(a::BigInt, b)	todo		
+base/gmp.jl	179	180	$op!	$op!(x::BigInt, a::BigInt, b::BigInt)	todo		generated-loop: (op, nbits) in (:add => :(BITS_PER_LIMB*(1 + max(abs(a.size), abs(b.size)))), :sub => :(BITS_PER_LIMB*(1 + max(abs(a.size), abs(b.size)))), :mul => 0, :fdiv_q => 0, :tdiv_q => 0, :cdiv_q => 0, :fdiv_r => 0, :tdiv_r => 0, :cdiv_r => 0, :gcd => 0, :lcm => 0, :and => 0, :ior => 0, :xor => 0); source-model: bignumscov-gmp-mpz-mutation
+base/gmp.jl	181	181	$op	$op(a::BigInt, b::BigInt)	todo		generated-loop: (op, nbits) in (:add => :(BITS_PER_LIMB*(1 + max(abs(a.size), abs(b.size)))), :sub => :(BITS_PER_LIMB*(1 + max(abs(a.size), abs(b.size)))), :mul => 0, :fdiv_q => 0, :tdiv_q => 0, :cdiv_q => 0, :fdiv_r => 0, :tdiv_r => 0, :cdiv_r => 0, :gcd => 0, :lcm => 0, :and => 0, :ior => 0, :xor => 0); source-model: bignumscov-gmp-mpz-mutation
+base/gmp.jl	182	182	$op!	$op!(x::BigInt, b::BigInt)	todo		generated-loop: (op, nbits) in (:add => :(BITS_PER_LIMB*(1 + max(abs(a.size), abs(b.size)))), :sub => :(BITS_PER_LIMB*(1 + max(abs(a.size), abs(b.size)))), :mul => 0, :fdiv_q => 0, :tdiv_q => 0, :cdiv_q => 0, :fdiv_r => 0, :tdiv_r => 0, :cdiv_r => 0, :gcd => 0, :lcm => 0, :and => 0, :ior => 0, :xor => 0); source-model: bignumscov-gmp-mpz-mutation
+base/gmp.jl	186	187	invert!	invert!(x::BigInt, a::BigInt, b::BigInt)	todo		
+base/gmp.jl	188	188	invert!	invert!(x::BigInt, b::BigInt)	todo		
+base/gmp.jl	189	189	invert	invert(a::BigInt, b::BigInt)	todo		
+base/gmp.jl	195	196	$op!	$op!(x::BigInt, a::BigInt, b)	todo		generated-loop: op in (:add_ui, :sub_ui, :mul_ui, :mul_2exp, :fdiv_q_2exp, :pow_ui, :bin_ui); source-model: bignumscov-gmp-mpz-mutation
+base/gmp.jl	197	197	$op	$op(a::BigInt, b)	todo		generated-loop: op in (:add_ui, :sub_ui, :mul_ui, :mul_2exp, :fdiv_q_2exp, :pow_ui, :bin_ui); source-model: bignumscov-gmp-mpz-mutation
+base/gmp.jl	198	198	$op!	$op!(x::BigInt, b)	todo		generated-loop: op in (:add_ui, :sub_ui, :mul_ui, :mul_2exp, :fdiv_q_2exp, :pow_ui, :bin_ui); source-model: bignumscov-gmp-mpz-mutation
+base/gmp.jl	202	202	ui_sub!	ui_sub!(x::BigInt, a, b::BigInt)	todo		
+base/gmp.jl	203	203	ui_sub	ui_sub(a, b::BigInt)	todo		
+base/gmp.jl	208	208	$op	$op(a::BigInt, b)	todo		generated-loop: op in (:scan1, :scan0); source-model: bignumscov-gmp-mpz-observers
+base/gmp.jl	211	211	mul_si!	mul_si!(x::BigInt, a::BigInt, b)	todo		
+base/gmp.jl	212	212	mul_si	mul_si(a::BigInt, b)	todo		
+base/gmp.jl	213	213	mul_si!	mul_si!(x::BigInt, b)	todo		
+base/gmp.jl	219	220	$op!	$op!(x::BigInt, a::BigInt)	todo		generated-loop: op in (:neg, :com, :sqrt, :set); source-model: bignumscov-gmp-mpz-mutation
+base/gmp.jl	221	221	$op	$op(a::BigInt)	todo		generated-loop: op in (:neg, :com, :sqrt, :set); source-model: bignumscov-gmp-mpz-mutation
+base/gmp.jl	224	224	$op!	$op!(x::BigInt)	todo		generated-loop: op in (:neg, :com, :sqrt, :set); source-model: bignumscov-gmp-mpz-mutation
+base/gmp.jl	227	227	fac_ui!	fac_ui!(x::BigInt, a)	todo		
+base/gmp.jl	228	228	fac_ui	fac_ui(a)	todo		
+base/gmp.jl	233	233	$op!	$op!(x::BigInt, a)	todo		generated-loop: (op, T) in ((:set_ui, Culong), (:set_si, Clong), (:set_d, Cdouble)); source-model: bignumscov-gmp-mpz-mutation
+base/gmp.jl	234	234	$op	$op(a)	todo		generated-loop: (op, T) in ((:set_ui, Culong), (:set_si, Clong), (:set_d, Cdouble)); source-model: bignumscov-gmp-mpz-mutation
+base/gmp.jl	238	238	popcount	popcount(a::BigInt)	todo		
+base/gmp.jl	240	240	mpn_popcount	mpn_popcount(d::Ptr{Limb}, s::Integer)	todo		
+base/gmp.jl	241	241	mpn_popcount	mpn_popcount(a::BigInt)	todo		
+base/gmp.jl	243	247	tdiv_qr!	tdiv_qr!(x::BigInt, y::BigInt, a::BigInt, b::BigInt)	todo		
+base/gmp.jl	248	248	tdiv_qr	tdiv_qr(a::BigInt, b::BigInt)	todo		
+base/gmp.jl	250	251	powm!	powm!(x::BigInt, a::BigInt, b::BigInt, c::BigInt)	todo		
+base/gmp.jl	252	252	powm	powm(a::BigInt, b::BigInt, c::BigInt)	todo		
+base/gmp.jl	253	253	powm!	powm!(x::BigInt, b::BigInt, c::BigInt)	todo		
+base/gmp.jl	255	259	gcdext!	gcdext!(x::BigInt, y::BigInt, z::BigInt, a::BigInt, b::BigInt)	todo		
+base/gmp.jl	260	260	gcdext	gcdext(a::BigInt, b::BigInt)	todo		
+base/gmp.jl	262	262	cmp	cmp(a::BigInt, b::BigInt)	todo		
+base/gmp.jl	263	263	cmp_si	cmp_si(a::BigInt, b)	todo		
+base/gmp.jl	264	264	cmp_ui	cmp_ui(a::BigInt, b)	todo		
+base/gmp.jl	265	265	cmp_d	cmp_d(a::BigInt, b)	todo		
+base/gmp.jl	267	267	mpn_cmp	mpn_cmp(a::Ptr{Limb}, b::Ptr{Limb}, c)	todo		
+base/gmp.jl	268	268	mpn_cmp	mpn_cmp(a::BigInt, b::BigInt, c)	todo		
+base/gmp.jl	270	270	get_str!	get_str!(x, a, b::BigInt)	todo		
+base/gmp.jl	271	271	set_str!	set_str!(x::BigInt, a, b)	todo		
+base/gmp.jl	272	272	get_d	get_d(a::BigInt)	todo		
+base/gmp.jl	274	284	export!	export!(a::AbstractVector{T}, n::BigInt; order::Integer=-1, nails::Integer=0, endian::Integer=0) where {T<:Base.BitInteger}	todo		
+base/gmp.jl	286	286	limbs_write!	limbs_write!(x::BigInt, a)	todo		
+base/gmp.jl	287	287	limbs_finish!	limbs_finish!(x::BigInt, a)	todo		
+base/gmp.jl	289	289	setbit!	setbit!(x, a)	todo		
+base/gmp.jl	290	290	tstbit	tstbit(a::BigInt, b)	todo		
+base/gmp.jl	298	298	widen	widen(::Type{Int128})	todo		
+base/gmp.jl	299	299	widen	widen(::Type{UInt128})	todo		
+base/gmp.jl	300	300	widen	widen(::Type{BigInt})	todo		
+base/gmp.jl	302	302	signed	signed(x::BigInt)	todo		
+base/gmp.jl	304	304	BigInt	BigInt(x::BigInt)	todo		
+base/gmp.jl	305	305	Signed	Signed(x::BigInt)	todo		
+base/gmp.jl	307	331	tryparse_internal	tryparse_internal(::Type{BigInt}, s::AbstractString, startpos::Int, endpos::Int, base_::Integer, raise::Bool)	todo		
+base/gmp.jl	333	333	BigInt	BigInt(x::Union{Clong,Int32})	todo		
+base/gmp.jl	334	334	BigInt	BigInt(x::Union{Culong,UInt32})	todo		
+base/gmp.jl	335	335	BigInt	BigInt(x::Bool)	todo		
+base/gmp.jl	337	337	unsafe_trunc	unsafe_trunc(::Type{BigInt}, x::Union{Float16,Float32,Float64})	todo		
+base/gmp.jl	339	342	BigInt	BigInt(x::Float64)	todo		
+base/gmp.jl	344	344	BigInt	BigInt(x::Float16)	todo		
+base/gmp.jl	345	345	BigInt	BigInt(x::Float32)	todo		
+base/gmp.jl	347	364	BigInt	BigInt(x::Integer)	todo		
+base/gmp.jl	367	367	rem	rem(x::BigInt, ::Type{Bool})	todo		
+base/gmp.jl	369	370	rem	rem(x::BigInt, ::Type{T}) where T<:Union{SLimbMax,ULimbMax}	todo		
+base/gmp.jl	372	378	rem	rem(x::BigInt, ::Type{T}) where T<:Union{Base.BitUnsigned,Base.BitSigned}	todo		
+base/gmp.jl	380	380	rem	rem(x::Integer, ::Type{BigInt})	todo		
+base/gmp.jl	382	382	clamp	clamp(x, ::Type{BigInt})	todo		
+base/gmp.jl	384	384	isodd	isodd(x::BigInt)	todo		
+base/gmp.jl	385	385	iseven	iseven(x::BigInt)	todo		
+base/gmp.jl	387	394	(::Type{T})	(::Type{T})(x::BigInt) where T<:Base.BitUnsigned	todo		
+base/gmp.jl	396	407	(::Type{T})	(::Type{T})(x::BigInt) where T<:Base.BitSigned	todo		
+base/gmp.jl	411	466	(::Type{T})	(::Type{T})(x::BigInt, r::RoundingMode) where T<:IEEEFloat	todo		
+base/gmp.jl	468	468	Float64	Float64(n::BigInt)	todo		
+base/gmp.jl	469	469	Float32	Float32(n::BigInt)	todo		
+base/gmp.jl	470	470	Float16	Float16(n::BigInt)	todo		
+base/gmp.jl	472	472	promote_rule	promote_rule(::Type{BigInt}, ::Type{<:Integer})	todo		
+base/gmp.jl	487	487	big	big	todo		
+base/gmp.jl	489	489	big	big(::Type{<:Integer})	todo		
+base/gmp.jl	490	490	big	big(::Type{<:Rational})	todo		
+base/gmp.jl	492	492	big	big(n::Integer)	todo		
+base/gmp.jl	501	501	$fJ	($fJ)(x::BigInt, y::BigInt)	todo		generated-loop: (fJ, fC) in ((:+, :add), (:-,:sub), (:*, :mul), (:+%, :add), (:-%,:sub), (:*%, :mul), (:mod, :fdiv_r), (:rem, :tdiv_r), (:gcd, :gcd), (:lcm, :lcm), (:&, :and), (:|, :ior), (:xor, :xor)); source-model: bignumscov-gmp-arithmetic-routing
+base/gmp.jl	508	508	div	div(x::BigInt, y::BigInt, ::typeof($r))	todo		generated-loop: (r, f) in ((RoundToZero, :tdiv_q), (RoundDown, :fdiv_q), (RoundUp, :cdiv_q)); source-model: bignumscov-gmp-arithmetic-routing
+base/gmp.jl	512	512	div	div(x::BigInt, y::BigInt)	todo		
+base/gmp.jl	513	513	fld	fld(x::BigInt, y::BigInt)	todo		
+base/gmp.jl	514	514	cld	cld(x::BigInt, y::BigInt)	todo		
+base/gmp.jl	516	516	/	/(x::BigInt, y::BigInt)	todo		
+base/gmp.jl	518	535	invmod	invmod(x::BigInt, y::BigInt)	todo		
+base/gmp.jl	541	541	$fJ	($fJ)(a::BigInt, b::BigInt, c::BigInt)	todo		generated-loop: (fJ, fC) in ((:+, :add), (:*, :mul), (:&, :and), (:|, :ior), (:xor, :xor)); source-model: bignumscov-gmp-arithmetic-routing
+base/gmp.jl	542	542	$fJ	($fJ)(a::BigInt, b::BigInt, c::BigInt, d::BigInt)	todo		generated-loop: (fJ, fC) in ((:+, :add), (:*, :mul), (:&, :and), (:|, :ior), (:xor, :xor)); source-model: bignumscov-gmp-arithmetic-routing
+base/gmp.jl	543	544	$fJ	($fJ)(a::BigInt, b::BigInt, c::BigInt, d::BigInt, e::BigInt)	todo		generated-loop: (fJ, fC) in ((:+, :add), (:*, :mul), (:&, :and), (:|, :ior), (:xor, :xor)); source-model: bignumscov-gmp-arithmetic-routing
+base/gmp.jl	549	549	+	+(x::BigInt, c::CulongMax)	todo		
+base/gmp.jl	550	550	+	+(c::CulongMax, x::BigInt)	todo		
+base/gmp.jl	552	552	-	-(x::BigInt, c::CulongMax)	todo		
+base/gmp.jl	553	553	-	-(c::CulongMax, x::BigInt)	todo		
+base/gmp.jl	555	555	+	+(x::BigInt, c::ClongMax)	todo		
+base/gmp.jl	556	556	+	+(c::ClongMax, x::BigInt)	todo		
+base/gmp.jl	557	557	-	-(x::BigInt, c::ClongMax)	todo		
+base/gmp.jl	558	558	-	-(c::ClongMax, x::BigInt)	todo		
+base/gmp.jl	560	560	*	*(x::BigInt, c::CulongMax)	todo		
+base/gmp.jl	561	561	*	*(c::CulongMax, x::BigInt)	todo		
+base/gmp.jl	562	562	*	*(x::BigInt, c::ClongMax)	todo		
+base/gmp.jl	563	563	*	*(c::ClongMax, x::BigInt)	todo		
+base/gmp.jl	565	565	/	/(x::BigInt, y::Union{ClongMax,CulongMax})	todo		
+base/gmp.jl	566	566	/	/(x::Union{ClongMax,CulongMax}, y::BigInt)	todo		
+base/gmp.jl	569	569	-	(-)(x::BigInt)	todo		
+base/gmp.jl	570	570	~	(~)(x::BigInt)	todo		
+base/gmp.jl	572	572	<<	<<(x::BigInt, c::UInt)	todo		
+base/gmp.jl	573	573	>>	>>(x::BigInt, c::UInt)	todo		
+base/gmp.jl	574	574	>>>	>>>(x::BigInt, c::UInt)	todo		
+base/gmp.jl	576	580	trailing_zeros	trailing_zeros(x::BigInt)	todo		
+base/gmp.jl	582	586	trailing_ones	trailing_ones(x::BigInt)	todo		
+base/gmp.jl	588	592	count_ones	count_ones(x::BigInt)	todo		
+base/gmp.jl	595	599	count_zeros	count_zeros(x::BigInt)	todo		
+base/gmp.jl	606	606	count_ones_abs	count_ones_abs(x::BigInt)	todo		
+base/gmp.jl	609	612	_bit_magnitude	_bit_magnitude(x::BigInt)	todo		
+base/gmp.jl	614	617	exponent	exponent(x::BigInt)	todo		
+base/gmp.jl	619	623	top_set_bit	top_set_bit(x::BigInt)	todo		
+base/gmp.jl	625	625	divrem	divrem(x::BigInt, y::BigInt, ::typeof(RoundToZero) = RoundToZero)	todo		
+base/gmp.jl	625	625	typeof	::typeof(RoundToZero)	todo		
+base/gmp.jl	626	626	divrem	divrem(x::BigInt, y::Integer, ::typeof(RoundToZero) = RoundToZero)	todo		
+base/gmp.jl	626	626	typeof	::typeof(RoundToZero)	todo		
+base/gmp.jl	628	628	cmp	cmp(x::BigInt, y::BigInt)	todo		
+base/gmp.jl	629	629	cmp	cmp(x::BigInt, y::ClongMax)	todo		
+base/gmp.jl	630	630	cmp	cmp(x::BigInt, y::CulongMax)	todo		
+base/gmp.jl	631	631	cmp	cmp(x::BigInt, y::Integer)	todo		
+base/gmp.jl	632	632	cmp	cmp(x::Integer, y::BigInt)	todo		
+base/gmp.jl	634	634	cmp	cmp(x::BigInt, y::CdoubleMax)	todo		
+base/gmp.jl	635	635	cmp	cmp(x::CdoubleMax, y::BigInt)	todo		
+base/gmp.jl	637	637	isqrt	isqrt(x::BigInt)	todo		
+base/gmp.jl	639	639	^	^(x::BigInt, y::Culong)	todo		
+base/gmp.jl	641	661	bigint_pow	bigint_pow(x::BigInt, y::Integer)	todo		
+base/gmp.jl	645	646	throw1	throw1(y)	todo		
+base/gmp.jl	663	663	^	^(x::BigInt , y::BigInt )	todo		
+base/gmp.jl	664	664	^	^(x::BigInt , y::Bool )	todo		
+base/gmp.jl	665	665	^	^(x::BigInt , y::Integer)	todo		
+base/gmp.jl	666	666	^	^(x::Integer, y::BigInt )	todo		
+base/gmp.jl	667	667	^	^(x::Bool , y::BigInt )	todo		
+base/gmp.jl	669	672	powermod	powermod(x::BigInt, p::BigInt, m::BigInt)	todo		
+base/gmp.jl	674	674	powermod	powermod(x::Integer, p::Integer, m::BigInt)	todo		
+base/gmp.jl	676	687	gcdx	gcdx(a::BigInt, b::BigInt)	todo		
+base/gmp.jl	689	689	+	+(x::BigInt, y::BigInt, rest::BigInt...)	todo		
+base/gmp.jl	690	691	sum	sum(arr::Union{AbstractArray{BigInt}, Tuple{BigInt, Vararg{BigInt}}})	todo		
+base/gmp.jl	693	696	prod	prod(arr::AbstractArray{BigInt})	todo		
+base/gmp.jl	697	715	_prod	_prod(arr::AbstractArray{BigInt}, lo, hi)	todo		
+base/gmp.jl	717	717	factorial	factorial(n::BigInt)	todo		
+base/gmp.jl	719	727	binomial	binomial(n::BigInt, k::Integer)	todo		
+base/gmp.jl	728	728	binomial	binomial(n::BigInt, k::Culong)	todo		
+base/gmp.jl	730	730	==	==(x::BigInt, y::BigInt)	todo		
+base/gmp.jl	731	731	==	==(x::BigInt, i::Integer)	todo		
+base/gmp.jl	732	732	==	==(i::Integer, x::BigInt)	todo		
+base/gmp.jl	733	733	==	==(x::BigInt, f::CdoubleMax)	todo		
+base/gmp.jl	734	734	==	==(f::CdoubleMax, x::BigInt)	todo		
+base/gmp.jl	735	735	iszero	iszero(x::BigInt)	todo		
+base/gmp.jl	736	736	isone	isone(x::BigInt)	todo		
+base/gmp.jl	738	738	<=	<=(x::BigInt, y::BigInt)	todo		
+base/gmp.jl	739	739	<=	<=(x::BigInt, i::Integer)	todo		
+base/gmp.jl	740	740	<=	<=(i::Integer, x::BigInt)	todo		
+base/gmp.jl	741	741	<=	<=(x::BigInt, f::CdoubleMax)	todo		
+base/gmp.jl	742	742	<=	<=(f::CdoubleMax, x::BigInt)	todo		
+base/gmp.jl	744	744	<	<(x::BigInt, y::BigInt)	todo		
+base/gmp.jl	745	745	<	<(x::BigInt, i::Integer)	todo		
+base/gmp.jl	746	746	<	<(i::Integer, x::BigInt)	todo		
+base/gmp.jl	747	747	<	<(x::BigInt, f::CdoubleMax)	todo		
+base/gmp.jl	748	748	<	<(f::CdoubleMax, x::BigInt)	todo		
+base/gmp.jl	749	749	isnegative	isnegative(x::BigInt)	todo		
+base/gmp.jl	750	750	ispositive	ispositive(x::BigInt)	todo		
+base/gmp.jl	752	752	signbit	signbit(x::BigInt)	todo		
+base/gmp.jl	753	753	flipsign!	flipsign!(x::BigInt, y::Integer)	todo		
+base/gmp.jl	754	754	flipsign	flipsign( x::BigInt, y::Integer)	todo		
+base/gmp.jl	755	755	flipsign	flipsign( x::BigInt, y::BigInt)	todo		
+base/gmp.jl	757	761	sign	sign(x::BigInt)	todo		
+base/gmp.jl	763	763	show	show(io::IO, x::BigInt)	todo		
+base/gmp.jl	765	782	string	string(n::BigInt; base::Integer = 10, pad::Integer = 1)	todo		
+base/gmp.jl	784	810	digits!	digits!(a::AbstractVector{T}, n::BigInt; base::Integer = 10) where {T<:Integer}	todo		
+base/gmp.jl	812	833	ndigits0zpb	ndigits0zpb(x::BigInt, b::Integer)	todo		
+base/gmp.jl	838	838	_prevpow2	_prevpow2(x::BigInt)	todo		
+base/gmp.jl	839	839	_nextpow2	_nextpow2(x::BigInt)	todo		
+base/gmp.jl	841	841	Base.checked_abs	Base.checked_abs(x::BigInt)	todo		
+base/gmp.jl	842	842	Base.checked_neg	Base.checked_neg(x::BigInt)	todo		
+base/gmp.jl	843	843	Base.checked_add	Base.checked_add(a::BigInt, b::BigInt)	todo		
+base/gmp.jl	844	844	Base.checked_sub	Base.checked_sub(a::BigInt, b::BigInt)	todo		
+base/gmp.jl	845	845	Base.checked_mul	Base.checked_mul(a::BigInt, b::BigInt)	todo		
+base/gmp.jl	846	846	Base.checked_div	Base.checked_div(a::BigInt, b::BigInt)	todo		
+base/gmp.jl	847	847	Base.checked_rem	Base.checked_rem(a::BigInt, b::BigInt)	todo		
+base/gmp.jl	848	848	Base.checked_fld	Base.checked_fld(a::BigInt, b::BigInt)	todo		
+base/gmp.jl	849	849	Base.checked_mod	Base.checked_mod(a::BigInt, b::BigInt)	todo		
+base/gmp.jl	850	850	Base.checked_cld	Base.checked_cld(a::BigInt, b::BigInt)	todo		
+base/gmp.jl	851	851	Base.add_with_overflow	Base.add_with_overflow(a::BigInt, b::BigInt)	todo		
+base/gmp.jl	852	852	Base.sub_with_overflow	Base.sub_with_overflow(a::BigInt, b::BigInt)	todo		
+base/gmp.jl	853	853	Base.mul_with_overflow	Base.mul_with_overflow(a::BigInt, b::BigInt)	todo		
+base/gmp.jl	856	856	Base.checked_pow	Base.checked_pow(x::BigInt, p::Integer)	todo		
+base/gmp.jl	857	857	Base.checked_pow	Base.checked_pow(x::Integer, p::BigInt)	todo		
+base/gmp.jl	858	858	Base.checked_pow	Base.checked_pow(x::BigInt, p::BigInt)	todo		
+base/gmp.jl	860	860	Base.deepcopy_internal	Base.deepcopy_internal(x::BigInt, stackdict::IdDict)	todo		
+base/gmp.jl	864	864	Base._hash_shl!	Base._hash_shl!(x::BigInt, n)	todo		
+base/gmp.jl	880	882	Base.size	Base.size(view::UnsafeLimbView)	todo		
+base/gmp.jl	884	892	Base.getindex	Base.getindex(view::UnsafeLimbView, i::Int)	todo		
+base/gmp.jl	894	897	Base.iterate	Base.iterate(view::UnsafeLimbView, state::Int = 1)	todo		
+base/gmp.jl	899	901	Base.length	Base.length(view::UnsafeLimbView)	todo		
+base/gmp.jl	903	915	hash_integer	hash_integer(n::BigInt, h::UInt)	todo		
+base/gmp.jl	917	955	hash	hash(x::BigInt, h::UInt)	todo		
+base/gmp.jl	964	964	gmpq	gmpq(op::Symbol)	todo		
+base/gmp.jl	979	981	_MPQ	_MPQ(x::BigInt,y::BigInt)	todo		
+base/gmp.jl	982	982	_MPQ	_MPQ()	todo		
+base/gmp.jl	983	983	_MPQ	_MPQ(x::Rational{BigInt})	todo		
+base/gmp.jl	986	992	_MPQ	_MPQ(zq::_MPQ, x::Rational{BigInt})	todo		
+base/gmp.jl	994	1002	sync_rational!	sync_rational!(xq::_MPQ)	todo		
+base/gmp.jl	1004	1012	Rational{BigInt}	Rational{BigInt}(num::BigInt, den::BigInt)	todo		
+base/gmp.jl	1015	1019	set!	set!(z::Rational{BigInt}, x::Rational{BigInt})	todo		
+base/gmp.jl	1021	1025	set_z!	set_z!(z::Rational{BigInt}, x::BigInt)	todo		
+base/gmp.jl	1029	1029	$op	$op(a::$T)	todo		generated-loop: (op, T) in ((:set, Rational{BigInt}), (:set_z, BigInt)); source-model: bignumscov-gmp-rational-special
+base/gmp.jl	1037	1041	$op!	$op!(z::Rational{BigInt}, a, b)	todo		generated-loop: (op, T1, T2) in ((:set_ui, Culong, Culong), (:set_si, Clong, Culong)); source-model: bignumscov-gmp-rational-special
+base/gmp.jl	1042	1042	$op	$op(a, b)	todo		generated-loop: (op, T1, T2) in ((:set_ui, Culong, Culong), (:set_si, Clong, Culong)); source-model: bignumscov-gmp-rational-special
+base/gmp.jl	1047	1058	add!	add!(z::Rational{BigInt}, x::Rational{BigInt}, y::Rational{BigInt})	todo		
+base/gmp.jl	1060	1072	sub!	sub!(z::Rational{BigInt}, x::Rational{BigInt}, y::Rational{BigInt})	todo		
+base/gmp.jl	1074	1085	mul!	mul!(z::Rational{BigInt}, x::Rational{BigInt}, y::Rational{BigInt})	todo		
+base/gmp.jl	1087	1106	div!	div!(z::Rational{BigInt}, x::Rational{BigInt}, y::Rational{BigInt})	todo		
+base/gmp.jl	1111	1111	$fC!	($fC!)(x::Rational{BigInt}, y::Rational{BigInt})	todo		generated-loop: (fJ, fC) in ((:+, :add), (:-, :sub), (:*, :mul), (://, :div)); source-model: bignumscov-gmp-rational-special
+base/gmp.jl	1112	1112	Base.$fJ	(Base.$fJ)(x::Rational{BigInt}, y::Rational{BigInt})	todo		generated-loop: (fJ, fC) in ((:+, :add), (:-, :sub), (:*, :mul), (://, :div)); source-model: bignumscov-gmp-rational-special
+base/gmp.jl	1116	1123	Base.cmp	Base.cmp(x::Rational{BigInt}, y::Rational{BigInt})	modelled	bignums-rational-cmp-infinite,bignums-rational-cmp-range	

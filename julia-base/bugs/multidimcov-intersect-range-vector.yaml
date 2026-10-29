@@ -1,0 +1,60 @@
+id: multidimcov-intersect-range-vector
+title: "intersect(r::AbstractRange, v) follows v's order, and intersect(v, r) matches -0.0 with 0.0"
+priority: P2
+kind: wrong-result
+area: MultidimCov
+files: [base/array.jl]
+functions: ["intersect(v::AbstractVector, r::AbstractRange)", "intersect(r::AbstractRange, v::AbstractVector)"]
+summary: |
+  The mixed vector/range methods disagree with intersecting the collected range.
+  intersect(r, v) just calls intersect(v, r), so the result keeps the order of v:
+  intersect(1:3, [3, 2, 1]) == [3, 2, 1], although intersect(collect(1:3), [3, 2, 1])
+  == [1, 2, 3]. The method also tests membership with in(r), which uses ==, so
+  intersect([-0.0], 0.0:1.0:1.0) == [-0.0] while intersect([-0.0], [0.0, 1.0]) is
+  empty.
+likelihood: |
+  The order difference appears for any range first argument and an unsorted vector,
+  for example intersect(1:n, idx). The signed-zero difference needs float ranges.
+maybe_intended: |
+  Returning the vector's order may be accepted because the result cannot be a range,
+  but the docstring makes the first argument control the order, and every other
+  intersect method compares with isequal.
+reproducer: |
+  intersect(1:3, [3, 2, 1])            # [3, 2, 1]
+  intersect(collect(1:3), [3, 2, 1])   # [1, 2, 3]
+  intersect([-0.0], 0.0:1.0:1.0)       # [-0.0]
+  intersect([-0.0], [0.0, 1.0])        # Float64[]
+output:
+  release: |
+    intersect(1:3, [3, 2, 1]) = [3, 2, 1]; intersect(collect(1:3), [3, 2, 1]) = [1, 2, 3]
+    intersect([-0.0], 0.0:1.0:1.0) = [-0.0]; with the collected range: Float64[]
+    REPRODUCED multidimcov-intersect-range-vector
+  nightly: |
+    intersect(1:3, [3, 2, 1]) = [3, 2, 1]; intersect(collect(1:3), [3, 2, 1]) = [1, 2, 3]
+    intersect([-0.0], 0.0:1.0:1.0) = [-0.0]; with the collected range: Float64[]
+    REPRODUCED multidimcov-intersect-range-vector
+reproduced: {release: true, nightly: true}
+expected: |
+  intersect(1:3, [3, 2, 1]) == [1, 2, 3] (order of the first argument) and
+  intersect([-0.0], 0.0:1.0:1.0) == Float64[] (isequal membership), the results for
+  the collected range.
+promised_by: |
+  intersect docstring (base/abstractset.jl:115-121): "Construct the set containing
+  those elements which appear in all of the arguments. The first argument controls
+  what kind of container is returned. If this is an array, it maintains the order in
+  which elements first appear." The example (0, 0.0) ∩ (-0.0, 0) == [0] shows the
+  isequal comparison.
+cause: |
+  base/array.jl:3221 defines intersect(r, v) = intersect(v, r), so v's order wins.
+  base/array.jl:3217 filters v with in(r), and in on ranges compares with ==, before
+  the Set at base/array.jl:3218 uniquifies with isequal.
+possible_fix: |
+  For intersect(r, v), filter r by membership in Set(v); in intersect(v, r), test
+  membership with isequal (for example via a Set built from the matching elements
+  of r).
+duplicates:
+  issues: []
+  queries: ["intersect range vector order", "intersect AbstractRange AbstractVector order", "intersect range -0.0", "intersect(r, v)", "intersect range vector", "issues: intersect (title scan)"]
+lean:
+  property: JuliaLean.MultidimCov.ArrayV2.P3215
+  theorem: JuliaLean.MultidimCov.ArrayV2.p3215_refuted

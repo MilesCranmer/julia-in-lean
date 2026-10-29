@@ -1,0 +1,56 @@
+id: multidimcov-range-getindex-unsigned
+title: "(-10:2:-1)[UInt(1)] throws InexactError: StepRange indexing computes in the unsigned index type"
+priority: P2
+kind: wrong-exception
+area: MultidimCov
+files: [base/array.jl, base/range.jl]
+functions: ["getindex(v::AbstractRange, i::Integer)", "unsafe_getindex(::AbstractRange{T}, ::Integer)"]
+summary: |
+  getindex(v::AbstractRange, i) forwards a non-Bool index to _getindex. For a
+  StepRange the element is convert(T, first(v) + (i - oneunit(i))*step_hp(v)),
+  computed in the promoted type of the elements and the index. With an unsigned
+  64-bit index and negative elements the sum wraps to a huge unsigned value, so
+  (-10:2:-1)[UInt(1)] throws InexactError although index 1 is valid and
+  collect(-10:2:-1)[UInt(1)] == -10.
+likelihood: |
+  Unsigned indices are plausible in code that computes positions with UInt
+  arithmetic; the failure needs a range with negative elements.
+maybe_intended: ""
+reproducer: |
+  r = -10:2:-1
+  collect(r)[UInt(1)]   # -10
+  r[UInt(1)]            # InexactError: convert(Int64, 0xfffffffffffffff6)
+output:
+  release: |
+    collect(-10:2:-1)[UInt(1)] = -10
+    (-10:2:-1)[UInt(1)] = InexactError(:convert, (Int64, 0xfffffffffffffff6))
+    (-10:2:-1)[1] = -10
+    REPRODUCED multidimcov-range-getindex-unsigned
+  nightly: |
+    collect(-10:2:-1)[UInt(1)] = -10
+    (-10:2:-1)[UInt(1)] = InexactError(:convert, (Int64, 0xfffffffffffffff6))
+    (-10:2:-1)[1] = -10
+    REPRODUCED multidimcov-range-getindex-unsigned
+reproduced: {release: true, nightly: true}
+expected: |
+  -10, the first element, as for the Int index and for the collected vector.
+promised_by: |
+  getindex(collection, key...) docstring (base/array.jl:953-957): "Retrieve the
+  value(s) stored at the given key or index within a collection"; an AbstractRange
+  is an AbstractVector, so r[i] equals collect(r)[i] for every valid index i.
+cause: |
+  base/array.jl:3228 calls _getindex(v, i); base/range.jl:985
+  (unsafe_getindex(v::AbstractRange{T}, i::Integer)) evaluates
+  first(v) + (i - oneunit(i))*step_hp(v) in promote_type(T, typeof(i)), which is
+  UInt64 here, and convert(T, ...) of the wrapped value throws InexactError.
+  The UnitRange method has the same promotion problem and throws BoundsError
+  instead (our existing finding ranges-ordinal-unsigned-index).
+possible_fix: |
+  Convert the index offset to the element type's arithmetic first, for example
+  first(v) + (Int(i) - 1)*step_hp(v), or compute in a signed widened type.
+duplicates:
+  issues: []
+  queries: ["range getindex unsigned index", "UInt index range BoundsError", "unsigned index negative range", "getindex UnitRange UInt", "range indexing with unsigned integer", "StepRange getindex UInt InexactError"]
+lean:
+  property: JuliaLean.MultidimCov.ArrayV2.P3224
+  theorem: JuliaLean.MultidimCov.ArrayV2.p3224_refuted

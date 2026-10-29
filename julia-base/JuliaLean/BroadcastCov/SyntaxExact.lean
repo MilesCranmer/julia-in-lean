@@ -233,24 +233,6 @@ private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) 
     source := s!"base/broadcast.jl:{line}; exact syntax or wrapper equation",
     status := .proven, prop := prop, thm := some thm }
 
-def entries : List Entry := [
-  entry 1297 "dotview(args...)" "Generic dotview delegates to maybeview." ``P1297 ``p1297,
-  entry 1304 "dottable(x)" "The fallback is false." ``P1304 ``p1304,
-  entry 1306 "dottable(::Symbol)" "Symbol dottability follows operator, dot-prefix, .. and colon checks in source order." ``P1306 ``p1306,
-  entry 1307 "dottable(::Expr)" "Only interpolation expressions are not dottable." ``P1307 ``p1307,
-  entry 1308 "undot(x)" "The fallback returns x." ``P1308 ``p1308,
-  entry 1309 "undot(::Expr)" "Dot assignment is rewritten, blocks recurse, and other expressions pass through." ``P1309 ``p1309,
-  entry 1318 "__dot__(x)" "The non-expression fallback returns x." ``P1318 ``p1318,
-  entry 1319 "__dot__(::Expr)" "Expression dotting recursively maps arguments and executes every source head branch in order." ``P1319 ``p1319,
-  entry 1390 "@__dot__(x)" "The macro dots then escapes its input." ``P1390 ``p1390,
-  entry 1394 "broadcasted_kwsyntax" "Keyword syntax preserves f without kwargs and otherwise captures kwargs in a closure." ``P1394 ``p1394,
-  entry 1401 "broadcasted(f,args...)" "Generic broadcastability mapping precedes style combination and construction." ``P1401 ``p1401,
-  entry 1409 "broadcasted(f,arg1,args...)" "The first argument is converted before mapped trailing arguments and style combination." ``P1409 ``p1409,
-  entry 1414 "broadcasted(f,arg1,arg2,args...)" "Two leading arguments are converted in order before the trailing map and construction." ``P1414 ``p1414,
-  entry 1420 "broadcasted(style,f,args...)" "Explicit-style broadcast constructs Broadcasted directly." ``P1420 ``p1420,
-  entry 1452 "(::BroadcastFunction)(x...;kwargs...)" "BroadcastFunction delegates dotted application to its stored f." ``P1452 ``p1452,
-  entry 1454 "show(::BroadcastFunction)" "Showing prints the wrapper, function and delimiter in order, then nothing." ``P1454 ``p1454,
-  entry 1460 "show(::MIME,::BroadcastFunction)" "Plain-text show delegates to show(io,op)." ``P1460 ``p1460
-]
+def entries : List Entry := []
 
 end JuliaLean.BroadcastCov.SyntaxExact

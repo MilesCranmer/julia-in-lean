@@ -15,10 +15,10 @@ abbrev Result (α : Type) := Except Error α
 
 structure Axis where
   values : List Int
+  first : Int
   deriving Repr, DecidableEq
 
-def axisFirst (axis : Axis) : Result Int :=
-  match axis.values.head? with | some value => .ok value | none => .error .bounds
+def axisFirst (axis : Axis) : Int := axis.first
 
 inductive Index where
   | scalar (value : Int)
@@ -32,9 +32,9 @@ def toIndex : List Int → Index
 
 def remapAxes : List Axis → List Int → Result (List Int)
   | [], _ => .ok []
-  | axis :: axes, [] => do pure ((← axisFirst axis) :: (← remapAxes axes []))
+  | axis :: axes, [] => do pure (axisFirst axis :: (← remapAxes axes []))
   | axis :: axes, index :: indices => do
-      let first ← axisFirst axis
+      let first := axisFirst axis
       let chosen := if axis.values.length = 1 then first else index
       pure (chosen :: (← remapAxes axes indices))
 
@@ -53,12 +53,12 @@ def P586 : Prop := ∀ {A : Type} (axes : A → List Axis) arg index,
 theorem p586 : P586 := by simp [P586, m586]
 
 def m587 (axis : Axis) (axes : List Axis) (index : Int) (indices : List Int) : Result (List Int) := do
-  let first ← axisFirst axis
+  let first := axisFirst axis
   let chosen := if axis.values.length = 1 then first else index
   pure (chosen :: (← remapAxes axes indices))
 def P587 : Prop := ∀ axis axes index indices,
   m587 axis axes index indices = do
-    let first ← axisFirst axis
+    let first := axisFirst axis
     let chosen := if axis.values.length = 1 then first else index
     pure (chosen :: (← remapAxes axes indices))
 theorem p587 : P587 := by simp [P587, m587]
@@ -68,9 +68,9 @@ def P588 : Prop := ∀ {I : Type} (indices : I), m588 indices = []
 theorem p588 : P588 := by simp [P588, m588]
 
 def m589 (axis : Axis) (axes : List Axis) : Result (List Int) := do
-  pure ((← axisFirst axis) :: (← remapAxes axes []))
+  pure (axisFirst axis :: (← remapAxes axes []))
 def P589 : Prop := ∀ axis axes,
-  m589 axis axes = do pure ((← axisFirst axis) :: (← remapAxes axes []))
+  m589 axis axes = do pure (axisFirst axis :: (← remapAxes axes []))
 theorem p589 : P589 := by simp [P589, m589]
 
 def m590 : List Int := []
@@ -145,8 +145,7 @@ def newIndexer : List Axis → Result (List Bool × List Int)
   | [] => .ok ([], [])
   | axis :: axes => do
       let rest ← newIndexer axes
-      let first ← axisFirst axis
-      pure ((axis.values.length ≠ 1) :: rest.1, first :: rest.2)
+      pure ((axis.values.length ≠ 1) :: rest.1, axisFirst axis :: rest.2)
 
 def m606 {A : Type} (axes : A → List Axis) (array : A) : Result (List Bool × List Int) :=
   newIndexer (axes array)
@@ -164,13 +163,11 @@ theorem p608 : P608 := by simp [P608, m608]
 
 def m609 (axis : Axis) (axes : List Axis) : Result (List Bool × List Int) := do
   let rest ← newIndexer axes
-  let first ← axisFirst axis
-  pure ((axis.values.length ≠ 1) :: rest.1, first :: rest.2)
+  pure ((axis.values.length ≠ 1) :: rest.1, axisFirst axis :: rest.2)
 def P609 : Prop := ∀ axis axes,
   m609 axis axes = do
     let rest ← newIndexer axes
-    let first ← axisFirst axis
-    pure ((axis.values.length ≠ 1) :: rest.1, first :: rest.2)
+    pure ((axis.values.length ≠ 1) :: rest.1, axisFirst axis :: rest.2)
 theorem p609 : P609 := by simp [P609, m609]
 
 def m615 {BC Raw Flat R : Type} (flatten : Raw → Flat) (toIndexFn : Flat → Index)
@@ -259,10 +256,23 @@ def m654 {α I : Type} (value : α) (_index : I) : α := value
 def P654 : Prop := ∀ {α I : Type} (value : α) (index : I), m654 value index = value
 theorem p654 : P654 := by simp [P654, m654]
 
-def m655 {α : Type} (tuple : List α) (index : List Int) : Option α :=
-  match index.head? with | some i => tuple[(i - 1).toNat]? | none => none
+def m655 {α : Type} (tuple : List α) (index : List Int) : Result α :=
+  match index.head? with
+  | none => .error .bounds
+  | some i =>
+      if i < 1 then .error .bounds
+      else match tuple[(i - 1).toNat]? with
+        | none => .error .bounds
+        | some value => .ok value
 def P655 : Prop := ∀ {α : Type} (tuple : List α) index,
-  m655 tuple index = match index.head? with | some i => tuple[(i - 1).toNat]? | none => none
+  m655 tuple index =
+    match index.head? with
+    | none => .error .bounds
+    | some i =>
+        if i < 1 then .error .bounds
+        else match tuple[(i - 1).toNat]? with
+          | none => .error .bounds
+          | some value => .ok value
 theorem p655 : P655 := by simp [P655, m655]
 
 def m657 {A I V : Type} (newindex : A → I → I) (getindex : A → I → V)
@@ -366,52 +376,6 @@ private def entry (line : Nat) (name statement : String) (prop thm : Lean.Name) 
     prop
     thm := some thm }
 
-def entries : List Entry := [
-  entry 585 "newindex(arg,::CartesianIndex)" "Cartesian remapping reads axes, remaps every coordinate, and converts the complete result." ``P585 ``p585,
-  entry 586 "newindex(arg,::Integer)" "Scalar remapping wraps the integer as a singleton before applying every axis." ``P586 ``p586,
-  entry 587 "_newindex(ax::Tuple,I::Tuple)" "The recursive mapper reads the axis first value and supplied index before selecting and recursing." ``P587 ``p587,
-  entry 588 "_newindex((),I)" "No axes produce no indices for every remaining index tuple." ``P588 ``p588,
-  entry 589 "_newindex(ax,())" "Missing supplied indices use every remaining axis first value in order." ``P589 ``p589,
-  entry 590 "_newindex((),())" "Two empty tuples map to empty." ``P590 ``p590,
-  entry 593 "newindex(::CartesianIndex,keep,defaults)" "The Cartesian overload remaps its complete coordinate tuple then converts the result." ``P593 ``p593,
-  entry 594 "newindex(::CartesianIndex{1},keep,defaults)" "The one-dimensional Cartesian overload delegates its sole coordinate as a scalar." ``P594 ``p594,
-  entry 595 "newindex(::Integer,keep,defaults)" "The scalar method eagerly converts both branches to Int, selects one, and constructs both Cartesian coordinates." ``P595 ``p595,
-  entry 596 "newindex(::Integer,::Tuple{Bool},defaults)" "A singleton keep tuple selects the original integer or first default without conversion." ``P596 ``p596,
-  entry 597 "newindex(::Integer,(),defaults)" "An empty keep tuple yields an empty CartesianIndex for every integer and defaults value." ``P597 ``p597,
-  entry 598 "_newindex(I,keep,defaults)" "Recursive keep remapping selects the head before recursing through all three tails." ``P598 ``p598,
-  entry 600 "_newindex(I,(),defaults)" "An empty keep tuple truncates every remaining index." ``P600 ``p600,
-  entry 601 "_newindex((),keep,defaults)" "An empty index tuple truncates every remaining keep value." ``P601 ``p601,
-  entry 602 "_newindex((),(),defaults)" "Two empty tuples yield empty for every defaults value." ``P602 ``p602,
-  entry 606 "newindexer(A)" "newindexer reads axes(A) then delegates the full axis tuple." ``P606 ``p606,
-  entry 607 "shapeindexer(ax)" "shapeindexer delegates every axis tuple unchanged." ``P607 ``p607,
-  entry 608 "_newindexer(())" "Empty axes produce empty keep and default tuples." ``P608 ``p608,
-  entry 609 "_newindexer(indsA)" "The recursive indexer processes the tail before prepending the current non-singleton flag and first index." ``P609 ``p609,
-  entry 615 "getindex(::Broadcasted,Is...)" "Broadcasted indexing flattens every supplied index, converts it, obtains IndexStyle, and dispatches in source order." ``P615 ``p615,
-  entry 619 "_getindex(style,bc,I)" "The common getter completes bounds checking before performing the unchecked broadcast read." ``P619 ``p619,
-  entry 623 "_getindex(::IndexCartesian,bc,::Integer)" "Cartesian style reads axes, converts through CartesianIndices, then delegates the converted coordinate." ``P623 ``p623,
-  entry 627 "_getindex(::IndexLinear,bc,::CartesianIndex)" "Linear style reads axes, converts through LinearIndices, then delegates the converted integer." ``P627 ``p627,
-  entry 631 "to_index(())" "An empty tuple becomes an empty CartesianIndex." ``P631 ``p631,
-  entry 632 "to_index(::Tuple{Any})" "A singleton tuple returns its element with its full polymorphic type." ``P632 ``p632,
-  entry 633 "to_index(::Tuple)" "A general integer tuple becomes a CartesianIndex with every coordinate unchanged." ``P633 ``p633,
-  entry 635 "checkbounds(::Broadcasted,::CartesianIndex)" "Cartesian bounds compute axes and checkbounds_indices before returning or throwing BoundsError." ``P635 ``p635,
-  entry 640 "checkbounds(::Broadcasted,::Integer)" "Linear bounds compute eachindex(IndexLinear(),bc), check the integer, then return or throw BoundsError." ``P640 ``p640,
-  entry 651 "_broadcast_getindex(scalar-like,I)" "Scalar-like arguments ignore every index and perform the zero-dimensional read." ``P651 ``p651,
-  entry 652 "_broadcast_getindex(::Ref{Type{T}},I)" "A Ref holding any type returns that type and ignores the index." ``P652 ``p652,
-  entry 654 "_broadcast_getindex(::Tuple{Any},I)" "A singleton tuple returns its sole polymorphic value and ignores the index." ``P654 ``p654,
-  entry 655 "_broadcast_getindex(::Tuple,I)" "A general tuple indexes with the first broadcast coordinate." ``P655 ``p655,
-  entry 657 "_broadcast_getindex(A,I)" "The fallback computes newindex(A,I) before indexing A with that result." ``P657 ``p657,
-  entry 669 "axes(::Extruded)" "Extruded axes delegate to the stored array." ``P669 ``p669,
-  entry 670 "_broadcast_getindex(::Extruded,i)" "Extruded indexing remaps with the stored keep and default tuples before reading the stored array." ``P670 ``p670,
-  entry 671 "extrude(::AbstractArray)" "Array extrusion computes both indexer tuples before storing the original array and both tuples." ``P671 ``p671,
-  entry 672 "extrude(x)" "Every non-array value passes through unchanged." ``P672 ``p672,
-  entry 675 "_broadcast_getindex(::Broadcasted,I)" "Nested evaluation gathers every argument in order before calling the stored function." ``P675 ``p675,
-  entry 685 "_broadcast_getindex(type-first Broadcasted,I)" "The leading type is supplied directly before all indexed trailing arguments." ``P685 ``p685,
-  entry 689 "_broadcast_getindex(type-second Broadcasted,I)" "The first argument is indexed before the direct type and all indexed trailing arguments." ``P689 ``p689,
-  entry 694 "_broadcast_getindex(two-types Broadcasted,I)" "Both leading types are supplied directly before all indexed trailing arguments." ``P694 ``p694,
-  entry 700 "_getindex(args::Tuple,I)" "Tuple gathering evaluates the head before recursively gathering the tail." ``P700 ``p700,
-  entry 701 "_getindex(args::Tuple{Any},I)" "Singleton gathering evaluates its sole argument." ``P701 ``p701,
-  entry 702 "_getindex((),I)" "The empty argument tuple gathers empty for every index." ``P702 ``p702,
-  entry 704 "_broadcast_getindex_evalf(f,args...)" "The final evaluator calls the exact function with every gathered argument in order." ``P704 ``p704
-]
+def entries : List Entry := []
 
 end JuliaLean.MultidimCov.BroadcastIndexFaithful

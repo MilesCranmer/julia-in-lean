@@ -71,10 +71,10 @@ def m97 (stream : NamedIO) : Except StreamErr NamedIO :=
   | .error e => .error e
 
 /-- `iswritable(s::IOStream)`, `base/iostream.jl:104`. -/
-def m104 (stream : NamedIO) : Bool := stream.file.writable
+def m104 (stream : NamedIO) : Bool := stream.file.isopen && stream.file.writable
 
 /-- `isreadable(s::IOStream)`, `base/iostream.jl:106`. -/
-def m106 (stream : NamedIO) : Bool := stream.file.readable
+def m106 (stream : NamedIO) : Bool := stream.file.isopen && stream.file.readable
 
 /-- `truncate(s, n)`, `base/iostream.jl:137-141`. -/
 def m137 (stream : NamedIO) (n : Nat) (foreignFailed : Bool) : Except StreamErr NamedIO :=
@@ -302,8 +302,8 @@ def P97 : Prop := ∀ stream,
   (stream.file.isopen = true → m97 stream = .ok stream) ∧
   (stream.file.isopen = false → m97 stream = .error .ioError)
 
-def P104 : Prop := ∀ stream, m104 stream = stream.file.writable
-def P106 : Prop := ∀ stream, m106 stream = stream.file.readable
+def P104 : Prop := ∀ stream, m104 stream = (stream.file.isopen && stream.file.writable)
+def P106 : Prop := ∀ stream, m106 stream = (stream.file.isopen && stream.file.readable)
 
 def P137 : Prop := ∀ stream n failed,
   (failed = true → m137 stream n failed = .error .ioError) ∧
@@ -377,7 +377,7 @@ def P399 : Prop := ∀ mode,
 def P411 : Prop := ∀ stream byte,
   (stream.file.writable = false → m411 stream byte = .error .argumentError) ∧
   (stream.file.writable = true ∧ stream.file.isopen = false →
-    m411 stream byte = .ok (0, stream.file)) ∧
+    m411 stream byte = .error .argumentError) ∧
   (stream.file.writable = true ∧ stream.file.isopen = true →
     ∃ next, m411 stream byte = .ok (1, next) ∧
       next.position = stream.file.position + 1)
@@ -387,7 +387,7 @@ def P416 : Prop := ∀ stream memory n cancelled,
   (cancelled = false ∧ stream.file.writable = false →
     m416 stream memory n cancelled = .error .argumentError) ∧
   (cancelled = false ∧ stream.file.writable = true ∧ stream.file.isopen = false →
-    m416 stream memory n cancelled = .ok (0, stream.file)) ∧
+    m416 stream memory n cancelled = .error .argumentError) ∧
   (cancelled = false ∧ stream.file.writable = true ∧ stream.file.isopen = true →
     ∃ next, m416 stream memory n cancelled = .ok ((memory.take n).length, next) ∧
       next.position = stream.file.position + (memory.take n).length)
@@ -445,7 +445,7 @@ def P535 : Prop := ∀ output input delimiter keep,
   let read := ioReadUntil input.file delimiter keep
   (output.file.writable = false →
     m535 output input delimiter keep = .error .argumentError) ∧
-  (output.file.writable = true → ∃ nextOutput,
+  (output.file.writable = true ∧ output.file.isopen = true → ∃ nextOutput,
     m535 output input delimiter keep =
       .ok (nextOutput, { input with file := read.2 })) ∧
   (output.file.writable = true ∧ output.file.isopen = true → ∃ nextOutput,
@@ -646,8 +646,8 @@ def entries : List Entry := [
   methodEntry "base/iostream.jl" "iostream" 90 93 "close(s::IOStream)" "close locks the stream, closes ios, and raises a system error on failure." ``P90 ``p90,
   methodEntry "base/iostream.jl" "iostream" 95 95 "closewrite(s::IOStream)" "closewrite is the documented no-op for IOStream." ``P95 ``p95,
   methodEntry "base/iostream.jl" "iostream" 97 102 "flush(s::IOStream)" "flush brackets the locked ios flush with signal-atomic state and reports failure." ``P97 ``p97,
-  methodEntry "base/iostream.jl" "iostream" 104 104 "iswritable(s::IOStream)" "iswritable returns the ios access-mode bit." ``P104 ``p104,
-  methodEntry "base/iostream.jl" "iostream" 106 106 "isreadable(s::IOStream)" "isreadable returns the ios access-mode bit." ``P106 ``p106,
+  methodEntry "base/iostream.jl" "iostream" 104 104 "iswritable(s::IOStream)" "iswritable requires an open stream and the ios writable access-mode bit." ``P104 ``p104,
+  methodEntry "base/iostream.jl" "iostream" 106 106 "isreadable(s::IOStream)" "isreadable requires an open stream and the ios readable access-mode bit." ``P106 ``p106,
   methodEntry "base/iostream.jl" "iostream" 137 141 "truncate(s::IOStream, n::Integer)" "truncate reports foreign failure and otherwise resizes the stream to the requested length." ``P137 ``p137,
   methodEntry "base/iostream.jl" "iostream" 158 163 "seek(s::IOStream, n::Integer)" "seek distinguishes the foreign failure sentinels and updates position on success." ``P158 ``p158,
   methodEntry "base/iostream.jl" "iostream" 185 185 "seekstart(s::IO)" "seekstart forwards position zero to seek." ``P185 ``p185,

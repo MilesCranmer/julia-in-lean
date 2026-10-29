@@ -1,0 +1,60 @@
+id: multidimcov-get-tuple-vectors
+title: "get(A, I, default) throws MethodError for a tuple of index vectors, which its signature accepts"
+priority: P3
+kind: wrong-exception
+area: MultidimCov
+files: [base/abstractarray.jl, base/array.jl]
+functions: ["get(A::AbstractArray, I::RangeVecIntList, default)", "get!(X::AbstractArray{T}, A::AbstractArray, I::RangeVecIntList, default::T) where T", "indcopy(sz::Dims, I::Tuple{Vararg{RangeIndex}})"]
+summary: |
+  get(A, I, default) with a collection of per-dimension indices accepts every
+  RangeVecIntList, which includes Tuple{Vararg{Union{AbstractRange, AbstractVector{Int}}}}.
+  Its get! calls indcopy(size(A), I), but indcopy has methods only for a Vector of index
+  collections and for a Tuple{Vararg{RangeIndex}} (Ints and ranges). A tuple holding an
+  index vector, such as ([1, 2], [2, 3, 4]) or (1:2, [2, 3, 4]), therefore throws
+  MethodError, while the same indices as a tuple of ranges or as a vector of vectors
+  return the expected array with default in the out-of-bounds positions.
+likelihood: |
+  Needs get with a tuple of index vectors, an uncommon but natural spelling of the
+  documented multi-index form; every such call fails.
+maybe_intended: ""
+reproducer: |
+  A = reshape(collect(1.0:9.0), 3, 3)
+  get(A, (1:2, 2:4), 0.0)              # [4.0 7.0 0.0; 5.0 8.0 0.0]
+  get(A, [[1, 2], [2, 3, 4]], 0.0)     # [4.0 7.0 0.0; 5.0 8.0 0.0]
+  get(A, ([1, 2], [2, 3, 4]), 0.0)     # MethodError: no method matching indcopy
+output:
+  release: |
+    get(A, (1:2, 2:4), 0.0) = (:ok, [4.0 7.0 0.0; 5.0 8.0 0.0])
+    get(A, [[1, 2], [2, 3, 4]], 0.0) = (:ok, [4.0 7.0 0.0; 5.0 8.0 0.0])
+    get(A, ([1, 2], [2, 3, 4]), 0.0) = MethodError
+    get(A, (1:2, [2, 3, 4]), 0.0) = MethodError
+    REPRODUCED multidimcov-get-tuple-vectors
+  nightly: |
+    get(A, (1:2, 2:4), 0.0) = (:ok, [4.0 7.0 0.0; 5.0 8.0 0.0])
+    get(A, [[1, 2], [2, 3, 4]], 0.0) = (:ok, [4.0 7.0 0.0; 5.0 8.0 0.0])
+    get(A, ([1, 2], [2, 3, 4]), 0.0) = MethodError
+    get(A, (1:2, [2, 3, 4]), 0.0) = MethodError
+    REPRODUCED multidimcov-get-tuple-vectors
+reproduced: {release: true, nightly: true}
+expected: |
+  get(A, ([1, 2], [2, 3, 4]), 0.0) returns [4.0 7.0 0.0; 5.0 8.0 0.0], the same as the
+  tuple-of-ranges and vector-of-vectors forms.
+promised_by: |
+  base/abstractarray.jl:1634-1635 defines RangeVecIntList to include
+  Tuple{Vararg{Union{AbstractRange, AbstractVector{Int}}}}, and
+  base/abstractarray.jl:1664 and 1671 define get!/get for every RangeVecIntList. The
+  get(collection, key, default) docstring (base/dict.jl:486) promises the stored value or the default, not an error.
+cause: |
+  base/abstractarray.jl:1666 calls indcopy(size(A), I). base/array.jl:2970 and 2981
+  define indcopy only for I::Vector and I::Tuple{Vararg{RangeIndex}}, where RangeIndex
+  is Union{Int, AbstractRange{Int}}; no method takes a tuple containing an
+  AbstractVector{Int}.
+possible_fix: |
+  Widen the tuple method of indcopy to Tuple{Vararg{Union{RangeIndex, AbstractVector{Int}}}}
+  without the ::typeof(I) conversion for vector entries, or narrow RangeVecIntList.
+duplicates:
+  issues: []
+  queries: ["indcopy", "get default tuple of vectors MethodError", "get(A, I, default) MethodError", "RangeVecIntList", "get array default tuple vector", "get default MethodError array"]
+lean:
+  property: JuliaLean.MultidimCov.ArrayV2.PIndcopy
+  theorem: JuliaLean.MultidimCov.ArrayV2.pIndcopy_refuted

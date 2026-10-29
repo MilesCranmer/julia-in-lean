@@ -1,0 +1,52 @@
+id: range-step-stop-length-count
+title: "range(stop, step, length) can silently return empty when computing start underflows"
+priority: P2
+kind: wrong-result
+area: Ranges
+files: [base/range.jl]
+functions: ["range_step_stop_length(step, stop, len::Integer)"]
+summary: |
+  range(stop=typemin(Int)+1, step=2, length=3) computes its start with wrapping
+  subtraction. The wrapped start lies above stop, so the constructor returns an
+  empty range instead of producing three elements or reporting that the start
+  cannot be represented.
+likelihood: |
+  Very low: stop, step, and length must make the implied start fall below the
+  representable range of the integer type.
+maybe_intended: ""
+reproducer: |
+  r = range(stop = typemin(Int) + 1, step = 2, length = 3)
+  length(r)  # 0, despite the requested length of 3
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    r = 9223372036854775805:2:9223372036854775804, length(r) = 0
+    REPRODUCED range-step-stop-length-count
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    r = 9223372036854775805:2:9223372036854775804, length(r) = 0
+    REPRODUCED range-step-stop-length-count
+reproduced: {release: true, nightly: true}
+expected: |
+  The constructor should either return a range with the requested length of 3 or
+  throw because the implied start is not representable; it should not silently
+  return an empty range.
+promised_by: |
+  The range docstring, base/range.jl:74-89, says any three of start, step, stop,
+  and length determine a range. Its examples at base/range.jl:114-118 show that
+  specifying stop, step, and length constructs a range with that length.
+cause: |
+  base/range.jl:199-205 computes start as a - step*(len-1) using wrapping integer
+  arithmetic. For stop=typemin(Int)+1, step=2, and len=3, the mathematical start
+  is typemin(Int)-3, so it wraps to 9223372036854775805. StepRange then sees a
+  positive step with stop below start and normalizes the result to empty.
+possible_fix: |
+  Check whether the implied start is representable before using it, and throw an
+  overflow error rather than letting wrapped arithmetic turn the requested range
+  into an empty one.
+duplicates:
+  issues: []
+  queries: ["issues: range stop step length typemin overflow", "issues: range stop step length empty overflow", "prs: range stop step length typemin overflow", "prs: range stop step length empty overflow"]
+lean:
+  property: JuliaLean.Proofs.base.range.RangeStepStopLength
+  theorem: JuliaLean.Proofs.base.range.rangeStepStopLength_refuted
