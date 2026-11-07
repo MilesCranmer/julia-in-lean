@@ -374,6 +374,18 @@ def GcdxNaryBezout : Prop :=
         val d = ((args.foldl (fun (g : Nat) x => Nat.gcd g (val x).natAbs) 0 : Nat) : Int) ∧
         (args.zip us).foldl (fun z pair => z + val pair.1 * val pair.2) 0 = val d)
 
+/-- Signed n-ary Bézout identity, `base/intfuncs.jl:196-204,228-233,264-274`. -/
+def GcdxNarySignedExactBezout : Prop :=
+  ∀ (t : IntTy), t.signed = true →
+  ∀ (a b : JInt t) (cs : List (JInt t)) (d u v : JInt t) (rest : List (JInt t)),
+    gcdx_Nary gcdxBits
+      (gcdx_Unary (gcd_Unary_Integer JuliaLean.base.checked.checkedAbsBits)
+        (fun x => decide (x.val < 0)) (fun _ => JuliaLean.base.int.lit t 1)
+        JuliaLean.base.int.neg)
+      JuliaLean.base.int.mul a b cs = .ok (d, u, v, rest) →
+    ((a :: b :: cs).zip (u :: v :: rest)).foldl
+      (fun total pair => total + pair.1.val * pair.2.val) 0 = d.val
+
 def InvmodAllWidths : Prop := ∀ c : NumberCallees, NumberLaws c →
   ∀ (s t : IntTy) (n : JInt s) (m : JInt t),
   (s.signed = true ∧ t.signed = false ∧ s.bits = t.bits → n.val ≠ s.min) →
@@ -1282,6 +1294,18 @@ theorem gcdxStrictBounds_refuted : ¬ GcdxStrictBounds := by
   rw [hval] at hcall
   cases hcall
   exact (by decide : ¬ ((1 : Int).natAbs < ((2 : Int).tdiv 2).natAbs)) hv
+
+set_option maxRecDepth 8192 in
+set_option maxHeartbeats 2000000 in
+theorem gcdxNarySignedExactBezout_refuted : ¬ GcdxNarySignedExactBezout := by
+  intro h
+  have hbad := h .i8 (by decide)
+    (JuliaLean.base.int.lit .i8 30) (JuliaLean.base.int.lit .i8 34)
+    [JuliaLean.base.int.lit .i8 35]
+    (JuliaLean.base.int.lit .i8 1) (JuliaLean.base.int.lit .i8 120)
+    (JuliaLean.base.int.lit .i8 119) [JuliaLean.base.int.lit .i8 1] (by decide)
+  change (7681 : Int) = 1 at hbad
+  omega
 
 theorem nextpowLowerBound_refuted : ¬ NextpowLowerBound := by
   intro h
@@ -17211,6 +17235,12 @@ private def approvedIds : List String := [
 ]
 
 private def revisedEntries : List Entry := [
+  refutedEntry "intfuncs-gcdx-nary-signed-bezout" ["gcdx(a::Real, b::Real, cs::Real...)"]
+    "For every signed native width and arbitrary operands, a successful n-ary gcdx result satisfies the exact mathematical integer Bezout identity with its returned coefficients."
+    "base/intfuncs.jl:196-204,228-233,264-274"
+    ``GcdxNarySignedExactBezout ``gcdxNarySignedExactBezout_refuted
+    "Related PR #59678; no exact upstream duplicate found in the limited search."
+    "gcdx(Int8(30),Int8(34),Int8(35)) returns (1,120,119,1); the exact coefficient sum is 7681, while native wrapping arithmetic gives 1.",
   provenEntry "intarith-number-invmod-byte-range" ["invmod"]
     "At every source and modulus width and sign, invmod returns a modular inverse in the documented truncated-division range exactly for a nonzero coprime modulus, and otherwise throws DomainError."
     "base/intfuncs.jl:292-294,309" ``approvedRound2.InvmodAllWidths ``opusInvmodW.invmodAllWidths_proven,

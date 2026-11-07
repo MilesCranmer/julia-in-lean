@@ -1,0 +1,93 @@
+id: intfuncs-gcdx-nary-signed-bezout
+title: "Signed n-ary gcdx can return coefficients that fail the exact Bezout identity"
+priority: P2
+kind: wrong-result
+area: IntFuncsCov
+files: [base/intfuncs.jl]
+functions: ["gcdx(a::Real, b::Real, cs::Real...)"]
+summary: |
+  gcdx(Int8(30), Int8(34), Int8(35)) returns (1, 120, 119, 1).
+  The exact integer coefficient sum is 30*120 + 34*119 + 35 = 7681,
+  rather than the returned gcd 1. Native Int8 arithmetic wraps that sum to 1.
+  Confirmed on Julia 1.13.2, commit 45b6d15e34bbd2003a31acce0b1847b63dad029c,
+  and Julia 1.15.0-DEV.unknown, commit f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+likelihood: |
+  Three small positive signed integers suffice. No minimum or maximum signed
+  input, mixed signedness, or nonstandard integer type is required. Code using
+  the returned coefficients in wider arithmetic can observe the wrong identity.
+maybe_intended: |
+  PR 59678 describes a modulo-T policy for gcdx, which could support accepting
+  the native wrapping identity. However, its October 4 signed check_bezout test
+  widens products and checks exact equality; that test covers binary and mixed
+  cases, rather than n-ary coefficient composition. The pinned docstring states
+  the mathematical n-ary Bezout identity and explicitly qualifies the identity
+  as modulo arithmetic for unsigned integers only. These sources leave the
+  intended signed n-ary overflow policy open to clarification.
+reproducer: |
+  a, b, c = Int8.((30, 34, 35))
+  result = gcdx(a, b, c)
+  d, u, v, w = result
+  exact_lhs = Int(a)*Int(u) + Int(b)*Int(v) + Int(c)*Int(w)
+  native_lhs = a*u + b*v + c*w
+  @show (a, b, c) result exact_lhs native_lhs d
+  @assert d == 1
+  @assert exact_lhs != Int(d)
+  println("REPRODUCED intfuncs-gcdx-nary-signed-bezout")
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    (a, b, c) = (30, 34, 35)
+    result = (1, 120, 119, 1)
+    exact_lhs = 7681
+    native_lhs = 1
+    d = 1
+    REPRODUCED intfuncs-gcdx-nary-signed-bezout
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    (a, b, c) = (30, 34, 35)
+    result = (1, 120, 119, 1)
+    exact_lhs = 7681
+    native_lhs = 1
+    d = 1
+    REPRODUCED intfuncs-gcdx-nary-signed-bezout
+reproduced: {release: true, nightly: true}
+expected: |
+  A successful signed result satisfies the exact integer Bezout identity.
+  For these inputs, (1, 0, -1, 1) is one representable solution because
+  30*0 + 34*(-1) + 35*1 = 1. No minimality of n-ary coefficients is required.
+promised_by: |
+  Pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  base/intfuncs.jl:200-202 says gcdx(a, b, c, ...) returns a solution to
+  "u*a + v*b + w*c + ... = d = gcd(a, b, c, ...)".
+  Lines 231-233 say that for unsigned integers the identity holds only via
+  their modulo arithmetic. The reproducer uses signed integers exclusively.
+  https://github.com/JuliaLang/julia/blob/f755f49a9e41380d7da126b3c1db9fe7f83dd027/base/intfuncs.jl#L194-L233
+cause: |
+  base/intfuncs.jl:271 obtains gcdx(30, 34) = (2, 8, -7).
+  Line 272 obtains gcdx(2, 35) = (1, -17, 1). Line 273 returns
+  (d', i*x, j*x, ys...), multiplying the signed coefficients without widening
+  or checking overflow. The product 8*(-17) = -136 wraps to Int8(120),
+  while (-7)*(-17) = 119 fits. The returned gcd is correct, but its
+  coefficients satisfy only the native modular identity.
+possible_fix: |
+  Preserve exact coefficient products during n-ary composition, or report
+  overflow instead of returning coefficients that violate the signed identity.
+duplicates:
+  issues: []
+  prs:
+    - number: 59678
+      relation: related
+      url: https://github.com/JuliaLang/julia/pull/59678
+  search_notes: |
+    No exact upstream duplicate was found in the limited review of existing
+    local reports and PR 59678; this was not an exhaustive upstream search.
+    The local strict-bounds report concerns binary coefficient bounds, and the
+    mixed-typemin report concerns conversion errors. The rational wrapped-Bezout
+    report wraps scaled input operands before its binary solver, rather than
+    wrapping returned coefficients during n-ary composition.
+  queries:
+    - "local bugs/ and repro/ search: gcdx, Bezout, wrapped-bezout"
+    - "https://github.com/JuliaLang/julia/pull/59678"
+lean:
+  property: JuliaLean.Proofs.base.intfuncs.GcdxNarySignedExactBezout
+  theorem: JuliaLean.Proofs.base.intfuncs.gcdxNarySignedExactBezout_refuted

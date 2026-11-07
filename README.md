@@ -2,7 +2,7 @@
 
 Julia source code modelled in Lean 4. Each modelled function has a Lean definition following the Julia source. Properties taken from a docstring, the manual, or an invariant are recorded as proven, refuted, or open. A refutation proves the negation of a property in the model; runtime evidence in the associated report establishes whether it is also a Julia bug.
 
-The repository holds two Lean packages. `julia-base/` models parts of Julia Base and several standard libraries: 8,837 registered properties, 7,069 proven, 744 refuted and 1,024 open (`todo`), with 688 bug write-ups and 107 issues filed on JuliaLang/julia. `dynamicexpressions/` models DynamicExpressions.jl, the expression-tree package behind SymbolicRegression.jl and PySR: 385 properties in the first pass (332 proven, 53 refuted), 38 fix pull requests merged upstream, and a current registry of 400 entries with 394 proven and 6 refuted.
+The repository holds two Lean packages. `julia-base/` models parts of Julia Base and several standard libraries: 8,838 registered properties, 7,072 proven, 745 refuted and 1,021 open (`todo`), with 689 bug write-ups and 107 issues filed on JuliaLang/julia. `dynamicexpressions/` models DynamicExpressions.jl, the expression-tree package behind SymbolicRegression.jl and PySR: 385 properties in the first pass (332 proven, 53 refuted), 38 fix pull requests merged upstream, and a current registry of 400 entries with 394 proven and 6 refuted.
 
 The method is described in enough detail to repeat it for another package.
 
@@ -198,21 +198,21 @@ Lean 4.34.1 (`lean-toolchain`: `leanprover/lean4:v4.34.1`), no Mathlib.
 
 | Count | |
 | --- | --- |
-| Registry entries | 8,837 |
-| Proven | 7,069 |
-| Refuted | 744 |
-| Open (`todo`) | 1,024 |
-| Bug write-ups | 688 |
+| Registry entries | 8,838 |
+| Proven | 7,072 |
+| Refuted | 745 |
+| Open (`todo`) | 1,021 |
+| Bug write-ups | 689 |
 
 The source-layout migration is complete: 197 Base model files follow `JuliaLean/base/<path>.lean`, with properties and proofs in `JuliaLean/Proofs/base/<path>.lean` and source-linked subfolders. The old area-level directories have been removed. Open properties retain status `todo`; moving and compiling them does not establish their truth or the model's faithfulness. Earlier commits recorded independent reviews of 19 Base files: `arraymath`, `bool`, `checked`, `cmem`, `complex`, `float`, `hamt`, `int`, `linked_list`, `multidimensional`, `multinverses`, `number`, `pair`, `rational`, `slicearray`, `strings/cstring`, `strings/search`, `strings/substring` and `strings/unicode`. Those reviews predate this migration and do not certify the current source.
 
-Of the 744 refuted registry entries, 610 have a write-up with the same id, 123 share a report through its `covers` field, and 11 have no corresponding public write-up. The other write-ups cover 32 open (`todo`) entries, 18 proven entries, 8 C runtime model counterexamples that real Julia has not reproduced, and 20 issues without a Base registry entry. Bug write-ups by priority:
+Of the 745 refuted registry entries, 611 have a write-up with the same id, 123 share a report through its `covers` field, and 11 have no corresponding public write-up. The other write-ups cover 32 open (`todo`) entries, 18 proven entries, 8 C runtime model counterexamples that real Julia has not reproduced, and 20 issues without a Base registry entry. Bug write-ups by priority:
 
 | Priority | Count |
 | --- | --- |
 | P0 | 6 |
 | P1 | 69 |
-| P2 | 397 |
+| P2 | 398 |
 | P3 | 216 |
 
 Coverage is partial across 197 Base model files and selected standard libraries, including Printf, Dates, Base64, UUIDs, CRC32c, TOML, Markdown, Sockets, Serialization, Artifacts, Random and Unicode.

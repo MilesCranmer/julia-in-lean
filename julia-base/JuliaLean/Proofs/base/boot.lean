@@ -1,3 +1,4 @@
+import JuliaLean.Proofs.base.int
 import JuliaLean.Registry.Types
 import JuliaLean.base.boot
 import JuliaLean.base.essentials
@@ -6285,6 +6286,39 @@ def ArraySizeIndexSemantics : Prop :=
   ∀ (V : Type) (array : ConcreteArrayHeader V) (i : JInt .i64),
     ArraySizeOutcome array i (arraySizeAt array i)
 
+theorem arraySizeIndexSemantics_proven : ArraySizeIndexSemantics := by
+  intro V array i
+  have countRange : IntTy.i64.min ≤ (array.size.values.length : Int) ∧
+      (array.size.values.length : Int) ≤ IntTy.i64.max := by
+    have bound := array.size.fieldCount
+    change array.size.values.length ≤ 4294967295 at bound
+    change -9223372036854775808 ≤ (array.size.values.length : Int) ∧
+      (array.size.values.length : Int) ≤ 9223372036854775807
+    omega
+  have countValue : (JInt.wrap .i64 array.size.values.length).val =
+      (array.size.values.length : Int) := by
+    change wrapInt .i64 (array.size.values.length : Int) = _
+    exact wrapInt_of_inRange .i64 (array.size.values.length : Int) countRange
+  have compare : JuliaLean.base.int.sle_int i (JInt.wrap .i64 array.size.values.length) =
+      decide (i.val ≤ (array.size.values.length : Int)) := by
+    unfold JuliaLean.base.int.sle_int JuliaLean.C.jlSleInt
+    rw [JuliaLean.Proofs.base.int.fromJInt_toInt i rfl,
+      JuliaLean.Proofs.base.int.fromJInt_toInt (JInt.wrap .i64 array.size.values.length) rfl,
+      countValue]
+  rw [arraySizeAt, compare]
+  by_cases within : i.val ≤ (array.size.values.length : Int)
+  · by_cases nonpositive : i.val < 1
+    · simp only [within, nonpositive, ↓reduceIte,
+        throw, throwThe, MonadExceptOf.throw, ArraySizeOutcome]
+      exact ⟨by omega, rfl, rfl, rfl⟩
+    · have indexBound : (i.val - 1).toNat < array.size.values.length := by omega
+      simp only [within, nonpositive, ↓reduceIte,
+        List.getElem?_eq_getElem indexBound, Pure.pure, Except.pure, ArraySizeOutcome]
+      exact Or.inr ⟨by omega, True.intro, rfl⟩
+  · simp only [within, Pure.pure, Except.pure, ArraySizeOutcome]
+    exact Or.inl ⟨by omega, rfl⟩
+
+
 def entriesMetadata : List Entry := [
   { id := "boot-parameterized-pointer-bits", juliaFile := "base/boot.jl"
     juliaFns := ["(PT::Type{Ptr{T}} where T)(x::Union{Int,UInt,Ptr}=0)"]
@@ -6306,7 +6340,7 @@ def entriesMetadata : List Entry := [
     juliaFns := ["arraysize(a::Array, i::Int)"]
     statement := "Indexed arraysize returns stored dimensions, returns one past rank, and reports BoundsError with the original size tuple/index for every nonpositive native index."
     source := "base/boot.jl:1288; base/runtime_internals.jl:626,716-723"
-    status := .todo, prop := ``ArraySizeIndexSemantics, thm := none }
+    status := .proven, prop := ``ArraySizeIndexSemantics, thm := some ``JuliaLean.Proofs.base.boot.Models2Group1.arraySizeIndexSemantics_proven }
 ]
 
 end JuliaLean.Proofs.base.boot.Models2Group1
@@ -7461,12 +7495,44 @@ theorem showStdoutDispatch_proven : ShowStdoutDispatch := by
     | ok result => rcases result with ⟨value, after⟩; simp [h, OneCallObservation]
 end
 
+theorem printlnValuesSequence_proven : PrintlnValuesSequence := by
+  intro W L encoding dispatch io values world
+  cases first : dispatch (coreV encoding "print") (io :: values.values) world with
+  | none =>
+    simp [printlnValues, observeLinePrinting, recordCall, Bind.bind, first,
+      PrintlnCallSequence]
+  | some result =>
+    cases result with
+    | error error =>
+      rcases error with ⟨error, after⟩
+      simp [printlnValues, observeLinePrinting, recordCall, Bind.bind, first,
+        PrintlnCallSequence]
+    | ok result =>
+      rcases result with ⟨ignored, middle⟩
+      cases last : dispatch (coreV encoding "println") [io] middle with
+      | none =>
+        simp [printlnValues, observeLinePrinting, recordCall, Bind.bind, first, last,
+          PrintlnCallSequence]
+        exact ⟨ignored, middle, ⟨rfl, rfl⟩, last⟩
+      | some result =>
+        cases result with
+        | error error =>
+          rcases error with ⟨error, after⟩
+          simp [printlnValues, observeLinePrinting, recordCall, Bind.bind, first, last,
+            PrintlnCallSequence]
+          exact ⟨ignored, middle, ⟨rfl, rfl⟩, last⟩
+        | ok result =>
+          rcases result with ⟨value, after⟩
+          simp [printlnValues, observeLinePrinting, recordCall, Bind.bind, first, last,
+            PrintlnCallSequence]
+          exact ⟨ignored, middle, ⟨rfl, rfl⟩, last⟩
+
 def entriesIOForwarding : List Entry := [
   { id := "boot-println-values-sequence", juliaFile := "base/boot.jl"
     juliaFns := ["println(io::IO, @nospecialize x...)"]
     statement := "Vararg println preserves original IO/values, print-before-newline order, and every arbitrary dispatch result, error, state change or divergence, including raw empty-tail invocation."
     source := "base/boot.jl:1002; native call-arity invariant from src/julia.h:2591-2598"
-    status := .todo, prop := ``PrintlnValuesSequence, thm := none
+    status := .proven, prop := ``PrintlnValuesSequence, thm := some ``JuliaLean.Proofs.base.boot.Models2Group1.printlnValuesSequence_proven
     notes := "Only calls selected on unfixed IO/value types are parameters. No callback replaces this method's own body or recursion." },
   { id := "boot-show-stdout-dispatch", juliaFile := "base/boot.jl"
     juliaFns := ["show(@nospecialize a)"]

@@ -5914,6 +5914,85 @@ theorem fldmodPairConservation_proven : FldmodPairConservation := by
   intro A B Quot Rem S U ops x y initial
   exact quotientPairSequence (.fld1 x y) (.mod1 x y) (ops.fld1 x y) (ops.mod1 x y) initial
 
+theorem widenValueProvenance_proven : WidenValueProvenance := by
+  intro Ty Widened R S U Values ops T x initial
+  cases first : ops.widenType T initial with
+  | error error after =>
+    simp only [widenValue, observeWiden, comparisonObserveCall, first,
+      List.nil_append, bind, EStateM.bind]
+    refine ⟨⟨⟨[.convert], rfl⟩, ?_, ⟨rfl, True.intro⟩, rfl, ?_⟩, ?_, ?_, ?_, ?_⟩
+    · intro impossible
+      cases impossible
+    · intro before later call error' trace outcome
+      obtain ⟨rfl, rfl, rfl⟩ := singleton_decomposition before later call _ trace
+      exact ⟨rfl, congrArg some (Except.error.inj outcome)⟩
+    · intro error' outcome
+      exact Or.inl ⟨_, List.mem_singleton_self _,
+        congrArg Except.error (Option.some.inj outcome)⟩
+    · intro call member
+      cases List.mem_singleton.mp member
+      rfl
+    · intro before call later trace phase
+      obtain ⟨rfl, rfl, rfl⟩ := singleton_decomposition before later call _ trace
+      cases phase
+    · intro value final impossible
+      cases impossible
+  | ok target middle =>
+    cases second : ops.convert target x middle with
+    | error error after =>
+      simp only [widenValue, observeWiden, comparisonObserveCall, first, second,
+        List.nil_append, bind, EStateM.bind]
+      refine ⟨⟨⟨[], rfl⟩, ?_, ⟨rfl, rfl, True.intro⟩, rfl, ?_⟩, ?_, ?_, ?_, ?_⟩
+      · intro impossible
+        cases impossible
+      · intro before later call error' trace outcome
+        rcases pairTraceDecomposition _ _ before later call trace with h | h
+        · rcases h with ⟨rfl, rfl, rfl⟩
+          cases outcome
+        · rcases h with ⟨rfl, rfl, rfl⟩
+          exact ⟨rfl, congrArg some (Except.error.inj outcome)⟩
+      · intro error' outcome
+        exact Or.inl ⟨_, List.mem_cons_of_mem _ (List.mem_singleton_self _),
+          congrArg Except.error (Option.some.inj outcome)⟩
+      · intro call member
+        simp only [traceOf, resultState, List.nil_append, List.singleton_append,
+          List.mem_cons, List.not_mem_nil, or_false] at member
+        rcases member with rfl | rfl
+        · rfl
+        · trivial
+      · intro before call later trace phase
+        rcases pairTraceDecomposition _ _ before later call trace with h | h
+        · rcases h with ⟨rfl, rfl, rfl⟩
+          cases phase
+        · rcases h with ⟨rfl, rfl, rfl⟩
+          exact ⟨target, rfl, _, List.mem_singleton_self _, rfl, rfl⟩
+      · intro value final impossible
+        cases impossible
+    | ok value after =>
+      simp only [widenValue, observeWiden, comparisonObserveCall, first, second,
+        List.nil_append, bind, EStateM.bind]
+      refine ⟨⟨⟨[], rfl⟩, (fun _ => rfl), ⟨rfl, rfl, True.intro⟩, rfl, ?_⟩, ?_, ?_, ?_, ?_⟩
+      · intro before later call error trace outcome
+        rcases pairTraceDecomposition _ _ before later call trace with h | h <;>
+          rcases h with ⟨rfl, rfl, rfl⟩ <;> cases outcome
+      · intro error outcome
+        cases outcome
+      · intro call member
+        simp only [traceOf, resultState, List.nil_append, List.singleton_append,
+          List.mem_cons, List.not_mem_nil, or_false] at member
+        rcases member with rfl | rfl
+        · rfl
+        · trivial
+      · intro before call later trace phase
+        rcases pairTraceDecomposition _ _ before later call trace with h | h
+        · rcases h with ⟨rfl, rfl, rfl⟩
+          cases phase
+        · rcases h with ⟨rfl, rfl, rfl⟩
+          exact ⟨target, rfl, _, List.mem_singleton_self _, rfl, rfl⟩
+      · intro returned final outcome
+        cases outcome
+        exact ⟨_, rfl, rfl⟩
+
 theorem stableTypePayloadErasure_proven : StableTypePayloadErasure := by
   constructor
   · intro x; cases x <;> rfl
@@ -5964,7 +6043,7 @@ def Models2Group15.entriesPostShift15 : List Entry := [
     juliaFns := ["widen(x::T) where {T}"],
     statement := "Value widening queries its static parameter T, passes the observed unrestricted target and unchanged input to convert, and forwards the actual conversion result with all state/error effects; every conversion target has a preceding widen result as provenance.",
     source := "base/operators.jl:954-975; doc/src/manual/conversion-and-promotion.md:52-53",
-    status := .todo, prop := ``Models2Group15.WidenValueProvenance, thm := none },
+    status := .proven, prop := ``Models2Group15.WidenValueProvenance, thm := some ``JuliaLean.Proofs.base.operators.Models2Group15.widenValueProvenance_proven },
   { id := "operators-widen-type-rejection-frame", juliaFile := "base/operators.jl",
     juliaFns := ["widen(x::Type{T}) where {T}"],
     statement := "The selected Type fallback raises MethodError(widen) for every type parameter without changing the world or reaching any arbitrary effectful continuation.",
